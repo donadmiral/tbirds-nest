@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-31T18:51:58.525292+00:00",
+  "status": "Locally verified follow-up; provider-level acceptance and complete native acceptance are not claimed.",
+  "priorReceipt": {
+    "path": "docs/quality/full-platform-audit-20261031/web-repair/review.json",
+    "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2",
+    "unchanged": true
+  },
+  "defect": "The initial repaired hook bounded getSession but awaited the profile UPDATE without a deadline or abort signal. Held responses kept saving/writing pending; same-owner session replacement/ABA during queued auth could dispatch an obsolete intent.",
+  "changes": [
+    "The existing navigation store revision and exact verified owner/session namespace fence reads, mutations and post-await dispatch. A same-owner replacement or A\u2192B\u2192A invalidates loaded words immediately; the editor requires a new authorized read.",
+    "Read and update queries pin the explicitly verified bearer and carry AbortSignals. Unmount or session scope change aborts active transport; each asynchronous request retains the existing 12,000 ms deadline. No shared timeout/auth/cache source changed.",
+    "A failed or timed-out dispatched update aborts the request and preserves the draft, then reloads the authoritative saved list before editing can resume. Failed or held reconciliation is bounded and leaves controls disabled with an explicit read-only retry.",
+    "A lost acknowledgement after an already committed update is recovered through readback. No automatic write replay occurs; adding an already present word only clears the retained draft. Late old acknowledgements or read results cannot publish across scope/unmount/new reads."
+  ],
+  "validation": {
+    "runtime": "Chromium 153.0.8010.12",
+    "finalBrowserCases": 64,
+    "originalCasesPreserved": 48,
+    "newCases": 16,
+    "passed": 64,
+    "failed": 0,
+    "uncaughtBrowserErrors": 0,
+    "externalRequests": 0,
+    "priorExactHookWithFinalFocusedHarness": {
+      "cases": 16,
+      "passed": 2,
+      "failed": 14,
+      "passingControls": [
+        "Pre-dispatch held auth already had a deadline",
+        "Unmount before pending auth returned already fenced dispatch"
+      ]
+    },
+    "typescriptExit": 0,
+    "scopedLintExit": 0,
+    "scopedWhitespaceExit": 0,
+    "frozenSourcesUnchanged": true,
+    "command": "PLATINUM_CHROMIUM=/tmp/platinum-audit-browser/chrome-linux64/chrome PLATINUM_MEMBER_ARTIFACTS=<output> node web/tests/browser/member-resilience-run.cjs",
+    "focusedEnvironment": "PLATINUM_MEMBER_FOCUS=word-write",
+    "baselineEnvironment": "PLATINUM_WORD_PREFERENCES_SOURCE=<exact preserved before-useWordPreferences.ts>"
+  },
+  "coverage": [
+    "Hidden and muted list held updates",
+    "Committed update with lost acknowledgement and no replay",
+    "Returned-error, rejected and held reconciliation, followed by read-only retry success",
+    "Held pre-dispatch session lookup deadline",
+    "Pre-dispatch unmount, different account, A\u2192B\u2192A and same-owner session replacement",
+    "Dispatched unmount, A\u2192B\u2192A and session replacement",
+    "Account A\u2192B\u2192A during a held reconciliation read"
+  ],
+  "harnessCorrections": [
+    "One initial candidate attempt used a production relative Supabase import instead of the synthetic adapter, leaving navigation scope uninitialized. The established ./supabase/client alias was added; that failed harness attempt is excluded from product results.",
+    "The installed PostgREST builder exposes abortSignal before maybeSingle; TypeScript identified and resolved the method ordering before final source freeze."
+  ],
+  "limits": [
+    "Actual React pages and hook execute in Chromium with synthetic Auth/database responses and Next routing adapter. This does not establish hosted RLS/provider behavior or a whole-app account-remount journey.",
+    "Held responses deliberately ignore abort so the tests prove bounded waits and stale-completion fences even when transport is uncooperative. Signal delivery is observed; server transaction cancellation is not established.",
+    "Readback is an authoritative point-in-time recovery, not a compare-and-swap or proof that a previously dispatched server transaction cannot commit later. No database column type, schema migration or cross-client atomicity guarantee is invented.",
+    "Each request stage has a 12-second deadline. An ambiguous update can additionally require bounded authentication and saved-list reads; this is not a claim of one total 12-second recovery budget.",
+    "The whole-array preference still requires ordinary server conflict semantics across independent concurrent writers; this follow-up does not introduce a schema-specific CAS."
+  ],
+  "sourceManifest": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/source-manifest.json",
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/after-browser.json.gz",
+      "bytes": 7192,
+      "sha256": "3796f3512cbee06463c22c306981f590cffb76549fbde5fbb9d71b1201d4cd26"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/after-browser.log.txt",
+      "bytes": 5327,
+      "sha256": "9731719484c764bf03387d43b82c77480d8299bf2766733972216f310c8c18f6"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/after-summary.json",
+      "bytes": 11438,
+      "sha256": "046e1a0b565d0af8a5836e2e6296c2e1aa96937243f99d8f9e3cd1a3eefadb56"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/before-browser.json.gz",
+      "bytes": 1886,
+      "sha256": "ff42b63d81910a32f9cd30efeadf9d339f37479a2e023abe9e9940ef8ee5444a"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/before-browser.log.txt",
+      "bytes": 2948,
+      "sha256": "bb50f58f5147a7f8ccbdcf292ddbac4c63de63862814fd7149dfc9827d61b38f"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/before-held-write.png",
+      "bytes": 24836,
+      "sha256": "0baeb06168618f9f530685b36fb8a0f14b886f0cdc186ebf945506afccd00498"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/before-summary.json",
+      "bytes": 5361,
+      "sha256": "41df496c699542c710d270fe0d2575e6e9d0d8f4f95f7990aee43e43ccb529d7"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/before-useWordPreferences.ts.txt",
+      "bytes": 3423,
+      "sha256": "dc980cf4a68583891199401e52d4a392ec45e6ffae245d3db4c1a336b2072e0c"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/lint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/source-manifest.json",
+      "bytes": 1568,
+      "sha256": "a3170b4a4844682b5ce4f32936ab56df49a0a9214337fbf84469294480fe853a"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

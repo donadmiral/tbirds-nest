@@ -1,0 +1,16 @@
+{
+  "source": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "scope": "Conservative static JSX/style ancestry using actual themedSheet factories/palettes and pre-existing contrast helper. Simple explicit Text style and nearest statically resolved containing background only; dynamic/image-backed ancestors excluded. Candidate findings require source ancestry review; not native pixel/device acceptance.",
+  "filesScanned": 240,
+  "evaluatedFinitePairs": 2772,
+  "failedCandidates": 406,
+  "unresolvedNonfinitePairs": 18,
+  "skipped": 760,
+  "rawGzip": "style-ancestry-sweep.json.gz",
+  "rawSha256": "fcd665921f0f2d7c13e80b0f210f8c66e51eb67d3134fe08ef579d3845e6f53f",
+  "limits": [
+    "Candidate findings require actual ancestor/media-background review.",
+    "Nonfinite pairs include unsupported4-digit-alpha color parsing and are harness unresolved, not product failures.",
+    "Focused contrast-audit.json is the separately reviewed six-screen result."
+  ]
+}

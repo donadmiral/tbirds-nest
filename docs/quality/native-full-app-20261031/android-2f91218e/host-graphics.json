@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "phase": "host",
+  "passed": true,
+  "requested": {
+    "glesMode": "host",
+    "hostSoftwareDriver": "llvmpipe",
+    "guestVulkan": false
+  },
+  "inputs": [
+    {
+      "path": "native-ui-logs/host-graphics.log",
+      "bytes": 1772,
+      "sha256": "083d1baad9b4cf6aaedbf54121d13034d41b5b25cb6fe736874b4a874f1e9858",
+      "scope": "prefix present at open",
+      "sizeAfterRead": 1772
+    }
+  ],
+  "limits": [
+    "Renderer identity only; this does not establish UI, movie, physical-device or Vulkan acceptance."
+  ],
+  "host": {
+    "vendor": "Mesa",
+    "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)"
+  }
+}

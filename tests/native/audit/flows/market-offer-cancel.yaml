@@ -1,0 +1,30 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit listing offer entry and cancel
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: market-offer-cancel
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Make offer"
+    timeout: 15000
+
+- tapOn: Make offer
+- assertVisible: Make an offer
+- tapOn: Your amount
+- inputText: 9
+- tapOn: Cancel
+- assertVisible: Make offer
+- takeScreenshot: market-offer-cancel

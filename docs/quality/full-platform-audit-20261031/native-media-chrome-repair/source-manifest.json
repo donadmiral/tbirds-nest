@@ -1,0 +1,27 @@
+[
+  {
+    "path": "src/components/FullscreenVideo.tsx",
+    "bytes": 13337,
+    "sha256": "a284f3ce5ee0d131079103bdae0e736b38d141086d3cfea2cfb40f4e8471e19f"
+  },
+  {
+    "path": "src/components/TrendingStoriesRail.tsx",
+    "bytes": 6782,
+    "sha256": "9f284a336714c5a0e90344be89ffa294804c4823d489e36d374bdeb06cbcc62e"
+  },
+  {
+    "path": "src/components/TierName.tsx",
+    "bytes": 936,
+    "sha256": "d45ba55c67dc2eae4ababb09fb1f9f9b5e598d5faa12d3b1ca9c2916d9b85dd5"
+  },
+  {
+    "path": "tests/quality/native-media-chrome-contrast.cjs",
+    "bytes": 6913,
+    "sha256": "db0d6a65c681593fc15288493be98c84c8f00173c4a5eea76dbcac074d75b08e"
+  },
+  {
+    "path": "tests/fullscreen-video-accessibility.test.cjs",
+    "bytes": 7713,
+    "sha256": "a06f2e49afac0276ec445d02960e252d81dd90667f893b8462613284c7f1a7ae"
+  }
+]

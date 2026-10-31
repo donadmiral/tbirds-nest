@@ -1,4 +1,4 @@
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -51,6 +51,7 @@ function relTime(d?: string | null) {
 }
 
 export default function MessageRequestsScreen({ navigation }: any) {
+  const { t, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
@@ -206,7 +207,7 @@ export default function MessageRequestsScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <Feather name="chevron-left" size={26} color="#000" />
@@ -257,7 +258,7 @@ const s = themedSheet((t) => ({
     borderBottomColor: '#E5E7EB',
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 17, fontWeight: '700', color: '#000' },
+  title: { fontSize: 17, fontWeight: '700', color: t.ink.primary },
 
   infoBanner: {
     flexDirection: 'row',
@@ -271,8 +272,8 @@ const s = themedSheet((t) => ({
 
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 10 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#000' },
-  emptySub: { fontSize: 14, color: '#8E8E93', textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: t.ink.primary },
+  emptySub: { fontSize: 14, color: t.ink.muted, textAlign: 'center', lineHeight: 20 },
 
   card: {
     backgroundColor: '#F7F7F7',
@@ -287,7 +288,7 @@ const s = themedSheet((t) => ({
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
   handle: { fontSize: 12, color: '#8E8E93', maxWidth: 180 },
   dot: { fontSize: 12, color: '#C7C7CC' },
-  time: { fontSize: 11, color: '#8E8E93' },
+  time: { fontSize: 11, color: '#63666E' },
 
   preview: {
     fontSize: 13,
@@ -305,7 +306,7 @@ const s = themedSheet((t) => ({
     justifyContent: 'center',
   },
   btnDecline: { backgroundColor: t.surface.canvas, borderWidth: 1, borderColor: '#E5E7EB' },
-  btnDeclineTxt: { fontSize: 14, fontWeight: '700', color: '#374151' },
+  btnDeclineTxt: { fontSize: 14, fontWeight: '700', color: t.ink.primary },
   btnAccept: { backgroundColor: '#000' },
-  btnAcceptTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
+  btnAcceptTxt: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 }));

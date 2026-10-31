@@ -1,0 +1,344 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce"
+  },
+  "status": "All five supporting native jobs completed successfully",
+  "jobs": [
+    {
+      "platform": "android",
+      "run": 41225636330,
+      "id": 124609086764,
+      "name": "Compile Kotlin and Android native integration",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "started_at": "2026-10-31T17:40:10Z",
+      "completed_at": "2026-10-31T17:55:08Z",
+      "verificationSteps": [
+        {
+          "name": "Compile the unsigned Android QA target",
+          "conclusion": "success"
+        },
+        {
+          "name": "Keep compiler diagnostics only",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "run": 41225636330,
+      "id": 124609087003,
+      "name": "Verify encoded story audio and memory movies on Android Emulator",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "started_at": "2026-10-31T17:40:11Z",
+      "completed_at": "2026-10-31T17:46:21Z",
+      "verificationSteps": [
+        {
+          "name": "Exercise the actual story and memory encoders in an isolated emulator",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "run": 41225636295,
+      "id": 124609086693,
+      "name": "Verify full memory movies on iOS Simulator",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "started_at": "2026-10-31T17:40:10Z",
+      "completed_at": "2026-10-31T17:48:47Z",
+      "verificationSteps": []
+    },
+    {
+      "platform": "ios",
+      "run": 41225636295,
+      "id": 124609086852,
+      "name": "Compile Swift and native integration",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "started_at": "2026-10-31T17:40:10Z",
+      "completed_at": "2026-10-31T17:56:53Z",
+      "verificationSteps": [
+        {
+          "name": "Compile the unsigned iOS Simulator target",
+          "conclusion": "success"
+        },
+        {
+          "name": "Keep compiler diagnostics only",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "run": 41225636295,
+      "id": 124609086902,
+      "name": "Verify encoded story audio on iOS Simulator",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "started_at": "2026-10-31T17:40:10Z",
+      "completed_at": "2026-10-31T17:44:33Z",
+      "verificationSteps": [
+        {
+          "name": "Verify actual story soundtrack movies in an isolated simulator",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "encoderCounts": {
+    "androidStory": 23,
+    "androidMemory": 16,
+    "iosStory": 8,
+    "iosMemory": 11,
+    "total": 58
+  },
+  "logEvidence": {
+    "android_encoder": {
+      "jobLogSha256": "af3083221a8f1ecb735293eb0b90b6ff9181828fe9a86773d7a0b77fa43d3c76",
+      "bytes": 119371,
+      "checkoutMergeObserved": "5333fddeaab859dfde2079266aafb07ffd94f329",
+      "emittedSummary": {
+        "commit": "5333fddeaab859dfde2079266aafb07ffd94f329",
+        "workflowRun": "41225636330",
+        "result": "Android production story and memory encoder instrumentation passed",
+        "compiledSourceCopiesVerified": true,
+        "emulatorBuild": "Android/sdk_phone64_x86_64/emu64x:15/AE3A.240806.019/12368160:userdebug/test-keys",
+        "physicalDeviceAcceptance": false,
+        "installedProductAcceptance": false,
+        "qaOrProductionDataAccessed": false,
+        "storeReleaseOrUpload": false
+      },
+      "actualTestClasses": {
+        "expo.modules.boomerang.MemoryMovieExportTest": 16,
+        "expo.modules.boomerang.StoryAudioExportTest": 23
+      },
+      "actualNamedTests": [
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "imagePreparationRejectsUnsafeInputsAndPreservesExistingFiles",
+          "seconds": "0.073"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "aggregateInputBytesAreBoundedWithoutCopyingLargeSources",
+          "seconds": "0.072"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "sourcePathsRemainConfinedEvenThroughSymlinks",
+          "seconds": "0.051"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "stillScenesKeepOrderAndContinuousDuckedSoundtrack",
+          "seconds": "10.496"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "normalizedJpegHonorsExifOrientation",
+          "seconds": "0.03"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "animatedContainersAreRejectedBeforeStaticPreparation",
+          "seconds": "0.001"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "sceneArtworkFadeAndMotionUseLocalTime",
+          "seconds": "8.325"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "movieLimitsAndGainContinuityAreEnforcedBeforeWriting",
+          "seconds": "0.175"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+          "seconds": "0.838"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "videoPageAndBookAudioPreserveIndependentClocks",
+          "seconds": "12.608"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "cancellationReleasesWriterBeforeRetryAndBlocksStory",
+          "seconds": "3.426"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "onePassBookMusicDoesNotShortenSilentTail",
+          "seconds": "7.024"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "mutedVideoKeepsPageVoiceoverAndSilentCards",
+          "seconds": "9.182"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "zeroGainBookSelectionEncodesSilence",
+          "seconds": "4.562"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "cancelAllStopsMovieAndImagePreparation",
+          "seconds": "1.61"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "normalizedPngIsBoundedAndPreservesTransparency",
+          "seconds": "1.055"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+          "seconds": "3.5"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+          "seconds": "1.486"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+          "seconds": "4.302"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+          "seconds": "4.33"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+          "seconds": "1.612"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "invalidInputsCannotOverwriteOrEscapeTheCache",
+          "seconds": "0.052"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+          "seconds": "0.027"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "soundtrackVolumeAndZeroGainAreEncoded",
+          "seconds": "2.772"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "fullColorMatrixScaleAndTranslationMatchPixels",
+          "seconds": "1.485"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "selectedExcerptLoopsThroughActualStillMovie",
+          "seconds": "1.713"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "originalOnlyAudioIsPreservedAndMeasured",
+          "seconds": "4.333"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "mutedOriginalDoesNotLeakIntoTheMovie",
+          "seconds": "4.343"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+          "seconds": "6.278"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+          "seconds": "0.68"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+          "seconds": "3.041"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+          "seconds": "1.665"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+          "seconds": "1.758"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+          "seconds": "3.16"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+          "seconds": "5.642"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "longVoiceoverIsClippedToTheOutputMovie",
+          "seconds": "1.262"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk",
+          "seconds": "1.009"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+          "seconds": "4.253"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop",
+          "seconds": "4.844"
+        }
+      ]
+    },
+    "ios_story": {
+      "jobLogSha256": "f486d0c652b8ef83583a5687ee9cb81ebb948ddbc35a2394f479255cfce93bee",
+      "bytes": 23607,
+      "checkoutMergeObserved": "5333fddeaab859dfde2079266aafb07ffd94f329",
+      "exactSummary": "Native encoded story audio: all eight named simulator cases passed; all six movies retained and hashed."
+    },
+    "ios_memory": {
+      "jobLogSha256": "2ddb17a2787700f5fbc15a11dab59f66368d2f382f7e618bfa705f224ce74861",
+      "bytes": 20947,
+      "checkoutMergeObserved": "5333fddeaab859dfde2079266aafb07ffd94f329",
+      "exactSummary": "Native whole-book movies: all eleven named simulator cases passed; seven movies and both normalized PNGs retained and hashed."
+    }
+  },
+  "limits": [
+    "This receipt is supporting CI status and source binding, not full installed-app UI acceptance.",
+    "Compiler metadata confirms the existing unsigned QA compile steps succeeded; no huge compiler log or binary artifact was re-downloaded.",
+    "Encoder emitted counters are fresh; exported files were not independently redecoded in this pass.",
+    "No physical iPhone, Apple signing, TestFlight, production backend or store release acceptance follows from these jobs.",
+    "Full native workflow41225636296 remains independently owned and is not counted here."
+  ]
+}

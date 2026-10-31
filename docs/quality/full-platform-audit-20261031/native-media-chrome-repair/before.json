@@ -1,0 +1,53 @@
+{
+  "scope": "Actual source style factories, real TierName render and inspected opacity/background composition. Not native pixel, font-scale or device acceptance.",
+  "observations": [
+    {
+      "name": "light skip label",
+      "color": "#FFFFFF",
+      "opacity": 0.7,
+      "minimum": 4.5,
+      "worst": 1,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "light story name",
+      "color": "#FFFFFF",
+      "opacity": 0.85,
+      "minimum": 4.5,
+      "worst": 1,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark skip label",
+      "color": "#0B1E3D",
+      "opacity": 0.7,
+      "minimum": 4.5,
+      "worst": 1.0252151423170741,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark story name",
+      "color": "#0B1E3D",
+      "opacity": 0.85,
+      "minimum": 4.5,
+      "worst": 1.0018673307379518,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut skip label",
+      "color": "#0B0D10",
+      "opacity": 0.7,
+      "minimum": 4.5,
+      "worst": 1.0050791262994474,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut story name",
+      "color": "#0B0D10",
+      "opacity": 0.85,
+      "minimum": 4.5,
+      "worst": 1.0012435270146631,
+      "sampledMediaPixels": 125
+    }
+  ]
+}

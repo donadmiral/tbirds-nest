@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "commit": "5333fddeaab859dfde2079266aafb07ffd94f329",
+  "workflowRun": "41225636296",
+  "helper": "scripts/quality/native-ui-ios-url-trace.py",
+  "helperSHA256": "fa37e06f5ee645af3fb29aae3f9e080cba24ab276480ac3a981731ee612fd885",
+  "sourceManifestSHA256": "69f5b9e24981e1614c8c210bffa5d25bd10b707e9dd94b46923955596a1c540e",
+  "generatedPath": "ios/PlatinumQA/AppDelegate.swift",
+  "before": {
+    "file": "AppDelegate.before.swift.txt",
+    "bytes": 3993,
+    "sha256": "00c9934c2c9e5afdd6c47bcba339e81274e269e6cc2de9a312cc8c680a552206"
+  },
+  "after": {
+    "file": "AppDelegate.after.swift.txt",
+    "bytes": 5095,
+    "sha256": "b785dc14be9cb062dc7e85a47699f03d077ff86697241fd752d33041c14182d5"
+  },
+  "addedFoundationImport": true,
+  "originalForwardingExpressionSHA256": "b233f3ee5db3b02ffdf7ace984ec9faab90bbe5bf25f936e60351e126f225c27",
+  "exactReversalMatchesBefore": true,
+  "maximumTracedURLs": 16,
+  "maximumLogRecords": 32,
+  "recordFields": [
+    "phase",
+    "sequence",
+    "atUnixMs",
+    "matched"
+  ],
+  "clock": "Foundation Date epoch milliseconds; not calibrated against the host clock",
+  "runtimeAcceptance": false
+}

@@ -1,0 +1,3994 @@
+{
+  "sourceHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "counts": {
+    "not-individually-exercised-in-this-pass": 272,
+    "partially-exercised-actual-page-fixture": 11
+  },
+  "bindings": [
+    {
+      "file": "admin-web/app/ads/page.tsx",
+      "line": 177,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Content approval. Payment is verified separately through IntoBank. Approve",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/ads/page.tsx",
+      "line": 182,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Reject",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/ads/page.tsx",
+      "line": 204,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "End",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/audit/page.tsx",
+      "line": 150,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "View all staff actions",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/audit\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/businesses/page.tsx",
+      "line": 69,
+      "kind": "jsx",
+      "control": "a",
+      "label": "a (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/' + a.applicant_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/businesses/page.tsx",
+      "line": 75,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Approve and create @",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/businesses/page.tsx",
+      "line": 79,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Reason shown to applicant Decline",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/businesses/page.tsx",
+      "line": 94,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Previous applications",
+      "events": [
+        "href"
+      ],
+      "destination": "{href(page, applicationPage - 1)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/businesses/page.tsx",
+      "line": 95,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Next applications",
+      "events": [
+        "href"
+      ],
+      "destination": "{href(page, applicationPage + 1)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/businesses/page.tsx",
+      "line": 125,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Open",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users?q=' + encodeURIComponent(b.username || '')}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/businesses/page.tsx",
+      "line": 131,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Previous businesses",
+      "events": [
+        "href"
+      ],
+      "destination": "{href(page - 1, applicationPage)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/businesses/page.tsx",
+      "line": 132,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Next businesses",
+      "events": [
+        "href"
+      ],
+      "destination": "{href(page + 1, applicationPage)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "line": 23,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to Content",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/content\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "line": 30,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Previous",
+      "events": [
+        "href"
+      ],
+      "destination": "{link(kind, page - 1)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "line": 32,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Next",
+      "events": [
+        "href"
+      ],
+      "destination": "{link(kind, page + 1)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "line": 37,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Open author",
+      "events": [
+        "href"
+      ],
+      "destination": "{`/users/${post.user_id}`}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "line": 50,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Open reports desk",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/reports\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "line": 51,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "I have reviewed this post and confirm its removal. Remove this post",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "line": 51,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Remove this post",
+      "events": [
+        "submit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "line": 54,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{`/users/${comment.user_id}`}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 62,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{d}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 221,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Review reports ↗",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/reports\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 225,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{c.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 249,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Full analytics",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/analytics\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 269,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{n.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 287,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "All members",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/users\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 290,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "@",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/' + u.id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 309,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "All posts",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/content\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 316,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "@",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/content/' + p.id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 369,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Audit log",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/audit\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 408,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{q.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 453,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "applied for",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/queue\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 464,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Reported for",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/reports\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/dashboard/page.tsx",
+      "line": 479,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Manage in Controls",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/system\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/error.tsx",
+      "line": 8,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Try again",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/error.tsx",
+      "line": 8,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to operations",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/dashboard\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/global-error.tsx",
+      "line": 9,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Try again",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/[id]/page.tsx",
+      "line": 24,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "All orders",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/market/orders\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/[id]/page.tsx",
+      "line": 25,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Buyer",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/'+order.buyer_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/[id]/page.tsx",
+      "line": 25,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Seller",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/'+order.seller_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/[id]/page.tsx",
+      "line": 25,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Listings desk",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/market\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/page.tsx",
+      "line": 15,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Listings",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/market\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/page.tsx",
+      "line": 15,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Refresh orders",
+      "events": [
+        "href"
+      ],
+      "destination": "{marketOrdersHref(search.status)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/page.tsx",
+      "line": 19,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "×",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/market/orders/'+order.id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/page.tsx",
+      "line": 20,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/'+order.buyer_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/page.tsx",
+      "line": 20,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/'+order.seller_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/page.tsx",
+      "line": 23,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Newest orders",
+      "events": [
+        "href"
+      ],
+      "destination": "{marketOrdersHref(search.status)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/orders/page.tsx",
+      "line": 23,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Older orders",
+      "events": [
+        "href"
+      ],
+      "destination": "{marketOrdersHref(search.status,page.next_cursor)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/page.tsx",
+      "line": 189,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Review reported seller ratings",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/market/reviews\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/page.tsx",
+      "line": 190,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Investigate orders, returns and disputes",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/market/orders\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "line": 51,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Reports desk",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/reports\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "line": 70,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Reports desk",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/reports\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "line": 73,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Open reports",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/market/reviews\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "line": 76,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "All reports / restore reviews",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/market/reviews?status=all\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "line": 123,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Reviewer",
+      "events": [
+        "href"
+      ],
+      "destination": "{\"/users/\" + report.reviewer_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "line": 131,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Seller",
+      "events": [
+        "href"
+      ],
+      "destination": "{\"/users/\" + report.seller_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "line": 136,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Reporter (staff only)",
+      "events": [
+        "href"
+      ],
+      "destination": "{\"/users/\" + report.reporter_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "line": 151,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Decision reason",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "line": 208,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Older reports",
+      "events": [
+        "href"
+      ],
+      "destination": "{ \"/market/reviews?\" + new URLSearchParams({ status, before: page.next_cursor.created_at, id: page.next_cursor.id, }) }",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/music/OperationsPanel.tsx",
+      "line": 17,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Retry operations status",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/music\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/music/OperationsPanel.tsx",
+      "line": 26,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Provider Choose a provider JSON manifest Up to 100 tracks and 256 KiB per file. Track revisions cannot be overwritten. Stage catalogue",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/music/OperationsPanel.tsx",
+      "line": 27,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Start date (UTC) End date, exclusive (UTC) Choose 1 to 31 days. All dates use UTC. Download operations CSV",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/music/page.tsx",
+      "line": 26,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to Content",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/content\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/music/page.tsx",
+      "line": 28,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Retry audio operations",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/music\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/music/page.tsx",
+      "line": 30,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Provider ID Name Contact reference Notes Save provider",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/music/page.tsx",
+      "line": 31,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Provider Choose a provider Agreement reference Rights holder Territories Intended uses Request downloaded-video rights Starts at (UTC) Ends at (UTC) Evidence or document reference ",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/music/page.tsx",
+      "line": 35,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Open uploader",
+      "events": [
+        "href"
+      ],
+      "destination": "{`/users/${sound.owner_id}`}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/music/page.tsx",
+      "line": 35,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Reason for revocation Revoke sound",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/not-found.tsx",
+      "line": 5,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to operations",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/dashboard\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/organizations/page.tsx",
+      "line": 71,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Find an organization Search",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/organizations/page.tsx",
+      "line": 77,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{archiveHref}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/organizations/page.tsx",
+      "line": 113,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Profile",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/' + org.profile_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/organizations/page.tsx",
+      "line": 115,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Restore",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/organizations/page.tsx",
+      "line": 117,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Archive",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/organizations/page.tsx",
+      "line": 119,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "New owner username Transfer ownership",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/p/[id]/page.tsx",
+      "line": 59,
+      "kind": "jsx",
+      "control": "a",
+      "label": "Open in the app",
+      "events": [
+        "href"
+      ],
+      "destination": "{'platinum-circles://post/' + d!.post.id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/page.tsx",
+      "line": 15,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Staff email Password",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/page.tsx",
+      "line": 26,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Forgot password?",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/reset-password/request\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/ReviewForm.tsx",
+      "line": 8,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Decision Reason shown to creator",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "line": 34,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Open first page",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/payments/creators\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "line": 35,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to payments",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/payments\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "line": 55,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{failure.action === 'Retry' ? creatorFinanceHref(search.cursor) : failure.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "line": 56,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to payments",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/payments\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "line": 67,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to payments",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/payments\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "line": 68,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Refresh records",
+      "events": [
+        "href"
+      ],
+      "destination": "{creatorFinanceHref(search.cursor)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "line": 90,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "First page",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/payments/creators\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "line": 94,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Creator",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/' + enrollment.user_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "line": 104,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Next creator page",
+      "events": [
+        "href"
+      ],
+      "destination": "{creatorFinanceHref(report.next_cursor)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "line": 113,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Creator",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/' + payout.user_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/page.tsx",
+      "line": 152,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Creator finance and reviews",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/payments/creators\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/page.tsx",
+      "line": 156,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Search",
+      "events": [
+        "submit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/page.tsx",
+      "line": 157,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Creator finance",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/payments/creators\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/page.tsx",
+      "line": 160,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Newest",
+      "events": [
+        "href"
+      ],
+      "destination": "{paymentHref(search.status,search.q)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/payments/page.tsx",
+      "line": 162,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Older transfers →",
+      "events": [
+        "href"
+      ],
+      "destination": "{paymentHref(search.status,search.q,page.data.next_cursor)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/reports/page.tsx",
+      "line": 102,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Seller review reports",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/market/reviews\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/reports/page.tsx",
+      "line": 113,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "First page",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/reports\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/reports/page.tsx",
+      "line": 114,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Previous",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/reports?page=' + (page - 1)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/reports/page.tsx",
+      "line": 116,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Next",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/reports?page=' + (page + 1)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/reset-password/RecoveryForms.tsx",
+      "line": 33,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to sign in",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/reset-password/RecoveryForms.tsx",
+      "line": 34,
+      "kind": "jsx",
+      "control": "form",
+      "label": "form (dynamic/unlabelled)",
+      "events": [
+        "onSubmit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/reset-password/RecoveryForms.tsx",
+      "line": 39,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "submit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/reset-password/page.tsx",
+      "line": 9,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Request a new reset link",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/reset-password/request\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/reset-password/page.tsx",
+      "line": 12,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to sign in",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/reset-password/request/page.tsx",
+      "line": 8,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to sign in",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/security/SecurityForm.tsx",
+      "line": 9,
+      "kind": "jsx",
+      "control": "select",
+      "label": "select (dynamic/unlabelled)",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/security/SecurityForm.tsx",
+      "line": 9,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Set up authenticator",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/security/SecurityForm.tsx",
+      "line": 11,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Authenticator code Verify and continue",
+      "events": [
+        "onSubmit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/security/SecurityForm.tsx",
+      "line": 11,
+      "kind": "jsx",
+      "control": "input",
+      "label": "input (dynamic/unlabelled)",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/security/page.tsx",
+      "line": 18,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Continue to operations",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/dashboard\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/security/page.tsx",
+      "line": 18,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Sign out",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/staff/page.tsx",
+      "line": 140,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Add staff member",
+      "events": [
+        "href"
+      ],
+      "destination": "\"#staff-invite\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/staff/page.tsx",
+      "line": 148,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Staff email Temporary password Staff role Create staff account New accounts start with read-only access unless you choose another role. This creates the login; it does not send an ",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/staff/page.tsx",
+      "line": 154,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Create staff account",
+      "events": [
+        "submit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "line": 50,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "&larr; All tickets",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/support\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "line": 57,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/' + t.user_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "line": 71,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Owner Unassigned Priority Queue Escalation Standard Escalated Reason Save assignment",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "line": 87,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Latest",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/support/' + tid}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "line": 88,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Newer",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/support/' + tid + '?page=' + (page - 1)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "line": 89,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Older",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/support/' + tid + '?page=' + (page + 1)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "line": 106,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Send reply",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "line": 114,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "CommandForm (dynamic/unlabelled)",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/page.tsx",
+      "line": 161,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Search subjects Status Open Pending Solved Appeals All tickets Apply",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/page.tsx",
+      "line": 166,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Apply",
+      "events": [
+        "submit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/page.tsx",
+      "line": 169,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "First page",
+      "events": [
+        "href"
+      ],
+      "destination": "{supportHref(1, q, status)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/page.tsx",
+      "line": 170,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Previous",
+      "events": [
+        "href"
+      ],
+      "destination": "{supportHref(page - 1, q, status)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/support/page.tsx",
+      "line": 172,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Next",
+      "events": [
+        "href"
+      ],
+      "destination": "{supportHref(page + 1, q, status)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/system/page.tsx",
+      "line": 41,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "CommandForm (dynamic/unlabelled)",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/system/page.tsx",
+      "line": 53,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Announcement title Message shown in the feed Publish to the platform",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/system/page.tsx",
+      "line": 73,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Retire",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/system/page.tsx",
+      "line": 85,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Blocked word or phrase Block",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/system/page.tsx",
+      "line": 94,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "&times;",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "line": 65,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Lift early",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "line": 72,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Warn - recorded strike only Restrict - no posting or listing Suspend - account hidden Ban - permanent intent Issue",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "line": 86,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Restore account",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "line": 92,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Revoke badge",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "line": 136,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Open post",
+      "events": [
+        "href"
+      ],
+      "destination": "{`/content/${p.id}`}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "line": 137,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Remove",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "line": 159,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Remove",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "line": 253,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/' + u.id + '?tab=' + t}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "line": 28,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to users",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/users\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "line": 29,
+      "kind": "jsx",
+      "control": "a",
+      "label": "Check availability again",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/deletions?page=' + page}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "line": 37,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to users",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/users\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "line": 41,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/' + row.user_id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "line": 55,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Review note Add review note",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "line": 63,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Add review note",
+      "events": [
+        "submit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "line": 64,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Recheck and resume eligible erasure",
+      "events": [
+        "submit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "line": 72,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Previous",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/deletions?page=' + (page - 1)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "line": 73,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Next",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/deletions?page=' + (page + 1)}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/page.tsx",
+      "line": 54,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Deletion requests",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/users/deletions\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/page.tsx",
+      "line": 72,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Previous",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users?' + new URLSearchParams({q:q || '',page:String(page-1)})}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/app/users/page.tsx",
+      "line": 73,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Next",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users?' + new URLSearchParams({q:q || '',page:String(page+1)})}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ActionPopover.tsx",
+      "line": 57,
+      "kind": "jsx",
+      "control": "div",
+      "label": "div (dynamic/unlabelled)",
+      "events": [
+        "onBlur",
+        "onKeyDown"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ActionPopover.tsx",
+      "line": 63,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick",
+        "onKeyDown"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/CommandForm.tsx",
+      "line": 14,
+      "kind": "jsx",
+      "control": "form",
+      "label": "form (dynamic/unlabelled)",
+      "events": [
+        "onSubmit"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/CommandPalette.tsx",
+      "line": 102,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Ctrl / ⌘ K",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/CommandPalette.tsx",
+      "line": 106,
+      "kind": "jsx",
+      "control": "dialog",
+      "label": "Search operations",
+      "events": [
+        "onKeyDown",
+        "onClose",
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/CommandPalette.tsx",
+      "line": 110,
+      "kind": "jsx",
+      "control": "input",
+      "label": "Find a desk or action",
+      "events": [
+        "onChange",
+        "onKeyDown"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/CommandPalette.tsx",
+      "line": 117,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Close search",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/CommandPalette.tsx",
+      "line": 120,
+      "kind": "jsx",
+      "control": "div",
+      "label": "div (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ContentReviewLink.tsx",
+      "line": 10,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{`/content/${id}`}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 135,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 193,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "onClick",
+        "href"
+      ],
+      "destination": "{c.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 281,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 293,
+      "kind": "jsx",
+      "control": "input",
+      "label": "input (dynamic/unlabelled)",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 297,
+      "kind": "jsx",
+      "control": "select",
+      "label": ": All",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 303,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Clear filters",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 312,
+      "kind": "jsx",
+      "control": "article",
+      "label": "article (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 317,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 329,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 340,
+      "kind": "jsx",
+      "control": "div",
+      "label": "div (dynamic/unlabelled)",
+      "events": [
+        "onClick",
+        "onKeyDown"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 366,
+      "kind": "jsx",
+      "control": "select",
+      "label": "Rows per page",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 367,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Back",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 370,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Next",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 375,
+      "kind": "jsx",
+      "control": "div",
+      "label": "div (dynamic/unlabelled)",
+      "events": [
+        "onKeyDown"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 379,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Previous record",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 380,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Next record",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 381,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Close details",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 441,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "CommandForm (dynamic/unlabelled)",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 454,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "submit"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 463,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{l.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 510,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Export these rows (CSV)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 511,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Export all loaded rows (CSV)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 512,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Export these rows (JSON)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Desk.tsx",
+      "line": 514,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Add this table to the presentation",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/MediaPreview.tsx",
+      "line": 66,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Reload media preview",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/MediaPreview.tsx",
+      "line": 86,
+      "kind": "jsx",
+      "control": "video",
+      "label": "video (dynamic/unlabelled)",
+      "events": [
+        "onPlay",
+        "onPause"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/MediaPreview.tsx",
+      "line": 108,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Open photo in full screen",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/MediaPreview.tsx",
+      "line": 117,
+      "kind": "jsx",
+      "control": "div",
+      "label": "/",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/MediaPreview.tsx",
+      "line": 118,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/MediaPreview.tsx",
+      "line": 122,
+      "kind": "jsx",
+      "control": "input",
+      "label": "Video preview position",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/MediaPreview.tsx",
+      "line": 125,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PlatformActivityChart.tsx",
+      "line": 45,
+      "kind": "jsx",
+      "control": "button",
+      "label": "D",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 131,
+      "kind": "jsx",
+      "control": "a",
+      "label": "Back to the dashboard",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/dashboard\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 141,
+      "kind": "jsx",
+      "control": "a",
+      "label": "Presentation builder",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/dashboard\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 147,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Export collected data",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 148,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Export JSON",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 149,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Print / save PDF",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 150,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Present",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 159,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 181,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Previous",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 183,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Next",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 184,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Exit presentation",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 190,
+      "kind": "jsx",
+      "control": "section",
+      "label": "section (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 205,
+      "kind": "jsx",
+      "control": "input",
+      "label": "Presentation title",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 206,
+      "kind": "jsx",
+      "control": "input",
+      "label": "Presentation date range",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 210,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 224,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 233,
+      "kind": "jsx",
+      "control": "textarea",
+      "label": "Key findings",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 239,
+      "kind": "jsx",
+      "control": "input",
+      "label": "input (dynamic/unlabelled)",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 244,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Remove",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "line": 248,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Clear everything",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentTray.tsx",
+      "line": 46,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Open builder",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/PresentTray.tsx",
+      "line": 50,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Clear the presentation tray",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/QueueCounts.tsx",
+      "line": 34,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Work waiting",
+      "events": [
+        "href"
+      ],
+      "destination": "{href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/RefreshDesk.tsx",
+      "line": 10,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReportsDesk.tsx",
+      "line": 34,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReportsDesk.tsx",
+      "line": 43,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReportsDesk.tsx",
+      "line": 69,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Remove post",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReportsDesk.tsx",
+      "line": 75,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Remove listing",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReportsDesk.tsx",
+      "line": 81,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "No violation",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReportsDesk.tsx",
+      "line": 88,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Mark actioned",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReportsDesk.tsx",
+      "line": 92,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "No violation",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReportsDesk.tsx",
+      "line": 99,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Open author",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users?q=' + encodeURIComponent(selected.reportedUsername || '')}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReviewMediaGallery.tsx",
+      "line": 38,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Previous attachment",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReviewMediaGallery.tsx",
+      "line": 40,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Next attachment",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReviewMediaGallery.tsx",
+      "line": 43,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReviewMediaGallery.tsx",
+      "line": 49,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Full screen",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReviewMediaGallery.tsx",
+      "line": 50,
+      "kind": "jsx",
+      "control": "dialog",
+      "label": "Full screen media review",
+      "events": [
+        "onKeyDown",
+        "onCancel",
+        "onClose"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ReviewMediaGallery.tsx",
+      "line": 53,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Close full screen media",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ShareMenu.tsx",
+      "line": 70,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ShareMenu.tsx",
+      "line": 71,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Print or save this view as PDF",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ShareMenu.tsx",
+      "line": 72,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Add a note to the presentation",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ShareMenu.tsx",
+      "line": 74,
+      "kind": "jsx",
+      "control": "textarea",
+      "label": "textarea (dynamic/unlabelled)",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ShareMenu.tsx",
+      "line": 76,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Add to presentation",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ShareMenu.tsx",
+      "line": 79,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Open presentation builder",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SideRail.tsx",
+      "line": 83,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "onClick",
+        "href"
+      ],
+      "destination": "{item.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SideRail.tsx",
+      "line": 93,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SideRail.tsx",
+      "line": 100,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Platinum Circles overview",
+      "events": [
+        "onClick",
+        "href"
+      ],
+      "destination": "\"/dashboard\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SideRail.tsx",
+      "line": 102,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Close navigation",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SideRail.tsx",
+      "line": 112,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SideRail.tsx",
+      "line": 121,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Account security",
+      "events": [
+        "href"
+      ],
+      "destination": "\"/security?setup=1\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SideRail.tsx",
+      "line": 125,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SideRail.tsx",
+      "line": 134,
+      "kind": "jsx",
+      "control": "a",
+      "label": "Skip to workspace",
+      "events": [
+        "href"
+      ],
+      "destination": "\"#workspace\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SideRail.tsx",
+      "line": 137,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Open navigation",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SideRail.tsx",
+      "line": 140,
+      "kind": "jsx",
+      "control": "dialog",
+      "label": "Operations navigation",
+      "events": [
+        "onKeyDown",
+        "onClose",
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/SignInButton.tsx",
+      "line": 5,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "submit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/StaffAccountMenu.tsx",
+      "line": 14,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Account security",
+      "events": [
+        "onClick",
+        "href"
+      ],
+      "destination": "\"/security?setup=1\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/StaffAccountMenu.tsx",
+      "line": 15,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Presentation builder",
+      "events": [
+        "onClick",
+        "href"
+      ],
+      "destination": "\"/present\"",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/StaffAccountMenu.tsx",
+      "line": 17,
+      "kind": "jsx",
+      "control": "form",
+      "label": "Sign out of operations",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/StaffAccountMenu.tsx",
+      "line": 17,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Sign out of operations",
+      "events": [
+        "submit"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/StaffRoleGuide.tsx",
+      "line": 48,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Review role access",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/StaffRoleGuide.tsx",
+      "line": 49,
+      "kind": "jsx",
+      "control": "dialog",
+      "label": "Staff role access",
+      "events": [
+        "onClose",
+        "onKeyDown",
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/StaffRoleGuide.tsx",
+      "line": 50,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Close role access",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/StaffRoleGuide.tsx",
+      "line": 51,
+      "kind": "jsx",
+      "control": "select",
+      "label": "select (dynamic/unlabelled)",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ThemeControls.tsx",
+      "line": 52,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Light appearance",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ThemeControls.tsx",
+      "line": 55,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Dark appearance",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/ThemeControls.tsx",
+      "line": 58,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Use device appearance",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/UsersDesk.tsx",
+      "line": 55,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/UsersDesk.tsx",
+      "line": 77,
+      "kind": "jsx",
+      "control": "tr",
+      "label": "@",
+      "events": [
+        "onClick",
+        "onKeyDown"
+      ],
+      "destination": null,
+      "status": "partially-exercised-actual-page-fixture",
+      "evidence": "browser/actual-pages-browser-audit.json",
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/UsersDesk.tsx",
+      "line": 115,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "@",
+      "events": [
+        "href"
+      ],
+      "destination": "{'/users/' + selected.id}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/UsersDesk.tsx",
+      "line": 135,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Restore account",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/UsersDesk.tsx",
+      "line": 140,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Issue strike",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/UsersDesk.tsx",
+      "line": 143,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Revoke badge",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/UsersDesk.tsx",
+      "line": 151,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Warn Restrict posting Suspend Ban Confirm strike",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/UsersDesk.tsx",
+      "line": 170,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Disable and request deletion",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/UsersDesk.tsx",
+      "line": 177,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Suspend account",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/VerificationDesk.tsx",
+      "line": 45,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/VerificationDesk.tsx",
+      "line": 54,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/VerificationDesk.tsx",
+      "line": 88,
+      "kind": "jsx",
+      "control": "a",
+      "label": "a (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/VerificationDesk.tsx",
+      "line": 113,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Review basis I checked identity, authority and impersonation risk against independent evidence. Approve \\u2014",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/VerificationDesk.tsx",
+      "line": 121,
+      "kind": "jsx",
+      "control": "CommandForm",
+      "label": "Reject",
+      "events": [
+        "action"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Viz.tsx",
+      "line": 76,
+      "kind": "jsx",
+      "control": "button",
+      "label": "button (dynamic/unlabelled)",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/Viz.tsx",
+      "line": 86,
+      "kind": "jsx",
+      "control": "button",
+      "label": "D",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/WorkspaceConnection.tsx",
+      "line": 22,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Dismiss connection notice",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/WorkspaceLauncher.tsx",
+      "line": 37,
+      "kind": "jsx",
+      "control": "button",
+      "label": "All operations tools",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/WorkspaceLauncher.tsx",
+      "line": 40,
+      "kind": "jsx",
+      "control": "dialog",
+      "label": "All operations tools",
+      "events": [
+        "onKeyDown",
+        "onClose",
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/WorkspaceLauncher.tsx",
+      "line": 41,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Close all tools",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/WorkspaceLauncher.tsx",
+      "line": 42,
+      "kind": "jsx",
+      "control": "input",
+      "label": "Filter operations tools",
+      "events": [
+        "onChange"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/WorkspaceLauncher.tsx",
+      "line": 44,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "onClick",
+        "href"
+      ],
+      "destination": "{item.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/WorkspaceLauncher.tsx",
+      "line": 44,
+      "kind": "jsx",
+      "control": "button",
+      "label": "Clear search",
+      "events": [
+        "onClick"
+      ],
+      "destination": null,
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/WorkspaceNavigation.tsx",
+      "line": 17,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{item.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/WorkspaceNavigation.tsx",
+      "line": 29,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Back to",
+      "events": [
+        "href"
+      ],
+      "destination": "{returnTo.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    },
+    {
+      "file": "admin-web/components/WorkspaceNavigation.tsx",
+      "line": 30,
+      "kind": "jsx",
+      "control": "Link",
+      "label": "Link (dynamic/unlabelled)",
+      "events": [
+        "href"
+      ],
+      "destination": "{item.href}",
+      "status": "not-individually-exercised-in-this-pass",
+      "evidence": null,
+      "limit": "A matching source binding is not acceptance of all event branches, conditional records, roles or provider outcomes."
+    }
+  ],
+  "sharedBaseline": "Existing37 shared-component cases remain separate and are not inflated to actual-route or per-binding acceptance."
+}

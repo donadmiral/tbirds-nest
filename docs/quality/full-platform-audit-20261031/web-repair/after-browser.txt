@@ -1,0 +1,49 @@
+{"name":"hidden words initial normal and successful add","status":"PASS"}
+{"name":"hidden words initial resolved and successful add","status":"PASS"}
+{"name":"hidden words initial rejected and successful add","status":"PASS"}
+{"name":"hidden words mutation resolved preserves draft and retry","status":"PASS"}
+{"name":"hidden words mutation rejected preserves draft and retry","status":"PASS"}
+{"name":"muted words initial normal and successful add","status":"PASS"}
+{"name":"muted words initial resolved and successful add","status":"PASS"}
+{"name":"muted words initial rejected and successful add","status":"PASS"}
+{"name":"muted words mutation resolved preserves draft and retry","status":"PASS"}
+{"name":"muted words mutation rejected preserves draft and retry","status":"PASS"}
+{"name":"standing normal with retry","status":"PASS"}
+{"name":"standing resolved with retry","status":"PASS"}
+{"name":"standing rejected with retry","status":"PASS"}
+{"name":"Explore normal with retry","status":"PASS"}
+{"name":"Explore resolved with retry","status":"PASS"}
+{"name":"Explore rejected with retry","status":"PASS"}
+{"name":"topic normal with retry","status":"PASS"}
+{"name":"topic resolved with retry","status":"PASS"}
+{"name":"topic rejected with retry","status":"PASS"}
+{"name":"Search topics normal with retry","status":"PASS"}
+{"name":"Search topics resolved with retry","status":"PASS"}
+{"name":"Search topics rejected with retry","status":"PASS"}
+{"name":"featured channels normal with retry","status":"PASS"}
+{"name":"featured channels resolved with retry","status":"PASS"}
+{"name":"featured channels rejected with retry","status":"PASS"}
+{"name":"Discover topics normal with retry","status":"PASS"}
+{"name":"Discover topics resolved with retry","status":"PASS"}
+{"name":"Discover topics rejected with retry","status":"PASS"}
+{"name":"Market availability normal with retry","status":"PASS"}
+{"name":"Market availability resolved with retry","status":"PASS"}
+{"name":"Market availability rejected with retry","status":"PASS"}
+{"name":"Market inbox count normal and next-poll recovery","status":"PASS"}
+{"name":"Market inbox count resolved and next-poll recovery","status":"PASS"}
+{"name":"Market inbox count rejected and next-poll recovery","status":"PASS"}
+{"name":"Listing storage:market-media normal then successful submit","status":"PASS"}
+{"name":"Listing storage:market-media resolved then successful submit","status":"PASS"}
+{"name":"Listing storage:market-media rejected then successful submit","status":"PASS"}
+{"name":"Listing table:marketplace_listings:insert normal then successful submit","status":"PASS"}
+{"name":"Listing table:marketplace_listings:insert resolved then successful submit","status":"PASS"}
+{"name":"Listing table:marketplace_listings:insert rejected then successful submit","status":"PASS"}
+{"name":"Business creation normal then successful retry","status":"PASS"}
+{"name":"Business creation resolved then successful retry","status":"PASS"}
+{"name":"Business creation rejected then successful retry","status":"PASS"}
+{"name":"Promotion picker normal and content retry","status":"PASS"}
+{"name":"Promotion picker resolved and content retry","status":"PASS"}
+{"name":"Promotion picker rejected and content retry","status":"PASS"}
+{"name":"Profile cover pointer path at 390","status":"PASS"}
+{"name":"Profile cover pointer path at 1440","status":"PASS"}
+{"cases":48,"passed":48,"failed":0,"output":"/tmp/platinum-member-resilience-frozen"}

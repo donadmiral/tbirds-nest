@@ -1,0 +1,343 @@
+{
+  "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "studioInnerReadErrors": {
+    "cases": 30,
+    "allCompleted": true,
+    "uncaughtErrors": 0,
+    "boundary": "All15 actual Studio pages received one selective returned-error and one rejected read after shell identity succeeded. Normal populated cases were also observed for five formerly missing contracts."
+  },
+  "studioMutationRecovery": [
+    {
+      "id": "audience-label-resolved",
+      "faultDispatched": true,
+      "feedbackObserved": true,
+      "uncaughtErrors": [],
+      "outcome": "RECOVERY_POSTCONDITION_OBSERVED",
+      "retainedDraftOrState": "lead",
+      "enabledActionExamples": [
+        "Search followers",
+        "All labelscustomerleadvipsupplierpartner",
+        "Export loaded rows",
+        "Audit customer",
+        "Label",
+        "Make lead"
+      ]
+    },
+    {
+      "id": "commerce-delivery-resolved",
+      "faultDispatched": true,
+      "feedbackObserved": true,
+      "uncaughtErrors": [],
+      "outcome": "RECOVERY_POSTCONDITION_OBSERVED",
+      "retainedDraftOrState": null,
+      "enabledActionExamples": [
+        "USD 20",
+        "Stock: 4",
+        "Mark sold",
+        "Delivers · USD 5",
+        "Share to feed",
+        "Feature"
+      ]
+    },
+    {
+      "id": "inbox-done-resolved",
+      "faultDispatched": true,
+      "feedbackObserved": true,
+      "uncaughtErrors": [],
+      "outcome": "RECOVERY_POSTCONDITION_OBSERVED",
+      "retainedDraftOrState": "lead",
+      "enabledActionExamples": [
+        "",
+        "Open",
+        "Label",
+        "Assign",
+        "Note",
+        "Done"
+      ]
+    },
+    {
+      "id": "recruiter-note-resolved",
+      "faultDispatched": true,
+      "feedbackObserved": true,
+      "uncaughtErrors": [],
+      "outcome": "RECOVERY_POSTCONDITION_OBSERVED",
+      "retainedDraftOrState": "Audit unsaved note",
+      "enabledActionExamples": [
+        "Rejected",
+        "Interview date and time",
+        "Interview location or video link",
+        "Applicant tags",
+        "Team note",
+        "Add"
+      ]
+    },
+    {
+      "id": "reviews-reply-resolved",
+      "faultDispatched": true,
+      "feedbackObserved": true,
+      "uncaughtErrors": [],
+      "outcome": "RECOVERY_POSTCONDITION_OBSERVED",
+      "retainedDraftOrState": "Audit reply draft",
+      "enabledActionExamples": [
+        "Unanswered",
+        "3 stars and below",
+        "Audit customer",
+        "Thank them, address the point, say what happens next.",
+        "Post reply",
+        "Cancel"
+      ]
+    },
+    {
+      "id": "audience-label-rejected",
+      "faultDispatched": true,
+      "feedbackObserved": true,
+      "uncaughtErrors": [],
+      "outcome": "RECOVERY_POSTCONDITION_OBSERVED",
+      "retainedDraftOrState": "lead",
+      "enabledActionExamples": [
+        "Search followers",
+        "All labelscustomerleadvipsupplierpartner",
+        "Export loaded rows",
+        "Audit customer",
+        "Label",
+        "Make lead"
+      ]
+    },
+    {
+      "id": "commerce-delivery-rejected",
+      "faultDispatched": true,
+      "feedbackObserved": true,
+      "uncaughtErrors": [],
+      "outcome": "RECOVERY_POSTCONDITION_OBSERVED",
+      "retainedDraftOrState": null,
+      "enabledActionExamples": [
+        "USD 20",
+        "Stock: 4",
+        "Mark sold",
+        "Delivers · USD 5",
+        "Share to feed",
+        "Feature"
+      ]
+    },
+    {
+      "id": "inbox-done-rejected",
+      "faultDispatched": true,
+      "feedbackObserved": true,
+      "uncaughtErrors": [],
+      "outcome": "RECOVERY_POSTCONDITION_OBSERVED",
+      "retainedDraftOrState": "lead",
+      "enabledActionExamples": [
+        "",
+        "Open",
+        "Label",
+        "Assign",
+        "Note",
+        "Done"
+      ]
+    },
+    {
+      "id": "recruiter-note-rejected",
+      "faultDispatched": true,
+      "feedbackObserved": true,
+      "uncaughtErrors": [],
+      "outcome": "RECOVERY_POSTCONDITION_OBSERVED",
+      "retainedDraftOrState": "Audit unsaved note",
+      "enabledActionExamples": [
+        "Rejected",
+        "Interview date and time",
+        "Interview location or video link",
+        "Applicant tags",
+        "Team note",
+        "Add"
+      ]
+    },
+    {
+      "id": "reviews-reply-rejected",
+      "faultDispatched": true,
+      "feedbackObserved": true,
+      "uncaughtErrors": [],
+      "outcome": "RECOVERY_POSTCONDITION_OBSERVED",
+      "retainedDraftOrState": "Audit reply draft",
+      "enabledActionExamples": [
+        "Unanswered",
+        "3 stars and below",
+        "Audit customer",
+        "Thank them, address the point, say what happens next.",
+        "Post reply",
+        "Cancel"
+      ]
+    }
+  ],
+  "profileCoverHitTests": [
+    {
+      "id": "profile-cover-1440",
+      "geometry": {
+        "button": {
+          "x": 973.875,
+          "y": 297.75,
+          "width": 135.125,
+          "height": 40
+        },
+        "photoRow": {
+          "x": 261,
+          "y": 317.75,
+          "width": 918,
+          "height": 128
+        },
+        "centerHit": {
+          "tag": "DIV",
+          "className": "profile-module_photoRow_HnqQoW",
+          "text": "AProfile photoJPG, PNG or WebP, up to 10 MB."
+        },
+        "buttonOwnsHit": false
+      },
+      "normalClickSucceeded": false
+    },
+    {
+      "id": "profile-cover-390",
+      "geometry": {
+        "button": {
+          "x": 183.875,
+          "y": 247.75,
+          "width": 135.125,
+          "height": 40
+        },
+        "photoRow": {
+          "x": 1,
+          "y": 267.75,
+          "width": 388,
+          "height": 128
+        },
+        "centerHit": {
+          "tag": "DIV",
+          "className": "profile-module_photoRow_HnqQoW",
+          "text": "AProfile photoJPG, PNG or WebP, up to 10 MB."
+        },
+        "buttonOwnsHit": false
+      },
+      "normalClickSucceeded": false
+    }
+  ],
+  "privacyUpdates": [
+    {
+      "id": "hidden-words-read-resolved",
+      "updates": [
+        {
+          "kind": "table",
+          "name": "profiles",
+          "action": "update",
+          "fault": false,
+          "chain": [
+            [
+              "update",
+              [
+                {
+                  "hidden_words": [
+                    "newword"
+                  ]
+                }
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "10000000-0000-4000-8000-000000000001"
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "muted-words-read-resolved",
+      "updates": [
+        {
+          "kind": "table",
+          "name": "profiles",
+          "action": "update",
+          "fault": false,
+          "chain": [
+            [
+              "update",
+              [
+                {
+                  "muted_words": [
+                    "newword"
+                  ]
+                }
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "10000000-0000-4000-8000-000000000001"
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hidden-words-read-rejected",
+      "updates": [
+        {
+          "kind": "table",
+          "name": "profiles",
+          "action": "update",
+          "fault": false,
+          "chain": [
+            [
+              "update",
+              [
+                {
+                  "hidden_words": [
+                    "newword"
+                  ]
+                }
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "10000000-0000-4000-8000-000000000001"
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "muted-words-read-rejected",
+      "updates": [
+        {
+          "kind": "table",
+          "name": "profiles",
+          "action": "update",
+          "fault": false,
+          "chain": [
+            [
+              "update",
+              [
+                {
+                  "muted_words": [
+                    "newword"
+                  ]
+                }
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "10000000-0000-4000-8000-000000000001"
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

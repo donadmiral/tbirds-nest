@@ -1,0 +1,79 @@
+{
+  "sourceHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "scope": "Actual TicketPage owner-select markup and CSS; actual Workspace flex/minWidth and responsive .pc-workspace padding reproduced in local Shell adapter; no production change.",
+  "original": {
+    "viewport": 390,
+    "documentWidth": 553,
+    "workspace": {
+      "left": 0,
+      "right": 390,
+      "width": 390,
+      "padding": "24px",
+      "minWidth": "0px"
+    },
+    "overflow": [
+      {
+        "tag": "LABEL",
+        "name": null,
+        "text": "OwnerUnassigned10000000-0000-4000-8000-000000000001 (super_admin)Avery Audit (support_agent)",
+        "left": 45,
+        "right": 553,
+        "width": 508
+      },
+      {
+        "tag": "SELECT",
+        "name": "assigned_to",
+        "text": "Unassigned10000000-0000-4000-8000-000000000001 (super_admin)Avery Audit (support_agent)",
+        "left": 45,
+        "right": 553,
+        "width": 508
+      }
+    ]
+  },
+  "actualWorkspaceGeometry": {
+    "viewport": 390,
+    "documentWidth": 545,
+    "workspace": {
+      "left": 0,
+      "right": 390,
+      "width": 390,
+      "padding": "22px 16px 30px",
+      "minWidth": "0px"
+    },
+    "overflow": [
+      {
+        "tag": "LABEL",
+        "name": null,
+        "text": "OwnerUnassigned10000000-0000-4000-8000-000000000001 (super_admin)Avery Audit (support_agent)",
+        "left": 37,
+        "right": 545,
+        "width": 508
+      },
+      {
+        "tag": "SELECT",
+        "name": "assigned_to",
+        "text": "Unassigned10000000-0000-4000-8000-000000000001 (super_admin)Avery Audit (support_agent)",
+        "left": 37,
+        "right": 545,
+        "width": 508
+      }
+    ]
+  },
+  "proposedConstraintProbe": {
+    "viewport": 390,
+    "documentWidth": 390,
+    "workspace": {
+      "left": 0,
+      "right": 390,
+      "width": 390,
+      "padding": "22px 16px 30px",
+      "minWidth": "0px"
+    },
+    "overflow": []
+  },
+  "limits": [
+    "Full Shell header/rail not mounted. They do not constrain the owner select; the reproduced mobile Workspace has actual CSS padding16 instead of fixture padding24.",
+    "Staff social-profile fallback is a legitimate UUID plus role; no hosted staff data was accessed.",
+    "Constraint probe is temporary DOM-only diagnostic, not an accepted source repair."
+  ]
+}

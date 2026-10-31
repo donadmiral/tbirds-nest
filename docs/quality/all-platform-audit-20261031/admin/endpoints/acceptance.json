@@ -1,0 +1,60 @@
+{
+  "status": "Prepared; local synthetic endpoint acceptance passed; not hosted acceptance",
+  "formalCases": 29,
+  "passed": 29,
+  "failed": 0,
+  "endpoints": [
+    "/api/diagnostics",
+    "/api/moderation-media",
+    "/api/music/[id]",
+    "/api/music/report",
+    "/reset-password/callback"
+  ],
+  "before": {
+    "cases": 28,
+    "passed": 25,
+    "failed": 3,
+    "evidence": "before.json"
+  },
+  "after": "after.json",
+  "newTimeoutCase": {
+    "configuredHeaderDeadlineMs": 20000,
+    "clock": "controlled 1ms timer in the actual route execution; no claim of a measured 20s network delay"
+  },
+  "source": [
+    {
+      "path": "admin-web/app/api/diagnostics/route.ts",
+      "sha256": "8aed0b4ced221a0e29e3ad2b1e047a960db0ee415d3524ce49754f89372bb04a",
+      "bytes": 2373
+    },
+    {
+      "path": "admin-web/app/api/music/[id]/route.ts",
+      "sha256": "788a769b8abe699f803959a05c48ae87d8ca9c2b9943c8886fcce3db0a4f5972",
+      "bytes": 2547
+    },
+    {
+      "path": "admin-web/tests/endpoint-contracts.cjs",
+      "sha256": "d856bee938e91658b5519f09e47081a595f32bed5df64937adfdf06b06a3774b",
+      "bytes": 17641
+    },
+    {
+      "path": "admin-web/tests/helpers/endpointFixture.cjs",
+      "sha256": "56601533fcce8e91988a5447e23aa029889ff3f70ddd2f3a797deb4b85d3c144",
+      "bytes": 7344
+    }
+  ],
+  "typescript": {
+    "errors": 0,
+    "log": "typescript.txt"
+  },
+  "scopedEslint": {
+    "errors": 0,
+    "warnings": 0,
+    "log": "lint.txt"
+  },
+  "limits": [
+    "Synthetic provider transport and request-local cookie adapter; actual route/Auth/session/role/SDK/recovery code.",
+    "No hosted Next request, real email, recovery action, private media or provider mutation.",
+    "API authorization denial assertions exercise actual thrown/redirect contracts; they do not claim a framework HTTP response beyond the returned route Response."
+  ]
+}

@@ -12,6 +12,7 @@ import { ListingCard } from "@/components/ListingCard";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import type { Listing } from "@/lib/market";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Topic = { topic: string; post_count: number };
 type Person = { id: string; full_name: string | null; username: string | null; avatar_url: string | null; headline: string | null };
@@ -25,10 +26,14 @@ export default function ExplorePage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [jobs, setJobs] = useState<JobHit[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    (async () => {
-      const { data: sess } = await supabase.auth.getSession();
+    let active = true;
+    void withTimeout((async () => {
+      const { data: sess, error: authError } = await supabase.auth.getSession();
+      if (authError) throw authError;
       const uid = sess.session?.user.id ?? null;
       const [t, feedT, feedL, ppl, mkt, jb] = await Promise.all([
         supabase.rpc("get_trending_topics", { p_days: 7, p_limit: 10 }),
@@ -36,11 +41,12 @@ export default function ExplorePage() {
         supabase.rpc("get_feed", { p_mode: "latest", p_cursor_key: null, p_cursor_id: null, p_limit: 30 }),
         uid
           ? supabase.from("profiles").select("id, full_name, username, avatar_url, headline, connections_count").neq("id", uid).is("deactivated_at", null).order("connections_count", { ascending: false, nullsFirst: false }).limit(12)
-          : Promise.resolve({ data: [] as Person[] }),
+          : Promise.resolve({ data: [] as Person[], error: null }),
         supabase.from("marketplace_listings").select("*").eq("status", "available").order("created_at", { ascending: false }).limit(8),
         supabase.from("jobs").select("id, title, company, location, salary_range").order("created_at", { ascending: false }).limit(5),
       ]);
-      setTopics(((t.data ?? []) as Topic[]).slice(0, 10));
+      for (const response of [t, feedT, feedL, ppl, mkt, jb]) if (response.error) throw response.error;
+      let nextPosts: FeedRow[] = [];
       // Same order as the phone's Discover: the server scores every candidate
       // (engagement with recency decay, media bonus, seen push-down, daily
       // rotation), then authors are spaced so nobody gets more than two in a row.
@@ -58,24 +64,27 @@ export default function ExplorePage() {
             ordered = [...spaced, ...deferred];
           }
         } catch { /* fall back to fetch order */ }
-        setPosts(ordered.slice(0, 20));
+        nextPosts = ordered.slice(0, 20);
       }
       let candidates = (ppl.data ?? []) as Person[];
       if (uid && candidates.length > 0) {
-        const { data: fRows } = await supabase.from("follows").select("following_id").eq("follower_id", uid);
+        const { data: fRows, error: followingError } = await supabase.from("follows").select("following_id").eq("follower_id", uid);
+        if (followingError) throw followingError;
         const followed = new Set((fRows ?? []).map((r) => r.following_id as string));
         candidates = candidates.filter((c) => !followed.has(c.id));
       }
-      setPeople(candidates.slice(0, 6));
-      setListings((mkt.data ?? []) as Listing[]);
-      setJobs((jb.data ?? []) as JobHit[]);
-      setLoaded(true);
-    })();
-  }, [supabase]);
+      return { topics: ((t.data ?? []) as Topic[]).slice(0, 10), posts: nextPosts, people: candidates.slice(0, 6), listings: (mkt.data ?? []) as Listing[], jobs: (jb.data ?? []) as JobHit[] };
+    })()).then(result => {
+      if (!active) return;
+      setTopics(result.topics); setPosts(result.posts); setPeople(result.people); setListings(result.listings); setJobs(result.jobs); setLoaded(true); setError(false);
+    }).catch(() => { if (active) setError(true); });
+    return () => { active = false; };
+  }, [supabase, attempt]);
 
   const head = "flex items-center gap-1.5 pb-2 pt-7 text-[15px] font-semibold text-ink";
 
-  if (!loaded) return <p className="py-16 text-center text-sm text-muted">Loading</p>;
+  if (error) return <div role="alert" className="px-1 py-8 text-sm text-muted"><h1 className="font-display text-xl text-porcelain">Explore</h1><p className="mt-3">Could not load Explore. Please try again.</p><button type="button" className="mt-3 underline" onClick={() => { setError(false); setAttempt(value => value + 1); }}>Try again</button></div>;
+  if (!loaded) return <p role="status" className="py-16 text-center text-sm text-muted">Loading</p>;
 
   return (
     <div className="px-1">

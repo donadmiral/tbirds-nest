@@ -1,0 +1,65 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit real capture cancel and encode
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: memory-capture-session
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: Native capture acceptance
+    timeout: 30000
+- extendedWaitUntil:
+    visible: Saved account readback passed
+    timeout: 15000
+- tapOn: Open cancellation movie
+- extendedWaitUntil:
+    visible: Create memory movie
+    timeout: 15000
+- tapOn:
+    text: Create memory movie
+    waitToSettleTimeoutMs: 1000
+- extendedWaitUntil:
+    visible: Reading the movie’s video timing…
+    timeout: 15000
+# The test transport returns one real file chunk, then holds its reader until
+# the real UI cancellation closes it. Tapping this label has no app action.
+- tapOn:
+    text: Reading the movie’s video timing…
+    repeat: 2
+    delay: 1000
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    text: Close movie export
+    waitToSettleTimeoutMs: 1000
+- extendedWaitUntil:
+    visible: Memory capture cleanup passed
+    timeout: 15000
+- tapOn: Open complete movie
+- extendedWaitUntil:
+    visible: Create memory movie
+    timeout: 15000
+- tapOn:
+    text: Create memory movie
+    waitToSettleTimeoutMs: 1000
+- extendedWaitUntil:
+    visible: Save movie to Photos
+    timeout: 180000
+- takeScreenshot: captured-memory-ready
+# Keep the measured file in app-private evidence; do not request Photos access.
+- tapOn: Close movie export
+- extendedWaitUntil:
+    visible: Memory capture cleanup passed
+    timeout: 15000
+- takeScreenshot: captured-memory-cleanup

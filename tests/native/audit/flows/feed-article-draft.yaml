@@ -1,0 +1,29 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit article text draft controls
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: feed-article-draft
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Article"
+    timeout: 15000
+
+- tapOn: Title
+- inputText: An audit article
+- tapOn: Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.
+- inputText: A synthetic article paragraph kept inside the audit.
+- assertVisible: An audit article
+- takeScreenshot: feed-article-draft

@@ -1,0 +1,393 @@
+{
+  "sourceAsset": "tests/native/assets/memory-capture-video.mp4",
+  "sourceSha256": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2",
+  "packets": [
+    {
+      "ptsUs": 0,
+      "key": true
+    },
+    {
+      "ptsUs": 133333,
+      "key": false
+    },
+    {
+      "ptsUs": 66667,
+      "key": false
+    },
+    {
+      "ptsUs": 33333,
+      "key": false
+    },
+    {
+      "ptsUs": 100000,
+      "key": false
+    },
+    {
+      "ptsUs": 266667,
+      "key": false
+    },
+    {
+      "ptsUs": 200000,
+      "key": false
+    },
+    {
+      "ptsUs": 166667,
+      "key": false
+    },
+    {
+      "ptsUs": 233333,
+      "key": false
+    },
+    {
+      "ptsUs": 400000,
+      "key": false
+    },
+    {
+      "ptsUs": 333333,
+      "key": false
+    },
+    {
+      "ptsUs": 300000,
+      "key": false
+    },
+    {
+      "ptsUs": 366667,
+      "key": false
+    },
+    {
+      "ptsUs": 533333,
+      "key": false
+    },
+    {
+      "ptsUs": 466667,
+      "key": false
+    },
+    {
+      "ptsUs": 433333,
+      "key": false
+    },
+    {
+      "ptsUs": 500000,
+      "key": false
+    },
+    {
+      "ptsUs": 666667,
+      "key": false
+    },
+    {
+      "ptsUs": 600000,
+      "key": false
+    },
+    {
+      "ptsUs": 566667,
+      "key": false
+    },
+    {
+      "ptsUs": 633333,
+      "key": false
+    },
+    {
+      "ptsUs": 800000,
+      "key": false
+    },
+    {
+      "ptsUs": 733333,
+      "key": false
+    },
+    {
+      "ptsUs": 700000,
+      "key": false
+    },
+    {
+      "ptsUs": 766667,
+      "key": false
+    },
+    {
+      "ptsUs": 933333,
+      "key": false
+    },
+    {
+      "ptsUs": 866667,
+      "key": false
+    },
+    {
+      "ptsUs": 833333,
+      "key": false
+    },
+    {
+      "ptsUs": 900000,
+      "key": false
+    },
+    {
+      "ptsUs": 1066667,
+      "key": false
+    },
+    {
+      "ptsUs": 1000000,
+      "key": false
+    },
+    {
+      "ptsUs": 966667,
+      "key": false
+    },
+    {
+      "ptsUs": 1033333,
+      "key": false
+    },
+    {
+      "ptsUs": 1200000,
+      "key": false
+    },
+    {
+      "ptsUs": 1133333,
+      "key": false
+    },
+    {
+      "ptsUs": 1100000,
+      "key": false
+    },
+    {
+      "ptsUs": 1166667,
+      "key": false
+    },
+    {
+      "ptsUs": 1333333,
+      "key": false
+    },
+    {
+      "ptsUs": 1266667,
+      "key": false
+    },
+    {
+      "ptsUs": 1233333,
+      "key": false
+    },
+    {
+      "ptsUs": 1300000,
+      "key": false
+    },
+    {
+      "ptsUs": 1466667,
+      "key": false
+    },
+    {
+      "ptsUs": 1400000,
+      "key": false
+    },
+    {
+      "ptsUs": 1366667,
+      "key": false
+    },
+    {
+      "ptsUs": 1433333,
+      "key": false
+    },
+    {
+      "ptsUs": 1600000,
+      "key": false
+    },
+    {
+      "ptsUs": 1533333,
+      "key": false
+    },
+    {
+      "ptsUs": 1500000,
+      "key": false
+    },
+    {
+      "ptsUs": 1566667,
+      "key": false
+    },
+    {
+      "ptsUs": 1733333,
+      "key": false
+    },
+    {
+      "ptsUs": 1666667,
+      "key": false
+    },
+    {
+      "ptsUs": 1633333,
+      "key": false
+    },
+    {
+      "ptsUs": 1700000,
+      "key": false
+    },
+    {
+      "ptsUs": 1866667,
+      "key": false
+    },
+    {
+      "ptsUs": 1800000,
+      "key": false
+    },
+    {
+      "ptsUs": 1766667,
+      "key": false
+    },
+    {
+      "ptsUs": 1833333,
+      "key": false
+    },
+    {
+      "ptsUs": 2000000,
+      "key": false
+    },
+    {
+      "ptsUs": 1933333,
+      "key": false
+    },
+    {
+      "ptsUs": 1900000,
+      "key": false
+    },
+    {
+      "ptsUs": 1966667,
+      "key": false
+    },
+    {
+      "ptsUs": 2133333,
+      "key": false
+    },
+    {
+      "ptsUs": 2066667,
+      "key": false
+    },
+    {
+      "ptsUs": 2033333,
+      "key": false
+    },
+    {
+      "ptsUs": 2100000,
+      "key": false
+    },
+    {
+      "ptsUs": 2266667,
+      "key": false
+    },
+    {
+      "ptsUs": 2200000,
+      "key": false
+    },
+    {
+      "ptsUs": 2166667,
+      "key": false
+    },
+    {
+      "ptsUs": 2233333,
+      "key": false
+    },
+    {
+      "ptsUs": 2400000,
+      "key": false
+    },
+    {
+      "ptsUs": 2333333,
+      "key": false
+    },
+    {
+      "ptsUs": 2300000,
+      "key": false
+    },
+    {
+      "ptsUs": 2366667,
+      "key": false
+    },
+    {
+      "ptsUs": 2533333,
+      "key": false
+    },
+    {
+      "ptsUs": 2466667,
+      "key": false
+    },
+    {
+      "ptsUs": 2433333,
+      "key": false
+    },
+    {
+      "ptsUs": 2500000,
+      "key": false
+    },
+    {
+      "ptsUs": 2666667,
+      "key": false
+    },
+    {
+      "ptsUs": 2600000,
+      "key": false
+    },
+    {
+      "ptsUs": 2566667,
+      "key": false
+    },
+    {
+      "ptsUs": 2633333,
+      "key": false
+    },
+    {
+      "ptsUs": 2800000,
+      "key": false
+    },
+    {
+      "ptsUs": 2733333,
+      "key": false
+    },
+    {
+      "ptsUs": 2700000,
+      "key": false
+    },
+    {
+      "ptsUs": 2766667,
+      "key": false
+    },
+    {
+      "ptsUs": 2933333,
+      "key": false
+    },
+    {
+      "ptsUs": 2866667,
+      "key": false
+    },
+    {
+      "ptsUs": 2833333,
+      "key": false
+    },
+    {
+      "ptsUs": 2900000,
+      "key": false
+    },
+    {
+      "ptsUs": 2966667,
+      "key": false
+    }
+  ],
+  "methods": {
+    "oldClipping": {
+      "version": "1.8.1",
+      "commit": "95ded8583289646a04488f2bf4fc5c8258f33289",
+      "sourceUrl": "https://github.com/androidx/media/blob/95ded8583289646a04488f2bf4fc5c8258f33289/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/source/ClippingMediaPeriod.java",
+      "sourceSha256": "340cf0b47b57fca8e92fc0128354e5fa3673ad7892b5ab9f31efb8bafc159058",
+      "license": "Apache-2.0",
+      "method": "public int readData(\n        FormatHolder formatHolder, DecoderInputBuffer buffer, @ReadFlags int readFlags) {\n      if (isPendingInitialDiscontinuity()) {\n        return C.RESULT_NOTHING_READ;\n      }\n      if (sentEos) {\n        buffer.setFlags(C.BUFFER_FLAG_END_OF_STREAM);\n        return C.RESULT_BUFFER_READ;\n      }\n      long bufferedPositionUs = getBufferedPositionUs();\n      @ReadDataResult int result = childStream.readData(formatHolder, buffer, readFlags);\n      if (result == C.RESULT_FORMAT_READ) {\n        Format format = Assertions.checkNotNull(formatHolder.format);\n        if (format.encoderDelay != 0 || format.encoderPadding != 0) {\n          // Clear gapless playback metadata if the start/end points don't match the media.\n          int encoderDelay = startUs != 0 ? 0 : format.encoderDelay;\n          int encoderPadding = endUs != C.TIME_END_OF_SOURCE ? 0 : format.encoderPadding;\n          formatHolder.format =\n              format\n                  .buildUpon()\n                  .setEncoderDelay(encoderDelay)\n                  .setEncoderPadding(encoderPadding)\n                  .build();\n        }\n        return C.RESULT_FORMAT_READ;\n      }\n      if (endUs != C.TIME_END_OF_SOURCE\n          && ((result == C.RESULT_BUFFER_READ && buffer.timeUs >= endUs)\n              || (result == C.RESULT_NOTHING_READ\n                  && bufferedPositionUs == C.TIME_END_OF_SOURCE\n                  && !buffer.waitingForKeys))) {\n        buffer.clear();\n        buffer.setFlags(C.BUFFER_FLAG_END_OF_STREAM);\n        sentEos = true;\n        return C.RESULT_BUFFER_READ;\n      }\n      return result;\n    }"
+    },
+    "queue": {
+      "version": "1.11.1",
+      "commit": "8c6678b657ede1e7883fc164ef73ed483c7796c3",
+      "sourceUrl": "https://github.com/androidx/media/blob/8c6678b657ede1e7883fc164ef73ed483c7796c3/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/source/SampleQueue.java",
+      "sourceSha256": "48563ff642c14b7a2fab4ea2014bc57a1c99352497feedc2e592840f598a5f0d",
+      "license": "Apache-2.0",
+      "method": "private void updateReadEndTimeState(int absoluteSampleIndex, long sampleTimeUs, int sampleFlags) {\n    if (readEndTimeUs == C.TIME_END_OF_SOURCE) {\n      return;\n    }\n    if (readEndTimeAbsoluteIndex != C.INDEX_UNSET) {\n      return;\n    }\n    if (sampleTimeUs < readEndTimeUs) {\n      readEndTimeAbsoluteIndexCandidate = C.INDEX_UNSET;\n      return;\n    }\n    if (readEndTimeAbsoluteIndexCandidate == C.INDEX_UNSET) {\n      readEndTimeAbsoluteIndexCandidate = absoluteSampleIndex;\n    }\n    int consecutiveSamplesAfterEndCount =\n        absoluteSampleIndex - readEndTimeAbsoluteIndexCandidate + 1;\n    boolean isKeyFrame = (sampleFlags & C.BUFFER_FLAG_KEY_FRAME) != 0;\n    boolean isLastSample = (sampleFlags & C.BUFFER_FLAG_LAST_SAMPLE) != 0;\n    if ((consecutiveSamplesAfterEndCount >= getUpstreamMaxNumReorderSamples() + 1)\n        || isKeyFrame\n        || isLastSample) {\n      readEndTimeAbsoluteIndex = readEndTimeAbsoluteIndexCandidate;\n      readEndTimeAbsoluteIndexCandidate = C.INDEX_UNSET;\n    }\n  }"
+    },
+    "renderer": {
+      "version": "1.11.1",
+      "commit": "8c6678b657ede1e7883fc164ef73ed483c7796c3",
+      "sourceUrl": "https://github.com/androidx/media/blob/8c6678b657ede1e7883fc164ef73ed483c7796c3/libraries/transformer/src/main/java/androidx/media3/transformer/ExoAssetLoaderVideoRenderer.java",
+      "sourceSha256": "55f701baf88075b0b421cdbf3587c2e67a19809dfbfb6c1122a96b05574e994b",
+      "license": "Apache-2.0",
+      "method": "protected void onDecoderInputReady(DecoderInputBuffer inputBuffer) {\n    long streamEndPositionUs = getStreamEndPositionUs();\n    boolean exceedsStrictDuration =\n        ((checkNotNull(getStream()).getFlags() & SampleStream.FLAG_STRICT_DURATION) != 0)\n            && streamEndPositionUs != C.TIME_UNSET\n            && (inputBuffer.timeUs - getStreamOffsetUs()) >= streamEndPositionUs;\n    if (inputBuffer.timeUs < getLastResetPositionUs() || exceedsStrictDuration) {\n      decodeOnlyPresentationTimestamps.add(inputBuffer.timeUs);\n    }\n  }"
+    }
+  },
+  "scope": "Exact upstream method bodies and packet metadata; test doubles supply surrounding stream/format contracts. This is not native decoder acceptance."
+}

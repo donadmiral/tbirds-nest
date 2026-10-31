@@ -6,7 +6,7 @@ import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 // video lead with the frame, an article leads with its title, a shared link
 // keeps its preview, and a text post becomes a quote card.
 import TierName from '../TierName';
-import { themedSheet, getTheme } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
@@ -23,6 +23,7 @@ export type TilePost = {
 type Author = { full_name?: string | null; username?: string | null; avatar_url?: string | null } | null | undefined;
 
 export default function DiscoverTile({ post, author, width, onPress }: { post: TilePost; author: Author; width: number; onPress: () => void }) {
+  useTheme();
   const media = post.media ?? [];
   const first = media[0] ?? null;
   const isVideo = first?.media_type === 'video';
@@ -100,7 +101,7 @@ const s = themedSheet((t) => ({
   frameEmpty: { alignItems: 'center', justifyContent: 'center' },
   play: { position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', paddingLeft: 2 },
   count: { position: 'absolute', top: 8, left: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 7, paddingVertical: 2 },
-  countTxt: { fontSize: 10.5, fontWeight: '600', color: t.ink.inverse },
+  countTxt: { fontSize: 10.5, fontWeight: '600', color: '#FFFFFF' },
   caption: { fontSize: 13, lineHeight: 17, color: t.ink.secondary, paddingHorizontal: 11, paddingTop: 9 },
   pad: { paddingHorizontal: 12, paddingTop: 12 },
   kindRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },

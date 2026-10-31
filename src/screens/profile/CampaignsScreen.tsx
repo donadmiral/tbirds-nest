@@ -1,5 +1,5 @@
 import { ListRowSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import { KeyboardAvoidingView, Platform ,
   View, Text, FlatList, TouchableOpacity, StyleSheet, Alert,
   ActivityIndicator, StatusBar, Modal, TextInput, ScrollView,
@@ -16,7 +16,6 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 
-const NAVY = '#0B1E3D';
 const DURATIONS = [{ d: 3, label: '3 days' }, { d: 7, label: '7 days' }, { d: 14, label: '14 days' }, { d: 30, label: '30 days' }];
 
 function fmtDate(x?: string | null) {
@@ -25,6 +24,8 @@ function fmtDate(x?: string | null) {
 }
 
 export default function CampaignsScreen() {
+  const { t, isDark } = useTheme();
+  const NAVY = t.ink.primary;
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const businessId: string = route.params?.businessId;
@@ -111,7 +112,7 @@ export default function CampaignsScreen() {
 
   return (
     <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={st.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="chevron-left" size={26} color={NAVY} />
@@ -129,7 +130,7 @@ export default function CampaignsScreen() {
         <ListRowSkeleton />
       ) : rows.length === 0 ? (
         <View style={st.center}>
-          <Feather name="trending-up" size={38} color="rgba(11,30,61,0.24)" />
+          <Feather name="trending-up" size={38} color={t.ink.muted} />
           <Text style={st.emptyTitle}>No campaigns yet</Text>
           <Text style={st.emptySub}>Promote one of {businessName}'s posts and it appears as a sponsored card in the feed.</Text>
           <TouchableOpacity style={st.newBtn} onPress={openPicker} activeOpacity={0.9}>
@@ -151,7 +152,7 @@ export default function CampaignsScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Text style={st.cardTitle} numberOfLines={1}>{excerpt}</Text>
                   <TouchableOpacity style={[st.statusChip, on ? st.chipOn : item.status === 'paused' ? st.chipPause : st.chipEnd]} onPress={() => setStatus(item)}>
-                    <Text style={[st.statusTxt, on ? { color: '#065F46' } : item.status === 'paused' ? { color: '#D97706' } : { color: '#6B7280' }]}>
+                    <Text style={[st.statusTxt, on ? { color: '#065F46' } : item.status === 'paused' ? { color: '#92400E' } : { color: '#4B5563' }]}>
                       {item.status}
                     </Text>
                   </TouchableOpacity>
@@ -182,7 +183,7 @@ export default function CampaignsScreen() {
                 renderItem={({ item }) => (
                   <TouchableOpacity style={st.pickRow} onPress={() => setTarget(item)} activeOpacity={0.85}>
                     <Text style={st.pickTxt} numberOfLines={2}>{item.article_title || item.content || 'Post'}</Text>
-                    <Feather name="chevron-right" size={16} color="#9CA3AF" />
+                    <Feather name="chevron-right" size={16} color={t.ink.muted} />
                   </TouchableOpacity>
                 )}
               />
@@ -190,27 +191,27 @@ export default function CampaignsScreen() {
               <ScrollView automaticallyAdjustKeyboardInsets={true} showsVerticalScrollIndicator={false}>
                 <Text style={st.pickedExcerpt} numberOfLines={2}>{target.article_title || target.content}</Text>
                 <Text style={st.fieldLbl}>Label</Text>
-                <TextInput style={st.input} value={label} onChangeText={setLabel} maxLength={24} placeholder="Sponsored" placeholderTextColor="#9CA3AF" />
+                <TextInput style={st.input} value={label} onChangeText={setLabel} maxLength={24} placeholder="Sponsored" placeholderTextColor={t.ink.muted} />
                 <Text style={st.fieldLbl}>Duration</Text>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   {DURATIONS.map(x => (
                     <TouchableOpacity key={x.d} style={[st.durChip, days === x.d && st.durChipOn]} onPress={() => setDays(x.d)}>
-                      <Text style={[st.durTxt, days === x.d && { color: '#FFFFFF' }]}>{x.label}</Text>
+                      <Text style={[st.durTxt, days === x.d && { color: t.ink.inverse }]}>{x.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
                 <Text style={st.fieldLbl}>Impression cap (optional)</Text>
-                <TextInput style={st.input} value={cap} onChangeText={setCap} keyboardType="number-pad" maxLength={7} placeholder="e.g. 5000 — blank for unlimited" placeholderTextColor="#9CA3AF" />
+                <TextInput style={st.input} value={cap} onChangeText={setCap} keyboardType="number-pad" maxLength={7} placeholder="e.g. 5000 — blank for unlimited" placeholderTextColor={t.ink.muted} />
                 <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
                   <TouchableOpacity style={st.backBtn} onPress={() => setTarget(null)}><Text style={st.backTxt}>Back</Text></TouchableOpacity>
                   <TouchableOpacity style={st.goBtn} onPress={createCampaign} disabled={saving} activeOpacity={0.9}>
-                    {saving ? <ActivityIndicator color="#FFF" size={16} /> : <Text style={st.goTxt}>Start campaign</Text>}
+                    {saving ? <ActivityIndicator color={t.ink.inverse} size={16} /> : <Text style={st.goTxt}>Start campaign</Text>}
                   </TouchableOpacity>
                 </View>
               </ScrollView>
             )}
             <TouchableOpacity style={st.closeX} onPress={() => setPickOpen(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Feather name="x" size={20} color="#6B7280" />
+              <Feather name="x" size={20} color={t.ink.muted} />
             </TouchableOpacity>
           </View>
           </KeyboardAvoidingView>
@@ -223,39 +224,39 @@ export default function CampaignsScreen() {
 const st = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY, textAlign: 'center' },
-  headerSub: { fontSize: 11.5, color: 'rgba(11,30,61,0.5)', textAlign: 'center', marginTop: 1 },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: t.ink.primary, textAlign: 'center' },
+  headerSub: { fontSize: 11.5, color: t.ink.muted, textAlign: 'center', marginTop: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  emptyTitle: { fontSize: 16.5, fontWeight: '800', color: NAVY, marginTop: 12 },
-  emptySub: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', textAlign: 'center', marginTop: 4, lineHeight: 19 },
-  newBtn: { marginTop: 16, backgroundColor: NAVY, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 12 },
+  emptyTitle: { fontSize: 16.5, fontWeight: '800', color: t.ink.primary, marginTop: 12 },
+  emptySub: { fontSize: 13.5, color: t.ink.muted, textAlign: 'center', marginTop: 4, lineHeight: 19 },
+  newBtn: { marginTop: 16, backgroundColor: t.ink.primary, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 12 },
   newBtnTxt: { color: t.ink.inverse, fontSize: 14.5, fontWeight: '700' },
   card: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, padding: 14, marginBottom: 12, backgroundColor: t.surface.canvas },
-  cardTitle: { flex: 1, fontSize: 14.5, fontWeight: '700', color: NAVY },
+  cardTitle: { flex: 1, fontSize: 14.5, fontWeight: '700', color: t.ink.primary },
   statusChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
   chipOn: { backgroundColor: '#ECFDF5' }, chipPause: { backgroundColor: '#FFFBEB' }, chipEnd: { backgroundColor: '#F3F4F6' },
   statusTxt: { fontSize: 11.5, fontWeight: '800', textTransform: 'capitalize' },
-  window: { fontSize: 12.5, color: 'rgba(11,30,61,0.5)', marginTop: 4 },
+  window: { fontSize: 12.5, color: t.ink.muted, marginTop: 4 },
   metricsRow: { flexDirection: 'row', gap: 22, marginTop: 12 },
   metric: {},
-  metricNum: { fontSize: 20, fontWeight: '800', color: NAVY, fontVariant: ['tabular-nums'] },
-  metricLbl: { fontSize: 11.5, color: 'rgba(11,30,61,0.5)', marginTop: 1 },
-  scrim: { flex: 1, backgroundColor: t.ink.muted, justifyContent: 'flex-end' },
+  metricNum: { fontSize: 20, fontWeight: '800', color: t.ink.primary, fontVariant: ['tabular-nums'] },
+  metricLbl: { fontSize: 11.5, color: t.ink.muted, marginTop: 1 },
+  scrim: { flex: 1, backgroundColor: t.surface.scrim, justifyContent: 'flex-end' },
   sheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: 28, maxHeight: '88%' },
-  grab: { alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: 'rgba(11,30,61,0.16)', marginBottom: 12 },
-  sheetTitle: { fontSize: 17, fontWeight: '800', color: NAVY, marginBottom: 12 },
-  pickRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.07)' },
-  pickTxt: { flex: 1, fontSize: 14, color: 'rgba(11,30,61,0.85)' },
-  noPosts: { fontSize: 13.5, color: 'rgba(11,30,61,0.5)', paddingVertical: 20, textAlign: 'center' },
-  pickedExcerpt: { fontSize: 14, color: 'rgba(11,30,61,0.75)', backgroundColor: t.surface.raised, borderRadius: 12, padding: 12 },
-  fieldLbl: { fontSize: 12, fontWeight: '800', color: 'rgba(11,30,61,0.5)', textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 14, marginBottom: 6 },
-  input: { borderRadius: 12, borderWidth: 1, borderColor: t.surface.hairline, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14.5, color: NAVY },
+  grab: { alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: t.surface.hairline, marginBottom: 12 },
+  sheetTitle: { fontSize: 17, fontWeight: '800', color: t.ink.primary, marginBottom: 12 },
+  pickRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.divider },
+  pickTxt: { flex: 1, fontSize: 14, color: t.ink.secondary },
+  noPosts: { fontSize: 13.5, color: t.ink.muted, paddingVertical: 20, textAlign: 'center' },
+  pickedExcerpt: { fontSize: 14, color: t.ink.secondary, backgroundColor: t.surface.raised, borderRadius: 12, padding: 12 },
+  fieldLbl: { fontSize: 12, fontWeight: '800', color: t.ink.muted, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 14, marginBottom: 6 },
+  input: { borderRadius: 12, borderWidth: 1, borderColor: t.surface.hairline, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14.5, color: t.ink.primary },
   durChip: { paddingHorizontal: 13, paddingVertical: 9, borderRadius: 999, backgroundColor: t.brand.tintBg, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline },
-  durChipOn: { backgroundColor: NAVY, borderColor: NAVY },
-  durTxt: { fontSize: 13, fontWeight: '700', color: NAVY },
+  durChipOn: { backgroundColor: t.ink.primary, borderColor: t.ink.primary },
+  durTxt: { fontSize: 13, fontWeight: '700', color: t.ink.primary },
   backBtn: { paddingHorizontal: 16, justifyContent: 'center' },
-  backTxt: { fontSize: 14, fontWeight: '600', color: 'rgba(11,30,61,0.6)' },
-  goBtn: { flex: 1, backgroundColor: NAVY, borderRadius: 999, paddingVertical: 13, alignItems: 'center' },
+  backTxt: { fontSize: 14, fontWeight: '600', color: t.ink.muted },
+  goBtn: { flex: 1, backgroundColor: t.ink.primary, borderRadius: 999, paddingVertical: 13, alignItems: 'center' },
   goTxt: { color: t.ink.inverse, fontSize: 14.5, fontWeight: '700' },
   closeX: { position: 'absolute', top: 14, right: 16 },
 }));

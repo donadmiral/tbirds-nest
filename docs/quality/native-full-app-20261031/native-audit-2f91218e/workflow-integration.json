@@ -1,0 +1,25 @@
+{
+  "preparedAt": "2026-10-31T18:23:26.355915+00:00",
+  "productionBaseline": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "frozenAuditCheckpoint": "62aaaf4de76576221b7724a5fe54c63de070274d",
+  "productionChanges": 0,
+  "nativeCasesPerPlatform": 85,
+  "featureGroups": 13,
+  "shardsPerPlatform": 3,
+  "buildsPerPlatform": 1,
+  "binaryReuse": "Exact source/tree/config/scenario/binary binding; no per-case build, rebundle or signing",
+  "failureBehavior": "Fail-fast disabled. Per-case deadlines collect failure and continue; aggregate separates failed/missing execution.",
+  "verification": {
+    "formalTestsPassed": 15,
+    "failed": 0,
+    "nestedPythonCasesIncluded": 5,
+    "shellSyntaxPassed": true,
+    "workflowGroupsComplete": true,
+    "nativeRuntimeExecuted": false
+  },
+  "limits": [
+    "59 entry-only cases and26 control/error/signedout/capture cases; not every native control.",
+    "Physical hardware and live providers remain outside synthetic CI.",
+    "Original full native UI and encoder gates remain separately required."
+  ]
+}

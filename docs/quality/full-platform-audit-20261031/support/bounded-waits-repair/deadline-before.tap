@@ -1,0 +1,318 @@
+TAP version 13
+# Subtest: create: a held digest has a bounded preparation wait and cannot dispatch after its timeout
+not ok 1 - create: a held digest has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 229.20928
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:14:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:20:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: create: a held storage:get has a bounded preparation wait and cannot dispatch after its timeout
+not ok 2 - create: a held storage:get has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 95.290445
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:14:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:20:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: create: a held storage:set has a bounded preparation wait and cannot dispatch after its timeout
+not ok 3 - create: a held storage:set has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 60.777353
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:14:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:20:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: create: accepted cleanup at storage:get cannot hold Send busy or let a timed-out identical intent bypass its key
+not ok 4 - create: accepted cleanup at storage:get cannot hold Send busy or let a timed-out identical intent bypass its key
+  ---
+  duration_ms: 55.009372
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:41:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    A database receipt was already accepted; storage cleanup is separate
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:46:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: create: accepted cleanup at storage:remove cannot hold Send busy or let a timed-out identical intent bypass its key
+not ok 5 - create: accepted cleanup at storage:remove cannot hold Send busy or let a timed-out identical intent bypass its key
+  ---
+  duration_ms: 67.465196
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:41:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    A database receipt was already accepted; storage cleanup is separate
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:46:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: create: a different confirmed draft is independent of another key's held cleanup
+not ok 6 - create: a different confirmed draft is independent of another key's held cleanup
+  ---
+  duration_ms: 64.929317
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:62:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:66:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: create: session ABA cancels held preparation without waiting for hashing to settle
+not ok 7 - create: session ABA cancels held preparation without waiting for hashing to settle
+  ---
+  duration_ms: 58.339434
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:73:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:77:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: reply: a held digest has a bounded preparation wait and cannot dispatch after its timeout
+not ok 8 - reply: a held digest has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 57.028868
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:14:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:20:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: reply: a held storage:get has a bounded preparation wait and cannot dispatch after its timeout
+not ok 9 - reply: a held storage:get has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 55.533968
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:14:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:20:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: reply: a held storage:set has a bounded preparation wait and cannot dispatch after its timeout
+not ok 10 - reply: a held storage:set has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 54.669285
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:14:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:20:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: reply: accepted cleanup at storage:get cannot hold Send busy or let a timed-out identical intent bypass its key
+not ok 11 - reply: accepted cleanup at storage:get cannot hold Send busy or let a timed-out identical intent bypass its key
+  ---
+  duration_ms: 45.184759
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:41:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    A database receipt was already accepted; storage cleanup is separate
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:46:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: reply: accepted cleanup at storage:remove cannot hold Send busy or let a timed-out identical intent bypass its key
+not ok 12 - reply: accepted cleanup at storage:remove cannot hold Send busy or let a timed-out identical intent bypass its key
+  ---
+  duration_ms: 43.050261
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:41:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    A database receipt was already accepted; storage cleanup is separate
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:46:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: reply: a different confirmed draft is independent of another key's held cleanup
+not ok 13 - reply: a different confirmed draft is independent of another key's held cleanup
+  ---
+  duration_ms: 44.189741
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:62:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:66:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: reply: session ABA cancels held preparation without waiting for hashing to settle
+not ok 14 - reply: session ABA cancels held preparation without waiting for hashing to settle
+  ---
+  duration_ms: 41.065423
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:73:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-deadline.cjs:77:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 0
+# fail 14
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1183.755515

@@ -1,0 +1,41 @@
+warning: unknown enum constant AnnotationRetention.BINARY
+  reason: class file for kotlin.annotation.AnnotationRetention not found
+warning: unknown enum constant AnnotationTarget.FUNCTION
+  reason: class file for kotlin.annotation.AnnotationTarget not found
+warning: unknown enum constant AnnotationTarget.PROPERTY_GETTER
+warning: unknown enum constant AnnotationTarget.PROPERTY_SETTER
+warning: unknown enum constant AnnotationTarget.VALUE_PARAMETER
+warning: unknown enum constant AnnotationTarget.FIELD
+warning: unknown enum constant AnnotationTarget.LOCAL_VARIABLE
+warning: unknown enum constant AnnotationTarget.ANNOTATION_CLASS
+warning: unknown enum constant AnnotationTarget.FILE
+warning: unknown enum constant AnnotationRetention.BINARY
+warning: unknown enum constant When.MAYBE
+  reason: class file for javax.annotation.meta.When not found
+warning: unknown enum constant Level.ERROR
+  reason: class file for androidx.annotation.RequiresOptIn$Level not found
+warning: unknown enum constant AnnotationTarget.FIELD
+warning: unknown enum constant AnnotationTarget.FUNCTION
+warning: unknown enum constant AnnotationTarget.PROPERTY_GETTER
+warning: unknown enum constant AnnotationTarget.PROPERTY_SETTER
+warning: unknown enum constant AnnotationRetention.BINARY
+warning: unknown enum constant AnnotationRetention.BINARY
+warning: unknown enum constant AnnotationTarget.VALUE_PARAMETER
+warning: unknown enum constant AnnotationTarget.LOCAL_VARIABLE
+warning: unknown enum constant AnnotationTarget.FUNCTION
+warning: unknown enum constant AnnotationTarget.PROPERTY_GETTER
+warning: unknown enum constant AnnotationTarget.PROPERTY_SETTER
+warning: unknown enum constant AnnotationTarget.FIELD
+warning: unknown enum constant AnnotationTarget.ANNOTATION_CLASS
+warning: unknown enum constant AnnotationRetention.BINARY
+warning: unknown enum constant AnnotationTarget.ANNOTATION_CLASS
+warning: unknown enum constant AnnotationTarget.CLASS
+warning: unknown enum constant AnnotationTarget.FUNCTION
+warning: unknown enum constant AnnotationTarget.PROPERTY_GETTER
+warning: unknown enum constant AnnotationTarget.PROPERTY_SETTER
+warning: unknown enum constant AnnotationTarget.CONSTRUCTOR
+warning: unknown enum constant AnnotationTarget.FIELD
+warning: unknown enum constant AnnotationTarget.FILE
+Note: /tmp/platinum-media3-api-review/DefaultLoadControl.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+34 warnings

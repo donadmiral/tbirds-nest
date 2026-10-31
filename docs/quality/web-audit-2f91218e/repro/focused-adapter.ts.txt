@@ -1,0 +1,87 @@
+import * as social from '/workspace/scratch/f9638ed3020b/platinum-circles/web/tests/browser/social-backend.ts';
+import * as commerce from '/workspace/scratch/f9638ed3020b/platinum-circles/web/tests/browser/commerce-backend.ts';
+import * as studio from '/workspace/scratch/f9638ed3020b/platinum-circles/web/tests/browser/studio-backend.ts';
+export * from '/workspace/scratch/f9638ed3020b/platinum-circles/web/tests/browser/social-backend.ts';
+const input = new URLSearchParams(location.search);
+const mode = input.get('__fault') || 'normal';
+const target = input.get('__target') || '';
+const scenario = input.get('__scenario') || '';
+const ops: any[] = []; (window as any).__auditOps = ops;
+const fault = (kind: string, name: string, action = 'read') => target === kind + ':' + name || target === kind + ':' + name + ':' + action || target === kind + ':*';
+const fail = () => { if (mode === 'rejected') throw new Error('AUDIT_CONTROLLED_TRANSPORT_REJECTION'); return { data: null, error: { message: 'AUDIT_CONTROLLED_READ_FAILURE', code: 'AUDIT_FAILURE' } }; };
+const ok = (data: any) => ({ data: structuredClone(data), error: null });
+const ID = '10000000-0000-4000-8000-000000000003';
+const ROW = '60000000-0000-4000-8000-000000000001';
+const DATE = '2026-10-30T10:00:00Z';
+const listing = { id: ROW, title: 'Audit ceramic mug', price: 20, stock_quantity: 4, currency: 'USD', category: 'Home', condition: 'New', images: [], status: 'available', hidden: false, created_at: DATE, delivery_available: true, delivery_fee: 5, pending_offers: 1, sold_count: 2, in_posts: 0 };
+const person = { id: ID, name: 'Audit customer', username: 'audit_customer', avatar_url: null, location: 'Harare', followed_at: DATE, label: 'lead', note: null, paid: 20, messages: 2 };
+const lead = { id: ROW, contact_id: ID, name: 'Audit lead', phone: null, email: 'audit@example.invalid', source: 'Website', note: null, status: 'new', created_at: DATE, username: 'audit_customer', avatar_url: null };
+const reviewer = { id: ROW, rating: 3, body: 'Delivery took longer than expected.', created_at: DATE, helpful_count: 1, user_id: ID, name: 'Audit customer', username: 'audit_customer', avatar_url: null, reply: null, replied_at: null };
+const inbox = { kind: 'dm', id: ROW, ref: ROW, title: 'Audit customer', username: 'audit_customer', avatar_url: null, preview: 'Is this still available?', at: DATE, context: 'market', unread: 1, waiting: true, amount: null, currency: null, status: null, label: 'lead', assignee: null, done: false, note: null };
+const job = { id: ROW, title: 'Audit product designer', company: 'Atlas Football', location: 'Harare', category: 'full_time', job_type: 'Full time', remote_type: 'hybrid', deadline: null, created_at: DATE, urgent: false, closed: false, counts: { applied: 1 } };
+const applicant = { id: ROW, status: 'applied', applied_at: DATE, updated_at: DATE, cover_note: 'Audit application', cover_letter: 'Audit application', cv_url: null, cv_name: null, phone: null, portfolio_url: null, interview_at: null, interview_location: null, applicant_id: ID, name: 'Audit applicant', username: 'audit_customer', avatar_url: null, tags: [], notes: [], answers: [] };
+const contracts: Record<string, any> = {
+  studio_audience: [person], studio_leads: [lead], studio_audience_summary: { followers: 1, new_30d: 1, customers: 1, labels: { lead: 1 }, top_cities: [{ city: 'Harare', n: 1 }] },
+  business_catalog: { rows: [listing], next_cursor: null, has_more: false }, business_receipts: { rows: [], next_cursor: null, has_more: false },
+  studio_get_storefront: { tagline: 'Made with care', featured_listing_ids: [], delivery_default: true, delivery_fee_default: 5, delivery_note_default: 'Local delivery' },
+  studio_inbox: [inbox], studio_team: [{ id: ID, display_name: 'Audit teammate', role: 'support' }], studio_list_replies: [], studio_get_auto_replies: { welcome_enabled: false, welcome_text: '', away_enabled: false, away_text: '', faq: [] },
+  studio_jobs: [job], studio_applicant_page: { applications: [applicant], counts: { applied: 1 }, cursor: null, has_more: false, next_interviews: [], interviews_today: 0 },
+  studio_reviews: { average: 3, count: 1, distribution: { '3': 1 }, reviews: [reviewer] },
+};
+function promise(result: Promise<any>): any { const p: any = result; p.abortSignal = () => p; p.setHeader = () => p; return p; }
+function query(client: any, table: string): any {
+  const chain: any[] = []; let action = 'read'; let cached: Promise<any> | null = null;
+  function run() {
+    if (cached) return cached;
+    cached = Promise.resolve().then(async () => {
+      ops.push({ kind: 'table', name: table, action, fault: mode !== 'normal' && fault('table', table, action), chain });
+      if (mode !== 'normal' && fault('table', table, action)) return fail();
+      if (scenario === 'words' && table === 'profiles') {
+        if (action === 'read') return ok({ id: social.OWNER, hidden_words: ['existing'], muted_words: ['existing'] });
+        return ok(null);
+      }
+      if (scenario === 'market-create' && table === 'feature_flags') return ok({ key: 'market', enabled: true });
+      if (scenario === 'market-create' && table === 'marketplace_listings' && action === 'insert') return ok({ ...listing, id: ROW });
+      let result = client.from(table);
+      for (const [method, args] of chain) {
+        if (method === 'not' && typeof result[method] !== 'function') continue; // explicit adapter-only gap; archive has no loaded rows
+        if (typeof result[method] !== 'function') throw new Error('AUDIT_FIXTURE_MISSING_METHOD:' + table + '.' + method);
+        result = result[method](...args);
+      }
+      return result;
+    });
+    return cached;
+  }
+  const proxy: any = new Proxy({}, { get(_obj, key) {
+    if (key === 'then') return (yes: any, no: any) => run().then(yes, no);
+    if (key === 'catch') return (no: any) => run().catch(no);
+    if (key === 'finally') return (fn: any) => run().finally(fn);
+    return (...args: any[]) => { const method = String(key); if (['insert', 'update', 'delete', 'upsert'].includes(method)) action = method; chain.push([method, args]); return proxy; };
+  } });
+  return proxy;
+}
+export function createClient(): any {
+  const provider = location.pathname.startsWith('/studio') ? studio : location.pathname.startsWith('/jobs') || location.pathname.startsWith('/market') ? commerce : social;
+  const client: any = provider.createClient();
+  return new Proxy(client, { get(obj, key) {
+    if (key === 'from') return (table: string) => query(obj, table);
+    if (key === 'rpc') return (name: string, args: any) => promise(Promise.resolve().then(() => {
+      const broken = mode !== 'normal' && fault('rpc', name);
+      ops.push({ kind: 'rpc', name, args, fault: broken });
+      if (broken) return fail();
+      if (Object.prototype.hasOwnProperty.call(contracts, name)) return ok(contracts[name]);
+      if (scenario === 'business-create' && name === 'is_username_available') return ok(true);
+      return obj.rpc(name, args);
+    }));
+    if (key === 'functions') return { invoke: (name: string, args: any) => Promise.resolve().then(() => {
+      const broken = mode !== 'normal' && fault('function', name); ops.push({ kind: 'function', name, args, fault: broken });
+      if (broken) return fail();
+      return obj.functions.invoke(name, args);
+    }) };
+    if (key === 'storage' && scenario === 'market-create') return { from: (bucket: string) => ({ upload: (path: string, file: File) => Promise.resolve().then(() => {
+      const broken = mode !== 'normal' && fault('storage', bucket); ops.push({ kind: 'storage', name: bucket, bytes: file.size, mime: file.type, fault: broken });
+      if (broken) return fail(); return ok({ path });
+    }), getPublicUrl: (path: string) => ({ data: { publicUrl: 'https://fixture.invalid/' + path } }) }) };
+    return obj[key];
+  } });
+}

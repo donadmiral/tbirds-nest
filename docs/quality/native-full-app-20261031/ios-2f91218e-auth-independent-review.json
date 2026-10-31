@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T19:03:40.852957+00:00",
+  "reviewer": "hosted_backend",
+  "scope": "Independent bounded auth/account/reader-response/capture/native-URL coverage review from the single artifact extracted and verified by native_acceptance. No source edits, provider requests or duplicate download.",
+  "source": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "workflowRun": 41225636296,
+    "artifact": {
+      "id": 13053783225,
+      "name": "ios-full-app-ui",
+      "bytes": 34443920,
+      "sha256": "17351e49dc00d31774572edc655dcbda64c3f7c149627a948bfd34248a352f67",
+      "verificationOwner": "native_acceptance"
+    },
+    "manifest": {
+      "artifactPath": "source.json",
+      "sha256": "69f5b9e24981e1614c8c210bffa5d25bd10b707e9dd94b46923955596a1c540e",
+      "bytes": 59892,
+      "canonicalRetainedPath": "docs/quality/native-full-app-20261031/android-2f91218e/source.json",
+      "byteIdenticalToCanonical": true
+    },
+    "scopeBoundary": "Global 501-source/6-overlay/dependency/signing verification is owned by native_acceptance, not duplicated here. Generated Swift source proof is preparation evidence, not proof of a delivered runtime URL."
+  },
+  "observations": {
+    "structuredAuthAndFixtureSnapshots": "All four expected files are absent throughout the 47-file extracted archive. They are not four zero-byte exports.",
+    "lockTiming": {
+      "acquisitions": null,
+      "holds": null,
+      "timerIdentityChanges": null,
+      "warningTextMatchesInAppLog": 0,
+      "warningTextMatchesInTargetedDeviceLog": 0,
+      "interpretation": "No matching warning was found in these log windows; missing structured traces preclude a claim of zero delayed locks or stable timer identity."
+    },
+    "savedAccountReadback": {
+      "completed": null,
+      "passed": null,
+      "retainedResults": null,
+      "interpretation": "No persisted-account receipt or structured accountReadbacks list exists. SecureStore module registration and JS object creation are observable but do not establish readback."
+    },
+    "readerResponses": {
+      "requests": null,
+      "responses": null,
+      "bodySettlements": null,
+      "pendingPhase": null,
+      "interpretation": "No retained request/body timeline supports attributing navigation step043 to auth, RPC, response consumption, optional reactions or UI commit."
+    },
+    "capture": {
+      "attempts": 1,
+      "exitCode": null,
+      "junitPresent": false,
+      "lastObservedCommand": "Run flow when Platform is IOS and exact Open in \u201cPlatinum QA\u201d? prompt is visible RUNNING at 18:55:13.266",
+      "openLinkStartLogTime": "2026-10-31 18:54:44.391",
+      "openLinkCompletedLogTime": "2026-10-31 18:55:13.260",
+      "received": null,
+      "parsed": null,
+      "resetProduced": null,
+      "mounted": null,
+      "readbackCompleted": null,
+      "interpretation": "Capture reached the link/prompt boundary. No later confirmation, fixture heading, mount, readback or movie acceptance is evidenced. The owner reports the workflow was cancelled at its 75-minute limit; absent exports cannot identify whether in-app traces existed before cancellation."
+    },
+    "nativeUrlObserver": {
+      "exactMarker": "[native-ui-url]",
+      "appLogRecords": 0,
+      "targetedDeviceLogRecords": 0,
+      "entryTime": null,
+      "exitTime": null,
+      "matchedCaptureUrl": null,
+      "interpretation": "The generated Swift observer is present in retained source proof, but these log sources contain no entry/exit marker. This does not prove no delegate call or a tracing defect, and does not establish native-to-JS latency."
+    }
+  },
+  "coverageResult": {
+    "status": "insufficient retained evidence for auth/account/reader/capture acceptance",
+    "newProvenAuthDefects": [],
+    "confirmedCoverageGap": "Missing structured export evidence after a cancelled job; no completed readback or reader-body result can be claimed.",
+    "notAClaim": "No new auth, routing, timeout, credential or permissions fix is justified by this absence alone. Navigation/driver failure diagnosis is separately owned by navigation_performance and native_acceptance."
+  },
+  "limits": [
+    "Host/device/JavaScript clocks are not calibrated by this receipt. With no numeric native or JS markers, cross-clock ordering/latency cannot be measured.",
+    "Open-link command completion does not establish OS confirmation, delegate delivery or application route commit.",
+    "No lock-warning text in a bounded log window is not evidence that all auth operations met their deadlines.",
+    "Native signing/global/source assertions belong to the owner receipt; this review only verifies the matching small source manifest and retained observer proof metadata.",
+    "No source, timeout, assertion, hosted data, account or credential change occurred."
+  ],
+  "evidence": {
+    "path": "docs/quality/native-full-app-20261031/ios-2f91218e/auth-coverage-projection.json",
+    "sha256": "a2ce0149a3d846c775cbd27d368e1e32c672e6aaea496a63734679e4c43b4727",
+    "bytes": 7043
+  }
+}

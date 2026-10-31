@@ -1,0 +1,508 @@
+TAP version 13
+# Subtest: commands send the verified native session and preserve replay key
+ok 1 - commands send the verified native session and preserve replay key
+  ---
+  duration_ms: 52.267324
+  type: 'test'
+  ...
+# Subtest: expected command failures survive the production server action boundary as data
+ok 2 - expected command failures survive the production server action boundary as data
+  ---
+  duration_ms: 21.032697
+  type: 'test'
+  ...
+# Subtest: an explicitly missing command endpoint returns unavailable without encouraging a retry
+ok 3 - an explicitly missing command endpoint returns unavailable without encouraging a retry
+  ---
+  duration_ms: 22.381517
+  type: 'test'
+  ...
+# Subtest: network, permission and missing dependency errors are not mistaken for an absent command endpoint
+ok 4 - network, permission and missing dependency errors are not mistaken for an absent command endpoint
+  ---
+  duration_ms: 40.552713
+  type: 'test'
+  ...
+# Subtest: unconfirmed or wrong-key command responses never report success
+ok 5 - unconfirmed or wrong-key command responses never report success
+  ---
+  duration_ms: 31.925292
+  type: 'test'
+  ...
+# Subtest: missing permission and malformed form are stopped before database calls
+ok 6 - missing permission and malformed form are stopped before database calls
+  ---
+  duration_ms: 14.91896
+  type: 'test'
+  ...
+# Subtest: provisioning transmits only a keyed password digest to SQL and finishes the reserved identity
+ok 7 - provisioning transmits only a keyed password digest to SQL and finishes the reserved identity
+  ---
+  duration_ms: 15.368923
+  type: 'test'
+  ...
+# Subtest: provisioning refuses a mismatched existing identity without changing staff privileges
+ok 8 - provisioning refuses a mismatched existing identity without changing staff privileges
+  ---
+  duration_ms: 12.598813
+  type: 'test'
+  ...
+# Subtest: provisioning recovers a concurrent creation only when reservation metadata matches
+ok 9 - provisioning recovers a concurrent creation only when reservation metadata matches
+  ---
+  duration_ms: 13.763065
+  type: 'test'
+  ...
+# Subtest: incomplete setup and password truncation are explicit errors
+ok 10 - incomplete setup and password truncation are explicit errors
+  ---
+  duration_ms: 10.027433
+  type: 'test'
+  ...
+# Subtest: missing provisioning reports unavailable before any account identity is created
+ok 11 - missing provisioning reports unavailable before any account identity is created
+  ---
+  duration_ms: 21.447355
+  type: 'test'
+  ...
+# Subtest: a provisioning endpoint lost after reservation preserves the partial-setup warning
+ok 12 - a provisioning endpoint lost after reservation preserves the partial-setup warning
+  ---
+  duration_ms: 18.088727
+  type: 'test'
+  ...
+# Subtest: provisioning permission and dependency errors retain uncertainty instead of claiming endpoint absence
+ok 13 - provisioning permission and dependency errors retain uncertainty instead of claiming endpoint absence
+  ---
+  duration_ms: 44.323546
+  type: 'test'
+  ...
+# Subtest: provisioning rejects incomplete or mismatched reservation receipts before creating an identity
+ok 14 - provisioning rejects incomplete or mismatched reservation receipts before creating an identity
+  ---
+  duration_ms: 60.391242
+  type: 'test'
+  ...
+# Subtest: provisioning confirms completion only for the reserved request and identity
+ok 15 - provisioning confirms completion only for the reserved request and identity
+  ---
+  duration_ms: 52.979872
+  type: 'test'
+  ...
+# Subtest: a provider identity without trusted reservation metadata fails without crashing
+ok 16 - a provider identity without trusted reservation metadata fails without crashing
+  ---
+  duration_ms: 13.294369
+  type: 'test'
+  ...
+# Subtest: signIn: verified native session persists only secure session cookies and redirects to the dashboard
+ok 17 - signIn: verified native session persists only secure session cookies and redirects to the dashboard
+  ---
+  duration_ms: 95.555743
+  type: 'test'
+  ...
+# Subtest: signIn: credential rejection and provider outage have distinct safe errors without persisting a login
+ok 18 - signIn: credential rejection and provider outage have distinct safe errors without persisting a login
+  ---
+  duration_ms: 135.529529
+  type: 'test'
+  ...
+# Subtest: signIn: inactive, revoked and unknown-role accounts are denied and the newly issued session is revoked
+ok 19 - signIn: inactive, revoked and unknown-role accounts are denied and the newly issued session is revoked
+  ---
+  duration_ms: 158.185486
+  type: 'test'
+  ...
+# Subtest: signOut: confirmed or already-absent sessions clear cookies and return to sign-in
+ok 20 - signOut: confirmed or already-absent sessions clear cookies and return to sign-in
+  ---
+  duration_ms: 220.195806
+  type: 'test'
+  ...
+# Subtest: signOut: uncertain revocation does not claim a completed sign-out or silently discard its retry context
+ok 21 - signOut: uncertain revocation does not claim a completed sign-out or silently discard its retry context
+  ---
+  duration_ms: 34.79544
+  type: 'test'
+  ...
+# Subtest: enrollAuthenticator: existing verified authenticators cannot be replaced by enrollment
+ok 22 - enrollAuthenticator: existing verified authenticators cannot be replaced by enrollment
+  ---
+  duration_ms: 20.940533
+  type: 'test'
+  ...
+# Subtest: enrollAuthenticator: only this setup’s unverified factor is removed before creating one new factor
+ok 23 - enrollAuthenticator: only this setup’s unverified factor is removed before creating one new factor
+  ---
+  duration_ms: 23.041566
+  type: 'test'
+  ...
+# Subtest: enrollAuthenticator, verifyAuthenticator: missing or revoked sessions cannot enroll or verify factors
+ok 24 - enrollAuthenticator, verifyAuthenticator: missing or revoked sessions cannot enroll or verify factors
+  ---
+  duration_ms: 109.663685
+  type: 'test'
+  ...
+# Subtest: verifyAuthenticator: six-digit validation and provider rejection never elevate session cookies
+ok 25 - verifyAuthenticator: six-digit validation and provider rejection never elevate session cookies
+  ---
+  duration_ms: 41.071383
+  type: 'test'
+  ...
+# Subtest: verifyAuthenticator: actual SDK challenge and verify persist the returned elevated session
+ok 26 - verifyAuthenticator: actual SDK challenge and verify persist the returned elevated session
+  ---
+  duration_ms: 22.586806
+  type: 'test'
+  ...
+# Subtest: inviteStaff: the actual wrapper preserves reservation identity and invalidates only its confirmed desk
+ok 27 - inviteStaff: the actual wrapper preserves reservation identity and invalidates only its confirmed desk
+  ---
+  duration_ms: 56.396939
+  type: 'test'
+  ...
+# Subtest: inviteStaff: wrong role and failed reservation do not create an identity or refresh a success page
+ok 28 - inviteStaff: wrong role and failed reservation do not create an identity or refresh a success page
+  ---
+  duration_ms: 64.182363
+  type: 'test'
+  ...
+# Subtest: approveBusinessApplication: the actual wrapper preserves reservation identity and invalidates only its confirmed desk
+ok 29 - approveBusinessApplication: the actual wrapper preserves reservation identity and invalidates only its confirmed desk
+  ---
+  duration_ms: 30.854683
+  type: 'test'
+  ...
+# Subtest: approveBusinessApplication: wrong role and failed reservation do not create an identity or refresh a success page
+ok 30 - approveBusinessApplication: wrong role and failed reservation do not create an identity or refresh a success page
+  ---
+  duration_ms: 76.093118
+  type: 'test'
+  ...
+# Subtest: saveMusicProvider: verified actor/session and normalized payload reach the exact music command
+ok 31 - saveMusicProvider: verified actor/session and normalized payload reach the exact music command
+  ---
+  duration_ms: 21.359354
+  type: 'test'
+  ...
+# Subtest: saveMusicProvider: missing or negative receipt cannot report a saved music change
+ok 32 - saveMusicProvider: missing or negative receipt cannot report a saved music change
+  ---
+  duration_ms: 103.176293
+  type: 'test'
+  ...
+# Subtest: saveMusicLicenseDraft: verified actor/session and normalized payload reach the exact music command
+ok 33 - saveMusicLicenseDraft: verified actor/session and normalized payload reach the exact music command
+  ---
+  duration_ms: 18.243033
+  type: 'test'
+  ...
+# Subtest: saveMusicLicenseDraft: missing or negative receipt cannot report a saved music change
+ok 34 - saveMusicLicenseDraft: missing or negative receipt cannot report a saved music change
+  ---
+  duration_ms: 100.396224
+  type: 'test'
+  ...
+# Subtest: revokeMusicSound: verified actor/session and normalized payload reach the exact music command
+ok 35 - revokeMusicSound: verified actor/session and normalized payload reach the exact music command
+  ---
+  duration_ms: 16.205499
+  type: 'test'
+  ...
+# Subtest: revokeMusicSound: missing or negative receipt cannot report a saved music change
+ok 36 - revokeMusicSound: missing or negative receipt cannot report a saved music change
+  ---
+  duration_ms: 86.287024
+  type: 'test'
+  ...
+# Subtest: stageMusicCatalogue: actual staging action keeps request identity, counts and commercial licensing off
+ok 37 - stageMusicCatalogue: actual staging action keeps request identity, counts and commercial licensing off
+  ---
+  duration_ms: 15.587174
+  type: 'test'
+  ...
+# Subtest: stageMusicCatalogue: a matching idempotent SQL replay without an added count remains a confirmed staging result
+ok 38 - stageMusicCatalogue: a matching idempotent SQL replay without an added count remains a confirmed staging result
+  ---
+  duration_ms: 16.289973
+  type: 'test'
+  ...
+# Subtest: stageMusicCatalogue: missing, wrong-request and impossible count receipts cannot claim catalogue staging
+ok 39 - stageMusicCatalogue: missing, wrong-request and impossible count receipts cannot claim catalogue staging
+  ---
+  duration_ms: 153.489994
+  type: 'test'
+  ...
+# Subtest: moderateReview: valid moderation uses verified actor, session, version and retry key
+ok 40 - moderateReview: valid moderation uses verified actor, session, version and retry key
+  ---
+  duration_ms: 31.998349
+  type: 'test'
+  ...
+# Subtest: moderateReview: unconfirmed or wrong-key moderation receipt cannot report an audited decision
+ok 41 - moderateReview: unconfirmed or wrong-key moderation receipt cannot report an audited decision
+  ---
+  duration_ms: 70.041844
+  type: 'test'
+  ...
+# Subtest: moderateReview: invalid decision, key, version or reason stops before the write boundary
+ok 42 - moderateReview: invalid decision, key, version or reason stops before the write boundary
+  ---
+  duration_ms: 62.832545
+  type: 'test'
+  ...
+# Subtest: updateSupportTriage: exact confirmed assignment and failure variants preserve retry and version semantics
+ok 43 - updateSupportTriage: exact confirmed assignment and failure variants preserve retry and version semantics
+  ---
+  duration_ms: 81.567008
+  type: 'test'
+  ...
+# Subtest: updateSupportTriage: duplicate and malformed fields cannot reach assignment mutation
+ok 44 - updateSupportTriage: duplicate and malformed fields cannot reach assignment mutation
+  ---
+  duration_ms: 68.757495
+  type: 'test'
+  ...
+# Subtest: reviewCreator: current disabled finance gate blocks direct calls without pretending reviews are live
+ok 45 - reviewCreator: current disabled finance gate blocks direct calls without pretending reviews are live
+  ---
+  duration_ms: 66.773513
+  type: 'test'
+  ...
+# Subtest: saveMusicProvider, saveMusicLicenseDraft, revokeMusicSound, stageMusicCatalogue, moderateReview, updateSupportTriage, reviewErasure: actual Auth and permission policy stop every unauthorized role before a custom RPC
+ok 46 - saveMusicProvider, saveMusicLicenseDraft, revokeMusicSound, stageMusicCatalogue, moderateReview, updateSupportTriage, reviewErasure: actual Auth and permission policy stop every unauthorized role before a custom RPC
+  ---
+  duration_ms: 1012.225012
+  type: 'test'
+  ...
+# Subtest: actual server action sends only the verified actor/session and exact form identity
+ok 47 - actual server action sends only the verified actor/session and exact form identity
+  ---
+  duration_ms: 6.55631
+  type: 'test'
+  ...
+# Subtest: missing permission stops the real action before any database request
+ok 48 - missing permission stops the real action before any database request
+  ---
+  duration_ms: 5.129923
+  type: 'test'
+  ...
+# Subtest: invalid, duplicate, forged or unconfirmed form fields never reach the database
+ok 49 - invalid, duplicate, forged or unconfirmed form fields never reach the database
+  ---
+  duration_ms: 6.462619
+  type: 'test'
+  ...
+# Subtest: note action does not silently request resume even when the checkbox is checked
+ok 50 - note action does not silently request resume even when the checkbox is checked
+  ---
+  duration_ms: 6.027454
+  type: 'test'
+  ...
+# Subtest: every real retention outcome stays held and never claims completion
+ok 51 - every real retention outcome stays held and never claims completion
+  ---
+  duration_ms: 46.054549
+  type: 'test'
+  ...
+# Subtest: wrong-key, mismatched-target and contradictory responses never confirm an action
+ok 52 - wrong-key, mismatched-target and contradictory responses never confirm an action
+  ---
+  duration_ms: 40.18952
+  type: 'test'
+  ...
+# Subtest: stale and unavailable responses remain actionable without a false success
+ok 53 - stale and unavailable responses remain actionable without a false success
+  ---
+  duration_ms: 21.212322
+  type: 'test'
+  ...
+# Subtest: missing endpoint is explicit but unrelated provider errors preserve uncertainty
+ok 54 - missing endpoint is explicit but unrelated provider errors preserve uncertainty
+  ---
+  duration_ms: 10.56159
+  type: 'test'
+  ...
+# Subtest: identity-stage resumption is described as pending and never as erased
+ok 55 - identity-stage resumption is described as pending and never as erased
+  ---
+  duration_ms: 5.296042
+  type: 'test'
+  ...
+# Subtest: missing assignment capability keeps the inbox and its actual counts readable without invented triage
+ok 56 - missing assignment capability keeps the inbox and its actual counts readable without invented triage
+  ---
+  duration_ms: 55.289812
+  type: 'test'
+  ...
+# Subtest: missing assignment capability leaves the conversation read-only, with no mutation forms or assignment guesses
+ok 57 - missing assignment capability leaves the conversation read-only, with no mutation forms or assignment guesses
+  ---
+  duration_ms: 39.183766
+  type: 'test'
+  ...
+# Subtest: available assignments preserve ownership and priority without exposing unavailable reply or status actions
+ok 58 - available assignments preserve ownership and priority without exposing unavailable reply or status actions
+  ---
+  duration_ms: 43.909039
+  type: 'test'
+  ...
+# Subtest: reply and status controls require an explicit command capability without probing a mutating RPC
+ok 59 - reply and status controls require an explicit command capability without probing a mutating RPC
+  ---
+  duration_ms: 48.351331
+  type: 'test'
+  ...
+# Subtest: legacy or malformed command capability never disables assignments or enables reply and status actions
+ok 60 - legacy or malformed command capability never disables assignments or enables reply and status actions
+  ---
+  duration_ms: 113.213122
+  type: 'test'
+  ...
+# Subtest: real support transport, permission and malformed-response errors do not turn into an unavailable fallback
+ok 61 - real support transport, permission and malformed-response errors do not turn into an unavailable fallback
+  ---
+  duration_ms: 7152.381562
+  type: 'test'
+  ...
+# Subtest: an empty support page still reports the missing capability instead of assuming assignments exist
+ok 62 - an empty support page still reports the missing capability instead of assuming assignments exist
+  ---
+  duration_ms: 20.468842
+  type: 'test'
+  ...
+# Subtest: missing seller-review capability shows an unavailable pane without review actions or false empty results
+ok 63 - missing seller-review capability shows an unavailable pane without review actions or false empty results
+  ---
+  duration_ms: 40.796652
+  type: 'test'
+  ...
+# Subtest: existing post and listing reports do not depend on the optional seller-review endpoint
+ok 64 - existing post and listing reports do not depend on the optional seller-review endpoint
+  ---
+  duration_ms: 20.940296
+  type: 'test'
+  ...
+# Subtest: missing capability never bypasses support or review desk authorization
+ok 65 - missing capability never bypasses support or review desk authorization
+  ---
+  duration_ms: 67.272106
+  type: 'test'
+  ...
+# Subtest: missing deletion queue shows a truthful unavailable state and recovery links, not an empty queue
+ok 66 - missing deletion queue shows a truthful unavailable state and recovery links, not an empty queue
+  ---
+  duration_ms: 40.122995
+  type: 'test'
+  ...
+# Subtest: direct review and assignment actions explain their missing endpoint without offering a fruitless retry
+ok 67 - direct review and assignment actions explain their missing endpoint without offering a fruitless retry
+  ---
+  duration_ms: 5.215031
+  type: 'test'
+  ...
+# Subtest: review and assignment network or permission failures never claim no mutation was possible
+ok 68 - review and assignment network or permission failures never claim no mutation was possible
+  ---
+  duration_ms: 29.832951
+  type: 'test'
+  ...
+# Subtest: UTC music reports accept bounded exact dates and reject rollover, reverse and oversized windows
+ok 69 - UTC music reports accept bounded exact dates and reject rollover, reverse and oversized windows
+  ---
+  duration_ms: 0.703451
+  type: 'test'
+  ...
+# Subtest: CSV quotes fields and neutralizes external-title spreadsheet formulas
+ok 70 - CSV quotes fields and neutralizes external-title spreadsheet formulas
+  ---
+  duration_ms: 0.374169
+  type: 'test'
+  ...
+# Subtest: catalogue staging action binds writes to the current verified staff and session
+ok 71 - catalogue staging action binds writes to the current verified staff and session
+  ---
+  duration_ms: 4.085614
+  type: 'test'
+  ...
+# Subtest: catalogue action rejects malformed, oversized and missing files before any database write
+ok 72 - catalogue action rejects malformed, oversized and missing files before any database write
+  ---
+  duration_ms: 11.202247
+  type: 'test'
+  ...
+# Subtest: staff authentication and failed staging never produce a saved result
+ok 73 - staff authentication and failed staging never produce a saved result
+  ---
+  duration_ms: 6.711788
+  type: 'test'
+  ...
+# Subtest: report route validates dates, rechecks staff and returns errors without a fake download
+ok 74 - report route validates dates, rechecks staff and returns errors without a fake download
+  ---
+  duration_ms: 4.844699
+  type: 'test'
+  ...
+# Subtest: installed SDK sends PKCE reset and redeems it only with the same browser verifier
+ok 75 - installed SDK sends PKCE reset and redeems it only with the same browser verifier
+  ---
+  duration_ms: 47.679044
+  type: 'test'
+  ...
+# Subtest: unknown account and every provider error produce identical reset feedback without raw error text
+ok 76 - unknown account and every provider error produce identical reset feedback without raw error text
+  ---
+  duration_ms: 125.718233
+  type: 'test'
+  ...
+# Subtest: untrusted origin cannot send email or start a recovery session
+ok 77 - untrusted origin cannot send email or start a recovery session
+  ---
+  duration_ms: 15.837321
+  type: 'test'
+  ...
+# Subtest: expired or modified verifier cookies cannot redeem an email code even when manually replayed
+ok 78 - expired or modified verifier cookies cannot redeem an email code even when manually replayed
+  ---
+  duration_ms: 37.61949
+  type: 'test'
+  ...
+# Subtest: ordinary login, stale recovery, untrusted user and revoked sessions cannot authorize reset
+ok 79 - ordinary login, stale recovery, untrusted user and revoked sessions cannot authorize reset
+  ---
+  duration_ms: 61.389284
+  type: 'test'
+  ...
+# Subtest: password update uses end-user SDK, revokes global sessions, clears recovery, and cannot be replayed
+ok 80 - password update uses end-user SDK, revokes global sessions, clears recovery, and cannot be replayed
+  ---
+  duration_ms: 17.964209
+  type: 'test'
+  ...
+# Subtest: MFA-protected recovery requires own verified factor and preserves original deadline
+ok 81 - MFA-protected recovery requires own verified factor and preserves original deadline
+  ---
+  duration_ms: 33.311949
+  type: 'test'
+  ...
+# Subtest: unsupported MFA has an explicit state, and password update cannot silently bypass it
+ok 82 - unsupported MFA has an explicit state, and password update cannot silently bypass it
+  ---
+  duration_ms: 16.194415
+  type: 'test'
+  ...
+# Subtest: password success with failed revocation is reported honestly, and invalid passwords never mutate
+ok 83 - password success with failed revocation is reported honestly, and invalid passwords never mutate
+  ---
+  duration_ms: 14.866351
+  type: 'test'
+  ...
+1..83
+# tests 83
+# suites 0
+# pass 83
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12066.35964

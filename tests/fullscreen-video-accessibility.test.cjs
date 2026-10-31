@@ -30,7 +30,7 @@ function mount() {
     require(name) {
       if (name === 'react') return hooks;
       if (name === 'react/jsx-runtime') return runtime;
-      if (name === 'react-native') return { View: 'View', Text: 'Text', TouchableOpacity: 'TouchableOpacity', ActivityIndicator: 'ActivityIndicator', StyleSheet: { absoluteFill: {}, absoluteFillObject: {} },
+      if (name === 'react-native') return { View: 'View', Text: 'Text', TouchableOpacity: 'TouchableOpacity', ActivityIndicator: 'ActivityIndicator', StyleSheet: { create: styles => styles, absoluteFill: {}, absoluteFillObject: {} },
         useWindowDimensions: () => ({ width: 400, height: 800 }), Dimensions: { get: () => ({ width: 400, height: 800 }) }, PanResponder: { create: value => ({ panHandlers: value }) },
         AccessibilityInfo: { isScreenReaderEnabled: () => new Promise(resolve => { initialReaderResolve = resolve; }), addEventListener: (_name, fn) => { changedReader = fn; return { remove: () => { changedReader = null; } }; } } };
       if (name === 'expo-video') return { VideoView: 'VideoView', useVideoPlayer: (_uri, init) => { if (!initialized) { initialized = true; init(player); } return player; } };

@@ -1,0 +1,214 @@
+TAP version 13
+# Subtest: reply: an older read cannot replace a confirmed write or its current status
+ok 1 - reply: an older read cannot replace a confirmed write or its current status
+  ---
+  duration_ms: 292.199482
+  type: 'test'
+  ...
+# Subtest: reply: blur and refocus retain the request identity until the current UI accepts replay
+ok 2 - reply: blur and refocus retain the request identity until the current UI accepts replay
+  ---
+  duration_ms: 127.053349
+  type: 'test'
+  ...
+# Subtest: reply: an unmounted draft waiting for hashing never dispatches
+ok 3 - reply: an unmounted draft waiting for hashing never dispatches
+  ---
+  duration_ms: 91.138689
+  type: 'test'
+  ...
+# Subtest: reply: A to B to A invalidates preparation even when React sees only the final owner
+ok 4 - reply: A to B to A invalidates preparation even when React sees only the final owner
+  ---
+  duration_ms: 92.715878
+  type: 'test'
+  ...
+# Subtest: reply: a later login for the same owner cannot inherit an undispatched action
+ok 5 - reply: a later login for the same owner cannot inherit an undispatched action
+  ---
+  duration_ms: 96.018721
+  type: 'test'
+  ...
+# Subtest: reply: a token refresh within the captured session preserves the pinned bearer
+ok 6 - reply: a token refresh within the captured session preserves the pinned bearer
+  ---
+  duration_ms: 70.526013
+  type: 'test'
+  ...
+# Subtest: reply: an SDK auth lookup queued after query construction is aborted across session ABA
+ok 7 - reply: an SDK auth lookup queued after query construction is aborted across session ABA
+  ---
+  duration_ms: 69.765036
+  type: 'test'
+  ...
+# Subtest: reply: SDK auth lookup cannot replace the explicit bearer during ordinary refresh
+ok 8 - reply: SDK auth lookup cannot replace the explicit bearer during ordinary refresh
+  ---
+  duration_ms: 53.904307
+  type: 'test'
+  ...
+# Subtest: reply: storage completion after blur is fenced before constructing a request
+ok 9 - reply: storage completion after blur is fenced before constructing a request
+  ---
+  duration_ms: 69.19502
+  type: 'test'
+  ...
+# Subtest: reply: a late server receipt after a session change cannot clear the old draft or retry UUID
+ok 10 - reply: a late server receipt after a session change cannot clear the old draft or retry UUID
+  ---
+  duration_ms: 60.24144
+  type: 'test'
+  ...
+# Subtest: reply: lost response is confirmed or replayed without duplicate rows
+ok 11 - reply: lost response is confirmed or replayed without duplicate rows
+  ---
+  duration_ms: 66.123864
+  type: 'test'
+  ...
+# Subtest: reply: malformed persisted UUID is replaced with canonical 8-4-4-4-12 identity
+ok 12 - reply: malformed persisted UUID is replaced with canonical 8-4-4-4-12 identity
+  ---
+  duration_ms: 84.224637
+  type: 'test'
+  ...
+# Subtest: reply: accepting a confirmed draft permits a later intentional identical request
+ok 13 - reply: accepting a confirmed draft permits a later intentional identical request
+  ---
+  duration_ms: 61.223769
+  type: 'test'
+  ...
+# Subtest: reply: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+ok 14 - reply: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+  ---
+  duration_ms: 62.213774
+  type: 'test'
+  ...
+# Subtest: reply: accepting the sent payload preserves text edited while the request was in flight
+ok 15 - reply: accepting the sent payload preserves text edited while the request was in flight
+  ---
+  duration_ms: 60.801305
+  type: 'test'
+  ...
+# Subtest: reply: an old completion cannot unlock a new submission after refocus
+ok 16 - reply: an old completion cannot unlock a new submission after refocus
+  ---
+  duration_ms: 56.533582
+  type: 'test'
+  ...
+# Subtest: create: an older read cannot replace a confirmed write or its current status
+ok 17 - create: an older read cannot replace a confirmed write or its current status
+  ---
+  duration_ms: 72.315192
+  type: 'test'
+  ...
+# Subtest: create: blur and refocus retain the request identity until the current UI accepts replay
+ok 18 - create: blur and refocus retain the request identity until the current UI accepts replay
+  ---
+  duration_ms: 62.868896
+  type: 'test'
+  ...
+# Subtest: create: an unmounted draft waiting for hashing never dispatches
+ok 19 - create: an unmounted draft waiting for hashing never dispatches
+  ---
+  duration_ms: 53.34413
+  type: 'test'
+  ...
+# Subtest: create: A to B to A invalidates preparation even when React sees only the final owner
+ok 20 - create: A to B to A invalidates preparation even when React sees only the final owner
+  ---
+  duration_ms: 63.333207
+  type: 'test'
+  ...
+# Subtest: create: a later login for the same owner cannot inherit an undispatched action
+ok 21 - create: a later login for the same owner cannot inherit an undispatched action
+  ---
+  duration_ms: 50.347539
+  type: 'test'
+  ...
+# Subtest: create: a token refresh within the captured session preserves the pinned bearer
+ok 22 - create: a token refresh within the captured session preserves the pinned bearer
+  ---
+  duration_ms: 47.618573
+  type: 'test'
+  ...
+# Subtest: create: an SDK auth lookup queued after query construction is aborted across session ABA
+ok 23 - create: an SDK auth lookup queued after query construction is aborted across session ABA
+  ---
+  duration_ms: 46.301443
+  type: 'test'
+  ...
+# Subtest: create: SDK auth lookup cannot replace the explicit bearer during ordinary refresh
+ok 24 - create: SDK auth lookup cannot replace the explicit bearer during ordinary refresh
+  ---
+  duration_ms: 61.229848
+  type: 'test'
+  ...
+# Subtest: create: storage completion after blur is fenced before constructing a request
+ok 25 - create: storage completion after blur is fenced before constructing a request
+  ---
+  duration_ms: 54.532356
+  type: 'test'
+  ...
+# Subtest: create: a late server receipt after a session change cannot clear the old draft or retry UUID
+ok 26 - create: a late server receipt after a session change cannot clear the old draft or retry UUID
+  ---
+  duration_ms: 52.119148
+  type: 'test'
+  ...
+# Subtest: create: lost response is confirmed or replayed without duplicate rows
+ok 27 - create: lost response is confirmed or replayed without duplicate rows
+  ---
+  duration_ms: 56.667415
+  type: 'test'
+  ...
+# Subtest: create: malformed persisted UUID is replaced with canonical 8-4-4-4-12 identity
+ok 28 - create: malformed persisted UUID is replaced with canonical 8-4-4-4-12 identity
+  ---
+  duration_ms: 83.096307
+  type: 'test'
+  ...
+# Subtest: create: accepting a confirmed draft permits a later intentional identical request
+ok 29 - create: accepting a confirmed draft permits a later intentional identical request
+  ---
+  duration_ms: 49.806617
+  type: 'test'
+  ...
+# Subtest: create: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+ok 30 - create: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+  ---
+  duration_ms: 39.538172
+  type: 'test'
+  ...
+# Subtest: create: accepting the sent payload preserves text edited while the request was in flight
+ok 31 - create: accepting the sent payload preserves text edited while the request was in flight
+  ---
+  duration_ms: 46.936272
+  type: 'test'
+  ...
+# Subtest: create: an old completion cannot unlock a new submission after refocus
+ok 32 - create: an old completion cannot unlock a new submission after refocus
+  ---
+  duration_ms: 57.761098
+  type: 'test'
+  ...
+# Subtest: reply: changing ticket retires an undispatched reply and clears only the previous ticket draft
+ok 33 - reply: changing ticket retires an undispatched reply and clears only the previous ticket draft
+  ---
+  duration_ms: 36.004219
+  type: 'test'
+  ...
+# Subtest: reply: idempotent retry after a staff solve does not imply that the ticket reopened
+ok 34 - reply: idempotent retry after a staff solve does not imply that the ticket reopened
+  ---
+  duration_ms: 42.609851
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2582.708111

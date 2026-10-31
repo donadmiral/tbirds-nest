@@ -1,0 +1,265 @@
+{
+  "schema": 1,
+  "reviewedAt": "2026-10-31T18:26:25.210075+00:00",
+  "status": "PREPARED; local focused verification passed; not published or deployed",
+  "baseline": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "originalAudit": "docs/quality/web-audit-2f91218e/issues.json",
+    "originalAuditUnchanged": true
+  },
+  "source": {
+    "productionFiles": 13,
+    "regressionFiles": 3,
+    "manifest": {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/source-manifest.json",
+      "bytes": 4009,
+      "sha256": "5d115f67877f992977738bcc924ad2f4b76bc73fb92b5b750cd9ef657f9fee56"
+    },
+    "unchangedAfterFinalRuns": true
+  },
+  "scope": "Actual member web components with synthetic Auth/database/storage/functions and Next routing adapters. No hosted/provider acceptance or real mutations.",
+  "runtime": "153.0.8010.12",
+  "verification": {
+    "literalBaseline": {
+      "cases": 31,
+      "passed": 0,
+      "failed": 31,
+      "outcome": "Expected regression failures with the final harness against untouched baseline production entry imports",
+      "baselineRoot": "/workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-2f91218e"
+    },
+    "candidate": {
+      "cases": 48,
+      "passed": 48,
+      "failed": 0,
+      "uncaughtPageErrors": 0,
+      "blockedExternalRequests": 0
+    },
+    "static": {
+      "typescript": {
+        "exitCode": 0,
+        "command": "./node_modules/.bin/tsc --noEmit --incremental false -p web/tsconfig.json",
+        "log": {
+          "path": "docs/quality/full-platform-audit-20261031/web-repair/typescript.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "scopedLint": {
+        "exitCode": 0,
+        "scope": "The fifteen frozen TypeScript/TSX/CJS files; CSS excluded from ESLint",
+        "log": {
+          "path": "docs/quality/full-platform-audit-20261031/web-repair/lint.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "whitespace": {
+        "exitCode": 0,
+        "command": "git diff --check -- web"
+      },
+      "sourceBeforeAfter": {
+        "count": 16,
+        "allMatchFrozenManifest": true
+      },
+      "baselineWorktree": {
+        "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+        "trackedStatusClean": true,
+        "temporaryDependencySymlinkRemoved": true
+      }
+    },
+    "coverage": "Normal, resolved-error and rejected-error reads; retained drafts and successful retries; actual cover-button pointer/file-chooser path at both widths."
+  },
+  "repairs": [
+    {
+      "id": "WEB-01",
+      "result": "Hidden/muted-word arrays cannot be overwritten from unknown initial state. Failed reads expose retry and disable editing; failed saves preserve the draft and confirmed list.",
+      "cases": 10
+    },
+    {
+      "id": "WEB-02",
+      "result": "Standing read failures expose retry and never assert clean standing.",
+      "cases": 3
+    },
+    {
+      "id": "WEB-03",
+      "result": "Explore required read failures settle to a recoverable visible error.",
+      "cases": 3
+    },
+    {
+      "id": "WEB-04",
+      "result": "Topic failures are distinguished from genuine empty posts, including returned and rejected errors.",
+      "cases": 3
+    },
+    {
+      "id": "WEB-05",
+      "result": "Search trending-topic failure is visible and retryable. The baseline retained input/back controls; the defect was silent discovery-content failure, not an entirely blank page.",
+      "cases": 3
+    },
+    {
+      "id": "WEB-06",
+      "result": "Listing and business unexpected mutation rejections release submission controls; user inputs survive and retry succeeds. Market availability read failure is distinct from disabled or enabled.",
+      "cases": 12
+    },
+    {
+      "id": "WEB-07",
+      "result": "Promotion own-content errors remain visible across wizard steps; retry preserves goal and selection state.",
+      "cases": 3
+    },
+    {
+      "id": "WEB-08",
+      "result": "Unread/FeaturedChannels/ExploreTopics no longer leak rejected reads; accessible recovery surfaces and retry or next-poll recovery are covered.",
+      "cases": 9
+    },
+    {
+      "id": "WEB-09",
+      "result": "Cover action stacking allows actual center-pointer activation and a file chooser at 390 and 1440 CSS-pixel widths. Visual pixels can be identical while pointer interception differs.",
+      "cases": 2
+    }
+  ],
+  "intermediateHarnessCorrections": [
+    "A first candidate run reported45 pass/3 fail because the synthetic get_channels adapter returned no populated row; the adapter now supplies a valid channel and all three normal/retry paths pass. This was not classified as a production defect.",
+    "The baseline clean checkout lacked node_modules; one compile attempt failed before cases. A temporary dependency symlink to the existing locked installation enabled the final run and was removed. No baseline tracked source changed.",
+    "The final microtask effect-start adjustment was followed by fresh48-case candidate and31-case baseline runs plus final TypeScript/lint. Repeated runs are not added to the48-case total."
+  ],
+  "reactReview": {
+    "skill": "vercel:react-best-practices",
+    "findings": [
+      "Primitive/stable effect dependencies and effect cleanup guards used for new reads.",
+      "Independent Explore reads remain parallel; no new global cache or listener ownership.",
+      "Unknown whole-array preferences disable mutation rather than inventing empty state.",
+      "Submission locks release through finally; failed mutation does not claim success.",
+      "Errors and retry controls are accessible; cover action is verified through real pointer hit testing."
+    ],
+    "noSuppressionOrRelaxedAcceptance": true
+  },
+  "limits": [
+    "Synthetic Auth/database/storage/functions and Next routing adapters execute actual production components. This does not verify hosted RLS, signed-in sessions, deployment, real payments, uploads or external services.",
+    "No new write deadline or automatic mutation retry is introduced; held mutation timeout behavior remains outside this focused change.",
+    "Account/route lifecycle coverage uses existing application boundary contracts; this fixture is not a full Next account-switch/ABA integration proof.",
+    "The first-pass inventory still has explicitly unexecuted routes/deep/provider contracts. These48 focused cases do not mean every product control is covered.",
+    "No native theme changes, Support changes, shared readDeadline changes, provider data mutations or ref updates are included."
+  ],
+  "ciRegistration": {
+    "command": "PLATINUM_MEMBER_ARTIFACTS=/tmp/platinum-browser-evidence/member-resilience node web/tests/browser/member-resilience-run.cjs",
+    "chromium": "Uses installed Playwright Chromium or optional PLATINUM_CHROMIUM",
+    "status": "Runner ready; workflow integration is parent-owned and not part of this source patch"
+  },
+  "retained": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-browser.json.gz",
+      "bytes": 5067,
+      "sha256": "66f59ee904fb6c0715d7aa2f7dfffe62484c775d866eedf892baf549623215ef",
+      "uncompressedBytes": 70040,
+      "uncompressedSha256": "d49e702479bdad2c19882676a60178ec0a64def780cd160065d007cb69e674d3"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/after-browser.json.gz",
+      "bytes": 5668,
+      "sha256": "ca27c6883259c0617796332dcfe5ea2cc484a409d8b9bd0dac0f3091d09cf3a4",
+      "uncompressedBytes": 152717,
+      "uncompressedSha256": "e434b266e96028ae62a4fb0fa4ee79fb74e9a38614725df83744ba4f2dc51939"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-browser.txt",
+      "bytes": 4404,
+      "sha256": "aadc531ebb1da0b484ce14616ef53e22fea2cae4556c458e104f956f68678aa5"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/after-browser.txt",
+      "bytes": 3470,
+      "sha256": "6dca5640df607d78d9b91168c49fcc0ecdb2163a2288f44553aeeb21a3434da4"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/lint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-hidden-words-initial-resolved-and-successful-add.png",
+      "bytes": 26355,
+      "sha256": "92f59d7cd12dcdab8a41de8aa39d84156b5b6f52722eed4122642d011740d90e"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-muted-words-mutation-rejected-preserves-draft-and-retry.png",
+      "bytes": 22926,
+      "sha256": "cf261395724fe987d4c0a1bedcb4aea00343d39a96a223c40f8fd1810ff0991d"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-standing-resolved-with-retry.png",
+      "bytes": 29132,
+      "sha256": "f5fd51bdc07c6df7f611e0f54b29ca1467c4f54abf997fbdf33dd8664da31032"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Explore-rejected-with-retry.png",
+      "bytes": 7654,
+      "sha256": "a6f04cdd246b3116e5ba02218f5d4f826bcffba642afa2daef9caf0242a859ab"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-topic-resolved-with-retry.png",
+      "bytes": 12750,
+      "sha256": "45e8e115a50cf447ff8626737eb25637df9f9388203782ca794efa0638512e49"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Search-topics-rejected-with-retry.png",
+      "bytes": 12047,
+      "sha256": "24176894993c36a41f486bff4ad8d3a62bc5618a19c6803e4edb31c65fb06763"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Listing-storage-market-media-rejected-then-successful-submit.png",
+      "bytes": 33272,
+      "sha256": "0d1ec28e8350e6ef125a54eb4219af0f24d564cb84d36f3054dfe0a4f252121e"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Business-creation-rejected-then-successful-retry.png",
+      "bytes": 58799,
+      "sha256": "fc82562e4fcdf6293dbccea8f27fc445fb5ecd2f243fb6a4f53f0a175f960d12"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Promotion-picker-resolved-and-content-retry.png",
+      "bytes": 40033,
+      "sha256": "ceff136eed636696713771a80660c4f4aa6e37c9f2c7c4a4841acb6bdfffcc94"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Market-inbox-count-rejected-and-next-poll-recovery.png",
+      "bytes": 8742,
+      "sha256": "f4a08def250fd63471d5bfc292ffa63323b293b7242d747225f3c3ca9279b920"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Profile-cover-pointer-path-at-390.png",
+      "bytes": 100447,
+      "sha256": "6e572fb230a9b5f3cea22612a30fd02b5e06f14f2badf15f82a521917526b325"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Profile-cover-pointer-path-at-1440.png",
+      "bytes": 137724,
+      "sha256": "dfb8348109465b525ad3b1a60152504b797cfc3180c11e0eedcd08a0be258880"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/after-Profile-cover-pointer-path-at-390.png",
+      "bytes": 100447,
+      "sha256": "6e572fb230a9b5f3cea22612a30fd02b5e06f14f2badf15f82a521917526b325"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/after-Profile-cover-pointer-path-at-1440.png",
+      "bytes": 137724,
+      "sha256": "dfb8348109465b525ad3b1a60152504b797cfc3180c11e0eedcd08a0be258880"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/case-summary.json",
+      "bytes": 12672,
+      "sha256": "e2bdd3f9e19f5677baf6ced0f6fc05968ea35395b27be4358179e87ac22adba2"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/static-checks.json",
+      "bytes": 997,
+      "sha256": "241432c8f6002c05685f1fc87e32a3d4569f9217a312196124c2b66e4df555bd"
+    }
+  ]
+}

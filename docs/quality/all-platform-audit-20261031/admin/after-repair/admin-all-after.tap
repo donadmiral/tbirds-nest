@@ -1,0 +1,1361 @@
+Payment reporting: 13 assertions passed. Mixed currencies stay separate; refunded/cancelled are not in flight.
+TAP version 13
+# Subtest: temporary policy accepts valid staff sign-in without forced enrollment
+ok 1 - temporary policy accepts valid staff sign-in without forced enrollment
+  ---
+  duration_ms: 3.092441
+  type: 'test'
+  ...
+# Subtest: optional authenticator denies missing sessions, unknown assurance and nonstaff roles
+ok 2 - optional authenticator denies missing sessions, unknown assurance and nonstaff roles
+  ---
+  duration_ms: 1.001877
+  type: 'test'
+  ...
+# Subtest: dashboard admission verifies token and native session
+ok 3 - dashboard admission verifies token and native session
+  ---
+  duration_ms: 11.829654
+  type: 'test'
+  ...
+# Subtest: revoked, inactive, unverified, expired and mismatched identities stay denied
+ok 4 - revoked, inactive, unverified, expired and mismatched identities stay denied
+  ---
+  duration_ms: 40.895764
+  type: 'test'
+  ...
+# Subtest: desk and action roles remain enforced with AAL1 admission
+ok 5 - desk and action roles remain enforced with AAL1 admission
+  ---
+  duration_ms: 6.764906
+  type: 'test'
+  ...
+# Subtest: ordinary persisted preferences notify consumers and still read later stored changes
+ok 6 - ordinary persisted preferences notify consumers and still read later stored changes
+  ---
+  duration_ms: 9.964108
+  type: 'test'
+  ...
+# Subtest: write-only storage failure keeps collapse and pin actions usable in this tab
+ok 7 - write-only storage failure keeps collapse and pin actions usable in this tab
+  ---
+  duration_ms: 8.173685
+  type: 'test'
+  ...
+# Subtest: a successful retry retires the temporary override and follows stored values again
+ok 8 - a successful retry retires the temporary override and follows stored values again
+  ---
+  duration_ms: 13.765696
+  type: 'test'
+  ...
+# Subtest: a changed persisted value supersedes a failed write without waiting for an event
+ok 9 - a changed persisted value supersedes a failed write without waiting for an event
+  ---
+  duration_ms: 10.764993
+  type: 'test'
+  ...
+# Subtest: cross-tab changes invalidate failed writes even if storage has returned to the old value
+ok 10 - cross-tab changes invalidate failed writes even if storage has returned to the old value
+  ---
+  duration_ms: 7.874324
+  type: 'test'
+  ...
+# Subtest: cross-tab clear retires every temporary override, including unavailable-storage fallbacks
+ok 11 - cross-tab clear retires every temporary override, including unavailable-storage fallbacks
+  ---
+  duration_ms: 10.064869
+  type: 'test'
+  ...
+# Subtest: session-storage and unrelated storage entries cannot replace a preference fallback
+ok 12 - session-storage and unrelated storage entries cannot replace a preference fallback
+  ---
+  duration_ms: 7.920604
+  type: 'test'
+  ...
+# Subtest: unsubscribed preference consumers stop receiving both local and cross-tab changes
+ok 13 - unsubscribed preference consumers stop receiving both local and cross-tab changes
+  ---
+  duration_ms: 8.606846
+  type: 'test'
+  ...
+# Subtest: commands send the verified native session and preserve replay key
+ok 14 - commands send the verified native session and preserve replay key
+  ---
+  duration_ms: 8.029498
+  type: 'test'
+  ...
+# Subtest: expected command failures survive the production server action boundary as data
+ok 15 - expected command failures survive the production server action boundary as data
+  ---
+  duration_ms: 14.688254
+  type: 'test'
+  ...
+# Subtest: an explicitly missing command endpoint returns unavailable without encouraging a retry
+ok 16 - an explicitly missing command endpoint returns unavailable without encouraging a retry
+  ---
+  duration_ms: 13.164678
+  type: 'test'
+  ...
+# Subtest: network, permission and missing dependency errors are not mistaken for an absent command endpoint
+ok 17 - network, permission and missing dependency errors are not mistaken for an absent command endpoint
+  ---
+  duration_ms: 29.520944
+  type: 'test'
+  ...
+# Subtest: unconfirmed or wrong-key command responses never report success
+ok 18 - unconfirmed or wrong-key command responses never report success
+  ---
+  duration_ms: 15.920822
+  type: 'test'
+  ...
+# Subtest: missing permission and malformed form are stopped before database calls
+ok 19 - missing permission and malformed form are stopped before database calls
+  ---
+  duration_ms: 9.375252
+  type: 'test'
+  ...
+# Subtest: provisioning transmits only a keyed password digest to SQL and finishes the reserved identity
+ok 20 - provisioning transmits only a keyed password digest to SQL and finishes the reserved identity
+  ---
+  duration_ms: 8.651052
+  type: 'test'
+  ...
+# Subtest: provisioning refuses a mismatched existing identity without changing staff privileges
+ok 21 - provisioning refuses a mismatched existing identity without changing staff privileges
+  ---
+  duration_ms: 22.328276
+  type: 'test'
+  ...
+# Subtest: provisioning recovers a concurrent creation only when reservation metadata matches
+ok 22 - provisioning recovers a concurrent creation only when reservation metadata matches
+  ---
+  duration_ms: 5.907867
+  type: 'test'
+  ...
+# Subtest: incomplete setup and password truncation are explicit errors
+ok 23 - incomplete setup and password truncation are explicit errors
+  ---
+  duration_ms: 6.427097
+  type: 'test'
+  ...
+# Subtest: missing provisioning reports unavailable before any account identity is created
+ok 24 - missing provisioning reports unavailable before any account identity is created
+  ---
+  duration_ms: 11.748933
+  type: 'test'
+  ...
+# Subtest: a provisioning endpoint lost after reservation preserves the partial-setup warning
+ok 25 - a provisioning endpoint lost after reservation preserves the partial-setup warning
+  ---
+  duration_ms: 5.582306
+  type: 'test'
+  ...
+# Subtest: provisioning permission and dependency errors retain uncertainty instead of claiming endpoint absence
+ok 26 - provisioning permission and dependency errors retain uncertainty instead of claiming endpoint absence
+  ---
+  duration_ms: 15.259764
+  type: 'test'
+  ...
+# Subtest: provisioning rejects incomplete or mismatched reservation receipts before creating an identity
+ok 27 - provisioning rejects incomplete or mismatched reservation receipts before creating an identity
+  ---
+  duration_ms: 22.017348
+  type: 'test'
+  ...
+# Subtest: provisioning confirms completion only for the reserved request and identity
+ok 28 - provisioning confirms completion only for the reserved request and identity
+  ---
+  duration_ms: 32.285898
+  type: 'test'
+  ...
+# Subtest: a provider identity without trusted reservation metadata fails without crashing
+ok 29 - a provider identity without trusted reservation metadata fails without crashing
+  ---
+  duration_ms: 9.710185
+  type: 'test'
+  ...
+# Subtest: private, exclusive, community and archived posts open only through staff authorization
+ok 30 - private, exclusive, community and archived posts open only through staff authorization
+  ---
+  duration_ms: 30.088469
+  type: 'test'
+  ...
+# Subtest: denied staff and malformed identifiers never issue a database query
+ok 31 - denied staff and malformed identifiers never issue a database query
+  ---
+  duration_ms: 40.323684
+  type: 'test'
+  ...
+# Subtest: missing posts stop before media, comments or participant queries
+ok 32 - missing posts stop before media, comments or participant queries
+  ---
+  duration_ms: 14.917047
+  type: 'test'
+  ...
+# Subtest: ordered gallery and video recipe use authenticated proxy URLs including the uploaded cover
+ok 33 - ordered gallery and video recipe use authenticated proxy URLs including the uploaded cover
+  ---
+  duration_ms: 14.560953
+  type: 'test'
+  ...
+# Subtest: legacy media is preserved while unbound attachments remain explicitly unavailable
+ok 34 - legacy media is preserved while unbound attachments remain explicitly unavailable
+  ---
+  duration_ms: 47.669753
+  type: 'test'
+  ...
+# Subtest: conversation and reports use independent stable pages and exact counts
+ok 35 - conversation and reports use independent stable pages and exact counts
+  ---
+  duration_ms: 15.809751
+  type: 'test'
+  ...
+# Subtest: database errors and truncated attachments cannot be rendered as a complete or empty review
+ok 36 - database errors and truncated attachments cannot be rendered as a complete or empty review
+  ---
+  duration_ms: 81.550025
+  type: 'test'
+  ...
+# Subtest: page input is bounded and analytics links respect the moderation role
+ok 37 - page input is bounded and analytics links respect the moderation role
+  ---
+  duration_ms: 18.178534
+  type: 'test'
+  ...
+# Subtest: read-only creator report uses the verified staff session while money operations remain disabled
+ok 38 - read-only creator report uses the verified staff session while money operations remain disabled
+  ---
+  duration_ms: 18.387989
+  type: 'test'
+  ...
+# Subtest: unauthenticated and non-finance staff cannot query financial records
+ok 39 - unauthenticated and non-finance staff cannot query financial records
+  ---
+  duration_ms: 62.892706
+  type: 'test'
+  ...
+# Subtest: malformed, duplicated and unpaired page cursors never reach the database
+ok 40 - malformed, duplicated and unpaired page cursors never reach the database
+  ---
+  duration_ms: 37.807398
+  type: 'test'
+  ...
+# Subtest: pagination and refresh preserve PostgreSQL microseconds and use the returned last record
+ok 41 - pagination and refresh preserve PostgreSQL microseconds and use the returned last record
+  ---
+  duration_ms: 8.970143
+  type: 'test'
+  ...
+# Subtest: provider absence is not replaced by an invented payout or empty-state success
+ok 42 - provider absence is not replaced by an invented payout or empty-state success
+  ---
+  duration_ms: 6.878346
+  type: 'test'
+  ...
+# Subtest: expired finance and MFA sessions show recovery routes without exposing raw backend errors
+ok 43 - expired finance and MFA sessions show recovery routes without exposing raw backend errors
+  ---
+  duration_ms: 13.824755
+  type: 'test'
+  ...
+# Subtest: query failures and rejected network requests retain a retry path for the current page
+ok 44 - query failures and rejected network requests retain a retry path for the current page
+  ---
+  duration_ms: 13.739497
+  type: 'test'
+  ...
+# Subtest: incomplete, oversized, duplicate or unknown financial responses fail closed
+ok 45 - incomplete, oversized, duplicate or unknown financial responses fail closed
+  ---
+  duration_ms: 113.01975
+  type: 'test'
+  ...
+# Subtest: large and non-USD amounts stay exact and each payout retains its own environment
+ok 46 - large and non-USD amounts stay exact and each payout retains its own environment
+  ---
+  duration_ms: 7.675795
+  type: 'test'
+  ...
+# Subtest: private provider error payloads are replaced with a reconciliation instruction
+ok 47 - private provider error payloads are replaced with a reconciliation instruction
+  ---
+  duration_ms: 7.021221
+  type: 'test'
+  ...
+# Subtest: Jobs counts all 10,030 roles exactly, including more than the API row cap
+ok 48 - Jobs counts all 10,030 roles exactly, including more than the API row cap
+  ---
+  duration_ms: 139.759787
+  type: 'test'
+  ...
+# Subtest: Jobs second and last pages reach older roles with a deterministic tie order
+ok 49 - Jobs second and last pages reach older roles with a deterministic tie order
+  ---
+  duration_ms: 30.633007
+  type: 'test'
+  ...
+# Subtest: Jobs server search finds older titles and counts/continues every filtered result
+ok 50 - Jobs server search finds older titles and counts/continues every filtered result
+  ---
+  duration_ms: 27.02481
+  type: 'test'
+  ...
+# Subtest: Jobs search escapes wildcard/regex/operator punctuation as literal title text
+ok 51 - Jobs search escapes wildcard/regex/operator punctuation as literal title text
+  ---
+  duration_ms: 16.068299
+  type: 'test'
+  ...
+# Subtest: Jobs empty literal search, bounded input, and malformed page never invent results
+ok 52 - Jobs empty literal search, bounded input, and malformed page never invent results
+  ---
+  duration_ms: 13.177531
+  type: 'test'
+  ...
+# Subtest: Jobs page aggregates and filters explicitly describe only its bounded roles
+ok 53 - Jobs page aggregates and filters explicitly describe only its bounded roles
+  ---
+  duration_ms: 9.203554
+  type: 'test'
+  ...
+# Subtest: Calls totals/weekly/live counts include sessions beyond the old 400-row slice
+ok 54 - Calls totals/weekly/live counts include sessions beyond the old 400-row slice
+  ---
+  duration_ms: 34.140823
+  type: 'test'
+  ...
+# Subtest: Calls rates, durations and charts name their page scope
+ok 55 - Calls rates, durations and charts name their page scope
+  ---
+  duration_ms: 7.341944
+  type: 'test'
+  ...
+# Subtest: Stories live and retained totals count beyond the API cap; second page stays bounded
+ok 56 - Stories live and retained totals count beyond the API cap; second page stays bounded
+  ---
+  duration_ms: 62.243655
+  type: 'test'
+  ...
+# Subtest: Stories expired-24h count uses expiry (lower exclusive, now inclusive), not creation date
+ok 57 - Stories expired-24h count uses expiry (lower exclusive, now inclusive), not creation date
+  ---
+  duration_ms: 10.105431
+  type: 'test'
+  ...
+# Subtest: Verification pending count is exact beyond 1,000; only one 25-applicant page gets safety reads
+ok 58 - Verification pending count is exact beyond 1,000; only one 25-applicant page gets safety reads
+  ---
+  duration_ms: 36.933303
+  type: 'test'
+  ...
+# Subtest: Verification safety reads execute at most four concurrently and preserve real counts
+ok 59 - Verification safety reads execute at most four concurrently and preserve real counts
+  ---
+  duration_ms: 31.89758
+  type: 'test'
+  ...
+# Subtest: Verification missing safety counts fail before showing review actions
+ok 60 - Verification missing safety counts fail before showing review actions
+  ---
+  duration_ms: 13.046875
+  type: 'test'
+  ...
+# Subtest: Verification provider failure stops scheduling additional safety reads
+ok 61 - Verification provider failure stops scheduling additional safety reads
+  ---
+  duration_ms: 11.555612
+  type: 'test'
+  ...
+# Subtest: Verification truncated referral evidence fails rather than understating vouches
+ok 62 - Verification truncated referral evidence fails rather than understating vouches
+  ---
+  duration_ms: 8.896472
+  type: 'test'
+  ...
+# Subtest: Verification decision median is explicitly the latest 60 while all statuses remain exact
+ok 63 - Verification decision median is explicitly the latest 60 while all statuses remain exact
+  ---
+  duration_ms: 17.679975
+  type: 'test'
+  ...
+# Subtest: jobs: missing count is unavailable, not zero or a page-length total
+ok 64 - jobs: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 5.845493
+  type: 'test'
+  ...
+# Subtest: jobs: failed bounded row read never renders a partial report
+ok 65 - jobs: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 4.807822
+  type: 'test'
+  ...
+# Subtest: jobs: unauthenticated visitor cannot issue report reads
+ok 66 - jobs: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 4.961107
+  type: 'test'
+  ...
+# Subtest: calls: missing count is unavailable, not zero or a page-length total
+ok 67 - calls: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 4.83968
+  type: 'test'
+  ...
+# Subtest: calls: failed bounded row read never renders a partial report
+ok 68 - calls: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 5.058098
+  type: 'test'
+  ...
+# Subtest: calls: unauthenticated visitor cannot issue report reads
+ok 69 - calls: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 3.731202
+  type: 'test'
+  ...
+# Subtest: stories: missing count is unavailable, not zero or a page-length total
+ok 70 - stories: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 9.133989
+  type: 'test'
+  ...
+# Subtest: stories: failed bounded row read never renders a partial report
+ok 71 - stories: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 9.343484
+  type: 'test'
+  ...
+# Subtest: stories: unauthenticated visitor cannot issue report reads
+ok 72 - stories: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 7.401964
+  type: 'test'
+  ...
+# Subtest: queue: missing count is unavailable, not zero or a page-length total
+ok 73 - queue: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 8.317911
+  type: 'test'
+  ...
+# Subtest: queue: failed bounded row read never renders a partial report
+ok 74 - queue: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 7.473181
+  type: 'test'
+  ...
+# Subtest: queue: unauthenticated visitor cannot issue report reads
+ok 75 - queue: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 6.09606
+  type: 'test'
+  ...
+# Subtest: Page/query identity changes reset Desk selection rather than retaining an old form
+ok 76 - Page/query identity changes reset Desk selection rather than retaining an old form
+  ---
+  duration_ms: 25.988671
+  type: 'test'
+  ...
+# Subtest: Exact-count helper rejects malformed/nonfinite/negative provider metadata
+ok 77 - Exact-count helper rejects malformed/nonfinite/negative provider metadata
+  ---
+  duration_ms: 1.041697
+  type: 'test'
+  ...
+# Subtest: actual queue does not turn an uninventoried hold into a zero-file erasure claim
+ok 78 - actual queue does not turn an uninventoried hold into a zero-file erasure claim
+  ---
+  duration_ms: 14.382584
+  type: 'test'
+  ...
+# Subtest: actual queue removes dead profile links after identity preparation or completion
+ok 79 - actual queue removes dead profile links after identity preparation or completion
+  ---
+  duration_ms: 24.633147
+  type: 'test'
+  ...
+# Subtest: actual queue keeps review actions unavailable on the older read-only contract
+ok 80 - actual queue keeps review actions unavailable on the older read-only contract
+  ---
+  duration_ms: 7.443557
+  type: 'test'
+  ...
+# Subtest: actual server action sends only the verified actor/session and exact form identity
+ok 81 - actual server action sends only the verified actor/session and exact form identity
+  ---
+  duration_ms: 26.248782
+  type: 'test'
+  ...
+# Subtest: missing permission stops the real action before any database request
+ok 82 - missing permission stops the real action before any database request
+  ---
+  duration_ms: 7.271998
+  type: 'test'
+  ...
+# Subtest: invalid, duplicate, forged or unconfirmed form fields never reach the database
+ok 83 - invalid, duplicate, forged or unconfirmed form fields never reach the database
+  ---
+  duration_ms: 7.066354
+  type: 'test'
+  ...
+# Subtest: note action does not silently request resume even when the checkbox is checked
+ok 84 - note action does not silently request resume even when the checkbox is checked
+  ---
+  duration_ms: 6.950635
+  type: 'test'
+  ...
+# Subtest: every real retention outcome stays held and never claims completion
+ok 85 - every real retention outcome stays held and never claims completion
+  ---
+  duration_ms: 42.051903
+  type: 'test'
+  ...
+# Subtest: wrong-key, mismatched-target and contradictory responses never confirm an action
+ok 86 - wrong-key, mismatched-target and contradictory responses never confirm an action
+  ---
+  duration_ms: 49.35661
+  type: 'test'
+  ...
+# Subtest: stale and unavailable responses remain actionable without a false success
+ok 87 - stale and unavailable responses remain actionable without a false success
+  ---
+  duration_ms: 26.095057
+  type: 'test'
+  ...
+# Subtest: missing endpoint is explicit but unrelated provider errors preserve uncertainty
+ok 88 - missing endpoint is explicit but unrelated provider errors preserve uncertainty
+  ---
+  duration_ms: 12.216195
+  type: 'test'
+  ...
+# Subtest: identity-stage resumption is described as pending and never as erased
+ok 89 - identity-stage resumption is described as pending and never as erased
+  ---
+  duration_ms: 6.891326
+  type: 'test'
+  ...
+# Subtest: admin thumbnails show the authorized uploaded cover instead of decoding and replacing it with a video frame
+ok 90 - admin thumbnails show the authorized uploaded cover instead of decoding and replacing it with a video frame
+  ---
+  duration_ms: 11.042309
+  type: 'test'
+  ...
+# Subtest: admin trim seeks, captions and playback stop obey the saved recipe
+ok 91 - admin trim seeks, captions and playback stop obey the saved recipe
+  ---
+  duration_ms: 22.467385
+  type: 'test'
+  ...
+# Subtest: admin gallery navigates immediately after a media list shrinks and handles an empty list
+ok 92 - admin gallery navigates immediately after a media list shrinks and handles an empty list
+  ---
+  duration_ms: 6.57485
+  type: 'test'
+  ...
+# Subtest: legacy moderation details preserve the whole unknown-size image or video while respecting an authored crop
+ok 93 - legacy moderation details preserve the whole unknown-size image or video while respecting an authored crop
+  ---
+  duration_ms: 61.362564
+  type: 'test'
+  ...
+# Subtest: admin media review reproduces the authored voice preset without altering trim
+ok 94 - admin media review reproduces the authored voice preset without altering trim
+  ---
+  duration_ms: 9.339408
+  type: 'test'
+  ...
+# Subtest: expanded admin photos consume Escape without closing the record and restore focus
+ok 95 - expanded admin photos consume Escape without closing the record and restore focus
+  ---
+  duration_ms: 5.946284
+  type: 'test'
+  ...
+# Subtest: missing assignment capability keeps the inbox and its actual counts readable without invented triage
+ok 96 - missing assignment capability keeps the inbox and its actual counts readable without invented triage
+  ---
+  duration_ms: 24.574554
+  type: 'test'
+  ...
+# Subtest: missing assignment capability leaves the conversation read-only, with no mutation forms or assignment guesses
+ok 97 - missing assignment capability leaves the conversation read-only, with no mutation forms or assignment guesses
+  ---
+  duration_ms: 18.284102
+  type: 'test'
+  ...
+# Subtest: available assignments preserve ownership and priority without exposing unavailable reply or status actions
+ok 98 - available assignments preserve ownership and priority without exposing unavailable reply or status actions
+  ---
+  duration_ms: 62.165743
+  type: 'test'
+  ...
+# Subtest: reply and status controls require an explicit command capability without probing a mutating RPC
+ok 99 - reply and status controls require an explicit command capability without probing a mutating RPC
+  ---
+  duration_ms: 34.219671
+  type: 'test'
+  ...
+# Subtest: legacy or malformed command capability never disables assignments or enables reply and status actions
+ok 100 - legacy or malformed command capability never disables assignments or enables reply and status actions
+  ---
+  duration_ms: 97.588224
+  type: 'test'
+  ...
+# Subtest: real support transport, permission and malformed-response errors do not turn into an unavailable fallback
+ok 101 - real support transport, permission and malformed-response errors do not turn into an unavailable fallback
+  ---
+  duration_ms: 7172.103519
+  type: 'test'
+  ...
+# Subtest: an empty support page still reports the missing capability instead of assuming assignments exist
+ok 102 - an empty support page still reports the missing capability instead of assuming assignments exist
+  ---
+  duration_ms: 42.041143
+  type: 'test'
+  ...
+# Subtest: missing seller-review capability shows an unavailable pane without review actions or false empty results
+ok 103 - missing seller-review capability shows an unavailable pane without review actions or false empty results
+  ---
+  duration_ms: 44.991642
+  type: 'test'
+  ...
+# Subtest: existing post and listing reports do not depend on the optional seller-review endpoint
+ok 104 - existing post and listing reports do not depend on the optional seller-review endpoint
+  ---
+  duration_ms: 23.760178
+  type: 'test'
+  ...
+# Subtest: missing capability never bypasses support or review desk authorization
+ok 105 - missing capability never bypasses support or review desk authorization
+  ---
+  duration_ms: 65.641024
+  type: 'test'
+  ...
+# Subtest: missing deletion queue shows a truthful unavailable state and recovery links, not an empty queue
+ok 106 - missing deletion queue shows a truthful unavailable state and recovery links, not an empty queue
+  ---
+  duration_ms: 41.734408
+  type: 'test'
+  ...
+# Subtest: direct review and assignment actions explain their missing endpoint without offering a fruitless retry
+ok 107 - direct review and assignment actions explain their missing endpoint without offering a fruitless retry
+  ---
+  duration_ms: 5.681075
+  type: 'test'
+  ...
+# Subtest: review and assignment network or permission failures never claim no mutation was possible
+ok 108 - review and assignment network or permission failures never claim no mutation was possible
+  ---
+  duration_ms: 12.733543
+  type: 'test'
+  ...
+# Subtest: moderation bytes require current staff identity, proof and no-cache origin fetch
+ok 109 - moderation bytes require current staff identity, proof and no-cache origin fetch
+  ---
+  duration_ms: 9.690035
+  type: 'test'
+  ...
+# Subtest: denied session or staff permission never reads media {"unauthenticated":true}
+ok 110 - denied session or staff permission never reads media {"unauthenticated":true}
+  ---
+  duration_ms: 6.46843
+  type: 'test'
+  ...
+# Subtest: denied session or staff permission never reads media {"permissionDenied":true}
+ok 111 - denied session or staff permission never reads media {"permissionDenied":true}
+  ---
+  duration_ms: 4.899269
+  type: 'test'
+  ...
+# Subtest: denied session or staff permission never reads media {"assuranceDenied":true}
+ok 112 - denied session or staff permission never reads media {"assuranceDenied":true}
+  ---
+  duration_ms: 16.0691
+  type: 'test'
+  ...
+# Subtest: cross-site embeddings are rejected before any session or object lookup
+ok 113 - cross-site embeddings are rejected before any session or object lookup
+  ---
+  duration_ms: 6.916593
+  type: 'test'
+  ...
+# Subtest: invalid media selector never reaches the Storage service {"kind":"chat"}
+ok 114 - invalid media selector never reaches the Storage service {"kind":"chat"}
+  ---
+  duration_ms: 5.495346
+  type: 'test'
+  ...
+# Subtest: invalid media selector never reaches the Storage service {"id":"bad"}
+ok 115 - invalid media selector never reaches the Storage service {"id":"bad"}
+  ---
+  duration_ms: 5.286662
+  type: 'test'
+  ...
+# Subtest: invalid media selector never reaches the Storage service {"bucket":"chat-files"}
+ok 116 - invalid media selector never reaches the Storage service {"bucket":"chat-files"}
+  ---
+  duration_ms: 5.2789
+  type: 'test'
+  ...
+# Subtest: invalid media selector never reaches the Storage service {"path":"owner/../secret"}
+ok 117 - invalid media selector never reaches the Storage service {"path":"owner/../secret"}
+  ---
+  duration_ms: 5.259221
+  type: 'test'
+  ...
+# Subtest: invalid media selector never reaches the Storage service {"path":"/root"}
+ok 118 - invalid media selector never reaches the Storage service {"path":"/root"}
+  ---
+  duration_ms: 5.415435
+  type: 'test'
+  ...
+# Subtest: invalid media selector never reaches the Storage service {"path":"owner/%2e%2e/secret"}
+ok 119 - invalid media selector never reaches the Storage service {"path":"owner/%2e%2e/secret"}
+  ---
+  duration_ms: 5.074543
+  type: 'test'
+  ...
+# Subtest: invalid media selector never reaches the Storage service {"path":"owner\\\\file.jpg"}
+ok 120 - invalid media selector never reaches the Storage service {"path":"owner\\\\file.jpg"}
+  ---
+  duration_ms: 6.856964
+  type: 'test'
+  ...
+# Subtest: invalid media selector never reaches the Storage service {"path":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ok 121 - invalid media selector never reaches the Storage service {"path":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  ---
+  duration_ms: 5.434424
+  type: 'test'
+  ...
+# Subtest: unbound and unavailable authorization produce no media or secret diagnostic
+ok 122 - unbound and unavailable authorization produce no media or secret diagnostic
+  ---
+  duration_ms: 17.689227
+  type: 'test'
+  ...
+# Subtest: mid-request object change or session revocation cancels upstream bytes {"changed":true}
+ok 123 - mid-request object change or session revocation cancels upstream bytes {"changed":true}
+  ---
+  duration_ms: 6.973779
+  type: 'test'
+  ...
+# Subtest: mid-request object change or session revocation cancels upstream bytes {"removed":true}
+ok 124 - mid-request object change or session revocation cancels upstream bytes {"removed":true}
+  ---
+  duration_ms: 5.360773
+  type: 'test'
+  ...
+# Subtest: mid-request object change or session revocation cancels upstream bytes {"revoked":true}
+ok 125 - mid-request object change or session revocation cancels upstream bytes {"revoked":true}
+  ---
+  duration_ms: 5.359131
+  type: 'test'
+  ...
+# Subtest: range forwarding is limited to valid single safe ranges and retains 206 metadata
+ok 126 - range forwarding is limited to valid single safe ranges and retains 206 metadata
+  ---
+  duration_ms: 45.10117
+  type: 'test'
+  ...
+# Subtest: HEAD is authenticated and returns no body; caller abort reaches the fetch
+ok 127 - HEAD is authenticated and returns no body; caller abort reaches the fetch
+  ---
+  duration_ms: 6.654129
+  type: 'test'
+  ...
+# Subtest: unsafe inline types and upstream failures fail closed with no diagnostic leakage
+ok 128 - unsafe inline types and upstream failures fail closed with no diagnostic leakage
+  ---
+  duration_ms: 32.753787
+  type: 'test'
+  ...
+# Subtest: canonical Unicode filenames are encoded only once and historical generic MIME is repaired narrowly
+ok 129 - canonical Unicode filenames are encoded only once and historical generic MIME is repaired narrowly
+  ---
+  duration_ms: 6.788531
+  type: 'test'
+  ...
+# Subtest: private moderation returns only a same-origin authenticated proxy after verifying permission
+ok 130 - private moderation returns only a same-origin authenticated proxy after verifying permission
+  ---
+  duration_ms: 3.940617
+  type: 'test'
+  ...
+# Subtest: denied staff cannot query authorization or generate URLs
+ok 131 - denied staff cannot query authorization or generate URLs
+  ---
+  duration_ms: 3.479093
+  type: 'test'
+  ...
+# Subtest: unbound paths, cross-project URLs, chat files and malformed paths never receive a preview
+ok 132 - unbound paths, cross-project URLs, chat files and malformed paths never receive a preview
+  ---
+  duration_ms: 3.54994
+  type: 'test'
+  ...
+# Subtest: private paths never fall back to a public bucket URL even before the private cutover
+ok 133 - private paths never fall back to a public bucket URL even before the private cutover
+  ---
+  duration_ms: 3.415397
+  type: 'test'
+  ...
+# Subtest: authorization failure is explicit and cannot issue a partial preview map
+ok 134 - authorization failure is explicit and cannot issue a partial preview map
+  ---
+  duration_ms: 2.883648
+  type: 'test'
+  ...
+# Subtest: invalid or out-of-scope service manifest fails closed null
+ok 135 - invalid or out-of-scope service manifest fails closed null
+  ---
+  duration_ms: 2.896667
+  type: 'test'
+  ...
+# Subtest: invalid or out-of-scope service manifest fails closed {}
+ok 136 - invalid or out-of-scope service manifest fails closed {}
+  ---
+  duration_ms: 3.589469
+  type: 'test'
+  ...
+# Subtest: invalid or out-of-scope service manifest fails closed [{"entity_id":"00000000-0000-4000-8000-000000000002","bucket_id":"post-media","object_path":"owner/photo.jpg"}]
+ok 137 - invalid or out-of-scope service manifest fails closed [{"entity_id":"00000000-0000-4000-8000-000000000002","bucket_id":"post-media","object_path":"owner/photo.jpg"}]
+  ---
+  duration_ms: 3.182868
+  type: 'test'
+  ...
+# Subtest: invalid or out-of-scope service manifest fails closed [{"entity_id":"00000000-0000-4000-8000-000000000001","bucket_id":"chat-files","object_path":"private.jpg"}]
+ok 138 - invalid or out-of-scope service manifest fails closed [{"entity_id":"00000000-0000-4000-8000-000000000001","bucket_id":"chat-files","object_path":"private.jpg"}]
+  ---
+  duration_ms: 2.823076
+  type: 'test'
+  ...
+# Subtest: invalid or out-of-scope service manifest fails closed [{"entity_id":"00000000-0000-4000-8000-000000000001","bucket_id":"post-media","object_path":"owner/../file.jpg"}]
+ok 139 - invalid or out-of-scope service manifest fails closed [{"entity_id":"00000000-0000-4000-8000-000000000001","bucket_id":"post-media","object_path":"owner/../file.jpg"}]
+  ---
+  duration_ms: 2.801384
+  type: 'test'
+  ...
+# Subtest: a single bounded JSON manifest is not truncated by the REST table row cap
+ok 140 - a single bounded JSON manifest is not truncated by the REST table row cap
+  ---
+  duration_ms: 6.534659
+  type: 'test'
+  ...
+# Subtest: oversized manifests are explicit instead of silently producing incomplete previews
+ok 141 - oversized manifests are explicit instead of silently producing incomplete previews
+  ---
+  duration_ms: 3.273634
+  type: 'test'
+  ...
+# Subtest: exactly the bounded maximum is accepted
+ok 142 - exactly the bounded maximum is accepted
+  ---
+  duration_ms: 12.061632
+  type: 'test'
+  ...
+# Subtest: the separate public reader remains closed for private content
+ok 143 - the separate public reader remains closed for private content
+  ---
+  duration_ms: 0.184197
+  type: 'test'
+  ...
+# Subtest: UTC music reports accept bounded exact dates and reject rollover, reverse and oversized windows
+ok 144 - UTC music reports accept bounded exact dates and reject rollover, reverse and oversized windows
+  ---
+  duration_ms: 0.363747
+  type: 'test'
+  ...
+# Subtest: CSV quotes fields and neutralizes external-title spreadsheet formulas
+ok 145 - CSV quotes fields and neutralizes external-title spreadsheet formulas
+  ---
+  duration_ms: 0.467253
+  type: 'test'
+  ...
+# Subtest: catalogue staging action binds writes to the current verified staff and session
+ok 146 - catalogue staging action binds writes to the current verified staff and session
+  ---
+  duration_ms: 4.995464
+  type: 'test'
+  ...
+# Subtest: catalogue action rejects malformed, oversized and missing files before any database write
+ok 147 - catalogue action rejects malformed, oversized and missing files before any database write
+  ---
+  duration_ms: 9.325086
+  type: 'test'
+  ...
+# Subtest: staff authentication and failed staging never produce a saved result
+ok 148 - staff authentication and failed staging never produce a saved result
+  ---
+  duration_ms: 6.293116
+  type: 'test'
+  ...
+# Subtest: report route validates dates, rechecks staff and returns errors without a fake download
+ok 149 - report route validates dates, rechecks staff and returns errors without a fake download
+  ---
+  duration_ms: 3.279674
+  type: 'test'
+  ...
+# Subtest: all navigation and tool destinations resolve to existing route files
+ok 150 - all navigation and tool destinations resolve to existing route files
+  ---
+  duration_ms: 0.491239
+  type: 'test'
+  ...
+# Subtest: every role sees only routes whose parent desk and operation it can actually access
+ok 151 - every role sees only routes whose parent desk and operation it can actually access
+  ---
+  duration_ms: 0.563818
+  type: 'test'
+  ...
+# Subtest: deletion and seller review discoverability follow their distinct decision permissions
+ok 152 - deletion and seller review discoverability follow their distinct decision permissions
+  ---
+  duration_ms: 0.54524
+  type: 'test'
+  ...
+# Subtest: nested destinations win over their parents and do not collide with similar path prefixes
+ok 153 - nested destinations win over their parents and do not collide with similar path prefixes
+  ---
+  duration_ms: 0.228805
+  type: 'test'
+  ...
+# Subtest: quick actions target real form anchors and authenticator setup opens the optional setup route
+ok 154 - quick actions target real form anchors and authenticator setup opens the optional setup route
+  ---
+  duration_ms: 0.190506
+  type: 'test'
+  ...
+# Subtest: a full audit reviewer can follow a staff-specific audit trail
+ok 155 - a full audit reviewer can follow a staff-specific audit trail
+  ---
+  duration_ms: 10.55737
+  type: 'test'
+  ...
+# Subtest: an audit actor parameter never overrides a restricted reviewer’s own identity
+ok 156 - an audit actor parameter never overrides a restricted reviewer’s own identity
+  ---
+  duration_ms: 8.609791
+  type: 'test'
+  ...
+# Subtest: invalid audit actor input is never forwarded into a database filter
+ok 157 - invalid audit actor input is never forwarded into a database filter
+  ---
+  duration_ms: 22.79018
+  type: 'test'
+  ...
+# Subtest: Supabase configuration allows staff to enroll and verify the TOTP required by admin desks
+ok 158 - Supabase configuration allows staff to enroll and verify the TOTP required by admin desks
+  ---
+  duration_ms: 0.522556
+  type: 'test'
+  ...
+# Subtest: only explicit deployment metadata labels production
+ok 159 - only explicit deployment metadata labels production
+  ---
+  duration_ms: 0.120741
+  type: 'test'
+  ...
+# Subtest: financial totals reject errors and capped results instead of reporting partial money
+ok 160 - financial totals reject errors and capped results instead of reporting partial money
+  ---
+  duration_ms: 0.253351
+  type: 'test'
+  ...
+# Subtest: financial totals keep currencies and unknown currency separate
+ok 161 - financial totals keep currencies and unknown currency separate
+  ---
+  duration_ms: 0.17274
+  type: 'test'
+  ...
+# Subtest: recorded payment totals reject missing or unsafe amounts and sum cents exactly
+ok 162 - recorded payment totals reject missing or unsafe amounts and sum cents exactly
+  ---
+  duration_ms: 0.141864
+  type: 'test'
+  ...
+# Subtest: support URL inputs are bounded and search wildcard characters stay literal
+ok 163 - support URL inputs are bounded and search wildcard characters stay literal
+  ---
+  duration_ms: 0.322675
+  type: 'test'
+  ...
+# Subtest: message lookups stay bounded and preserve ticket order
+ok 164 - message lookups stay bounded and preserve ticket order
+  ---
+  duration_ms: 7.450537
+  type: 'test'
+  ...
+# Subtest: sign-in identifies the actual configured Auth project without guessing unknown environments
+ok 165 - sign-in identifies the actual configured Auth project without guessing unknown environments
+  ---
+  duration_ms: 0.37272
+  type: 'test'
+  ...
+# Subtest: recovery redirect is bound to the current deployment or an explicitly configured origin
+ok 166 - recovery redirect is bound to the current deployment or an explicitly configured origin
+  ---
+  duration_ms: 0.467243
+  type: 'test'
+  ...
+# Subtest: host lookalikes, arbitrary Vercel sites, credentials, paths and non-web schemes fail closed
+ok 167 - host lookalikes, arbitrary Vercel sites, credentials, paths and non-web schemes fail closed
+  ---
+  duration_ms: 0.276185
+  type: 'test'
+  ...
+# Subtest: an allowlist does not authorize subdomains, suffix matches, or wildcard patterns
+ok 168 - an allowlist does not authorize subdomains, suffix matches, or wildcard patterns
+  ---
+  duration_ms: 0.258359
+  type: 'test'
+  ...
+# Subtest: localhost recovery is limited to a development runtime
+ok 169 - localhost recovery is limited to a development runtime
+  ---
+  duration_ms: 0.180031
+  type: 'test'
+  ...
+# Subtest: a sealed recovery session preserves identity and tokens only until its exact expiry
+ok 170 - a sealed recovery session preserves identity and tokens only until its exact expiry
+  ---
+  duration_ms: 0.723157
+  type: 'test'
+  ...
+# Subtest: recovery seals cannot be accepted under a different signing key
+ok 171 - recovery seals cannot be accepted under a different signing key
+  ---
+  duration_ms: 0.198379
+  type: 'test'
+  ...
+# Subtest: tampering with any part of a recovery cookie cannot alter its identity or extend its life
+ok 172 - tampering with any part of a recovery cookie cannot alter its identity or extend its life
+  ---
+  duration_ms: 0.273632
+  type: 'test'
+  ...
+# Subtest: missing, malformed and oversized recovery cookies return a rejection without throwing
+ok 173 - missing, malformed and oversized recovery cookies return a rejection without throwing
+  ---
+  duration_ms: 0.32559
+  type: 'test'
+  ...
+# Subtest: a valid signature cannot grant a recovery window longer than ten minutes
+ok 174 - a valid signature cannot grant a recovery window longer than ten minutes
+  ---
+  duration_ms: 0.202715
+  type: 'test'
+  ...
+# Subtest: signed but incomplete or invalid recovery claims are not accepted
+ok 175 - signed but incomplete or invalid recovery claims are not accepted
+  ---
+  duration_ms: 0.381805
+  type: 'test'
+  ...
+# Subtest: sealing refuses cookies that would exceed the browser cookie budget
+ok 176 - sealing refuses cookies that would exceed the browser cookie budget
+  ---
+  duration_ms: 0.208063
+  type: 'test'
+  ...
+# Subtest: authorized payment page reads existing reports without invoking financial commands
+ok 177 - authorized payment page reads existing reports without invoking financial commands
+  ---
+  duration_ms: 30.125033
+  type: 'test'
+  ...
+# Subtest: payment report authorization happens before the service client or any financial read
+ok 178 - payment report authorization happens before the service client or any financial read
+  ---
+  duration_ms: 35.464224
+  type: 'test'
+  ...
+# Subtest: tests/payment-reporting.cjs
+ok 179 - tests/payment-reporting.cjs
+  ---
+  duration_ms: 0.10619
+  type: 'test'
+  ...
+# Subtest: presentation collections are isolated by staff identity and current role
+ok 180 - presentation collections are isolated by staff identity and current role
+  ---
+  duration_ms: 7.121632
+  type: 'test'
+  ...
+# Subtest: malformed cached presentation items cannot reach the renderer
+ok 181 - malformed cached presentation items cannot reach the renderer
+  ---
+  duration_ms: 5.361836
+  type: 'test'
+  ...
+# Subtest: unavailable browser storage reports failure instead of success
+ok 182 - unavailable browser storage reports failure instead of success
+  ---
+  duration_ms: 5.215775
+  type: 'test'
+  ...
+# Subtest: a full presentation does not silently discard a newly added item
+ok 183 - a full presentation does not silently discard a newly added item
+  ---
+  duration_ms: 8.253164
+  type: 'test'
+  ...
+# Subtest: invalid table shapes and excessive note payloads are rejected before persistence
+ok 184 - invalid table shapes and excessive note payloads are rejected before persistence
+  ---
+  duration_ms: 4.792248
+  type: 'test'
+  ...
+# Subtest: CSV retains quoted cells and neutralizes formulas and carriage returns
+ok 185 - CSV retains quoted cells and neutralizes formulas and carriage returns
+  ---
+  duration_ms: 4.697986
+  type: 'test'
+  ...
+# Subtest: admin preview deployment keeps its own origin
+ok 186 - admin preview deployment keeps its own origin
+  ---
+  duration_ms: 4.480219
+  type: 'test'
+  ...
+# Subtest: admin development deployment keeps its own origin
+ok 187 - admin development deployment keeps its own origin
+  ---
+  duration_ms: 1.72197
+  type: 'test'
+  ...
+# Subtest: admin local deployment keeps its own origin
+ok 188 - admin local deployment keeps its own origin
+  ---
+  duration_ms: 1.594628
+  type: 'test'
+  ...
+# Subtest: production Vercel alias redirects to canonical admin with path and query intact
+ok 189 - production Vercel alias redirects to canonical admin with path and query intact
+  ---
+  duration_ms: 3.112752
+  type: 'test'
+  ...
+# Subtest: production custom admin domain does not redirect to itself
+ok 190 - production custom admin domain does not redirect to itself
+  ---
+  duration_ms: 1.754559
+  type: 'test'
+  ...
+# Subtest: production redirect does not match a hostname with an extra suffix
+ok 191 - production redirect does not match a hostname with an extra suffix
+  ---
+  duration_ms: 1.44929
+  type: 'test'
+  ...
+# Subtest: counts query only the desks and report types the current staff role can open
+ok 192 - counts query only the desks and report types the current staff role can open
+  ---
+  duration_ms: 26.028571
+  type: 'test'
+  ...
+# Subtest: throwOnError failures affect the failed badge, preserve other counts, and never become invented zeros
+ok 193 - throwOnError failures affect the failed badge, preserve other counts, and never become invented zeros
+  ---
+  duration_ms: 2.523205
+  type: 'test'
+  ...
+# Subtest: provider initialization failure resolves to unknown counts without rejecting the shell promise
+ok 194 - provider initialization failure resolves to unknown counts without rejecting the shell promise
+  ---
+  duration_ms: 3.200754
+  type: 'test'
+  ...
+# Subtest: null, negative and nonintegral counts are not presented as verified data
+ok 195 - null, negative and nonintegral counts are not presented as verified data
+  ---
+  duration_ms: 9.241931
+  type: 'test'
+  ...
+# Subtest: concurrent staff requests never share privileged count results
+ok 196 - concurrent staff requests never share privileged count results
+  ---
+  duration_ms: 4.559829
+  type: 'test'
+  ...
+# Subtest: the actual React stream delivers desk content and a usable bell before slow counts finish
+ok 197 - the actual React stream delivers desk content and a usable bell before slow counts finish
+  ---
+  duration_ms: 12.966815
+  type: 'test'
+  ...
+# Subtest: installed SDK sends PKCE reset and redeems it only with the same browser verifier
+ok 198 - installed SDK sends PKCE reset and redeems it only with the same browser verifier
+  ---
+  duration_ms: 34.586433
+  type: 'test'
+  ...
+# Subtest: unknown account and every provider error produce identical reset feedback without raw error text
+ok 199 - unknown account and every provider error produce identical reset feedback without raw error text
+  ---
+  duration_ms: 108.637749
+  type: 'test'
+  ...
+# Subtest: untrusted origin cannot send email or start a recovery session
+ok 200 - untrusted origin cannot send email or start a recovery session
+  ---
+  duration_ms: 14.942706
+  type: 'test'
+  ...
+# Subtest: expired or modified verifier cookies cannot redeem an email code even when manually replayed
+ok 201 - expired or modified verifier cookies cannot redeem an email code even when manually replayed
+  ---
+  duration_ms: 40.637747
+  type: 'test'
+  ...
+# Subtest: ordinary login, stale recovery, untrusted user and revoked sessions cannot authorize reset
+ok 202 - ordinary login, stale recovery, untrusted user and revoked sessions cannot authorize reset
+  ---
+  duration_ms: 58.360719
+  type: 'test'
+  ...
+# Subtest: password update uses end-user SDK, revokes global sessions, clears recovery, and cannot be replayed
+ok 203 - password update uses end-user SDK, revokes global sessions, clears recovery, and cannot be replayed
+  ---
+  duration_ms: 28.745819
+  type: 'test'
+  ...
+# Subtest: MFA-protected recovery requires own verified factor and preserves original deadline
+ok 204 - MFA-protected recovery requires own verified factor and preserves original deadline
+  ---
+  duration_ms: 29.561705
+  type: 'test'
+  ...
+# Subtest: unsupported MFA has an explicit state, and password update cannot silently bypass it
+ok 205 - unsupported MFA has an explicit state, and password update cannot silently bypass it
+  ---
+  duration_ms: 30.602471
+  type: 'test'
+  ...
+# Subtest: password success with failed revocation is reported honestly, and invalid passwords never mutate
+ok 206 - password success with failed revocation is reported honestly, and invalid passwords never mutate
+  ---
+  duration_ms: 14.547622
+  type: 'test'
+  ...
+# Subtest: staff lookups run with bounded concurrency and preserve identity order
+ok 207 - staff lookups run with bounded concurrency and preserve identity order
+  ---
+  duration_ms: 18.000997
+  type: 'test'
+  ...
+# Subtest: missing or mismatched staff identities do not produce a misleading directory
+ok 208 - missing or mismatched staff identities do not produce a misleading directory
+  ---
+  duration_ms: 0.391599
+  type: 'test'
+  ...
+# Subtest: empty staff directory makes no identity requests
+ok 209 - empty staff directory makes no identity requests
+  ---
+  duration_ms: 0.101052
+  type: 'test'
+  ...
+# Subtest: actual invite page defaults to read-only auditor without removing or reordering roles
+ok 210 - actual invite page defaults to read-only auditor without removing or reordering roles
+  ---
+  duration_ms: 17.788457
+  type: 'test'
+  ...
+# Subtest: staff role editor begins with the selected record’s confirmed role and an actor-specific audit link
+ok 211 - staff role editor begins with the selected record’s confirmed role and an actor-specific audit link
+  ---
+  duration_ms: 15.563761
+  type: 'test'
+  ...
+# Subtest: story review retains the published crop, color treatment and trim without copying private draft fields
+ok 212 - story review retains the published crop, color treatment and trim without copying private draft fields
+  ---
+  duration_ms: 0.938852
+  type: 'test'
+  ...
+# Subtest: text stories stay text and never promote avatars, links, thumbnails or audio into media
+ok 213 - text stories stay text and never promote avatars, links, thumbnails or audio into media
+  ---
+  duration_ms: 0.217477
+  type: 'test'
+  ...
+# Subtest: primary media and inline photo/video assets produce a deduplicated story-authorized gallery
+ok 214 - primary media and inline photo/video assets produce a deduplicated story-authorized gallery
+  ---
+  duration_ms: 0.441044
+  type: 'test'
+  ...
+# Subtest: a text-backed shared-post story uses its post binding, caption and dimensions rather than its author avatar
+ok 215 - a text-backed shared-post story uses its post binding, caption and dimensions rather than its author avatar
+  ---
+  duration_ms: 0.264718
+  type: 'test'
+  ...
+# Subtest: an unauthorized embedded post never inherits a story capability or falls back to its raw URL
+ok 216 - an unauthorized embedded post never inherits a story capability or falls back to its raw URL
+  ---
+  duration_ms: 0.267512
+  type: 'test'
+  ...
+# Subtest: post-shaped metadata without a rendered post kind and valid post ID cannot request post grants
+ok 217 - post-shaped metadata without a rendered post kind and valid post ID cannot request post grants
+  ---
+  duration_ms: 0.140561
+  type: 'test'
+  ...
+# Subtest: video type hints and video URLs are recognized inside shared posts while caption fallbacks remain real content
+ok 218 - video type hints and video URLs are recognized inside shared posts while caption fallbacks remain real content
+  ---
+  duration_ms: 0.151468
+  type: 'test'
+  ...
+# Subtest: 25 members use one directory request with exact embedded counts, not 75 secondary requests
+ok 219 - 25 members use one directory request with exact embedded counts, not 75 secondary requests
+  ---
+  duration_ms: 9.676645
+  type: 'test'
+  ...
+# Subtest: search escaping, stable ordering, page boundaries and navigation remain intact
+ok 220 - search escaping, stable ordering, page boundaries and navigation remain intact
+  ---
+  duration_ms: 7.934665
+  type: 'test'
+  ...
+# Subtest: roles without support access do not load or display appeals
+ok 221 - roles without support access do not load or display appeals
+  ---
+  duration_ms: 7.733843
+  type: 'test'
+  ...
+# Subtest: an authorization rejection sends no database requests
+ok 222 - an authorization rejection sends no database requests
+  ---
+  duration_ms: 6.164382
+  type: 'test'
+  ...
+# Subtest: database failures propagate to the existing error boundary instead of zero counts
+ok 223 - database failures propagate to the existing error boundary instead of zero counts
+  ---
+  duration_ms: 7.569656
+  type: 'test'
+  ...
+# Subtest: malformed, missing, truncated and unsafe count values fail closed
+ok 224 - malformed, missing, truncated and unsafe count values fail closed
+  ---
+  duration_ms: 230.37677
+  type: 'test'
+  ...
+# Subtest: empty search results need no secondary lookups and do not invent members
+ok 225 - empty search results need no secondary lookups and do not invent members
+  ---
+  duration_ms: 6.813969
+  type: 'test'
+  ...
+1..225
+# tests 225
+# suites 0
+# pass 225
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11515.080091

@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit BusinessAccess
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: business-businessaccess
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Business access"
+    timeout: 15000
+- takeScreenshot: business-businessaccess

@@ -5,6 +5,7 @@ import { useCurrentTime } from "@/lib/useCurrentTime";
 
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Strike = { id: string; level: string; reason: string | null; created_at: string };
 const LEVEL_LABEL: Record<string, string> = { warn: "Warning", restrict: "Restriction", suspend: "Suspension", ban: "Ban" };
@@ -13,19 +14,23 @@ export default function AccountStandingPage() {
   const [supabase] = useState(createClient);
   const [rows, setRows] = useState<Strike[] | null>(null);
   const [restrictedUntil, setRestrictedUntil] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    let active = true;
     void (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) { setRows([]); return; }
-      const [{ data: strikes }, { data: prof }] = await Promise.all([
+      const { data: auth, error: authError } = await withTimeout(supabase.auth.getUser());
+      if (authError || !auth.user) throw authError || new Error("Sign in to check account standing.");
+      const [strikes, prof] = await withTimeout(Promise.all([
         supabase.from("member_strikes").select("id, level, reason, created_at").order("created_at", { ascending: false }).limit(20),
         supabase.from("profiles").select("restricted_until").eq("id", auth.user.id).single(),
-      ]);
-      setRows((strikes as Strike[]) ?? []);
-      setRestrictedUntil(prof?.restricted_until ?? null);
-    })();
-  }, [supabase]);
+      ]));
+      if (strikes.error || prof.error || !prof.data) throw strikes.error || prof.error || new Error("Profile unavailable");
+      if (active) { setRows((strikes.data as Strike[]) ?? []); setRestrictedUntil(prof.data.restricted_until ?? null); setError(null); }
+    })().catch(() => { if (active) setError("Could not load your account standing. Please try again."); });
+    return () => { active = false; };
+  }, [supabase, attempt]);
 
   const now = useCurrentTime();
   const restrictionActive = now !== null && !!restrictedUntil && new Date(restrictedUntil).getTime() > now;
@@ -35,7 +40,7 @@ export default function AccountStandingPage() {
     <div className="mx-auto max-w-[560px] px-1">
       <h1 className="pb-1 font-display text-xl text-porcelain">Account standing</h1>
       <p className="pb-5 text-[13px] text-muted">Every strike issued against your account, or a clean bill when there is nothing.</p>
-      {rows === null ? <p className="py-10 text-center text-sm text-muted">Loading</p> : (
+      {error ? <div role="alert" className="py-6 text-sm text-danger"><p>{error}</p><button type="button" onClick={() => { setError(null); setAttempt(value => value + 1); }} className="mt-3 underline">Try again</button></div> : rows === null ? <p role="status" className="py-10 text-center text-sm text-muted">Loading</p> : (
         <>
           {restrictionActive ? (
             <div className="mb-5 flex items-center gap-2 rounded-lg border border-amber-300/50 bg-amber-50 p-3">

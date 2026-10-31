@@ -1,0 +1,30 @@
+{
+  "native-ui-receipt.json": {
+    "present": false,
+    "bytes": null
+  },
+  "native-ui-receipt-final.json": {
+    "present": false,
+    "bytes": null
+  },
+  "native-ui-auth-diagnostics.json": {
+    "present": false,
+    "bytes": null
+  },
+  "native-ui-auth-diagnostics-final.json": {
+    "present": false,
+    "bytes": null
+  },
+  "maestro-memory-capture.xml": {
+    "present": false,
+    "bytes": null
+  },
+  "phase-results.json": {
+    "present": false,
+    "bytes": null
+  },
+  "memory-capture": {
+    "present": false,
+    "bytes": null
+  }
+}

@@ -1,0 +1,184 @@
+TAP version 13
+# Subtest: /api/diagnostics: real verified staff session forwards enum-only data with the user bearer
+ok 1 - /api/diagnostics: real verified staff session forwards enum-only data with the user bearer
+  ---
+  duration_ms: 237.744848
+  type: 'test'
+  ...
+# Subtest: /api/diagnostics: guest cannot submit diagnostics
+ok 2 - /api/diagnostics: guest cannot submit diagnostics
+  ---
+  duration_ms: 49.012526
+  type: 'test'
+  ...
+# Subtest: /api/diagnostics: revoked session cannot submit diagnostics
+ok 3 - /api/diagnostics: revoked session cannot submit diagnostics
+  ---
+  duration_ms: 42.901191
+  type: 'test'
+  ...
+# Subtest: /api/diagnostics: inactive role cannot submit diagnostics
+ok 4 - /api/diagnostics: inactive role cannot submit diagnostics
+  ---
+  duration_ms: 48.07159
+  type: 'test'
+  ...
+# Subtest: /api/diagnostics: unknown role cannot submit diagnostics
+ok 5 - /api/diagnostics: unknown role cannot submit diagnostics
+  ---
+  duration_ms: 39.773346
+  type: 'test'
+  ...
+# Subtest: /api/diagnostics: unverified token cannot submit diagnostics
+ok 6 - /api/diagnostics: unverified token cannot submit diagnostics
+  ---
+  duration_ms: 32.485022
+  type: 'test'
+  ...
+# Subtest: /api/diagnostics: cross-origin, wrong content type and oversized UTF-8 bodies stop before Auth
+ok 7 - /api/diagnostics: cross-origin, wrong content type and oversized UTF-8 bodies stop before Auth
+  ---
+  duration_ms: 114.543845
+  type: 'test'
+  ...
+# Subtest: /api/diagnostics: malformed JSON is a bounded client error
+ok 8 - /api/diagnostics: malformed JSON is a bounded client error
+  ---
+  duration_ms: 20.814862
+  type: 'test'
+  ...
+# Subtest: /api/diagnostics: provider failure returns unavailable without recursive reporting
+ok 9 - /api/diagnostics: provider failure returns unavailable without recursive reporting
+  ---
+  duration_ms: 47.269348
+  type: 'test'
+  ...
+# Subtest: /api/moderation-media: GET, HEAD and range execute real Auth, exact object proof and reauthorization
+ok 10 - /api/moderation-media: GET, HEAD and range execute real Auth, exact object proof and reauthorization
+  ---
+  duration_ms: 90.697277
+  type: 'test'
+  ...
+# Subtest: /api/moderation-media: guest produces no private media
+ok 11 - /api/moderation-media: guest produces no private media
+  ---
+  duration_ms: 19.770561
+  type: 'test'
+  ...
+# Subtest: /api/moderation-media: wrong role produces no private media
+ok 12 - /api/moderation-media: wrong role produces no private media
+  ---
+  duration_ms: 18.995725
+  type: 'test'
+  ...
+# Subtest: /api/moderation-media: revoked while reading produces no private media
+ok 13 - /api/moderation-media: revoked while reading produces no private media
+  ---
+  duration_ms: 23.709255
+  type: 'test'
+  ...
+# Subtest: /api/moderation-media: object replaced produces no private media
+ok 14 - /api/moderation-media: object replaced produces no private media
+  ---
+  duration_ms: 23.399591
+  type: 'test'
+  ...
+# Subtest: /api/moderation-media: unbound object produces no private media
+ok 15 - /api/moderation-media: unbound object produces no private media
+  ---
+  duration_ms: 21.414074
+  type: 'test'
+  ...
+# Subtest: /api/moderation-media: storage outage produces no private media
+ok 16 - /api/moderation-media: storage outage produces no private media
+  ---
+  duration_ms: 23.428444
+  type: 'test'
+  ...
+# Subtest: /api/music/[id]: authorized original audio binds both reads to the real verified actor/session
+ok 17 - /api/music/[id]: authorized original audio binds both reads to the real verified actor/session
+  ---
+  duration_ms: 33.931463
+  type: 'test'
+  ...
+# Subtest: /api/music/[id]: guest and wrong role never reach object or Storage reads
+ok 18 - /api/music/[id]: guest and wrong role never reach object or Storage reads
+  ---
+  duration_ms: 52.570442
+  type: 'test'
+  ...
+# Subtest: /api/music/[id]: replacement and missing objects do not release stale bytes
+ok 19 - /api/music/[id]: replacement and missing objects do not release stale bytes
+  ---
+  duration_ms: 59.240226
+  type: 'test'
+  ...
+# Subtest: /api/music/[id]: invalid byte ranges stop before Storage
+ok 20 - /api/music/[id]: invalid byte ranges stop before Storage
+  ---
+  duration_ms: 94.400051
+  type: 'test'
+  ...
+# Subtest: /api/music/[id]: Storage network failure settles as a private unavailable response
+ok 21 - /api/music/[id]: Storage network failure settles as a private unavailable response
+  ---
+  duration_ms: 42.848417
+  type: 'test'
+  ...
+# Subtest: /api/music/[id]: the actual 20-second header deadline aborts held transport and retains recovery headers
+ok 22 - /api/music/[id]: the actual 20-second header deadline aborts held transport and retains recovery headers
+  ---
+  duration_ms: 31.055958
+  type: 'test'
+  ...
+# Subtest: /api/music/report: real permission boundary and bounded CSV report preserve safe fields
+ok 23 - /api/music/report: real permission boundary and bounded CSV report preserve safe fields
+  ---
+  duration_ms: 18.629239
+  type: 'test'
+  ...
+# Subtest: /api/music/report: invalid date windows and denied roles cannot request reports
+ok 24 - /api/music/report: invalid date windows and denied roles cannot request reports
+  ---
+  duration_ms: 37.920043
+  type: 'test'
+  ...
+# Subtest: /api/music/report: missing or failed provider receipts never become successful downloads
+ok 25 - /api/music/report: missing or failed provider receipts never become successful downloads
+  ---
+  duration_ms: 47.952795
+  type: 'test'
+  ...
+# Subtest: /reset-password/callback: actual PKCE exchange verifies recovery AMR, stores only the separate sealed grant and blocks replay
+ok 26 - /reset-password/callback: actual PKCE exchange verifies recovery AMR, stores only the separate sealed grant and blocks replay
+  ---
+  duration_ms: 38.48273
+  type: 'test'
+  ...
+# Subtest: /reset-password/callback: ordinary login tokens cannot establish a recovery grant
+ok 27 - /reset-password/callback: ordinary login tokens cannot establish a recovery grant
+  ---
+  duration_ms: 55.551121
+  type: 'test'
+  ...
+# Subtest: /reset-password/callback: untrusted callback origin and malformed links cannot exchange credentials
+ok 28 - /reset-password/callback: untrusted callback origin and malformed links cannot exchange credentials
+  ---
+  duration_ms: 78.655573
+  type: 'test'
+  ...
+# Subtest: /reset-password/callback: exchange failure and revoked staff session have no success grant or leaked error
+ok 29 - /reset-password/callback: exchange failure and revoked staff session have no success grant or leaked error
+  ---
+  duration_ms: 60.210209
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1780.297439

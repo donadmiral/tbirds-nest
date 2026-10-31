@@ -1,0 +1,79 @@
+{
+  "files": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/after-tests.txt",
+      "bytes": 12766,
+      "sha256": "7d663982954a03d1a448e8aa800b20ed5e95b12fdcafc297918a0603c53cd795"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/before-tests.txt",
+      "bytes": 94487,
+      "sha256": "c3a113cc24efb3c8794db88c190bc6771f41f543e33c7553cd4888f7d02d9f7c"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/candidate-calculations.json.gz",
+      "bytes": 15230,
+      "sha256": "80daadd0473701900bfffd2310283dbb0219c66629db94c5e3e6623703538ebc"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/classification-reproducer.cjs.txt",
+      "bytes": 2919,
+      "sha256": "fd5b178c61ee8d8f21deaa103e07ed81ddaf89c554ac8762ca04dd37bce233f6"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/corrected-baseline.json.gz",
+      "bytes": 14979,
+      "sha256": "582f20ab1d1c72b20185ec6c785c955d70432bee29f1f29a78057ad996997077"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/lint-comparison.json",
+      "bytes": 33853,
+      "sha256": "ec47136252029da696e882d7341fb505d8aba5534a589a2edb294db6653450ca"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/lint-summary.txt",
+      "bytes": 149,
+      "sha256": "b7bd4ceb1874d80ff3aa6e6ef531befa31904b6c978b6ce07716b12c56dfe82f"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/measured-pairs.json.gz",
+      "bytes": 6328,
+      "sha256": "5787944ae53ad0193044105efb8842979ae9c788541bd385f3996beab6c1c064"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/provider-call-boundary.json",
+      "bytes": 13108,
+      "sha256": "a449ee696fcce809aecb1465ea070d8ed09d13de96808ea1b4ce20691b6eeb86"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/review.json",
+      "bytes": 12045,
+      "sha256": "0584c8aadbbcf5701c9ff4deaa2ae21c748bcf4b8af95e930b2f5daf0bca3911"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/source-manifest.json",
+      "bytes": 12549,
+      "sha256": "d4e9cb10e3cd4a8d4eb33b051812ee0a8a20a67601401c533abff22e3aa03993"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/static-checks.json",
+      "bytes": 1457,
+      "sha256": "f0c5337733a43e03615b38a61a6fe458e6b894369c8f91c3065d894abf59bd3f"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/triage-ledger.json",
+      "bytes": 178574,
+      "sha256": "a212a1b3a66f2cdae82cfbdb70c319e0cf6ef05b5092af762eeac1ab175fcbd9"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/whitespace.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

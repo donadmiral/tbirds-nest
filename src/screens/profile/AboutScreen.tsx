@@ -1,23 +1,25 @@
 /**
  * AboutScreen - what Platinum Circles is, in its own words.
  */
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import React from 'react';
+import * as Application from 'expo-application';
 import { View, Text, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation } from '@react-navigation/native';
 
-const NAVY = '#0B1E3D';
 const PLATINUM = '#C9BFB0';
-const VERSION = '1.0.0';
-const BUILD = '100';
 
 export default function AboutScreen() {
+  const { t, isDark } = useTheme();
+  const version = Application.nativeApplicationVersion?.trim();
+  const build = Application.nativeBuildVersion?.trim();
+  const versionLabel = version ? `Version ${version}${build ? ` (${build})` : ''}` : build ? `Build ${build}` : 'Version unavailable';
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
           <Text style={s.backChev}>{'\u2039'}</Text><Text style={s.backLbl}>Back</Text>
@@ -34,7 +36,7 @@ export default function AboutScreen() {
           </View>
           <Text style={s.appName}>Platinum Circles</Text>
           <Text style={s.tagline}>Zimbabwe's professional network</Text>
-          <View style={s.versionPill}><Text style={s.versionTxt}>Version {VERSION} ({BUILD})</Text></View>
+          <View style={s.versionPill}><Text style={s.versionTxt}>{versionLabel}</Text></View>
         </View>
 
         <View style={s.card}>
@@ -62,20 +64,20 @@ const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
-  backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
-  backLbl: { fontSize: 15, color: NAVY, fontWeight: '600' },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
+  backChev: { fontSize: 26, color: t.ink.primary, marginRight: 2, marginTop: -3 },
+  backLbl: { fontSize: 15, color: t.ink.primary, fontWeight: '600' },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: t.ink.primary },
   scroll: { paddingHorizontal: 16, paddingTop: 8 },
   hero: { alignItems: 'center', paddingVertical: 26 },
   mark: { width: 84, height: 84, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   ring: { position: 'absolute', width: 84, height: 84, borderRadius: 42, borderWidth: 5, borderColor: PLATINUM },
   pearl: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#F3EFE7', borderWidth: 1, borderColor: t.surface.hairline },
-  appName: { fontSize: 24, fontWeight: '800', color: NAVY, letterSpacing: -0.5 },
-  tagline: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', marginTop: 4 },
+  appName: { fontSize: 24, fontWeight: '800', color: t.ink.primary, letterSpacing: -0.5 },
+  tagline: { fontSize: 13.5, color: t.ink.muted, marginTop: 4 },
   versionPill: { marginTop: 12, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 99, backgroundColor: t.brand.tintBg },
-  versionTxt: { fontSize: 12, fontWeight: '600', color: 'rgba(11,30,61,0.6)' },
-  card: { backgroundColor: 'rgba(11,30,61,0.035)', borderRadius: 16, padding: 16, marginBottom: 12 },
-  cardTitle: { fontSize: 14.5, fontWeight: '800', color: NAVY, marginBottom: 8 },
-  body: { fontSize: 13.5, lineHeight: 21, color: 'rgba(11,30,61,0.8)' },
+  versionTxt: { fontSize: 12, fontWeight: '600', color: t.ink.muted },
+  card: { backgroundColor: t.surface.raised, borderRadius: 16, padding: 16, marginBottom: 12 },
+  cardTitle: { fontSize: 14.5, fontWeight: '800', color: t.ink.primary, marginBottom: 8 },
+  body: { fontSize: 13.5, lineHeight: 21, color: t.ink.secondary },
   foot: { textAlign: 'center', fontSize: 12.5, color: t.ink.muted, marginTop: 16 },
 }));

@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: recovery consumes only the fixed prior binary and fixed test checkout across all three independent shards
+ok 1 - recovery consumes only the fixed prior binary and fixed test checkout across all three independent shards
+  ---
+  duration_ms: 1.605826
+  type: 'test'
+  ...
+# Subtest: all actual workflow shell steps parse and the baseline source override remains process scoped with failures preserved
+ok 2 - all actual workflow shell steps parse and the baseline source override remains process scoped with failures preserved
+  ---
+  duration_ms: 17.992396
+  type: 'test'
+  ...
+# Subtest: the actual setup prefix exposes the installed SDK adb to subsequent steps without relying on the initial PATH
+ok 3 - the actual setup prefix exposes the installed SDK adb to subsequent steps without relying on the initial PATH
+  ---
+  duration_ms: 7.022174
+  type: 'test'
+  ...
+# Subtest: the actual provenance step distinguishes recovery workflow, original application/tests and producer run while verifying binary bytes
+ok 4 - the actual provenance step distinguishes recovery workflow, original application/tests and producer run while verifying binary bytes
+  ---
+  duration_ms: 47.169457
+  type: 'test'
+  ...
+# Subtest: the actual provenance step fails closed for wrong checkouts, changed binaries and incorrect manifests before device execution
+ok 5 - the actual provenance step fails closed for wrong checkouts, changed binaries and incorrect manifests before device execution
+  ---
+  duration_ms: 264.140924
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 383.952336

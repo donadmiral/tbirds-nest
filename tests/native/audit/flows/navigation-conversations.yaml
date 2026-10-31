@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit Conversations
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: navigation-conversations
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Messages"
+    timeout: 15000
+- takeScreenshot: navigation-conversations

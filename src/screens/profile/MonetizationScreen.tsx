@@ -90,7 +90,7 @@ const s = themedSheet(t => ({
   link: { fontSize: 14, fontWeight: '600', textDecorationLine: 'underline', color: t.ink.primary },
   button: { minHeight: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center', padding: 12, backgroundColor: t.brand.base },
   buttonText: { color: t.ink.inverse, fontSize: 15, fontWeight: '800' },
-  error: { color: t.status.danger, fontSize: 14, lineHeight: 21 },
+  error: { color: t.ink.primary, fontSize: 14, lineHeight: 21 },
   row: { paddingVertical: 8, gap: 5 },
   amount: { fontSize: 16, fontWeight: '700', color: t.ink.primary },
 }));

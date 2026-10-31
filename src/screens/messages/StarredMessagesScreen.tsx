@@ -1,5 +1,5 @@
 import { ListRowSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { TextInput , View, Text, StyleSheet, TouchableOpacity, FlatList, StatusBar, Image, RefreshControl } from 'react-native';
@@ -61,6 +61,7 @@ function initials(n?: string | null) {
 }
 
 export default function StarredMessagesScreen() {
+  const { t, isDark } = useTheme();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
@@ -217,7 +218,7 @@ export default function StarredMessagesScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.6}>
           <Text style={s.backChev}>‹</Text>
@@ -255,13 +256,13 @@ const s = themedSheet((t) => ({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#C6C6C8' },
   backBtn: { flexDirection: 'row', alignItems: 'center', minWidth: 90, paddingVertical: 6 },
   backChev: { fontSize: 30, color: '#007AFF', lineHeight: 34, marginLeft: 4, marginRight: 2 },
-  backLbl: { fontSize: 17, color: '#007AFF' },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: '#000' },
+  backLbl: { fontSize: 17, color: t.status.link },
+  headerTitle: { fontSize: 17, fontWeight: '600', color: t.ink.primary },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 10 },
   emptyStar: { fontSize: 52, color: '#FFD60A' },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#000' },
-  emptyTxt: { fontSize: 14, color: '#8E8E93', textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: t.ink.primary },
+  emptyTxt: { fontSize: 14, color: t.ink.muted, textAlign: 'center', lineHeight: 20 },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   avatar: { width: 46, height: 46, borderRadius: 23 },
   avatarFb: { backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' },

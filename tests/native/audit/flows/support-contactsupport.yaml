@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit ContactSupport
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: support-contactsupport
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Contact support"
+    timeout: 15000
+- takeScreenshot: support-contactsupport

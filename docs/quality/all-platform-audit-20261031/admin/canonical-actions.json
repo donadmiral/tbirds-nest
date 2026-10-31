@@ -1,0 +1,3306 @@
+{
+  "date": "20261031",
+  "scope": "Tracked and current JSX controls, selected interaction callbacks, links and literal native Alert actions; includes delegated component props and conditional controls.",
+  "status": "Static inventory only; every runtime result remains pending.",
+  "sourceHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "actionFields": [
+    "line",
+    "kind",
+    "control",
+    "label",
+    "events",
+    "destination"
+  ],
+  "summary": {
+    "files": 75,
+    "filesWithBindings": 58,
+    "bindings": 283
+  },
+  "files": [
+    {
+      "app": "admin",
+      "file": "admin-web/app/ads/page.tsx",
+      "actions": [
+        [
+          177,
+          "jsx",
+          "CommandForm",
+          "Content approval. Payment is verified separately through IntoBank. Approve",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          182,
+          "jsx",
+          "CommandForm",
+          "Reject",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          204,
+          "jsx",
+          "CommandForm",
+          "End",
+          [
+            "action"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/analytics/page.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/audit/page.tsx",
+      "actions": [
+        [
+          150,
+          "jsx",
+          "Link",
+          "View all staff actions",
+          [
+            "href"
+          ],
+          "\"/audit\""
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/businesses/page.tsx",
+      "actions": [
+        [
+          69,
+          "jsx",
+          "a",
+          "a (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{'/users/' + a.applicant_id}"
+        ],
+        [
+          75,
+          "jsx",
+          "CommandForm",
+          "Approve and create @",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          79,
+          "jsx",
+          "CommandForm",
+          "Reason shown to applicant Decline",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          94,
+          "jsx",
+          "Link",
+          "Previous applications",
+          [
+            "href"
+          ],
+          "{href(page, applicationPage - 1)}"
+        ],
+        [
+          95,
+          "jsx",
+          "Link",
+          "Next applications",
+          [
+            "href"
+          ],
+          "{href(page, applicationPage + 1)}"
+        ],
+        [
+          125,
+          "jsx",
+          "Link",
+          "Open",
+          [
+            "href"
+          ],
+          "{'/users?q=' + encodeURIComponent(b.username || '')}"
+        ],
+        [
+          131,
+          "jsx",
+          "Link",
+          "Previous businesses",
+          [
+            "href"
+          ],
+          "{href(page - 1, applicationPage)}"
+        ],
+        [
+          132,
+          "jsx",
+          "Link",
+          "Next businesses",
+          [
+            "href"
+          ],
+          "{href(page + 1, applicationPage)}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/calls/page.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "actions": [
+        [
+          23,
+          "jsx",
+          "Link",
+          "Back to Content",
+          [
+            "href"
+          ],
+          "\"/content\""
+        ],
+        [
+          30,
+          "jsx",
+          "Link",
+          "Previous",
+          [
+            "href"
+          ],
+          "{link(kind, page - 1)}"
+        ],
+        [
+          32,
+          "jsx",
+          "Link",
+          "Next",
+          [
+            "href"
+          ],
+          "{link(kind, page + 1)}"
+        ],
+        [
+          37,
+          "jsx",
+          "Link",
+          "Open author",
+          [
+            "href"
+          ],
+          "{`/users/${post.user_id}`}"
+        ],
+        [
+          50,
+          "jsx",
+          "Link",
+          "Open reports desk",
+          [
+            "href"
+          ],
+          "\"/reports\""
+        ],
+        [
+          51,
+          "jsx",
+          "CommandForm",
+          "I have reviewed this post and confirm its removal. Remove this post",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          51,
+          "jsx",
+          "button",
+          "Remove this post",
+          [
+            "submit"
+          ],
+          null
+        ],
+        [
+          54,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{`/users/${comment.user_id}`}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/content/page.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/dashboard/page.tsx",
+      "actions": [
+        [
+          62,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{d}"
+        ],
+        [
+          221,
+          "jsx",
+          "Link",
+          "Review reports \u2197",
+          [
+            "href"
+          ],
+          "\"/reports\""
+        ],
+        [
+          225,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{c.href}"
+        ],
+        [
+          249,
+          "jsx",
+          "Link",
+          "Full analytics",
+          [
+            "href"
+          ],
+          "\"/analytics\""
+        ],
+        [
+          269,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{n.href}"
+        ],
+        [
+          287,
+          "jsx",
+          "Link",
+          "All members",
+          [
+            "href"
+          ],
+          "\"/users\""
+        ],
+        [
+          290,
+          "jsx",
+          "Link",
+          "@",
+          [
+            "href"
+          ],
+          "{'/users/' + u.id}"
+        ],
+        [
+          309,
+          "jsx",
+          "Link",
+          "All posts",
+          [
+            "href"
+          ],
+          "\"/content\""
+        ],
+        [
+          316,
+          "jsx",
+          "Link",
+          "@",
+          [
+            "href"
+          ],
+          "{'/content/' + p.id}"
+        ],
+        [
+          369,
+          "jsx",
+          "Link",
+          "Audit log",
+          [
+            "href"
+          ],
+          "\"/audit\""
+        ],
+        [
+          408,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{q.href}"
+        ],
+        [
+          453,
+          "jsx",
+          "Link",
+          "applied for",
+          [
+            "href"
+          ],
+          "\"/queue\""
+        ],
+        [
+          464,
+          "jsx",
+          "Link",
+          "Reported for",
+          [
+            "href"
+          ],
+          "\"/reports\""
+        ],
+        [
+          479,
+          "jsx",
+          "Link",
+          "Manage in Controls",
+          [
+            "href"
+          ],
+          "\"/system\""
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/error.tsx",
+      "actions": [
+        [
+          8,
+          "jsx",
+          "button",
+          "Try again",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          8,
+          "jsx",
+          "Link",
+          "Back to operations",
+          [
+            "href"
+          ],
+          "\"/dashboard\""
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/global-error.tsx",
+      "actions": [
+        [
+          9,
+          "jsx",
+          "button",
+          "Try again",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/jobs/page.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/layout.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/market/orders/[id]/page.tsx",
+      "actions": [
+        [
+          24,
+          "jsx",
+          "Link",
+          "All orders",
+          [
+            "href"
+          ],
+          "\"/market/orders\""
+        ],
+        [
+          25,
+          "jsx",
+          "Link",
+          "Buyer",
+          [
+            "href"
+          ],
+          "{'/users/'+order.buyer_id}"
+        ],
+        [
+          25,
+          "jsx",
+          "Link",
+          "Seller",
+          [
+            "href"
+          ],
+          "{'/users/'+order.seller_id}"
+        ],
+        [
+          25,
+          "jsx",
+          "Link",
+          "Listings desk",
+          [
+            "href"
+          ],
+          "\"/market\""
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/market/orders/page.tsx",
+      "actions": [
+        [
+          15,
+          "jsx",
+          "Link",
+          "Listings",
+          [
+            "href"
+          ],
+          "\"/market\""
+        ],
+        [
+          15,
+          "jsx",
+          "Link",
+          "Refresh orders",
+          [
+            "href"
+          ],
+          "{marketOrdersHref(search.status)}"
+        ],
+        [
+          19,
+          "jsx",
+          "Link",
+          "\u00d7",
+          [
+            "href"
+          ],
+          "{'/market/orders/'+order.id}"
+        ],
+        [
+          20,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{'/users/'+order.buyer_id}"
+        ],
+        [
+          20,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{'/users/'+order.seller_id}"
+        ],
+        [
+          23,
+          "jsx",
+          "Link",
+          "Newest orders",
+          [
+            "href"
+          ],
+          "{marketOrdersHref(search.status)}"
+        ],
+        [
+          23,
+          "jsx",
+          "Link",
+          "Older orders",
+          [
+            "href"
+          ],
+          "{marketOrdersHref(search.status,page.next_cursor)}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/market/page.tsx",
+      "actions": [
+        [
+          189,
+          "jsx",
+          "Link",
+          "Review reported seller ratings",
+          [
+            "href"
+          ],
+          "\"/market/reviews\""
+        ],
+        [
+          190,
+          "jsx",
+          "Link",
+          "Investigate orders, returns and disputes",
+          [
+            "href"
+          ],
+          "\"/market/orders\""
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "actions": [
+        [
+          51,
+          "jsx",
+          "Link",
+          "Reports desk",
+          [
+            "href"
+          ],
+          "\"/reports\""
+        ],
+        [
+          70,
+          "jsx",
+          "Link",
+          "Reports desk",
+          [
+            "href"
+          ],
+          "\"/reports\""
+        ],
+        [
+          73,
+          "jsx",
+          "Link",
+          "Open reports",
+          [
+            "href"
+          ],
+          "\"/market/reviews\""
+        ],
+        [
+          76,
+          "jsx",
+          "Link",
+          "All reports / restore reviews",
+          [
+            "href"
+          ],
+          "\"/market/reviews?status=all\""
+        ],
+        [
+          123,
+          "jsx",
+          "Link",
+          "Reviewer",
+          [
+            "href"
+          ],
+          "{\"/users/\" + report.reviewer_id}"
+        ],
+        [
+          131,
+          "jsx",
+          "Link",
+          "Seller",
+          [
+            "href"
+          ],
+          "{\"/users/\" + report.seller_id}"
+        ],
+        [
+          136,
+          "jsx",
+          "Link",
+          "Reporter (staff only)",
+          [
+            "href"
+          ],
+          "{\"/users/\" + report.reporter_id}"
+        ],
+        [
+          151,
+          "jsx",
+          "CommandForm",
+          "Decision reason",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          208,
+          "jsx",
+          "Link",
+          "Older reports",
+          [
+            "href"
+          ],
+          "{ \"/market/reviews?\" + new URLSearchParams({ status, before: page.next_cursor.created_at, id: page.next_cursor.id, }) }"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/music/OperationsPanel.tsx",
+      "actions": [
+        [
+          17,
+          "jsx",
+          "Link",
+          "Retry operations status",
+          [
+            "href"
+          ],
+          "\"/music\""
+        ],
+        [
+          26,
+          "jsx",
+          "form",
+          "Provider Choose a provider JSON manifest Up to 100 tracks and 256 KiB per file. Track revisions cannot be overwritten. Stage catalogue",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          27,
+          "jsx",
+          "form",
+          "Start date (UTC) End date, exclusive (UTC) Choose 1 to 31 days. All dates use UTC. Download operations CSV",
+          [
+            "action"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/music/page.tsx",
+      "actions": [
+        [
+          26,
+          "jsx",
+          "Link",
+          "Back to Content",
+          [
+            "href"
+          ],
+          "\"/content\""
+        ],
+        [
+          28,
+          "jsx",
+          "Link",
+          "Retry audio operations",
+          [
+            "href"
+          ],
+          "\"/music\""
+        ],
+        [
+          30,
+          "jsx",
+          "form",
+          "Provider ID Name Contact reference Notes Save provider",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          31,
+          "jsx",
+          "form",
+          "Provider Choose a provider Agreement reference Rights holder Territories Intended uses Request downloaded-video rights Starts at (UTC) Ends at (UTC) Evidence or document reference ",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          35,
+          "jsx",
+          "Link",
+          "Open uploader",
+          [
+            "href"
+          ],
+          "{`/users/${sound.owner_id}`}"
+        ],
+        [
+          35,
+          "jsx",
+          "form",
+          "Reason for revocation Revoke sound",
+          [
+            "action"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/not-found.tsx",
+      "actions": [
+        [
+          5,
+          "jsx",
+          "Link",
+          "Back to operations",
+          [
+            "href"
+          ],
+          "\"/dashboard\""
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/organizations/page.tsx",
+      "actions": [
+        [
+          71,
+          "jsx",
+          "form",
+          "Find an organization Search",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          77,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{archiveHref}"
+        ],
+        [
+          113,
+          "jsx",
+          "Link",
+          "Profile",
+          [
+            "href"
+          ],
+          "{'/users/' + org.profile_id}"
+        ],
+        [
+          115,
+          "jsx",
+          "CommandForm",
+          "Restore",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          117,
+          "jsx",
+          "CommandForm",
+          "Archive",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          119,
+          "jsx",
+          "CommandForm",
+          "New owner username Transfer ownership",
+          [
+            "action"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/p/[id]/page.tsx",
+      "actions": [
+        [
+          59,
+          "jsx",
+          "a",
+          "Open in the app",
+          [
+            "href"
+          ],
+          "{'platinum-circles://post/' + d!.post.id}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/page.tsx",
+      "actions": [
+        [
+          15,
+          "jsx",
+          "form",
+          "Staff email Password",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          26,
+          "jsx",
+          "Link",
+          "Forgot password?",
+          [
+            "href"
+          ],
+          "\"/reset-password/request\""
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/payments/creators/ReviewForm.tsx",
+      "actions": [
+        [
+          8,
+          "jsx",
+          "form",
+          "Decision Reason shown to creator",
+          [
+            "action"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "actions": [
+        [
+          34,
+          "jsx",
+          "Link",
+          "Open first page",
+          [
+            "href"
+          ],
+          "\"/payments/creators\""
+        ],
+        [
+          35,
+          "jsx",
+          "Link",
+          "Back to payments",
+          [
+            "href"
+          ],
+          "\"/payments\""
+        ],
+        [
+          55,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{failure.action === 'Retry' ? creatorFinanceHref(search.cursor) : failure.href}"
+        ],
+        [
+          56,
+          "jsx",
+          "Link",
+          "Back to payments",
+          [
+            "href"
+          ],
+          "\"/payments\""
+        ],
+        [
+          67,
+          "jsx",
+          "Link",
+          "Back to payments",
+          [
+            "href"
+          ],
+          "\"/payments\""
+        ],
+        [
+          68,
+          "jsx",
+          "Link",
+          "Refresh records",
+          [
+            "href"
+          ],
+          "{creatorFinanceHref(search.cursor)}"
+        ],
+        [
+          90,
+          "jsx",
+          "Link",
+          "First page",
+          [
+            "href"
+          ],
+          "\"/payments/creators\""
+        ],
+        [
+          94,
+          "jsx",
+          "Link",
+          "Creator",
+          [
+            "href"
+          ],
+          "{'/users/' + enrollment.user_id}"
+        ],
+        [
+          104,
+          "jsx",
+          "Link",
+          "Next creator page",
+          [
+            "href"
+          ],
+          "{creatorFinanceHref(report.next_cursor)}"
+        ],
+        [
+          113,
+          "jsx",
+          "Link",
+          "Creator",
+          [
+            "href"
+          ],
+          "{'/users/' + payout.user_id}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/payments/page.tsx",
+      "actions": [
+        [
+          152,
+          "jsx",
+          "Link",
+          "Creator finance and reviews",
+          [
+            "href"
+          ],
+          "\"/payments/creators\""
+        ],
+        [
+          156,
+          "jsx",
+          "button",
+          "Search",
+          [
+            "submit"
+          ],
+          null
+        ],
+        [
+          157,
+          "jsx",
+          "Link",
+          "Creator finance",
+          [
+            "href"
+          ],
+          "\"/payments/creators\""
+        ],
+        [
+          160,
+          "jsx",
+          "Link",
+          "Newest",
+          [
+            "href"
+          ],
+          "{paymentHref(search.status,search.q)}"
+        ],
+        [
+          162,
+          "jsx",
+          "Link",
+          "Older transfers \u2192",
+          [
+            "href"
+          ],
+          "{paymentHref(search.status,search.q,page.data.next_cursor)}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/present/page.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/queue/page.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/reports/page.tsx",
+      "actions": [
+        [
+          102,
+          "jsx",
+          "Link",
+          "Seller review reports",
+          [
+            "href"
+          ],
+          "\"/market/reviews\""
+        ],
+        [
+          113,
+          "jsx",
+          "Link",
+          "First page",
+          [
+            "href"
+          ],
+          "\"/reports\""
+        ],
+        [
+          114,
+          "jsx",
+          "Link",
+          "Previous",
+          [
+            "href"
+          ],
+          "{'/reports?page=' + (page - 1)}"
+        ],
+        [
+          116,
+          "jsx",
+          "Link",
+          "Next",
+          [
+            "href"
+          ],
+          "{'/reports?page=' + (page + 1)}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/reset-password/RecoveryForms.tsx",
+      "actions": [
+        [
+          33,
+          "jsx",
+          "Link",
+          "Back to sign in",
+          [
+            "href"
+          ],
+          "\"/\""
+        ],
+        [
+          34,
+          "jsx",
+          "form",
+          "form (dynamic/unlabelled)",
+          [
+            "onSubmit"
+          ],
+          null
+        ],
+        [
+          39,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "submit"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/reset-password/page.tsx",
+      "actions": [
+        [
+          9,
+          "jsx",
+          "Link",
+          "Request a new reset link",
+          [
+            "href"
+          ],
+          "\"/reset-password/request\""
+        ],
+        [
+          12,
+          "jsx",
+          "Link",
+          "Back to sign in",
+          [
+            "href"
+          ],
+          "\"/\""
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/reset-password/request/page.tsx",
+      "actions": [
+        [
+          8,
+          "jsx",
+          "Link",
+          "Back to sign in",
+          [
+            "href"
+          ],
+          "\"/\""
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/security/SecurityForm.tsx",
+      "actions": [
+        [
+          9,
+          "jsx",
+          "select",
+          "select (dynamic/unlabelled)",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          9,
+          "jsx",
+          "button",
+          "Set up authenticator",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          11,
+          "jsx",
+          "form",
+          "Authenticator code Verify and continue",
+          [
+            "onSubmit"
+          ],
+          null
+        ],
+        [
+          11,
+          "jsx",
+          "input",
+          "input (dynamic/unlabelled)",
+          [
+            "onChange"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/security/page.tsx",
+      "actions": [
+        [
+          18,
+          "jsx",
+          "Link",
+          "Continue to operations",
+          [
+            "href"
+          ],
+          "\"/dashboard\""
+        ],
+        [
+          18,
+          "jsx",
+          "form",
+          "Sign out",
+          [
+            "action"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/signin/page.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/staff/page.tsx",
+      "actions": [
+        [
+          140,
+          "jsx",
+          "Link",
+          "Add staff member",
+          [
+            "href"
+          ],
+          "\"#staff-invite\""
+        ],
+        [
+          148,
+          "jsx",
+          "CommandForm",
+          "Staff email Temporary password Staff role Create staff account New accounts start with read-only access unless you choose another role. This creates the login; it does not send an ",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          154,
+          "jsx",
+          "button",
+          "Create staff account",
+          [
+            "submit"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/stories/page.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "actions": [
+        [
+          50,
+          "jsx",
+          "Link",
+          "&larr; All tickets",
+          [
+            "href"
+          ],
+          "\"/support\""
+        ],
+        [
+          57,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{'/users/' + t.user_id}"
+        ],
+        [
+          71,
+          "jsx",
+          "CommandForm",
+          "Owner Unassigned Priority Queue Escalation Standard Escalated Reason Save assignment",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          87,
+          "jsx",
+          "Link",
+          "Latest",
+          [
+            "href"
+          ],
+          "{'/support/' + tid}"
+        ],
+        [
+          88,
+          "jsx",
+          "Link",
+          "Newer",
+          [
+            "href"
+          ],
+          "{'/support/' + tid + '?page=' + (page - 1)}"
+        ],
+        [
+          89,
+          "jsx",
+          "Link",
+          "Older",
+          [
+            "href"
+          ],
+          "{'/support/' + tid + '?page=' + (page + 1)}"
+        ],
+        [
+          106,
+          "jsx",
+          "CommandForm",
+          "Send reply",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          114,
+          "jsx",
+          "CommandForm",
+          "CommandForm (dynamic/unlabelled)",
+          [
+            "action"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/support/page.tsx",
+      "actions": [
+        [
+          161,
+          "jsx",
+          "form",
+          "Search subjects Status Open Pending Solved Appeals All tickets Apply",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          166,
+          "jsx",
+          "button",
+          "Apply",
+          [
+            "submit"
+          ],
+          null
+        ],
+        [
+          169,
+          "jsx",
+          "Link",
+          "First page",
+          [
+            "href"
+          ],
+          "{supportHref(1, q, status)}"
+        ],
+        [
+          170,
+          "jsx",
+          "Link",
+          "Previous",
+          [
+            "href"
+          ],
+          "{supportHref(page - 1, q, status)}"
+        ],
+        [
+          172,
+          "jsx",
+          "Link",
+          "Next",
+          [
+            "href"
+          ],
+          "{supportHref(page + 1, q, status)}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/system/page.tsx",
+      "actions": [
+        [
+          41,
+          "jsx",
+          "CommandForm",
+          "CommandForm (dynamic/unlabelled)",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          53,
+          "jsx",
+          "CommandForm",
+          "Announcement title Message shown in the feed Publish to the platform",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          73,
+          "jsx",
+          "CommandForm",
+          "Retire",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          85,
+          "jsx",
+          "CommandForm",
+          "Blocked word or phrase Block",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          94,
+          "jsx",
+          "CommandForm",
+          "&times;",
+          [
+            "action"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "actions": [
+        [
+          65,
+          "jsx",
+          "CommandForm",
+          "Lift early",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          72,
+          "jsx",
+          "CommandForm",
+          "Warn - recorded strike only Restrict - no posting or listing Suspend - account hidden Ban - permanent intent Issue",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          86,
+          "jsx",
+          "CommandForm",
+          "Restore account",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          92,
+          "jsx",
+          "CommandForm",
+          "Revoke badge",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          136,
+          "jsx",
+          "Link",
+          "Open post",
+          [
+            "href"
+          ],
+          "{`/content/${p.id}`}"
+        ],
+        [
+          137,
+          "jsx",
+          "CommandForm",
+          "Remove",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          159,
+          "jsx",
+          "CommandForm",
+          "Remove",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          253,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{'/users/' + u.id + '?tab=' + t}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "actions": [
+        [
+          28,
+          "jsx",
+          "Link",
+          "Back to users",
+          [
+            "href"
+          ],
+          "\"/users\""
+        ],
+        [
+          29,
+          "jsx",
+          "a",
+          "Check availability again",
+          [
+            "href"
+          ],
+          "{'/users/deletions?page=' + page}"
+        ],
+        [
+          37,
+          "jsx",
+          "Link",
+          "Back to users",
+          [
+            "href"
+          ],
+          "\"/users\""
+        ],
+        [
+          41,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{'/users/' + row.user_id}"
+        ],
+        [
+          55,
+          "jsx",
+          "CommandForm",
+          "Review note Add review note",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          63,
+          "jsx",
+          "button",
+          "Add review note",
+          [
+            "submit"
+          ],
+          null
+        ],
+        [
+          64,
+          "jsx",
+          "button",
+          "Recheck and resume eligible erasure",
+          [
+            "submit"
+          ],
+          null
+        ],
+        [
+          72,
+          "jsx",
+          "Link",
+          "Previous",
+          [
+            "href"
+          ],
+          "{'/users/deletions?page=' + (page - 1)}"
+        ],
+        [
+          73,
+          "jsx",
+          "Link",
+          "Next",
+          [
+            "href"
+          ],
+          "{'/users/deletions?page=' + (page + 1)}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/app/users/page.tsx",
+      "actions": [
+        [
+          54,
+          "jsx",
+          "Link",
+          "Deletion requests",
+          [
+            "href"
+          ],
+          "\"/users/deletions\""
+        ],
+        [
+          72,
+          "jsx",
+          "Link",
+          "Previous",
+          [
+            "href"
+          ],
+          "{'/users?' + new URLSearchParams({q:q || '',page:String(page-1)})}"
+        ],
+        [
+          73,
+          "jsx",
+          "Link",
+          "Next",
+          [
+            "href"
+          ],
+          "{'/users?' + new URLSearchParams({q:q || '',page:String(page+1)})}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/ActionPopover.tsx",
+      "actions": [
+        [
+          57,
+          "jsx",
+          "div",
+          "div (dynamic/unlabelled)",
+          [
+            "onBlur",
+            "onKeyDown"
+          ],
+          null
+        ],
+        [
+          63,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick",
+            "onKeyDown"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/AdminIcon.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/AuthPanel.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/ClientDiagnostics.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/CommandForm.tsx",
+      "actions": [
+        [
+          14,
+          "jsx",
+          "form",
+          "form (dynamic/unlabelled)",
+          [
+            "onSubmit"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/CommandPalette.tsx",
+      "actions": [
+        [
+          102,
+          "jsx",
+          "button",
+          "Ctrl / \u2318 K",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          106,
+          "jsx",
+          "dialog",
+          "Search operations",
+          [
+            "onKeyDown",
+            "onClose",
+            "onClick"
+          ],
+          null
+        ],
+        [
+          110,
+          "jsx",
+          "input",
+          "Find a desk or action",
+          [
+            "onChange",
+            "onKeyDown"
+          ],
+          null
+        ],
+        [
+          117,
+          "jsx",
+          "button",
+          "Close search",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          120,
+          "jsx",
+          "div",
+          "div (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/ContentReviewLink.tsx",
+      "actions": [
+        [
+          10,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{`/content/${id}`}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/Desk.tsx",
+      "actions": [
+        [
+          135,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          193,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "onClick",
+            "href"
+          ],
+          "{c.href}"
+        ],
+        [
+          281,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          293,
+          "jsx",
+          "input",
+          "input (dynamic/unlabelled)",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          297,
+          "jsx",
+          "select",
+          ": All",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          303,
+          "jsx",
+          "button",
+          "Clear filters",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          312,
+          "jsx",
+          "article",
+          "article (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          317,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          329,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          340,
+          "jsx",
+          "div",
+          "div (dynamic/unlabelled)",
+          [
+            "onClick",
+            "onKeyDown"
+          ],
+          null
+        ],
+        [
+          366,
+          "jsx",
+          "select",
+          "Rows per page",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          367,
+          "jsx",
+          "button",
+          "Back",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          370,
+          "jsx",
+          "button",
+          "Next",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          375,
+          "jsx",
+          "div",
+          "div (dynamic/unlabelled)",
+          [
+            "onKeyDown"
+          ],
+          null
+        ],
+        [
+          379,
+          "jsx",
+          "button",
+          "Previous record",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          380,
+          "jsx",
+          "button",
+          "Next record",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          381,
+          "jsx",
+          "button",
+          "Close details",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          441,
+          "jsx",
+          "CommandForm",
+          "CommandForm (dynamic/unlabelled)",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          454,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "submit"
+          ],
+          null
+        ],
+        [
+          463,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{l.href}"
+        ],
+        [
+          510,
+          "jsx",
+          "button",
+          "Export these rows (CSV)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          511,
+          "jsx",
+          "button",
+          "Export all loaded rows (CSV)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          512,
+          "jsx",
+          "button",
+          "Export these rows (JSON)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          514,
+          "jsx",
+          "button",
+          "Add this table to the presentation",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/MediaPreview.tsx",
+      "actions": [
+        [
+          66,
+          "jsx",
+          "button",
+          "Reload media preview",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          86,
+          "jsx",
+          "video",
+          "video (dynamic/unlabelled)",
+          [
+            "onPlay",
+            "onPause"
+          ],
+          null
+        ],
+        [
+          108,
+          "jsx",
+          "button",
+          "Open photo in full screen",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          117,
+          "jsx",
+          "div",
+          "/",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          118,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          122,
+          "jsx",
+          "input",
+          "Video preview position",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          125,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/PermissionGate.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/PlatformActivityChart.tsx",
+      "actions": [
+        [
+          45,
+          "jsx",
+          "button",
+          "D",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/PresentBuilder.tsx",
+      "actions": [
+        [
+          131,
+          "jsx",
+          "a",
+          "Back to the dashboard",
+          [
+            "href"
+          ],
+          "\"/dashboard\""
+        ],
+        [
+          141,
+          "jsx",
+          "a",
+          "Presentation builder",
+          [
+            "href"
+          ],
+          "\"/dashboard\""
+        ],
+        [
+          147,
+          "jsx",
+          "button",
+          "Export collected data",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          148,
+          "jsx",
+          "button",
+          "Export JSON",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          149,
+          "jsx",
+          "button",
+          "Print / save PDF",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          150,
+          "jsx",
+          "button",
+          "Present",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          159,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          181,
+          "jsx",
+          "button",
+          "Previous",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          183,
+          "jsx",
+          "button",
+          "Next",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          184,
+          "jsx",
+          "button",
+          "Exit presentation",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          190,
+          "jsx",
+          "section",
+          "section (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          205,
+          "jsx",
+          "input",
+          "Presentation title",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          206,
+          "jsx",
+          "input",
+          "Presentation date range",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          210,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          224,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          233,
+          "jsx",
+          "textarea",
+          "Key findings",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          239,
+          "jsx",
+          "input",
+          "input (dynamic/unlabelled)",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          244,
+          "jsx",
+          "button",
+          "Remove",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          248,
+          "jsx",
+          "button",
+          "Clear everything",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/PresentTray.tsx",
+      "actions": [
+        [
+          46,
+          "jsx",
+          "button",
+          "Open builder",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          50,
+          "jsx",
+          "button",
+          "Clear the presentation tray",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/QueueCounts.tsx",
+      "actions": [
+        [
+          34,
+          "jsx",
+          "Link",
+          "Work waiting",
+          [
+            "href"
+          ],
+          "{href}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/RefreshDesk.tsx",
+      "actions": [
+        [
+          10,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/ReportsDesk.tsx",
+      "actions": [
+        [
+          34,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          43,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          69,
+          "jsx",
+          "CommandForm",
+          "Remove post",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          75,
+          "jsx",
+          "CommandForm",
+          "Remove listing",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          81,
+          "jsx",
+          "CommandForm",
+          "No violation",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          88,
+          "jsx",
+          "CommandForm",
+          "Mark actioned",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          92,
+          "jsx",
+          "CommandForm",
+          "No violation",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          99,
+          "jsx",
+          "Link",
+          "Open author",
+          [
+            "href"
+          ],
+          "{'/users?q=' + encodeURIComponent(selected.reportedUsername || '')}"
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/ReviewMediaGallery.tsx",
+      "actions": [
+        [
+          38,
+          "jsx",
+          "button",
+          "Previous attachment",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          40,
+          "jsx",
+          "button",
+          "Next attachment",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          43,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          49,
+          "jsx",
+          "button",
+          "Full screen",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          50,
+          "jsx",
+          "dialog",
+          "Full screen media review",
+          [
+            "onKeyDown",
+            "onCancel",
+            "onClose"
+          ],
+          null
+        ],
+        [
+          53,
+          "jsx",
+          "button",
+          "Close full screen media",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/Seal.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/ShareMenu.tsx",
+      "actions": [
+        [
+          70,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          71,
+          "jsx",
+          "button",
+          "Print or save this view as PDF",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          72,
+          "jsx",
+          "button",
+          "Add a note to the presentation",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          74,
+          "jsx",
+          "textarea",
+          "textarea (dynamic/unlabelled)",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          76,
+          "jsx",
+          "button",
+          "Add to presentation",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          79,
+          "jsx",
+          "button",
+          "Open presentation builder",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/Shell.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/SideRail.tsx",
+      "actions": [
+        [
+          83,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "onClick",
+            "href"
+          ],
+          "{item.href}"
+        ],
+        [
+          93,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          100,
+          "jsx",
+          "Link",
+          "Platinum Circles overview",
+          [
+            "onClick",
+            "href"
+          ],
+          "\"/dashboard\""
+        ],
+        [
+          102,
+          "jsx",
+          "button",
+          "Close navigation",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          112,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          121,
+          "jsx",
+          "Link",
+          "Account security",
+          [
+            "href"
+          ],
+          "\"/security?setup=1\""
+        ],
+        [
+          125,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          134,
+          "jsx",
+          "a",
+          "Skip to workspace",
+          [
+            "href"
+          ],
+          "\"#workspace\""
+        ],
+        [
+          137,
+          "jsx",
+          "button",
+          "Open navigation",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          140,
+          "jsx",
+          "dialog",
+          "Operations navigation",
+          [
+            "onKeyDown",
+            "onClose",
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/SignInButton.tsx",
+      "actions": [
+        [
+          5,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "submit"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/StaffAccountMenu.tsx",
+      "actions": [
+        [
+          14,
+          "jsx",
+          "Link",
+          "Account security",
+          [
+            "onClick",
+            "href"
+          ],
+          "\"/security?setup=1\""
+        ],
+        [
+          15,
+          "jsx",
+          "Link",
+          "Presentation builder",
+          [
+            "onClick",
+            "href"
+          ],
+          "\"/present\""
+        ],
+        [
+          17,
+          "jsx",
+          "form",
+          "Sign out of operations",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          17,
+          "jsx",
+          "button",
+          "Sign out of operations",
+          [
+            "submit"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/StaffRoleGuide.tsx",
+      "actions": [
+        [
+          48,
+          "jsx",
+          "button",
+          "Review role access",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          49,
+          "jsx",
+          "dialog",
+          "Staff role access",
+          [
+            "onClose",
+            "onKeyDown",
+            "onClick"
+          ],
+          null
+        ],
+        [
+          50,
+          "jsx",
+          "button",
+          "Close role access",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          51,
+          "jsx",
+          "select",
+          "select (dynamic/unlabelled)",
+          [
+            "onChange"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/StoryAdjustOverlay.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/ThemeControls.tsx",
+      "actions": [
+        [
+          52,
+          "jsx",
+          "button",
+          "Light appearance",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          55,
+          "jsx",
+          "button",
+          "Dark appearance",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          58,
+          "jsx",
+          "button",
+          "Use device appearance",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/UsersDesk.tsx",
+      "actions": [
+        [
+          55,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          77,
+          "jsx",
+          "tr",
+          "@",
+          [
+            "onClick",
+            "onKeyDown"
+          ],
+          null
+        ],
+        [
+          115,
+          "jsx",
+          "Link",
+          "@",
+          [
+            "href"
+          ],
+          "{'/users/' + selected.id}"
+        ],
+        [
+          135,
+          "jsx",
+          "CommandForm",
+          "Restore account",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          140,
+          "jsx",
+          "button",
+          "Issue strike",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          143,
+          "jsx",
+          "CommandForm",
+          "Revoke badge",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          151,
+          "jsx",
+          "CommandForm",
+          "Warn Restrict posting Suspend Ban Confirm strike",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          170,
+          "jsx",
+          "CommandForm",
+          "Disable and request deletion",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          177,
+          "jsx",
+          "CommandForm",
+          "Suspend account",
+          [
+            "action"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/VerificationDesk.tsx",
+      "actions": [
+        [
+          45,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          54,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          88,
+          "jsx",
+          "a",
+          "a (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{href}"
+        ],
+        [
+          113,
+          "jsx",
+          "CommandForm",
+          "Review basis I checked identity, authority and impersonation risk against independent evidence. Approve \\u2014",
+          [
+            "action"
+          ],
+          null
+        ],
+        [
+          121,
+          "jsx",
+          "CommandForm",
+          "Reject",
+          [
+            "action"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/Viz.tsx",
+      "actions": [
+        [
+          76,
+          "jsx",
+          "button",
+          "button (dynamic/unlabelled)",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          86,
+          "jsx",
+          "button",
+          "D",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/Workspace.tsx",
+      "actions": []
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/WorkspaceConnection.tsx",
+      "actions": [
+        [
+          22,
+          "jsx",
+          "button",
+          "Dismiss connection notice",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/WorkspaceLauncher.tsx",
+      "actions": [
+        [
+          37,
+          "jsx",
+          "button",
+          "All operations tools",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          40,
+          "jsx",
+          "dialog",
+          "All operations tools",
+          [
+            "onKeyDown",
+            "onClose",
+            "onClick"
+          ],
+          null
+        ],
+        [
+          41,
+          "jsx",
+          "button",
+          "Close all tools",
+          [
+            "onClick"
+          ],
+          null
+        ],
+        [
+          42,
+          "jsx",
+          "input",
+          "Filter operations tools",
+          [
+            "onChange"
+          ],
+          null
+        ],
+        [
+          44,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "onClick",
+            "href"
+          ],
+          "{item.href}"
+        ],
+        [
+          44,
+          "jsx",
+          "button",
+          "Clear search",
+          [
+            "onClick"
+          ],
+          null
+        ]
+      ]
+    },
+    {
+      "app": "admin",
+      "file": "admin-web/components/WorkspaceNavigation.tsx",
+      "actions": [
+        [
+          17,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{item.href}"
+        ],
+        [
+          29,
+          "jsx",
+          "Link",
+          "Back to",
+          [
+            "href"
+          ],
+          "{returnTo.href}"
+        ],
+        [
+          30,
+          "jsx",
+          "Link",
+          "Link (dynamic/unlabelled)",
+          [
+            "href"
+          ],
+          "{item.href}"
+        ]
+      ]
+    }
+  ]
+}

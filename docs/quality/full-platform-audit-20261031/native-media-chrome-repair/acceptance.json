@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T19:02:01.804750+00:00",
+  "state": "Source-level media readability repair verified; native pixel and device behavior acceptance remains separate.",
+  "baseline": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "source": [
+    {
+      "path": "src/components/FullscreenVideo.tsx",
+      "bytes": 13337,
+      "sha256": "a284f3ce5ee0d131079103bdae0e736b38d141086d3cfea2cfb40f4e8471e19f"
+    },
+    {
+      "path": "src/components/TrendingStoriesRail.tsx",
+      "bytes": 6782,
+      "sha256": "9f284a336714c5a0e90344be89ffa294804c4823d489e36d374bdeb06cbcc62e"
+    },
+    {
+      "path": "src/components/TierName.tsx",
+      "bytes": 936,
+      "sha256": "d45ba55c67dc2eae4ababb09fb1f9f9b5e598d5faa12d3b1ca9c2916d9b85dd5"
+    },
+    {
+      "path": "tests/quality/native-media-chrome-contrast.cjs",
+      "bytes": 6913,
+      "sha256": "db0d6a65c681593fc15288493be98c84c8f00173c4a5eea76dbcac074d75b08e"
+    },
+    {
+      "path": "tests/fullscreen-video-accessibility.test.cjs",
+      "bytes": 7713,
+      "sha256": "a06f2e49afac0276ec445d02960e252d81dd90667f893b8462613284c7f1a7ae"
+    }
+  ],
+  "findings": [
+    {
+      "id": "NAT-MEDIA-CONTRAST-01",
+      "source": "src/components/FullscreenVideo.tsx",
+      "failure": "Theme inverse ink and canvas colors could become dark over video; skip/time/ripple layers had insufficient independent backdrops.",
+      "repair": "Fixed white media text, scrubber and controls with bounded black backplates. Loading indicator has its own backplate. Player, gesture, timing, navigation and accessibility handlers are unchanged."
+    },
+    {
+      "id": "NAT-MEDIA-CONTRAST-02",
+      "source": "src/components/TrendingStoriesRail.tsx",
+      "failure": "Footer labels depended on a sibling gradient and theme inverse ink; TierName could override the intended foreground with dark verification colors.",
+      "repair": "Dedicated footer backdrop and fixed light labels, explicit optional inherited TierName color only for this media context, plus existing palette subscription for the rail heading. Default tier colors and badge behavior remain."
+    }
+  ],
+  "verification": {
+    "newFormalCases": 7,
+    "before": {
+      "passed": 0,
+      "failed": 7
+    },
+    "after": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    "measuredPairs": 30,
+    "sampledMediaColorsPerPair": 125,
+    "worstRatio": 5.63306123287061,
+    "minimumTextRatio": 5.63306123287061,
+    "existingRegression": {
+      "formalCases": 9,
+      "passed": 9,
+      "playerAccessibilityCases": 5,
+      "nativeFlowSelectorCases": 4,
+      "mockAdaptation": "The existing React Native mock gained StyleSheet.create as an identity adapter; all original accessibility assertions are unchanged. Its five pre-adaptation failures are retained and are not product failures."
+    },
+    "nativeTypeScriptExit": 0,
+    "scopedLintErrors": 0,
+    "scopedLintWarnings": 2,
+    "warningsUnchangedFromLiteralBaseline": true,
+    "scopedWhitespaceExit": 0
+  },
+  "supersedesScope": {
+    "receipt": "docs/quality/full-platform-audit-20261031/native-theme-repair/review.json",
+    "remainingDynamicMediaObservations": 11,
+    "note": "Resolves these two identified source/contrast defects. Does not turn the original skipped nodes, all themes or all native screens into device acceptance."
+  },
+  "limits": [
+    "Measurements evaluate actual source style factories and TierName output over 125 sampled RGB backgrounds including black and white, with the manually inspected actual touch opacity. They do not represent device pixel, font scaling, compositor or video-performance acceptance.",
+    "The original 424 candidate and 760 skipped-node records are preserved. No all-controls or all-visual-states claim."
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/accessibility-adapter-before.tap",
+      "bytes": 6784,
+      "sha256": "4a59f1c046bdaf84bce8eef804b5c4eea662b318038590b9a0be987ef2ff6d63"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/accessibility-after.tap",
+      "bytes": 2213,
+      "sha256": "d554a49760e23562a235116417dd3f0f50bc7ee54d1e1b4bc818f2e34fa6a40e"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/after.json",
+      "bytes": 6916,
+      "sha256": "3e34c0fa3649214385b1652c3de6b29ef16bcbfcab1904a061cd1f12805a2618"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/after.tap",
+      "bytes": 1712,
+      "sha256": "703773dbfaf0c2f2936a2b41d83425b5ccf42357f51dc514044eaf6aa4d7c02a"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/before-source-manifest.json",
+      "bytes": 324,
+      "sha256": "8ea77fd1cb397b00095c41a829ff6ea4d36f2c7dfeef9a84b763890d2582233c"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/before.json",
+      "bytes": 1269,
+      "sha256": "de52426020b7a6bab5e95fab39a182e275908715004484190d6ea488cda07424"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/before.tap",
+      "bytes": 7976,
+      "sha256": "52e38d22e28d0e3a79f78904b9f39fbcaea39c3bd81d6874af49e5e2162001af"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/lint-after.txt",
+      "bytes": 457,
+      "sha256": "4a584866d52e699985e02248007098097280dac59feb76e2714bc8feea3475e8"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/lint-before.txt",
+      "bytes": 457,
+      "sha256": "e4b0bc47fabe6fde8a41de7e64dc4d824a7386130fd8fa884f4a03d57005d84d"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/source-manifest.json",
+      "bytes": 818,
+      "sha256": "a7a3a417dcf08af914a4598bd33ddc7381f978ff4a2908658731d79d278d38d9"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

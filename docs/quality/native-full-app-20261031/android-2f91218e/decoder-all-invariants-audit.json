@@ -1,0 +1,168 @@
+{
+  "duration": 11.702857,
+  "expectedDuration": 11.7,
+  "decodedFrames": 348,
+  "maximumFrameGap": 0.13333299999999948,
+  "captures": 12,
+  "scenes": [
+    {
+      "page": "memory-movie-opening",
+      "kind": "text",
+      "card": "opening",
+      "time": 1.2,
+      "capturedWritingPixels": 375,
+      "encodedWritingPixels": 351,
+      "meanPixelError": 2.689577546296296
+    },
+    {
+      "page": "a1000000-0000-4000-8000-000000000001",
+      "kind": "image",
+      "card": null,
+      "time": 4.0,
+      "photoSwatches": [
+        {
+          "expected": [
+            237,
+            179,
+            67
+          ],
+          "observed": [
+            232,
+            178,
+            65
+          ]
+        },
+        {
+          "expected": [
+            36,
+            93,
+            194
+          ],
+          "observed": [
+            33,
+            90,
+            189
+          ]
+        },
+        {
+          "expected": [
+            206,
+            71,
+            59
+          ],
+          "observed": [
+            202,
+            70,
+            56
+          ]
+        },
+        {
+          "expected": [
+            139,
+            70,
+            182
+          ],
+          "observed": [
+            134,
+            68,
+            176
+          ]
+        }
+      ],
+      "timedArtworkPixels": [
+        0,
+        777,
+        0
+      ]
+    },
+    {
+      "page": "a1000000-0000-4000-8000-000000000002",
+      "kind": "video",
+      "card": null,
+      "time": 6.35,
+      "gradedVideoSwatches": [
+        {
+          "ungraded": [
+            252,
+            0,
+            0
+          ],
+          "observed": [
+            218,
+            0,
+            0
+          ]
+        },
+        {
+          "ungraded": [
+            0,
+            0,
+            253
+          ],
+          "observed": [
+            0,
+            0,
+            219
+          ]
+        }
+      ]
+    },
+    {
+      "page": "a1000000-0000-4000-8000-000000000003",
+      "kind": "text",
+      "card": null,
+      "time": 8.6,
+      "capturedWritingPixels": 227,
+      "encodedWritingPixels": 157,
+      "meanPixelError": 3.0362210648148147
+    },
+    {
+      "page": "memory-movie-closing",
+      "kind": "text",
+      "card": "closing",
+      "time": 10.9,
+      "capturedWritingPixels": 592,
+      "encodedWritingPixels": 535,
+      "meanPixelError": 2.7059432870370372
+    }
+  ],
+  "audio": {
+    "beforeVideo": {
+      "rms": 0.010597831453475363,
+      "sourceTone": 4.265403656002532e-06
+    },
+    "insideVideo": {
+      "rms": 0.09822747889278063,
+      "sourceTone": 0.13883555883078008
+    },
+    "afterVideo": {
+      "rms": 0.015716711910795458,
+      "sourceTone": 2.2613622765420564e-05
+    }
+  },
+  "passed": false,
+  "cancelledReaderClosed": true,
+  "cancelledAndCompletedTemporaryFilesRemoved": true,
+  "providerAcceptance": false,
+  "physicalDevice": false,
+  "photosLibraryWrite": false,
+  "diagnosticOnly": true,
+  "originalGateUnchanged": true,
+  "assertionFailures": [
+    {
+      "line": 60,
+      "expression": "(video['width'], video['height']) == (720, 1280)",
+      "message": "None"
+    },
+    {
+      "line": 68,
+      "expression": "max((b - a for a, b in zip(times, times[1:]))) < 0.1",
+      "message": "None"
+    },
+    {
+      "line": 148,
+      "expression": "0.07 < during['sourceTone'] < 0.13",
+      "message": "('Original video audio must retain its selected 50% mix', {'rms': 0.09822747889278063, 'sourceTone': 0.13883555883078008})"
+    }
+  ]
+}

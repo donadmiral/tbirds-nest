@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit RestrictedAccounts
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: settings-restrictedaccounts
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Restricted accounts"
+    timeout: 15000
+- takeScreenshot: settings-restrictedaccounts

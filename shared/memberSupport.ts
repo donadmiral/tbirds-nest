@@ -1,0 +1,270 @@
+import { readWithDeadline } from './readDeadline';
+
+type Result = { data: unknown; error: unknown };
+type Request = PromiseLike<Result> & {
+  abortSignal(signal: AbortSignal): Request;
+  setHeader(name: string, value: string): Request;
+};
+type SupportSession = { user: { id: string }; access_token: string };
+// Both applications use different locked Supabase client versions. Keep this
+// small transport boundary structural; validate all returned records below.
+export type SupportClient = {
+  from(table: string): any;
+  rpc(name: string, args: Record<string, unknown>): Request;
+  auth: { getSession(): PromiseLike<{ data: { session: SupportSession | null }; error: unknown }> };
+};
+export type SupportScopeStore = {
+  getSnapshot(): { owner: string | null; scope: string | null; initialized: boolean; changed?: boolean };
+  subscribe(listener: () => void): () => void;
+};
+export type SupportWriteContext = {
+  accessToken: string;
+  signal: AbortSignal;
+  assertDispatch(): void;
+  assertSession(): void;
+  canAccept(): boolean;
+};
+export type SupportConfirmation<T> = {
+  value: T;
+  /** A discarded completion keeps its UUID. Only the current UI can accept it. */
+  accept(apply: () => void): Promise<boolean>;
+};
+export type SupportRetryStore = {
+  getItem(key: string): string | null | Promise<string | null>;
+  setItem(key: string, value: string): void | Promise<void>;
+  removeItem(key: string): void | Promise<void>;
+};
+export type SupportCrypto = { id(): string; digest(value: string): Promise<string> };
+export type SupportTicket = { id: string; user_id?: string; kind?: string; subject: string; body: string; status: string; created_at: string; updated_at?: string | null };
+export type SupportMessage = { id: string; sender: string; body: string; created_at: string };
+const STATUSES = new Set(['open', 'pending', 'solved']);
+const retryOperations = new WeakMap<SupportRetryStore, Map<string, Promise<void>>>();
+
+/** Serialize a key's preparation and acknowledgement within this client. A new
+ * intentional send must not reuse a UUID whose accepted cleanup is still pending. */
+function withRetryKey<T>(store: SupportRetryStore, key: string, operation: () => Promise<T>): Promise<T> {
+  let keys = retryOperations.get(store);
+  if (!keys) { keys = new Map(); retryOperations.set(store, keys); }
+  const queue = keys, result = (queue.get(key) || Promise.resolve()).then(operation);
+  const settled = result.then(() => undefined, () => undefined);
+  queue.set(key, settled);
+  return result.finally(() => { if (queue.get(key) === settled) queue.delete(key); });
+}
+
+/** Capture the existing navigation session before any asynchronous preparation.
+ * A later login to the same owner is a different scope; refresh in one session
+ * stays valid. Authorization still belongs to the server and the pinned token. */
+export async function withSupportWriteSession<T>(client: SupportClient, store: SupportScopeStore, owner: string,
+  canDispatch: () => boolean, operation: (context: SupportWriteContext) => Promise<T>): Promise<T> {
+  const initial = store.getSnapshot(), controller = new AbortController();
+  let scope = initial.scope, invalidated = false, closed = false;
+  const current = () => {
+    const live = store.getSnapshot();
+    return !invalidated && !live.changed && (scope
+      ? live.scope === scope && live.owner === owner
+      : !initial.initialized);
+  };
+  const assertSession = () => { if (!current()) throw new Error('SUPPORT_ACCOUNT_CHANGED'); };
+  const assertDispatch = () => {
+    assertSession();
+    if (closed || controller.signal.aborted || !canDispatch()) throw new Error('SUPPORT_ACCOUNT_CHANGED');
+  };
+  const unsubscribe = store.subscribe(() => {
+    if (!current()) { invalidated = true; controller.abort(); }
+  });
+  try {
+    assertDispatch();
+    const { data, error } = await readWithDeadline(client.auth.getSession());
+    assertDispatch();
+    const session = data.session, live = store.getSnapshot();
+    if (error || !session?.access_token || session.user.id !== owner || live.owner !== owner || !live.scope) {
+      throw new Error('SUPPORT_ACCOUNT_CHANGED');
+    }
+    scope = live.scope;
+    return await operation({ accessToken: session.access_token, signal: controller.signal,
+      assertDispatch, assertSession, canAccept: () => current() && canDispatch() });
+  } finally { closed = true; unsubscribe(); controller.abort(); }
+}
+
+export function supportError(error: unknown, fallback: string): string {
+  const record = error && typeof error === 'object' ? error as { code?: string; message?: string } : {};
+  if (record.code === 'PGRST202' || record.code === '42883') return 'Support replies are temporarily unavailable. Your draft is kept. Please try again later.';
+  if (/SUPPORT_ACCOUNT_CHANGED|SUPPORT_AUTH_REQUIRED/.test(record.message || '')) return 'Sign in to the same account before sending this message. Your draft is kept.';
+  if (/SUPPORT_PREPARATION_UNAVAILABLE/.test(record.message || '')) return 'Support could not prepare this request. Your draft is kept. Please try again.';
+  if (/SUPPORT_TICKET_UNAVAILABLE/.test(record.message || '')) return 'This ticket is no longer available to this account. Your draft is kept.';
+  if (/SUPPORT_REQUEST_CONFLICT/.test(record.message || '')) return 'This message could not be matched to its saved request. Your draft is kept. Contact support with a new ticket.';
+  return fallback;
+}
+
+export async function readSupportTickets(client: SupportClient, owner: string): Promise<SupportTicket[]> {
+  const result = await readWithDeadline<Result>(client.from('support_tickets')
+    .select('id, kind, subject, status, created_at, updated_at').eq('user_id', owner)
+    .order('created_at', { ascending: false }).limit(10));
+  if (result.error) throw result.error;
+  if (!Array.isArray(result.data)) throw new Error('SUPPORT_LIST_UNCONFIRMED');
+  return result.data as SupportTicket[];
+}
+
+export async function readSupportConversation(client: SupportClient, owner: string, ticketId: string) {
+  const [ticketRead, messageRead] = await Promise.allSettled([
+    readWithDeadline<Result>(client.from('support_tickets').select('id, user_id, subject, body, status, created_at')
+      .eq('id', ticketId).eq('user_id', owner).maybeSingle()),
+    readWithDeadline<Result>(client.from('support_messages').select('id, sender, body, created_at')
+      .eq('ticket_id', ticketId).order('created_at', { ascending: true })),
+  ]);
+  if (ticketRead.status === 'rejected') throw ticketRead.reason;
+  if (ticketRead.value.error) throw ticketRead.value.error;
+  const ticket = ticketRead.value.data as SupportTicket | null;
+  if (!ticket) return { ticket: null, messages: [] as SupportMessage[], historyError: null };
+  if (ticket.id !== ticketId || ticket.user_id !== owner || !STATUSES.has(ticket.status)) throw new Error('SUPPORT_TICKET_UNCONFIRMED');
+  const historyUnavailable = messageRead.status === 'rejected' || !!messageRead.value.error || !Array.isArray(messageRead.value.data);
+  const messages = historyUnavailable ? [] : messageRead.value.data as SupportMessage[];
+  // Older migrations copied the original question into history. Show it once,
+  // while still displaying a fresh ticket whose history is genuinely empty.
+  const replies = messages.filter(message => !(message.sender === 'member' && message.body === ticket.body && message.created_at === ticket.created_at));
+  return { ticket, messages: replies, historyError: historyUnavailable ? 'Replies could not be loaded. Please try again.' : null };
+}
+
+async function requestIdentity(store: SupportRetryStore, crypto: SupportCrypto, owner: string, operation: string, payload: unknown, context: SupportWriteContext, milliseconds: number) {
+  let active = true, timer: ReturnType<typeof setTimeout> | undefined;
+  let rejectScope!: (error: Error) => void;
+  const scopeChanged = new Promise<never>((_, reject) => { rejectScope = reject; });
+  const abort = () => { active = false; rejectScope(new Error('SUPPORT_ACCOUNT_CHANGED')); };
+  const assertPreparing = () => {
+    if (!active) throw new Error('SUPPORT_PREPARATION_UNAVAILABLE');
+    context.assertDispatch();
+  };
+  context.signal.addEventListener('abort', abort, { once: true });
+  if (context.signal.aborted) abort();
+  const work = Promise.resolve().then(async () => {
+    assertPreparing();
+    // Persist only a request UUID and a digest, never the private message body.
+    const digest = await crypto.digest(JSON.stringify(payload));
+    assertPreparing();
+    const storageKey = `pc:support:retry:v1:${owner}:${operation}:${digest}`;
+    return withRetryKey(store, storageKey, async () => {
+      assertPreparing();
+      const previous = await store.getItem(storageKey);
+      assertPreparing();
+      const id = previous && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(previous) ? previous : crypto.id();
+      await store.setItem(storageKey, id);
+      assertPreparing();
+      return { id, storageKey };
+    });
+  });
+  try {
+    return await Promise.race([work, scopeChanged, new Promise<never>((_, reject) => {
+      timer = setTimeout(() => { active = false; reject(new Error('SUPPORT_PREPARATION_UNAVAILABLE')); }, milliseconds);
+    })]);
+  } finally {
+    active = false;
+    if (timer !== undefined) clearTimeout(timer);
+    context.signal.removeEventListener('abort', abort);
+    // Retire this caller, not the actual storage operation. withRetryKey keeps
+    // its queue until the underlying get/set settles; late work cannot dispatch.
+  }
+}
+
+function pinned(request: Request, context: SupportWriteContext): Request {
+  context.assertDispatch();
+  return request.setHeader('Authorization', `Bearer ${context.accessToken}`);
+}
+
+async function writeWithConfirmationDeadline(request: Request, milliseconds: number, context: SupportWriteContext): Promise<Result> {
+  context.assertDispatch();
+  const controller = new AbortController();
+  const work = request.abortSignal(controller.signal);
+  let rejectScope!: (error: Error) => void;
+  const scopeChanged = new Promise<never>((_, reject) => { rejectScope = reject; });
+  const abort = () => { controller.abort(); rejectScope(new Error('SUPPORT_ACCOUNT_CHANGED')); };
+  context.signal.addEventListener('abort', abort, { once: true });
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const result = await Promise.race([work, scopeChanged, new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        controller.abort();
+        reject(new Error('SUPPORT_WRITE_UNCONFIRMED'));
+      }, milliseconds);
+    })]);
+    context.assertSession();
+    return result;
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+    context.signal.removeEventListener('abort', abort);
+  }
+}
+
+async function clearConfirmedRequest(store: SupportRetryStore, key: string, id: string) {
+  try { await withRetryKey(store, key, async () => { if (await store.getItem(key) === id) await store.removeItem(key); }); }
+  catch { /* A confirmed database receipt takes precedence over local cleanup. */ }
+}
+
+function confirmation<T>(value: T, store: SupportRetryStore, attempt: { id: string; storageKey: string }, context: SupportWriteContext): SupportConfirmation<T> {
+  let accepted = false;
+  return { value, async accept(apply) {
+    if (accepted) return true;
+    if (!context.canAccept()) return false;
+    // Apply the current UI's synchronous acknowledgement before any storage
+    // await. A later blur cannot turn an already accepted draft into a retry.
+    apply(); accepted = true;
+    // The receipt is already acknowledged. Start cleanup in key order but do
+    // not keep Send busy on local storage. A later identical intent still waits
+    // behind that real operation, with its own bounded preparation deadline.
+    void clearConfirmedRequest(store, attempt.storageKey, attempt.id);
+    return true;
+  } };
+}
+
+export async function createSupportRequest(client: SupportClient, store: SupportRetryStore, crypto: SupportCrypto,
+  owner: string, input: { kind: 'support' | 'appeal'; subject: string; body: string }, context: SupportWriteContext, milliseconds = 15_000) {
+  const payload = { user_id: owner, kind: input.kind, subject: input.subject.trim(), body: input.body.trim() };
+  if (!owner || !payload.subject || payload.subject.length > 160 || !payload.body || payload.body.length > 2000) {
+    throw new Error('SUPPORT_INPUT_INVALID');
+  }
+  context.assertDispatch();
+  const attempt = await requestIdentity(store, crypto, owner, 'new-ticket', payload, context, milliseconds);
+  let ticket: SupportTicket | null = null;
+  let originalError: unknown;
+  try {
+    context.assertDispatch();
+    const result = await writeWithConfirmationDeadline(pinned(client.from('support_tickets')
+      .insert({ id: attempt.id, ...payload }).select('id, user_id, kind, subject, body, status, created_at').single(), context), milliseconds, context);
+    if (result.error) throw result.error;
+    ticket = result.data as SupportTicket | null;
+  } catch (error) {
+    originalError = error;
+    // The response may have been lost after commit. Read back this exact UUID;
+    // a retry will reuse it, so it cannot create a second ticket.
+    try {
+      context.assertDispatch();
+      const result = await writeWithConfirmationDeadline(pinned(client.from('support_tickets')
+        .select('id, user_id, kind, subject, body, status, created_at').eq('id', attempt.id).eq('user_id', owner).maybeSingle(), context), milliseconds, context);
+      if (!result.error) ticket = result.data as SupportTicket | null;
+    } catch { /* Keep the persisted key and the visible draft. */ }
+  }
+  if (!ticket || ticket.id !== attempt.id || ticket.user_id !== owner || ticket.kind !== payload.kind
+    || ticket.subject !== payload.subject || ticket.body !== payload.body || !STATUSES.has(ticket.status)) {
+    throw originalError || new Error('SUPPORT_WRITE_UNCONFIRMED');
+  }
+  return confirmation(ticket, store, attempt, context);
+}
+
+export async function sendSupportReply(client: SupportClient, store: SupportRetryStore, crypto: SupportCrypto,
+  owner: string, ticketId: string, draft: string, context: SupportWriteContext, milliseconds = 15_000) {
+  const body = draft.trim();
+  if (!owner || !ticketId || !body || body.length > 2000) throw new Error('SUPPORT_INPUT_INVALID');
+  context.assertDispatch();
+  const attempt = await requestIdentity(store, crypto, owner, 'reply', { ticketId, body }, context, milliseconds);
+  context.assertDispatch();
+  const result = await writeWithConfirmationDeadline(pinned(client.rpc('send_member_support_reply', {
+    p_expected_user: owner, p_ticket_id: ticketId, p_request_id: attempt.id, p_body: body,
+  }), context), milliseconds, context);
+  if (result.error) throw result.error;
+  const receipt = result.data as { message_id?: string; ticket_id?: string; sender_id?: string; body?: string; created_at?: string; ticket_status?: string; replayed?: boolean } | null;
+  if (!receipt || receipt.message_id !== attempt.id || receipt.ticket_id !== ticketId || receipt.sender_id !== owner
+    || receipt.body !== body || !Number.isFinite(Date.parse(receipt.created_at || '')) || !STATUSES.has(receipt.ticket_status || '')
+    || typeof receipt.replayed !== 'boolean' || (!receipt.replayed && receipt.ticket_status !== 'open')) {
+    throw new Error('SUPPORT_WRITE_UNCONFIRMED');
+  }
+  return confirmation(receipt, store, attempt, context);
+}

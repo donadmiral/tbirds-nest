@@ -1,0 +1,556 @@
+{
+  "sourceSha256": "7dfe4440a0dcf01355c2d035341487ac7eb88d72521c8f76e915365965861230",
+  "commands": [
+    {
+      "sequenceNumber": 0,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 40,
+      "kind": "defineVariablesCommand",
+      "startUtc": "2026-10-31T18:37:15.347+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:37:15.387+00:00"
+    },
+    {
+      "sequenceNumber": 1,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 9,
+      "kind": "applyConfigurationCommand",
+      "startUtc": "2026-10-31T18:37:15.395+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:37:15.404+00:00"
+    },
+    {
+      "sequenceNumber": 2,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 131119,
+      "kind": "launchAppCommand",
+      "startUtc": "2026-10-31T18:37:15.404+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:39:26.523+00:00"
+    },
+    {
+      "sequenceNumber": 3,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 60367,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:39:26.526+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:40:26.893+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "Sign in",
+          "optional": false
+        }
+      },
+      "timeout": "30000"
+    },
+    {
+      "sequenceNumber": 4,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 12552,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:40:27.488+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:40:40.040+00:00",
+      "selector": {
+        "textRegex": "Username or email",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 5,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 12570,
+      "kind": "inputTextCommand",
+      "startUtc": "2026-10-31T18:40:40.042+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:40:52.612+00:00"
+    },
+    {
+      "sequenceNumber": 6,
+      "depth": 0,
+      "status": "SKIPPED",
+      "duration": 29,
+      "kind": "runFlowCommand",
+      "startUtc": "2026-10-31T18:40:52.613+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:40:52.642+00:00",
+      "condition": {
+        "platform": "ANDROID"
+      }
+    },
+    {
+      "sequenceNumber": 7,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 9639,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:40:52.642+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:41:02.281+00:00",
+      "selector": {
+        "textRegex": "Password",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 8,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 3816,
+      "kind": "inputTextCommand",
+      "startUtc": "2026-10-31T18:41:02.282+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:41:06.098+00:00"
+    },
+    {
+      "sequenceNumber": 9,
+      "depth": 0,
+      "status": "SKIPPED",
+      "duration": 2,
+      "kind": "runFlowCommand",
+      "startUtc": "2026-10-31T18:41:06.103+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:41:06.105+00:00",
+      "condition": {
+        "platform": "ANDROID"
+      }
+    },
+    {
+      "sequenceNumber": 10,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 6734,
+      "kind": "runFlowCommand",
+      "startUtc": "2026-10-31T18:41:06.105+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:41:12.839+00:00",
+      "condition": {
+        "platform": "IOS"
+      }
+    },
+    {
+      "sequenceNumber": 11,
+      "depth": 1,
+      "status": "COMPLETED",
+      "duration": 6731,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:41:06.108+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:41:12.839+00:00",
+      "selector": {
+        "textRegex": "Platinum Circles",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 12,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 11884,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:41:12.839+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:41:24.723+00:00",
+      "selector": {
+        "textRegex": "Sign in",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 13,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 2123,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:41:24.724+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:41:26.847+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      },
+      "timeout": "30000"
+    },
+    {
+      "sequenceNumber": 14,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 1511,
+      "kind": "takeScreenshotCommand",
+      "startUtc": "2026-10-31T18:41:27.274+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:41:28.785+00:00",
+      "path": "home"
+    },
+    {
+      "sequenceNumber": 15,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 24055,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:41:28.786+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:41:52.841+00:00",
+      "selector": {
+        "textRegex": "Latest",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 16,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 3281,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:41:52.843+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:41:56.124+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 17,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 23180,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:41:56.124+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:42:19.304+00:00",
+      "selector": {
+        "textRegex": "For You",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 18,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 1670,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:42:19.305+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:42:20.975+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 19,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 8606,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:42:20.976+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:42:29.582+00:00",
+      "selector": {
+        "idRegex": "main-tab-market",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 20,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 1165,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:42:29.583+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:42:30.748+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "View listing: Travel journal",
+          "optional": false
+        }
+      },
+      "timeout": "15000"
+    },
+    {
+      "sequenceNumber": 21,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 311,
+      "kind": "takeScreenshotCommand",
+      "startUtc": "2026-10-31T18:42:30.750+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:42:31.061+00:00",
+      "path": "market"
+    },
+    {
+      "sequenceNumber": 22,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 11163,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:42:31.062+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:42:42.225+00:00",
+      "selector": {
+        "idRegex": "main-tab-feed",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 23,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 1889,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:42:42.226+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:42:44.115+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 24,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 11285,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:42:44.115+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:42:55.400+00:00",
+      "selector": {
+        "idRegex": "main-tab-jobs",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 25,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 1102,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:42:55.401+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:42:56.503+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "(?s)^(?:Product designer|(?:.*?, )?Product designer, (?:.*?, )?Desert Studio(?:, .*)?)$",
+          "optional": false
+        }
+      },
+      "timeout": "15000"
+    },
+    {
+      "sequenceNumber": 26,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 259,
+      "kind": "takeScreenshotCommand",
+      "startUtc": "2026-10-31T18:42:56.504+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:42:56.763+00:00",
+      "path": "jobs"
+    },
+    {
+      "sequenceNumber": 27,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 4646,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:42:56.765+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:01.411+00:00",
+      "selector": {
+        "idRegex": "main-tab-messages",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 28,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 1251,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:43:01.411+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:02.662+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "(?s)^(?:Ready for our next adventure\\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\\?(?:, .*)?)$",
+          "optional": false
+        }
+      },
+      "timeout": "15000"
+    },
+    {
+      "sequenceNumber": 29,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 278,
+      "kind": "takeScreenshotCommand",
+      "startUtc": "2026-10-31T18:43:02.663+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:02.941+00:00",
+      "path": "messages"
+    },
+    {
+      "sequenceNumber": 30,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 4625,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:43:02.941+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:07.566+00:00",
+      "selector": {
+        "idRegex": "main-tab-profile",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 31,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 1760,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:43:07.567+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:09.327+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "Alex Rivera",
+          "optional": false
+        }
+      },
+      "timeout": "15000"
+    },
+    {
+      "sequenceNumber": 32,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 1177,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:43:09.329+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:10.506+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "(?s)^(?:.*?, )?Edit profile$",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 33,
+      "depth": 0,
+      "status": "COMPLETED",
+      "duration": 281,
+      "kind": "takeScreenshotCommand",
+      "startUtc": "2026-10-31T18:43:10.506+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:10.787+00:00",
+      "path": "profile"
+    },
+    {
+      "sequenceNumber": 34,
+      "depth": 0,
+      "status": "FAILED",
+      "duration": 310326,
+      "kind": "runFlowCommand",
+      "startUtc": "2026-10-31T18:43:10.788+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:48:21.114+00:00",
+      "error": {}
+    },
+    {
+      "sequenceNumber": 35,
+      "depth": 1,
+      "status": "COMPLETED",
+      "duration": 1,
+      "kind": "applyConfigurationCommand",
+      "startUtc": "2026-10-31T18:43:10.790+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:10.791+00:00"
+    },
+    {
+      "sequenceNumber": 36,
+      "depth": 1,
+      "status": "COMPLETED",
+      "duration": 7251,
+      "kind": "scrollUntilVisible",
+      "startUtc": "2026-10-31T18:43:10.791+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:18.042+00:00",
+      "selector": {
+        "textRegex": "View all memory books",
+        "optional": false
+      },
+      "timeout": "20000",
+      "centerElement": true,
+      "direction": "DOWN"
+    },
+    {
+      "sequenceNumber": 37,
+      "depth": 1,
+      "status": "COMPLETED",
+      "duration": 6909,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:43:18.042+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:24.951+00:00",
+      "selector": {
+        "textRegex": "View all memory books",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 38,
+      "depth": 1,
+      "status": "COMPLETED",
+      "duration": 20610,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:43:24.951+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:45.561+00:00",
+      "selector": {
+        "textRegex": "Private",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 39,
+      "depth": 1,
+      "status": "COMPLETED",
+      "duration": 1178,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:43:45.562+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:46.740+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "THE SMALL ADVENTURES, 2 memories",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 40,
+      "depth": 1,
+      "status": "COMPLETED",
+      "duration": 270,
+      "kind": "takeScreenshotCommand",
+      "startUtc": "2026-10-31T18:43:46.741+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:47.011+00:00",
+      "path": "memory-shelf"
+    },
+    {
+      "sequenceNumber": 41,
+      "depth": 1,
+      "status": "COMPLETED",
+      "duration": 5055,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:43:47.012+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:52.067+00:00",
+      "selector": {
+        "textRegex": "THE SMALL ADVENTURES, 2 memories",
+        "optional": false
+      }
+    },
+    {
+      "sequenceNumber": 42,
+      "depth": 1,
+      "status": "FAILED",
+      "duration": 84243,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:43:52.068+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:45:16.311+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "Edit memory book",
+          "optional": false
+        }
+      },
+      "timeout": "15000",
+      "error": {}
+    }
+  ],
+  "limits": [
+    "Metadata durations are reported by Maestro and are not app route latency.",
+    "The failed leaf metadata duration and later hierarchy/screenshot log times are separate retained measurements.",
+    "The failed containing runFlow and failed leaf assertion are one failing JUnit testcase."
+  ]
+}

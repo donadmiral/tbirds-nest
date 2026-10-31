@@ -10,7 +10,7 @@ import PostCaption from './PostCaption';
  * - Hides overflow so only one carousel page is visible at a time.
  * - Forces ScrollView content into a horizontal row so media cannot stack vertically.
  */
-import { themedSheet } from '../theme/useTheme';
+import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
@@ -638,6 +638,7 @@ export default function MediaRenderer({
   maxHeight = 420,
   isActive = false,
 }: Props) {
+  useTheme();
   const tagMap = useMediaTags((media || []).map((m: any) => m.id));
   const [zoomIndex, setZoomIndex] = useState(0);
   const [zoomVisible, setZoomVisible] = useState(false);
@@ -783,7 +784,7 @@ const s = themedSheet((t) => ({
     borderRadius: 12,
   },
   counterTxt: {
-    color: t.ink.inverse,
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -808,7 +809,7 @@ const z = themedSheet((t) => ({
     justifyContent: 'center',
   },
   closeX: {
-    color: t.ink.inverse,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },

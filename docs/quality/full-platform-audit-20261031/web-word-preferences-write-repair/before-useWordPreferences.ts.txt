@@ -1,0 +1,65 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { withTimeout } from "@/lib/withTimeout";
+
+/** A whole-array preference may only be edited after its existing value is known. */
+export function useWordPreferences(field: "hidden_words" | "muted_words") {
+  const [supabase] = useState(createClient);
+  const [words, setWords] = useState<string[] | null>(null);
+  const [uid, setUid] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const mounted = useRef(false);
+  const generation = useRef(0);
+  const writing = useRef(false);
+
+  const load = useCallback(async () => {
+    const version = ++generation.current;
+    const current = () => mounted.current && version === generation.current;
+    try {
+      const auth = await withTimeout(supabase.auth.getUser());
+      if (auth.error || !auth.data.user) throw new Error("Sign in to load your word settings.");
+      const id = auth.data.user.id;
+      const result = await withTimeout(supabase.from("profiles").select(field).eq("id", id).maybeSingle());
+      if (result.error || !result.data) throw result.error || new Error("Profile unavailable");
+      const value = (result.data as unknown as Record<string, unknown>)[field];
+      if (value != null && (!Array.isArray(value) || value.some(word => typeof word !== "string"))) throw new Error("Invalid word settings");
+      if (current()) { setUid(id); setWords((value as string[] | null) ?? []); setError(null); }
+    } catch {
+      if (current()) setLoadError("Could not load your word settings. Please try again before making changes.");
+    } finally { if (current()) setLoading(false); }
+  }, [field, supabase]);
+
+  useEffect(() => {
+    let active = true;
+    mounted.current = true;
+    // Skip the first request when a render is cleaned up before its queued start.
+    queueMicrotask(() => { if (active) void load(); });
+    return () => { active = false; mounted.current = false; generation.current += 1; };
+  }, [load]);
+
+  const ready = words !== null && !!uid && !loading && !loadError;
+  const save = async (next: string[]) => {
+    if (!ready || !uid || writing.current) return false;
+    writing.current = true; setSaving(true); setError(null);
+    const version = generation.current;
+    const current = () => mounted.current && version === generation.current;
+    try {
+      const session = await withTimeout(supabase.auth.getSession());
+      if (!current() || session.error || session.data.session?.user.id !== uid) throw new Error("Your account changed. Reopen these settings.");
+      const result = await supabase.from("profiles").update({ [field]: next }).eq("id", uid);
+      if (result.error) throw result.error;
+      if (!current()) return false;
+      setWords(next); return true;
+    } catch {
+      if (current()) setError("Could not save your word settings. Your changes have not been confirmed. Please try again.");
+      return false;
+    } finally { writing.current = false; if (current()) setSaving(false); }
+  };
+  const retry = () => { setLoading(true); setLoadError(null); return load(); };
+  return { words: words ?? [], loading, loadError, error, ready, saving, retry, save };
+}

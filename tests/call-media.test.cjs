@@ -98,7 +98,7 @@ test('voice calls enter screen viewing and return to the voice layout when shari
   const ctx = { callState: 'active', connected: true, activeCall: { isVideo: false, channelId: 'session' },
     get remoteParticipants() { return participants; }, get remoteParticipant() { return participants[0]; } };
   const CallScreen = h.load('src/screens/messages/CallScreen.tsx', {
-    '../../theme/useTheme': { themedSheet: () => ({}) }, '../../components/RemoteCallMedia': h.media,
+    '../../theme/useTheme': { themedSheet: () => ({}), useTheme: () => ({}) }, '../../components/RemoteCallMedia': h.media,
     '../../components/SafeArea': { useSafeAreaInsets: () => ({ top: 20, bottom: 10 }) },
     '@react-navigation/native': { useNavigation: () => ({}), useRoute: () => ({ params: { fromContext: true } }) },
     '../../stores/authStore': { useAuthStore: () => ({}) }, '../../contexts/CallContext': { useCallContext: () => ctx },

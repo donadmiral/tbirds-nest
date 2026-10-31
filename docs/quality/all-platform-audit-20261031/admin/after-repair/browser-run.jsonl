@@ -1,0 +1,12 @@
+{"name":"Jobs normal page and semantic Next page reach different actual records","status":"passed"}
+{"name":"Jobs new server search resets page, reaches old records, and preserves exact filtered pagination","status":"passed"}
+{"name":"Jobs literal punctuation search and clear operate through real form controls","status":"passed"}
+{"name":"Jobs page filter empty state can clear without altering server search","status":"passed"}
+{"name":"calls actual next-page link loads the second bounded set and exact total","status":"passed"}
+{"name":"stories actual next-page link loads the second bounded set and exact total","status":"passed"}
+{"name":"queue actual next-page link loads the second bounded set and exact total","status":"passed"}
+{"name":"Failed exact count produces an unavailable boundary and no report/actions","status":"passed"}
+{"name":"Jobs server search and page links fit 390px and remain usable","status":"passed"}
+{"name":"Support owner selector fits 390px and submits the complete selected UUID","status":"passed","evidence":{"width":390,"selector":{"x":37,"y":357,"width":316,"height":44},"selectedOwner":"20000000-0000-4000-8000-000000000401","documentWidth":390}}
+{"name":"Jobs server search and page links fit 360px and remain usable","status":"passed"}
+{"name":"Support owner selector fits 360px and submits the complete selected UUID","status":"passed","evidence":{"width":360,"selector":{"x":37,"y":357,"width":286,"height":44},"selectedOwner":"20000000-0000-4000-8000-000000000401","documentWidth":360}}

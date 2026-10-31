@@ -1,0 +1,1455 @@
+{
+  "scope": "Source-inspected text/style pairs from frozen2f audit. Translucent backgrounds only where the parent is inspected; selected media scrims additionally checked over white/black bounds. Calculated colors, not native pixel measurements.",
+  "pairs": [
+    {
+      "file": "src/components/AppLockGate.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "title"
+      ],
+      "backgroundStyles": [
+        "cover"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 51,
+      "label": "<Text style={s.title}>Platinum Circles is locked</Text>"
+    },
+    {
+      "file": "src/components/AppLockGate.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "btnTxt"
+      ],
+      "backgroundStyles": [
+        "btn"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 53,
+      "label": "<Text style={s.btnTxt}>Unlock with Face ID</Text>"
+    },
+    {
+      "file": "src/components/BusinessTabs.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "soldBadgeTxt"
+      ],
+      "backgroundStyles": [
+        "soldBadge"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 273,
+      "label": "<Text style={s.soldBadgeTxt}>SOLD</Text>",
+      "boundedMediaScrim": true
+    },
+    {
+      "file": "src/components/ChannelSettingsSheet.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "memberAvatarTxt"
+      ],
+      "backgroundStyles": [
+        "memberAvatar",
+        "iconFb"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 246,
+      "label": "<Text style={s.memberAvatarTxt}>{(r.full_name || '?')[0]}</Text>"
+    },
+    {
+      "file": "src/components/ChannelSettingsSheet.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "inviteBtnTxt"
+      ],
+      "backgroundStyles": [
+        "inviteBtn"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 252,
+      "label": "<Text style={s.inviteBtnTxt}>Invite</Text>"
+    },
+    {
+      "file": "src/components/ChannelSettingsSheet.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "roleChipTxt"
+      ],
+      "backgroundStyles": [
+        "roleChip"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 268,
+      "label": "<Text style={s.roleChipTxt}>{roleLabel(m.role)}</Text>"
+    },
+    {
+      "file": "src/components/ChatImageEditor.tsx",
+      "sheet": "st",
+      "foregroundStyles": [
+        "title"
+      ],
+      "backgroundStyles": [
+        "root"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 220,
+      "label": "<Text style={st.title}>{step === 'crop' ? 'Edit photo' : 'Decorate'}</Text>"
+    },
+    {
+      "file": "src/components/CreatorCommercePanel.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "error"
+      ],
+      "backgroundStyles": [
+        "card"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 41,
+      "label": "<Text accessibilityRole=\"alert\" style={s.error}>{error}</Text>"
+    },
+    {
+      "file": "src/components/LinkAttachSheet.tsx",
+      "sheet": "sh",
+      "foregroundStyles": [
+        "previewBtnTxt"
+      ],
+      "backgroundStyles": [
+        "previewBtn"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 96,
+      "label": "<Text style={sh.previewBtnTxt}>Preview</Text>"
+    },
+    {
+      "file": "src/components/MediaRenderer.tsx",
+      "sheet": "z",
+      "foregroundStyles": [
+        "closeX"
+      ],
+      "backgroundStyles": [
+        "closeBtn"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 254,
+      "label": "<Text style={z.closeX}>\u2715</Text>",
+      "boundedMediaScrim": true
+    },
+    {
+      "file": "src/components/MediaRenderer.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "counterTxt"
+      ],
+      "backgroundStyles": [
+        "counterChip"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 627,
+      "label": "<Text style={s.counterTxt}>{active + 1}/{items.length}</Text>",
+      "boundedMediaScrim": true
+    },
+    {
+      "file": "src/components/PostCarousel.tsx",
+      "sheet": "st",
+      "foregroundStyles": [
+        "controlLabel"
+      ],
+      "backgroundStyles": [
+        "controlBtn"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 250,
+      "label": "<Text style={st.controlLabel}>10</Text>",
+      "boundedMediaScrim": true
+    },
+    {
+      "file": "src/components/TrendingTopicsStrip.tsx",
+      "sheet": "styles",
+      "foregroundStyles": [
+        "sectionTitle"
+      ],
+      "backgroundStyles": [
+        "container"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 185,
+      "label": "<Text style={styles.sectionTitle}>Hot Topics</Text>"
+    },
+    {
+      "file": "src/components/feed/DiscoverTile.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "countTxt"
+      ],
+      "backgroundStyles": [
+        "count"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 53,
+      "label": "<Text style={s.countTxt}>1/{media.length}</Text>",
+      "boundedMediaScrim": true
+    },
+    {
+      "file": "src/components/messages/CounterOfferDialog.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "error"
+      ],
+      "backgroundStyles": [
+        "card"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 170,
+      "label": "<Text accessibilityRole=\"alert\" accessibilityLiveRegion=\"polite\" style={s.error}>{error}</Text>"
+    },
+    {
+      "file": "src/screens/auth/LoginScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "forgotSub"
+      ],
+      "backgroundStyles": [
+        "forgotContent"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 210,
+      "label": "<Text style={s.forgotSub}> Enter the email you signed up with. We will send an 8-digit reset code. </Text>"
+    },
+    {
+      "file": "src/screens/auth/LoginScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "errorTxt"
+      ],
+      "backgroundStyles": [
+        "forgotContent"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 231,
+      "label": "<Text style={s.errorTxt}>{forgotError}</Text>"
+    },
+    {
+      "file": "src/screens/auth/LoginScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "resendTxt"
+      ],
+      "backgroundStyles": [
+        "forgotContent"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 321,
+      "label": "<Text style={s.resendTxt}>Resend code</Text>"
+    },
+    {
+      "file": "src/screens/auth/SetupProfileScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "verifiedTxt"
+      ],
+      "backgroundStyles": [
+        "verifiedBadge"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 222,
+      "label": "<Text style={s.verifiedTxt}>Email Verified</Text>"
+    },
+    {
+      "file": "src/screens/auth/SetupProfileScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "usernameAvailable"
+      ],
+      "backgroundStyles": [
+        "root"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 272,
+      "label": "<Text style={s.usernameAvailable}>Available</Text>"
+    },
+    {
+      "file": "src/screens/auth/SetupProfileScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "avatarHint"
+      ],
+      "backgroundStyles": [
+        "root"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 319,
+      "label": "<Text style={s.avatarHint}>Add a photo</Text>"
+    },
+    {
+      "file": "src/screens/auth/SetupProfileScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "charCount"
+      ],
+      "backgroundStyles": [
+        "root"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 390,
+      "label": "<Text style={s.charCount}>{bio.length}/300</Text>"
+    },
+    {
+      "file": "src/screens/auth/SignUpScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "asuSub"
+      ],
+      "backgroundStyles": [
+        "publicCard"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 157,
+      "label": "<Text style={s.asuSub}> You'll join Platinum Circles and connect with professionals, employers, and sellers across Zimbabwe and beyond. </Text>"
+    },
+    {
+      "file": "src/screens/auth/SignUpScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "dividerTxt"
+      ],
+      "backgroundStyles": [
+        "sheet"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 232,
+      "label": "<Text style={s.dividerTxt}>or</Text>"
+    },
+    {
+      "file": "src/screens/auth/SignUpScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "termsTxt"
+      ],
+      "backgroundStyles": [
+        "sheet"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 243,
+      "label": "<Text style={s.termsTxt}> By signing up you agree to our Terms and Privacy Policy </Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "msgAvatarTxt"
+      ],
+      "backgroundStyles": [
+        "msgAvatar",
+        "msgAvatarFb"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 282,
+      "label": "<Text style={s.msgAvatarTxt}>{(item.sender_name || 'M')[0]}</Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "roleChipTxt"
+      ],
+      "backgroundStyles": [
+        "roleChip"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 287,
+      "label": "<Text style={s.roleChipTxt}>Owner</Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "pollPct"
+      ],
+      "backgroundStyles": [
+        "pollOpt"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 315,
+      "label": "<Text style={s.pollPct}>{(poll.total || 0) > 0 ? String(pct) + '%' : ''}</Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "joinBigTxt"
+      ],
+      "backgroundStyles": [
+        "joinBig"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 399,
+      "label": "<Text style={s.joinBigTxt}>Join channel</Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "replyAvatarTxt"
+      ],
+      "backgroundStyles": [
+        "replyAvatar",
+        "msgAvatarFb"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 473,
+      "label": "<Text style={s.replyAvatarTxt}>{(item.user_name || 'M')[0]}</Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "iconTxt"
+      ],
+      "backgroundStyles": [
+        "icon",
+        "iconFb"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 191,
+      "label": "<Text style={s.iconTxt}>{initials(item.name)}</Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "joinedTxt"
+      ],
+      "backgroundStyles": [
+        "joinedPill"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 199,
+      "label": "<Text style={s.joinedTxt}>Joined</Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "joinTxt"
+      ],
+      "backgroundStyles": [
+        "joinPill"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 202,
+      "label": "<Text style={s.joinTxt}>Join</Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "inviteTxt"
+      ],
+      "backgroundStyles": [
+        "invitePill"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 234,
+      "label": "<Text style={s.inviteTxt}>Invite only</Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptyTitle"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 281,
+      "label": "<Text style={s.emptyTitle}>{search ? `No ${tab} found` : `No ${tab} yet`}</Text>"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptySub"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 282,
+      "label": "<Text style={s.emptySub}>{tab === 'channels' ? 'Create one and broadcast to your members.' : 'Create one. Every member can post inside it.'}</Text>"
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "avatarTxt"
+      ],
+      "backgroundStyles": [
+        "avatar",
+        "avatarFb"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 448,
+      "label": "<Text style={s.avatarTxt}>{(item.author_name || 'M')[0]}</Text>"
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "joinDarkTxt"
+      ],
+      "backgroundStyles": [
+        "joinDark"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 531,
+      "label": "<Text style={s.joinDarkTxt}>Accept</Text>"
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "rulesBody"
+      ],
+      "backgroundStyles": [
+        "annCard"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 578,
+      "label": "<Text style={s.rulesBody}>Nothing announced yet. Only moderators post here; every member sees it.</Text>"
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "avatarTxt"
+      ],
+      "backgroundStyles": [
+        "memberAvatar",
+        "avatarFb"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 661,
+      "label": "<Text style={s.avatarTxt}>{(m.full_name || '?')[0]}</Text>"
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "roleChipTxt"
+      ],
+      "backgroundStyles": [
+        "roleChip"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 667,
+      "label": "<Text style={s.roleChipTxt}>{m.role === 'owner' ? 'Owner' : 'Moderator'}</Text>"
+    },
+    {
+      "file": "src/screens/feed/ArticleComposeScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "linkModalTitle"
+      ],
+      "backgroundStyles": [
+        "linkModalCard"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 297,
+      "label": "<Text style={s.linkModalTitle}>Add a link</Text>"
+    },
+    {
+      "file": "src/screens/feed/ArticleComposeScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "linkModalCancelTxt"
+      ],
+      "backgroundStyles": [
+        "linkModalCancel"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 317,
+      "label": "<Text style={s.linkModalCancelTxt}>Cancel</Text>"
+    },
+    {
+      "file": "src/screens/feed/ArticleComposeScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "linkModalConfirmTxt"
+      ],
+      "backgroundStyles": [
+        "linkModalConfirm"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 320,
+      "label": "<Text style={s.linkModalConfirmTxt}>Insert</Text>"
+    },
+    {
+      "file": "src/screens/feed/TrendFeedScreen.tsx",
+      "sheet": "st",
+      "foregroundStyles": [
+        "headerTag"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 201,
+      "label": "<Text style={st.headerTag}>Topic</Text>"
+    },
+    {
+      "file": "src/screens/feed/TrendFeedScreen.tsx",
+      "sheet": "st",
+      "foregroundStyles": [
+        "emptyTitle"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 207,
+      "label": "<Text style={st.emptyTitle}>No topic specified</Text>"
+    },
+    {
+      "file": "src/screens/feed/TrendFeedScreen.tsx",
+      "sheet": "st",
+      "foregroundStyles": [
+        "headerSub"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 280,
+      "label": "<Text style={st.headerSub}> {posts.length}{hasMore ? '+' : ''} {posts.length === 1 ? 'post' : 'posts'} </Text>"
+    },
+    {
+      "file": "src/screens/feed/TrendFeedScreen.tsx",
+      "sheet": "st",
+      "foregroundStyles": [
+        "emptySub"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 300,
+      "label": "<Text style={st.emptySub}>Could not load posts for this topic.</Text>"
+    },
+    {
+      "file": "src/screens/feed/TrendFeedScreen.tsx",
+      "sheet": "st",
+      "foregroundStyles": [
+        "retryBtnTxt"
+      ],
+      "backgroundStyles": [
+        "retryBtn"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 302,
+      "label": "<Text style={st.retryBtnTxt}>Try again</Text>"
+    },
+    {
+      "file": "src/screens/jobs/ApplicantsScreen.tsx",
+      "sheet": "st",
+      "foregroundStyles": [
+        "errTxt"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 234,
+      "label": "<Text style={st.errTxt}>{err}</Text>"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptyPostBtnTxt"
+      ],
+      "backgroundStyles": [
+        "emptyPostBtn"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 587,
+      "label": "<Text style={s.emptyPostBtnTxt}>Post a Job</Text>"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "appDate"
+      ],
+      "backgroundStyles": [
+        "appCard"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 682,
+      "label": "<Text style={s.appDate}> Recommended by {(rec as any).recommender?.full_name || 'a member'} \u00b7 {formatTime(rec.created_at)} </Text>"
+    },
+    {
+      "file": "src/screens/messages/CallLogScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "title"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 197,
+      "label": "<Text style={s.title}>Calls</Text>"
+    },
+    {
+      "file": "src/screens/messages/CallLogScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptyTitle"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 206,
+      "label": "<Text style={s.emptyTitle}>No calls yet</Text>"
+    },
+    {
+      "file": "src/screens/messages/CallLogScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptySub"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 207,
+      "label": "<Text style={s.emptySub}>Your call history will appear here.</Text>"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "ctrlLabel"
+      ],
+      "backgroundStyles": [
+        "middle"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 315,
+      "label": "<Text style={s.ctrlLabel}>{ctrl.label}</Text>"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "addTitle"
+      ],
+      "backgroundStyles": [
+        "middle"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 318,
+      "label": "<Text style={s.addTitle}>Add to call</Text>"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "keypadTitle"
+      ],
+      "backgroundStyles": [
+        "keypadSheet"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 343,
+      "label": "<Text style={s.keypadTitle}>Dial Pad (local only)</Text>"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "keypadDisplay"
+      ],
+      "backgroundStyles": [
+        "keypadSheet"
+      ],
+      "threshold": 3,
+      "baselineLine": 344,
+      "label": "<Text style={s.keypadDisplay}>{dtmfDigits || '\\u00A0'}</Text>"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "keypadDoneTxt"
+      ],
+      "backgroundStyles": [
+        "keypadDone"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 348,
+      "label": "<Text style={s.keypadDoneTxt}>Done</Text>"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "moreTitle"
+      ],
+      "backgroundStyles": [
+        "moreSheet"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 373,
+      "label": "<Text style={s.moreTitle}>Call Options</Text>"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "moreLabel"
+      ],
+      "backgroundStyles": [
+        "moreSheet"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 378,
+      "label": "<Text style={s.moreLabel}>{a.label}</Text>"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "starBadgeTxt"
+      ],
+      "backgroundStyles": [
+        "starBadge"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 1837,
+      "label": "<Text style={s.starBadgeTxt}>\u2605</Text>",
+      "boundedMediaScrim": true
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "starBadgeTxt"
+      ],
+      "backgroundStyles": [
+        "starBadgeInline"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 1977,
+      "label": "<Text style={s.starBadgeTxt}>\u2605</Text>",
+      "boundedMediaScrim": true
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "infoDangerTxt"
+      ],
+      "backgroundStyles": [
+        "infoDanger"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 2741,
+      "label": "<Text style={s.infoDangerTxt}>Block {chatTitle}</Text>"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "fsActionTxt"
+      ],
+      "backgroundStyles": [
+        "fsActionBtn"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 2869,
+      "label": "<Text style={s.fsActionTxt}>{savingToDevice ? 'Saving...' : 'Save'}</Text>",
+      "boundedMediaScrim": true
+    },
+    {
+      "file": "src/screens/messages/ContextInboxScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "time"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 156,
+      "label": "<Text style={s.time}>{relTime(item.last_message_time)}</Text>"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "archivedTxt"
+      ],
+      "backgroundStyles": [
+        "archivedBadge"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 501,
+      "label": "<Text style={s.archivedTxt}>Archived</Text>"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "title"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 3,
+      "baselineLine": 547,
+      "label": "<Text style={s.title}>Messages</Text>"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptyTitle"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 595,
+      "label": "<Text style={s.emptyTitle}>{search ? 'No results' : tab === 'unread' ? 'All caught up' : 'No messages yet'}</Text>"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptySub"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 596,
+      "label": "<Text style={s.emptySub}>{search ? 'Try a different search' : 'Connect with PlatinumCircles and start a conversation'}</Text>"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "sectionLabel"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 631,
+      "label": "<Text style={s.sectionLabel}>PINNED</Text>"
+    },
+    {
+      "file": "src/screens/messages/MessageRequestsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "time"
+      ],
+      "backgroundStyles": [
+        "card"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 174,
+      "label": "<Text style={s.time}>{relTime(item.requested_at || item.last_message_time)}</Text>"
+    },
+    {
+      "file": "src/screens/messages/MessageRequestsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "btnDeclineTxt"
+      ],
+      "backgroundStyles": [
+        "btn",
+        "btnDecline"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 188,
+      "label": "<Text style={s.btnDeclineTxt}>Decline</Text>"
+    },
+    {
+      "file": "src/screens/messages/MessageRequestsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "btnAcceptTxt"
+      ],
+      "backgroundStyles": [
+        "btn",
+        "btnAccept"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 199,
+      "label": "<Text style={s.btnAcceptTxt}>Accept</Text>"
+    },
+    {
+      "file": "src/screens/messages/MessageRequestsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "title"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 214,
+      "label": "<Text style={s.title}>Message requests</Text>"
+    },
+    {
+      "file": "src/screens/messages/MessageRequestsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptyTitle"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 232,
+      "label": "<Text style={s.emptyTitle}>No requests</Text>"
+    },
+    {
+      "file": "src/screens/messages/MessageRequestsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptySub"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 233,
+      "label": "<Text style={s.emptySub}>New messages from outside your school will show up here.</Text>"
+    },
+    {
+      "file": "src/screens/messages/SavedMessagesScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "cardDate"
+      ],
+      "backgroundStyles": [
+        "card"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 103,
+      "label": "<Text style={s.cardDate}>{relTime(item.saved_at)}</Text>"
+    },
+    {
+      "file": "src/screens/messages/SavedMessagesScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "title"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 122,
+      "label": "<Text style={s.title}>Saved Messages</Text>"
+    },
+    {
+      "file": "src/screens/messages/SavedMessagesScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptyTitle"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 138,
+      "label": "<Text style={s.emptyTitle}>No saved messages</Text>"
+    },
+    {
+      "file": "src/screens/messages/SavedMessagesScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptySub"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 139,
+      "label": "<Text style={s.emptySub}>Long-press any message and tap Save to bookmark it.</Text>"
+    },
+    {
+      "file": "src/screens/messages/StarredMessagesScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "backLbl"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 224,
+      "label": "<Text style={s.backLbl}>Messages</Text>"
+    },
+    {
+      "file": "src/screens/messages/StarredMessagesScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "headerTitle"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 226,
+      "label": "<Text style={s.headerTitle}>Starred</Text>"
+    },
+    {
+      "file": "src/screens/messages/StarredMessagesScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptyTitle"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 235,
+      "label": "<Text style={s.emptyTitle}>No starred messages</Text>"
+    },
+    {
+      "file": "src/screens/messages/StarredMessagesScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "emptyTxt"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 236,
+      "label": "<Text style={s.emptyTxt}> Long-press any message in a chat and tap Star to save it here. </Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessAccessScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "linkTxt"
+      ],
+      "backgroundStyles": [
+        "codeCard"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 160,
+      "label": "<Text style={s.linkTxt}>Done</Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessApplyScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "backChev"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 3,
+      "baselineLine": 219,
+      "label": "<Text style={s.backChev}>{'\\u2039'}</Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessApplyScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "backLbl"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 219,
+      "label": "<Text style={s.backLbl}>Back</Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessApplyScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "headerTitle"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 221,
+      "label": "<Text style={s.headerTitle}>Business account</Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessApplyScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "lede"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 226,
+      "label": "<Text style={s.lede}>A business gets its own separate account with its own @ and the space-grey seal. Tell us who you are - a person on the operations team revi"
+    },
+    {
+      "file": "src/screens/profile/BusinessApplyScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "reply"
+      ],
+      "backgroundStyles": [
+        "reply"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 250,
+      "label": "<Text accessibilityLiveRegion=\"polite\" style={s.reply}>{notice}</Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessApplyScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "ticketSubject"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 265,
+      "label": "<Text style={s.ticketSubject}>Open business</Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessApplyScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "when"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 266,
+      "label": "<Text style={s.when}>{new Date(a.created_at).toLocaleDateString()}</Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessManageScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "errTxt"
+      ],
+      "backgroundStyles": [
+        "errBar"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 276,
+      "label": "<Text style={s.errTxt}>{error}</Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessManageScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "sectionHint"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 324,
+      "label": "<Text style={s.sectionHint}>Answer even when you are away.</Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessManageScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "closed"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 378,
+      "label": "<Text style={s.closed}>Closed</Text>"
+    },
+    {
+      "file": "src/screens/profile/BusinessesScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "avatarTxt"
+      ],
+      "backgroundStyles": [
+        "avatar",
+        "avatarFb"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 194,
+      "label": "<Text style={s.avatarTxt}>{initials(item.full_name)}</Text>"
+    },
+    {
+      "file": "src/screens/profile/CreateBusinessScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "at"
+      ],
+      "backgroundStyles": [
+        "usernameRow"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 138,
+      "label": "<Text style={s.at}>@</Text>"
+    },
+    {
+      "file": "src/screens/profile/EditProfileScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "bannerTxt"
+      ],
+      "backgroundStyles": [
+        "banner"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 193,
+      "label": "<Text style={s.bannerTxt}>{error}</Text>"
+    },
+    {
+      "file": "src/screens/profile/EditProfileScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "overlayTxt"
+      ],
+      "backgroundStyles": [
+        "bannerOverlay"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 211,
+      "label": "<Text style={s.overlayTxt}>Change banner</Text>",
+      "boundedMediaScrim": true
+    },
+    {
+      "file": "src/screens/profile/EditProfileScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "counter"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 249,
+      "label": "<Text style={s.counter}>{draft.bio.length}/280</Text>"
+    },
+    {
+      "file": "src/screens/profile/FollowListScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "followTxt"
+      ],
+      "backgroundStyles": [
+        "followBtn"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 245,
+      "label": "<Text style={s.followTxt}>Retry</Text>"
+    },
+    {
+      "file": "src/screens/profile/FollowRequestsScreen.tsx",
+      "sheet": "st",
+      "foregroundStyles": [
+        "avatarFbTxt"
+      ],
+      "backgroundStyles": [
+        "avatar",
+        "avatarFb"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 145,
+      "label": "<Text style={st.avatarFbTxt}>{initials(name)}</Text>"
+    },
+    {
+      "file": "src/screens/profile/LoginActivityScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "btnTxt"
+      ],
+      "backgroundStyles": [
+        "btn"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 80,
+      "label": "<Text style={s.btnTxt}>Log out of all other devices</Text>"
+    },
+    {
+      "file": "src/screens/profile/MonetizationScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "error"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 63,
+      "label": "<Text accessibilityRole=\"alert\" style={s.error}>{error}</Text>"
+    },
+    {
+      "file": "src/screens/profile/MonetizationScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "error"
+      ],
+      "backgroundStyles": [
+        "card"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 64,
+      "label": "<Text accessibilityRole=\"alert\" style={s.error}>{linkError}</Text>"
+    },
+    {
+      "file": "src/screens/profile/MutedStoriesScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "avatarTxt"
+      ],
+      "backgroundStyles": [
+        "avatar",
+        "avatarFb"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 81,
+      "label": "<Text style={s.avatarTxt}>{(item.profile?.full_name || '?')[0]}</Text>"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "footerTxt"
+      ],
+      "backgroundStyles": [
+        "safe"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 566,
+      "label": "<Text style={s.footerTxt}>PlatinumCircles</Text>"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "sheet": "s",
+      "foregroundStyles": [
+        "deleteWarningTxt"
+      ],
+      "backgroundStyles": [
+        "deleteWarning"
+      ],
+      "threshold": 4.5,
+      "baselineLine": 700,
+      "label": "<Text style={s.deleteWarningTxt}> Your account will be disabled while your stored files and account records are erased. This cannot be undone. Payment records, "
+    }
+  ]
+}

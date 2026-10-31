@@ -7,7 +7,7 @@ import { privateImageCachePolicy } from '../../shared/mediaDelivery';
  */
 import VerifiedBadge from './VerifiedBadge';
 import TierName from './TierName';
-import { themedSheet } from '../theme/useTheme';
+import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useCallback, useState } from 'react';
 import { AppState, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -21,6 +21,7 @@ import { loadTrendingStories, type TrendingStory } from '../../shared/trendingSt
 type Hot = TrendingStory;
 
 export default function TrendingStoriesRail() {
+  useTheme();
   const nav = useNavigation<any>();
   const [rows, setRows] = useState<Hot[]>([]);
 
@@ -81,7 +82,7 @@ export default function TrendingStoriesRail() {
                   <View style={[s.tileAvatar, s.fallback]}><Text style={[s.fallbackTxt, { fontSize: 13 }]}>{(r.full_name || '?').slice(0, 1)}</Text></View>
                 )}
               </View>
-              <Text style={s.tileName} numberOfLines={1}><TierName userId={((r) as any)?.id ?? ((r) as any)?.user_id} baseStyle={s.tileName} text={r.full_name || ''} numberOfLines={1} /> <VerifiedBadge userId={((r) as any)?.id ?? ((r) as any)?.user_id} size={12} /></Text>
+              <Text style={s.tileName} numberOfLines={1}><TierName userId={((r) as any)?.id ?? ((r) as any)?.user_id} baseStyle={s.tileName} colorMode="inherit" text={r.full_name || ''} numberOfLines={1} /> <VerifiedBadge userId={((r) as any)?.id ?? ((r) as any)?.user_id} size={12} /></Text>
               <Text style={s.tileViews}>{r.views} views</Text>
             </View>
           </TouchableOpacity>
@@ -109,9 +110,9 @@ const s = themedSheet((t) => ({
   tileFallback: { backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center' },
   tileShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 96 },
   tileFlame: { position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
-  tileFoot: { position: 'absolute', left: 8, right: 8, bottom: 8 },
-  tileAvatarWrap: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: t.ink.inverse, overflow: 'hidden', marginBottom: 4, backgroundColor: t.surface.sunken },
+  tileFoot: { position: 'absolute', left: 8, right: 8, bottom: 8, padding: 6, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.78)' },
+  tileAvatarWrap: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: '#FFFFFF', overflow: 'hidden', marginBottom: 4, backgroundColor: t.surface.sunken },
   tileAvatar: { width: '100%', height: '100%' },
-  tileName: { fontSize: 11.5, fontWeight: '700', color: t.ink.inverse },
-  tileViews: { fontSize: 10, color: 'rgba(255,255,255,0.8)', marginTop: 1 },
+  tileName: { fontSize: 11.5, fontWeight: '700', color: '#FFFFFF' },
+  tileViews: { fontSize: 10, color: 'rgba(255,255,255,0.9)', marginTop: 1 },
 }));

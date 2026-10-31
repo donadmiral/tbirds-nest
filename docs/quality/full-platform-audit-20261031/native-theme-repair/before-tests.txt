@@ -1,0 +1,1714 @@
+✖ AboutScreen actual style pairs remain readable in light (61.039541ms)
+✖ AboutScreen actual style pairs remain readable in dark (37.183417ms)
+✖ AboutScreen actual style pairs remain readable in lightsOut (41.094462ms)
+✖ ApplyVerificationScreen actual style pairs remain readable in light (28.138182ms)
+✖ ApplyVerificationScreen actual style pairs remain readable in dark (24.5885ms)
+✖ ApplyVerificationScreen actual style pairs remain readable in lightsOut (25.376959ms)
+✖ BusinessInboxScreen actual style pairs remain readable in light (27.14929ms)
+✖ BusinessInboxScreen actual style pairs remain readable in dark (36.062181ms)
+✖ BusinessInboxScreen actual style pairs remain readable in lightsOut (23.442405ms)
+✖ CampaignsScreen actual style pairs remain readable in light (24.486847ms)
+✖ CampaignsScreen actual style pairs remain readable in dark (18.290831ms)
+✖ CampaignsScreen actual style pairs remain readable in lightsOut (18.643161ms)
+✖ AboutScreen actual render subscribes and follows light/dark/lightsOut/light status chrome (17.135965ms)
+✖ ApplyVerificationScreen actual render subscribes and follows light/dark/lightsOut/light status chrome (28.328073ms)
+✖ BusinessInboxScreen actual render subscribes and follows light/dark/lightsOut/light status chrome (30.133817ms)
+✖ CampaignsScreen actual render subscribes and follows light/dark/lightsOut/light status chrome (30.505587ms)
+✖ About reports native metadata Version 1.1.0 (42) (15.528949ms)
+✖ About reports native metadata Version 1.1.0 (10.131103ms)
+✖ About reports native metadata Build 42 (10.491705ms)
+✖ About reports native metadata Version unavailable (9.136016ms)
+✖ Verification actual form input/placeholder and successful or rejected status remain readable (27.609142ms)
+✖ Business inbox actual selected/unselected tabs keep paired readable ink (16.965815ms)
+✖ Campaign actual selected durations, input placeholders and busy spinner match their surfaces (40.383358ms)
+✖ Campaign actual active, paused and ended labels retain readable status colors (21.983162ms)
+✔ RGBA and shorthand-hex audit composition is finite and handles alpha explicitly (1.022858ms)
+✖ src/components/AppLockGate.tsx inspected text pairs stay readable in all three palettes (16.433799ms)
+✖ src/components/BusinessTabs.tsx inspected text pairs stay readable in all three palettes (37.612611ms)
+✖ src/components/ChannelSettingsSheet.tsx inspected text pairs stay readable in all three palettes (21.009017ms)
+✖ src/components/ChatImageEditor.tsx inspected text pairs stay readable in all three palettes (20.034613ms)
+✖ src/components/CreatorCommercePanel.tsx inspected text pairs stay readable in all three palettes (16.063832ms)
+✖ src/components/LinkAttachSheet.tsx inspected text pairs stay readable in all three palettes (16.118525ms)
+✖ src/components/MediaRenderer.tsx inspected text pairs stay readable in all three palettes (54.530459ms)
+✖ src/components/PostCarousel.tsx inspected text pairs stay readable in all three palettes (16.238445ms)
+✖ src/components/TrendingTopicsStrip.tsx inspected text pairs stay readable in all three palettes (15.313945ms)
+✖ src/components/feed/DiscoverTile.tsx inspected text pairs stay readable in all three palettes (15.781438ms)
+✖ src/components/messages/CounterOfferDialog.tsx inspected text pairs stay readable in all three palettes (18.184361ms)
+✖ src/screens/auth/LoginScreen.tsx inspected text pairs stay readable in all three palettes (16.558216ms)
+✖ src/screens/auth/SetupProfileScreen.tsx inspected text pairs stay readable in all three palettes (16.905228ms)
+✖ src/screens/auth/SignUpScreen.tsx inspected text pairs stay readable in all three palettes (13.057442ms)
+✖ src/screens/channels/ChannelScreen.tsx inspected text pairs stay readable in all three palettes (32.82277ms)
+✖ src/screens/channels/ChannelsScreen.tsx inspected text pairs stay readable in all three palettes (16.257063ms)
+✖ src/screens/channels/CommunityScreen.tsx inspected text pairs stay readable in all three palettes (20.899744ms)
+✖ src/screens/feed/ArticleComposeScreen.tsx inspected text pairs stay readable in all three palettes (15.079673ms)
+✖ src/screens/feed/TrendFeedScreen.tsx inspected text pairs stay readable in all three palettes (14.40594ms)
+✖ src/screens/jobs/ApplicantsScreen.tsx inspected text pairs stay readable in all three palettes (28.048698ms)
+✖ src/screens/jobs/JobsScreen.tsx inspected text pairs stay readable in all three palettes (61.08239ms)
+✖ src/screens/messages/CallLogScreen.tsx inspected text pairs stay readable in all three palettes (15.43711ms)
+✖ src/screens/messages/CallScreen.tsx inspected text pairs stay readable in all three palettes (20.132429ms)
+✖ src/screens/messages/ChatScreen.tsx inspected text pairs stay readable in all three palettes (69.305979ms)
+✖ src/screens/messages/ContextInboxScreen.tsx inspected text pairs stay readable in all three palettes (15.150049ms)
+✖ src/screens/messages/ConversationsScreen.tsx inspected text pairs stay readable in all three palettes (20.062125ms)
+✖ src/screens/messages/MessageRequestsScreen.tsx inspected text pairs stay readable in all three palettes (23.663459ms)
+✖ src/screens/messages/SavedMessagesScreen.tsx inspected text pairs stay readable in all three palettes (15.933467ms)
+✖ src/screens/messages/StarredMessagesScreen.tsx inspected text pairs stay readable in all three palettes (13.16235ms)
+✖ src/screens/profile/BusinessAccessScreen.tsx inspected text pairs stay readable in all three palettes (14.998271ms)
+✖ src/screens/profile/BusinessApplyScreen.tsx inspected text pairs stay readable in all three palettes (14.163014ms)
+✖ src/screens/profile/BusinessManageScreen.tsx inspected text pairs stay readable in all three palettes (15.690862ms)
+✖ src/screens/profile/BusinessesScreen.tsx inspected text pairs stay readable in all three palettes (14.657322ms)
+✖ src/screens/profile/CreateBusinessScreen.tsx inspected text pairs stay readable in all three palettes (14.751199ms)
+✖ src/screens/profile/EditProfileScreen.tsx inspected text pairs stay readable in all three palettes (15.537887ms)
+✖ src/screens/profile/FollowListScreen.tsx inspected text pairs stay readable in all three palettes (18.168287ms)
+✖ src/screens/profile/FollowRequestsScreen.tsx inspected text pairs stay readable in all three palettes (34.461965ms)
+✖ src/screens/profile/LoginActivityScreen.tsx inspected text pairs stay readable in all three palettes (12.286864ms)
+✖ src/screens/profile/MonetizationScreen.tsx inspected text pairs stay readable in all three palettes (10.932127ms)
+✖ src/screens/profile/MutedStoriesScreen.tsx inspected text pairs stay readable in all three palettes (10.7142ms)
+✖ src/screens/profile/SettingsScreen.tsx inspected text pairs stay readable in all three palettes (20.561626ms)
+✖ src/components/AppLockGate.tsx subscribes to active theme and renders any status bar with current palette (1.113584ms)
+✖ src/components/BusinessTabs.tsx subscribes to active theme and renders any status bar with current palette (3.066361ms)
+✔ src/components/ChannelSettingsSheet.tsx subscribes to active theme and renders any status bar with current palette (9.501556ms)
+✖ src/components/ChatImageEditor.tsx subscribes to active theme and renders any status bar with current palette (3.255695ms)
+✔ src/components/CreatorCommercePanel.tsx subscribes to active theme and renders any status bar with current palette (6.822609ms)
+✖ src/components/LinkAttachSheet.tsx subscribes to active theme and renders any status bar with current palette (1.666766ms)
+✖ src/components/MediaRenderer.tsx subscribes to active theme and renders any status bar with current palette (5.411947ms)
+✖ src/components/PostCarousel.tsx subscribes to active theme and renders any status bar with current palette (4.922181ms)
+✖ src/components/TrendingTopicsStrip.tsx subscribes to active theme and renders any status bar with current palette (2.071785ms)
+✖ src/components/feed/DiscoverTile.tsx subscribes to active theme and renders any status bar with current palette (1.464653ms)
+✔ src/components/messages/CounterOfferDialog.tsx subscribes to active theme and renders any status bar with current palette (8.363115ms)
+✔ src/screens/channels/ChannelScreen.tsx subscribes to active theme and renders any status bar with current palette (11.738103ms)
+✔ src/screens/channels/ChannelsScreen.tsx subscribes to active theme and renders any status bar with current palette (10.94074ms)
+✖ src/screens/channels/CommunityScreen.tsx subscribes to active theme and renders any status bar with current palette (9.11881ms)
+✖ src/screens/feed/ArticleComposeScreen.tsx subscribes to active theme and renders any status bar with current palette (3.096656ms)
+✖ src/screens/feed/TrendFeedScreen.tsx subscribes to active theme and renders any status bar with current palette (2.852209ms)
+✔ src/screens/jobs/ApplicantsScreen.tsx subscribes to active theme and renders any status bar with current palette (9.866785ms)
+✔ src/screens/jobs/JobsScreen.tsx subscribes to active theme and renders any status bar with current palette (20.422622ms)
+✖ src/screens/messages/CallLogScreen.tsx subscribes to active theme and renders any status bar with current palette (3.87746ms)
+✖ src/screens/messages/CallScreen.tsx subscribes to active theme and renders any status bar with current palette (5.529454ms)
+✔ src/screens/messages/ChatScreen.tsx subscribes to active theme and renders any status bar with current palette (46.851363ms)
+✖ src/screens/messages/ContextInboxScreen.tsx subscribes to active theme and renders any status bar with current palette (2.249302ms)
+✔ src/screens/messages/ConversationsScreen.tsx subscribes to active theme and renders any status bar with current palette (9.466924ms)
+✖ src/screens/messages/MessageRequestsScreen.tsx subscribes to active theme and renders any status bar with current palette (2.325266ms)
+✖ src/screens/messages/SavedMessagesScreen.tsx subscribes to active theme and renders any status bar with current palette (1.258262ms)
+✖ src/screens/messages/StarredMessagesScreen.tsx subscribes to active theme and renders any status bar with current palette (1.954179ms)
+✔ src/screens/profile/BusinessAccessScreen.tsx subscribes to active theme and renders any status bar with current palette (6.888036ms)
+✖ src/screens/profile/BusinessApplyScreen.tsx subscribes to active theme and renders any status bar with current palette (2.869485ms)
+✖ src/screens/profile/BusinessManageScreen.tsx subscribes to active theme and renders any status bar with current palette (3.177938ms)
+✖ src/screens/profile/BusinessesScreen.tsx subscribes to active theme and renders any status bar with current palette (2.351415ms)
+✖ src/screens/profile/CreateBusinessScreen.tsx subscribes to active theme and renders any status bar with current palette (1.588869ms)
+✔ src/screens/profile/EditProfileScreen.tsx subscribes to active theme and renders any status bar with current palette (8.219779ms)
+✔ src/screens/profile/FollowListScreen.tsx subscribes to active theme and renders any status bar with current palette (7.194888ms)
+✔ src/screens/profile/FollowRequestsScreen.tsx subscribes to active theme and renders any status bar with current palette (16.164414ms)
+✔ src/screens/profile/LoginActivityScreen.tsx subscribes to active theme and renders any status bar with current palette (4.866136ms)
+✔ src/screens/profile/MonetizationScreen.tsx subscribes to active theme and renders any status bar with current palette (5.838819ms)
+✖ src/screens/profile/MutedStoriesScreen.tsx subscribes to active theme and renders any status bar with current palette (1.658784ms)
+✔ src/screens/profile/SettingsScreen.tsx subscribes to active theme and renders any status bar with current palette (14.770719ms)
+ℹ tests 104
+ℹ suites 0
+ℹ pass 17
+ℹ fail 87
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1997.447187
+
+✖ failing tests:
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ AboutScreen actual style pairs remain readable in light (61.039541ms)
+  AssertionError [ERR_ASSERTION]: AboutScreen.tagline on safe in light: 3.766:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ AboutScreen actual style pairs remain readable in dark (37.183417ms)
+  AssertionError [ERR_ASSERTION]: AboutScreen.backChev on safe in dark: 1.131:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ AboutScreen actual style pairs remain readable in lightsOut (41.094462ms)
+  AssertionError [ERR_ASSERTION]: AboutScreen.backChev on safe in lightsOut: 1.267:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ ApplyVerificationScreen actual style pairs remain readable in light (28.138182ms)
+  AssertionError [ERR_ASSERTION]: ApplyVerificationScreen.lede on safe in light: 4.394:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ ApplyVerificationScreen actual style pairs remain readable in dark (24.5885ms)
+  AssertionError [ERR_ASSERTION]: ApplyVerificationScreen.backLbl on safe in dark: 1.131:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ ApplyVerificationScreen actual style pairs remain readable in lightsOut (25.376959ms)
+  AssertionError [ERR_ASSERTION]: ApplyVerificationScreen.backLbl on safe in lightsOut: 1.267:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ BusinessInboxScreen actual style pairs remain readable in light (27.14929ms)
+  AssertionError [ERR_ASSERTION]: BusinessInboxScreen.headerSub on safe in light: 3.249:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ BusinessInboxScreen actual style pairs remain readable in dark (36.062181ms)
+  AssertionError [ERR_ASSERTION]: BusinessInboxScreen.headerTitle on safe in dark: 1.131:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ BusinessInboxScreen actual style pairs remain readable in lightsOut (23.442405ms)
+  AssertionError [ERR_ASSERTION]: BusinessInboxScreen.headerTitle on safe in lightsOut: 1.267:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ CampaignsScreen actual style pairs remain readable in light (24.486847ms)
+  AssertionError [ERR_ASSERTION]: CampaignsScreen.headerSub on safe in light: 3.249:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ CampaignsScreen actual style pairs remain readable in dark (18.290831ms)
+  AssertionError [ERR_ASSERTION]: CampaignsScreen.headerTitle on safe in dark: 1.131:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:84:104
+✖ CampaignsScreen actual style pairs remain readable in lightsOut (18.643161ms)
+  AssertionError [ERR_ASSERTION]: CampaignsScreen.headerTitle on safe in lightsOut: 1.267:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:89:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:92:42
+✖ AboutScreen actual render subscribes and follows light/dark/lightsOut/light status chrome (17.135965ms)
+  AssertionError [ERR_ASSERTION]: screen must subscribe, not only read proxy properties
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:96:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:92:42
+✖ ApplyVerificationScreen actual render subscribes and follows light/dark/lightsOut/light status chrome (28.328073ms)
+  AssertionError [ERR_ASSERTION]: screen must subscribe, not only read proxy properties
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:96:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:92:42
+✖ BusinessInboxScreen actual render subscribes and follows light/dark/lightsOut/light status chrome (30.133817ms)
+  AssertionError [ERR_ASSERTION]: screen must subscribe, not only read proxy properties
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:96:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:92:42
+✖ CampaignsScreen actual render subscribes and follows light/dark/lightsOut/light status chrome (30.505587ms)
+  AssertionError [ERR_ASSERTION]: screen must subscribe, not only read proxy properties
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:96:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:102:169
+✖ About reports native metadata Version 1.1.0 (42) (15.528949ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(walk(tree).some(node => node.type === 'Text' && textOf(node) === expected))
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:104:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:102:169
+✖ About reports native metadata Version 1.1.0 (10.131103ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(walk(tree).some(node => node.type === 'Text' && textOf(node) === expected))
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:104:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:102:169
+✖ About reports native metadata Build 42 (10.491705ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(walk(tree).some(node => node.type === 'Text' && textOf(node) === expected))
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:104:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:102:169
+✖ About reports native metadata Version unavailable (9.136016ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(walk(tree).some(node => node.type === 'Text' && textOf(node) === expected))
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:104:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:107:1
+✖ Verification actual form input/placeholder and successful or rejected status remain readable (27.609142ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(contrast(input.props.placeholderTextColor, style.backgroundColor, api.getTheme().surface.canvas) >= 4.5)
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:112:84)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:120:1
+✖ Business inbox actual selected/unselected tabs keep paired readable ink (16.965815ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(contrast(label.props.style.color, button.props.style.backgroundColor, api.getTheme().surface.canvas) >= 4.5)
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:126:101)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:129:1
+✖ Campaign actual selected durations, input placeholders and busy spinner match their surfaces (40.383358ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(contrast(input.props.placeholderTextColor, sheet.sheet.backgroundColor, api.getTheme().surface.canvas) >= 4.5)
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:134:80)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:140:1
+✖ Campaign actual active, paused and ended labels retain readable status colors (21.983162ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(contrast(flatten(text.props.style).color, flatten(chip.props.style).backgroundColor, api.getTheme().surface.canvas) >= 4.5)
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:149:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/AppLockGate.tsx inspected text pairs stay readable in all three palettes (16.433799ms)
+  AssertionError [ERR_ASSERTION]: src/components/AppLockGate.tsx.title in dark: 1.152:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/BusinessTabs.tsx inspected text pairs stay readable in all three palettes (37.612611ms)
+  AssertionError [ERR_ASSERTION]: src/components/BusinessTabs.tsx.soldBadgeTxt in light: 2.965:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/ChannelSettingsSheet.tsx inspected text pairs stay readable in all three palettes (21.009017ms)
+  AssertionError [ERR_ASSERTION]: src/components/ChannelSettingsSheet.tsx.memberAvatarTxt in dark: 1.000:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/ChatImageEditor.tsx inspected text pairs stay readable in all three palettes (20.034613ms)
+  AssertionError [ERR_ASSERTION]: src/components/ChatImageEditor.tsx.title in dark: 1.166:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/CreatorCommercePanel.tsx inspected text pairs stay readable in all three palettes (16.063832ms)
+  AssertionError [ERR_ASSERTION]: src/components/CreatorCommercePanel.tsx.error in light: 3.547:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/LinkAttachSheet.tsx inspected text pairs stay readable in all three palettes (16.118525ms)
+  AssertionError [ERR_ASSERTION]: src/components/LinkAttachSheet.tsx.previewBtnTxt in dark: 1.000:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/MediaRenderer.tsx inspected text pairs stay readable in all three palettes (54.530459ms)
+  AssertionError [ERR_ASSERTION]: src/components/MediaRenderer.tsx.closeX in dark: 1.216:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/PostCarousel.tsx inspected text pairs stay readable in all three palettes (16.238445ms)
+  AssertionError [ERR_ASSERTION]: src/components/PostCarousel.tsx.controlLabel in light: 4.141:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/TrendingTopicsStrip.tsx inspected text pairs stay readable in all three palettes (15.313945ms)
+  AssertionError [ERR_ASSERTION]: src/components/TrendingTopicsStrip.tsx.sectionTitle in dark: 1.120:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/feed/DiscoverTile.tsx inspected text pairs stay readable in all three palettes (15.781438ms)
+  AssertionError [ERR_ASSERTION]: src/components/feed/DiscoverTile.tsx.countTxt in dark: 1.210:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/components/messages/CounterOfferDialog.tsx inspected text pairs stay readable in all three palettes (18.184361ms)
+  AssertionError [ERR_ASSERTION]: src/components/messages/CounterOfferDialog.tsx.error in light: 3.547:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/auth/LoginScreen.tsx inspected text pairs stay readable in all three palettes (16.558216ms)
+  AssertionError [ERR_ASSERTION]: src/screens/auth/LoginScreen.tsx.forgotSub in light: 2.847:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/auth/SetupProfileScreen.tsx inspected text pairs stay readable in all three palettes (16.905228ms)
+  AssertionError [ERR_ASSERTION]: src/screens/auth/SetupProfileScreen.tsx.verifiedTxt in light: 3.148:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/auth/SignUpScreen.tsx inspected text pairs stay readable in all three palettes (13.057442ms)
+  AssertionError [ERR_ASSERTION]: src/screens/auth/SignUpScreen.tsx.asuSub in light: 4.323:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/channels/ChannelScreen.tsx inspected text pairs stay readable in all three palettes (32.82277ms)
+  AssertionError [ERR_ASSERTION]: src/screens/channels/ChannelScreen.tsx.msgAvatarTxt in dark: 1.000:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/channels/ChannelsScreen.tsx inspected text pairs stay readable in all three palettes (16.257063ms)
+  AssertionError [ERR_ASSERTION]: src/screens/channels/ChannelsScreen.tsx.inviteTxt in light: 2.922:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/channels/CommunityScreen.tsx inspected text pairs stay readable in all three palettes (20.899744ms)
+  AssertionError [ERR_ASSERTION]: src/screens/channels/CommunityScreen.tsx.avatarTxt in dark: 1.000:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/feed/ArticleComposeScreen.tsx inspected text pairs stay readable in all three palettes (15.079673ms)
+  AssertionError [ERR_ASSERTION]: src/screens/feed/ArticleComposeScreen.tsx.linkModalCancelTxt in light: 4.308:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/feed/TrendFeedScreen.tsx inspected text pairs stay readable in all three palettes (14.40594ms)
+  AssertionError [ERR_ASSERTION]: src/screens/feed/TrendFeedScreen.tsx.headerSub in light: 3.101:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/jobs/ApplicantsScreen.tsx inspected text pairs stay readable in all three palettes (28.048698ms)
+  AssertionError [ERR_ASSERTION]: src/screens/jobs/ApplicantsScreen.tsx.errTxt in dark: 3.881:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/jobs/JobsScreen.tsx inspected text pairs stay readable in all three palettes (61.08239ms)
+  AssertionError [ERR_ASSERTION]: src/screens/jobs/JobsScreen.tsx.appDate in light: 2.438:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/messages/CallLogScreen.tsx inspected text pairs stay readable in all three palettes (15.43711ms)
+  AssertionError [ERR_ASSERTION]: src/screens/messages/CallLogScreen.tsx.emptySub in light: 3.101:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/messages/CallScreen.tsx inspected text pairs stay readable in all three palettes (20.132429ms)
+  AssertionError [ERR_ASSERTION]: src/screens/messages/CallScreen.tsx.ctrlLabel in light: 3.101:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/messages/ChatScreen.tsx inspected text pairs stay readable in all three palettes (69.305979ms)
+  AssertionError [ERR_ASSERTION]: src/screens/messages/ChatScreen.tsx.starBadgeTxt in light: 3.502:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/messages/ContextInboxScreen.tsx inspected text pairs stay readable in all three palettes (15.150049ms)
+  AssertionError [ERR_ASSERTION]: src/screens/messages/ContextInboxScreen.tsx.time in light: 1.657:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/messages/ConversationsScreen.tsx inspected text pairs stay readable in all three palettes (20.062125ms)
+  AssertionError [ERR_ASSERTION]: src/screens/messages/ConversationsScreen.tsx.archivedTxt in light: 4.393:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/messages/MessageRequestsScreen.tsx inspected text pairs stay readable in all three palettes (23.663459ms)
+  AssertionError [ERR_ASSERTION]: src/screens/messages/MessageRequestsScreen.tsx.time in light: 3.044:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/messages/SavedMessagesScreen.tsx inspected text pairs stay readable in all three palettes (15.933467ms)
+  AssertionError [ERR_ASSERTION]: src/screens/messages/SavedMessagesScreen.tsx.cardDate in light: 3.044:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/messages/StarredMessagesScreen.tsx inspected text pairs stay readable in all three palettes (13.16235ms)
+  AssertionError [ERR_ASSERTION]: src/screens/messages/StarredMessagesScreen.tsx.backLbl in light: 3.820:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/BusinessAccessScreen.tsx inspected text pairs stay readable in all three palettes (14.998271ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/BusinessAccessScreen.tsx.linkTxt in light: 4.472:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/BusinessApplyScreen.tsx inspected text pairs stay readable in all three palettes (14.163014ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/BusinessApplyScreen.tsx.lede in light: 4.394:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/BusinessManageScreen.tsx inspected text pairs stay readable in all three palettes (15.690862ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/BusinessManageScreen.tsx.errTxt in light: 3.205:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/BusinessesScreen.tsx inspected text pairs stay readable in all three palettes (14.657322ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/BusinessesScreen.tsx.avatarTxt in dark: 1.639:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/CreateBusinessScreen.tsx inspected text pairs stay readable in all three palettes (14.751199ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/CreateBusinessScreen.tsx.at in light: 1.663:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/EditProfileScreen.tsx inspected text pairs stay readable in all three palettes (15.537887ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/EditProfileScreen.tsx.bannerTxt in light: 3.205:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/FollowListScreen.tsx inspected text pairs stay readable in all three palettes (18.168287ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/FollowListScreen.tsx.followTxt in dark: 1.000:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/FollowRequestsScreen.tsx inspected text pairs stay readable in all three palettes (34.461965ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/FollowRequestsScreen.tsx.avatarFbTxt in dark: 1.007:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/LoginActivityScreen.tsx inspected text pairs stay readable in all three palettes (12.286864ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/LoginActivityScreen.tsx.btnTxt in light: 3.205:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/MonetizationScreen.tsx inspected text pairs stay readable in all three palettes (10.932127ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/MonetizationScreen.tsx.error in light: 3.373:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/MutedStoriesScreen.tsx inspected text pairs stay readable in all three palettes (10.7142ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/MutedStoriesScreen.tsx.avatarTxt in light: 4.409:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:158:72
+✖ src/screens/profile/SettingsScreen.tsx inspected text pairs stay readable in all three palettes (20.561626ms)
+  AssertionError [ERR_ASSERTION]: src/screens/profile/SettingsScreen.tsx.footerTxt in light: 1.657:1
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:169:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/components/AppLockGate.tsx subscribes to active theme and renders any status bar with current palette (1.113584ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/components/BusinessTabs.tsx subscribes to active theme and renders any status bar with current palette (3.066361ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/components/ChatImageEditor.tsx subscribes to active theme and renders any status bar with current palette (3.255695ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/components/LinkAttachSheet.tsx subscribes to active theme and renders any status bar with current palette (1.666766ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/components/MediaRenderer.tsx subscribes to active theme and renders any status bar with current palette (5.411947ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/components/PostCarousel.tsx subscribes to active theme and renders any status bar with current palette (4.922181ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/components/TrendingTopicsStrip.tsx subscribes to active theme and renders any status bar with current palette (2.071785ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/components/feed/DiscoverTile.tsx subscribes to active theme and renders any status bar with current palette (1.464653ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/channels/CommunityScreen.tsx subscribes to active theme and renders any status bar with current palette (9.11881ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/feed/ArticleComposeScreen.tsx subscribes to active theme and renders any status bar with current palette (3.096656ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/feed/TrendFeedScreen.tsx subscribes to active theme and renders any status bar with current palette (2.852209ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/messages/CallLogScreen.tsx subscribes to active theme and renders any status bar with current palette (3.87746ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/messages/CallScreen.tsx subscribes to active theme and renders any status bar with current palette (5.529454ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/messages/ContextInboxScreen.tsx subscribes to active theme and renders any status bar with current palette (2.249302ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/messages/MessageRequestsScreen.tsx subscribes to active theme and renders any status bar with current palette (2.325266ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/messages/SavedMessagesScreen.tsx subscribes to active theme and renders any status bar with current palette (1.258262ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/messages/StarredMessagesScreen.tsx subscribes to active theme and renders any status bar with current palette (1.954179ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/profile/BusinessApplyScreen.tsx subscribes to active theme and renders any status bar with current palette (2.869485ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/profile/BusinessManageScreen.tsx subscribes to active theme and renders any status bar with current palette (3.177938ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/profile/BusinessesScreen.tsx subscribes to active theme and renders any status bar with current palette (2.351415ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/profile/CreateBusinessScreen.tsx subscribes to active theme and renders any status bar with current palette (1.588869ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-theme-audit-repairs.cjs:174:113
+✖ src/screens/profile/MutedStoriesScreen.tsx subscribes to active theme and renders any status bar with current palette (1.658784ms)
+  AssertionError [ERR_ASSERTION]: palette-dependent component must subscribe to theme
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-theme-audit-repairs.cjs:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

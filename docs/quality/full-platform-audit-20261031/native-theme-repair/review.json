@@ -1,0 +1,246 @@
+{
+  "schema": 1,
+  "reviewedAt": "2026-10-31T18:43:34.575483+00:00",
+  "status": "PREPARED; local source-bound checks passed; new native device acceptance not yet performed",
+  "baseline": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "sweep": {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme/style-ancestry-sweep.json",
+      "inputSha256": "fcd665921f0f2d7c13e80b0f210f8c66e51eb67d3134fe08ef579d3845e6f53f",
+      "filesScanned": 240,
+      "factories": 127,
+      "records": 2790,
+      "failureCandidates": 424,
+      "originalNonfiniteCandidates": 18,
+      "skipped": 760
+    }
+  },
+  "source": {
+    "manifest": {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/source-manifest.json",
+      "bytes": 12549,
+      "sha256": "d4e9cb10e3cd4a8d4eb33b051812ee0a8a20a67601401c533abff22e3aa03993"
+    },
+    "productionFiles": 45,
+    "testFiles": 2,
+    "noChangesAfterFrozenGates": true,
+    "metadataDependency": {
+      "package": "expo-application",
+      "version": "7.0.8",
+      "file": "node_modules/expo-application/src/Application.ts",
+      "sha256": "813366a464143610a43146541175deb1db508bc47c23bc15bbbe082f73f6a5a3"
+    }
+  },
+  "changes": [
+    "About, Verification, Business Inbox and Campaigns now subscribe to palette changes, use readable paired text/surfaces, and render status chrome from the active theme.",
+    "About displays nativeApplicationVersion/nativeBuildVersion from installed expo-application; it shows an explicit unavailable fallback instead of inventing1.0.0(100). Version tests use controlled metadata, not a new installed binary.",
+    "Source-inspected canvas headings, empty states, timestamps, field labels, unknown/error text and fixed-button labels use readable pairs. Error roles and status backgrounds remain; data operations are unchanged.",
+    "Fixed light cards keep compatible dark ink. Channel/community role chips receive an explicit light fill where their actual parent is a fixed light card/modal, preventing the lightsOut opaque hairline from conflicting with navy text.",
+    "Selected media badges keep a dedicated fixed white/yellow-on-black-scrim pairing. Changed scrims are checked over both black and white underlying pixels; images, gradients and movie behavior are unchanged.",
+    "New theme subscriptions select only the existing palette state. No new timers, queries, cache, authentication work or navigation action was introduced."
+  ],
+  "verification": {
+    "literalBaselineNewSuite": {
+      "cases": 104,
+      "passed": 17,
+      "failed": 87,
+      "skipped": 0,
+      "sourceRoot": "/workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-2f91218e"
+    },
+    "finalCandidate": {
+      "cases": 111,
+      "passed": 111,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "breakdown": {
+        "newThemeCases": 104,
+        "existingNativeThemeInputs": 7
+      },
+      "durationMs": 3941.772737
+    },
+    "measuredColorPairs": {
+      "count": 492,
+      "minimumRatio": 4.524527411675718,
+      "scope": "Actual palette and themedSheet factories; controlled actual component renders for four core screens, actual JSX/theme-binding fragments for additional subscriptions/status bars, and inspected explicit pairs. No native pixel/font/layout acceptance."
+    },
+    "static": {
+      "typescript": {
+        "exitCode": 0,
+        "command": "./node_modules/.bin/tsc --noEmit --incremental false",
+        "log": {
+          "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/typescript.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "lint": {
+        "files": 45,
+        "beforeErrors": 0,
+        "beforeWarnings": 55,
+        "afterErrors": 0,
+        "afterWarnings": 55,
+        "newMessages": [],
+        "testMessages": []
+      },
+      "whitespace": {
+        "exitCode": 0,
+        "scope": "All47 frozen source/test/data paths"
+      },
+      "frozenInputsBeforeAfter": {
+        "count": 47,
+        "unchanged": true
+      },
+      "lineEndings": {
+        "reason": "Existing files contained mixed CRLF/LF. Only these four touched files were normalized to LF so new lines pass git diff --check. No action semantics changed.",
+        "files": [
+          {
+            "path": "src/screens/messages/CallLogScreen.tsx",
+            "baselineCRLF": 250,
+            "baselineNewlines": 251
+          },
+          {
+            "path": "src/screens/messages/ContextInboxScreen.tsx",
+            "baselineCRLF": 234,
+            "baselineNewlines": 236
+          },
+          {
+            "path": "src/screens/messages/MessageRequestsScreen.tsx",
+            "baselineCRLF": 309,
+            "baselineNewlines": 311
+          },
+          {
+            "path": "src/screens/messages/StarredMessagesScreen.tsx",
+            "baselineCRLF": 263,
+            "baselineNewlines": 275
+          }
+        ]
+      }
+    },
+    "providerBoundary": {
+      "files": 45,
+      "lexicalCalls": 659,
+      "allEqual": true,
+      "scope": "AST-extracted Supabase, LocalAuthentication and navigation/nav invocations are byte-equivalent after CRLF normalization; this is not a whole-program behavior proof."
+    }
+  },
+  "candidateClassification": {
+    "repaired": 383,
+    "unresolved-dynamic-media": 11,
+    "parser-correction": 18,
+    "ancestry-correction": 8,
+    "decorative-exclusion": 1,
+    "parent-owned-support": 3
+  },
+  "remaining": [
+    {
+      "file": "src/components/FullscreenVideo.tsx",
+      "candidateObservations": 7,
+      "status": "unresolved-dynamic-media",
+      "reason": "Controls and ripple text are over native video and transparent/translucent layers. The static nearest-root calculation cannot establish actual per-frame contrast. Existing inverse-ink/media-palette interaction still needs a dedicated visual review; no claim that this media chrome is repaired."
+    },
+    {
+      "file": "src/components/TrendingStoriesRail.tsx",
+      "candidateObservations": 4,
+      "status": "unresolved-dynamic-media",
+      "reason": "A sibling image and LinearGradient sit behind the labels. The original tile-fill comparison is insufficient; no source or pixel acceptance of those gradient-backed labels in this batch."
+    },
+    {
+      "file": "src/screens/messages/StarredMessagesScreen.tsx",
+      "candidateObservations": 1,
+      "status": "decorative-exclusion",
+      "reason": "The large decorative star has an adjacent readable No starred messages heading and explanatory text. Its color is retained; the raw low-contrast observation remains in the ledger."
+    }
+  ],
+  "auditCorrections": [
+    "18 original NaN observations came from four-digit alpha hex (#000a/#000c); the focused parser handles3/4/6/8-digit hex and rgba without treating nonfinite output as a product failure.",
+    "Eight original failures disappear after using actual opaque ancestors or ScrollView contentContainerStyle: fixed light channel/community cards, the navy email-verification success surface, the Market order modal surface and the navy call hero.",
+    "Three ContactSupport candidate observations are resolved by the parent-owned Support repair and are not attributed to this45-file batch. Ticket/Support runtime coverage stays in its separate parent receipt."
+  ],
+  "reactReview": {
+    "skill": "vercel:react-best-practices",
+    "result": "No new effect dependency, asynchronous orchestration or provider mutation introduced. useTheme subscriptions use the existing primitive palette selector; existing action callbacks are retained. Fixed media palettes are not replaced wholesale.",
+    "limitations": "Controlled render hosts do not implement native reconciliation or measure frame timing. Existing55 scoped ESLint warnings remain identical to literal2f; no suppressions/new warnings were introduced."
+  },
+  "limits": [
+    "This is a bounded theme/readability repair, not a claim that every visual state in the app has passed. The original sweep skipped760 unresolved nodes and did not cover all runtime conditions.",
+    "The383 repaired entries are repeated style/site/palette observations. They are not383 separately tapped controls.",
+    "The111-case total includes104 new cases plus7 existing cases; baseline failures and repeated intermediate runs are not added to that total.",
+    "Opaque and scrim colors are computed for resting styles. Native text rasterization, font scaling, animation, pressed opacity and varying gradient/video pixels require device visual acceptance.",
+    "No MemoryAlbumScreen, MemoryFilm, MemoryMovieExport, native flow, compiler, provider, ref or main-report edits are part of this batch."
+  ],
+  "retained": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/before-tests.txt",
+      "bytes": 94487,
+      "sha256": "c3a113cc24efb3c8794db88c190bc6771f41f543e33c7553cd4888f7d02d9f7c"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/after-tests.txt",
+      "bytes": 12766,
+      "sha256": "7d663982954a03d1a448e8aa800b20ed5e95b12fdcafc297918a0603c53cd795"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/lint-summary.txt",
+      "bytes": 149,
+      "sha256": "b7bd4ceb1874d80ff3aa6e6ef531befa31904b6c978b6ce07716b12c56dfe82f"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/lint-comparison.json",
+      "bytes": 33853,
+      "sha256": "ec47136252029da696e882d7341fb505d8aba5534a589a2edb294db6653450ca"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/provider-call-boundary.json",
+      "bytes": 13108,
+      "sha256": "a449ee696fcce809aecb1465ea070d8ed09d13de96808ea1b4ce20691b6eeb86"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/whitespace.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/classification-reproducer.cjs.txt",
+      "bytes": 2919,
+      "sha256": "fd5b178c61ee8d8f21deaa103e07ed81ddaf89c554ac8762ca04dd37bce233f6"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/measured-pairs.json.gz",
+      "bytes": 6328,
+      "sha256": "5787944ae53ad0193044105efb8842979ae9c788541bd385f3996beab6c1c064",
+      "uncompressedBytes": 128346,
+      "uncompressedSha256": "a6987c7be560b9a6efbe313d18f3ed6c59d04817365bcdc055120fa67a9243bf"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/corrected-baseline.json.gz",
+      "bytes": 14979,
+      "sha256": "582f20ab1d1c72b20185ec6c785c955d70432bee29f1f29a78057ad996997077",
+      "uncompressedBytes": 261569,
+      "uncompressedSha256": "8f58c11700c650761670e0813be14c797adff555e954a101747c6e2533ff837e"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/candidate-calculations.json.gz",
+      "bytes": 15230,
+      "sha256": "80daadd0473701900bfffd2310283dbb0219c66629db94c5e3e6623703538ebc",
+      "uncompressedBytes": 261293,
+      "uncompressedSha256": "a1208c450e2fbf35e1529ad7c587a057a78be79eb45ca98f58961532d10e7ccb"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/triage-ledger.json",
+      "bytes": 178574,
+      "sha256": "a212a1b3a66f2cdae82cfbdb70c319e0cf6ef05b5092af762eeac1ab175fcbd9"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/static-checks.json",
+      "bytes": 1457,
+      "sha256": "f0c5337733a43e03615b38a61a6fe458e6b894369c8f91c3065d894abf59bd3f"
+    }
+  ]
+}

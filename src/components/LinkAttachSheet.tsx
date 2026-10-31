@@ -5,7 +5,7 @@
  * website). Requests a server-verified preview and hands it to the composer.
  * The composer owns attaching the URL; the server owns the shared cache.
  */
-import { themedSheet } from '../theme/useTheme';
+import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, TextInput, ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from './SafeArea';
@@ -23,6 +23,7 @@ type Props = {
 };
 
 export default function LinkAttachSheet({ visible, onClose, onAttach, initialUrl, onRemove }: Props) {
+  const { t, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [url, setUrl] = useState(initialUrl || '');
   const [loading, setLoading] = useState(false);
@@ -83,12 +84,12 @@ export default function LinkAttachSheet({ visible, onClose, onAttach, initialUrl
               value={url}
               onChangeText={(t) => { requestGeneration.current++; setUrl(t); setPreview(null); setFailed(false); setLoading(false); }}
               placeholder="Paste a YouTube, TikTok or website link"
-              placeholderTextColor="rgba(11,30,61,0.35)"
+              placeholderTextColor={t.ink.muted}
               style={sh.input}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
-              keyboardAppearance="light"
+              keyboardAppearance={isDark ? "dark" : "light"}
               returnKeyType="go"
               onSubmitEditing={doPreview}
             />
@@ -133,23 +134,23 @@ const sh = themedSheet((t) => ({
   sheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 10, paddingHorizontal: 16 },
   handle: { width: 38, height: 4, borderRadius: 2, backgroundColor: 'rgba(11,30,61,0.15)', alignSelf: 'center', marginBottom: 10 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 },
-  title: { fontSize: 16, fontWeight: '800', color: NAVY },
-  cancelTxt: { fontSize: 15, color: 'rgba(11,30,61,0.55)' },
+  title: { fontSize: 16, fontWeight: '800', color: t.ink.primary },
+  cancelTxt: { fontSize: 15, color: t.ink.muted },
   doneBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 7 },
-  doneTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
+  doneTxt: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
   inputRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
-  input: { flex: 1, backgroundColor: '#F2F3F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14.5, color: NAVY },
+  input: { flex: 1, backgroundColor: t.surface.sunken, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14.5, color: t.ink.primary },
   previewBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
-  previewBtnTxt: { fontSize: 13.5, fontWeight: '700', color: t.ink.inverse },
-  hint: { fontSize: 13, color: 'rgba(11,30,61,0.5)', marginTop: 14, marginBottom: 8, textAlign: 'center' },
+  previewBtnTxt: { fontSize: 13.5, fontWeight: '700', color: '#FFFFFF' },
+  hint: { fontSize: 13, color: t.ink.muted, marginTop: 14, marginBottom: 8, textAlign: 'center' },
   card: { flexDirection: 'row', marginTop: 14, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)', overflow: 'hidden' },
   cardImg: { width: 84, height: 84, backgroundColor: '#F2F3F5' },
   cardBody: { flex: 1, padding: 10, justifyContent: 'center' },
   cardDomain: { fontSize: 10.5, fontWeight: '700', color: t.ink.muted, textTransform: 'uppercase', letterSpacing: 0.4 },
-  cardTitle: { fontSize: 14, fontWeight: '700', color: NAVY, marginTop: 2 },
-  cardDesc: { fontSize: 12, color: 'rgba(11,30,61,0.55)', marginTop: 2 },
+  cardTitle: { fontSize: 14, fontWeight: '700', color: t.ink.primary, marginTop: 2 },
+  cardDesc: { fontSize: 12, color: t.ink.muted, marginTop: 2 },
   plainBtn: { alignSelf: 'center', marginTop: 4, marginBottom: 8 },
-  plainBtnTxt: { fontSize: 13, fontWeight: '700', color: NAVY, textDecorationLine: 'underline' },
+  plainBtnTxt: { fontSize: 13, fontWeight: '700', color: t.ink.primary, textDecorationLine: 'underline' },
   removeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 16, paddingVertical: 10 },
-  removeTxt: { fontSize: 13.5, fontWeight: '600', color: '#FF453A' },
+  removeTxt: { fontSize: 13.5, fontWeight: '600', color: t.ink.primary },
 }));

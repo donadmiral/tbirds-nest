@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "recordedAtUtc": "2026-10-31T18:12:35.570301+00:00",
+  "conclusion": "Real saved-account reload and capture heading/readback assertions passed. All20 observed book/reaction bodies fulfilled. Navigation saved a title with a suffix and failed the expected cover assertion; this is distinct from authentication or reader-body failure. No source changes are proposed by this review.",
+  "source": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "artifactManifestCommit": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "artifactManifestSha256": "69f5b9e24981e1614c8c210bffa5d25bd10b707e9dd94b46923955596a1c540e",
+    "declaredOriginalSources": 501,
+    "declaredOverlays": 6,
+    "globalVerificationOwner": "native_acceptance independently completed501 originals/six overlays/nine dependency hashes with zero mismatches; this reviewer did not duplicate it.",
+    "canonicalManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/source.json",
+      "sha256": "69f5b9e24981e1614c8c210bffa5d25bd10b707e9dd94b46923955596a1c540e"
+    }
+  },
+  "artifact": {
+    "runId": 41225636296,
+    "jobId": 124609086715,
+    "artifactId": 13051109884,
+    "name": "android-full-app-ui",
+    "zipBytes": 9162115,
+    "zipSha256": "561fc2c24092c98ce327763f87e1bc995b94ab0b82cdf9ca808b614958395eaa",
+    "downloadVerification": "Native owner supplied one checksum-verified extraction; no duplicate download/provider call."
+  },
+  "auth": {
+    "mode": "synthetic-native-auth-timing",
+    "totalOperations": 442,
+    "retainedEvents": 1024,
+    "representedOperationIds": 373,
+    "droppedEvents": 204,
+    "droppedTracking": 0,
+    "wallClockOriginUtc": "2026-10-31T17:58:11.940000+00:00",
+    "snapshotUtcEstimate": "2026-10-31T18:01:42.683226+00:00",
+    "retainedWindowUtcEstimates": [
+      [
+        "2026-10-31T17:58:11.940013+00:00",
+        "2026-10-31T17:58:56.601184+00:00"
+      ],
+      [
+        "2026-10-31T18:00:12.091255+00:00",
+        "2026-10-31T18:01:42.479498+00:00"
+      ]
+    ],
+    "maxRetainedWaitMs": 502.33899999999994,
+    "maxRetainedHoldMs": 516.6029999999992,
+    "maxRetainedStorageMs": 185.47299999999814,
+    "retainedRejectedOrTimedOutEvents": [],
+    "finalActiveLocks": [],
+    "finalWaitingLocks": [],
+    "finalActiveStorage": [],
+    "timerApiIdentityCount": 2,
+    "timerApiIdentityLimitReached": false,
+    "observedDescriptors": {
+      "clearTimeout": {
+        "id": 2,
+        "kind": "function"
+      },
+      "setTimeout": {
+        "id": 1,
+        "kind": "function"
+      }
+    },
+    "limitations": [
+      "204 middle events were evicted. Retained maxima are not maxima for every operation; early book/navigation interval17:58:56.601–18:00:12.091 lacks retained middle telemetry.",
+      "Function identity observation does not prove native timer-registry lifecycle.",
+      "QA observer adds microtasks/file writes; timing is diagnostic and not uninstrumented production performance.",
+      "Monotonic-clock offset plus a single wall-clock anchor is not independently calibrated to Maestro/host clocks."
+    ]
+  },
+  "reader": {
+    "totalResponses": 20,
+    "byKind": {
+      "book": 18,
+      "reactions": 2
+    },
+    "allStatus200": true,
+    "allBodyObservedAndFulfilled": true,
+    "bodyPromiseDurationRangeMs": [
+      0,
+      1
+    ],
+    "droppedBoundaries": 0,
+    "limit": "Synthetic HTTP response text-promise settlement only; does not measure hosted fetch, JSON parse, hydration or visual commit."
+  },
+  "captureAndAccount": {
+    "events": [
+      {
+        "sequence": 1,
+        "phase": "received",
+        "atUnixMs": 1793469666425,
+        "matched": true,
+        "utc": "2026-10-31T18:01:06.425000+00:00"
+      },
+      {
+        "sequence": 2,
+        "phase": "parsed",
+        "atUnixMs": 1793469666428,
+        "matched": true,
+        "expectedPath": true,
+        "utc": "2026-10-31T18:01:06.428000+00:00"
+      },
+      {
+        "sequence": 3,
+        "phase": "action-produced",
+        "atUnixMs": 1793469666428,
+        "matched": true,
+        "reset": true,
+        "utc": "2026-10-31T18:01:06.428000+00:00"
+      },
+      {
+        "sequence": 4,
+        "phase": "mounted",
+        "atUnixMs": 1793469666504,
+        "utc": "2026-10-31T18:01:06.504000+00:00"
+      },
+      {
+        "sequence": 5,
+        "phase": "readback-start",
+        "atUnixMs": 1793469666504,
+        "utc": "2026-10-31T18:01:06.504000+00:00"
+      },
+      {
+        "sequence": 6,
+        "phase": "readback-complete",
+        "atUnixMs": 1793469666596,
+        "fulfilled": true,
+        "passed": true,
+        "utc": "2026-10-31T18:01:06.596000+00:00"
+      }
+    ],
+    "accountReadbacks": [
+      {
+        "passed": true,
+        "reloaded": true,
+        "accountCount": 1
+      }
+    ],
+    "boundaryDrops": 0,
+    "receivedToReadbackCompleteMs": 171,
+    "readbackDurationMs": 92,
+    "nativeLogCorroboration": "app.log line17656 at18:01:06.593 records production accountsStore.init with one stored account, inside the observed18:01:06.504–06.596 readback window.",
+    "uiAssertions": [
+      {
+        "flow": "capture",
+        "status": "COMPLETED",
+        "startUtc": "2026-10-31T18:01:07.680000+00:00",
+        "durationMs": 116,
+        "endUtc": "2026-10-31T18:01:07.796000+00:00",
+        "command": {
+          "assertConditionCommand": {
+            "condition": {
+              "visible": {
+                "textRegex": "Native capture acceptance",
+                "optional": false
+              }
+            },
+            "timeout": "30000",
+            "optional": false
+          }
+        }
+      },
+      {
+        "flow": "capture",
+        "status": "COMPLETED",
+        "startUtc": "2026-10-31T18:01:07.797000+00:00",
+        "durationMs": 84,
+        "endUtc": "2026-10-31T18:01:07.881000+00:00",
+        "command": {
+          "assertConditionCommand": {
+            "condition": {
+              "visible": {
+                "textRegex": "Saved account readback passed",
+                "optional": false
+              }
+            },
+            "timeout": "15000",
+            "optional": false
+          }
+        }
+      },
+      {
+        "flow": "capture",
+        "status": "COMPLETED",
+        "startUtc": "2026-10-31T18:01:24.589000+00:00",
+        "durationMs": 18641,
+        "endUtc": "2026-10-31T18:01:43.230000+00:00",
+        "command": {
+          "assertConditionCommand": {
+            "condition": {
+              "visible": {
+                "textRegex": "Save movie to Photos",
+                "optional": false
+              }
+            },
+            "timeout": "180000",
+            "optional": false
+          }
+        }
+      }
+    ],
+    "limit": "Actual Android-emulator SecureStore reload under synthetic authenticated owner. Does not establish physical device, real-provider multi-account/session-switch behavior or Apple signing."
+  },
+  "navigationBoundary": {
+    "expectedTitle": "THE LONG WAY HOME",
+    "savedAndReadBackTitle": "THE LONG WAY HOMEENTURES",
+    "creativeRevision": 1,
+    "evidence": "auth-reader-capture-projection.json",
+    "interpretation": "The fixture persisted and returned the submitted suffix. This corroborates cover assertion mismatch and does not establish whether automation erasure/selection or production input handling created it.",
+    "visualOwnerReceipt": "docs/quality/native-full-app-20261031/android-2f91218e-navigation-independent-review.json",
+    "visualReceiptExists": true,
+    "visualReceiptSha256": "c1a94ab83449d8bd51f33a2b4f5a0850585772620c8e7124c4e76a7589b0da1a"
+  },
+  "warnings": {
+    "nativeEventEmitterMissingListenerWarnings": 4,
+    "expoAvDeprecationWarnings": 1,
+    "severity": "warning-only; no corresponding functional failure isolated in this review",
+    "evidence": "android-2f91218e/auth-log-projection.json"
+  },
+  "rawMappings": {
+    "native-ui-auth-diagnostics.json": {
+      "bytes": 193230,
+      "sha256": "5646423b6981030e45af555d00cae7ba7ef8767d486620ebc1d7c97af9150873",
+      "retainedPath": "docs/quality/native-full-app-20261031/android-2f91218e/native-ui-auth-diagnostics-final.json"
+    },
+    "native-ui-auth-diagnostics-final.json": {
+      "bytes": 193230,
+      "sha256": "5646423b6981030e45af555d00cae7ba7ef8767d486620ebc1d7c97af9150873",
+      "retainedPath": "docs/quality/native-full-app-20261031/android-2f91218e/native-ui-auth-diagnostics-final.json"
+    },
+    "native-ui-receipt.json": {
+      "bytes": 37277,
+      "sha256": "4e9250a7d71a4fab8fa0fe97ea5abe0e657acd092f56493dd34d9bed89203769",
+      "retainedPath": "docs/quality/native-full-app-20261031/android-2f91218e/native-ui-receipt.json"
+    },
+    "native-ui-receipt-final.json": {
+      "bytes": 37366,
+      "sha256": "73bf2948faaa455feff569f8a7a7920e592117cf136a7b94fc533aa212c98d3f",
+      "retainedPath": "docs/quality/native-full-app-20261031/android-2f91218e/native-ui-receipt-final.json"
+    }
+  },
+  "retainedFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/native-ui-auth-diagnostics-final.json",
+      "bytes": 193230,
+      "sha256": "5646423b6981030e45af555d00cae7ba7ef8767d486620ebc1d7c97af9150873"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/native-ui-receipt.json",
+      "bytes": 37277,
+      "sha256": "4e9250a7d71a4fab8fa0fe97ea5abe0e657acd092f56493dd34d9bed89203769"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/native-ui-receipt-final.json",
+      "bytes": 37366,
+      "sha256": "73bf2948faaa455feff569f8a7a7920e592117cf136a7b94fc533aa212c98d3f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/auth-log-projection.json",
+      "bytes": 2666,
+      "sha256": "f0d6fffefdccbf745a18dfa91b034f8c7ba724ed64198ba3a414ebf7779e545f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/auth-reader-capture-projection.json",
+      "bytes": 15929,
+      "sha256": "1065022b1f5f814ce05ab776041d0ba7481c495ece2a333db17b817c49816900"
+    }
+  ],
+  "acceptanceBoundary": "Capture JUnit is SUCCESS; navigation JUnit is FAILURE. Native owner separately validates full flow/source/renderer/media/decoder. No all-app acceptance claim."
+}

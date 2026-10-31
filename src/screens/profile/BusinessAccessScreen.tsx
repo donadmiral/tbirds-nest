@@ -207,7 +207,7 @@ const s = themedSheet(t => ({
   dangerTxt: { color: t.status.danger, fontSize: 13, fontWeight: '600' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   linkBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingVertical: 12, alignSelf: 'flex-start' },
-  linkTxt: { color: t.status.link, fontSize: 14, fontWeight: '600' },
+  linkTxt: { color: t.ink.primary, fontSize: 14, fontWeight: '600' },
   badge: { color: t.ink.secondary, backgroundColor: t.surface.sunken, fontSize: 11, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 7 },
   log: { borderBottomWidth: 1, borderBottomColor: t.surface.hairline, paddingVertical: 12 },
   disabled: { opacity: 0.45 },

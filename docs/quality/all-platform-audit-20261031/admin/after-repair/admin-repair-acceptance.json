@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T18:28:08.838573+00:00",
+  "scope": "Seven authorized admin findings; local candidate only. No provider writes, migrations, branch/ref mutation or production deployment.",
+  "base": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce"
+  },
+  "preservedBaseline": {
+    "path": "docs/quality/all-platform-audit-20261031/admin/admin-ledger.json",
+    "sha256": "a6ca26c287c7d6e3137fdd131ae1b4ddbab455bd486cf094f7787bf89edd81af",
+    "modified": false
+  },
+  "source": {
+    "admin-web/app/jobs/page.tsx": "eab6014e14db8d070bff3ec13ef02d3bdcc9688e3904355e08b7589ab7bc80c1",
+    "admin-web/app/calls/page.tsx": "bc97b18c9c79e0aa5f2cea352c1436cc623a54c39f50f6d905d7cfeb5b4857f9",
+    "admin-web/app/stories/page.tsx": "686eecff32ea85039d4b0c04169edfc04e741a78d0403fcd2d8ce84e68aee156",
+    "admin-web/app/queue/page.tsx": "674766c288781a8e1c859fcbf41026ae1b100636a344b17cefa07bc7e0183aff",
+    "admin-web/app/support/[tid]/page.tsx": "dc1cf1129269b4b9cf3983f6235d58a170ff2332ba73bb99af61a8ed73d39ccb",
+    "admin-web/components/RecordPages.tsx": "40b554245baee5de8c4303810707036e042229cbe400eb71f6f4165b59487aeb",
+    "admin-web/lib/deskReporting.ts": "fd3943d16c8d6c658518e0bfed4003b69bf203f71e4d0dc7084bf89ef4f9efd2"
+  },
+  "testsAndFixtures": {
+    "admin-web/tests/desk-reporting.cjs": "f368e3a4c50d28e3dc22fe2eafe4cffffc0b87b1438c30ebd0877ee9006b3600",
+    "admin-web/tests/helpers/reportingFixture.cjs": "51b7776a6675520c2eef578366fdb1c79165a9a6651f55b2836602ec8584000b",
+    "admin-web/tests/helpers/reportingData.cjs": "246eaff929ef75ca0e512d847e92c038ddb257b65b1479e3f6b1d00beacaea4c",
+    "admin-web/tests/browser/reporting-compile.cjs": "2393f7ecd9088439d5a5aeca2d9bc26bd2d9015e4f2ddd8b344187d7916ee767",
+    "admin-web/tests/browser/reporting-fixture.tsx": "8b8d84f6292fdeab97ad373828d5fe769479cb97cb6f3141bf465db06e7bd70c",
+    "admin-web/tests/browser/reporting-router.tsx": "956d4f669c7e14f137d2f49454c34c5ce18460fd01e5e6716e70538fcee46e38",
+    "admin-web/tests/browser/reporting-run.cjs": "baf0fdf22aea495c2bd8c4d7b0e1f97410f094d35e300479e51f8c17f606f39f"
+  },
+  "findings": [
+    {
+      "id": "ADM-001",
+      "change": "Exact all/current-week/previous-week/30-day HEAD counts; stable 25-row server pages; all-title literal server search and exact filtered count; fully written count labels; current-page company/remote/location/type scope.",
+      "proof": [
+        "10,030 roles and 10,025 current-week records counted despite API max_rows=1000",
+        "Second/last pages and older title matches beyond old 300-row window",
+        "Literal regex/LIKE punctuation, query reset/preservation, missing/error metadata",
+        "Actual search/clear/page/filter controls at desktop and 390/360px"
+      ],
+      "status": "repaired-and-locally-verified; parent review/publication pending"
+    },
+    {
+      "id": "ADM-002",
+      "change": "Exact all/current-week/previous-week/live HEAD counts; 25-row history pages; duration/answer-rate/type/status/time charts explicitly describe the displayed page.",
+      "proof": [
+        "1,401 sessions including a ringing session beyond old 400-row window",
+        "Actual next-page link loads rows26\u201350",
+        "No report rendered after missing count/required row failure"
+      ],
+      "status": "repaired-and-locally-verified; parent review/publication pending"
+    },
+    {
+      "id": "ADM-003",
+      "change": "Exact retained/live HEAD counts; 25-row stable story pages; view/poster/chart scope states current page; recent removals explicitly limited to latest six.",
+      "proof": [
+        "1,201 retained/live records count exactly",
+        "Second-page body contains25 records and actual next-page link operates"
+      ],
+      "status": "repaired-and-locally-verified; parent review/publication pending"
+    },
+    {
+      "id": "ADM-004",
+      "change": "Expired in the last24hours is based only on expiry timestamp, lower exclusive and now inclusive; live remains expires_at>now.",
+      "proof": [
+        "Old-created/recent-expired story included",
+        "Recent-created/old-expired excluded; exact lower excluded/upper included; no creation-date filter"
+      ],
+      "status": "repaired-and-locally-verified; parent review/publication pending"
+    },
+    {
+      "id": "ADM-005",
+      "change": "Exact all/status/pending totals plus 25 oldest pending applications per stable server page; latest60 decision median clearly labeled; related reads restricted to loaded IDs.",
+      "proof": [
+        "1,001 pending applications counted exactly; second page contains25 records",
+        "Actual next-page control changes applicant data",
+        "Latest60 decisions scope verified while approved/rejected/all counts remain exact"
+      ],
+      "status": "repaired-and-locally-verified; parent review/publication pending"
+    },
+    {
+      "id": "ADM-006",
+      "change": "At most four concurrent applicant safety HEAD requests and at most25 distinct pending applicants per page; missing/invalid/error counts stop rendering review actions; incomplete capped referral data fails explicitly.",
+      "proof": [
+        "Controlled asynchronous reads measured peak4 and25 total requests",
+        "Positive strike1 and true zero0 retained",
+        "Missing safety count/provider failure fail closed; no new tasks after first failure",
+        "1,001 referral rows with1000 cap reject incomplete evidence"
+      ],
+      "status": "repaired-and-locally-verified; parent review/publication pending"
+    },
+    {
+      "id": "ADM-007",
+      "change": "Owner label/select constrained to available width, preserving full staff option values and existing assignment action.",
+      "proof": [
+        "Actual Workspace/Tailwind browser controls at390 and360px",
+        "Document widths390/360; selector widths316/286, both44px tall",
+        "Full selected UUID reached the actual support triage action and synthetic RPC; confirmation shown"
+      ],
+      "status": "repaired-and-locally-verified; parent review/publication pending"
+    }
+  ],
+  "validation": {
+    "actualPageRegression": {
+      "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/desk-reporting.cjs",
+      "workingDirectory": "admin-web",
+      "beforeLiteral2fPages": {
+        "tests": 30,
+        "pass": 10,
+        "fail": 20,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 1199.659427
+      },
+      "after": {
+        "tests": 30,
+        "pass": 30,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 1469.133026
+      },
+      "beforeMethod": "Process-local fs preloader supplies exact git show2f page bytes for the four report pages and Support only; no checkout mutation. Same final test/helper bytes. Twenty failing assertions are cases, not twenty distinct product findings.",
+      "coverage": "Actual server pages/helpers/Auth/session/permissions, serviceClient wrapper and installed Supabase SDK; synthetic controlled HTTP; PostgREST filtering/row cap simulated. Client components named leaves."
+    },
+    "allAdminNode": {
+      "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/*.cjs",
+      "workingDirectory": "admin-web",
+      "tests": 225,
+      "pass": 225,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 11515.080091,
+      "counting": "225 unique formal cases:195 existing+30 new. Independent/focused reruns not added."
+    },
+    "actualPageBrowser": {
+      "command": "PLATINUM_CHROMIUM=<available Chrome executable> node tests/browser/reporting-run.cjs",
+      "buildCommand": "node tests/browser/reporting-compile.cjs",
+      "workingDirectory": "admin-web",
+      "runtime": "153.0.8010.12",
+      "tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "pageErrors": [],
+      "pageRequests": 20,
+      "actionSubmissions": 2,
+      "uniqueActionNames": [
+        "updateSupportTriage"
+      ],
+      "receipt": "browser/reporting-browser.json",
+      "restrictedAttempt": "Initial loopback listen rejected with EPERM before any browser case; same-source subprocess-enabled authorized run passed. Assertions unchanged."
+    },
+    "typeScript": {
+      "command": "./node_modules/.bin/tsc --noEmit --incremental false",
+      "workingDirectory": "admin-web",
+      "exitCode": 0,
+      "log": "typescript.txt"
+    },
+    "scopedLint": {
+      "workingDirectory": "admin-web",
+      "paths": [
+        "admin-web/app/jobs/page.tsx",
+        "admin-web/app/calls/page.tsx",
+        "admin-web/app/stories/page.tsx",
+        "admin-web/app/queue/page.tsx",
+        "admin-web/app/support/[tid]/page.tsx",
+        "admin-web/components/RecordPages.tsx",
+        "admin-web/lib/deskReporting.ts",
+        "admin-web/tests/desk-reporting.cjs",
+        "admin-web/tests/helpers/reportingFixture.cjs",
+        "admin-web/tests/helpers/reportingData.cjs",
+        "admin-web/tests/browser/reporting-compile.cjs",
+        "admin-web/tests/browser/reporting-fixture.tsx",
+        "admin-web/tests/browser/reporting-router.tsx",
+        "admin-web/tests/browser/reporting-run.cjs"
+      ],
+      "exitCode": 0,
+      "warnings": 0,
+      "errors": 0,
+      "log": "eslint.txt"
+    },
+    "whitespace": {
+      "command": "git diff --check -- admin-web",
+      "exitCode": 0
+    },
+    "ciRegistration": {
+      "node": "New tests/desk-reporting.cjs is selected by existing Type/quality tests/*.cjs glob.",
+      "browser": "New real-page12-case runner executed locally; existing browser-quality37generic-component gate is unchanged. Parent may add runner registration in coordinated CI batch."
+    }
+  },
+  "design": {
+    "pageSize": 25,
+    "applicantSafetyConcurrency": 4,
+    "jobTitleSearch": "Trimmed to120characters; fixed title column, escaped PostgreSQL regex via supported imatch operator, same filter for exact count and bounded rows; query parameters URL-encoded by installed SDK. New GET form omits page. imatch avoids PostgREST LIKE asterisk-to-percent alias.",
+    "ordering": {
+      "jobsCallsStories": "created_at DESC,id DESC",
+      "pendingVerification": "created_at ASC,id ASC; vouches reorder only the current page"
+    },
+    "displayedCounts": "Exact integers, including above10,000; no compact rounding of global/pagination totals.",
+    "readFailure": "Missing/negative/nonfinite/noninteger/error counts throw; never use page size/missing value aszero. Required row errors propagate through the existing error boundary.",
+    "expiryWindow": "now-24h < expires_at <= now, consistent with live expires_at>now. This explicitly chooses the boundary orientation rather than retaining the draft baseline proposal."
+  },
+  "references": [
+    {
+      "url": "https://supabase.com/docs/reference/javascript/select",
+      "supports": "Exact HEAD counts without fetching all records"
+    },
+    {
+      "url": "https://supabase.com/docs/reference/javascript/range",
+      "supports": "Zero-based inclusive bounded ranges and deterministic ordering"
+    },
+    {
+      "url": "https://docs.postgrest.org/en/stable/references/api/tables_views.html",
+      "supports": "LIKE wildcard alias and supported imatch PostgreSQL ~* operator"
+    }
+  ],
+  "limits": [
+    "No hosted authenticated staff-page or provider-write acceptance; current login wall remains.",
+    "Browser uses actual pages/client consumers/Workspace/CSS with explicit local Shell/navigation/error-boundary/action transport adapters; full Next RSC/proxy/streaming semantics remain separate.",
+    "PostgREST transport fixture and JavaScript literal matching do not establish deployed SQL plans, collation, indexes or latency. Exact counts/search run server-side; no unbounded all-record payload fetch.",
+    "Separate HEAD and page reads are not a single transactional snapshot; concurrent data changes can require refresh.",
+    "Offset paging has stable tie ordering but does not freeze a mutable dataset across requests.",
+    "More than1,000 referrals for one25-application page fails with unavailable evidence instead of rendering incomplete vouch data; no new aggregate backend contract is activated.",
+    "A positive controlled triage RPC receipt verifies submitted form/actor payload, not a hosted assignment mutation.",
+    "The first-pass283-binding coverage denominator is unchanged. These regressions do not convert all actions/routes/bindings to accepted.",
+    "Backendstage4 unresolved original requests and other parent-owned platform findings remain outside this repair."
+  ],
+  "retainedEvidence": {
+    "admin-all-after.tap": {
+      "bytes": 52357,
+      "sha256": "6de364c60e96b97518521751a1c17b7150e2952b7a58734de6a127a3193e39ca"
+    },
+    "browser/jobs-360.png": {
+      "bytes": 260886,
+      "sha256": "d188b69990db9be33b4a9e1211934473c373b7cddd408280ee7048c8cf146793"
+    },
+    "browser/jobs-390.png": {
+      "bytes": 265329,
+      "sha256": "9592da550cc4dca6c2592181b0f6edcee8e895a35f9392afdc89e4fb945cea5d"
+    },
+    "browser/reporting-browser.json": {
+      "bytes": 200099,
+      "sha256": "f3327354e175f68ee56a2022555ea244b544207e4ad006b04d1b11fa44eaefef"
+    },
+    "browser/support-360.png": {
+      "bytes": 75429,
+      "sha256": "ed09705c097a8d865e9d33dae3fd6dfd841e006e0bac189a57c91f40502eb0c2"
+    },
+    "browser/support-390.png": {
+      "bytes": 76896,
+      "sha256": "51519a2645f8bd7b78560d471653962e510d19c645539035e544891c257b7788"
+    },
+    "browser-build.txt": {
+      "bytes": 77,
+      "sha256": "a5dce9ed8ac28fa1d0db82fada00ee468c9a391aeb41612f756ef49b6d4eebb9"
+    },
+    "browser-run.jsonl": {
+      "bytes": 1532,
+      "sha256": "211e4f6a22bac3fbd0247fb0555a14a3dd8bb75787dfdbfe44091330afab4cd5"
+    },
+    "eslint.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "server-after.tap": {
+      "bytes": 6591,
+      "sha256": "aa9d5effac22eaba7ace6cc4702819c080b2357d6f5a1bb13479e8ea51191256"
+    },
+    "server-before.tap": {
+      "bytes": 18789,
+      "sha256": "f261f26465860730b3fbca921bd11696ecac8348998b05ac0f5a589f56e2e4b1"
+    },
+    "typescript.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

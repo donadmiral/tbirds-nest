@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit FollowRequests
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: settings-followrequests
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Follow requests"
+    timeout: 15000
+- takeScreenshot: settings-followrequests

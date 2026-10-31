@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-31T18:53:06.213480+00:00",
+  "status": "Accepted for the coordinated candidate; no remaining source-review blocker. Native application, encoder and semantic selection execution remain pending.",
+  "reviewer": "Independent navigation/performance lane",
+  "ownerReceipt": {
+    "path": "docs/quality/native-full-app-20261031/native-memory-export-repair.json",
+    "sha256": "26357b68459abe80f60c6d040222bc4a62797df0aaf4a014327111be4c1cb014"
+  },
+  "sourceManifest": {
+    "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/source-manifest.json",
+    "sha256": "e4bb6c21c2e33853f10454aa15b87103f452e63f35e108abb0bc04a467f9f762",
+    "filesVerified": 18,
+    "unchangedAfterIndependentRun": true
+  },
+  "reviewedChanges": [
+    {
+      "area": "Dependency graph and Expo API compatibility",
+      "findings": [
+        "Production module and standalone encoder select the same three direct Media3 1.11.1 dependencies. The resolved graph verifier checks every resolved androidx.media3 component, requires common/effect/transformer/exoplayer, and rejects any mismatched version. No force/exclusion rule hides an incompatible component.",
+        "The Expo 3.0.16 config plugin is Android-only. It requires the exact original or adapted SHA-256, exactly one occurrence of each reviewed signature, and the exact resulting SHA-256. Only PlayerId arguments are added to getAllocator and shouldContinuePreloading; reversing those substitutions reproduces the complete original Java class.",
+        "Independent disposable-package tests execute the plugin action, test idempotence and unchanged iOS registration, and reject unknown package versions/source modifications. Owner retained actual Java counterfactual and production/complete instrumentation Kotlin compile evidence hashes were verified without duplicating those compilations."
+      ],
+      "limit": "The checked Gradle configuration is debugRuntimeClasspath in the native compile/standalone encoder gates. Full UI builds assembleRelease; this review does not claim a fresh release-graph receipt or complete application compilation."
+    },
+    {
+      "area": "Real B-frame regression",
+      "findings": [
+        "Independently decoded all 90 packet metadata records from the exact fixture with FFprobe and verified presentation timestamps/keyframe flags against the checked-in method fixture. Asset SHA is bound.",
+        "All three retained upstream full-file SHA-256 values and exact method text match the fixture. The Java regression executes those method bodies with explicit surrounding stream/format doubles and four clip ranges/two reorder bounds. It reproduces 42 versus 45 retained frames and the exact 1.900/1.933333/1.966667-second missing packets.",
+        "The actual Android instrumentation adds the same input as an asset, asserts real reordered packets and three tail B-frames, requires 45 output video-page frames and a <=40 ms transition gap, and decodes late-video/next-page colors. Existing duration/audio/pixel/lifecycle expectations remain."
+      ],
+      "limit": "Method execution and successful owner compilation do not establish native codec output. The new instrumented case is not yet executed on this candidate."
+    },
+    {
+      "area": "Decoder semantics and negative cases",
+      "findings": [
+        "Display-size acceptance requires square pixels, at most one exact right-angle matrix, no rotate tag ambiguity, and an actual unscaled FFmpeg PNG decode of 720x1280. Scaling/shear/mirror/translation/ambiguous matrices and wrong decoded size are rejected.",
+        "Per-channel audio measurement explicitly selects the original output channel before mono analysis and independently checks the source fixture. It avoids correlated stereo downmix amplification without changing selected-volume limits. Both channels must meet the original signal/score/leak thresholds.",
+        "Cadence still requires at least 27 fps, strictly increasing finite timestamps, a maximum gap strictly below 100 ms and the original tail constraint. The retained baseline remains failed at its actual 133.333 ms gap. Sixteen nested Python cases include exact baseline-gap and wrong-volume/channel/geometry negatives."
+      ],
+      "thresholds": {
+        "minimumFramesPerSecond": 27,
+        "maximumGapStrictSeconds": 0.1,
+        "toneRangeExclusive": [
+          0.07,
+          0.13
+        ],
+        "scoreRmsMinimumExclusive": 0.001,
+        "toneLeakMaximumExclusive": 0.004
+      }
+    },
+    {
+      "area": "Title edit and capability gates",
+      "findings": [
+        "The original failed title remains THE LONG WAY HOMEENTURES in the retained baseline; the controlled component/save test reproduces that suffix without claiming the failed run retained a caret position. Production title/save source is unchanged.",
+        "Both applicable flows require semantic longPress/Select All, delete the selected range once, type the intended title and compare copied field text exactly before Save. The persisted/reopened cover assertion remains required. No coordinate tap, timeout extension or skipped assertion is introduced.",
+        "Android and iOS production memoryMovieVersion constants remain exactly 0; the existing QA overlay behavior is unchanged."
+      ],
+      "limit": "Long-press selection and copied TextInput value must still succeed in real Maestro on both operating systems. Controlled-source tests do not establish native menu/accessibility behavior."
+    }
+  ],
+  "validation": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-media3-compatibility.cjs tests/quality/native-memory-decoder-measurements.cjs tests/quality/native-memory-bframe-clipping.cjs tests/quality/native-memory-title-edit.cjs",
+    "formalTests": 11,
+    "formalPass": 11,
+    "formalFail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 1373.677328,
+    "nestedPythonCases": 16,
+    "existingDiagnosticGroupRerun": false,
+    "ownerEvidenceHashesVerified": 13,
+    "inputPacketMetadataVerified": 90
+  },
+  "evidence": {
+    "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/independent-focused.tap",
+    "bytes": 3214,
+    "sha256": "76c596586a749543d2e52b30d6e2155d21bd1da43e4835be2fdcb0b24a60430b"
+  },
+  "primarySourceBindings": [
+    {
+      "method": "oldClipping",
+      "version": "1.8.1",
+      "commit": "95ded8583289646a04488f2bf4fc5c8258f33289",
+      "sourceUrl": "https://github.com/androidx/media/blob/95ded8583289646a04488f2bf4fc5c8258f33289/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/source/ClippingMediaPeriod.java",
+      "sourceSha256": "340cf0b47b57fca8e92fc0128354e5fa3673ad7892b5ab9f31efb8bafc159058",
+      "license": "Apache-2.0"
+    },
+    {
+      "method": "queue",
+      "version": "1.11.1",
+      "commit": "8c6678b657ede1e7883fc164ef73ed483c7796c3",
+      "sourceUrl": "https://github.com/androidx/media/blob/8c6678b657ede1e7883fc164ef73ed483c7796c3/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/source/SampleQueue.java",
+      "sourceSha256": "48563ff642c14b7a2fab4ea2014bc57a1c99352497feedc2e592840f598a5f0d",
+      "license": "Apache-2.0"
+    },
+    {
+      "method": "renderer",
+      "version": "1.11.1",
+      "commit": "8c6678b657ede1e7883fc164ef73ed483c7796c3",
+      "sourceUrl": "https://github.com/androidx/media/blob/8c6678b657ede1e7883fc164ef73ed483c7796c3/libraries/transformer/src/main/java/androidx/media3/transformer/ExoAssetLoaderVideoRenderer.java",
+      "sourceSha256": "55f701baf88075b0b421cdbf3587c2e67a19809dfbfb6c1122a96b05574e994b",
+      "license": "Apache-2.0"
+    }
+  ],
+  "sourceRetrievalLimit": "Independent review used complete retained primary-source files and matching hashes; web retrieval of two upstream commit pages was unavailable. No new remote-source or provider acceptance is claimed.",
+  "productionCapabilities": {
+    "androidMemoryMovieVersion": 0,
+    "iosMemoryMovieVersion": 0
+  },
+  "sourceEditsByReviewer": [],
+  "remainingGates": [
+    "Actual complete native app graph/compile and Expo playback compatibility",
+    "Native B-frame encode and unchanged decoder thresholds on newly returned UI movie",
+    "Exact semantic title replacement and persisted cover on both OSes",
+    "Remaining comprehensive audit failures and unvisited actions remain open"
+  ]
+}

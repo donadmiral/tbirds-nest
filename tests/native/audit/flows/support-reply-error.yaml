@@ -1,0 +1,31 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit reply failure preserves retry
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: support-reply-error
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Audit support question"
+    timeout: 15000
+
+- tapOn: Write a reply
+- inputText: Please retain this draft after failure.
+- tapOn: Send
+- assertVisible: Reply not confirmed
+- tapOn: OK
+- assertVisible: Please retain this draft after failure.
+- assertVisible: Send
+- takeScreenshot: support-reply-error

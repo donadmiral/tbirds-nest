@@ -1,0 +1,174 @@
+TAP version 13
+# Subtest: actual fullscreen labels and controls retain contrast over bright/dark/colored media in light
+not ok 1 - actual fullscreen labels and controls retain contrast over bright/dark/colored media in light
+  ---
+  duration_ms: 39.636788
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:56:3'
+  failureType: 'testCodeFailure'
+  error: 'light skip label: 1.0000 < 4.5'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    checkPair (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:53:3)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:58:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.start (node:internal/test_runner/test:1262:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: actual story labels have a bounded backdrop in light
+not ok 2 - actual story labels have a bounded backdrop in light
+  ---
+  duration_ms: 12.314198
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:67:3'
+  failureType: 'testCodeFailure'
+  error: 'light story name: 1.0000 < 4.5'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    checkPair (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:53:3)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:69:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: actual fullscreen labels and controls retain contrast over bright/dark/colored media in dark
+not ok 3 - actual fullscreen labels and controls retain contrast over bright/dark/colored media in dark
+  ---
+  duration_ms: 10.54777
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:56:3'
+  failureType: 'testCodeFailure'
+  error: 'dark skip label: 1.0252 < 4.5'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    checkPair (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:53:3)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:58:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual story labels have a bounded backdrop in dark
+not ok 4 - actual story labels have a bounded backdrop in dark
+  ---
+  duration_ms: 8.901243
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:67:3'
+  failureType: 'testCodeFailure'
+  error: 'dark story name: 1.0019 < 4.5'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    checkPair (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:53:3)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:69:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual fullscreen labels and controls retain contrast over bright/dark/colored media in lightsOut
+not ok 5 - actual fullscreen labels and controls retain contrast over bright/dark/colored media in lightsOut
+  ---
+  duration_ms: 11.117407
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:56:3'
+  failureType: 'testCodeFailure'
+  error: 'lightsOut skip label: 1.0051 < 4.5'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    checkPair (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:53:3)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:58:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual story labels have a bounded backdrop in lightsOut
+not ok 6 - actual story labels have a bounded backdrop in lightsOut
+  ---
+  duration_ms: 12.942799
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:67:3'
+  failureType: 'testCodeFailure'
+  error: 'lightsOut story name: 1.0012 < 4.5'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    checkPair (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:53:3)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:69:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual TierName can inherit readable media text while retaining its normal verification colors elsewhere
+not ok 7 - actual TierName can inherit readable media text while retaining its normal verification colors elsewhere
+  ---
+  duration_ms: 13.18703
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:73:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    public_figure
+    + actual - expected
+    
+    + '#1D7A38'
+    - '#FFFFFF'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '#FFFFFF'
+  actual: '#1D7A38'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-media-chrome-contrast.cjs:80:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 0
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 406.437918

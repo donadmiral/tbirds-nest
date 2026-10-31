@@ -1,0 +1,325 @@
+TAP version 13
+# Subtest: signIn: verified native session persists only secure session cookies and redirects to the dashboard
+ok 1 - signIn: verified native session persists only secure session cookies and redirects to the dashboard
+  ---
+  duration_ms: 217.907589
+  type: 'test'
+  ...
+# Subtest: signIn: credential rejection and provider outage have distinct safe errors without persisting a login
+ok 2 - signIn: credential rejection and provider outage have distinct safe errors without persisting a login
+  ---
+  duration_ms: 112.205426
+  type: 'test'
+  ...
+# Subtest: signIn: inactive, revoked and unknown-role accounts are denied and the newly issued session is revoked
+ok 3 - signIn: inactive, revoked and unknown-role accounts are denied and the newly issued session is revoked
+  ---
+  duration_ms: 199.117078
+  type: 'test'
+  ...
+# Subtest: signOut: confirmed or already-absent sessions clear cookies and return to sign-in
+ok 4 - signOut: confirmed or already-absent sessions clear cookies and return to sign-in
+  ---
+  duration_ms: 186.562823
+  type: 'test'
+  ...
+# Subtest: signOut: uncertain revocation does not claim a completed sign-out or silently discard its retry context
+ok 5 - signOut: uncertain revocation does not claim a completed sign-out or silently discard its retry context
+  ---
+  duration_ms: 29.742964
+  type: 'test'
+  ...
+# Subtest: enrollAuthenticator: existing verified authenticators cannot be replaced by enrollment
+ok 6 - enrollAuthenticator: existing verified authenticators cannot be replaced by enrollment
+  ---
+  duration_ms: 17.913538
+  type: 'test'
+  ...
+# Subtest: enrollAuthenticator: only this setup’s unverified factor is removed before creating one new factor
+ok 7 - enrollAuthenticator: only this setup’s unverified factor is removed before creating one new factor
+  ---
+  duration_ms: 20.881818
+  type: 'test'
+  ...
+# Subtest: enrollAuthenticator, verifyAuthenticator: missing or revoked sessions cannot enroll or verify factors
+ok 8 - enrollAuthenticator, verifyAuthenticator: missing or revoked sessions cannot enroll or verify factors
+  ---
+  duration_ms: 51.201187
+  type: 'test'
+  ...
+# Subtest: verifyAuthenticator: six-digit validation and provider rejection never elevate session cookies
+ok 9 - verifyAuthenticator: six-digit validation and provider rejection never elevate session cookies
+  ---
+  duration_ms: 47.33638
+  type: 'test'
+  ...
+# Subtest: verifyAuthenticator: actual SDK challenge and verify persist the returned elevated session
+ok 10 - verifyAuthenticator: actual SDK challenge and verify persist the returned elevated session
+  ---
+  duration_ms: 19.542074
+  type: 'test'
+  ...
+# Subtest: inviteStaff: the actual wrapper preserves reservation identity and invalidates only its confirmed desk
+ok 11 - inviteStaff: the actual wrapper preserves reservation identity and invalidates only its confirmed desk
+  ---
+  duration_ms: 35.387906
+  type: 'test'
+  ...
+# Subtest: inviteStaff: wrong role and failed reservation do not create an identity or refresh a success page
+ok 12 - inviteStaff: wrong role and failed reservation do not create an identity or refresh a success page
+  ---
+  duration_ms: 65.637479
+  type: 'test'
+  ...
+# Subtest: approveBusinessApplication: the actual wrapper preserves reservation identity and invalidates only its confirmed desk
+ok 13 - approveBusinessApplication: the actual wrapper preserves reservation identity and invalidates only its confirmed desk
+  ---
+  duration_ms: 65.068024
+  type: 'test'
+  ...
+# Subtest: approveBusinessApplication: wrong role and failed reservation do not create an identity or refresh a success page
+ok 14 - approveBusinessApplication: wrong role and failed reservation do not create an identity or refresh a success page
+  ---
+  duration_ms: 74.183448
+  type: 'test'
+  ...
+# Subtest: saveMusicProvider: verified actor/session and normalized payload reach the exact music command
+ok 15 - saveMusicProvider: verified actor/session and normalized payload reach the exact music command
+  ---
+  duration_ms: 17.285804
+  type: 'test'
+  ...
+# Subtest: saveMusicProvider: missing or negative receipt cannot report a saved music change
+not ok 16 - saveMusicProvider: missing or negative receipt cannot report a saved music change
+  ---
+  duration_ms: 23.522025
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:14:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: REDIRECT /music?result=saved
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: [Function (anonymous)]
+  actual:
+    redirect: '/music?result=saved'
+  error: 'REDIRECT /music?result=saved'
+  stack: |-
+    redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/helpers/customActionFixture.cjs:62:87)
+    command (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/app/music/actions.ts:18:31)
+    async waitForActual (node:assert:646:5)
+    async strict.rejects (node:assert:769:25)
+    async redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:19:43)
+    async /workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:138:7
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:16:11)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  operator: 'rejects'
+  stack: |-
+    async redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:19:43)
+    async /workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:138:7
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:16:11)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: saveMusicLicenseDraft: verified actor/session and normalized payload reach the exact music command
+ok 17 - saveMusicLicenseDraft: verified actor/session and normalized payload reach the exact music command
+  ---
+  duration_ms: 15.039719
+  type: 'test'
+  ...
+# Subtest: saveMusicLicenseDraft: missing or negative receipt cannot report a saved music change
+not ok 18 - saveMusicLicenseDraft: missing or negative receipt cannot report a saved music change
+  ---
+  duration_ms: 13.723241
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:14:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: REDIRECT /music?result=saved
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: [Function (anonymous)]
+  actual:
+    redirect: '/music?result=saved'
+  error: 'REDIRECT /music?result=saved'
+  stack: |-
+    redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/helpers/customActionFixture.cjs:62:87)
+    command (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/app/music/actions.ts:18:31)
+    async waitForActual (node:assert:646:5)
+    async strict.rejects (node:assert:769:25)
+    async redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:19:43)
+    async /workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:138:7
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:16:11)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  operator: 'rejects'
+  stack: |-
+    async redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:19:43)
+    async /workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:138:7
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:16:11)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: revokeMusicSound: verified actor/session and normalized payload reach the exact music command
+ok 19 - revokeMusicSound: verified actor/session and normalized payload reach the exact music command
+  ---
+  duration_ms: 14.7208
+  type: 'test'
+  ...
+# Subtest: revokeMusicSound: missing or negative receipt cannot report a saved music change
+not ok 20 - revokeMusicSound: missing or negative receipt cannot report a saved music change
+  ---
+  duration_ms: 18.195917
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:14:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: REDIRECT /music?result=saved
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: [Function (anonymous)]
+  actual:
+    redirect: '/music?result=saved'
+  error: 'REDIRECT /music?result=saved'
+  stack: |-
+    redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/helpers/customActionFixture.cjs:62:87)
+    command (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/app/music/actions.ts:18:31)
+    async waitForActual (node:assert:646:5)
+    async strict.rejects (node:assert:769:25)
+    async redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:19:43)
+    async /workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:138:7
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:16:11)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  operator: 'rejects'
+  stack: |-
+    async redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:19:43)
+    async /workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:138:7
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:16:11)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: stageMusicCatalogue: actual staging action keeps request identity, counts and commercial licensing off
+ok 21 - stageMusicCatalogue: actual staging action keeps request identity, counts and commercial licensing off
+  ---
+  duration_ms: 39.595899
+  type: 'test'
+  ...
+# Subtest: stageMusicCatalogue: missing, wrong-request and impossible count receipts cannot claim catalogue staging
+not ok 22 - stageMusicCatalogue: missing, wrong-request and impossible count receipts cannot claim catalogue staging
+  ---
+  duration_ms: 15.058177
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:14:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: REDIRECT /music?result=staged
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: [Function (anonymous)]
+  actual:
+    redirect: '/music?result=staged'
+  error: 'REDIRECT /music?result=staged'
+  stack: |-
+    redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/helpers/customActionFixture.cjs:62:87)
+    Object.stageMusicCatalogue (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/app/music/actions.ts:50:31)
+    async waitForActual (node:assert:646:5)
+    async strict.rejects (node:assert:769:25)
+    async redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:19:43)
+    async /workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:152:5
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:16:11)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  operator: 'rejects'
+  stack: |-
+    async redirect (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:19:43)
+    async /workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:152:5
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:16:11)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: moderateReview: valid moderation uses verified actor, session, version and retry key
+ok 23 - moderateReview: valid moderation uses verified actor, session, version and retry key
+  ---
+  duration_ms: 17.140566
+  type: 'test'
+  ...
+# Subtest: moderateReview: unconfirmed or wrong-key moderation receipt cannot report an audited decision
+not ok 24 - moderateReview: unconfirmed or wrong-key moderation receipt cannot report an audited decision
+  ---
+  duration_ms: 15.567111
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:14:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    /workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:166:12
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/custom-action-contracts.cjs:16:11)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: moderateReview: invalid decision, key, version or reason stops before the write boundary
+ok 25 - moderateReview: invalid decision, key, version or reason stops before the write boundary
+  ---
+  duration_ms: 63.15871
+  type: 'test'
+  ...
+# Subtest: updateSupportTriage: exact confirmed assignment and failure variants preserve retry and version semantics
+ok 26 - updateSupportTriage: exact confirmed assignment and failure variants preserve retry and version semantics
+  ---
+  duration_ms: 49.223927
+  type: 'test'
+  ...
+# Subtest: updateSupportTriage: duplicate and malformed fields cannot reach assignment mutation
+ok 27 - updateSupportTriage: duplicate and malformed fields cannot reach assignment mutation
+  ---
+  duration_ms: 38.85811
+  type: 'test'
+  ...
+# Subtest: reviewCreator: current disabled finance gate blocks direct calls without pretending reviews are live
+ok 28 - reviewCreator: current disabled finance gate blocks direct calls without pretending reviews are live
+  ---
+  duration_ms: 58.254579
+  type: 'test'
+  ...
+# Subtest: saveMusicProvider, saveMusicLicenseDraft, revokeMusicSound, stageMusicCatalogue, moderateReview, updateSupportTriage, reviewErasure: actual Auth and permission policy stop every unauthorized role before a custom RPC
+ok 29 - saveMusicProvider, saveMusicLicenseDraft, revokeMusicSound, stageMusicCatalogue, moderateReview, updateSupportTriage, reviewErasure: actual Auth and permission policy stop every unauthorized role before a custom RPC
+  ---
+  duration_ms: 840.182544
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 24
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2560.367574

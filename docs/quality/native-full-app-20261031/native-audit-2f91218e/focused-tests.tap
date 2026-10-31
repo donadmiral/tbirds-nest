@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: every executable case has one explicit flow, immutable identity and meaningful mandatory assertion
+ok 1 - every executable case has one explicit flow, immutable identity and meaningful mandatory assertion
+  ---
+  duration_ms: 88.794189
+  type: 'test'
+  ...
+# Subtest: declared nested entry states survive the installed real stack/tab routers
+ok 2 - declared nested entry states survive the installed real stack/tab routers
+  ---
+  duration_ms: 2.574663
+  type: 'test'
+  ...
+# Subtest: actual SDK sees the original ticket body with empty history; no invented backfill
+ok 3 - actual SDK sees the original ticket body with empty history; no invented backfill
+  ---
+  duration_ms: 36.570049
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled list-error
+ok 4 - actual SDK preserves controlled list-error
+  ---
+  duration_ms: 7014.150429
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled ticket-read-error
+ok 5 - actual SDK preserves controlled ticket-read-error
+  ---
+  duration_ms: 7011.622306
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled history-error
+ok 6 - actual SDK preserves controlled history-error
+  ---
+  duration_ms: 7009.413783
+  type: 'test'
+  ...
+# Subtest: successful reply and failed reopen remain separate SDK outcomes
+ok 7 - successful reply and failed reopen remain separate SDK outcomes
+  ---
+  duration_ms: 2.256915
+  type: 'test'
+  ...
+# Subtest: missing ticket remains null and no positive fallback record is created
+ok 8 - missing ticket remains null and no positive fallback record is created
+  ---
+  duration_ms: 1.021267
+  type: 'test'
+  ...
+# Subtest: Support fixture rejects unsigned access, another owner, unsupported methods/fields and outside origins
+ok 9 - Support fixture rejects unsigned access, another owner, unsupported methods/fields and outside origins
+  ---
+  duration_ms: 1.572395
+  type: 'test'
+  ...
+# Subtest: scenario selection rejects unknown/mismatched/repeated state and preserves base memory methods
+ok 10 - scenario selection rejects unknown/mismatched/repeated state and preserves base memory methods
+  ---
+  duration_ms: 1.08383
+  type: 'test'
+  ...
+# Subtest: actual Python runner continues after failure and rejects empty/skipped/malformed/unbound reports
+ok 11 - actual Python runner continues after failure and rejects empty/skipped/malformed/unbound reports
+  ---
+  duration_ms: 74.020305
+  type: 'test'
+  ...
+# Subtest: disposable preparation retains exact anchors and rejects a second overlay before native build
+ok 12 - disposable preparation retains exact anchors and rejects a second overlay before native build
+  ---
+  duration_ms: 89.936582
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21419.381219

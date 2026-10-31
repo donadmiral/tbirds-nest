@@ -1,0 +1,563 @@
+{
+  "schemaVersion": 1,
+  "fixture": {
+    "mode": "synthetic-native-ui",
+    "networkForwarded": false,
+    "requestCount": 266,
+    "normalRequestCount": 265,
+    "requestCounts": {
+      "/auth/v1/health": 45,
+      "/auth/v1/token": 1,
+      "/auth/v1/user": 24,
+      "/functions/v1/content-media-sign": 5,
+      "/rest/v1/announcements": 3,
+      "/rest/v1/call_participants": 2,
+      "/rest/v1/call_sessions": 2,
+      "/rest/v1/conversation_members": 3,
+      "/rest/v1/conversation_settings": 3,
+      "/rest/v1/conversation_typing": 39,
+      "/rest/v1/conversations": 3,
+      "/rest/v1/feature_flags": 1,
+      "/rest/v1/follow_requests": 1,
+      "/rest/v1/follows": 1,
+      "/rest/v1/job_applications": 1,
+      "/rest/v1/job_saves": 1,
+      "/rest/v1/jobs": 1,
+      "/rest/v1/marketplace_listings": 1,
+      "/rest/v1/memory_album_access": 1,
+      "/rest/v1/message_mentions": 2,
+      "/rest/v1/notifications": 2,
+      "/rest/v1/post_bookmarks": 4,
+      "/rest/v1/post_collaborators": 5,
+      "/rest/v1/post_comments": 3,
+      "/rest/v1/post_polls": 4,
+      "/rest/v1/post_reposts": 4,
+      "/rest/v1/post_seen": 1,
+      "/rest/v1/posts": 9,
+      "/rest/v1/profiles": 16,
+      "/rest/v1/rpc/get_active_promos": 1,
+      "/rest/v1/rpc/get_catchup_feed": 10,
+      "/rest/v1/rpc/get_context_unread": 4,
+      "/rest/v1/rpc/get_feed": 4,
+      "/rest/v1/rpc/get_feed_visibility": 5,
+      "/rest/v1/rpc/get_market_feed": 1,
+      "/rest/v1/rpc/get_memory_albums": 2,
+      "/rest/v1/rpc/get_memory_book": 18,
+      "/rest/v1/rpc/get_memory_book_creative_capabilities": 1,
+      "/rest/v1/rpc/get_my_actors": 1,
+      "/rest/v1/rpc/get_profile": 1,
+      "/rest/v1/rpc/get_profile_insights": 1,
+      "/rest/v1/rpc/get_profile_reach_28d": 1,
+      "/rest/v1/rpc/get_recent_likers": 3,
+      "/rest/v1/rpc/get_trending_stories": 7,
+      "/rest/v1/rpc/get_trending_topics": 3,
+      "/rest/v1/rpc/get_unread_counts": 3,
+      "/rest/v1/rpc/home_marketplace_recommendations": 3,
+      "/rest/v1/rpc/my_application_page": 1,
+      "/rest/v1/rpc/save_memory_book_creative_presentation": 1,
+      "/rest/v1/saved_listings": 1,
+      "/rest/v1/stories": 1,
+      "/rest/v1/story_reactions": 2,
+      "/rest/v1/user_presence": 3
+    },
+    "unhandled": [],
+    "mutationCount": 5,
+    "mediaEventCount": 12,
+    "bookReads": [
+      {
+        "id": "a0000000-0000-4000-8000-000000000002",
+        "owner": "10000000-0000-4000-8000-000000000001",
+        "revision": 0,
+        "title": "THE SMALL ADVENTURES",
+        "cover_color": "cream",
+        "cover_design": "keepsake",
+        "cover_artwork": {
+          "version": 1,
+          "inscription": "",
+          "inscriptionStyle": "handwritten",
+          "inscriptionPosition": "bottom",
+          "postmark": "",
+          "showDate": true,
+          "photo": {
+            "x": 0.5,
+            "y": 0.5,
+            "scale": 1
+          }
+        },
+        "film_settings": {
+          "version": 1,
+          "mode": "automatic",
+          "style": "reflective",
+          "length": "full",
+          "order": "book",
+          "titleCard": true,
+          "originalAudio": true
+        }
+      },
+      {
+        "id": "a0000000-0000-4000-8000-000000000002",
+        "owner": "10000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "title": "THE LONG WAY HOMEENTURES",
+        "cover_color": "sage",
+        "cover_design": "postcard",
+        "cover_artwork": {
+          "version": 1,
+          "inscription": "Roads worth remembering",
+          "postmark": "DESERT DAYS",
+          "inscriptionStyle": "sans",
+          "inscriptionPosition": "bottom",
+          "showDate": true,
+          "photo": {
+            "x": 0.5,
+            "y": 0.5,
+            "scale": 1
+          }
+        },
+        "film_settings": {
+          "version": 1,
+          "mode": "automatic",
+          "style": "cinematic",
+          "length": "full",
+          "order": "book",
+          "titleCard": true,
+          "originalAudio": true
+        }
+      },
+      {
+        "id": "a0000000-0000-4000-8000-000000000002",
+        "owner": "10000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "title": "THE LONG WAY HOMEENTURES",
+        "cover_color": "sage",
+        "cover_design": "postcard",
+        "cover_artwork": {
+          "version": 1,
+          "inscription": "Roads worth remembering",
+          "postmark": "DESERT DAYS",
+          "inscriptionStyle": "sans",
+          "inscriptionPosition": "bottom",
+          "showDate": true,
+          "photo": {
+            "x": 0.5,
+            "y": 0.5,
+            "scale": 1
+          }
+        },
+        "film_settings": {
+          "version": 1,
+          "mode": "automatic",
+          "style": "cinematic",
+          "length": "full",
+          "order": "book",
+          "titleCard": true,
+          "originalAudio": true
+        }
+      }
+    ],
+    "creativeSaveMutations": [
+      {
+        "rpc": "save_memory_book_creative_presentation",
+        "owner": "10000000-0000-4000-8000-000000000001",
+        "id": "a0000000-0000-4000-8000-000000000002",
+        "revision": 1,
+        "title": "THE LONG WAY HOMEENTURES",
+        "cover_color": "sage",
+        "cover_design": "postcard",
+        "cover_artwork": {
+          "version": 1,
+          "inscription": "Roads worth remembering",
+          "postmark": "DESERT DAYS",
+          "inscriptionStyle": "sans",
+          "inscriptionPosition": "bottom",
+          "showDate": true,
+          "photo": {
+            "x": 0.5,
+            "y": 0.5,
+            "scale": 1
+          }
+        },
+        "film_settings": {
+          "version": 1,
+          "mode": "automatic",
+          "style": "cinematic",
+          "length": "full",
+          "order": "book",
+          "titleCard": true,
+          "originalAudio": true
+        }
+      }
+    ],
+    "requestTimeLimit": "General requests have order/method/path/owner only; no per-request timestamps, payloads or provider durations."
+  },
+  "readerResponses": [
+    {
+      "id": 1,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T17:59:09.792000+00:00",
+      "bodyCompletedUtc": "2026-10-31T17:59:09.792000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 2,
+      "kind": "reactions",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T17:59:09.860000+00:00",
+      "bodyCompletedUtc": "2026-10-31T17:59:09.861000+00:00",
+      "bodyPromiseDurationMs": 1
+    },
+    {
+      "id": 3,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:00:38.914000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:00:38.915000+00:00",
+      "bodyPromiseDurationMs": 1
+    },
+    {
+      "id": 4,
+      "kind": "reactions",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:00:38.936000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:00:38.936000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 5,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:06.533000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:06.533000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 6,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:11.962000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:11.963000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 7,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:11.985000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:11.986000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 8,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:23.197000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:23.197000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 9,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:23.216000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:23.216000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 10,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:23.593000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:23.593000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 11,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:23.997000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:23.997000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 12,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:24.014000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:24.015000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 13,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:24.814000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:24.815000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 14,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:24.833000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:24.833000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 15,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:25.150000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:25.150000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 16,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:25.168000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:25.169000+00:00",
+      "bodyPromiseDurationMs": 1
+    },
+    {
+      "id": 17,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:25.495000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:25.496000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 18,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:25.850000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:25.851000+00:00",
+      "bodyPromiseDurationMs": 1
+    },
+    {
+      "id": 19,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:42.444000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:42.445000+00:00",
+      "bodyPromiseDurationMs": 0
+    },
+    {
+      "id": 20,
+      "kind": "book",
+      "status": 200,
+      "bodyObserved": true,
+      "fulfilled": true,
+      "responseReadyUtc": "2026-10-31T18:01:42.481000+00:00",
+      "bodyCompletedUtc": "2026-10-31T18:01:42.482000+00:00",
+      "bodyPromiseDurationMs": 1
+    }
+  ],
+  "readerResponseDropped": 0,
+  "captureBoundaries": [
+    {
+      "sequence": 1,
+      "phase": "received",
+      "atUnixMs": 1793469666425,
+      "matched": true,
+      "utc": "2026-10-31T18:01:06.425000+00:00"
+    },
+    {
+      "sequence": 2,
+      "phase": "parsed",
+      "atUnixMs": 1793469666428,
+      "matched": true,
+      "expectedPath": true,
+      "utc": "2026-10-31T18:01:06.428000+00:00"
+    },
+    {
+      "sequence": 3,
+      "phase": "action-produced",
+      "atUnixMs": 1793469666428,
+      "matched": true,
+      "reset": true,
+      "utc": "2026-10-31T18:01:06.428000+00:00"
+    },
+    {
+      "sequence": 4,
+      "phase": "mounted",
+      "atUnixMs": 1793469666504,
+      "utc": "2026-10-31T18:01:06.504000+00:00"
+    },
+    {
+      "sequence": 5,
+      "phase": "readback-start",
+      "atUnixMs": 1793469666504,
+      "utc": "2026-10-31T18:01:06.504000+00:00"
+    },
+    {
+      "sequence": 6,
+      "phase": "readback-complete",
+      "atUnixMs": 1793469666596,
+      "fulfilled": true,
+      "passed": true,
+      "utc": "2026-10-31T18:01:06.596000+00:00"
+    }
+  ],
+  "captureBoundaryDropped": 0,
+  "accountReadbacks": [
+    {
+      "passed": true,
+      "reloaded": true,
+      "accountCount": 1
+    }
+  ],
+  "selectedUiCommands": [
+    {
+      "flow": "capture",
+      "status": "COMPLETED",
+      "startUtc": "2026-10-31T18:01:07.680000+00:00",
+      "durationMs": 116,
+      "endUtc": "2026-10-31T18:01:07.796000+00:00",
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Native capture acceptance",
+              "optional": false
+            }
+          },
+          "timeout": "30000",
+          "optional": false
+        }
+      }
+    },
+    {
+      "flow": "capture",
+      "status": "COMPLETED",
+      "startUtc": "2026-10-31T18:01:07.797000+00:00",
+      "durationMs": 84,
+      "endUtc": "2026-10-31T18:01:07.881000+00:00",
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Saved account readback passed",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      }
+    },
+    {
+      "flow": "capture",
+      "status": "COMPLETED",
+      "startUtc": "2026-10-31T18:01:24.589000+00:00",
+      "durationMs": 18641,
+      "endUtc": "2026-10-31T18:01:43.230000+00:00",
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Save movie to Photos",
+              "optional": false
+            }
+          },
+          "timeout": "180000",
+          "optional": false
+        }
+      }
+    },
+    {
+      "flow": "navigation",
+      "status": "COMPLETED",
+      "startUtc": "2026-10-31T17:58:54.369000+00:00",
+      "durationMs": 2831,
+      "endUtc": "2026-10-31T17:58:57.200000+00:00",
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-profile",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    },
+    {
+      "flow": "navigation",
+      "status": "COMPLETED",
+      "startUtc": "2026-10-31T17:59:16.138000+00:00",
+      "durationMs": 118,
+      "endUtc": "2026-10-31T17:59:16.256000+00:00",
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Page 1 of 2",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    },
+    {
+      "flow": "navigation",
+      "status": "FAILED",
+      "startUtc": "2026-10-31T18:00:40.866000+00:00",
+      "durationMs": 16566,
+      "endUtc": "2026-10-31T18:00:57.432000+00:00",
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Postcard book cover: THE LONG WAY HOME. A book from this week. Roads worth remembering. DESERT DAYS",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    }
+  ]
+}

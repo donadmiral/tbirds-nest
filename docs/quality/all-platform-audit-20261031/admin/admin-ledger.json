@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T18:10:07.640385+00:00",
+  "phase": "First discovery pass sealed; source repairs not started",
+  "source": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce"
+  },
+  "inventory": {
+    "pages": 34,
+    "endpoints": 5,
+    "exportedServerActions": 50,
+    "staffRoles": 11,
+    "permissionKinds": 15,
+    "jsxFiles": 75,
+    "staticBindings": 283,
+    "limit": "Bindings include delegated and conditional controls; not unique buttons or passes."
+  },
+  "executed": {
+    "actualPageBrowser": {
+      "total": 77,
+      "passed": 76,
+      "failed": 1,
+      "pageRenderChecks": 31,
+      "meaningfulControlChecks": 41,
+      "controlChecksPassed": 41,
+      "viewportChecks": 5,
+      "viewportChecksPassed": 4,
+      "runtimeConsoleErrors": 0,
+      "actualActionSubmissions": 4,
+      "uniqueActionNames": 3,
+      "evidence": "browser/actual-pages-browser-audit.json"
+    },
+    "supportOverflowIsolation": {
+      "actualWorkspaceDocumentWidth": 545,
+      "viewport": 390,
+      "temporaryConstraintWidth": 390,
+      "evidence": "browser/support-overflow-projection.json"
+    },
+    "actualPageRoleScenarios": {
+      "total": 374,
+      "roles": 11,
+      "pages": 34,
+      "outcomes": {
+        "rendered": 148,
+        "not-found": 176,
+        "threw": 17,
+        "redirect": 33
+      },
+      "note": "Expected allowed/denied/redirect outcomes, not374 end-to-end passes."
+    },
+    "emptyErrorGuestUnknownScenarios": {
+      "total": 136,
+      "outcomes": {
+        "rendered": 36,
+        "threw": 28,
+        "redirect": 67,
+        "not-found": 5
+      },
+      "note": "Transport400 throws through actual serviceClient wrapper; guest/unknown role gate exercised. Generic empty RPC payloads do not define every endpoint valid empty contract."
+    },
+    "standardActionBoundaryScenarios": {
+      "total": 561,
+      "passed": 561,
+      "failed": 0,
+      "uniqueActions": 33,
+      "perAction": "13 identity/role states plus four unavailable/error/unconfirmed-receipt states",
+      "limit": "Actual verified Auth/session/role/action modules with synthetic RPC. Positive receipt is not SQL execution or domain-valid payload acceptance."
+    },
+    "metricReproductions": {
+      "jobsAndCalls": 2,
+      "storiesAndVerification": 4,
+      "evidence": [
+        "capped-metrics-projection.json",
+        "extra-metrics-projection.json"
+      ]
+    },
+    "staticBindingCoverage": {
+      "partiallyExercised": 11,
+      "notIndividuallyExercised": 272,
+      "completeAcceptanceClaimed": 0,
+      "evidence": "binding-coverage.json"
+    }
+  },
+  "baselineSeparate": {
+    "adminNodeCi": {
+      "passed": 195,
+      "run": 41225636352,
+      "evidence": "docs/quality/live-app-20261031/ci-quality-2f91218e.json"
+    },
+    "sharedBrowser": {
+      "passed": 37,
+      "run": 41225636301,
+      "scope": "Actual shared components on generic Desk data/navigation adapter; not actual route action acceptance.",
+      "evidence": "existing-shared-browser-baseline.json"
+    }
+  },
+  "findings": [
+    {
+      "id": "ADM-001",
+      "group": "admin-metric-caps",
+      "title": "Jobs treats a capped row window as platform-wide totals",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/jobs/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "350 recent jobs; list limit300; separate recent-date query limit3000, subject to API max_rows1000",
+        "expected": "Global totals count all qualifying rows; records outside a view remain reachable through bounded server paging/search.",
+        "actual": "Roles on the platform300/every row in jobs while Posted this week350. Company/location/type aggregates and local search use only newest300; time-series read has a second row cap."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "capped-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Exact HEAD counts for all/7day/previous7day/30day; bounded server pagination with deterministic order and search. Label distribution/unique-company/remote metrics as the displayed/recent window unless supplied by a bounded aggregate contract. Never fetch all rows unbounded.",
+      "proposedRegressions": [
+        "More than300 and more thanAPImax rows; exact global counts independent of page; next page/search reaches older row; query errors remain errors; scoped chart labels."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ]
+    },
+    {
+      "id": "ADM-002",
+      "group": "admin-metric-caps",
+      "title": "Calls live and weekly summaries omit sessions outside newest400",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/calls/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "500 recent sessions with one still-active session outside newest400",
+        "expected": "Live/weekly totals include every matching call; row-window statistics have explicit scope.",
+        "actual": "Sessions on file500, This week400, Live right now0,400 minutes on file."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "capped-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Separate exact filtered HEAD counts for live/current/previous periods; preserve all-time count. Label duration/answer-rate/status/type series as bounded row-window metrics until a server aggregate is available; bounded history paging.",
+      "proposedRegressions": [
+        "Active call older than row window; >400 calls in week; distinct global and sample labels; provider errors; bounded history access."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ]
+    },
+    {
+      "id": "ADM-003",
+      "group": "admin-metric-caps",
+      "title": "Stories live count is capped at200",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/stories/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "250 live stories",
+        "expected": "Live total250 independent of the bounded review window.",
+        "actual": "Stories on file250; Live right now200; review rows200."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Exact filtered HEAD live count; bounded story paging; explicitly scope views/posters/type/day charts to displayed/recent rows.",
+      "proposedRegressions": [
+        "250 live plus expired mix; boundary expiry; older review row reachable; exact total and scoped charts do not disagree."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ]
+    },
+    {
+      "id": "ADM-004",
+      "group": "admin-expiry-window",
+      "title": "Expired story metric filters creation time instead of expiry window",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/stories/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "250 stories created30hours ago and expired6hours ago (normal24hour lifetime)",
+        "expected": "A clearly labeled expired-last24hours metric counts250, or an explicitly different defined window.",
+        "actual": "Expired in24hours0 because query applies expires_at<now AND created_at>now-24h."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Define label as Expired in last24hours and use expires_at>=now-24h AND expires_at<now with exact HEAD count. If product wants future expiry, label Expiring in next24hours and query that window instead.",
+      "proposedRegressions": [
+        "Normal24hour lifetime; exact lower/upper expiry boundaries; unrelated creation dates; null expiry excluded."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ]
+    },
+    {
+      "id": "ADM-005",
+      "group": "admin-review-backlog",
+      "title": "Verification backlog silently stops at API row cap",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/queue/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "1001 pending applications, APImax_rows1000",
+        "expected": "Pending total1001 and bounded paged access to all submissions.",
+        "actual": "All requests1001 but Pending review1000; only oldest1000 supplied to client Desk. Median label also omits that only latest60 decisions feed it."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Exact status-filtered HEAD pending count plus deterministic bounded server pages; batch related reads only for page IDs. Label tier mix as page/sample and median as latest60decisions unless aggregated. Do not solve by increasing/removing the provider cap.",
+      "proposedRegressions": [
+        "Backlog beyond1000; second page accessibility; count independent of page; stable ties; latest60median scope; permission/error handling."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ]
+    },
+    {
+      "id": "ADM-006",
+      "group": "admin-review-fanout",
+      "title": "Verification safety reads fan out once per pending applicant",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/queue/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "25 distinct pending applicants",
+        "expected": "Request work remains bounded by a small page and a controlled concurrency or aggregate contract.",
+        "actual": "Actual SDK emits25 separate member_strikes HEAD requests in an eager Promise.all; up to1000 applicant reads are possible under current cap."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Page first; bound concurrency and preserve exact safety counts. A future authorized batched aggregate RPC can reduce round trips, but no unbounded all-strikes fetch and no migration activation in this audit.",
+      "proposedRegressions": [
+        "Bound emitted request count/concurrency to page; exact large strike count; denied/error count stops action; no missing-as-zero fallback."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "25 emitted calls reproduced. No real network latency/OOM or saturation was measured; this is demonstrated request amplification."
+      ]
+    },
+    {
+      "id": "ADM-007",
+      "group": "admin-support-layout",
+      "title": "Support ownership selector overflows a phone viewport",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/support/[tid]/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "390px viewport; a staff identity has no social profile and falls back to UUID plus role",
+        "expected": "Assignment controls stay within viewport without discarding valid staff options.",
+        "actual": "With actual Workspace padding16/minWidth0, select width508px and document width545px. Temporary max-width/min-width constraint yields document390px."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "browser/support-overflow-projection.json",
+        "browser/support-390-actual-workspace-geometry.png",
+        "browser/support-390-constraint-probe.png"
+      ],
+      "proposedBoundedFix": "Constrain owner label/select to available width (min-w-0/max-w-full and appropriate width) while keeping full option values and accessible names.",
+      "proposedRegressions": [
+        "390px and360px; long names/UUID fallback; options still selectable; desktop unaffected."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "Actual page/CSS reproduced in a local Shell geometry adapter; full hosted Shell not authenticated."
+      ]
+    }
+  ],
+  "remaining": {
+    "hostedProtectedRoutes": "Blocked: observed QA sign-in wall; known staff email but no current session/password handoff. No reset, guessing, impersonation or silent credential probe. BrowserAuth offers interactive credential handoff only.",
+    "customActions": {
+      "totalBeyondStandardMatrix": 17,
+      "newPartialTriageUiCheck": 1,
+      "withoutNewCompleteRuntimeContract": 16,
+      "details": "route-action-coverage.json"
+    },
+    "endpointsNotIndependentlyExecutedThisPass": 5,
+    "componentFamiliesNotExpanded": [
+      "OperationsPanel",
+      "RecoveryForms",
+      "ReviewForm"
+    ],
+    "realProviderMutations": 0,
+    "publicOrServerOnlyBoundary": "Actual public post privacy guards/server role outcomes executed in fixture; full Next proxy/RSC streaming/cache/edge deployment semantics remain separate.",
+    "nextPhase": "Parent checkpoint and coordinated repair batch; do not describe all283 bindings as passed."
+  },
+  "proposedOwnership": {
+    "hosted_backend": [
+      "admin-web/app/jobs/page.tsx",
+      "admin-web/app/calls/page.tsx",
+      "admin-web/app/stories/page.tsx",
+      "admin-web/app/queue/page.tsx",
+      "admin-web/app/support/[tid]/page.tsx",
+      "narrow admin reporting helpers and meaningful regressions as agreed"
+    ],
+    "root": [
+      "member Support client paths",
+      "member atomic reply RPC preparation/tests"
+    ],
+    "productionEditsThisPass": 0
+  },
+  "ruledOut": [
+    "Missing explicit .error checks in Jobs/Calls are not outage-zero bugs: actual serviceClient wraps from queries with throwOnError; controlled provider400 throws.",
+    "Admin support reply is already atomic; member SUP-012 is a separate path.",
+    "Listing dismiss permission is specialized by actual adminCommand based on listing_reports; no mismatched-permission bug claimed.",
+    "Initial harness-only locator/env/adapter mistakes are excluded from product findings."
+  ]
+}

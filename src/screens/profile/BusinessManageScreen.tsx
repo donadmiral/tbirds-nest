@@ -12,7 +12,7 @@
  */
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
-import { themedSheet, getTheme } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView,
@@ -69,6 +69,7 @@ function isValidTime(t: string): boolean {
 }
 
 export default function BusinessManageScreen({ route, navigation }: any) {
+  const { t, isDark } = useTheme();
   const businessId: string = route?.params?.businessId;
   const [inboxUnread, setInboxUnread] = useState(0);
   const [awayOn, setAwayOn] = useState(false);
@@ -262,7 +263,7 @@ export default function BusinessManageScreen({ route, navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
@@ -458,14 +459,14 @@ const s = themedSheet((t) => ({
   saveTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
   errBar: { backgroundColor: t.status.dangerBg, paddingHorizontal: 14, paddingVertical: space.sm },
-  errTxt: { fontSize: typeSize.caption, color: t.status.danger, fontWeight: fontWeight.semibold },
+  errTxt: { fontSize: typeSize.caption, color: t.ink.primary, fontWeight: fontWeight.semibold },
 
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.md },
   viewProfile: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   viewProfileTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: t.status.link },
 
   sectionLbl: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1, textTransform: 'uppercase', color: t.ink.muted, marginBottom: space.xs },
-  sectionHint: { fontSize: typeSize.micro, color: t.ink.faint, marginTop: -4, marginBottom: space.sm, lineHeight: 15 },
+  sectionHint: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: -4, marginBottom: space.sm, lineHeight: 15 },
 
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
   chip: { paddingHorizontal: space.sm, paddingVertical: 7, borderRadius: radius.full, borderWidth: HAIR, borderColor: t.surface.hairline },
@@ -487,9 +488,9 @@ const s = themedSheet((t) => ({
     paddingHorizontal: 8, paddingVertical: 7, fontSize: typeSize.caption,
     color: t.ink.primary, backgroundColor: t.surface.raised, textAlign: 'center',
   },
-  timeBad: { borderColor: t.status.danger, color: t.status.danger },
+  timeBad: { borderColor: t.status.danger, color: t.ink.primary },
   dash: { fontSize: typeSize.micro, color: t.ink.muted },
-  closed: { flex: 1, fontSize: typeSize.caption, color: t.ink.faint },
+  closed: { flex: 1, fontSize: typeSize.caption, color: t.ink.muted },
 
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.xs },
   avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.surface.sunken },

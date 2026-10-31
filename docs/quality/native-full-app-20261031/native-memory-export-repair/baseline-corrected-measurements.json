@@ -1,0 +1,58 @@
+{
+  "baselineSource": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "binarySha256": "244a190b8cec18d8f0aa7ba9e819e0060ce52383bf52dec6ac2127ce4867f971",
+  "geometry": {
+    "codedWidth": 1280,
+    "codedHeight": 720,
+    "rotationDegrees": 270,
+    "decodedWidth": 720,
+    "decodedHeight": 1280
+  },
+  "audio": {
+    "sourceVideo": {
+      "rms": 0.14131963514433574,
+      "sourceTone": 0.19987302957612677
+    },
+    "outputChannels": [
+      {
+        "channel": 0,
+        "beforeVideo": {
+          "rms": 0.007580980182094857,
+          "sourceTone": 1.9777572116755755e-06
+        },
+        "insideVideo": {
+          "rms": 0.06945765353665363,
+          "sourceTone": 0.09817178313832625
+        },
+        "afterVideo": {
+          "rms": 0.01090186631758492,
+          "sourceTone": 1.5295176019115304e-05
+        },
+        "sourceToneRatio": 0.4911707364746528
+      },
+      {
+        "channel": 1,
+        "beforeVideo": {
+          "rms": 0.007612845397035664,
+          "sourceTone": 4.063664887616244e-06
+        },
+        "insideVideo": {
+          "rms": 0.06945727034984972,
+          "sourceTone": 0.09817135042790866
+        },
+        "afterVideo": {
+          "rms": 0.011600329570428634,
+          "sourceTone": 1.6703218577892056e-05
+        },
+        "sourceToneRatio": 0.4911685715481567
+      }
+    ]
+  },
+  "cadence": {
+    "passed": false,
+    "error": "The actual movie has a frame gap of at least 100 ms",
+    "maximumFrameGap": 0.13333299999999948
+  },
+  "overallPassed": false,
+  "scope": "Actual unchanged returned movie measured with corrected display/channel semantics; genuine frame gap remains rejected."
+}

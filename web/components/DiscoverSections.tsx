@@ -23,14 +23,19 @@ type Topic = { topic: string; post_count: number };
 export function FeaturedChannels() {
   const [supabase] = useState(createClient);
   const [rows, setRows] = useState<Ch[]>([]);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.rpc("get_channels", { p_query: null, p_limit: 12 });
-      setRows(((data ?? []) as Ch[]).slice(0, 8));
-    })();
-  }, [supabase]);
+    let active = true;
+    void withTimeout(supabase.rpc("get_channels", { p_query: null, p_limit: 12 })).then(({ data, error }) => {
+      if (error) throw error;
+      if (active) { setRows(((data ?? []) as Ch[]).slice(0, 8)); setError(false); }
+    }).catch(() => { if (active) setError(true); });
+    return () => { active = false; };
+  }, [supabase, attempt]);
 
+  if (error) return <div role="alert" className="mt-4 text-sm text-muted"><p>Featured channels could not load.</p><button type="button" className="mt-2 underline" onClick={() => { setError(false); setAttempt(value => value + 1); }}>Try again</button></div>;
   if (rows.length === 0) return null;
 
   return (
@@ -69,14 +74,19 @@ export function FeaturedChannels() {
 export function ExploreTopics() {
   const [supabase] = useState(createClient);
   const [rows, setRows] = useState<Topic[]>([]);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.rpc("get_trending_topics", { p_days: 30, p_limit: 14 });
-      setRows((data ?? []) as Topic[]);
-    })();
-  }, [supabase]);
+    let active = true;
+    void withTimeout(supabase.rpc("get_trending_topics", { p_days: 30, p_limit: 14 })).then(({ data, error }) => {
+      if (error) throw error;
+      if (active) { setRows((data ?? []) as Topic[]); setError(false); }
+    }).catch(() => { if (active) setError(true); });
+    return () => { active = false; };
+  }, [supabase, attempt]);
 
+  if (error) return <div role="alert" className="mt-4 text-sm text-muted"><p>Explore topics could not load.</p><button type="button" className="mt-2 underline" onClick={() => { setError(false); setAttempt(value => value + 1); }}>Try again</button></div>;
   if (rows.length === 0) return null;
 
   return (

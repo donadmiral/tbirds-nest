@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum full app UI 41225636296 - iOS 18.5 - D893D73E-0959-4A4F-A428-B4BECB788843" tests="1" failures="1" time="703.571" timestamp="2026-10-31T18:37:12">
+    <testcase id="Full native app navigation" name="Full native app navigation" classname="Full native app navigation" file="tests/native/flows/navigation.yaml" time="703.086" timestamp="2026-10-31T18:37:12" status="ERROR">
+      <failure>Unknown error</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

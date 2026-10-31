@@ -1,0 +1,7 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit empty sign-in validation
+---
+- runFlow: _signedout.yaml
+- tapOn: Sign in
+- assertVisible: Enter your email and password
+- takeScreenshot: auth-empty-signin

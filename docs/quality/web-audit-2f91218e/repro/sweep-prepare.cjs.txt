@@ -1,0 +1,40 @@
+const fs=require('node:fs'),path=require('node:path');
+const root='/workspace/scratch/f9638ed3020b/platinum-circles',web=path.join(root,'web'),tmp=__dirname;
+const ts=require(path.join(root,'node_modules/typescript'));
+const inventory=JSON.parse(fs.readFileSync(path.join(root,'docs/quality/web-audit-2f91218e/route-action-inventory.json'),'utf8'));
+const pages=inventory.routes.filter(row=>!row.route.startsWith('/settings/support')).filter(row=>{const ast=ts.createSourceFile(row.file,fs.readFileSync(path.join(root,row.file),'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);return ast.statements.some(s=>ts.isExpressionStatement(s)&&ts.isStringLiteral(s.expression)&&s.expression.text==='use client');});
+const staticPath=route=>route.replace('[username]','avery_lane').replace('[id]','40000000-0000-4000-8000-000000000001').replace('[token]','synthetic-invite-token').replace('[tag]','CoastalStories');
+let router=fs.readFileSync(path.join(web,'tests/browser/ui-router-adapter.tsx'),'utf8');
+router=router.replace("return {id:decodeURIComponent(pathname.split('/').filter(Boolean).at(-1)||'')} as T;","const parts=pathname.split('/').filter(Boolean).map(decodeURIComponent);return {id:parts[0]==='jobs'&&parts[2]==='applicants'?parts[1]:parts.at(-1)||'',username:parts[0],token:parts.at(-1)||'',tag:parts.at(-1)||''} as T;");
+fs.writeFileSync(path.join(tmp,'router.tsx'),router);
+const imports=pages.map((row,i)=>`import Page${i} from ${JSON.stringify(path.join(root,row.file))};`).join('\n');
+const entries=pages.map((row,i)=>`${JSON.stringify(staticPath(row.route))}: Page${i}`).join(',\n');
+fs.writeFileSync(path.join(tmp,'entry.tsx'),`import React,{Component,type ReactNode} from 'react';
+import {createRoot} from 'react-dom/client';
+import {usePathname} from 'next/navigation';
+import {ThemeProvider} from '@/components/ThemeProvider';
+import {StudioShell} from '@/components/StudioShell';
+import {SettingsNavigation} from '@/components/SettingsNavigation';
+import './adapter';
+${imports}
+const routes:Record<string,React.ComponentType>={${entries}};
+class Boundary extends Component<{children:ReactNode},{error:string|null}>{state={error:null};static getDerivedStateFromError(error:Error){return {error:String(error)}}render(){return this.state.error?<div role="alert" data-audit-render-error>{this.state.error}</div>:this.props.children}}
+function App(){const pathname=usePathname();const Page=routes[pathname];return <ThemeProvider><Boundary key={pathname}>{Page?<>{pathname.startsWith('/studio')?<StudioShell><Page/></StudioShell>:<main data-audit-actual-page>{pathname.startsWith('/settings')?<SettingsNavigation/>:null}<Page/></main>}</>:<div data-audit-unmapped role="status">UNMAPPED ACTUAL PAGE: {pathname}</div>}</Boundary><aside data-audit-banner>SCRATCH AUDIT · ACTUAL PAGE MODULE · SYNTHETIC DATA · NO PROVIDER</aside></ThemeProvider>};createRoot(document.getElementById('root')!).render(<App/>);
+`);
+fs.writeFileSync(path.join(tmp,'routes.json'),JSON.stringify(pages.map(row=>({...row,path:staticPath(row.route)})),null,2)+'\n');
+const base=path.join(web,'tests/browser');
+fs.writeFileSync(path.join(tmp,'adapter.ts'),`import * as social from ${JSON.stringify(path.join(base,'social-backend.ts'))};
+import * as commerce from ${JSON.stringify(path.join(base,'commerce-backend.ts'))};
+import * as studio from ${JSON.stringify(path.join(base,'studio-backend.ts'))};
+export * from ${JSON.stringify(path.join(base,'social-backend.ts'))};
+const mode=new URLSearchParams(location.search).get('__audit_fault')||'normal';
+const ops:any[]=[];(window as any).__auditOps=ops;
+const fail=()=>({data:null,error:{message:'AUDIT_CONTROLLED_READ_FAILURE',code:'AUDIT_FAILURE'}});
+const shouldFault=()=>mode==='resolved'||mode==='rejected';
+function value(){if(mode==='rejected')throw new Error('AUDIT_CONTROLLED_TRANSPORT_REJECTION');return fail()}
+function query(target:any,table:string):any{let proxy:any;proxy=new Proxy(target,{get(obj,key){if(key==='then')return (yes:any,no:any)=>{ops.push({kind:'table',name:table,fault:shouldFault()&&table!=='profiles'});return Promise.resolve().then(()=>shouldFault()&&table!=='profiles'?value():obj).then(yes,no)};const item=obj[key];if(typeof item!=='function')return item;return (...args:any[])=>{const result=item.apply(obj,args);if(result===obj)return proxy;if(result&&typeof result.then==='function'&&['single','maybeSingle'].includes(String(key))){ops.push({kind:'table',name:table,fault:shouldFault()&&table!=='profiles'});return shouldFault()&&table!=='profiles'?Promise.resolve().then(value):result}return result}}});return proxy}
+export function createClient(){const provider=location.pathname.startsWith('/studio')?studio:location.pathname.startsWith('/jobs')||location.pathname.startsWith('/market')?commerce:social;const client:any=provider.createClient();return new Proxy(client,{get(obj,key){if(key==='from')return (table:string)=>query(obj.from(table),table);if(key==='rpc')return (name:string,args:any)=>{ops.push({kind:'rpc',name,fault:shouldFault()});if(!shouldFault())return obj.rpc(name,args);let p:any=Promise.resolve().then(value);p.abortSignal=()=>p;p.setHeader=()=>p;return p};return obj[key]}})}
+`);
+console.log(JSON.stringify({actualPages:pages.length,member:pages.filter(p=>!p.route.startsWith('/studio')).length,studio:pages.filter(p=>p.route.startsWith('/studio')).length,root,temporaryOnly:true}));
+const {compile}=require(path.join(base,'ui-compile.cjs'));
+compile({entry:path.join(tmp,'entry.tsx'),output:path.join(tmp,'bundle'),title:'Platinum actual-page audit — synthetic isolated data',aliases:{'next/link':path.join(tmp,'router.tsx'),'next/navigation':path.join(tmp,'router.tsx'),'@/lib/supabase/client':path.join(tmp,'adapter.ts'),'@/lib/supabase/server':path.join(tmp,'adapter.ts'),'@/lib/serverViewer':path.join(tmp,'adapter.ts'),'@/lib/contentMedia':path.join(tmp,'adapter.ts'),'./supabase/client':path.join(tmp,'adapter.ts'),'../../lib/supabase/client':path.join(tmp,'adapter.ts'),'@/lib/useUploadPreview':path.join(base,'studio-media.ts'),'@/lib/monetization':path.join(base,'studio-finance.ts')}}).then(result=>console.log(JSON.stringify(result))).catch(error=>{console.error(String(error));process.exitCode=1});

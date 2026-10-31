@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "sourceArchiveFileCount": 47,
+  "structuredExports": [
+    {
+      "name": "native-ui-auth-diagnostics.json",
+      "matchesInVerifiedExtraction": [],
+      "state": "absent; not an empty exported file"
+    },
+    {
+      "name": "native-ui-auth-diagnostics-final.json",
+      "matchesInVerifiedExtraction": [],
+      "state": "absent; not an empty exported file"
+    },
+    {
+      "name": "native-ui-receipt.json",
+      "matchesInVerifiedExtraction": [],
+      "state": "absent; not an empty exported file"
+    },
+    {
+      "name": "native-ui-receipt-final.json",
+      "matchesInVerifiedExtraction": [],
+      "state": "absent; not an empty exported file"
+    }
+  ],
+  "appLog": {
+    "path": "app.log",
+    "sha256": "63ce65200694de9f321c4ecbfcd3fd8964ecc30613d0ed7f71413f3552da2f70",
+    "bytes": 1595566,
+    "lineCount": 9916,
+    "firstTimestamp": {
+      "line": 4,
+      "timestamp": "2026-10-31 18:39:36.412"
+    },
+    "lastTimestamp": {
+      "line": 9916,
+      "timestamp": "2026-10-31 18:55:35.948"
+    },
+    "scans": {
+      "exactNativeUrlObserver": {
+        "pattern": "\\[native-ui-url\\]",
+        "caseInsensitive": true,
+        "matchedLines": 0
+      },
+      "lockAcquisitionWarnings": {
+        "pattern": "Lock acquisition timed out|LockAcquireTimeoutError|5000ms|processLock",
+        "caseInsensitive": true,
+        "matchedLines": 0
+      },
+      "nativeUrlDeliveryMentions": {
+        "pattern": "UIOpenURLAction|applicationOpenURL|ui-fixture",
+        "caseInsensitive": true,
+        "matchedLines": 0
+      },
+      "accountErrorMentions": {
+        "pattern": "(?:accounts|SecureStore|keychain).{0,80}(?:fail|error)",
+        "caseInsensitive": true,
+        "matchedLines": 0
+      },
+      "captureOrReaderMarkerMentions": {
+        "pattern": "capture-boundary|reader-response|readback-complete|accountReadback|Native capture acceptance",
+        "caseInsensitive": true,
+        "matchedLines": 0
+      }
+    },
+    "secureStoreModuleLines": [
+      {
+        "line": 312,
+        "text": "2026-10-31 18:40:11.638 I  PlatinumQA[93651:3e775] [dev.expo.modules:expo] \ud83d\udfe2 Registering module 'ExpoSecureStore'"
+      },
+      {
+        "line": 355,
+        "text": "2026-10-31 18:40:14.712 I  PlatinumQA[93651:3ef3b] [dev.expo.modules:expo] \ud83d\udfe2 Creating JS object for module 'ExpoSecureStore'"
+      }
+    ],
+    "secureStoreMeaning": "Module registration/JS object creation only; not saved-account initialization or readback acceptance.",
+    "audioOverloadMessages": {
+      "count": 277,
+      "first": [
+        {
+          "line": 3056,
+          "text": "2026-10-31 18:40:47.436 E  PlatinumQA[93651:3f081] [com.apple.coreaudio:AMCP]  76315          HALC_ProxyIOContext.cpp:1622  HALC_ProxyIOContext::IOWorkLoop: skipping cycle due to overload"
+        }
+      ],
+      "last": [
+        {
+          "line": 9916,
+          "text": "2026-10-31 18:55:35.948 E  PlatinumQA[93651:3f081] [com.apple.coreaudio:AMCP]  76315          HALC_ProxyIOContext.cpp:1622  HALC_ProxyIOContext::IOWorkLoop: skipping cycle due to overload"
+        }
+      ],
+      "meaning": "System audio messages retained as context only. No causality to reader delay, app lock, URL delivery, or cancellation is established."
+    }
+  },
+  "targetedDeviceLogScan": {
+    "path": "maestro/navigation/2026-10-31_183513/Full native app navigation/logs/device-simulator.log",
+    "sha256": "b2709c4fd9921dee935dc645e73514937ffef4971c71103bdab9365f36a35340",
+    "bytes": 149096024,
+    "counts": {
+      "exactNativeUrlObserver": 0,
+      "lockAcquisitionWarnings": 0
+    },
+    "scope": "Only the exact URL observer marker and SDK lock warning patterns were scanned. No general device-log investigation or duplicate artifact download."
+  },
+  "captureDriverLog": {
+    "path": "maestro/memory-capture/2026-10-31_185216/Actual native memory capture and encoding/logs/maestro.log",
+    "sha256": "b11b0e3f14984b3475ea6b30852ef24905b0218a741fd4d9ae05e0671b876553",
+    "bytes": 1008,
+    "lines": [
+      "18:54:44.113 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Define variables RUNNING",
+      "18:54:44.282 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Define variables COMPLETED",
+      "18:54:44.285 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Apply configuration RUNNING",
+      "18:54:44.377 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Apply configuration COMPLETED",
+      "18:54:44.391 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Open platinum-circles-qa://ui-fixture/memory RUNNING",
+      "18:54:44.618 [ INFO] maestro.Maestro.openLink: Opening link platinum-circles-qa://ui-fixture/memory for app: app.platinumcircles.mobile.qa with autoVerify config as false",
+      "18:55:13.260 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Open platinum-circles-qa://ui-fixture/memory COMPLETED",
+      "18:55:13.266 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is IOS and \"^Open in \u201cPlatinum QA\u201d\\?$\" is visible RUNNING"
+    ],
+    "meaning": "The nested driver log records openLink completion and the Open-prompt conditional beginning. The top-level stdout alone only says Waiting for flows to complete. Neither proves native delegate entry, fixture routing, mounting or readback."
+  },
+  "flowResults": {
+    "path": "flow-results.json",
+    "sha256": "3788143fcc37089ca955e00f7165e6f4e98c3004d6e47f3972de98828ee45551",
+    "bytes": 354,
+    "data": {
+      "schemaVersion": 1,
+      "mode": "same-app-required-flows",
+      "flows": [
+        {
+          "name": "navigation",
+          "flow": "tests/native/flows/navigation.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-navigation.xml"
+        },
+        {
+          "name": "memory-capture",
+          "flow": "tests/native/flows/memory-capture.yaml",
+          "attempts": 1,
+          "exitCode": null,
+          "junit": "maestro-memory-capture.xml"
+        }
+      ]
+    }
+  },
+  "nativeUrlSourceProof": {
+    "path": "ios-url-trace/source-proof.json",
+    "sha256": "9e4f469a26a600d3fee4809588287904fd463821bc53f0f888920fec3c0d6ec5",
+    "bytes": 1165,
+    "helperSHA256": "fa37e06f5ee645af3fb29aae3f9e080cba24ab276480ac3a981731ee612fd885",
+    "generatedBefore": {
+      "file": "AppDelegate.before.swift.txt",
+      "bytes": 3993,
+      "sha256": "00c9934c2c9e5afdd6c47bcba339e81274e269e6cc2de9a312cc8c680a552206"
+    },
+    "generatedAfter": {
+      "file": "AppDelegate.after.swift.txt",
+      "bytes": 5095,
+      "sha256": "b785dc14be9cb062dc7e85a47699f03d077ff86697241fd752d33041c14182d5"
+    },
+    "exactReversalMatchesBefore": true,
+    "maximumTracedURLs": 16,
+    "maximumLogRecords": 32,
+    "recordFields": [
+      "phase",
+      "sequence",
+      "atUnixMs",
+      "matched"
+    ],
+    "clock": "Foundation Date epoch milliseconds; not calibrated against the host clock",
+    "runtimeAcceptance": false
+  }
+}

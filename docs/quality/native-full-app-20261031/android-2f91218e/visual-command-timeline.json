@@ -1,0 +1,3050 @@
+{
+  "navigation": [
+    {
+      "sequenceNumber": 0,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:10.265000+00:00",
+      "durationMs": 6,
+      "depth": 0,
+      "command": {
+        "defineVariablesCommand": {
+          "env": {
+            "MAESTRO_CLI_NO_ANALYTICS": "true",
+            "MAESTRO_FILENAME": "navigation",
+            "MAESTRO_DEVICE_UDID": "emulator-5556",
+            "MAESTRO_SHARD_ID": "1",
+            "MAESTRO_SHARD_INDEX": "0"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 1,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:10.272000+00:00",
+      "durationMs": 1,
+      "depth": 0,
+      "command": {
+        "applyConfigurationCommand": {
+          "config": {
+            "appId": "app.platinumcircles.mobile.qa",
+            "name": "Full native app navigation"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 2,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:10.273000+00:00",
+      "durationMs": 206,
+      "depth": 0,
+      "command": {
+        "launchAppCommand": {
+          "appId": "app.platinumcircles.mobile.qa",
+          "clearState": true,
+          "permissions": {
+            "notifications": "deny"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 3,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:10.479000+00:00",
+      "durationMs": 2504,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Sign in",
+              "optional": false
+            }
+          },
+          "timeout": "30000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 4,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:12.983000+00:00",
+      "durationMs": 3950,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Username or email",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 5,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:16.934000+00:00",
+      "durationMs": 3756,
+      "depth": 0,
+      "command": {
+        "inputTextCommand": {
+          "text": "qa.alex@example.invalid",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 6,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:20.690000+00:00",
+      "durationMs": 1193,
+      "depth": 0,
+      "command": {
+        "runFlowCommand": {
+          "commands": [
+            {
+              "hideKeyboardCommand": {
+                "optional": false
+              }
+            }
+          ],
+          "condition": {
+            "platform": "ANDROID"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 7,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:20.692000+00:00",
+      "durationMs": 1191,
+      "depth": 1,
+      "command": {
+        "hideKeyboardCommand": {
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 8,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:21.884000+00:00",
+      "durationMs": 2430,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Password",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 9,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:24.314000+00:00",
+      "durationMs": 2823,
+      "depth": 0,
+      "command": {
+        "inputTextCommand": {
+          "text": "FixtureOnly-2026!",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 10,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:27.137000+00:00",
+      "durationMs": 1044,
+      "depth": 0,
+      "command": {
+        "runFlowCommand": {
+          "commands": [
+            {
+              "hideKeyboardCommand": {
+                "optional": false
+              }
+            }
+          ],
+          "condition": {
+            "platform": "ANDROID"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 11,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:27.138000+00:00",
+      "durationMs": 1042,
+      "depth": 1,
+      "command": {
+        "hideKeyboardCommand": {
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 12,
+      "status": "SKIPPED",
+      "startedAt": "2026-10-31T17:58:28.181000+00:00",
+      "durationMs": 0,
+      "depth": 0,
+      "command": {
+        "runFlowCommand": {
+          "commands": [
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Platinum Circles",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            }
+          ],
+          "condition": {
+            "platform": "IOS"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 13,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:28.182000+00:00",
+      "durationMs": 2862,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Sign in",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 14,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:31.044000+00:00",
+      "durationMs": 499,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+              "optional": false
+            }
+          },
+          "timeout": "30000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 15,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:31.543000+00:00",
+      "durationMs": 329,
+      "depth": 0,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "home",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 16,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:31.872000+00:00",
+      "durationMs": 4069,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Latest",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 17,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:35.941000+00:00",
+      "durationMs": 359,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 18,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:36.300000+00:00",
+      "durationMs": 4047,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "For You",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 19,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:40.347000+00:00",
+      "durationMs": 312,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 20,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:40.659000+00:00",
+      "durationMs": 3694,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-market",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 21,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:44.353000+00:00",
+      "durationMs": 136,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "View listing: Travel journal",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 22,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:44.489000+00:00",
+      "durationMs": 52,
+      "depth": 0,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "market",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 23,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:44.542000+00:00",
+      "durationMs": 3103,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-feed",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 24,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:47.645000+00:00",
+      "durationMs": 295,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 25,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:47.940000+00:00",
+      "durationMs": 3334,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-jobs",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 26,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:51.275000+00:00",
+      "durationMs": 157,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "(?s)^(?:Product designer|(?:.*?, )?Product designer, (?:.*?, )?Desert Studio(?:, .*)?)$",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 27,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:51.432000+00:00",
+      "durationMs": 33,
+      "depth": 0,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "jobs",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 28,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:51.465000+00:00",
+      "durationMs": 2738,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-messages",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 29,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:54.203000+00:00",
+      "durationMs": 102,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "(?s)^(?:Ready for our next adventure\\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\\?(?:, .*)?)$",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 30,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:54.305000+00:00",
+      "durationMs": 64,
+      "depth": 0,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "messages",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 31,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:54.369000+00:00",
+      "durationMs": 2831,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-profile",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 32,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:57.200000+00:00",
+      "durationMs": 124,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Alex Rivera",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 33,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:57.324000+00:00",
+      "durationMs": 149,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "(?s)^(?:.*?, )?Edit profile$",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 34,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:57.474000+00:00",
+      "durationMs": 32,
+      "depth": 0,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "profile",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 35,
+      "status": "FAILED",
+      "startedAt": "2026-10-31T17:58:57.506000+00:00",
+      "durationMs": 120058,
+      "depth": 0,
+      "command": {
+        "runFlowCommand": {
+          "commands": [
+            {
+              "applyConfigurationCommand": {
+                "config": {
+                  "appId": "app.platinumcircles.mobile.qa",
+                  "name": "Saved memory book, automatic film and cover editing"
+                },
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "textRegex": "View all memory books",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": true,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "View all memory books",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Private",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "THE SMALL ADVENTURES, 2 memories",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "takeScreenshotCommand": {
+                "path": "memory-shelf",
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "THE SMALL ADVENTURES, 2 memories",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Edit memory book",
+                    "optional": false
+                  }
+                },
+                "timeout": "15000",
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "textRegex": "Open book",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": false,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Open book",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Page 1 of 2",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "WE TOOK THE LONG WAY HOME",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Next memory",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Page 2 of 2",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "THE STORIES WE KEEP",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "takeScreenshotCommand": {
+                "path": "memory-reader",
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Play continuous memory film",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Pause memory film",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "waitToSettleTimeoutMs": 500,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Play memory film",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "reflective \u00b7 2 of 2 memories \u00b7 .* seconds",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "takeScreenshotCommand": {
+                "path": "memory-film",
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Create memory movie",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Your memory movie",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "THE SMALL ADVENTURES \u00b7 2 memories",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Create memory movie",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "takeScreenshotCommand": {
+                "path": "memory-export-entry",
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Close movie export",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Play memory film",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Read memory book",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Page 2 of 2",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Close memory book",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Edit memory book",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Book settings",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Book title",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "eraseTextCommand": {
+                "optional": false
+              }
+            },
+            {
+              "inputTextCommand": {
+                "text": "THE LONG WAY HOME",
+                "optional": false
+              }
+            },
+            {
+              "runFlowCommand": {
+                "commands": [
+                  {
+                    "hideKeyboardCommand": {
+                      "optional": false
+                    }
+                  }
+                ],
+                "condition": {
+                  "platform": "ANDROID"
+                },
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "textRegex": "sage cover color",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": false,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "sage cover color",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "idRegex": "memory-cover-inscription",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": true,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "idRegex": "memory-cover-inscription",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "inputTextCommand": {
+                "text": "Roads worth remembering",
+                "optional": false
+              }
+            },
+            {
+              "runFlowCommand": {
+                "commands": [
+                  {
+                    "hideKeyboardCommand": {
+                      "optional": false
+                    }
+                  }
+                ],
+                "condition": {
+                  "platform": "ANDROID"
+                },
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "textRegex": "Writing style: Simple",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": false,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Writing style: Simple",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "idRegex": "memory-cover-postmark",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": true,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "idRegex": "memory-cover-postmark",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "inputTextCommand": {
+                "text": "DESERT DAYS",
+                "optional": false
+              }
+            },
+            {
+              "runFlowCommand": {
+                "commands": [
+                  {
+                    "hideKeyboardCommand": {
+                      "optional": false
+                    }
+                  }
+                ],
+                "condition": {
+                  "platform": "ANDROID"
+                },
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "textRegex": "Mood: Cinematic",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": false,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Mood: Cinematic",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "textRegex": "Postcard cover design",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": false,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Postcard cover design",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Save memory book",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "notVisible": {
+                    "textRegex": "Book settings",
+                    "optional": false
+                  }
+                },
+                "timeout": "15000",
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Postcard book cover: THE LONG WAY HOME. A book from this week. Roads worth remembering. DESERT DAYS",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "takeScreenshotCommand": {
+                "path": "memory-cover-edited",
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Back to profile",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "textRegex": "THE LONG WAY HOME, 2 memories",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": false,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "THE LONG WAY HOME, 2 memories",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Edit memory book",
+                    "optional": false
+                  }
+                },
+                "timeout": "15000",
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Postcard book cover: THE LONG WAY HOME. A book from this week. Roads worth remembering. DESERT DAYS",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "textRegex": "Play continuous memory film with original music",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": false,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Play continuous memory film with original music",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Pause memory film",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "waitToSettleTimeoutMs": 500,
+                "optional": false
+              }
+            },
+            {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "cinematic \u00b7 2 of 2 memories \u00b7 .* seconds",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            {
+              "takeScreenshotCommand": {
+                "path": "memory-film-reloaded",
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Close memory film",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Back to profile",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            },
+            {
+              "scrollUntilVisible": {
+                "selector": {
+                  "textRegex": "Settings",
+                  "optional": false
+                },
+                "direction": "UP",
+                "scrollDuration": "40",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": false,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            }
+          ],
+          "sourceDescription": "memory-navigation.yaml",
+          "config": {
+            "appId": "app.platinumcircles.mobile.qa",
+            "name": "Saved memory book, automatic film and cover editing"
+          },
+          "optional": false
+        }
+      },
+      "error": "Assertion is false: \"Postcard book cover: THE LONG WAY HOME. A book from this week. Roads worth remembering. DESERT DAYS\" is visible"
+    },
+    {
+      "sequenceNumber": 36,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:57.507000+00:00",
+      "durationMs": 0,
+      "depth": 1,
+      "command": {
+        "applyConfigurationCommand": {
+          "config": {
+            "appId": "app.platinumcircles.mobile.qa",
+            "name": "Saved memory book, automatic film and cover editing"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 37,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:58:57.507000+00:00",
+      "durationMs": 5247,
+      "depth": 1,
+      "command": {
+        "scrollUntilVisible": {
+          "selector": {
+            "textRegex": "View all memory books",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "40",
+          "visibilityPercentage": 100,
+          "timeout": "20000",
+          "centerElement": true,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 1.0
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 38,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:02.754000+00:00",
+      "durationMs": 2728,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "View all memory books",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 39,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:05.482000+00:00",
+      "durationMs": 2499,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Private",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 40,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:07.982000+00:00",
+      "durationMs": 120,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "THE SMALL ADVENTURES, 2 memories",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 41,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:08.102000+00:00",
+      "durationMs": 61,
+      "depth": 1,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "memory-shelf",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 42,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:08.163000+00:00",
+      "durationMs": 3015,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "THE SMALL ADVENTURES, 2 memories",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 43,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:11.178000+00:00",
+      "durationMs": 76,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Edit memory book",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 44,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:11.255000+00:00",
+      "durationMs": 2425,
+      "depth": 1,
+      "command": {
+        "scrollUntilVisible": {
+          "selector": {
+            "textRegex": "Open book",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "40",
+          "visibilityPercentage": 100,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 1.0
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 45,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:13.680000+00:00",
+      "durationMs": 2458,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Open book",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 46,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:16.138000+00:00",
+      "durationMs": 118,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Page 1 of 2",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 47,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:16.257000+00:00",
+      "durationMs": 110,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "WE TOOK THE LONG WAY HOME",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 48,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:16.368000+00:00",
+      "durationMs": 2766,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Next memory",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 49,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:19.134000+00:00",
+      "durationMs": 80,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Page 2 of 2",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 50,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:19.215000+00:00",
+      "durationMs": 156,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "THE STORIES WE KEEP",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 51,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:19.372000+00:00",
+      "durationMs": 63,
+      "depth": 1,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "memory-reader",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 52,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:19.435000+00:00",
+      "durationMs": 9989,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Play continuous memory film",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 53,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:29.425000+00:00",
+      "durationMs": 2893,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Pause memory film",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "waitToSettleTimeoutMs": 500,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 54,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:32.318000+00:00",
+      "durationMs": 112,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Play memory film",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 55,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:32.431000+00:00",
+      "durationMs": 107,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "reflective \u00b7 2 of 2 memories \u00b7 .* seconds",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 56,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:32.538000+00:00",
+      "durationMs": 62,
+      "depth": 1,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "memory-film",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 57,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:32.600000+00:00",
+      "durationMs": 2649,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Create memory movie",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 58,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:35.249000+00:00",
+      "durationMs": 108,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Your memory movie",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 59,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:35.357000+00:00",
+      "durationMs": 73,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "THE SMALL ADVENTURES \u00b7 2 memories",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 60,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:35.430000+00:00",
+      "durationMs": 106,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Create memory movie",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 61,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:35.537000+00:00",
+      "durationMs": 66,
+      "depth": 1,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "memory-export-entry",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 62,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:35.604000+00:00",
+      "durationMs": 2109,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Close movie export",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 63,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:37.713000+00:00",
+      "durationMs": 74,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Play memory film",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 64,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:37.788000+00:00",
+      "durationMs": 2274,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Read memory book",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 65,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:40.062000+00:00",
+      "durationMs": 112,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Page 2 of 2",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 66,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:40.174000+00:00",
+      "durationMs": 2271,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Close memory book",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 67,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:42.446000+00:00",
+      "durationMs": 1852,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Edit memory book",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 68,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:44.299000+00:00",
+      "durationMs": 915,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Book settings",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 69,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:45.215000+00:00",
+      "durationMs": 2692,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Book title",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 70,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:47.907000+00:00",
+      "durationMs": 2507,
+      "depth": 1,
+      "command": {
+        "eraseTextCommand": {
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 71,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:50.414000+00:00",
+      "durationMs": 3465,
+      "depth": 1,
+      "command": {
+        "inputTextCommand": {
+          "text": "THE LONG WAY HOME",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 72,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:53.880000+00:00",
+      "durationMs": 1079,
+      "depth": 1,
+      "command": {
+        "runFlowCommand": {
+          "commands": [
+            {
+              "hideKeyboardCommand": {
+                "optional": false
+              }
+            }
+          ],
+          "condition": {
+            "platform": "ANDROID"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 73,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:53.880000+00:00",
+      "durationMs": 1079,
+      "depth": 2,
+      "command": {
+        "hideKeyboardCommand": {
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 74,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:54.959000+00:00",
+      "durationMs": 2559,
+      "depth": 1,
+      "command": {
+        "scrollUntilVisible": {
+          "selector": {
+            "textRegex": "sage cover color",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "40",
+          "visibilityPercentage": 100,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 1.0
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 75,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T17:59:57.519000+00:00",
+      "durationMs": 2789,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "sage cover color",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 76,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:00.308000+00:00",
+      "durationMs": 4207,
+      "depth": 1,
+      "command": {
+        "scrollUntilVisible": {
+          "selector": {
+            "idRegex": "memory-cover-inscription",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "40",
+          "visibilityPercentage": 100,
+          "timeout": "20000",
+          "centerElement": true,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 1.0
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 77,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:04.515000+00:00",
+      "durationMs": 2447,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "memory-cover-inscription",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 78,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:06.962000+00:00",
+      "durationMs": 4294,
+      "depth": 1,
+      "command": {
+        "inputTextCommand": {
+          "text": "Roads worth remembering",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 79,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:11.256000+00:00",
+      "durationMs": 1133,
+      "depth": 1,
+      "command": {
+        "runFlowCommand": {
+          "commands": [
+            {
+              "hideKeyboardCommand": {
+                "optional": false
+              }
+            }
+          ],
+          "condition": {
+            "platform": "ANDROID"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 80,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:11.257000+00:00",
+      "durationMs": 1132,
+      "depth": 2,
+      "command": {
+        "hideKeyboardCommand": {
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 81,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:12.389000+00:00",
+      "durationMs": 80,
+      "depth": 1,
+      "command": {
+        "scrollUntilVisible": {
+          "selector": {
+            "textRegex": "Writing style: Simple",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "40",
+          "visibilityPercentage": 100,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 1.0
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 82,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:12.469000+00:00",
+      "durationMs": 2796,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Writing style: Simple",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 83,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:15.265000+00:00",
+      "durationMs": 2564,
+      "depth": 1,
+      "command": {
+        "scrollUntilVisible": {
+          "selector": {
+            "idRegex": "memory-cover-postmark",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "40",
+          "visibilityPercentage": 100,
+          "timeout": "20000",
+          "centerElement": true,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 1.0
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 84,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:17.829000+00:00",
+      "durationMs": 2561,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "memory-cover-postmark",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 85,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:20.390000+00:00",
+      "durationMs": 2497,
+      "depth": 1,
+      "command": {
+        "inputTextCommand": {
+          "text": "DESERT DAYS",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 86,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:22.888000+00:00",
+      "durationMs": 1133,
+      "depth": 1,
+      "command": {
+        "runFlowCommand": {
+          "commands": [
+            {
+              "hideKeyboardCommand": {
+                "optional": false
+              }
+            }
+          ],
+          "condition": {
+            "platform": "ANDROID"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 87,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:22.888000+00:00",
+      "durationMs": 1132,
+      "depth": 2,
+      "command": {
+        "hideKeyboardCommand": {
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 88,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:24.021000+00:00",
+      "durationMs": 2436,
+      "depth": 1,
+      "command": {
+        "scrollUntilVisible": {
+          "selector": {
+            "textRegex": "Mood: Cinematic",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "40",
+          "visibilityPercentage": 100,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 1.0
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 89,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:26.457000+00:00",
+      "durationMs": 2780,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Mood: Cinematic",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 90,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:29.237000+00:00",
+      "durationMs": 4967,
+      "depth": 1,
+      "command": {
+        "scrollUntilVisible": {
+          "selector": {
+            "textRegex": "Postcard cover design",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "40",
+          "visibilityPercentage": 100,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 1.0
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 91,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:34.204000+00:00",
+      "durationMs": 2934,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Postcard cover design",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 92,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:37.138000+00:00",
+      "durationMs": 2996,
+      "depth": 1,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Save memory book",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 93,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:00:40.134000+00:00",
+      "durationMs": 732,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "notVisible": {
+              "textRegex": "Book settings",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 94,
+      "status": "FAILED",
+      "startedAt": "2026-10-31T18:00:40.866000+00:00",
+      "durationMs": 16566,
+      "depth": 1,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Postcard book cover: THE LONG WAY HOME. A book from this week. Roads worth remembering. DESERT DAYS",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": "Assertion is false: \"Postcard book cover: THE LONG WAY HOME. A book from this week. Roads worth remembering. DESERT DAYS\" is visible"
+    }
+  ],
+  "capture": [
+    {
+      "sequenceNumber": 0,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:06.505000+00:00",
+      "durationMs": 4,
+      "depth": 0,
+      "command": {
+        "defineVariablesCommand": {
+          "env": {
+            "MAESTRO_CLI_NO_ANALYTICS": "true",
+            "MAESTRO_FILENAME": "memory-capture",
+            "MAESTRO_DEVICE_UDID": "emulator-5556",
+            "MAESTRO_SHARD_ID": "1",
+            "MAESTRO_SHARD_INDEX": "0"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 1,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:06.511000+00:00",
+      "durationMs": 0,
+      "depth": 0,
+      "command": {
+        "applyConfigurationCommand": {
+          "config": {
+            "appId": "app.platinumcircles.mobile.qa",
+            "name": "Actual native memory capture and encoding"
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 2,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:06.512000+00:00",
+      "durationMs": 1165,
+      "depth": 0,
+      "command": {
+        "openLinkCommand": {
+          "link": "platinum-circles-qa://ui-fixture/memory",
+          "autoVerify": false,
+          "browser": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 3,
+      "status": "SKIPPED",
+      "startedAt": "2026-10-31T18:01:07.677000+00:00",
+      "durationMs": 3,
+      "depth": 0,
+      "command": {
+        "runFlowCommand": {
+          "commands": [
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Open",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            }
+          ],
+          "condition": {
+            "platform": "IOS",
+            "visible": {
+              "textRegex": "^Open in \u201cPlatinum QA\u201d\\?$",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 4,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:07.680000+00:00",
+      "durationMs": 116,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Native capture acceptance",
+              "optional": false
+            }
+          },
+          "timeout": "30000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 5,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:07.797000+00:00",
+      "durationMs": 84,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Saved account readback passed",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 6,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:07.882000+00:00",
+      "durationMs": 2650,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Open cancellation movie",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 7,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:10.532000+00:00",
+      "durationMs": 76,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Create memory movie",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 8,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:10.608000+00:00",
+      "durationMs": 2235,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Create memory movie",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "waitToSettleTimeoutMs": 1000,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 9,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:12.844000+00:00",
+      "durationMs": 96,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Reading the movie\u2019s video timing\u2026",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 10,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:12.941000+00:00",
+      "durationMs": 3547,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Reading the movie\u2019s video timing\u2026",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "repeat": {
+            "repeat": 2,
+            "delay": 1000
+          },
+          "waitToSettleTimeoutMs": 1000,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 11,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:16.488000+00:00",
+      "durationMs": 2291,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Close movie export",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "waitToSettleTimeoutMs": 1000,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 12,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:18.779000+00:00",
+      "durationMs": 112,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Memory capture cleanup passed",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 13,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:18.891000+00:00",
+      "durationMs": 2570,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Open complete movie",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 14,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:21.461000+00:00",
+      "durationMs": 109,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Create memory movie",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 15,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:21.570000+00:00",
+      "durationMs": 3019,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Create memory movie",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "waitToSettleTimeoutMs": 1000,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 16,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:24.589000+00:00",
+      "durationMs": 18641,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Save movie to Photos",
+              "optional": false
+            }
+          },
+          "timeout": "180000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 17,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:43.230000+00:00",
+      "durationMs": 174,
+      "depth": 0,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "captured-memory-ready",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 18,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:43.404000+00:00",
+      "durationMs": 2160,
+      "depth": 0,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Close movie export",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 19,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:45.564000+00:00",
+      "durationMs": 65,
+      "depth": 0,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Memory capture cleanup passed",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "error": null
+    },
+    {
+      "sequenceNumber": 20,
+      "status": "COMPLETED",
+      "startedAt": "2026-10-31T18:01:45.630000+00:00",
+      "durationMs": 23,
+      "depth": 0,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "captured-memory-cleanup",
+          "optional": false
+        }
+      },
+      "error": null
+    }
+  ]
+}

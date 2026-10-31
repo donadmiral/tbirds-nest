@@ -72,6 +72,8 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
   const [result, setResult] = useState<Results | null>(null);
   const [retry, setRetry] = useState(0);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [topicsError, setTopicsError] = useState(false);
+  const [topicsAttempt, setTopicsAttempt] = useState(0);
   const [recent, setRecent] = useState<string[]>([]);
   const [postMode, setPostMode] = useState<"top" | "latest">("top");
   const [paging, setPaging] = useState<Set<Vertical>>(new Set());
@@ -87,8 +89,16 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
   const { people, posts, jobs, listings, media, articles, places, channels, communities } = searched && !result.error ? result : EMPTY_RESULTS;
 
   useEffect(() => {
+    let active = true;
+    void withTimeout(supabase.rpc("get_trending_topics", { p_limit: 8 })).then(({ data, error }) => {
+      if (error) throw error;
+      if (active) { setTopics((data ?? []) as Topic[]); setTopicsError(false); }
+    }).catch(() => { if (active) setTopicsError(true); });
+    return () => { active = false; };
+  }, [supabase, topicsAttempt]);
+
+  useEffect(() => {
     let alive = true;
-    supabase.rpc("get_trending_topics", { p_limit: 8 }).then(({ data }) => { if (alive) setTopics((data ?? []) as Topic[]); });
     let uid: string | null | undefined;
     const bind = (next: string | null) => {
       if (!alive || uid === next) return;
@@ -267,6 +277,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
 
       {q.trim().length < 2 ? (
         <>
+          {topicsError ? <div role="alert" className="pt-5 text-sm text-muted"><p>Trending topics could not load. You can still search.</p><button type="button" className="mt-2 underline" onClick={() => { setTopicsError(false); setTopicsAttempt(value => value + 1); }}>Try again</button></div> : null}
           {topics.length > 0 ? (
             <div className="pt-5">
               <p className={head}>Trending</p>

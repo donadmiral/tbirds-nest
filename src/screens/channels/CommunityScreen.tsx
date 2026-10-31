@@ -1,6 +1,6 @@
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView, Share, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -30,6 +30,7 @@ function relTime(iso?: string) {
 }
 
 export default function CommunityScreen() {
+  useTheme();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { communityId, name: name0, coverColor: color0, iconUrl: icon0, memberCount: mc0, myRole: role0, isMember: mem0 } = (route.params || {}) as any;
@@ -863,22 +864,22 @@ const s = themedSheet((t) => ({
   commMeta: { fontSize: 12.5, color: '#1F2937', opacity: 0.7, marginTop: 1 },
   commDesc: { fontSize: 13, color: '#1F2937', opacity: 0.8, paddingHorizontal: 6, marginTop: 8, lineHeight: 18 },
   joinDark: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: '#0F1419' },
-  joinDarkTxt: { fontSize: 13, fontWeight: '700', color: t.ink.inverse },
+  joinDarkTxt: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
   joinLight: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: '#FFFFFFB3' },
   joinLightTxt: { fontSize: 12.5, fontWeight: '700', color: '#1F2937' },
   rulesCard: { marginHorizontal: 14, marginTop: 10, borderRadius: 12, borderWidth: 1, borderColor: '#E5E5EA', padding: 11 },
   rulesTitle: { fontSize: 12.5, fontWeight: '800', color: NAVY },
-  rulesBody: { fontSize: 12.5, color: '#5B6B84', marginTop: 5, lineHeight: 17 },
+  rulesBody: { fontSize: 12.5, color: t.ink.secondary, marginTop: 5, lineHeight: 17 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 40 },
-  emptyTitle: { fontSize: 15.5, fontWeight: '700', color: '#0F1419' },
-  emptySub: { fontSize: 13, color: '#8E8E93', textAlign: 'center' },
+  emptyTitle: { fontSize: 15.5, fontWeight: '700', color: t.ink.primary },
+  emptySub: { fontSize: 13, color: t.ink.muted, textAlign: 'center' },
   card: { backgroundColor: '#F8F9FB', borderRadius: 16, padding: 12, marginBottom: 10 },
   pinRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
   pinTxt: { fontSize: 11, fontWeight: '800', color: NAVY },
   cardHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   avatar: { width: 36, height: 36, borderRadius: 18 },
   avatarFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  avatarTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
+  avatarTxt: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
   authorName: { fontSize: 14, fontWeight: '700', color: '#0F1419' },
   authorMeta: { fontSize: 11.5, color: '#8E8E93', marginTop: 1 },
   cardBody: { fontSize: 15, color: '#1A1A1A', lineHeight: 21, marginTop: 8 },
@@ -897,7 +898,7 @@ const s = themedSheet((t) => ({
   modalTitle: { fontSize: 16.5, fontWeight: '700', color: '#0F1419' },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
   memberAvatar: { width: 38, height: 38, borderRadius: 19 },
-  roleChip: { backgroundColor: t.surface.hairline, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
+  roleChip: { backgroundColor: '#EEF0F3', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
   roleChipTxt: { fontSize: 10.5, fontWeight: '700', color: NAVY },
   approveBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
   denyBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
@@ -907,11 +908,11 @@ const s = themedSheet((t) => ({
   audChip: { flex: 1, alignItems: 'center', paddingVertical: 11, borderRadius: 12, backgroundColor: '#F5F5F5', borderWidth: 1.5, borderColor: '#E5E5EA' },
   audChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   audTxt: { fontSize: 12.5, fontWeight: '600', color: '#5B6B84' },
-  audTxtOn: { color: t.ink.inverse },
+  audTxtOn: { color: '#FFFFFF' },
   catChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#E5E5EA' },
   catChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   catTxt: { fontSize: 12.5, fontWeight: '600', color: '#5B6B84' },
-  catTxtOn: { color: t.ink.inverse },
+  catTxtOn: { color: '#FFFFFF' },
   colorDot: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: 'transparent' },
   colorDotOn: { borderColor: '#0F1419' },
   strip: { paddingHorizontal: 14, paddingTop: 8, gap: 4 },

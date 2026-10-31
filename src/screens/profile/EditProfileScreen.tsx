@@ -333,7 +333,7 @@ const s = themedSheet((t) => ({
   saveTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
   banner: { backgroundColor: t.status.dangerBg, paddingHorizontal: 14, paddingVertical: space.sm },
-  bannerTxt: { fontSize: typeSize.caption, color: t.status.danger, fontWeight: fontWeight.semibold },
+  bannerTxt: { fontSize: typeSize.caption, color: t.ink.primary, fontWeight: fontWeight.semibold },
 
   bannerPick: { height: 132, backgroundColor: t.brand.base },
   bannerImg: { width: '100%', height: '100%' },
@@ -342,9 +342,9 @@ const s = themedSheet((t) => ({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center', justifyContent: 'center',
     flexDirection: 'row', gap: 6,
-    backgroundColor: 'rgba(11,30,61,0.34)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
-  overlayTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  overlayTxt: { color: '#FFFFFF', fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
   avatarRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: 14, marginTop: -30 },
   avatar: { width: 72, height: 72, borderRadius: 36, borderWidth: 2.5, borderColor: t.surface.canvas, backgroundColor: t.surface.sunken },
@@ -370,7 +370,7 @@ const s = themedSheet((t) => ({
     fontSize: typeSize.body, color: t.ink.primary, backgroundColor: t.surface.raised,
   },
   inputMulti: { minHeight: 96, paddingTop: 11 },
-  counter: { alignSelf: 'flex-end', fontSize: typeSize.micro, color: t.ink.faint },
+  counter: { alignSelf: 'flex-end', fontSize: typeSize.micro, color: t.ink.muted },
 
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', gap: space.sm,

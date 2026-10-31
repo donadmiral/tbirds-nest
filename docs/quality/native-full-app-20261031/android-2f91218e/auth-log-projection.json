@@ -1,0 +1,63 @@
+{
+  "appLog": {
+    "bytes": 12754406,
+    "sha256": "961d2407178cdbceebcac9c67e912bec2c096e6461248fb048c44b2ab79ca986",
+    "totalLines": 20581,
+    "reactNativeJsLines": [
+      {
+        "line": 2370,
+        "text": "10-31 17:58:11.851  2469  2520 I ReactNativeJS: MediaDevices _registerEvents invoked"
+      },
+      {
+        "line": 2372,
+        "text": "10-31 17:58:11.859  2469  2520 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method."
+      },
+      {
+        "line": 2373,
+        "text": "10-31 17:58:11.859  2469  2520 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `removeListeners` method."
+      },
+      {
+        "line": 2374,
+        "text": "10-31 17:58:11.860  2469  2520 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method."
+      },
+      {
+        "line": 2375,
+        "text": "10-31 17:58:11.860  2469  2520 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `removeListeners` method."
+      },
+      {
+        "line": 2386,
+        "text": "10-31 17:58:11.947  2469  2520 I ReactNativeJS: '[NativeCalls] gate', '{\"build\":0,\"expoGo\":false,\"enabled\":true}'"
+      },
+      {
+        "line": 2397,
+        "text": "10-31 17:58:12.057  2469  2520 W ReactNativeJS: [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality."
+      },
+      {
+        "line": 2398,
+        "text": "10-31 17:58:12.084  2469  2520 I ReactNativeJS: Running \"main\""
+      },
+      {
+        "line": 2399,
+        "text": "10-31 17:58:12.085  2469  2520 I ReactNativeJS: MediaDevices => mediaDevicesOnDeviceChange"
+      },
+      {
+        "line": 3220,
+        "text": "10-31 17:58:29.515  2469  2520 I ReactNativeJS: Must use physical device for push notifications"
+      },
+      {
+        "line": 3248,
+        "text": "10-31 17:58:29.725  2469  2520 I ReactNativeJS: '[accounts] index', 1"
+      },
+      {
+        "line": 3251,
+        "text": "10-31 17:58:29.837  2469  2520 I ReactNativeJS: '[accounts] index', 1"
+      },
+      {
+        "line": 17656,
+        "text": "10-31 18:01:06.593  2469  2520 I ReactNativeJS: '[accounts] init', 1, 'stored:', 1, 'current:', '10000000'"
+      }
+    ],
+    "goTrueOrProcessLockMatches": 0,
+    "limit": "No GoTrue/processLock warning text in retained app log. This is not proof of every possible SDK instance event or a complete non-evicted telemetry trace."
+  }
+}

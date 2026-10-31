@@ -1,0 +1,1091 @@
+{
+  "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "routes": [
+    {
+      "route": "/[username]/follows",
+      "sourceFile": "web/app/[username]/follows/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 4,
+      "controlStatusCounts": {
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1,
+        "ACTIVATED_OUTCOME_RECORDED": 3
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/[username]",
+      "sourceFile": "web/app/[username]/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/about",
+      "sourceFile": "web/app/about/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 1,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/account-deletion",
+      "sourceFile": "web/app/account-deletion/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/ads/new",
+      "sourceFile": "web/app/ads/new/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 8,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 7,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/ads",
+      "sourceFile": "web/app/ads/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 5,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 4,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/album/[id]",
+      "sourceFile": "web/app/album/[id]/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/archive",
+      "sourceFile": "web/app/archive/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 2,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/business-login",
+      "sourceFile": "web/app/business-login/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 4,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 3,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/businesses/apply",
+      "sourceFile": "web/app/businesses/apply/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 11,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 11
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/businesses/new",
+      "sourceFile": "web/app/businesses/new/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 18,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 17,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/businesses",
+      "sourceFile": "web/app/businesses/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 2,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/calls",
+      "sourceFile": "web/app/calls/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 1,
+      "controlStatusCounts": {
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/channels/[id]",
+      "sourceFile": "web/app/channels/[id]/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 8,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 7,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/channels",
+      "sourceFile": "web/app/channels/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 5,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 4,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/communities/[id]",
+      "sourceFile": "web/app/communities/[id]/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 13,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 9,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1,
+        "EXTERNAL_OR_NON_ROUTE_LINK_NOT_ACTIVATED": 2,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/communities/join/[token]",
+      "sourceFile": "web/app/communities/join/[token]/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 1,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/communities",
+      "sourceFile": "web/app/communities/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 5,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 4,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/discover",
+      "sourceFile": "web/app/discover/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 40,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 37,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 2,
+        "RUNTIME_ERROR_OBSERVED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/explore",
+      "sourceFile": "web/app/explore/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 35,
+      "controlStatusCounts": {
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 2,
+        "RUNTIME_ERROR_OBSERVED": 1,
+        "INTERACTION_FAILED": 32
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/forgot-password",
+      "sourceFile": "web/app/forgot-password/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 3,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/home",
+      "sourceFile": "web/app/home/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/jobs/[id]/applicants",
+      "sourceFile": "web/app/jobs/[id]/applicants/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 1,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/jobs/[id]",
+      "sourceFile": "web/app/jobs/[id]/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/jobs/applications",
+      "sourceFile": "web/app/jobs/applications/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 9,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 7,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 2
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/jobs/messages",
+      "sourceFile": "web/app/jobs/messages/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 2,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/jobs/new",
+      "sourceFile": "web/app/jobs/new/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 16,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 16
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/jobs",
+      "sourceFile": "web/app/jobs/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 39,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 33,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/jobs/saved",
+      "sourceFile": "web/app/jobs/saved/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 8,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 7,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/login",
+      "sourceFile": "web/app/login/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 6,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 4,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/market/[id]",
+      "sourceFile": "web/app/market/[id]/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 1,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/market/messages",
+      "sourceFile": "web/app/market/messages/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 2,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/market/new",
+      "sourceFile": "web/app/market/new/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 15,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 15
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/market/orders",
+      "sourceFile": "web/app/market/orders/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/market",
+      "sourceFile": "web/app/market/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 33,
+      "controlStatusCounts": {
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 7,
+        "ACTIVATED_OUTCOME_RECORDED": 26
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/market/saved",
+      "sourceFile": "web/app/market/saved/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 4,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 2
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/messages",
+      "sourceFile": "web/app/messages/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/messages/requests",
+      "sourceFile": "web/app/messages/requests/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 1,
+      "controlStatusCounts": {
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/monetization",
+      "sourceFile": "web/app/monetization/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 4,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 3,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/music",
+      "sourceFile": "web/app/music/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 3,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/notifications",
+      "sourceFile": "web/app/notifications/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 6,
+      "controlStatusCounts": {
+        "CONTROL_CHANGED_BEFORE_ACTIVATION": 1,
+        "ACTIVATED_OUTCOME_RECORDED": 5
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/",
+      "sourceFile": "web/app/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/post/[id]",
+      "sourceFile": "web/app/post/[id]/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/privacy",
+      "sourceFile": "web/app/privacy/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 1,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/reset-password",
+      "sourceFile": "web/app/reset-password/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 2,
+      "controlStatusCounts": {
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1,
+        "ACTIVATED_OUTCOME_RECORDED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/saved",
+      "sourceFile": "web/app/saved/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 3,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 3
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/search",
+      "sourceFile": "web/app/search/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 5,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 2,
+        "RUNTIME_ERROR_OBSERVED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/account-type",
+      "sourceFile": "web/app/settings/account-type/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 5,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 4,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/activity",
+      "sourceFile": "web/app/settings/activity/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 6,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 5,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/archive",
+      "sourceFile": "web/app/settings/archive/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 3,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/audio",
+      "sourceFile": "web/app/settings/audio/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 9,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 4,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 4
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/blocked",
+      "sourceFile": "web/app/settings/blocked/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 2,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/delete-account",
+      "sourceFile": "web/app/settings/delete-account/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/download",
+      "sourceFile": "web/app/settings/download/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 3,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/follow-requests",
+      "sourceFile": "web/app/settings/follow-requests/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 2,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/help",
+      "sourceFile": "web/app/settings/help/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 10,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 9,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/hidden-words",
+      "sourceFile": "web/app/settings/hidden-words/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 4,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 3,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/login-activity",
+      "sourceFile": "web/app/settings/login-activity/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 3,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/muted-words",
+      "sourceFile": "web/app/settings/muted-words/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 4,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 3,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/muted",
+      "sourceFile": "web/app/settings/muted/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 2,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/notifications",
+      "sourceFile": "web/app/settings/notifications/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 14,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 13,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings",
+      "sourceFile": "web/app/settings/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 45,
+      "controlStatusCounts": {
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 3,
+        "ACTIVATED_OUTCOME_RECORDED": 35,
+        "EXTERNAL_OR_NON_ROUTE_LINK_NOT_ACTIVATED": 7
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/profile",
+      "sourceFile": "web/app/settings/profile/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 18,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 3,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1,
+        "INTERACTION_FAILED": 13,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/restricted",
+      "sourceFile": "web/app/settings/restricted/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 2,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/standing",
+      "sourceFile": "web/app/settings/standing/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 2,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/support/[id]",
+      "sourceFile": "web/app/settings/support/[id]/page.tsx",
+      "scopeStatus": "ROOT_OWNED_SUPPORT",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/support",
+      "sourceFile": "web/app/settings/support/page.tsx",
+      "scopeStatus": "ROOT_OWNED_SUPPORT",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/two-factor",
+      "sourceFile": "web/app/settings/two-factor/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 3,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/username",
+      "sourceFile": "web/app/settings/username/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 4,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 2,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/settings/verification",
+      "sourceFile": "web/app/settings/verification/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 15,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 14,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/signup",
+      "sourceFile": "web/app/signup/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 5,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 4,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/story/[id]",
+      "sourceFile": "web/app/story/[id]/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/story/new",
+      "sourceFile": "web/app/story/new/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/ads",
+      "sourceFile": "web/app/studio/ads/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 42,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 34,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 8
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/audience",
+      "sourceFile": "web/app/studio/audience/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 29,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 23,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/commerce",
+      "sourceFile": "web/app/studio/commerce/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 28,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 22,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/content",
+      "sourceFile": "web/app/studio/content/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 34,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 24,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6,
+        "INTERACTION_FAILED": 4
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/earnings",
+      "sourceFile": "web/app/studio/earnings/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 34,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 27,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 7
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/inbox",
+      "sourceFile": "web/app/studio/inbox/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 35,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 29,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/insights",
+      "sourceFile": "web/app/studio/insights/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 36,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 29,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 7
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/newsroom",
+      "sourceFile": "web/app/studio/newsroom/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 38,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 31,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6,
+        "INTERACTION_FAILED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio",
+      "sourceFile": "web/app/studio/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 46,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 36,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6,
+        "INTERACTION_FAILED": 4
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/partnerships",
+      "sourceFile": "web/app/studio/partnerships/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 39,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 31,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 8
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/planner",
+      "sourceFile": "web/app/studio/planner/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 74,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 68,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/recruiter",
+      "sourceFile": "web/app/studio/recruiter/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 26,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 20,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/reviews",
+      "sourceFile": "web/app/studio/reviews/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 27,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 21,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/settings/organization",
+      "sourceFile": "web/app/studio/settings/organization/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 37,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 30,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/settings",
+      "sourceFile": "web/app/studio/settings/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 47,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 40,
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 6,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/studio/team",
+      "sourceFile": "web/app/studio/team/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/terms",
+      "sourceFile": "web/app/terms/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 1,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/topic/[tag]",
+      "sourceFile": "web/app/topic/[tag]/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 1,
+      "controlStatusCounts": {
+        "PAGE_RENDER_FAILED": 1
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/watch",
+      "sourceFile": "web/app/watch/page.tsx",
+      "scopeStatus": "SERVER_ROUTE_NOT_EXECUTED_IN_THIS_HARNESS",
+      "renderObservations": 0,
+      "initialControlRecords": 0,
+      "controlStatusCounts": {},
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    },
+    {
+      "route": "/write",
+      "sourceFile": "web/app/write/page.tsx",
+      "scopeStatus": "CLIENT_PAGE_OBSERVED",
+      "renderObservations": 3,
+      "initialControlRecords": 44,
+      "controlStatusCounts": {
+        "ACTIVATED_OUTCOME_RECORDED": 44
+      },
+      "remaining": "Deep valid-form success/persistence, additional data roles, provider/auth/RLS/server route acceptance are not implied."
+    }
+  ],
+  "separateExistingCICoverage": {
+    "/home": "Actual HomeFeed component and real-Next shell fixture",
+    "/[username]": "Actual Profile component and real-Next shell fixture",
+    "/album/[id]": "Actual saved-memory book reader/editor fixtures",
+    "/messages": "Actual MessagesApp fixture",
+    "/market/orders": "Actual commerce order component fixture",
+    "/story/new": "Actual composer/media fixtures",
+    "/studio/team": "Organization destination/role fixture; server redirect not newly executed"
+  },
+  "remainingExplicitGaps": [
+    "Authenticated deployed member journeys unavailable: current audit tab is signed out; no login/credential/provider write was attempted.",
+    "Server routes /account-deletion,/settings/delete-account,/post/[id],/story/[id],/watch and actual job-detail authorization are not accepted by this page harness.",
+    "MFA adapter lacks auth.mfa; archive adapter lacked .not in the initial broad sweep. These are fixture gaps, not product failures.",
+    "Job applicants initial fixture used a non-owner; real owner applicant workflow is not covered by that initial page row. Studio recruiter gets a separate populated synthetic case.",
+    "Confirmation dialogs were dismissed except synthetic error alerts; destructive confirmation paths are not implicitly accepted.",
+    "File/password/range controls, provider integrations, signed storage, payments, purchase/delivery, real notifications and business device approval remain separate gates.",
+    "Initial control enumeration does not recursively activate every newly exposed modal/menu action. Existing CI and the focused ten Studio mutation failures provide additional bounded action checks.",
+    "No aggregate percentage of all2083 static bindings is claimed: static callbacks, repeated navigation links, render records and user action postconditions have different denominators."
+  ]
+}

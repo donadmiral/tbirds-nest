@@ -1,0 +1,100 @@
+{
+  "source": "app.log",
+  "bytes": 1595566,
+  "sha256": "63ce65200694de9f321c4ecbfcd3fd8964ecc30613d0ed7f71413f3552da2f70",
+  "selection": "Exact UIKit keyboard/animation-monitor/main-run-loop records, selected successful snapshots and automation state transitions. No raw URLs or payloads.",
+  "records": [
+    {
+      "line": 658,
+      "text": "2026-10-31 18:40:40.041 F  PlatinumQA[93651:3e775] [com.apple.UIKit:KeyboardTaskQueue] -[UIKeyboardTaskQueue _lockWhenReadyForMainThread] Keyboard queue task timeout detected"
+    },
+    {
+      "line": 8285,
+      "text": "2026-10-31 18:43:42.288 E  PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] Unexpectedly received animationDidStop without a matching animationDidStart. Monitoring for idle animations may no longer function correctly."
+    },
+    {
+      "line": 8580,
+      "text": "2026-10-31 18:44:08.219 E  PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] Unexpectedly received animationDidStop without a matching animationDidStart. Monitoring for idle animations may no longer function correctly."
+    },
+    {
+      "line": 8582,
+      "text": "2026-10-31 18:44:08.223 E  PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] Unexpectedly received animationDidStop without a matching animationDidStart. Monitoring for idle animations may no longer function correctly."
+    },
+    {
+      "line": 8584,
+      "text": "2026-10-31 18:44:08.226 E  PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] Unexpectedly received animationDidStop without a matching animationDidStart. Monitoring for idle animations may no longer function correctly."
+    },
+    {
+      "line": 8654,
+      "text": "2026-10-31 18:44:14.265 Df PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] Captured accessibility snapshot data in 0.03s"
+    },
+    {
+      "line": 8795,
+      "text": "2026-10-31 18:45:46.457 E  PlatinumQA[93651:4107a] [com.apple.dt.xctest:Default] XCTAS Error: Error Domain=com.apple.dt.xctest.automation-support.error Code=6 \"Unable to perform work on main run loop, process main thread busy for 30.0s\" UserInfo={NSLocalizedDescription=Unable to perform work on main run loop, process main thread busy for 30.0s}"
+    },
+    {
+      "line": 8839,
+      "text": "2026-10-31 18:46:17.472 E  PlatinumQA[93651:42788] [com.apple.dt.xctest:Default] XCTAS Error: Error Domain=com.apple.dt.xctest.automation-support.error Code=6 \"Unable to perform work on main run loop, process main thread busy for 30.0s\" UserInfo={NSLocalizedDescription=Unable to perform work on main run loop, process main thread busy for 30.0s}"
+    },
+    {
+      "line": 8888,
+      "text": "2026-10-31 18:46:48.490 E  PlatinumQA[93651:4226e] [com.apple.dt.xctest:Default] XCTAS Error: Error Domain=com.apple.dt.xctest.automation-support.error Code=6 \"Unable to perform work on main run loop, process main thread busy for 30.0s\" UserInfo={NSLocalizedDescription=Unable to perform work on main run loop, process main thread busy for 30.0s}"
+    },
+    {
+      "line": 8938,
+      "text": "2026-10-31 18:47:18.541 E  PlatinumQA[93651:42788] [com.apple.dt.xctest:Default] XCTAS Error: Error Domain=com.apple.dt.xctest.automation-support.error Code=6 \"Unable to perform work on main run loop, process main thread busy for 30.0s\" UserInfo={NSLocalizedDescription=Unable to perform work on main run loop, process main thread busy for 30.0s}"
+    },
+    {
+      "line": 9004,
+      "text": "2026-10-31 18:47:49.581 E  PlatinumQA[93651:43878] [com.apple.dt.xctest:Default] XCTAS Error: Error Domain=com.apple.dt.xctest.automation-support.error Code=6 \"Unable to perform work on main run loop, process main thread busy for 30.0s\" UserInfo={NSLocalizedDescription=Unable to perform work on main run loop, process main thread busy for 30.0s}"
+    },
+    {
+      "line": 9049,
+      "text": "2026-10-31 18:48:20.600 E  PlatinumQA[93651:43878] [com.apple.dt.xctest:Default] XCTAS Error: Error Domain=com.apple.dt.xctest.automation-support.error Code=6 \"Unable to perform work on main run loop, process main thread busy for 30.0s\" UserInfo={NSLocalizedDescription=Unable to perform work on main run loop, process main thread busy for 30.0s}"
+    },
+    {
+      "line": 9152,
+      "text": "2026-10-31 18:49:01.067 Df PlatinumQA[93651:444ec] [com.apple.dt.automationmode:Default] Comparing previous enabled state (1) to current enabled state (0)"
+    },
+    {
+      "line": 9299,
+      "text": "2026-10-31 18:50:54.489 Df PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[MT]: got onto MT too late (lost the race to the busy flag)"
+    },
+    {
+      "line": 9301,
+      "text": "2026-10-31 18:50:54.490 Df PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[MT]: got onto MT too late (lost the race to the busy flag)"
+    },
+    {
+      "line": 9303,
+      "text": "2026-10-31 18:50:54.490 Df PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[MT]: got onto MT too late (lost the race to the busy flag)"
+    },
+    {
+      "line": 9305,
+      "text": "2026-10-31 18:50:54.490 Df PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[MT]: got onto MT too late (lost the race to the busy flag)"
+    },
+    {
+      "line": 9307,
+      "text": "2026-10-31 18:50:54.491 Df PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[MT]: got onto MT too late (lost the race to the busy flag)"
+    },
+    {
+      "line": 9309,
+      "text": "2026-10-31 18:50:54.492 Df PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[MT]: got onto MT too late (lost the race to the busy flag)"
+    },
+    {
+      "line": 9695,
+      "text": "2026-10-31 18:54:30.146 Df PlatinumQA[93651:48f27] [com.apple.dt.automationmode:Default] Comparing previous enabled state (0) to current enabled state (1)"
+    },
+    {
+      "line": 9738,
+      "text": "2026-10-31 18:54:40.849 Df PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] Captured accessibility snapshot data in 0.08s"
+    },
+    {
+      "line": 9858,
+      "text": "2026-10-31 18:55:14.387 Df PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] Captured accessibility snapshot data in 0.04s"
+    },
+    {
+      "line": 9896,
+      "text": "2026-10-31 18:55:15.448 Df PlatinumQA[93651:3e775] [com.apple.dt.xctest:Default] Captured accessibility snapshot data in 0.03s"
+    }
+  ]
+}

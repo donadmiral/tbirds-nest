@@ -5,9 +5,70 @@ native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
-## Prepared combined repair candidate (v8)
+## Current work: grouped cross-platform repairs and installed-device diagnosis
 
-The next candidate is reviewed and frozen across **15 source/test paths**.
+The previous **5/6 counter is retired**. It described a narrow repair cycle,
+not whole-product completion. The user requested a broad error inventory,
+grouped repairs, and independent tests that continue after another area fails.
+The [audit ledger](full-platform-audit-20261031/audit-ledger.json) now preserves
+39 issue records, their original reproductions, local repair receipts and
+remaining installed or hosted acceptance. These records include product,
+measurement and test-infrastructure defects; they are not 39 separate product
+features or a completion percentage.
+
+The published application baseline remains `2f91218e`. A coordinated working
+copy contains the repaired Support flows, nine member-web issue families,
+held settings-save recovery, seven admin reporting/layout findings, three API
+contract findings, five custom-action receipt failures, native theme/version
+repairs, media readability fixes and the diagnosed Android movie dependency
+repair. The combined local application regression passed before candidate publication.
+
+### Progress by verified scope
+
+| Scope | Completed evidence | Current status |
+| --- | --- | --- |
+| Member web |64/64 resilience/browser cases, including16 held-save/session cases | Locally verified; hosted signed-in acceptance pending |
+| Support on web and native |48/48 component/SDK lifecycle and deadline cases;32/32 actual-page browser cases;14/14 atomic SQL cases | Locally verified; new SQL is not yet deployed |
+| Admin reporting and commands |Complete admin suite284/284;12/12 reporting browser and21/21 custom-control browser cases | Locally verified; current hosted session is signed out |
+| Native theme and media labels |111/111 theme cases plus7/7 media contrast cases; existing9 player/selector cases preserved | Source/render/color evidence; device visual acceptance pending |
+| Android movie |Media3 packet-order loss reproduced and dependency fix compiled; strict decoder thresholds preserved | New installed export must pass |
+| Android broad audit |Original APK retained; three consumers recovered from missing-adb setup |85-case baseline audit running; no all-controls claim |
+| iPhone installed app |Main tabs and private shelf passed; reader spinner/main-run-loop stall recorded | Root-cause diagnosis active; full journey failed |
+| Combined regression |Phone/root2,168/2,168; web683/683; admin284/284; database328passed plus3conditional skips; RPC883passed plus3conditional skips |Passed. Four test adapters/contracts were repaired together without changing product assertions. |
+
+The native audit contains 59 entry-only cases and 26 selected control, error,
+signed-out and capture cases. The source inventory contains 89 distinct native
+route names, 93 member-web pages and 34 admin pages. Its 4,694 static callback
+bindings are neither unique visible buttons nor runtime passes. Missing coverage
+remains explicit in the ledger.
+
+The original `2f91218e` quality, browser and standalone iOS/Android encoder
+workflows passed. The full installed-app workflow did not: Android exposed a
+real 133.333 ms movie gap and a title-replacement harness defect; iPhone stalled
+at reader entry and its separate capture was interrupted by the job deadline.
+The retained iPhone logs include animation-monitoring errors but do not establish
+an application, network or automation root cause. The next native diagnostic
+must retain request traces and thread evidence rather than assume a cause.
+
+Hosted QA migration advancement remains held because two earlier authorized
+requests have no proven terminal outcome. Available member/admin sessions are
+signed out. Apple sign-in is not retried, no new signed-device acceptance is
+claimed, and TestFlight remains on hold. These are separate from the completed
+local repairs and ongoing simulator/emulator audit.
+
+## Published baseline: 2f91218e (v8)
+
+The reviewed candidate is now published as app/PR head
+[`2f91218e71dbcaf94ea7b454a0e3562800bfe601`](https://github.com/donadmiral/tbirds-nest/commit/2f91218e71dbcaf94ea7b454a0e3562800bfe601).
+Its PR merge is `5333fddeaab859dfde2079266aafb07ffd94f329`; both have verified
+tree `f5a48a383b73ec8d7ac6b775885fba6179a9d8ce`. Publication used a non-forced,
+expected-head update after both previous full-native jobs were terminal.
+The final checkpoint's 31 files and 523,073 bytes were read back, along with
+all 501 original native hashes and all 15 changed source/test paths (507 unique
+paths in the union). All working source remained unchanged. Local Git metadata
+now points to this candidate; all 3,163 working paths were preserved.
+
+The source is reviewed and frozen across **15 source/test paths**.
 Two production components change: authorized reader entry is immediate, and
 page-turn settlement cannot wait indefinitely for a native animation callback.
 The remaining paths implement the reviewed Android Mesa/host diagnostics,
@@ -28,12 +89,24 @@ The original native flow commands, required assertions, deadlines, native
 encoders and production movie capability remain unchanged. Android's next
 host-renderer isolation intentionally excludes guest Vulkan. Actual renderer
 selection, generated Swift compilation/log delivery and both complete installed
-journeys remain pending. Repair-cycle progress remains **5 of 6 milestones**.
+journeys remain pending. That historical repair-cycle counter is superseded by the scope board above.
 
+The following baseline workflows have completed. Their results establish only
+their recorded scope and do not validate the newer working-copy repair batch.
+
+| Gate | Fresh current-source run | Initial status |
+| --- | --- | --- |
+| Type and quality | [41225636352](https://github.com/donadmiral/tbirds-nest/actions/runs/41225636352) | Passed |
+| Browser interaction and media | [41225636301](https://github.com/donadmiral/tbirds-nest/actions/runs/41225636301) | Passed |
+| iOS compilation and encoders | [41225636295](https://github.com/donadmiral/tbirds-nest/actions/runs/41225636295) | Passed |
+| Android compilation and encoders | [41225636330](https://github.com/donadmiral/tbirds-nest/actions/runs/41225636330) | Passed |
+| Complete installed native apps | [41225636296](https://github.com/donadmiral/tbirds-nest/actions/runs/41225636296) | Android failed; iPhone failed and hit job deadline. Both artifacts retained. |
+
+[Verified publication](live-app-20261031/publication-2f91218e.json) ·
 [Final combined static and provenance gate](native-full-app-20261031/native-final-combined-static-provenance-gate.json) ·
 [Final expected native source manifest](native-full-app-20261031/native-final-combined-source-provenance-manifest.json)
 
-## Current published repair candidate: b5c9c82b (v7)
+## Previous repair candidate: b5c9c82b (v7)
 
 Repair-cycle progress: **5 of 6 milestones complete**. The remaining milestone
 is complete installed-app acceptance on iPhone Simulator and Android Emulator.

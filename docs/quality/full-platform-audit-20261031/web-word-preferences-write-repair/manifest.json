@@ -1,0 +1,62 @@
+[
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/after-browser.json.gz",
+    "bytes": 7192,
+    "sha256": "3796f3512cbee06463c22c306981f590cffb76549fbde5fbb9d71b1201d4cd26"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/after-browser.log.txt",
+    "bytes": 5327,
+    "sha256": "9731719484c764bf03387d43b82c77480d8299bf2766733972216f310c8c18f6"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/after-summary.json",
+    "bytes": 11438,
+    "sha256": "046e1a0b565d0af8a5836e2e6296c2e1aa96937243f99d8f9e3cd1a3eefadb56"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/before-browser.json.gz",
+    "bytes": 1886,
+    "sha256": "ff42b63d81910a32f9cd30efeadf9d339f37479a2e023abe9e9940ef8ee5444a"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/before-browser.log.txt",
+    "bytes": 2948,
+    "sha256": "bb50f58f5147a7f8ccbdcf292ddbac4c63de63862814fd7149dfc9827d61b38f"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/before-held-write.png",
+    "bytes": 24836,
+    "sha256": "0baeb06168618f9f530685b36fb8a0f14b886f0cdc186ebf945506afccd00498"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/before-summary.json",
+    "bytes": 5361,
+    "sha256": "41df496c699542c710d270fe0d2575e6e9d0d8f4f95f7990aee43e43ccb529d7"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/before-useWordPreferences.ts.txt",
+    "bytes": 3423,
+    "sha256": "dc980cf4a68583891199401e52d4a392ec45e6ffae245d3db4c1a336b2072e0c"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/lint.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/review.json",
+    "bytes": 7450,
+    "sha256": "92f04bd50f8e2fecce1a66e1b7ca4de05f58c0df3666f18f2972d4b6af13f8b2"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/source-manifest.json",
+    "bytes": 1568,
+    "sha256": "a3170b4a4844682b5ce4f32936ab56df49a0a9214337fbf84469294480fe853a"
+  },
+  {
+    "path": "docs/quality/full-platform-audit-20261031/web-word-preferences-write-repair/typescript.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

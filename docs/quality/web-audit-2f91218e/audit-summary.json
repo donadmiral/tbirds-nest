@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T18:12:09.559672+00:00",
+  "source": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "webAndSharedDiffExit": 0,
+    "productionEdits": 0
+  },
+  "baselineCI": {
+    "runId": 41225636301,
+    "jobId": 124609086978,
+    "outcome": "SUCCESS",
+    "artifactId": 13051437889,
+    "bytes": 9285439,
+    "sha256": "e286f7e4c7bf6e9b8f738dc7f91c608c6abc2f053093545c427460b052cc9cfd",
+    "reports": "ci-baseline",
+    "memberSuiteCounts": {
+      "web": 41,
+      "commerce": 25,
+      "studio": 25,
+      "memory": 25,
+      "memory-cover": 5,
+      "music": 5,
+      "video": 12,
+      "shell": 3
+    },
+    "countBoundary": "These141 suite cases are separate from discovery observations. Profile/Jobs frame subchecks overlap their parent suites and are not added. Admin37 belongs to the admin audit.",
+    "limits": "Synthetic data/transport except real-Next routing probe with local synthetic HTTP. No hosted provider acceptance."
+  },
+  "discovery": {
+    "actualClientPages": 77,
+    "routeReadObservations": 231,
+    "initialControlRecords": 1106,
+    "initialControlCounts": {
+      "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 152,
+      "ACTIVATED_OUTCOME_RECORDED": 868,
+      "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 18,
+      "EXTERNAL_OR_NON_ROUTE_LINK_NOT_ACTIVATED": 9,
+      "RUNTIME_ERROR_OBSERVED": 3,
+      "INTERACTION_FAILED": 54,
+      "CONTROL_CHANGED_BEFORE_ACTIVATION": 1,
+      "PAGE_RENDER_FAILED": 1
+    },
+    "focusedPageAndReadCases": 58,
+    "focusedStudioMutationCases": 10,
+    "profileCoverHitCases": 2,
+    "confirmedIssueFamilies": 9,
+    "staticRouteTotal": 93,
+    "rootOwnedSupportRoutes": 2,
+    "nonClientRoutesNotDirectlyExecuted": 14,
+    "currentDeployedSession": "Signed out; public login/recovery/signup navigation only."
+  },
+  "priorityOrder": [
+    "WEB-01",
+    "WEB-09",
+    "WEB-06",
+    "WEB-02",
+    "WEB-03",
+    "WEB-04",
+    "WEB-07",
+    "WEB-05",
+    "WEB-08"
+  ],
+  "scopeLimits": "Activation, render/error observations and accepted postconditions are distinct. All remaining route/contract/control gaps are enumerated in route-coverage.json; no whole-app pass or latency claim.",
+  "entryPoints": {
+    "issues": "issues.json",
+    "coverage": "route-coverage.json",
+    "controlObservations": "control-observations.json",
+    "focusedPostconditions": "focused-postconditions.json",
+    "rawEvidence": "raw-archive-manifest.json"
+  }
+}

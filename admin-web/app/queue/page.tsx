@@ -6,6 +6,8 @@ import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
+import RecordPages from '@/components/RecordPages';
+import { DESK_PAGE_SIZE, exactCount, formatCount, mapReportReads, recordPage, type DeskSearch } from '@/lib/deskReporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,24 +34,28 @@ function medianHours(pairs: { created_at: string; decided_at: string }[]): numbe
   return hrs.length % 2 ? hrs[mid] : (hrs[mid - 1] + hrs[mid]) / 2;
 }
 
-export default async function QueuePage() {
+export default async function QueuePage({ searchParams }: { searchParams: Promise<DeskSearch> }) {
   const admin = await requireDesk('/queue');
   const now = await requestTime();
   const svc = serviceClient();
 
   const from30 = new Date(now - 30 * 86400000).toISOString();
 
-  const [appsRes, decidedRes, approvedAllRes, rejectedAllRes, approved30Res, totalRes] = await Promise.all([
-    svc.from('verification_applications').select('*').in('status', ['submitted', 'under_review']).order('created_at', { ascending: true }),
-    svc.from('verification_applications').select('id, applicant_id, tier, category, status, created_at, decided_at, decision_reason').not('decided_at', 'is', null).order('decided_at', { ascending: false }).limit(60),
+  const [pendingRes, decidedRes, approvedAllRes, rejectedAllRes, approved30Res, totalRes] = await Promise.all([
+    svc.from('verification_applications').select('id', { count: 'exact', head: true }).in('status', ['submitted', 'under_review']),
+    svc.from('verification_applications').select('id, applicant_id, tier, category, status, created_at, decided_at, decision_reason').not('decided_at', 'is', null).order('decided_at', { ascending: false }).order('id', { ascending: false }).limit(60),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'approved').gte('decided_at', from30),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }),
   ]);
-  if ([appsRes, decidedRes, approvedAllRes, rejectedAllRes, approved30Res, totalRes].some(result => result.error)) {
-    throw new Error('Verification data could not be loaded. Refresh before reviewing a request.');
-  }
+  const failure = 'Verification data could not be loaded. Refresh before reviewing a request.';
+  const pendingCount = exactCount(pendingRes, failure), total = exactCount(totalRes, failure);
+  const approvedAll = exactCount(approvedAllRes, failure), rejectedAll = exactCount(rejectedAllRes, failure);
+  const approved30 = exactCount(approved30Res, failure);
+  const range = recordPage((await searchParams).page, pendingCount);
+  const appsRes = await svc.from('verification_applications').select('*').in('status', ['submitted', 'under_review']).order('created_at', { ascending: true }).order('id', { ascending: true }).range(range.from, range.to);
+  if (appsRes.error || !Array.isArray(appsRes.data) || decidedRes.error || !Array.isArray(decidedRes.data)) throw new Error(failure);
 
   const appsRaw = (appsRes.data ?? []) as Record<string, unknown>[];
   const decided = (decidedRes.data ?? []) as { id: string; applicant_id: string; tier: string; category: string | null; status: string; created_at: string; decided_at: string; decision_reason: string | null }[];
@@ -57,8 +63,9 @@ export default async function QueuePage() {
   const refByApp: Record<string, { referrer_id: string; note: string | null }[]> = {};
   const refNames: Record<string, { full_name: string | null; username: string | null }> = {};
   if (appsRaw.length) {
-    const { data: refs, error: refsError } = await svc.from('verification_referrals').select('application_id, referrer_id, note').in('application_id', appsRaw.map(a => String(a.id)));
-    if (refsError) throw new Error('Verification referrals could not be loaded.');
+    const referralResult = await svc.from('verification_referrals').select('application_id, referrer_id, note', { count: 'exact' }).in('application_id', appsRaw.map(a => String(a.id))).limit(1000);
+    const refs = referralResult.data;
+    if (!Array.isArray(refs) || exactCount(referralResult, 'Verification referrals could not be loaded.') !== refs.length) throw new Error('Complete verification referrals could not be loaded.');
     (refs ?? []).forEach((r: { application_id: string; referrer_id: string; note: string | null }) => { (refByApp[r.application_id] = refByApp[r.application_id] || []).push(r); });
     const rids = Array.from(new Set((refs ?? []).map((r: { referrer_id: string }) => r.referrer_id)));
     if (rids.length) {
@@ -77,11 +84,10 @@ export default async function QueuePage() {
   if (ids.length) {
     const [{ data: profs, error: profilesError }, strikeRows] = await Promise.all([
       svc.from('profiles').select('id, full_name, username, avatar_url, account_type, created_at, location').in('id', ids),
-      Promise.all([...new Set(sortedApps.map(application => String(application.applicant_id)))].map(async id => {
+      mapReportReads([...new Set(sortedApps.map(application => String(application.applicant_id)))], async id => {
         const result = await svc.from('member_strikes').select('id', { count: 'exact', head: true }).eq('user_id', id);
-        if (result.error || result.count === null) throw new Error('Account safety history could not be loaded.');
-        return { id, n: result.count };
-      })),
+        return { id, n: exactCount(result, 'Account safety history could not be loaded.') };
+      }),
     ]);
     if (profilesError) throw new Error('Verification applicant accounts could not be loaded.');
     (profs ?? []).forEach((p: { id: string; full_name: string | null; username: string | null; avatar_url: string | null; account_type: string | null; created_at: string; location: string | null }) => { profiles[p.id] = p; });
@@ -89,20 +95,17 @@ export default async function QueuePage() {
   }
 
   const median = medianHours(decided.filter(d => d.decided_at).map(d => ({ created_at: d.created_at, decided_at: d.decided_at })));
-  const total = totalRes.count ?? 0;
-  const approvedAll = approvedAllRes.count ?? 0;
-  const rejectedAll = rejectedAllRes.count ?? 0;
 
   const tierCount: Record<string, number> = {};
   sortedApps.forEach(a => { const t = String(a.tier || 'unspecified'); tierCount[t] = (tierCount[t] || 0) + 1; });
   const tierSlices: Slice[] = Object.keys(tierCount).map(k => ({ label: TIER_LABEL[k] || k, value: tierCount[k], color: k === 'public_figure' ? 'var(--ok)' : k === 'official' ? 'var(--pearl)' : 'rgba(var(--on),0.34)' }));
 
   const cards = [
-    { label: 'All requests', value: fmt(total), note: 'verification requests, all time', icon: IC.seal, color: 'var(--c1)' },
-    { label: 'Pending review', value: fmt(sortedApps.length), note: 'submitted and under review', icon: IC.clock, color: 'var(--c3)' },
-    { label: 'Approved', value: fmt(approvedAll), note: fmt(approved30Res.count ?? 0) + ' in the last 30 days', icon: IC.check, color: 'var(--c2)' },
-    { label: 'Rejected', value: fmt(rejectedAll), note: 'with a written reason', icon: IC.x, color: 'var(--c5)' },
-    { label: 'Median decision', value: median === null ? '-' : (median < 48 ? median.toFixed(1) + 'h' : (median / 24).toFixed(1) + 'd'), note: 'measured on decided applications', icon: IC.clock, color: 'var(--c6)' },
+    { label: 'All requests', value: formatCount(total), note: 'verification requests, all time', icon: IC.seal, color: 'var(--c1)' },
+    { label: 'Pending review', value: formatCount(pendingCount), note: 'all submitted and under review', icon: IC.clock, color: 'var(--c3)' },
+    { label: 'Approved', value: formatCount(approvedAll), note: formatCount(approved30) + ' in the last 30 days', icon: IC.check, color: 'var(--c2)' },
+    { label: 'Rejected', value: formatCount(rejectedAll), note: 'with a written reason', icon: IC.x, color: 'var(--c5)' },
+    { label: 'Median recent decision', value: median === null ? '-' : (median < 48 ? median.toFixed(1) + 'h' : (median / 24).toFixed(1) + 'd'), note: 'latest ' + fmt(decided.length) + ' decisions, up to 60', icon: IC.clock, color: 'var(--c6)' },
   ];
 
   const pendingRows: DeskRow[] = sortedApps.map(a => {
@@ -111,7 +114,8 @@ export default async function QueuePage() {
     const p = profiles[uid] || { full_name: null, username: null, avatar_url: null, account_type: null, created_at: String(a.created_at), location: null };
     const tier = String(a.tier || 'unspecified');
     const vouches = refByApp[id] || [];
-    const strikes = strikeCounts[uid] || 0;
+    const strikes = strikeCounts[uid];
+    if (!Number.isSafeInteger(strikes) || strikes < 0) throw new Error('Account safety history could not be loaded.');
     const fields = [
       { label: 'Tier requested', value: TIER_LABEL[tier] || tier },
       { label: 'Category', value: String(a.category || 'not given') },
@@ -200,30 +204,33 @@ export default async function QueuePage() {
   const rows = [...pendingRows, ...decidedRows];
 
   const tabs = [
-    { key: 'pending', label: 'Pending review', count: pendingRows.length },
+    { key: 'pending', label: 'Pending on this page', count: pendingRows.length },
     { key: 'people', label: 'People', count: rows.filter(r => r.tabs.includes('people')).length },
     { key: 'business', label: 'Businesses', count: rows.filter(r => r.tabs.includes('business')).length },
     { key: 'vouched', label: 'Vouched', count: rows.filter(r => r.tabs.includes('vouched')).length },
     { key: 'risky', label: 'Carrying strikes', count: rows.filter(r => r.tabs.includes('risky')).length },
-    { key: 'decided', label: 'Decided', count: decidedRows.length },
+    { key: 'decided', label: 'Latest decisions', count: decidedRows.length },
   ];
 
   return (
-    <Shell admin={admin} active="/queue" title="Verification" sub="Review and decide every verification request. Vouched applications rise to the top, then the ones that have waited longest.">
+    <Shell admin={admin} active="/queue" title="Verification" sub="Review the oldest pending requests in pages of 25. Vouched applications rise to the top within each page.">
       <StatStrip cards={cards} />
+      <RecordPages path="/queue" range={range} loaded={pendingRows.length} label="Pending requests" />
+      <p className="text-sm text-[var(--txt-muted)]">Filters apply to this page of pending requests and the latest 60 decisions. The tier chart describes pending requests on this page.</p>
 
       <div className="mt-5 grid gap-5">
         <div>
           <Desk
+            key={range.page}
             tabs={tabs}
             columns={[{ label: 'Account' }, { label: 'Tier', sort: 'text' }, { label: 'Category', sort: 'text' }, { label: 'Vouches', align: 'right', sort: 'number' }, { label: 'Strikes', align: 'right', sort: 'number' }, { label: 'Waiting', align: 'right' }]}
             grid="minmax(180px,2fr) 130px minmax(110px,1fr) 80px 74px 92px"
             rows={rows}
             filters={[{ key: 'tier', label: 'Tier', options: Array.from(new Set(rows.map(r => r.facets?.tier || ''))).filter(Boolean) }]}
-            searchHint="Search by name, username or category"
+            searchHint="Filter loaded requests by name, username or category"
             detailTitle="Request"
             minWidth={800}
-            pageSize={12}
+            pageSize={DESK_PAGE_SIZE}
             actions={[
               { key: 'approve', label: 'Approve and grant the seal', tone: 'ok', action: approveApplication, idName: 'id', inputs: [{ name: 'reason', label: 'Approval review basis', type: 'textarea', placeholder: 'Explain the evidence supporting this decision', help: 'Confirm identity, evidence and account type against the requested seal. Give a specific review basis of 20–2,000 characters.', required: true, minLength: 20, maxLength: 2000 }] },
               { key: 'reject', label: 'Reject request', tone: 'bad', action: rejectApplication, idName: 'id', inputs: [{ name: 'reason', label: 'Reason for the member', type: 'textarea', placeholder: 'Explain what was missing or did not meet the requirements', help: 'Give a specific, respectful reason of 20–2,000 characters.', required: true, minLength: 20, maxLength: 2000 }] },
@@ -235,10 +242,10 @@ export default async function QueuePage() {
           <div style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>What is waiting</div>
-              <div style={H_SUB}>Pending requests by tier</div>
+              <div style={H_SUB}>Pending requests on this page, by tier</div>
             </div>
             <div style={{ padding: 16 }}>
-              {tierSlices.length === 0 ? <Empty note="Nothing is waiting for a decision." /> : <Donut slices={tierSlices} centerLabel="waiting" size={148} />}
+              {tierSlices.length === 0 ? <Empty note="No pending request on this page." /> : <Donut slices={tierSlices} centerLabel="waiting" size={148} />}
             </div>
           </div>
 

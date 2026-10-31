@@ -1,0 +1,123 @@
+{
+  "runtime": "153.0.8010.12",
+  "scope": "Actual member web components with synthetic Auth/database/storage/functions and Next routing adapters. No hosted/provider acceptance or real mutations.",
+  "cases": 16,
+  "passed": 2,
+  "failed": 14,
+  "pageErrors": 0,
+  "blockedExternalRequests": 0,
+  "results": [
+    {
+      "name": "Word write deadline: hidden held update aborts, reconciles, then permits a deliberate retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText(/could not save/i).first() to be visible\u001b[22m\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: hidden committed update with lost acknowledgement is read back without replay",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText(/could not save/i).first() to be visible\u001b[22m\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: muted held update aborts, reconciles, then permits a deliberate retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText(/could not save/i).first() to be visible\u001b[22m\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: muted committed update with lost acknowledgement is read back without replay",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText(/could not save/i).first() to be visible\u001b[22m\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: failed reconciliation resolved keeps editing unavailable until an explicit read succeeds",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText(/could not load|could not confirm/i).first() to be visible\u001b[22m\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: failed reconciliation rejected keeps editing unavailable until an explicit read succeeds",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText(/could not load|could not confirm/i).first() to be visible\u001b[22m\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: failed reconciliation held keeps editing unavailable until an explicit read succeeds",
+      "status": "FAIL",
+      "error": "TimeoutError: page.waitForFunction: Timeout 2000ms exceeded.",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: held pre-dispatch session lookup has its own deadline and sends no write",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: pre-dispatch unmount invalidates the queued intent",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 0
+    },
+    {
+      "name": "Word write deadline: pre-dispatch account invalidates the queued intent",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText(/account changed/i).first() to be visible\u001b[22m\n",
+      "readCount": 1,
+      "writeCount": 0
+    },
+    {
+      "name": "Word write deadline: pre-dispatch ABA invalidates the queued intent",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: pre-dispatch replacement invalidates the queued intent",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: dispatched unmount aborts and ignores a late acknowledgement",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- true\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: dispatched ABA aborts and ignores a late acknowledgement",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- true\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: dispatched replacement aborts and ignores a late acknowledgement",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- true\n",
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: account ABA during reconciliation cannot republish the old list",
+      "status": "FAIL",
+      "error": "TimeoutError: page.waitForFunction: Timeout 2000ms exceeded.",
+      "readCount": 1,
+      "writeCount": 1
+    }
+  ]
+}

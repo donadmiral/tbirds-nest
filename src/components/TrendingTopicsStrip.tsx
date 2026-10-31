@@ -1,4 +1,4 @@
-import { themedSheet } from '../theme/useTheme';
+import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -38,6 +38,7 @@ type Props = {
 };
 
 export default function TrendingTopicsStrip({ refreshSignal }: Props) {
+  useTheme();
   const navigation = useNavigation<any>();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
@@ -224,7 +225,7 @@ const styles = themedSheet((t) => ({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#000000',
+    color: t.ink.primary,
     paddingHorizontal: 14,
     marginBottom: 8,
   },

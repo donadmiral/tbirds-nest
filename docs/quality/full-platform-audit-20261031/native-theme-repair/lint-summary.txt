@@ -1,0 +1,9 @@
+{
+  "files": 45,
+  "beforeErrors": 0,
+  "beforeWarnings": 55,
+  "afterErrors": 0,
+  "afterWarnings": 55,
+  "newMessages": [],
+  "testMessages": []
+}

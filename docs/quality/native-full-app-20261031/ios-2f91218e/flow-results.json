@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "mode": "same-app-required-flows",
+  "flows": [
+    {"name":"navigation","flow":"tests/native/flows/navigation.yaml","attempts":1,"exitCode":1,"junit":"maestro-navigation.xml"},
+    {"name":"memory-capture","flow":"tests/native/flows/memory-capture.yaml","attempts":1,"exitCode":null,"junit":"maestro-memory-capture.xml"}
+  ]
+}

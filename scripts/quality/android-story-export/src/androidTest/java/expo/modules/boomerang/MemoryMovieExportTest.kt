@@ -202,6 +202,42 @@ class MemoryMovieExportTest {
     record("videoPageAndBookAudioPreserveIndependentClocks",coverage(file,5.0)+mapOf("original330Hz" to original,"book1100Hz" to book))
   }
 
+  @Test fun reorderedBFramesSurviveTheTrimEndBeforeTheNextPage() {
+    val input=File(fixtures,"captured-b-frames.mp4")
+    InstrumentationRegistry.getInstrumentation().context.assets.open("memory-capture-video.mp4").use { source ->
+      input.outputStream().use { destination -> source.copyTo(destination) }
+    }
+    fun timestamps(file: File): List<Long> {
+      val extractor=MediaExtractor()
+      try {
+        extractor.setDataSource(file.path)
+        extractor.selectTrack((0 until extractor.trackCount).first { extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("video/")==true })
+        val values=mutableListOf<Long>()
+        while(extractor.sampleTime>=0) { values.add(extractor.sampleTime);assertTrue(values.size<=120);if(!extractor.advance())break }
+        return values
+      } finally { extractor.release() }
+    }
+    val sourceTimes=timestamps(input)
+    assertTrue("Require actual decode/presentation reordering",sourceTimes.zipWithNext().any { (a,b)->b<a })
+    val firstOutside=sourceTimes.indexOfFirst { it>=2_000_000 }
+    assertTrue(firstOutside>=0)
+    val tail=sourceTimes.drop(firstOutside+1).filter { it in 500_000 until 2_000_000 }
+    assertEquals("The real input must retain the three B-frames after the end-time reference packet",3,tail.size)
+    val video=scene("b-frame-video",input,2.0,"video");edit(video,mapOf("trimStart" to .5,"volume" to .5))
+    val file=export(request("b-frame-boundary",listOf(scene("b-frame-opening",image("b-frame-opening",Color.BLACK)),video,
+      scene("b-frame-closing",image("b-frame-closing",Color.GREEN)))),"memory-b-frame-boundary")
+    val measured=coverage(file,3.5)
+    val outputTimes=timestamps(file)
+    assertEquals("Every in-range source frame must reach the video page",45,outputTimes.count { it in 1_000_000 until 2_500_000 })
+    val before=outputTimes.last { it<2_500_000 };val after=outputTimes.first { it>=2_500_000 }
+    assertTrue("The final B-frames must not leave a hold before the next page",after-before<=40_000)
+    color(Color.RED,pixel(file,2.45,180,640));color(Color.BLUE,pixel(file,2.45,540,640))
+    color(Color.GREEN,pixel(file,2.6,360,640))
+    val hash=java.security.MessageDigest.getInstance("SHA-256").digest(input.readBytes()).joinToString("") { "%02x".format(it) }
+    record("reorderedBFramesSurviveTheTrimEndBeforeTheNextPage",measured+mapOf("sourceSha256" to hash,
+      "reorderedTailFrames" to tail.size,"videoPageFrames" to 45,"boundaryFrameGapUs" to after-before))
+  }
+
   @Test fun sceneArtworkFadeAndMotionUseLocalTime() {
     val quadrants=image("quadrants",Color.RED,draw={ bitmap ->
       val canvas=Canvas(bitmap);val paint=Paint();paint.color=Color.GREEN;canvas.drawRect(360f,0f,720f,640f,paint)
@@ -436,7 +472,7 @@ class MemoryMovieExportTest {
       val context=InstrumentationRegistry.getInstrumentation().targetContext
       val directory=File(context.filesDir,"evidence").apply { mkdirs() }
       File(directory,"memory-receipt.json").writeText(JSONObject().put("sdk",Build.VERSION.SDK_INT).put("model",Build.MODEL)
-        .put("abis",JSONArray(Build.SUPPORTED_ABIS.toList())).put("media3Version","1.8.1")
+        .put("abis",JSONArray(Build.SUPPORTED_ABIS.toList())).put("media3Version","1.11.1")
         .put("renderer","Actual production MemoryMovieComposition.kt, StoryVideoComposition.kt and StoryVideoEffects.kt")
         .put("cases",records).put("physicalDeviceAcceptance",false).toString(2)+"\n")
     }

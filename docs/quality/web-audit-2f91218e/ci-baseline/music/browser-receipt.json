@@ -1,0 +1,220 @@
+{
+  "browser": "153.0.8010.12",
+  "syntheticTransport": true,
+  "cases": [
+    {
+      "mode": "book",
+      "bytes": 164822,
+      "duration": "6.012200",
+      "lateFrame": [
+        209,
+        177,
+        108
+      ],
+      "before": 0.08707148895707717,
+      "after": 0.0882082885041573,
+      "passed": true
+    },
+    {
+      "mode": "retained",
+      "bytes": 104064,
+      "duration": "6.005099",
+      "lateFrame": [
+        209,
+        177,
+        108
+      ],
+      "before": 0.08723431468062395,
+      "after": 0,
+      "passed": true
+    },
+    {
+      "mode": "revoked_during_export",
+      "noDownload": true
+    },
+    {
+      "mode": "microphone_verified",
+      "duration": 2.2291156462585033
+    },
+    {
+      "mode": "recording_cancel",
+      "tracksEnded": true,
+      "noUpload": true
+    }
+  ],
+  "consoleErrors": [],
+  "calls": [
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "reserve_original_audio",
+      "args": {
+        "p_request_id": "bd55acc9-f3f8-4c16-8c88-ca6d04c210c8",
+        "p_expected_user": "10000000-0000-4000-8000-000000000001",
+        "p_title": "synthetic-original",
+        "p_mime": "audio/wav",
+        "p_bytes": 192078,
+        "p_sha256": "b28b91f2eee541a30f5b6c244ebfa0334ebe3ff50a314a3e8284030504f37114",
+        "p_reuse": false,
+        "p_rights_attested": true
+      }
+    },
+    {
+      "operation": "verified",
+      "bytes": 192078,
+      "duration": 2
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "get_playable_sound",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "story"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "get_playable_sound",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "post"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "authorize_original_audio_export",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "memory_album"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "authorize_original_audio_export",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "memory_album"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "authorize_original_audio_export",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "memory_album"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "authorize_original_audio_export",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "memory_album"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "authorize_original_audio_export",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "memory_album"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "authorize_original_audio_export",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "memory_album"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "authorize_original_audio_export",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "memory_album"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "authorize_original_audio_export",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "memory_album"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "authorize_original_audio_export",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "memory_album"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "authorize_original_audio_export",
+      "args": {
+        "p_sound_id": "8e182a9f-c4e7-4e82-8b8e-84377ad71db7",
+        "p_use": "memory_album"
+      }
+    },
+    {
+      "operation": "reserve_original_audio",
+      "args": {
+        "p_request_id": "5196f1c1-b15d-412f-a741-7159fa98b676",
+        "p_expected_user": "10000000-0000-4000-8000-000000000001",
+        "p_title": "Voiceover",
+        "p_mime": "audio/wav",
+        "p_bytes": 196652,
+        "p_sha256": "3be5ddbe8a267d61465aac3c43f50f974ec437791a87c047f3b9d9e3a545160b",
+        "p_reuse": false,
+        "p_rights_attested": true
+      }
+    },
+    {
+      "operation": "verified",
+      "bytes": 196652,
+      "duration": 2.2291156462585033
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    },
+    {
+      "operation": "get_playable_sound",
+      "args": {
+        "p_sound_id": "8fbdb704-288c-4399-bc52-7dc129b89382",
+        "p_use": "story"
+      }
+    },
+    {
+      "operation": "get_original_audio_capabilities"
+    }
+  ]
+}

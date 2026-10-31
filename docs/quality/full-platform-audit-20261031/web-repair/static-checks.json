@@ -1,0 +1,33 @@
+{
+  "typescript": {
+    "exitCode": 0,
+    "command": "./node_modules/.bin/tsc --noEmit --incremental false -p web/tsconfig.json",
+    "log": {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "scopedLint": {
+    "exitCode": 0,
+    "scope": "The fifteen frozen TypeScript/TSX/CJS files; CSS excluded from ESLint",
+    "log": {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/lint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "whitespace": {
+    "exitCode": 0,
+    "command": "git diff --check -- web"
+  },
+  "sourceBeforeAfter": {
+    "count": 16,
+    "allMatchFrozenManifest": true
+  },
+  "baselineWorktree": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "trackedStatusClean": true,
+    "temporaryDependencySymlinkRemoved": true
+  }
+}

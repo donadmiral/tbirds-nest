@@ -21,7 +21,7 @@ import PostCaption from './PostCaption';
  *  - Single image still uses same 4:5 container
  *  - Identical layout on feed and post screens
  */
-import { themedSheet } from '../theme/useTheme';
+import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, ViewToken, Animated } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
@@ -292,6 +292,7 @@ async function loadSensitiveMode() {
 }
 
 export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress, postId, flush, holdView, initialIndex = 0, maxHeight, fullFrame = false }: Props) {
+  useTheme();
   const [revealed, setRevealed] = useState(false);
   useEffect(() => setRevealed(false), [postId]);
   const [, bump] = useState(0);
@@ -501,7 +502,7 @@ const st = themedSheet((t) => ({
   },
   controlBtn: {
     width: 52, height: 52, borderRadius: 26,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     alignItems: 'center', justifyContent: 'center',
   },
   controlBtnCenter: {

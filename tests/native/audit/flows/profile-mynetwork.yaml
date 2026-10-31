@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit MyNetwork
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: profile-mynetwork
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Network"
+    timeout: 15000
+- takeScreenshot: profile-mynetwork

@@ -1,0 +1,173 @@
+audit_failures=[]
+"""Independently decode the movie produced by the actual RN capture/export UI.
+
+No encoder mocks, golden movie, provider requests, or external Python packages.
+The full-app test retains its PNG captures and returned MP4 before the real UI
+closes and proves that its temporary files have been removed.
+"""
+import array
+import hashlib
+import json
+import math
+from pathlib import Path
+import struct
+import subprocess
+import sys
+root = Path(sys.argv[1] if len(sys.argv) > 1 else 'native-ui-logs/memory-capture')
+receipt = json.loads((root / 'receipt.json').read_text())
+if not (receipt['version'] == 1 and receipt['mode'] == 'full-production-memory-capture'):
+    audit_failures.append({'line': 19, 'expression': "receipt['version'] == 1 and receipt['mode'] == 'full-production-memory-capture'", 'message': repr(None)})
+if not (receipt['networkForwarded'] is False and receipt['nativeMemoryVersion'] == 1):
+    audit_failures.append({'line': 20, 'expression': "receipt['networkForwarded'] is False and receipt['nativeMemoryVersion'] == 1", 'message': repr(None)})
+if not len(receipt['attempts']) == 2:
+    audit_failures.append({'line': 21, 'expression': "len(receipt['attempts']) == 2", 'message': repr('Require one real cancelled attempt and one complete retry')})
+cancelled, complete = receipt['attempts']
+if not cancelled['status'] == 'cancelled':
+    audit_failures.append({'line': 23, 'expression': "cancelled['status'] == 'cancelled'", 'message': repr(cancelled)})
+if not (not cancelled.get('movie') and cancelled['cleanup']['passed'] is True):
+    audit_failures.append({'line': 24, 'expression': "not cancelled.get('movie') and cancelled['cleanup']['passed'] is True", 'message': repr(None)})
+if not any((event['phase'] == 'chunk' and event['bytes'] > 0 for event in cancelled['media'])):
+    audit_failures.append({'line': 25, 'expression': "any((event['phase'] == 'chunk' and event['bytes'] > 0 for event in cancelled['media']))", 'message': repr(None)})
+if not any((event['phase'] == 'cancelled' for event in cancelled['media'])):
+    audit_failures.append({'line': 26, 'expression': "any((event['phase'] == 'cancelled' for event in cancelled['media']))", 'message': repr('Cancellation must close its actual file reader')})
+if not (complete['status'] == 'ready' and complete['cleanup']['passed'] is True):
+    audit_failures.append({'line': 27, 'expression': "complete['status'] == 'ready' and complete['cleanup']['passed'] is True", 'message': repr(None)})
+if not (not complete['baseline'] and (not cancelled['baseline'])):
+    audit_failures.append({'line': 28, 'expression': "not complete['baseline'] and (not cancelled['baseline'])", 'message': repr(None)})
+if not complete['movie']['memories'] == 3:
+    audit_failures.append({'line': 29, 'expression': "complete['movie']['memories'] == 3", 'message': repr(None)})
+if not (complete['movie']['width'] == 720 and complete['movie']['height'] == 1280):
+    audit_failures.append({'line': 30, 'expression': "complete['movie']['width'] == 720 and complete['movie']['height'] == 1280", 'message': repr(None)})
+
+def verified(item):
+    name = item['file']
+    if not Path(name).name == name:
+        audit_failures.append({'line': 34, 'expression': 'Path(name).name == name', 'message': repr('Evidence filenames must remain inside their retained directory')})
+    file = root / name
+    data = file.read_bytes()
+    if not (len(data) == item['bytes'] and hashlib.sha256(data).hexdigest() == item['sha256']):
+        audit_failures.append({'line': 37, 'expression': "len(data) == item['bytes'] and hashlib.sha256(data).hexdigest() == item['sha256']", 'message': repr(name)})
+    return file
+movie = verified(complete['movie'])
+captures = complete['captures']
+for capture in captures:
+    data = verified(capture).read_bytes()
+    if not data[:8] == b'\x89PNG\r\n\x1a\n':
+        audit_failures.append({'line': 44, 'expression': "data[:8] == b'\\x89PNG\\r\\n\\x1a\\n'", 'message': repr(None)})
+    if not struct.unpack('>II', data[16:24]) == (720, 1280):
+        audit_failures.append({'line': 45, 'expression': "struct.unpack('>II', data[16:24]) == (720, 1280)", 'message': repr(capture)})
+if not len(captures) == 12:
+    audit_failures.append({'line': 46, 'expression': 'len(captures) == 12', 'message': repr('Five backgrounds and seven bounded artwork captures must be retained')})
+scenes = [capture for capture in captures if capture['layer'] == 'background']
+if not len(scenes) == 5:
+    audit_failures.append({'line': 48, 'expression': 'len(scenes) == 5', 'message': repr(None)})
+if not [scene['card'] for scene in scenes] == ['opening', None, None, None, 'closing']:
+    audit_failures.append({'line': 49, 'expression': "[scene['card'] for scene in scenes] == ['opening', None, None, None, 'closing']", 'message': repr(None)})
+if not [scene['kind'] for scene in scenes] == ['text', 'image', 'video', 'text', 'text']:
+    audit_failures.append({'line': 50, 'expression': "[scene['kind'] for scene in scenes] == ['text', 'image', 'video', 'text', 'text']", 'message': repr(None)})
+expected_duration = sum((scene['duration'] for scene in scenes))
+if not abs(expected_duration - 11.7) < 0.01:
+    audit_failures.append({'line': 52, 'expression': 'abs(expected_duration - 11.7) < 0.01', 'message': repr(expected_duration)})
+
+def run(args):
+    return subprocess.check_output(args, stderr=subprocess.PIPE)
+probe = json.loads(run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration:stream=codec_type,width,height,avg_frame_rate', '-of', 'json', str(movie)]))
+video = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'))
+if not (video['width'], video['height']) == (720, 1280):
+    audit_failures.append({'line': 60, 'expression': "(video['width'], video['height']) == (720, 1280)", 'message': repr(None)})
+if not any((stream['codec_type'] == 'audio' for stream in probe['streams'])):
+    audit_failures.append({'line': 61, 'expression': "any((stream['codec_type'] == 'audio' for stream in probe['streams']))", 'message': repr(None)})
+duration = float(probe['format']['duration'])
+if not abs(duration - expected_duration) < 0.2:
+    audit_failures.append({'line': 63, 'expression': 'abs(duration - expected_duration) < 0.2', 'message': repr((duration, expected_duration))})
+frames = json.loads(run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'frame=best_effort_timestamp_time', '-of', 'json', str(movie)]))['frames']
+times = [float(frame['best_effort_timestamp_time']) for frame in frames]
+if not len(times) >= int(expected_duration * 27):
+    audit_failures.append({'line': 67, 'expression': 'len(times) >= int(expected_duration * 27)', 'message': repr('The actual movie must contain a continuous frame sequence')})
+if not max((b - a for a, b in zip(times, times[1:]))) < 0.1:
+    audit_failures.append({'line': 68, 'expression': 'max((b - a for a, b in zip(times, times[1:]))) < 0.1', 'message': repr(None)})
+if not times[-1] > expected_duration - 0.15:
+    audit_failures.append({'line': 69, 'expression': 'times[-1] > expected_duration - 0.15', 'message': repr(None)})
+
+def pixels(file, time=None):
+    args = ['ffmpeg', '-v', 'error']
+    if time is not None:
+        args += ['-ss', str(time)]
+    data = run(args + ['-i', str(file), '-frames:v', '1', '-vf', 'scale=180:320', '-pix_fmt', 'rgb24', '-f', 'rawvideo', '-'])
+    if not len(data) == 180 * 320 * 3:
+        audit_failures.append({'line': 77, 'expression': 'len(data) == 180 * 320 * 3', 'message': repr((file, time, len(data)))})
+    return data
+
+def pixel(data, x, y):
+    offset = (int(y * 320) * 180 + int(x * 180)) * 3
+    return list(data[offset:offset + 3])
+
+def bright_count(data):
+    return sum((all((channel > 180 for channel in data[index:index + 3])) for index in range(0, len(data), 3)))
+
+def green_count(data):
+    return sum((data[index] < 50 and data[index + 1] > 180 and (data[index + 2] < 50) for index in range(0, len(data), 3)))
+measurements = {'duration': duration, 'expectedDuration': expected_duration, 'decodedFrames': len(times), 'maximumFrameGap': max((b - a for a, b in zip(times, times[1:]))), 'captures': len(captures), 'scenes': []}
+clock = 0
+for scene in scenes:
+    midpoint = clock + scene['duration'] / 2
+    actual = pixels(movie, midpoint)
+    entry = {'page': scene['page'], 'kind': scene['kind'], 'card': scene['card'], 'time': midpoint}
+    if scene['kind'] == 'text':
+        captured = pixels(root / scene['file'])
+        original_bright, encoded_bright = (bright_count(captured), bright_count(actual))
+        if not (original_bright > 100 and encoded_bright >= original_bright * 0.65):
+            audit_failures.append({'line': 103, 'expression': 'original_bright > 100 and encoded_bright >= original_bright * 0.65', 'message': repr((entry, original_bright, encoded_bright))})
+        error = sum((abs(a - b) for a, b in zip(captured, actual))) / len(actual)
+        if not error < 12:
+            audit_failures.append({'line': 105, 'expression': 'error < 12', 'message': repr((entry, error))})
+        entry.update(capturedWritingPixels=original_bright, encodedWritingPixels=encoded_bright, meanPixelError=error)
+    elif scene['kind'] == 'image':
+        captured = pixels(root / scene['file'])
+        swatches = []
+        for x, y in [(0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75)]:
+            expected, observed = (pixel(captured, x, y), pixel(actual, x, y))
+            if not max((abs(a - b) for a, b in zip(expected, observed))) < 25:
+                audit_failures.append({'line': 114, 'expression': 'max((abs(a - b) for a, b in zip(expected, observed))) < 25', 'message': repr((entry, expected, observed))})
+            swatches.append({'expected': expected, 'observed': observed})
+        before, during, after = [green_count(pixels(movie, clock + second)) for second in [0.5, 1.5, 2.5]]
+        if not (before < 20 and during > 100 and (after < 20)):
+            audit_failures.append({'line': 117, 'expression': 'before < 20 and during > 100 and (after < 20)', 'message': repr((before, during, after))})
+        entry.update(photoSwatches=swatches, timedArtworkPixels=[before, during, after])
+    else:
+        source = pixels(Path('tests/native/assets/memory-capture-video.mp4'), 0.5 + scene['duration'] / 2)
+        swatches = []
+        for x in [0.25, 0.75]:
+            ungraded, observed = (pixel(source, x, 0.5), pixel(actual, x, 0.5))
+            strongest = max(range(3), key=lambda index: ungraded[index])
+            if not (observed[strongest] > 80 and observed[strongest] < ungraded[strongest] - 10):
+                audit_failures.append({'line': 127, 'expression': 'observed[strongest] > 80 and observed[strongest] < ungraded[strongest] - 10', 'message': repr((ungraded, observed))})
+            if not all((observed[index] < 25 for index in range(3) if index != strongest)):
+                audit_failures.append({'line': 128, 'expression': 'all((observed[index] < 25 for index in range(3) if index != strongest))', 'message': repr(observed)})
+            swatches.append({'ungraded': ungraded, 'observed': observed})
+        entry['gradedVideoSwatches'] = swatches
+    measurements['scenes'].append(entry)
+    clock += scene['duration']
+
+def audio(start):
+    raw = run(['ffmpeg', '-v', 'error', '-i', str(movie), '-af', f'aresample=48000,atrim=start_sample={round(start * 48000)}:end_sample={round(start * 48000) + 19200},asetpts=PTS-STARTPTS', '-vn', '-ac', '1', '-ar', '48000', '-f', 'f32le', '-'])
+    if not len(raw) == 19200 * 4:
+        audit_failures.append({'line': 138, 'expression': 'len(raw) == 19200 * 4', 'message': repr('Require a complete independently decoded audio window')})
+    values = array.array('f')
+    values.frombytes(raw)
+    if sys.byteorder != 'little':
+        values.byteswap()
+    amplitude = 2 * abs(sum((value * complex(math.cos(2 * math.pi * 1234 * index / 48000), math.sin(2 * math.pi * 1234 * index / 48000)) for index, value in enumerate(values)))) / len(values)
+    return {'rms': math.sqrt(sum((value * value for value in values)) / len(values)), 'sourceTone': amplitude}
+before, during, after = (audio(3), audio(5.9), audio(8))
+if not (before['rms'] > 0.001 and after['rms'] > 0.001):
+    audit_failures.append({'line': 146, 'expression': "before['rms'] > 0.001 and after['rms'] > 0.001", 'message': repr('The packaged original score must reach the actual movie')})
+if not (before['sourceTone'] < 0.004 and after['sourceTone'] < 0.004):
+    audit_failures.append({'line': 147, 'expression': "before['sourceTone'] < 0.004 and after['sourceTone'] < 0.004", 'message': repr(None)})
+if not 0.07 < during['sourceTone'] < 0.13:
+    audit_failures.append({'line': 148, 'expression': "0.07 < during['sourceTone'] < 0.13", 'message': repr(('Original video audio must retain its selected 50% mix', during))})
+measurements['audio'] = {'beforeVideo': before, 'insideVideo': during, 'afterVideo': after}
+measurements.update(passed=True, cancelledReaderClosed=True, cancelledAndCompletedTemporaryFilesRemoved=True, providerAcceptance=False, physicalDevice=False, photosLibraryWrite=False)
+measurements.update(passed=not audit_failures, diagnosticOnly=True, originalGateUnchanged=True, assertionFailures=audit_failures)
+Path('/tmp/android-2f91218e-decoder-audit.json').write_text(json.dumps(measurements, indent=2) + '\n')
+print(json.dumps(measurements, indent=2))

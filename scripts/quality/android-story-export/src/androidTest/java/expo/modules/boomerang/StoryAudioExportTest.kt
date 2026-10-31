@@ -599,7 +599,7 @@ class StoryAudioExportTest {
       File(directory, "receipt.json").writeText(JSONObject().put("sdk", Build.VERSION.SDK_INT)
         .put("model", Build.MODEL).put("abis", JSONArray(Build.SUPPORTED_ABIS.toList()))
         .put("renderer", "Actual production StoryVideoComposition.kt and StoryVideoEffects.kt")
-        .put("media3Version", "1.8.1").put("cases", records)
+        .put("media3Version", "1.11.1").put("cases", records)
         .put("physicalDeviceAcceptance", false).toString(2) + "\n")
     }
   }

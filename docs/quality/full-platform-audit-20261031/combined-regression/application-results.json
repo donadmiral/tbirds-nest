@@ -1,0 +1,53 @@
+{
+  "finishedAtUtc": "2026-10-31T19:07:44.654390+00:00",
+  "root": {
+    "tests": 2168,
+    "passed": 2168,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 86027.848926
+  },
+  "web": {
+    "tests": 683,
+    "passed": 683,
+    "failed": 0,
+    "skipped": 0
+  },
+  "admin": {
+    "tests": 284,
+    "passed": 284,
+    "failed": 0,
+    "skipped": 0
+  },
+  "backend": {
+    "tests": 331,
+    "passed": 328,
+    "failed": 0,
+    "conditionalSkipped": 3
+  },
+  "productionAndDependenciesUnchangedThroughAllSuites": true,
+  "sourceInputCount": 2173,
+  "testOnlyCorrections": [
+    {
+      "path": "tests/call-media.test.cjs",
+      "beforeSha256": "92a32c8865f5c0f070aa9d3f0cad553df487a4e1f8e3aeb1eb4b8d6b4612e399",
+      "afterSha256": "c98f4fd53dc55da0c5b467f99ca6300e259d1decfed19c5e6e077a0dcc3f5396"
+    },
+    {
+      "path": "tests/quality/business-session-clients.cjs",
+      "beforeSha256": "73f0a03f646ade7d184a93fc205c91014e5c827ce92b111f70128161a6ac2389",
+      "afterSha256": "a15489a1b5b54928eea47c69a50ccef148af06ee8b73f61d0a01963674df6631"
+    },
+    {
+      "path": "tests/quality/parity-navigation.cjs",
+      "beforeSha256": "35eb1dc319c249288b5d959a27c0bda582d83ae5055089f72c19403f22b795e7",
+      "afterSha256": "87295002947008ecc34cc154259cda44cb4eb88e9ca9130ba91e0d41780272e0"
+    },
+    {
+      "path": "tests/quality/native-memory-shelf-entry.cjs",
+      "beforeSha256": "cb6e2b846921a1e73a78f9c1e05248c7915c8bc350f8b3b1f546892b94155af7",
+      "afterSha256": "6084bd354ebc4c71ae9b977bbb23928d6b6cd529ca7cb825b97cfd177103d16a"
+    }
+  ],
+  "note": "No app source changed between full first runs and the successful full root rerun. Later new diagnostic helpers and any independently reviewed measurement corrections receive their own focused verification."
+}

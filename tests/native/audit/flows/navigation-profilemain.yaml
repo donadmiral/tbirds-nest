@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit ProfileMain
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: navigation-profilemain
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Alex Rivera"
+    timeout: 15000
+- takeScreenshot: navigation-profilemain

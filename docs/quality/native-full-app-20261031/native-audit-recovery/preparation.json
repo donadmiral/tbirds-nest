@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-31T18:48:31Z",
+  "status": "Prepared and locally verified; no workflow publication or execution by this agent.",
+  "baseline": {
+    "commit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "tree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+    "run": 41229206389,
+    "artifactName": "native-audit-android-binary",
+    "setupFailureReceipt": "docs/quality/native-full-app-20261031/native-audit-2f91218e/android-baseline-consumer-setup-failure.json"
+  },
+  "change": "An isolated recovery workflow consumes the already-built APK and checks out its exact original test source. Only the missing SDK executable directories are exposed in the runner environment.",
+  "trigger": {
+    "event": "push",
+    "branch": "codex/native-audit-recovery-20261031",
+    "path": ".github/workflows/native-audit-android-recovery.yml"
+  },
+  "permissions": {
+    "contents": "read",
+    "actions": "read"
+  },
+  "shards": {
+    "settings": "settings,stories,directories",
+    "account": "support,auth,profile,business,memory",
+    "social": "navigation,feed,market,jobs,messages"
+  },
+  "preserved": {
+    "originalHelperRunnerFlows": true,
+    "noNativeRebuild": true,
+    "noRebundle": true,
+    "noResign": true,
+    "failFast": false,
+    "existingPerCaseTimeouts": true,
+    "existingAssertions": true,
+    "existingBinaryAndConfigurationGuard": true
+  },
+  "provenance": "Before any device operation, record the recovery trigger commit/ref/run/attempt separately from the exact binary producer run and original application/test commit/tree, plus verified APK and manifest hashes. Only the helper process receives the original GITHUB_SHA; the recovery workflow environment keeps its own SHA.",
+  "verification": {
+    "formalPass": 5,
+    "formalFail": 0,
+    "skipped": 0,
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-audit-recovery-workflow.cjs",
+    "actualShell": [
+      "All run blocks pass bash syntax",
+      "Helper receives the original source SHA while outer shell preserves the recovery SHA",
+      "Helper exit17 remains failure",
+      "The exact setup prefix exposes an otherwise unavailable SDK adb command",
+      "Missing SDK fails closed"
+    ],
+    "actualProvenancePython": [
+      "Distinct recovery/application identities and producer run retained",
+      "Wrong checkout source/tree rejected",
+      "Changed binary bytes rejected",
+      "Wrong manifest source/tree/platform rejected",
+      "Malformed recovery SHA rejected"
+    ],
+    "scope": "Temporary APK bytes, mock git identity and a stub helper/adb are used to test workflow environment/provenance contracts. These cases do not install an APK, boot an emulator or accept product UI.",
+    "scopedEslint": true
+  },
+  "files": [
+    {
+      "path": ".github/workflows/native-audit-android-recovery.yml",
+      "sha256": "a7d62121f7e0d7b015c2b729ffd74594bc31fd39fb379f03e180ad42c40c2483",
+      "bytes": 5623
+    },
+    {
+      "path": "tests/quality/native-audit-recovery-workflow.cjs",
+      "sha256": "4db16c1700405a011091bc4d2d26df752975e56b2ff9d454fc46850107243616",
+      "bytes": 8728
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-audit-recovery/focused-tests.tap",
+      "sha256": "9b74671416bff4e12a2cfe646f8bab3bf3624023374e0c229440e8714479c89e",
+      "bytes": 1654
+    }
+  ]
+}

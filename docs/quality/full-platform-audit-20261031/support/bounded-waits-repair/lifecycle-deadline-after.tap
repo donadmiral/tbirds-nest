@@ -1,0 +1,298 @@
+TAP version 13
+# Subtest: create: a held digest has a bounded preparation wait and cannot dispatch after its timeout
+ok 1 - create: a held digest has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 245.951491
+  type: 'test'
+  ...
+# Subtest: create: a held storage:get has a bounded preparation wait and cannot dispatch after its timeout
+ok 2 - create: a held storage:get has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 87.925651
+  type: 'test'
+  ...
+# Subtest: create: a held storage:set has a bounded preparation wait and cannot dispatch after its timeout
+ok 3 - create: a held storage:set has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 68.751532
+  type: 'test'
+  ...
+# Subtest: create: accepted cleanup at storage:get cannot hold Send busy or let a timed-out identical intent bypass its key
+ok 4 - create: accepted cleanup at storage:get cannot hold Send busy or let a timed-out identical intent bypass its key
+  ---
+  duration_ms: 61.513477
+  type: 'test'
+  ...
+# Subtest: create: accepted cleanup at storage:remove cannot hold Send busy or let a timed-out identical intent bypass its key
+ok 5 - create: accepted cleanup at storage:remove cannot hold Send busy or let a timed-out identical intent bypass its key
+  ---
+  duration_ms: 57.579185
+  type: 'test'
+  ...
+# Subtest: create: a different confirmed draft is independent of another key's held cleanup
+ok 6 - create: a different confirmed draft is independent of another key's held cleanup
+  ---
+  duration_ms: 57.380151
+  type: 'test'
+  ...
+# Subtest: create: session ABA cancels held preparation without waiting for hashing to settle
+ok 7 - create: session ABA cancels held preparation without waiting for hashing to settle
+  ---
+  duration_ms: 51.835321
+  type: 'test'
+  ...
+# Subtest: reply: a held digest has a bounded preparation wait and cannot dispatch after its timeout
+ok 8 - reply: a held digest has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 68.210087
+  type: 'test'
+  ...
+# Subtest: reply: a held storage:get has a bounded preparation wait and cannot dispatch after its timeout
+ok 9 - reply: a held storage:get has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 42.604725
+  type: 'test'
+  ...
+# Subtest: reply: a held storage:set has a bounded preparation wait and cannot dispatch after its timeout
+ok 10 - reply: a held storage:set has a bounded preparation wait and cannot dispatch after its timeout
+  ---
+  duration_ms: 53.50993
+  type: 'test'
+  ...
+# Subtest: reply: accepted cleanup at storage:get cannot hold Send busy or let a timed-out identical intent bypass its key
+ok 11 - reply: accepted cleanup at storage:get cannot hold Send busy or let a timed-out identical intent bypass its key
+  ---
+  duration_ms: 48.52112
+  type: 'test'
+  ...
+# Subtest: reply: accepted cleanup at storage:remove cannot hold Send busy or let a timed-out identical intent bypass its key
+ok 12 - reply: accepted cleanup at storage:remove cannot hold Send busy or let a timed-out identical intent bypass its key
+  ---
+  duration_ms: 37.216956
+  type: 'test'
+  ...
+# Subtest: reply: a different confirmed draft is independent of another key's held cleanup
+ok 13 - reply: a different confirmed draft is independent of another key's held cleanup
+  ---
+  duration_ms: 44.031417
+  type: 'test'
+  ...
+# Subtest: reply: session ABA cancels held preparation without waiting for hashing to settle
+ok 14 - reply: session ABA cancels held preparation without waiting for hashing to settle
+  ---
+  duration_ms: 41.948037
+  type: 'test'
+  ...
+# Subtest: reply: an older read cannot replace a confirmed write or its current status
+ok 15 - reply: an older read cannot replace a confirmed write or its current status
+  ---
+  duration_ms: 63.498477
+  type: 'test'
+  ...
+# Subtest: reply: blur and refocus retain the request identity until the current UI accepts replay
+ok 16 - reply: blur and refocus retain the request identity until the current UI accepts replay
+  ---
+  duration_ms: 42.600715
+  type: 'test'
+  ...
+# Subtest: reply: an unmounted draft waiting for hashing never dispatches
+ok 17 - reply: an unmounted draft waiting for hashing never dispatches
+  ---
+  duration_ms: 39.322184
+  type: 'test'
+  ...
+# Subtest: reply: A to B to A invalidates preparation even when React sees only the final owner
+ok 18 - reply: A to B to A invalidates preparation even when React sees only the final owner
+  ---
+  duration_ms: 33.509566
+  type: 'test'
+  ...
+# Subtest: reply: a later login for the same owner cannot inherit an undispatched action
+ok 19 - reply: a later login for the same owner cannot inherit an undispatched action
+  ---
+  duration_ms: 38.733964
+  type: 'test'
+  ...
+# Subtest: reply: a token refresh within the captured session preserves the pinned bearer
+ok 20 - reply: a token refresh within the captured session preserves the pinned bearer
+  ---
+  duration_ms: 31.829828
+  type: 'test'
+  ...
+# Subtest: reply: an SDK auth lookup queued after query construction is aborted across session ABA
+ok 21 - reply: an SDK auth lookup queued after query construction is aborted across session ABA
+  ---
+  duration_ms: 45.189898
+  type: 'test'
+  ...
+# Subtest: reply: SDK auth lookup cannot replace the explicit bearer during ordinary refresh
+ok 22 - reply: SDK auth lookup cannot replace the explicit bearer during ordinary refresh
+  ---
+  duration_ms: 28.271091
+  type: 'test'
+  ...
+# Subtest: reply: storage completion after blur is fenced before constructing a request
+ok 23 - reply: storage completion after blur is fenced before constructing a request
+  ---
+  duration_ms: 32.114215
+  type: 'test'
+  ...
+# Subtest: reply: a late server receipt after a session change cannot clear the old draft or retry UUID
+ok 24 - reply: a late server receipt after a session change cannot clear the old draft or retry UUID
+  ---
+  duration_ms: 49.904171
+  type: 'test'
+  ...
+# Subtest: reply: lost response is confirmed or replayed without duplicate rows
+ok 25 - reply: lost response is confirmed or replayed without duplicate rows
+  ---
+  duration_ms: 38.888122
+  type: 'test'
+  ...
+# Subtest: reply: malformed persisted UUID is replaced with canonical 8-4-4-4-12 identity
+ok 26 - reply: malformed persisted UUID is replaced with canonical 8-4-4-4-12 identity
+  ---
+  duration_ms: 68.560121
+  type: 'test'
+  ...
+# Subtest: reply: accepting a confirmed draft permits a later intentional identical request
+ok 27 - reply: accepting a confirmed draft permits a later intentional identical request
+  ---
+  duration_ms: 52.871729
+  type: 'test'
+  ...
+# Subtest: reply: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+ok 28 - reply: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+  ---
+  duration_ms: 49.115335
+  type: 'test'
+  ...
+# Subtest: reply: accepting the sent payload preserves text edited while the request was in flight
+ok 29 - reply: accepting the sent payload preserves text edited while the request was in flight
+  ---
+  duration_ms: 40.045513
+  type: 'test'
+  ...
+# Subtest: reply: an old completion cannot unlock a new submission after refocus
+ok 30 - reply: an old completion cannot unlock a new submission after refocus
+  ---
+  duration_ms: 35.022032
+  type: 'test'
+  ...
+# Subtest: create: an older read cannot replace a confirmed write or its current status
+ok 31 - create: an older read cannot replace a confirmed write or its current status
+  ---
+  duration_ms: 34.321979
+  type: 'test'
+  ...
+# Subtest: create: blur and refocus retain the request identity until the current UI accepts replay
+ok 32 - create: blur and refocus retain the request identity until the current UI accepts replay
+  ---
+  duration_ms: 52.598368
+  type: 'test'
+  ...
+# Subtest: create: an unmounted draft waiting for hashing never dispatches
+ok 33 - create: an unmounted draft waiting for hashing never dispatches
+  ---
+  duration_ms: 35.442094
+  type: 'test'
+  ...
+# Subtest: create: A to B to A invalidates preparation even when React sees only the final owner
+ok 34 - create: A to B to A invalidates preparation even when React sees only the final owner
+  ---
+  duration_ms: 32.858987
+  type: 'test'
+  ...
+# Subtest: create: a later login for the same owner cannot inherit an undispatched action
+ok 35 - create: a later login for the same owner cannot inherit an undispatched action
+  ---
+  duration_ms: 32.738115
+  type: 'test'
+  ...
+# Subtest: create: a token refresh within the captured session preserves the pinned bearer
+ok 36 - create: a token refresh within the captured session preserves the pinned bearer
+  ---
+  duration_ms: 42.576833
+  type: 'test'
+  ...
+# Subtest: create: an SDK auth lookup queued after query construction is aborted across session ABA
+ok 37 - create: an SDK auth lookup queued after query construction is aborted across session ABA
+  ---
+  duration_ms: 34.529531
+  type: 'test'
+  ...
+# Subtest: create: SDK auth lookup cannot replace the explicit bearer during ordinary refresh
+ok 38 - create: SDK auth lookup cannot replace the explicit bearer during ordinary refresh
+  ---
+  duration_ms: 29.748446
+  type: 'test'
+  ...
+# Subtest: create: storage completion after blur is fenced before constructing a request
+ok 39 - create: storage completion after blur is fenced before constructing a request
+  ---
+  duration_ms: 39.569307
+  type: 'test'
+  ...
+# Subtest: create: a late server receipt after a session change cannot clear the old draft or retry UUID
+ok 40 - create: a late server receipt after a session change cannot clear the old draft or retry UUID
+  ---
+  duration_ms: 45.503809
+  type: 'test'
+  ...
+# Subtest: create: lost response is confirmed or replayed without duplicate rows
+ok 41 - create: lost response is confirmed or replayed without duplicate rows
+  ---
+  duration_ms: 39.062775
+  type: 'test'
+  ...
+# Subtest: create: malformed persisted UUID is replaced with canonical 8-4-4-4-12 identity
+ok 42 - create: malformed persisted UUID is replaced with canonical 8-4-4-4-12 identity
+  ---
+  duration_ms: 44.376467
+  type: 'test'
+  ...
+# Subtest: create: accepting a confirmed draft permits a later intentional identical request
+ok 43 - create: accepting a confirmed draft permits a later intentional identical request
+  ---
+  duration_ms: 32.9741
+  type: 'test'
+  ...
+# Subtest: create: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+ok 44 - create: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+  ---
+  duration_ms: 80.561369
+  type: 'test'
+  ...
+# Subtest: create: accepting the sent payload preserves text edited while the request was in flight
+ok 45 - create: accepting the sent payload preserves text edited while the request was in flight
+  ---
+  duration_ms: 44.26593
+  type: 'test'
+  ...
+# Subtest: create: an old completion cannot unlock a new submission after refocus
+ok 46 - create: an old completion cannot unlock a new submission after refocus
+  ---
+  duration_ms: 53.000843
+  type: 'test'
+  ...
+# Subtest: reply: changing ticket retires an undispatched reply and clears only the previous ticket draft
+ok 47 - reply: changing ticket retires an undispatched reply and clears only the previous ticket draft
+  ---
+  duration_ms: 47.78654
+  type: 'test'
+  ...
+# Subtest: reply: idempotent retry after a staff solve does not imply that the ticket reopened
+ok 48 - reply: idempotent retry after a staff solve does not imply that the ticket reopened
+  ---
+  duration_ms: 67.001596
+  type: 'test'
+  ...
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2667.971701

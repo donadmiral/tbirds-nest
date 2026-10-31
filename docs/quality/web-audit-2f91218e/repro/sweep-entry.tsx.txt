@@ -1,0 +1,163 @@
+import React,{Component,type ReactNode} from 'react';
+import {createRoot} from 'react-dom/client';
+import {usePathname} from 'next/navigation';
+import {ThemeProvider} from '@/components/ThemeProvider';
+import {StudioShell} from '@/components/StudioShell';
+import {SettingsNavigation} from '@/components/SettingsNavigation';
+import './adapter';
+import Page0 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/[username]/follows/page.tsx";
+import Page1 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/about/page.tsx";
+import Page2 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/ads/new/page.tsx";
+import Page3 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/ads/page.tsx";
+import Page4 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/archive/page.tsx";
+import Page5 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/business-login/page.tsx";
+import Page6 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/businesses/apply/page.tsx";
+import Page7 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/businesses/new/page.tsx";
+import Page8 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/businesses/page.tsx";
+import Page9 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/calls/page.tsx";
+import Page10 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/channels/[id]/page.tsx";
+import Page11 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/channels/page.tsx";
+import Page12 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/communities/[id]/page.tsx";
+import Page13 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/communities/join/[token]/page.tsx";
+import Page14 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/communities/page.tsx";
+import Page15 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/discover/page.tsx";
+import Page16 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/explore/page.tsx";
+import Page17 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/forgot-password/page.tsx";
+import Page18 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/jobs/[id]/applicants/page.tsx";
+import Page19 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/jobs/applications/page.tsx";
+import Page20 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/jobs/messages/page.tsx";
+import Page21 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/jobs/new/page.tsx";
+import Page22 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/jobs/page.tsx";
+import Page23 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/jobs/saved/page.tsx";
+import Page24 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/login/page.tsx";
+import Page25 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/market/[id]/page.tsx";
+import Page26 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/market/messages/page.tsx";
+import Page27 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/market/new/page.tsx";
+import Page28 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/market/page.tsx";
+import Page29 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/market/saved/page.tsx";
+import Page30 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/messages/requests/page.tsx";
+import Page31 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/monetization/page.tsx";
+import Page32 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/music/page.tsx";
+import Page33 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/notifications/page.tsx";
+import Page34 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/privacy/page.tsx";
+import Page35 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/reset-password/page.tsx";
+import Page36 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/saved/page.tsx";
+import Page37 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/search/page.tsx";
+import Page38 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/account-type/page.tsx";
+import Page39 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/activity/page.tsx";
+import Page40 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/archive/page.tsx";
+import Page41 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/audio/page.tsx";
+import Page42 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/blocked/page.tsx";
+import Page43 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/download/page.tsx";
+import Page44 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/follow-requests/page.tsx";
+import Page45 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/help/page.tsx";
+import Page46 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/hidden-words/page.tsx";
+import Page47 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/login-activity/page.tsx";
+import Page48 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/muted-words/page.tsx";
+import Page49 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/muted/page.tsx";
+import Page50 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/notifications/page.tsx";
+import Page51 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/page.tsx";
+import Page52 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/profile/page.tsx";
+import Page53 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/restricted/page.tsx";
+import Page54 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/standing/page.tsx";
+import Page55 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/two-factor/page.tsx";
+import Page56 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/username/page.tsx";
+import Page57 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/settings/verification/page.tsx";
+import Page58 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/signup/page.tsx";
+import Page59 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/ads/page.tsx";
+import Page60 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/audience/page.tsx";
+import Page61 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/commerce/page.tsx";
+import Page62 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/content/page.tsx";
+import Page63 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/earnings/page.tsx";
+import Page64 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/inbox/page.tsx";
+import Page65 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/insights/page.tsx";
+import Page66 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/newsroom/page.tsx";
+import Page67 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/page.tsx";
+import Page68 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/partnerships/page.tsx";
+import Page69 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/planner/page.tsx";
+import Page70 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/recruiter/page.tsx";
+import Page71 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/reviews/page.tsx";
+import Page72 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/settings/organization/page.tsx";
+import Page73 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/studio/settings/page.tsx";
+import Page74 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/terms/page.tsx";
+import Page75 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/topic/[tag]/page.tsx";
+import Page76 from "/workspace/scratch/f9638ed3020b/platinum-circles/web/app/write/page.tsx";
+const routes:Record<string,React.ComponentType>={"/avery_lane/follows": Page0,
+"/about": Page1,
+"/ads/new": Page2,
+"/ads": Page3,
+"/archive": Page4,
+"/business-login": Page5,
+"/businesses/apply": Page6,
+"/businesses/new": Page7,
+"/businesses": Page8,
+"/calls": Page9,
+"/channels/40000000-0000-4000-8000-000000000001": Page10,
+"/channels": Page11,
+"/communities/40000000-0000-4000-8000-000000000001": Page12,
+"/communities/join/synthetic-invite-token": Page13,
+"/communities": Page14,
+"/discover": Page15,
+"/explore": Page16,
+"/forgot-password": Page17,
+"/jobs/40000000-0000-4000-8000-000000000001/applicants": Page18,
+"/jobs/applications": Page19,
+"/jobs/messages": Page20,
+"/jobs/new": Page21,
+"/jobs": Page22,
+"/jobs/saved": Page23,
+"/login": Page24,
+"/market/40000000-0000-4000-8000-000000000001": Page25,
+"/market/messages": Page26,
+"/market/new": Page27,
+"/market": Page28,
+"/market/saved": Page29,
+"/messages/requests": Page30,
+"/monetization": Page31,
+"/music": Page32,
+"/notifications": Page33,
+"/privacy": Page34,
+"/reset-password": Page35,
+"/saved": Page36,
+"/search": Page37,
+"/settings/account-type": Page38,
+"/settings/activity": Page39,
+"/settings/archive": Page40,
+"/settings/audio": Page41,
+"/settings/blocked": Page42,
+"/settings/download": Page43,
+"/settings/follow-requests": Page44,
+"/settings/help": Page45,
+"/settings/hidden-words": Page46,
+"/settings/login-activity": Page47,
+"/settings/muted-words": Page48,
+"/settings/muted": Page49,
+"/settings/notifications": Page50,
+"/settings": Page51,
+"/settings/profile": Page52,
+"/settings/restricted": Page53,
+"/settings/standing": Page54,
+"/settings/two-factor": Page55,
+"/settings/username": Page56,
+"/settings/verification": Page57,
+"/signup": Page58,
+"/studio/ads": Page59,
+"/studio/audience": Page60,
+"/studio/commerce": Page61,
+"/studio/content": Page62,
+"/studio/earnings": Page63,
+"/studio/inbox": Page64,
+"/studio/insights": Page65,
+"/studio/newsroom": Page66,
+"/studio": Page67,
+"/studio/partnerships": Page68,
+"/studio/planner": Page69,
+"/studio/recruiter": Page70,
+"/studio/reviews": Page71,
+"/studio/settings/organization": Page72,
+"/studio/settings": Page73,
+"/terms": Page74,
+"/topic/CoastalStories": Page75,
+"/write": Page76};
+class Boundary extends Component<{children:ReactNode},{error:string|null}>{state={error:null};static getDerivedStateFromError(error:Error){return {error:String(error)}}render(){return this.state.error?<div role="alert" data-audit-render-error>{this.state.error}</div>:this.props.children}}
+function App(){const pathname=usePathname();const Page=routes[pathname];return <ThemeProvider><Boundary key={pathname}>{Page?<>{pathname.startsWith('/studio')?<StudioShell><Page/></StudioShell>:<main data-audit-actual-page>{pathname.startsWith('/settings')?<SettingsNavigation/>:null}<Page/></main>}</>:<div data-audit-unmapped role="status">UNMAPPED ACTUAL PAGE: {pathname}</div>}</Boundary><aside data-audit-banner>SCRATCH AUDIT · ACTUAL PAGE MODULE · SYNTHETIC DATA · NO PROVIDER</aside></ThemeProvider>};createRoot(document.getElementById('root')!).render(<App/>);

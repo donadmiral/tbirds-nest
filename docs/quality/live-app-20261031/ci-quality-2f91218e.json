@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "verification": "Remote Git commit tree IDs independently matched; terminal job checkout logs match merge SHA."
+  },
+  "workflowRun": 41225636352,
+  "conclusion": "success",
+  "jobs": [
+    {
+      "id": 124609086624,
+      "name": "Web app",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "started_at": "2026-10-31T17:40:11Z",
+      "completed_at": "2026-10-31T17:42:15Z"
+    },
+    {
+      "id": 124609086796,
+      "name": "Operations app",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "started_at": "2026-10-31T17:40:10Z",
+      "completed_at": "2026-10-31T17:41:38Z"
+    },
+    {
+      "id": 124609086886,
+      "name": "Link preview Edge TLS",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "started_at": "2026-10-31T17:40:10Z",
+      "completed_at": "2026-10-31T17:40:23Z"
+    },
+    {
+      "id": 124609086903,
+      "name": "Phone app",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "started_at": "2026-10-31T17:40:10Z",
+      "completed_at": "2026-10-31T17:48:18Z"
+    }
+  ],
+  "testCounts": {
+    "root": {
+      "tests": 1973,
+      "suites": 0,
+      "pass": 1973,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 86426.032115
+    },
+    "backendNode": {
+      "tests": 317,
+      "suites": 0,
+      "pass": 314,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "duration_ms": 96731.88327
+    },
+    "rpcAuthorization": {
+      "tests": 886,
+      "pass": 883,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "tapChildInvocations": 43,
+      "totalIsolatedChildInvocations": 46
+    },
+    "web": {
+      "tests": 683,
+      "suites": 0,
+      "pass": 683,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 34276.628052
+    },
+    "admin": {
+      "tests": 195,
+      "suites": 0,
+      "pass": 195,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 13003.036409
+    },
+    "edgeTls": {
+      "pass": 2,
+      "fail": 0,
+      "elapsedReported": "162ms"
+    }
+  },
+  "authWrapper": {
+    "formalFileWrappers": 1,
+    "internalChecks": 33,
+    "includedInRootFormalCount": true,
+    "internalChecksAddedToFormalTotal": false
+  },
+  "conditionalSkipsWithPassingCounterparts": [
+    {
+      "name": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "skippedStep": "backendNode",
+      "skipLines": [
+        "ok 84 - book signing uses the reader permission for explicit custom access and inactive accounts # SKIP"
+      ],
+      "passingLines": [
+        "ok 12 - book signing uses the reader permission for explicit custom access and inactive accounts"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../content-media-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "skippedStep": "backendNode",
+      "skipLines": [
+        "ok 89 - visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization # SKIP"
+      ],
+      "passingLines": [
+        "ok 17 - visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../content-media-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "skippedStep": "backendNode",
+      "skipLines": [
+        "ok 286 - visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls # SKIP"
+      ],
+      "passingLines": [
+        "ok 31 - visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../story-mention-reshare-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a real bound business session works until device revocation",
+      "skippedStep": "rpcAuthorization",
+      "skipLines": [
+        "ok 33 - a real bound business session works until device revocation # SKIP"
+      ],
+      "passingLines": [
+        "ok 33 - a real bound business session works until device revocation"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-notification-preferences.mjs",
+          "environment": {
+            "NOTIFICATION_BUSINESS_FIXTURE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a current exact business binding supports creative persistence and revoked devices stop it",
+      "skippedStep": "rpcAuthorization",
+      "skipLines": [
+        "ok 31 - a current exact business binding supports creative persistence and revoked devices stop it # SKIP Paired combined-music fixture exercises actual business issuance."
+      ],
+      "passingLines": [
+        "ok 31 - a current exact business binding supports creative persistence and revoked devices stop it",
+        "ok 31 - a current exact business binding supports creative persistence and revoked devices stop it"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-memory-book-creative.mjs",
+          "environment": {
+            "MEMORY_CREATIVE_MUSIC_ORDER": "before"
+          }
+        },
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-memory-book-creative.mjs",
+          "environment": {
+            "MEMORY_CREATIVE_MUSIC_ORDER": "after"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sound publication is owner-bound, attested and idempotent",
+      "skippedStep": "rpcAuthorization",
+      "skipLines": [
+        "ok 9 - sound publication is owner-bound, attested and idempotent # SKIP"
+      ],
+      "passingLines": [
+        "ok 81 - sound publication is owner-bound, attested and idempotent"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "backendNode"
+        }
+      ]
+    }
+  ],
+  "rpcInvocationCounts": {
+    "tap": 43,
+    "isolatedTotal": 46,
+    "customJsonReports": 10,
+    "customReportsNotAddedToTapTotal": true
+  },
+  "logEvidence": {
+    "phone": {
+      "raw": {
+        "path": "/tmp/platinum-ci-2f91218e-phone.log",
+        "bytes": 1357397,
+        "sha256": "77347fa29339d6ea0238f6661572077883c5850db1e5a40baf9108c6e283ec3c"
+      },
+      "normalized": {
+        "path": "/tmp/platinum-ci-2f91218e-phone-normalized.log",
+        "bytes": 773622,
+        "sha256": "aedd2243204c5227de03f4009ab618d22573f63e0f79e9016f7f071225df7d9c"
+      },
+      "checkouts": [
+        "5333fddeaab859dfde2079266aafb07ffd94f329"
+      ]
+    },
+    "web": {
+      "raw": {
+        "path": "/tmp/platinum-ci-2f91218e-web.log",
+        "bytes": 289280,
+        "sha256": "cd90ec7b658b26dac33efbe9fddf8f2830b01ca1a20e6615b87f6bd68828f04d"
+      },
+      "normalized": {
+        "path": "/tmp/platinum-ci-2f91218e-web-normalized.log",
+        "bytes": 164068,
+        "sha256": "38c101270f0595aebb4c396b1bcb42c50a6e2f78afcb88f58d0a0e7f140f553e"
+      },
+      "checkouts": [
+        "5333fddeaab859dfde2079266aafb07ffd94f329"
+      ]
+    },
+    "admin": {
+      "raw": {
+        "path": "/tmp/platinum-ci-2f91218e-admin.log",
+        "bytes": 95229,
+        "sha256": "2906cbde2e04f44558733e631ebc788e307e6f0ff8a32c0c74761c95daeb89d7"
+      },
+      "normalized": {
+        "path": "/tmp/platinum-ci-2f91218e-admin-normalized.log",
+        "bytes": 55289,
+        "sha256": "55ab0e3fb914358f293124171973cb5c45bb30b84be9d3195eff3860ba9c1775"
+      },
+      "checkouts": [
+        "5333fddeaab859dfde2079266aafb07ffd94f329"
+      ]
+    },
+    "edge": {
+      "raw": {
+        "path": "/tmp/platinum-ci-2f91218e-edge.log",
+        "bytes": 19727,
+        "sha256": "867b892c750b5da7a355b0289f85756516ee8b4c970c99b1de305f7aad88d802"
+      },
+      "normalized": {
+        "path": "/tmp/platinum-ci-2f91218e-edge-normalized.log",
+        "bytes": 12639,
+        "sha256": "adfac212e35399943d6726636d6445e65143b6e125b1e345a81416d6a1776503"
+      },
+      "checkouts": [
+        "5333fddeaab859dfde2079266aafb07ffd94f329"
+      ]
+    }
+  },
+  "limits": [
+    "Root/web/admin tests and PGlite/RPC harnesses are automated fixture evidence, not complete user-action or hosted-provider acceptance.",
+    "Generic admin browser37 scenarios belong to separate browser workflow and do not exercise actual server-page contracts.",
+    "No Supabase provider query/mutation or full-native artifact download was made for this receipt."
+  ]
+}

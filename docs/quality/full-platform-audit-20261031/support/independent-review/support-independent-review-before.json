@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T18:34:25.511518+00:00",
+  "scope": "Independent read-only review of root Support candidate, prior to review fixes. No application source edit, provider call, database deployment or branch mutation.",
+  "candidateAtRead": {
+    "shared/memberSupport.ts": "96657586d7187cd8742af869b2d51a205ddc239c0b03837a2bfc8e3ebcb32d30",
+    "web/lib/memberSupport.ts": "23444b0703bbecac78baabb73bac714683bd072d7c090ae3e3669ee0f67fe462",
+    "src/services/memberSupportService.ts": "89afdbf58e7be0f46555b833d52e4f1aab35e168ffccc4bb25e346169e0d6971",
+    "web/app/settings/support/page.tsx": "35015b017888a130811e0f1996d85415a4732748d59b1b7bf38429f8e7108f50",
+    "web/app/settings/support/[id]/page.tsx": "0e449e53acf0108b63b0cefee9ab555c804bcc68abec820dc1d3905823da4ba4",
+    "src/screens/profile/ContactSupportScreen.tsx": "5380f2ee0aa7f27d0552ba735f5cf7af11776b2e3e506e4fa52f073860818624",
+    "src/screens/profile/TicketScreen.tsx": "0fa58fac8f0fa6cc6a31a6b441fc7c830a15f0e29965b87b365cc3c95ebee8bc",
+    "supabase/migrations/20261031181428_member_support_atomic_reply.sql": "de99b019d678dfc51c5b8d6c8a7e533454f7965642bade94929c3fd5d040f7c1",
+    "supabase/tests/member-support-atomic-db.test.cjs": "b60d4ecfbd18b76d21a658840fdb513581ab5c06307ed439ea42aec1f495484d"
+  },
+  "database": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap supabase/tests/member-support-atomic-db.test.cjs",
+    "tests": 14,
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 2405.425931,
+    "accepted": [
+      "Reply insert+ticket reopening rollback together under caller RLS.",
+      "AFTER INSERT executes only for new rows; ON CONFLICT no-op and new RPC replay do not reopen a later solved ticket.",
+      "Expected owner, exact ticket/body/id receipt checks and inaccessible UUID conflict prevent forged confirmations.",
+      "Both functions SECURITY INVOKER with empty search_path; helper schema/function execution revoked from public/anon/authenticated; trigger execution still works under authenticated caller.",
+      "Existing admin command locks same support_tickets row before staff reply/status update, compatible with new RPC lock order.",
+      "Legacy direct member insert gets atomic reopening; existing grants and policies are not broadened.",
+      "Reapplying migration retains data and one trigger."
+    ],
+    "limits": [
+      "Single local PGlite engine; source-level row-lock review does not simulate two live concurrent PostgreSQL transactions.",
+      "Fixture adds the two known historical columns and explicit existing authenticated table grants before original support migrations. No claim of newly inspected hosted catalog.",
+      "Hosted activation remains blocked independently by unresolved original stage4 request outcomes. Missing new RPC fails closed in clients."
+    ]
+  },
+  "clientFindings": [
+    {
+      "id": "SUP-REVIEW-001",
+      "severity": "medium",
+      "title": "Older same-visit conversation read can overwrite confirmed reply",
+      "reproduced": true,
+      "actual": "Actual native TicketScreen: hold an older history retry, send/confirm a new reply, verify it becomes visible, then release older response. Reply disappears and stale Solved state returns, while synthetic DB retains the committed reply.",
+      "cause": "Generation increments only on focus/route initialization, not each read or confirmed mutation; both loads share the same visit. Web Ticket uses the same read fence shape.",
+      "proposedBoundedFix": "Add monotonically advancing per-read ownership and retire older reads when starting a refresh/readback or confirming a mutation. Keep route/account/unmount fences. Apply only the latest issued current-scope response.",
+      "regression": "Actual component: delayed older history retry released after newer successful reply/readback must not hide the confirmed reply or restore old status."
+    },
+    {
+      "id": "SUP-REVIEW-002",
+      "severity": "medium",
+      "title": "Stale confirmation clears durable retry identity while retained draft remains",
+      "reproduced": true,
+      "actual": "Actual native TicketScreen: send, blur/refocus, release successful reply. Screen discards stale completion and preserves draft, but shared helper already removed its UUID. Pressing Send again inserts the identical body under a second UUID.",
+      "cause": "Shared helper clears persisted request identity on backend confirmation before caller determines whether that confirmation belongs to the current draft/visit.",
+      "proposedBoundedFix": "Separate confirmation from acknowledging/removing the retry identity. Clear the persisted key only when the owning current draft accepts the receipt and is cleared; preserve a stable receipt/key across stale/unmounted completion. Keep intentional later identical submissions possible after acknowledgement.",
+      "regression": "Actual component blur/refocus and unmount/revisit confirmation cases must reuse the UUID when the original visible draft has not been acknowledged. Cover both reply and new-ticket helper."
+    },
+    {
+      "id": "SUP-REVIEW-003",
+      "severity": "medium",
+      "title": "Undispatched mutation can rebind after same-owner session ABA",
+      "reproduced": true,
+      "actual": "Hold actual helper digest, unmount actual TicketScreen, change synthetic bearer A1\u2192B\u2192A2, release digest. Installed Supabase SDK emits the original reply under Bearer session-A2 and its expected-user check still accepts owner A.",
+      "cause": "Write dispatch has no captured session identity, pinned Authorization header or current undispatched-lifecycle predicate after awaited digest/storage phases. Navigation session boundary unmounts UI but cannot cancel the suspended helper.",
+      "proposedBoundedFix": "Reuse existing exact-session scope and pinned-bearer pattern used by job saves. Check lifecycle/session immediately before constructing/dispatching a write after all awaited preparation; abort on scope invalidation, preserve stable retry identity, and do not treat aborted/timed-out transport as proof of rollback.",
+      "regression": "Queued preparation plus A\u2192B\u2192A and same-owner new login must issue no stale write; token refresh within same stable session remains compatible."
+    }
+  ],
+  "clientProbeScope": "Actual TicketScreen callbacks with controlled hook/focus/native hosts; actual shared helper and installed Supabase client; synthetic in-memory provider, AsyncStorage-shaped store, digest gate. No provider calls or actual native scheduling acceptance.",
+  "coverageLimits": [
+    "Manual native/hook/focus host executes actual TicketScreen callbacks; not an iOS/Android rendered-device assertion.",
+    "Installed SDK uses synthetic in-memory HTTP and an AsyncStorage-shaped Map; auth access-token lookup is controlled, not a real Supabase login.",
+    "Read/write deadline is not evidence of server rollback; preserved request UUID is required after ambiguous results.",
+    "The existing member list is latest10 and conversation query is subject to provider row cap; no complete large-history acceptance was performed in this review.",
+    "No root-owned main report or frozen admin source was changed."
+  ],
+  "evidence": {
+    "client-race-probes.cjs.txt": {
+      "bytes": 9658,
+      "sha256": "0b74fa3839f4689775822ba8609feda25b8af1e72698dffc5f8f8e801acc38e9"
+    },
+    "client-race-probes.json": {
+      "bytes": 1745,
+      "sha256": "0120a9f8af8aa2e37435ecd705db07dce8ff5076fc67fc2f8d1454b4dfdd5b57"
+    },
+    "database.tap": {
+      "bytes": 2940,
+      "sha256": "d236d990b706e6a2b3b3ebf909207625a9552d08305c43d4ce37c6ffc0656281"
+    }
+  }
+}

@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T19:07:13Z",
+  "status": "not-accepted",
+  "source": {
+    "applicationHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "testedMerge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "originals": 501,
+    "overlays": 6,
+    "dependencyFiles": 9,
+    "manifestSha256": "69f5b9e24981e1614c8c210bffa5d25bd10b707e9dd94b46923955596a1c540e",
+    "canonicalManifest": "docs/quality/native-full-app-20261031/android-2f91218e/source.json",
+    "verification": "iPhone source.json is byte-identical to the source-bound Android manifest; all iPhone overlay output hashes and nine installed dependency hashes were freshly verified. The generated Swift before/after transformation also reproduces exactly."
+  },
+  "workflow": {
+    "runId": 41225636296,
+    "jobId": 124609086918,
+    "jobConclusion": "cancelled",
+    "jobStartedAt": "2026-10-31T17:40:11Z",
+    "jobCompletedAt": "2026-10-31T18:56:50Z",
+    "scriptStartedAt": "2026-10-31T17:43:19Z",
+    "scriptCompletedAt": "2026-10-31T18:55:26Z",
+    "scriptConclusion": "cancelled",
+    "jobBudgetMinutes": 75,
+    "artifactUpload": "success"
+  },
+  "artifact": {
+    "id": 13053783225,
+    "name": "ios-full-app-ui",
+    "zipBytes": 34443920,
+    "zipSha256": "17351e49dc00d31774572edc655dcbda64c3f7c149627a948bfd34248a352f67",
+    "downloadCount": 1,
+    "extractedFiles": 47,
+    "extractedBytes": 189206272
+  },
+  "buildAndSigning": {
+    "releaseBuild": "succeeded",
+    "xcode": "16.4 (16F6)",
+    "sdk": "18.5",
+    "maestro": "2.11.0",
+    "generatedUrlObserverCompiled": true,
+    "originalForwardingPreserved": true,
+    "embeddedSimulatorIdentity": "FAKETEAMID.app.platinumcircles.mobile.qa",
+    "isRealAppleTeam": false,
+    "embeddedEntitlementsUnchangedByHostAdHocSign": true,
+    "hostSignatureVerified": true,
+    "derSectionPresent": true,
+    "derSemanticsDecoded": false,
+    "keychainRuntimeAccepted": false,
+    "limitation": "Signature and embedded entitlement findings use retained CI-produced metadata; the original full-app artifact does not retain the .app executable."
+  },
+  "requiredFlows": {
+    "navigation": {
+      "attempts": 1,
+      "exitCode": 1,
+      "junitStatus": "ERROR",
+      "mainPagesAndShelf": "passed in the retained journey",
+      "firstUnmetRequirement": "Edit memory book reader readiness after the correct shelf-card tap",
+      "actual": "Failure PNG shows initial ActivityIndicator; hierarchy failed with main-run-loop busy errors. No failure AX was produced.",
+      "readerReady": false,
+      "memoryFilmSettingsExport": "not reached"
+    },
+    "memoryCapture": {
+      "attempts": 1,
+      "exitCode": null,
+      "junit": "absent",
+      "lastObservedCommands": {
+        "openLinkStarted": "2026-10-31T18:54:44.391Z",
+        "openLinkCompleted": "2026-10-31T18:55:13.260Z",
+        "iosOpenPromptConditionalStarted": "2026-10-31T18:55:13.266Z"
+      },
+      "headingReadbackMovieCleanup": "not accepted; no later command retained",
+      "cancelledBeforeComplete": true
+    }
+  },
+  "runtimeLimits": {
+    "authAndFixtureExports": "all four absent, not empty snapshots or zero-event proof",
+    "savedAccountReadback": "not observed/accepted",
+    "nativeUrlEntryExitMarkers": "not found in retained app.log or navigation simulator log; does not establish that no URL was delivered",
+    "memoryMovie": "no retained output; decoder gate not run to completion",
+    "navigationRecording": "ffprobe failed: moov atom not found; no decoded navigation-video claim",
+    "fullAppAcceptance": false,
+    "productionMemoryCapability": 0,
+    "physicalDeviceOrHostedProviderAcceptance": false
+  },
+  "nativeStallObservations": {
+    "appPid": 93651,
+    "mainThreadId": "3e775",
+    "keyboardQueueTimeout": "18:40:40.041, before subsequent successful main-page actions",
+    "animationMonitorImbalanceCount": 4,
+    "animationMonitorTimes": [
+      "18:43:42.288",
+      "18:44:08.219",
+      "18:44:08.223",
+      "18:44:08.226"
+    ],
+    "successfulSnapshotAfterAnimationWarnings": "18:44:14.265",
+    "mainRunLoopBusyReports": 6,
+    "queuedMainThreadCallbacksLaterDrained": "18:50:54.489\u201318:50:54.492",
+    "cause": "unresolved",
+    "interpretation": "These records justify sampling the exact app and XCTest runner during a repeated stall. No retained thread stack or CPU trace distinguishes application work, a native dependency block, or automation idle tracking. No routing, timeout, animation or product patch is justified by these logs alone."
+  },
+  "independentReviews": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e-navigation-independent-review.json",
+      "sha256": "786aa9b7dba4f11d0a0c43b14571a1ab251b979260d015f824f83b00d9ce4697"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e-auth-independent-review.json",
+      "sha256": "6c1c8e5a5433dabd7b9eb16c5ce1b82d6168467af662b346f1b05f27daadaf15"
+    }
+  ],
+  "ownerRetainedFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/artifact-file-manifest.json",
+      "bytes": 8719,
+      "sha256": "6ad870472f4828a1ff47221d41c5f26aa103f74d408c693fd27ec67e1205520f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/build-completion-projection.json",
+      "bytes": 220,
+      "sha256": "cba0d418aa1eb8123a1e96aa59386932f2e4f7f5db2ca35e6e97743059a199db"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/flow-results.json",
+      "bytes": 354,
+      "sha256": "3788143fcc37089ca955e00f7165e6f4e98c3004d6e47f3972de98828ee45551"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/ios-url-trace/AppDelegate.after.swift.txt",
+      "bytes": 5095,
+      "sha256": "b785dc14be9cb062dc7e85a47699f03d077ff86697241fd752d33041c14182d5"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/ios-url-trace/AppDelegate.before.swift.txt",
+      "bytes": 3993,
+      "sha256": "00c9934c2c9e5afdd6c47bcba339e81274e269e6cc2de9a312cc8c680a552206"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/ios-url-trace/source-proof.json",
+      "bytes": 1165,
+      "sha256": "9e4f469a26a600d3fee4809588287904fd463821bc53f0f888920fec3c0d6ec5"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/job-status.json",
+      "bytes": 6827,
+      "sha256": "8ed95364df67f87744779db2e6246f4c966f071a3edddfb9d98bd4d6a93639ec"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/native-stall-log-projection.json",
+      "bytes": 6403,
+      "sha256": "ddc5a1fe2d44055ae15dd76793f8f34d67ad9b76d70f1fe08b1e143db7b1ec90"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-video-metadata.json",
+      "bytes": 469,
+      "sha256": "2d988c330128cbbc2ccdcd44c79f352c7630eddf2acf9a21ba59fe02a26fc7c0"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/phase-availability.json",
+      "bytes": 550,
+      "sha256": "37d74c411912d8d8d4ab8d3f9709a50ca0f6b35955cdc18170583361680e4211"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/simulator-entitlements-before-resign.json",
+      "bytes": 954,
+      "sha256": "734d63756bfc3239e5b250debbcff6b7f200e22e418aa42936b39e93cc2707c2"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/simulator-entitlements.json",
+      "bytes": 954,
+      "sha256": "49b70d49153e7126f0ad942e7b2f9ad611d9d5a29f72ec95437318fa39378204"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/simulator-host-entitlements-before-resign.log",
+      "bytes": 137,
+      "sha256": "88f02df28b6657104f4e977d5f70240680249de2ebfa3a06360ead59a2ca921c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/simulator-host-entitlements-before-resign.plist",
+      "bytes": 184,
+      "sha256": "00491886daae07a5296c8bad50f116bf006b0004d7bf7338ad46669fbd903a4a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/simulator-host-entitlements.log",
+      "bytes": 137,
+      "sha256": "88f02df28b6657104f4e977d5f70240680249de2ebfa3a06360ead59a2ca921c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/simulator-host-entitlements.plist",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/simulator-signature-before-resign.log",
+      "bytes": 950,
+      "sha256": "859eefd1ddf64afe72cad0a3b4f37d165d97cb5e079611cbda7bb0ee5272455d"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/simulator-signature-verification.log",
+      "bytes": 283,
+      "sha256": "f0ccb9045d05b5def9c7ddf6c70864b92a59b61cdd39c431dd7b356ed1e5490e"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/simulator-signature.log",
+      "bytes": 950,
+      "sha256": "af24f020ae9199df94b4587840a7ce01ccf3f84a4e6012bfd2bcd586c6e645e3"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/simulator-signing.log",
+      "bytes": 145,
+      "sha256": "072b72a1b428d4369dce58316e69aff87d3c6e34c017cd3e1226ddefdb2ee048"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/source-verification.json",
+      "bytes": 1206,
+      "sha256": "19b010be9cc67050ae73c15504e944b2e7439e375e63cef5b42dd44c9f3af97b"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/toolchain.log",
+      "bytes": 51,
+      "sha256": "8d315d67a5517bc04b78c43c06e9ef5213bbb599704c907128dd3ad66b06ab29"
+    }
+  ],
+  "nextDiagnostic": "Reuse the separately built and source-bound b568 audit .app, correct only unsupported consumer ABI validation, retain bounded trace snapshots before teardown, and sample exact AUT/driver processes on the observed stall signal. Preserve all original cases, assertions and deadlines. Separate application/test source from recovery helper source."
+}

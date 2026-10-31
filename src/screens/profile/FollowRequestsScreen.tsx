@@ -230,7 +230,7 @@ const st = themedSheet((t) => ({
   rowLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12, marginRight: 12 },
   avatar: { width: 50, height: 50, borderRadius: 25 },
   avatarFb: { backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-  avatarFbTxt: { fontSize: 18, fontWeight: '700', color: t.brand.base },
+  avatarFbTxt: { fontSize: 18, fontWeight: '700', color: '#0B1E3D' },
   name: { fontSize: 15, fontWeight: '600', color: t.ink.primary },
   username: { fontSize: 13, color: t.brand.base, fontWeight: '500', marginTop: 1 },
   program: { fontSize: 12, color: t.ink.muted, marginTop: 2 },

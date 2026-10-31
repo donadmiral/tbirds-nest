@@ -83,10 +83,21 @@ test('the exact semantic shelf link requests another scroll instead of accepting
   assert.ok(safeBox.bottom < systemBar.top);
 });
 
-test('centering changes no selector, assertion, timeout, command order or account lifecycle operation', () => {
-  const normalized = structuredClone(actual);
-  assert.equal(normalized[1][0].scrollUntilVisible.centerElement, true);
-  delete normalized[1][0].scrollUntilVisible.centerElement;
-  assert.deepEqual(normalized, before);
-  assert.equal(actual[1].length, before[1].length);
+test('shelf centering and explicit title replacement preserve every other selector, assertion, timeout and lifecycle operation', () => {
+  const expected = structuredClone(before);
+  expected[1][0].scrollUntilVisible.centerElement = true;
+  const title = expected[1].findIndex(command => command.tapOn === 'Book title');
+  assert.ok(title >= 0);
+  assert.deepEqual(expected[1].slice(title, title + 3), [
+    { tapOn: 'Book title' }, 'eraseText', { inputText: 'THE LONG WAY HOME' },
+  ]);
+  // The separately reproduced mid-string erase defect requires selecting all
+  // and reading the exact controlled value before Save. Keep this delta exact;
+  // every remaining command must still match the immutable observed baseline.
+  expected[1].splice(title, 3,
+    { longPressOn: 'Book title' }, { tapOn: 'Select [Aa]ll' }, { eraseText: 1 },
+    { inputText: 'THE LONG WAY HOME' }, { copyTextFrom: 'Book title' },
+    { assertTrue: '${maestro.copiedText === "THE LONG WAY HOME"}' });
+  assert.deepEqual(actual, expected);
+  assert.equal(actual[1].length, before[1].length + 3);
 });

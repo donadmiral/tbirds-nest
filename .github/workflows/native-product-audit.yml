@@ -1,0 +1,256 @@
+name: Independent native product audit
+
+on:
+  push:
+    branches: ['codex/native-v6-followup-20261031']
+    paths:
+      - 'App.tsx'
+      - 'src/**'
+      - 'shared/**'
+      - 'modules/**'
+      - 'plugins/**'
+      - 'vendor/**'
+      - 'package*.json'
+      - 'app.config.js'
+      - 'app.json'
+      - 'tests/native/**'
+      - 'scripts/quality/**native-ui**'
+      - 'scripts/quality/test-*-app-ui.sh'
+      - '.github/workflows/native-product-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: independent-native-audit-${{ github.ref }}
+  # Preserve the running baseline and its complete error list.
+  cancel-in-progress: false
+
+env:
+  CI: 'true'
+  EXPO_NO_TELEMETRY: '1'
+  EXPO_PUBLIC_APP_ENV: qa
+  EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+  MAESTRO_CLI_NO_ANALYTICS: 'true'
+
+jobs:
+  ios-build:
+    name: Build one source-bound iPhone audit app
+    runs-on: macos-15-intel
+    timeout-minutes: 75
+    env:
+      PLATINUM_NATIVE_AUDIT_BUILD_ONLY: '1'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          for install_attempt in 1 2; do
+            if npm ci --ignore-scripts --no-fund --color=false 2>&1 | tee "$RUNNER_TEMP/native-ui-npm-install.log"; then
+              exit 0
+            else
+              install_status=$?
+            fi
+            # Retry only the observed transport timeout, once. Integrity,
+            # dependency and configuration errors retain their original failure.
+            if [[ "$install_attempt" == 2 ]] || ! grep -Eq '^npm (error|ERR!) code ETIMEDOUT[[:space:]]*$' "$RUNNER_TEMP/native-ui-npm-install.log"; then
+              exit "$install_status"
+            fi
+            printf '%s\n' 'The dependency download timed out; retrying the same locked install once.'
+            sleep 3
+          done
+      - name: Use Java 17 and the locked CocoaPods version
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          gem install --user-install cocoapods --version 1.16.2 --no-document
+          ruby -e 'puts File.join(Gem.user_dir, "bin")' >> "$GITHUB_PATH"
+      - name: Ensure independent movie decoding is available
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
+          ffmpeg -version
+      - run: bash scripts/quality/install-native-ui-tools.sh
+      - run: bash scripts/quality/test-ios-app-ui.sh
+      - name: Retain the exact built audit binary
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-audit-ios-binary
+          path: native-audit-build/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain audit build diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-audit-ios-build-logs
+          path: native-ui-logs/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  android-build:
+    name: Build one source-bound Android audit app
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      PLATINUM_NATIVE_AUDIT_BUILD_ONLY: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Use Java 17 and emulator host support
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0 ffmpeg xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - run: npm ci --ignore-scripts --no-fund
+      - run: bash scripts/quality/install-native-ui-tools.sh
+      - run: bash scripts/quality/test-android-app-ui.sh
+      - name: Retain the exact built audit binary
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-audit-android-binary
+          path: native-audit-build/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain audit build diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-audit-android-build-logs
+          path: native-ui-logs/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  ios-cases:
+    name: ios feature group ${{ matrix.shard }}
+    needs: ios-build
+    runs-on: macos-15-intel
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: settings
+            groups: settings,stories,directories
+          - shard: account
+            groups: support,auth,profile,business,memory
+          - shard: social
+            groups: navigation,feed,market,jobs,messages
+    env:
+      AUDIT_GROUPS: ${{ matrix.groups }}
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: native-audit-ios-binary
+          path: native-audit-binary
+      - name: Prepare device tools without rebuilding the app
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
+      - run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run all independent cases in this feature group
+        run: bash scripts/quality/run-native-ui-audit-device.sh ios "$AUDIT_GROUPS"
+      - name: Retain every executed case, including failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-audit-ios-${{ matrix.shard }}-results
+          path: |
+            native-audit-results/
+            native-ui-logs/
+          if-no-files-found: warn
+          retention-days: 7
+
+  android-cases:
+    name: android feature group ${{ matrix.shard }}
+    needs: android-build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: settings
+            groups: settings,stories,directories
+          - shard: account
+            groups: support,auth,profile,business,memory
+          - shard: social
+            groups: navigation,feed,market,jobs,messages
+    env:
+      AUDIT_GROUPS: ${{ matrix.groups }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: native-audit-android-binary
+          path: native-audit-binary
+      - name: Prepare device tools without rebuilding the app
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0 ffmpeg xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run all independent cases in this feature group
+        run: bash scripts/quality/run-native-ui-audit-device.sh android "$AUDIT_GROUPS"
+      - name: Retain every executed case, including failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-audit-android-${{ matrix.shard }}-results
+          path: |
+            native-audit-results/
+            native-ui-logs/
+          if-no-files-found: warn
+          retention-days: 7
+
+  coverage:
+    name: Account for every native audit case
+    if: ${{ !cancelled() }}
+    needs: [ios-build, android-build, ios-cases, android-cases]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        id: checkout
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: native-audit-*-results
+          path: native-audit-artifacts
+      - name: Report passes, failures and missing execution separately
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        run: python3 scripts/quality/native-ui-audit-summary.py native-audit-artifacts
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-audit-coverage
+          path: native-audit-coverage.json
+          if-no-files-found: warn
+          retention-days: 7

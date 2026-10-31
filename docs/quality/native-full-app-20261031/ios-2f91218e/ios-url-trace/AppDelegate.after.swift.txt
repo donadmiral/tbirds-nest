@@ -1,0 +1,123 @@
+import Expo
+import Foundation
+import PushKit
+import React
+import ReactAppDependencyProvider
+
+@UIApplicationMain
+public class AppDelegate: ExpoAppDelegate {
+  // BEGIN NATIVE_UI_URL_TRACE_COUNTER (disposable QA only)
+  private var nativeUIURLTraceSequence: Int = 0
+  // END NATIVE_UI_URL_TRACE_COUNTER
+  var window: UIWindow?
+
+  var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
+  var reactNativeFactory: RCTReactNativeFactory?
+
+  public override func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+  ) -> Bool {
+    RNVoipPushNotificationManager.voipRegistration()
+
+    let delegate = ReactNativeDelegate()
+    let factory = ExpoReactNativeFactory(delegate: delegate)
+    delegate.dependencyProvider = RCTAppDependencyProvider()
+
+    reactNativeDelegate = delegate
+    reactNativeFactory = factory
+    bindReactNativeFactory(factory)
+
+#if os(iOS) || os(tvOS)
+    window = UIWindow(frame: UIScreen.main.bounds)
+    factory.startReactNative(
+      withModuleName: "main",
+      in: window,
+      launchOptions: launchOptions)
+#endif
+
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  // Linking API
+  public override func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+  ) -> Bool {
+    // BEGIN NATIVE_UI_URL_TRACE (disposable QA only)
+    let nativeUIURLTraceToken: (Int, Bool)?
+    if Bundle.main.bundleIdentifier == "app.platinumcircles.mobile.qa"
+      && url.scheme?.lowercased() == "platinum-circles-qa"
+      && nativeUIURLTraceSequence < 16 {
+      nativeUIURLTraceSequence += 1
+      let matched = url.absoluteString == "platinum-circles-qa://ui-fixture/memory"
+      nativeUIURLTraceToken = (nativeUIURLTraceSequence, matched)
+      NSLog("[native-ui-url] entry sequence=%ld atUnixMs=%.0f matched=%ld",
+        nativeUIURLTraceSequence, Date().timeIntervalSince1970 * 1000, matched ? 1 : 0)
+    } else {
+      nativeUIURLTraceToken = nil
+    }
+    defer {
+      if let (sequence, matched) = nativeUIURLTraceToken {
+        NSLog("[native-ui-url] exit sequence=%ld atUnixMs=%.0f matched=%ld",
+          sequence, Date().timeIntervalSince1970 * 1000, matched ? 1 : 0)
+      }
+    }
+    // END NATIVE_UI_URL_TRACE
+    return super.application(app, open: url, options: options) || RCTLinkingManager.application(app, open: url, options: options)
+  }
+
+  // Universal Links
+  public override func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+  ) -> Bool {
+    let result = RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
+    return super.application(application, continue: userActivity, restorationHandler: restorationHandler) || result
+  }
+}
+
+class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
+  // Extension point for config-plugins
+
+  override func sourceURL(for bridge: RCTBridge) -> URL? {
+    // needed to return the correct URL for expo-dev-client.
+    bridge.bundleURL ?? bundleURL()
+  }
+
+  override func bundleURL() -> URL? {
+#if DEBUG
+    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: ".expo/.virtual-metro-entry")
+#else
+    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+#endif
+  }
+}
+
+
+extension AppDelegate: PKPushRegistryDelegate {
+  public func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
+    RNVoipPushNotificationManager.didUpdate(credentials, forType: type.rawValue)
+  }
+  public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
+    let d = payload.dictionaryPayload
+    let uuid = (d["uuid"] as? String) ?? UUID().uuidString
+    let name = (d["callerName"] as? String) ?? "Platinum Circles"
+    let handle = (d["handle"] as? String) ?? "PlatinumCircles"
+    let hasVideo = (d["hasVideo"] as? Bool) ?? false
+    RNVoipPushNotificationManager.didReceiveIncomingPush(with: payload, forType: type.rawValue)
+    if (d["action"] as? String) == "cancel" {
+      // The caller hung up: report the call once (Apple requires a report per push) and end it at once, remote ended.
+      RNCallKeep.reportNewIncomingCall(uuid, handle: handle, handleType: "generic", hasVideo: false, localizedCallerName: name, supportsHolding: false, supportsDTMF: false, supportsGrouping: false, supportsUngrouping: false, fromPushKit: true, payload: d, withCompletionHandler: {})
+      RNCallKeep.endCall(withUUID: uuid, reason: 2)
+      completion()
+      return
+    }
+    RNCallKeep.reportNewIncomingCall(uuid, handle: handle, handleType: "generic", hasVideo: hasVideo,
+      localizedCallerName: name, supportsHolding: false, supportsDTMF: false,
+      supportsGrouping: false, supportsUngrouping: false, fromPushKit: true,
+      payload: d, withCompletionHandler: completion)
+  }
+}

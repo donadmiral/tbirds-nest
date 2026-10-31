@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit Post
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: feed-post
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Comments"
+    timeout: 15000
+- takeScreenshot: feed-post

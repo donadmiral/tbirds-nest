@@ -1,0 +1,190 @@
+TAP version 13
+# Subtest: Jobs counts all 10,030 roles exactly, including more than the API row cap
+ok 1 - Jobs counts all 10,030 roles exactly, including more than the API row cap
+  ---
+  duration_ms: 504.103856
+  type: 'test'
+  ...
+# Subtest: Jobs second and last pages reach older roles with a deterministic tie order
+ok 2 - Jobs second and last pages reach older roles with a deterministic tie order
+  ---
+  duration_ms: 50.055352
+  type: 'test'
+  ...
+# Subtest: Jobs server search finds older titles and counts/continues every filtered result
+ok 3 - Jobs server search finds older titles and counts/continues every filtered result
+  ---
+  duration_ms: 25.274878
+  type: 'test'
+  ...
+# Subtest: Jobs search escapes wildcard/regex/operator punctuation as literal title text
+ok 4 - Jobs search escapes wildcard/regex/operator punctuation as literal title text
+  ---
+  duration_ms: 20.713806
+  type: 'test'
+  ...
+# Subtest: Jobs empty literal search, bounded input, and malformed page never invent results
+ok 5 - Jobs empty literal search, bounded input, and malformed page never invent results
+  ---
+  duration_ms: 18.721676
+  type: 'test'
+  ...
+# Subtest: Jobs page aggregates and filters explicitly describe only its bounded roles
+ok 6 - Jobs page aggregates and filters explicitly describe only its bounded roles
+  ---
+  duration_ms: 11.018614
+  type: 'test'
+  ...
+# Subtest: Calls totals/weekly/live counts include sessions beyond the old 400-row slice
+ok 7 - Calls totals/weekly/live counts include sessions beyond the old 400-row slice
+  ---
+  duration_ms: 66.997572
+  type: 'test'
+  ...
+# Subtest: Calls rates, durations and charts name their page scope
+ok 8 - Calls rates, durations and charts name their page scope
+  ---
+  duration_ms: 10.095325
+  type: 'test'
+  ...
+# Subtest: Stories live and retained totals count beyond the API cap; second page stays bounded
+ok 9 - Stories live and retained totals count beyond the API cap; second page stays bounded
+  ---
+  duration_ms: 144.546107
+  type: 'test'
+  ...
+# Subtest: Stories expired-24h count uses expiry (lower exclusive, now inclusive), not creation date
+ok 10 - Stories expired-24h count uses expiry (lower exclusive, now inclusive), not creation date
+  ---
+  duration_ms: 17.147162
+  type: 'test'
+  ...
+# Subtest: Verification pending count is exact beyond 1,000; only one 25-applicant page gets safety reads
+ok 11 - Verification pending count is exact beyond 1,000; only one 25-applicant page gets safety reads
+  ---
+  duration_ms: 64.943146
+  type: 'test'
+  ...
+# Subtest: Verification safety reads execute at most four concurrently and preserve real counts
+ok 12 - Verification safety reads execute at most four concurrently and preserve real counts
+  ---
+  duration_ms: 25.504834
+  type: 'test'
+  ...
+# Subtest: Verification missing safety counts fail before showing review actions
+ok 13 - Verification missing safety counts fail before showing review actions
+  ---
+  duration_ms: 14.774658
+  type: 'test'
+  ...
+# Subtest: Verification provider failure stops scheduling additional safety reads
+ok 14 - Verification provider failure stops scheduling additional safety reads
+  ---
+  duration_ms: 42.10314
+  type: 'test'
+  ...
+# Subtest: Verification truncated referral evidence fails rather than understating vouches
+ok 15 - Verification truncated referral evidence fails rather than understating vouches
+  ---
+  duration_ms: 14.35306
+  type: 'test'
+  ...
+# Subtest: Verification decision median is explicitly the latest 60 while all statuses remain exact
+ok 16 - Verification decision median is explicitly the latest 60 while all statuses remain exact
+  ---
+  duration_ms: 23.00853
+  type: 'test'
+  ...
+# Subtest: jobs: missing count is unavailable, not zero or a page-length total
+ok 17 - jobs: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 9.234521
+  type: 'test'
+  ...
+# Subtest: jobs: failed bounded row read never renders a partial report
+ok 18 - jobs: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 8.085412
+  type: 'test'
+  ...
+# Subtest: jobs: unauthenticated visitor cannot issue report reads
+ok 19 - jobs: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 4.751282
+  type: 'test'
+  ...
+# Subtest: calls: missing count is unavailable, not zero or a page-length total
+ok 20 - calls: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 4.902374
+  type: 'test'
+  ...
+# Subtest: calls: failed bounded row read never renders a partial report
+ok 21 - calls: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 5.684981
+  type: 'test'
+  ...
+# Subtest: calls: unauthenticated visitor cannot issue report reads
+ok 22 - calls: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 3.645343
+  type: 'test'
+  ...
+# Subtest: stories: missing count is unavailable, not zero or a page-length total
+ok 23 - stories: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 12.942257
+  type: 'test'
+  ...
+# Subtest: stories: failed bounded row read never renders a partial report
+ok 24 - stories: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 13.507298
+  type: 'test'
+  ...
+# Subtest: stories: unauthenticated visitor cannot issue report reads
+ok 25 - stories: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 12.199479
+  type: 'test'
+  ...
+# Subtest: queue: missing count is unavailable, not zero or a page-length total
+ok 26 - queue: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 12.738921
+  type: 'test'
+  ...
+# Subtest: queue: failed bounded row read never renders a partial report
+ok 27 - queue: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 11.453299
+  type: 'test'
+  ...
+# Subtest: queue: unauthenticated visitor cannot issue report reads
+ok 28 - queue: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 9.147068
+  type: 'test'
+  ...
+# Subtest: Page/query identity changes reset Desk selection rather than retaining an old form
+ok 29 - Page/query identity changes reset Desk selection rather than retaining an old form
+  ---
+  duration_ms: 41.469377
+  type: 'test'
+  ...
+# Subtest: Exact-count helper rejects malformed/nonfinite/negative provider metadata
+ok 30 - Exact-count helper rejects malformed/nonfinite/negative provider metadata
+  ---
+  duration_ms: 1.259629
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1469.133026

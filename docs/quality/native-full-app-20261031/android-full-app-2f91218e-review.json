@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T18:08:53.961307+00:00",
+  "applicationSourceCommit": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "testedMerge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+  "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+  "runId": 41225636296,
+  "jobId": 124609086715,
+  "conclusion": "failure",
+  "artifact": {
+    "id": 13051109884,
+    "name": "android-full-app-ui",
+    "bytes": 9162115,
+    "sha256": "561fc2c24092c98ce327763f87e1bc995b94ab0b82cdf9ca808b614958395eaa"
+  },
+  "sourceVerification": {
+    "originals": 501,
+    "originalMismatches": 0,
+    "retainedOverlays": 6,
+    "overlayMismatches": 0,
+    "installedDependencyFiles": 9,
+    "dependencyMismatches": 0,
+    "canonicalManifest": "android-2f91218e/source.json"
+  },
+  "renderer": {
+    "host": "Mesa llvmpipe (LLVM20.1.2,256bits)",
+    "emulator": "Android Emulator OpenGL ES Translator (llvmpipe)",
+    "guestVulkanAccepted": false,
+    "hostAndEmulatorIdentityChecksPassed": true,
+    "limit": "One completed GLES run. Not proof of the preceding SIGSEGV component or permanent stability. Host journal has no matching saved crash record; process absence was observed after cleanup."
+  },
+  "phases": {
+    "flows": 1,
+    "evidence": 0,
+    "memoryDecoder": 1,
+    "fullAppVerifier": 1
+  },
+  "navigation": {
+    "passed": false,
+    "failure": "Saved cover title is THE LONG WAY HOMEENTURES rather than THE LONG WAY HOME.",
+    "reached": [
+      "all five main member pages",
+      "memory shelf",
+      "reader pages",
+      "automatic film",
+      "export entry",
+      "Book settings save"
+    ],
+    "notReached": [
+      "successful exact final cover assertion",
+      "later settings and repeated warm tabs"
+    ],
+    "independentReview": "android-2f91218e-navigation-independent-review.json"
+  },
+  "capture": {
+    "maestroPassed": true,
+    "cancelledAttempt": true,
+    "closedCancelledReader": true,
+    "completedRetry": true,
+    "cancelledAndCompletedCleanup": true,
+    "pngs": 12,
+    "movie": "android-2f91218e/memory-capture/attempt-2-movie.mp4",
+    "bytes": 2657257,
+    "durationSeconds": 11.702857,
+    "decodedFrames": 348,
+    "fullyDecodedWithoutError": true,
+    "nativeCapability": "QA-only1; production source remains0",
+    "decoderGatePassed": false,
+    "decodedDisplayDimensions": [
+      720,
+      1280
+    ]
+  },
+  "allDecoderFindings": [
+    {
+      "class": "harness-candidate",
+      "finding": "Coded dimensions1280x720 plus-90degree display matrix; verifier checks raw width/height only. Default decoded display is portrait720x1280.",
+      "expected": "Portrait720x1280 displayed movie",
+      "actual": "Display orientation is portrait; original coded-dimension assertion fails.",
+      "fixStatus": "No change; require explicit display-matrix geometry validation."
+    },
+    {
+      "class": "product-or-encoder-pipeline",
+      "finding": "Frame timestamps jump6.966667\u21927.100000s at the end of the trimmed video scene.",
+      "expected": "Maximum frame gap<0.100s",
+      "actual": 0.13333299999999948,
+      "fixStatus": "No change; concrete continuity failure, root cause unresolved."
+    },
+    {
+      "class": "harness-candidate",
+      "finding": "Default stereo-to-mono downmix yields tone0.1388356 outside the fixed0.07\u20130.13 band. Explicit source/output channel comparison gives49.117%/49.117% gain, matching selected50%.",
+      "expected": "50%original audio mix",
+      "actual": "Per-channel gain is within the intended mix; downmix-specific fixed bound fails.",
+      "fixStatus": "No change; compare equivalent channel layouts/source amplitude before revising any guard."
+    }
+  ],
+  "remainingDecoderChecks": {
+    "photoSwatches": true,
+    "timedGreenArtworkPixels": [
+      0,
+      777,
+      0
+    ],
+    "gradedVideo": true,
+    "openingTextClosingFidelity": true,
+    "duration": true,
+    "packagedScoreBeforeAndAfterVideo": true
+  },
+  "diagnosticMethod": "Separate AST diagnostic copy collected every original assert failure without modifying the checked-in gate or evidence bytes. Its output is diagnosticOnly and passed=false. The unchanged official verifier still exits1 at line60.",
+  "authReadbackReview": "Separate Hosted review pending at owner sealing; do not infer all auth state from UI success.",
+  "limits": [
+    "Complete native gate remains failed.",
+    "No hosted provider, physical device, real push/call/camera, Photos write, or all-controls acceptance.",
+    "Direct-route audit preparation is separate from this frozen candidate run."
+  ]
+}

@@ -78,6 +78,7 @@
       "expo-secure-store",
       "expo-image-picker",
       "expo-video",
+      "./plugins/withMedia3Compatibility",
       [
         "expo-av",
         {

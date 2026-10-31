@@ -7,7 +7,7 @@
  * Username availability is checked as you type and again on the server, because
  * a client check is a race condition rather than a guarantee.
  */
-import { themedSheet, getTheme } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView,
@@ -28,6 +28,7 @@ const CATEGORIES = [
 type Availability = 'idle' | 'checking' | 'free' | 'taken' | 'invalid';
 
 export default function CreateBusinessScreen({ navigation }: any) {
+  const { t, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
@@ -97,7 +98,7 @@ export default function CreateBusinessScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -127,7 +128,7 @@ export default function CreateBusinessScreen({ navigation }: any) {
             <Text style={s.label}>Business name</Text>
             <TextInput
               value={name} onChangeText={setName} style={s.input}
-              placeholder="Pearl Group" placeholderTextColor={getTheme().ink.faint}
+              placeholder="Pearl Group" placeholderTextColor={getTheme().ink.muted}
               autoCapitalize="words"
             />
           </View>
@@ -140,7 +141,7 @@ export default function CreateBusinessScreen({ navigation }: any) {
                 value={username}
                 onChangeText={v => setUsername(v.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase())}
                 style={s.usernameInput}
-                placeholder="pearlgroup" placeholderTextColor={getTheme().ink.faint}
+                placeholder="pearlgroup" placeholderTextColor={getTheme().ink.muted}
                 autoCapitalize="none" autoCorrect={false}
               />
               {avail === 'checking' ? <ActivityIndicator size="small" color={getTheme().ink.faint} /> : null}
@@ -220,7 +221,7 @@ const s = themedSheet((t) => ({
     borderWidth: HAIR, borderColor: t.surface.hairline, borderRadius: radius.md,
     paddingHorizontal: space.sm, backgroundColor: t.surface.raised,
   },
-  at: { fontSize: typeSize.body, color: t.ink.faint, fontWeight: fontWeight.semibold },
+  at: { fontSize: typeSize.body, color: t.ink.muted, fontWeight: fontWeight.semibold },
   usernameInput: { flex: 1, fontSize: typeSize.body, color: t.ink.primary, paddingVertical: 11 },
   hint: { fontSize: typeSize.micro, lineHeight: 15 },
 

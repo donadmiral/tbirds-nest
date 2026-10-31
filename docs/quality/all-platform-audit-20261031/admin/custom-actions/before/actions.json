@@ -1,0 +1,293 @@
+{
+  "checkedAt": "2026-10-31T18:52:01.981Z",
+  "scope": "Actual exported actions, Auth/session/permissions and installed admin SDK with synthetic transport and cookie/cache/navigation adapters. No provider writes, email, credentials, passwords, licensing or finance activation.",
+  "results": [
+    {
+      "actions": [
+        "signIn"
+      ],
+      "title": "verified native session persists only secure session cookies and redirects to the dashboard",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "signIn"
+      ],
+      "title": "credential rejection and provider outage have distinct safe errors without persisting a login",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "signIn"
+      ],
+      "title": "inactive, revoked and unknown-role accounts are denied and the newly issued session is revoked",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "signOut"
+      ],
+      "title": "confirmed or already-absent sessions clear cookies and return to sign-in",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "signOut"
+      ],
+      "title": "uncertain revocation does not claim a completed sign-out or silently discard its retry context",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "enrollAuthenticator"
+      ],
+      "title": "existing verified authenticators cannot be replaced by enrollment",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "enrollAuthenticator"
+      ],
+      "title": "only this setup’s unverified factor is removed before creating one new factor",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "enrollAuthenticator",
+        "verifyAuthenticator"
+      ],
+      "title": "missing or revoked sessions cannot enroll or verify factors",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "verifyAuthenticator"
+      ],
+      "title": "six-digit validation and provider rejection never elevate session cookies",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "verifyAuthenticator"
+      ],
+      "title": "actual SDK challenge and verify persist the returned elevated session",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "inviteStaff"
+      ],
+      "title": "the actual wrapper preserves reservation identity and invalidates only its confirmed desk",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "inviteStaff"
+      ],
+      "title": "wrong role and failed reservation do not create an identity or refresh a success page",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "approveBusinessApplication"
+      ],
+      "title": "the actual wrapper preserves reservation identity and invalidates only its confirmed desk",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "approveBusinessApplication"
+      ],
+      "title": "wrong role and failed reservation do not create an identity or refresh a success page",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "saveMusicProvider"
+      ],
+      "title": "verified actor/session and normalized payload reach the exact music command",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "saveMusicProvider"
+      ],
+      "title": "missing or negative receipt cannot report a saved music change",
+      "status": "failed",
+      "error": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nError: REDIRECT /music?result=saved"
+    },
+    {
+      "actions": [
+        "saveMusicLicenseDraft"
+      ],
+      "title": "verified actor/session and normalized payload reach the exact music command",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "saveMusicLicenseDraft"
+      ],
+      "title": "missing or negative receipt cannot report a saved music change",
+      "status": "failed",
+      "error": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nError: REDIRECT /music?result=saved"
+    },
+    {
+      "actions": [
+        "revokeMusicSound"
+      ],
+      "title": "verified actor/session and normalized payload reach the exact music command",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "revokeMusicSound"
+      ],
+      "title": "missing or negative receipt cannot report a saved music change",
+      "status": "failed",
+      "error": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nError: REDIRECT /music?result=saved"
+    },
+    {
+      "actions": [
+        "stageMusicCatalogue"
+      ],
+      "title": "actual staging action keeps request identity, counts and commercial licensing off",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "stageMusicCatalogue"
+      ],
+      "title": "missing, wrong-request and impossible count receipts cannot claim catalogue staging",
+      "status": "failed",
+      "error": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nError: REDIRECT /music?result=staged"
+    },
+    {
+      "actions": [
+        "moderateReview"
+      ],
+      "title": "valid moderation uses verified actor, session, version and retry key",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "moderateReview"
+      ],
+      "title": "unconfirmed or wrong-key moderation receipt cannot report an audited decision",
+      "status": "failed",
+      "error": "Expected values to be strictly equal:\n\ntrue !== false\n"
+    },
+    {
+      "actions": [
+        "moderateReview"
+      ],
+      "title": "invalid decision, key, version or reason stops before the write boundary",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "updateSupportTriage"
+      ],
+      "title": "exact confirmed assignment and failure variants preserve retry and version semantics",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "updateSupportTriage"
+      ],
+      "title": "duplicate and malformed fields cannot reach assignment mutation",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "reviewCreator"
+      ],
+      "title": "current disabled finance gate blocks direct calls without pretending reviews are live",
+      "status": "passed"
+    },
+    {
+      "actions": [
+        "saveMusicProvider",
+        "saveMusicLicenseDraft",
+        "revokeMusicSound",
+        "stageMusicCatalogue",
+        "moderateReview",
+        "updateSupportTriage",
+        "reviewErasure"
+      ],
+      "title": "actual Auth and permission policy stop every unauthorized role before a custom RPC",
+      "status": "passed",
+      "roleDenials": 56,
+      "roles": 11
+    }
+  ],
+  "sources": [
+    {
+      "path": "shared/monetization/availability.ts",
+      "sha256": "908e79172d4092338decbee3c2a221881d97167503a983c9d988c36bbdaa55ab"
+    },
+    {
+      "path": "admin-web/app/market/reviews/actions.ts",
+      "sha256": "d3efc2e080bdb27571243c1e3afdded6f924efe15ca672abf06e5c4583f2a6b9"
+    },
+    {
+      "path": "admin-web/app/music/actions.ts",
+      "sha256": "0ce4155d9c4d8888868e73887e1daee3fcdbc94233ff4ccd4103d00173d58804"
+    },
+    {
+      "path": "admin-web/app/payments/creators/actions.ts",
+      "sha256": "db72044d3ed8115f7f92f4f969f476c6197ddd56ef0b18a7ffde80156b8cd368"
+    },
+    {
+      "path": "admin-web/app/security/actions.ts",
+      "sha256": "f2374929079ff4a09bb2ffccffb5d2b7389c3ed2e196de4246080c108daf2838"
+    },
+    {
+      "path": "admin-web/app/users/deletions/actions.ts",
+      "sha256": "d395c8b3b5dfb3144b5c651414d2aa6808f50e0273e9835f852188fcf1488d54"
+    },
+    {
+      "path": "admin-web/lib/actions.ts",
+      "sha256": "a06f152a07863cfedd85e2566ff31feec6380715b6f0a422f7c415f5de3c48a7"
+    },
+    {
+      "path": "admin-web/lib/adminAssurance.ts",
+      "sha256": "662f2d7de2ef5d69c1aea2e4182b58e0c8a9c13816032f111991aa6a26af51dd"
+    },
+    {
+      "path": "admin-web/lib/adminAuth.ts",
+      "sha256": "880ddc94ca29e3bc5e5e81769814e9d472ff510150f0727cc2db716515a09e2c"
+    },
+    {
+      "path": "admin-web/lib/adminCommand.ts",
+      "sha256": "48dedbe9254313056566e00cfbf1352f9fd6ff06ac26a58fc19e46a1311c7490"
+    },
+    {
+      "path": "admin-web/lib/adminErasureReview.ts",
+      "sha256": "8290902a4e412ea33282020029373e8d3b0967afbcb8734f8b8bbfe68c0f9b84"
+    },
+    {
+      "path": "admin-web/lib/adminProvision.ts",
+      "sha256": "7da08365aea46ddbd39a1a669395494e49a0dc09a5a48c91a194f736cad6ffdc"
+    },
+    {
+      "path": "admin-web/lib/adminRpcAvailability.ts",
+      "sha256": "1b4b8d9f1c5fb2e2a0c4360d5184e874b2d4a1672fd165dd6d4c86657c48d7b7"
+    },
+    {
+      "path": "admin-web/lib/adminSession.ts",
+      "sha256": "b12b954cd53001e3115f4f79e8070548b1dbdf9b5b708c7a3c0c7a2e78d0be58"
+    },
+    {
+      "path": "admin-web/lib/permissions.ts",
+      "sha256": "a5cdc75677d7309a228d00e0d9ba10ce35cebb74c60bb2a9028eec8168e987b6"
+    },
+    {
+      "path": "admin-web/lib/supabaseAdmin.ts",
+      "sha256": "9d41752035d2b20a9797d7c9be66a6903b1ca624b0746dbf9874509b5dc6142b"
+    },
+    {
+      "path": "admin-web/lib/supportTriageActions.ts",
+      "sha256": "bca6a3b01b8c9c331221644c2c686ca2fa5cf1d3064a4769580a30fb54ed292b"
+    }
+  ]
+}

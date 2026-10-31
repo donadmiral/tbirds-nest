@@ -44,9 +44,12 @@ name: Saved memory book, automatic film and cover editing
 - tapOn: Close memory book
 - tapOn: Edit memory book
 - assertVisible: Book settings
-- tapOn: Book title
-- eraseText
+- longPressOn: Book title
+- tapOn: 'Select [Aa]ll'
+- eraseText: 1
 - inputText: THE LONG WAY HOME
+- copyTextFrom: Book title
+- assertTrue: ${maestro.copiedText === "THE LONG WAY HOME"}
 # iOS dismisses through the following real settings scroll (on-drag).
 # Maestro's center-screen hideKeyboard swipe can miss this modal's scroll view.
 - runFlow:

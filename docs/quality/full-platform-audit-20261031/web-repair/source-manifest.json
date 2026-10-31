@@ -1,0 +1,101 @@
+{
+  "baseline": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "files": [
+    {
+      "path": "web/app/settings/hidden-words/page.tsx",
+      "bytes": 2794,
+      "sha256": "3285d606349342df08f19cf38b9b2c082adaf5086a852ed78b2c1f845d6463db",
+      "baselineSha256": "f91e6f6177b98bb4f6a8c96cff8aa2e70fcebc223de0049006b0b6581aacf652"
+    },
+    {
+      "path": "web/app/settings/muted-words/page.tsx",
+      "bytes": 2745,
+      "sha256": "a56cd66bd2cc99f5753ef1a67df81ee573c8ec3a7a2aad245a1561505270ce7f",
+      "baselineSha256": "510642a7999da451adefe2a01c7464631ee7f8bb7301e42fdbe2cd825eb01c1c"
+    },
+    {
+      "path": "web/app/settings/standing/page.tsx",
+      "bytes": 4511,
+      "sha256": "3df3975e94a048fcfdf7211d2027c663506af805fd50fef0756feced1ed477c1",
+      "baselineSha256": "d842dd5a455540a3285d6db43983d1e438ae47eb9bf03b7c9195d1a12527054d"
+    },
+    {
+      "path": "web/app/explore/page.tsx",
+      "bytes": 9039,
+      "sha256": "6da825a9efea15dc22894b4e9df4acb194a5bceb482a8e5a123de2773dfe9804",
+      "baselineSha256": "79999246a1b06d2afc8a17fd984a586ff851583bc49b36a3fe39cee9d0d9b251"
+    },
+    {
+      "path": "web/app/topic/[tag]/page.tsx",
+      "bytes": 4074,
+      "sha256": "b35b58d6b7a716d75dcf7e037670963358712fc07f1d23ce4b749fcb98bdd2a2",
+      "baselineSha256": "f611f7e995c68427e530f83018e704af9b297313a3f7a37be419cc38ff26f42c"
+    },
+    {
+      "path": "web/app/search/page.tsx",
+      "bytes": 28456,
+      "sha256": "146a7bd464f51019faf2bed4e0d8a52d7590c9f9f2fbd69c4c7ef37233bb40d9",
+      "baselineSha256": "0d75d5907eb222cc14515c4e69d7dddb97be11d2d3236495bf40d4f916b442d4"
+    },
+    {
+      "path": "web/app/market/new/page.tsx",
+      "bytes": 11339,
+      "sha256": "ff54a46267ab66789a1fd581cde6ec8689ded2468bcf504eb6f9e4875e8ed409",
+      "baselineSha256": "405847e43d7f95abf7f8ff9bf139f0d7c2299a9b8826ac0ef5717440604f8f02"
+    },
+    {
+      "path": "web/app/businesses/new/page.tsx",
+      "bytes": 6225,
+      "sha256": "283d8c754f8658ed2cfeb58fd82652c85694f387bb600e54736a63bc7595e491",
+      "baselineSha256": "8dfbd9550356eba01f9585c8c4aa5dc9a016804d0cc526279afb0d15223540a6"
+    },
+    {
+      "path": "web/app/ads/new/page.tsx",
+      "bytes": 23311,
+      "sha256": "c5550895c372704617a8382c544ef299b26f3ba2fe6f2998e2135596523b07f5",
+      "baselineSha256": "458438a08fe3619b61a5f4fcd91a2ef210df0c6b1130828cb8c9a1b4fd76bcc1"
+    },
+    {
+      "path": "web/components/MarketUnreadDot.tsx",
+      "bytes": 1567,
+      "sha256": "08098d3e26a24880c4cfcbb977c9160bc7d82b04d68800d6c5fda89d80c4532f",
+      "baselineSha256": "3f83b7dfdcb117f6b1f576c5e2a20f3dbf5f27962a336c1671e2009d586f476c"
+    },
+    {
+      "path": "web/components/DiscoverSections.tsx",
+      "bytes": 7875,
+      "sha256": "0eb0e4be034d51479812187fdd8b2d57d2813e84e2a04f1dcd5cc79b5e473b18",
+      "baselineSha256": "18c44daea538f9b229a1232d6edf3f989def943a6efcd3c3b25c097729aac60d"
+    },
+    {
+      "path": "web/app/settings/profile/profile.module.css",
+      "bytes": 6187,
+      "sha256": "1f5fdfc244598d37c4f7dd555e9eb343b47104820136655db42d912452b76889",
+      "baselineSha256": "79a5099bc64d7c9c385e5f5977588419e8926d41b31a23866d142bb938b6cb91"
+    },
+    {
+      "path": "web/lib/useWordPreferences.ts",
+      "bytes": 3423,
+      "sha256": "dc980cf4a68583891199401e52d4a392ec45e6ffae245d3db4c1a336b2072e0c",
+      "baselineSha256": null
+    },
+    {
+      "path": "web/tests/browser/member-resilience-backend.ts",
+      "bytes": 5478,
+      "sha256": "513277509a9f4e027070e97a84dd63834065a2c489a645bd9b5e6431bc962619",
+      "baselineSha256": null
+    },
+    {
+      "path": "web/tests/browser/member-resilience-fixture.tsx",
+      "bytes": 1937,
+      "sha256": "57a0ab7cd8d9057ed58cd012172885f9670fef5efc88506d8356ddc87afdbbb6",
+      "baselineSha256": null
+    },
+    {
+      "path": "web/tests/browser/member-resilience-run.cjs",
+      "bytes": 13259,
+      "sha256": "63cdf8af83bf3bca78272a6629d6710d208373b17e953e5389eb20610995c55c",
+      "baselineSha256": null
+    }
+  ]
+}

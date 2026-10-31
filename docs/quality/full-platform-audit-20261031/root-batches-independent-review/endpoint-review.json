@@ -1,0 +1,214 @@
+{
+  "checkedAt": "2026-10-31T19:06:37.867Z",
+  "source": "local-working-tree",
+  "scope": "Actual five route exports, real Auth/session/role/recovery code and installed SDK with synthetic provider transport and request-local cookie adapter. No live service, email, password reset or hosted Next claim.",
+  "results": [
+    {
+      "route": "/api/diagnostics",
+      "title": "real verified staff session forwards enum-only data with the user bearer",
+      "status": "passed"
+    },
+    {
+      "route": "/api/diagnostics",
+      "title": "guest cannot submit diagnostics",
+      "status": "passed"
+    },
+    {
+      "route": "/api/diagnostics",
+      "title": "revoked session cannot submit diagnostics",
+      "status": "passed"
+    },
+    {
+      "route": "/api/diagnostics",
+      "title": "inactive role cannot submit diagnostics",
+      "status": "passed"
+    },
+    {
+      "route": "/api/diagnostics",
+      "title": "unknown role cannot submit diagnostics",
+      "status": "passed"
+    },
+    {
+      "route": "/api/diagnostics",
+      "title": "unverified token cannot submit diagnostics",
+      "status": "passed"
+    },
+    {
+      "route": "/api/diagnostics",
+      "title": "cross-origin, wrong content type and oversized UTF-8 bodies stop before Auth",
+      "status": "passed"
+    },
+    {
+      "route": "/api/diagnostics",
+      "title": "malformed JSON is a bounded client error",
+      "status": "passed"
+    },
+    {
+      "route": "/api/diagnostics",
+      "title": "provider failure returns unavailable without recursive reporting",
+      "status": "passed"
+    },
+    {
+      "route": "/api/moderation-media",
+      "title": "GET, HEAD and range execute real Auth, exact object proof and reauthorization",
+      "status": "passed"
+    },
+    {
+      "route": "/api/moderation-media",
+      "title": "guest produces no private media",
+      "status": "passed"
+    },
+    {
+      "route": "/api/moderation-media",
+      "title": "wrong role produces no private media",
+      "status": "passed"
+    },
+    {
+      "route": "/api/moderation-media",
+      "title": "revoked while reading produces no private media",
+      "status": "passed"
+    },
+    {
+      "route": "/api/moderation-media",
+      "title": "object replaced produces no private media",
+      "status": "passed"
+    },
+    {
+      "route": "/api/moderation-media",
+      "title": "unbound object produces no private media",
+      "status": "passed"
+    },
+    {
+      "route": "/api/moderation-media",
+      "title": "storage outage produces no private media",
+      "status": "passed"
+    },
+    {
+      "route": "/api/music/[id]",
+      "title": "authorized original audio binds both reads to the real verified actor/session",
+      "status": "passed"
+    },
+    {
+      "route": "/api/music/[id]",
+      "title": "guest and wrong role never reach object or Storage reads",
+      "status": "passed"
+    },
+    {
+      "route": "/api/music/[id]",
+      "title": "replacement and missing objects do not release stale bytes",
+      "status": "passed"
+    },
+    {
+      "route": "/api/music/[id]",
+      "title": "invalid byte ranges stop before Storage",
+      "status": "passed"
+    },
+    {
+      "route": "/api/music/[id]",
+      "title": "Storage network failure settles as a private unavailable response",
+      "status": "passed"
+    },
+    {
+      "route": "/api/music/[id]",
+      "title": "the actual 20-second header deadline aborts held transport and retains recovery headers",
+      "status": "passed"
+    },
+    {
+      "route": "/api/music/report",
+      "title": "real permission boundary and bounded CSV report preserve safe fields",
+      "status": "passed"
+    },
+    {
+      "route": "/api/music/report",
+      "title": "invalid date windows and denied roles cannot request reports",
+      "status": "passed"
+    },
+    {
+      "route": "/api/music/report",
+      "title": "missing or failed provider receipts never become successful downloads",
+      "status": "passed"
+    },
+    {
+      "route": "/reset-password/callback",
+      "title": "actual PKCE exchange verifies recovery AMR, stores only the separate sealed grant and blocks replay",
+      "status": "passed"
+    },
+    {
+      "route": "/reset-password/callback",
+      "title": "ordinary login tokens cannot establish a recovery grant",
+      "status": "passed"
+    },
+    {
+      "route": "/reset-password/callback",
+      "title": "untrusted callback origin and malformed links cannot exchange credentials",
+      "status": "passed"
+    },
+    {
+      "route": "/reset-password/callback",
+      "title": "exchange failure and revoked staff session have no success grant or leaked error",
+      "status": "passed"
+    }
+  ],
+  "sources": [
+    {
+      "path": "admin-web/../shared/clientDiagnostics.ts",
+      "sha256": "4bf1ff37711a7399e38037d575d7cbb4a83176e99d593bbed91b59eb99032621"
+    },
+    {
+      "path": "admin-web/app/api/diagnostics/route.ts",
+      "sha256": "8aed0b4ced221a0e29e3ad2b1e047a960db0ee415d3524ce49754f89372bb04a"
+    },
+    {
+      "path": "admin-web/app/api/moderation-media/route.ts",
+      "sha256": "3e49cca0d6a29bf81fbe61eeb2f0f6c992df7528c09c814c4e696c909d9497c2"
+    },
+    {
+      "path": "admin-web/app/api/music/[id]/route.ts",
+      "sha256": "788a769b8abe699f803959a05c48ae87d8ca9c2b9943c8886fcce3db0a4f5972"
+    },
+    {
+      "path": "admin-web/app/api/music/report/route.ts",
+      "sha256": "e8100524b380ff06ff5ecf5b6bf6605e775c982eed61ed222c29679bde9cc825"
+    },
+    {
+      "path": "admin-web/app/reset-password/callback/route.ts",
+      "sha256": "050f691218403433afdc89ceeafc67e897c43950c750a158dc32bb1ea1ee137f"
+    },
+    {
+      "path": "admin-web/lib/adminAssurance.ts",
+      "sha256": "662f2d7de2ef5d69c1aea2e4182b58e0c8a9c13816032f111991aa6a26af51dd"
+    },
+    {
+      "path": "admin-web/lib/adminAuth.ts",
+      "sha256": "880ddc94ca29e3bc5e5e81769814e9d472ff510150f0727cc2db716515a09e2c"
+    },
+    {
+      "path": "admin-web/lib/adminRecovery.ts",
+      "sha256": "a3973c195e5b5a38e2dac32214a6686e0ef568da4cfcf500343362f6f2f443c1"
+    },
+    {
+      "path": "admin-web/lib/adminRecoveryPolicy.ts",
+      "sha256": "988483d3bb37ca2d21761add06e1251a017c71fa13eda73cd5916b8970dd4c22"
+    },
+    {
+      "path": "admin-web/lib/adminRecoverySeal.ts",
+      "sha256": "0c936cc0ca4f81f104c70d46cb6a13769e4dc2a2ec0455a9527737c734f404f5"
+    },
+    {
+      "path": "admin-web/lib/moderationMediaResponse.ts",
+      "sha256": "4f4253f7a18441fcc1a21e78fb8e6d4b866496f90a3613ffe000c67f43173e0b"
+    },
+    {
+      "path": "admin-web/lib/musicReport.ts",
+      "sha256": "4b17a981cd381b6428b515fec5a6e3db838472362e62370d75413c2498177258"
+    },
+    {
+      "path": "admin-web/lib/permissions.ts",
+      "sha256": "a5cdc75677d7309a228d00e0d9ba10ce35cebb74c60bb2a9028eec8168e987b6"
+    },
+    {
+      "path": "admin-web/lib/supabaseAdmin.ts",
+      "sha256": "9d41752035d2b20a9797d7c9be66a6903b1ca624b0746dbf9874509b5dc6142b"
+    }
+  ]
+}

@@ -1,0 +1,749 @@
+{
+  "source": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "checkedAt": "2026-10-31T17:51:32.227Z",
+  "scope": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+  "runtime": "153.0.8010.12",
+  "cases": [
+    {
+      "id": "SUP-001",
+      "name": "Support list renders the returned owner ticket",
+      "scenario": "ok",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-002",
+      "name": "Failed ticket-list read shows a recoverable error, not an empty inbox",
+      "scenario": "list-error",
+      "route": "/settings/support",
+      "status": "failed",
+      "errors": [],
+      "alerts": [],
+      "failure": "AssertionError [ERR_ASSERTION]: No read error is displayed",
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSend to operations",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-003",
+      "name": "Missing ticket resolves to a not-found/access state with an exit",
+      "scenario": "missing-ticket",
+      "route": "/settings/support/ticket-a",
+      "status": "failed",
+      "errors": [],
+      "alerts": [],
+      "failure": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /not found|not available|unavailable|could not|cannot|no access/i. Input:\n\n'Actual member support pages · synthetic transport\\n\\nLoading'\n",
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nLoading",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "ticket-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [],
+        "buttons": [],
+        "inputs": []
+      }
+    },
+    {
+      "id": "SUP-004",
+      "name": "Failed ticket read exposes an error and retry",
+      "scenario": "ticket-error",
+      "route": "/settings/support/ticket-a",
+      "status": "failed",
+      "errors": [],
+      "alerts": [],
+      "failure": "AssertionError [ERR_ASSERTION]: Ticket read error stays behind Loading",
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nLoading",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "ticket-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [],
+        "buttons": [],
+        "inputs": []
+      }
+    },
+    {
+      "id": "SUP-005",
+      "name": "Failed message read is reported separately from an empty conversation",
+      "scenario": "messages-error",
+      "route": "/settings/support/ticket-a",
+      "status": "failed",
+      "errors": [],
+      "alerts": [],
+      "failure": "AssertionError [ERR_ASSERTION]: Failed history read is silently shown as no replies",
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "ticket-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-006",
+      "name": "Signed-out support displays sign-in guidance without ticket reads",
+      "scenario": "signed-out",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSign in to contact support.",
+        "reads": [],
+        "writes": [],
+        "buttons": [],
+        "inputs": []
+      }
+    },
+    {
+      "id": "SUP-007",
+      "name": "New support request validates empty fields without writing",
+      "scenario": "ok",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "A subject and a message are required."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-008",
+      "name": "Rejected request keeps the draft and releases Send",
+      "scenario": "write-reject",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Could not send: The test server rejected the write."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "Keep my subject",
+              "body": "Keep my support draft"
+            },
+            "filters": {},
+            "owner": "member-a"
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": "Keep my subject"
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": "Keep my support draft"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-009",
+      "name": "Successful request makes one write and shows the returned ticket",
+      "scenario": "ok",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Your message is with the operations team. The reply will appear here."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSend to operations\n\nYOUR MESSAGES\n\nNew issue\nWith the team\n10/31/2026, 8:00:00 PM\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "New issue",
+              "body": "Synthetic new issue"
+            },
+            "filters": {},
+            "owner": "member-a"
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-010",
+      "name": "Returned ticket and message render with a working reply control",
+      "scenario": "ok",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "ticket-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": "Synthetic reply"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-011",
+      "name": "Rejected reply preserves draft and releases Send",
+      "scenario": "write-reject",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Could not send: The test server rejected the write."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "ticket-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_messages",
+            "operation": "insert",
+            "values": {
+              "ticket_id": "ticket-a",
+              "sender": "member",
+              "sender_id": "member-a",
+              "body": "Keep this reply"
+            },
+            "filters": {},
+            "owner": "member-a"
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": "Keep this reply"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-012",
+      "name": "A successful reply followed by a rejected status update is not reported as full success",
+      "scenario": "status-error",
+      "route": "/settings/support/ticket-a",
+      "status": "failed",
+      "errors": [],
+      "alerts": [],
+      "failure": "AssertionError [ERR_ASSERTION]: Status write failure is ignored; draft clears and ticket remains solved",
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nTicket A\nSolved\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nPlease reopen my ticket\n\nYou · 10/31/2026, 8:02:00 PM\n\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "ticket-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "ticket-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_messages",
+            "operation": "insert",
+            "values": {
+              "ticket_id": "ticket-a",
+              "sender": "member",
+              "sender_id": "member-a",
+              "body": "Please reopen my ticket"
+            },
+            "filters": {},
+            "owner": "member-a"
+          },
+          {
+            "table": "support_tickets",
+            "operation": "update",
+            "values": {
+              "status": "open",
+              "updated_at": "2026-10-31T17:51:31.139Z"
+            },
+            "filters": {
+              "id": "ticket-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-013",
+      "name": "Unexpected rejected support submission does not leave Sending locked",
+      "scenario": "write-throw",
+      "route": "/settings/support",
+      "status": "failed",
+      "errors": [
+        "Injected transport rejection"
+      ],
+      "alerts": [],
+      "failure": "AssertionError [ERR_ASSERTION]: Sending remains disabled after rejected promise\n\n1 !== 0\n",
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSending\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "Transport problem",
+              "body": "Do not lose this"
+            },
+            "filters": {},
+            "owner": "member-a"
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Sending",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": "Transport problem"
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": "Do not lose this"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-014",
+      "name": "Unexpected rejected reply does not leave Send locked",
+      "scenario": "write-throw",
+      "route": "/settings/support/ticket-a",
+      "status": "failed",
+      "errors": [
+        "Injected transport rejection"
+      ],
+      "alerts": [],
+      "failure": "AssertionError [ERR_ASSERTION]: Send remains locked after rejected promise\n\ntrue !== false\n",
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "id": "ticket-a"
+            },
+            "owner": "member-a"
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": null,
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a"
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_messages",
+            "operation": "insert",
+            "values": {
+              "ticket_id": "ticket-a",
+              "sender": "member",
+              "sender_id": "member-a",
+              "body": "Do not lose my reply"
+            },
+            "filters": {},
+            "owner": "member-a"
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": "Do not lose my reply"
+          }
+        ]
+      }
+    }
+  ]
+}

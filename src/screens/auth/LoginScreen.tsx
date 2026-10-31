@@ -495,20 +495,20 @@ const s = themedSheet((t) => ({
   forgotTitle: { fontSize: 24, fontWeight: '700', color: NAVY, marginTop: 16 },
   forgotSub: {
     fontSize: 14,
-    color: WHITE_45,
+    color: '#5B6470',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 12,
     paddingHorizontal: 10,
   },
   errorTxt: {
-    color: '#EF4444',
+    color: '#B42318',
     fontSize: 13,
     textAlign: 'center',
     width: '100%',
   },
   resendBtn: { marginTop: 16, paddingVertical: 8 },
-  resendTxt: { fontSize: 14, color: WHITE_45, fontWeight: '500' },
+  resendTxt: { fontSize: 14, color: '#5B6470', fontWeight: '500' },
 }));
 // The approved sign-in design: white canvas, the real mark with the wordmark, raised fields, navy button.
 const d = StyleSheet.create({

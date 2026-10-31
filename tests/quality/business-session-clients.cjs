@@ -92,7 +92,7 @@ function harness(options = {}) {
     if (name === 'react-native') return new Proxy({ Platform: { OS: 'ios' }, StyleSheet: { hairlineWidth: 1 }, Alert: { alert: (...args) => calls.alerts.push(args) } }, { get: (value, key) => value[key] || String(key) });
     if (name === '@react-navigation/native') return { useNavigation: () => navigation, useFocusEffect: fn => hooks.useEffect(fn, [fn]) };
     if (name === '@expo/vector-icons') return { Feather: 'Feather' };
-    if (name.endsWith('/useTheme')) return { themedSheet: fn => fn(theme), getTheme: () => theme };
+    if (name.endsWith('/useTheme')) return { themedSheet: fn => fn(theme), getTheme: () => theme, useTheme: () => ({ t: theme, isDark: false }) };
     if (name.endsWith('/constants/tokens')) return { typeSize: {}, fontWeight: {}, radius: {}, space: {} };
     if (name.endsWith('/constants/layout')) return { TAB_BAR_CLEARANCE: 80 };
     if (['/EmptyState', '/TierName', '/VerifiedBadge'].some(suffix => name.endsWith(suffix))) return { __esModule: true, default: name.split('/').at(-1) };

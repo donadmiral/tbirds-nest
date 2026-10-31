@@ -25,7 +25,7 @@ export async function moderateReview(data: FormData) {
       error: "Choose a decision and explain the reason in 3–1,000 characters.",
     };
   }
-  const { error } = await serviceClient().rpc("moderate_seller_review", {
+  const { data: receipt, error } = await serviceClient().rpc("moderate_seller_review", {
     p_actor_id: admin.id,
     p_session_id: admin.sessionId,
     p_key: key,
@@ -37,7 +37,8 @@ export async function moderateReview(data: FormData) {
   if (isMissingAdminRpc(error, 'moderate_seller_review')) {
     return { success: false, error: 'Review decisions are unavailable on this deployment. No review was changed. Contact the platform administrator.' };
   }
-  if (error)
+  if (error || receipt?.success !== true || typeof receipt.command_key !== "string"
+    || receipt.command_key.toLowerCase() !== key.toLowerCase())
     return {
       success: false,
       error:

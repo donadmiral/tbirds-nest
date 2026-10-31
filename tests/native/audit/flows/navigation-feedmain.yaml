@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit FeedMain
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: navigation-feedmain
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "A quiet morning in the desert. Small moments worth keeping."
+    timeout: 15000
+- takeScreenshot: navigation-feedmain

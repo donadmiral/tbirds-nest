@@ -1001,7 +1001,7 @@ const s = themedSheet((t) => ({
   appCardInfo: { flex: 1 },
   appJobTitle: { fontSize: 15, fontWeight: '700', color: t.ink.primary },
   appCompany: { fontSize: 13, color: t.ink.secondary, marginTop: 2 },
-  appDate: { fontSize: 12, color: '#94A3B8', marginTop: 4 },
+  appDate: { fontSize: 12, color: t.ink.muted, marginTop: 4 },
   appStatusBadge: { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   appStatusTxt: { fontSize: 12, fontWeight: '700' },
   appNote: { fontSize: 13, color: t.ink.secondary, marginTop: 8, fontStyle: 'italic' },
@@ -1012,5 +1012,5 @@ const s = themedSheet((t) => ({
   emptyTitle: { fontSize: 20, fontWeight: '700', color: t.ink.primary, textAlign: 'center' },
   emptyTxt: { marginTop: 8, fontSize: 14, color: t.ink.secondary, textAlign: 'center', lineHeight: 20 },
   emptyPostBtn: { marginTop: 20, backgroundColor: '#2563EB', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
-  emptyPostBtnTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '700' },
+  emptyPostBtnTxt: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 }));

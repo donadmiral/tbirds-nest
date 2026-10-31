@@ -1,0 +1,8 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit sign-up form entry
+---
+- runFlow: _signedout.yaml
+- tapOn: Create an account
+- assertVisible: Create your account
+- assertVisible: Sign Up
+- takeScreenshot: auth-signup-entry

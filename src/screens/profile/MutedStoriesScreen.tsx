@@ -1,7 +1,7 @@
 import { settingsBack } from '../../navigation/settingsNavigation';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 /**
  * MutedStoriesScreen - manage who you have muted.
@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 
 export default function MutedStoriesScreen({ navigation }: any) {
+  useTheme();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -104,7 +105,7 @@ const s = themedSheet((t) => ({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 },
   avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: t.surface.hairline },
   avatarFb: { alignItems: 'center', justifyContent: 'center' },
-  avatarTxt: { fontSize: 17, fontWeight: '700', color: t.ink.muted },
+  avatarTxt: { fontSize: 17, fontWeight: '700', color: t.ink.primary },
   name: { fontSize: 15.5, fontWeight: '600', color: t.ink.primary },
   handle: { fontSize: 13, color: t.ink.muted, marginTop: 1 },
   unmute: { borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 7 },

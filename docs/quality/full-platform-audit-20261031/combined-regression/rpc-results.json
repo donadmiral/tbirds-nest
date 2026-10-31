@@ -1,0 +1,23 @@
+{
+  "recordedAtUtc": "2026-10-31T19:11:43.975473+00:00",
+  "command": "npm test --prefix supabase/tests/rpc-authorization",
+  "exitCode": 0,
+  "nodeTestSummaryGroups": 43,
+  "nodeTestTotals": {
+    "tests": 886,
+    "pass": 883,
+    "fail": 0,
+    "skipped": 3,
+    "cancelled": 0
+  },
+  "additionalManualFixtureOutput": "Custom JSON fixtures and read-only postflight are retained in the log; their internal assertions are not added to the883formalpasscount.",
+  "environment": "Locked PGlite0.5.10/PostgreSQL18.6localWASM. No hosted writes.",
+  "evidence": {
+    "path": "docs/quality/full-platform-audit-20261031/combined-regression/rpc-after.log.gz",
+    "sha256": "83bd50746a69c94cffd916baff0346e5416a0c9c187aafd120e0aa99f225136d"
+  },
+  "limits": [
+    "Conditional branches are reported as skipped, not passed. The existing runner executes alternate visual/audio and QA/production fixture variants.",
+    "Serialized local database fixtures do not prove multi-session hosted concurrency or deployment acceptance."
+  ]
+}

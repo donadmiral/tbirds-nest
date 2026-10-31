@@ -1,0 +1,36 @@
+modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt:17:8: warning: 'class SpeedChangeEffect : Any, GlEffect' is deprecated. Deprecated in Java.
+import androidx.media3.effect.SpeedChangeEffect
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt:215:38: warning: 'constructor(p0: Float): SpeedChangeEffect' is deprecated. Deprecated in Java.
+      if (r.speed != 1f) effects.add(SpeedChangeEffect(r.speed))
+                                     ^^^^^^^^^^^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt:226:59: warning: 'constructor(p0: (Mutable)List<EditedMediaItem>): EditedMediaItemSequence.Builder' is deprecated. Deprecated in Java.
+    val sequences = mutableListOf(EditedMediaItemSequence.Builder(videoItems).experimentalSetForceAudioTrack(true).build())
+                                                          ^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt:226:79: warning: 'fun experimentalSetForceAudioTrack(p0: Boolean): EditedMediaItemSequence.Builder' is deprecated. Deprecated in Java.
+    val sequences = mutableListOf(EditedMediaItemSequence.Builder(videoItems).experimentalSetForceAudioTrack(true).build())
+                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt:228:47: warning: 'constructor(vararg p0: EditedMediaItem): EditedMediaItemSequence.Builder' is deprecated. Deprecated in Java.
+      val pageAudio = EditedMediaItemSequence.Builder()
+                                              ^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt:230:31: warning: 'fun experimentalSetForceAudioTrack(p0: Boolean): EditedMediaItemSequence.Builder' is deprecated. Deprecated in Java.
+      sequences.add(pageAudio.experimentalSetForceAudioTrack(true).build())
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt:233:47: warning: 'constructor(vararg p0: EditedMediaItem): EditedMediaItemSequence.Builder' is deprecated. Deprecated in Java.
+      val bookAudio = EditedMediaItemSequence.Builder()
+                                              ^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt:235:31: warning: 'fun experimentalSetForceAudioTrack(p0: Boolean): EditedMediaItemSequence.Builder' is deprecated. Deprecated in Java.
+      sequences.add(bookAudio.experimentalSetForceAudioTrack(true).build())
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt:30:8: warning: 'class SpeedChangeEffect : Any, GlEffect' is deprecated. Deprecated in Java.
+import androidx.media3.effect.SpeedChangeEffect
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt:405:41: warning: 'constructor(p0: Float): SpeedChangeEffect' is deprecated. Deprecated in Java.
+    if (r.speed != 1f) videoEffects.add(SpeedChangeEffect(r.speed))
+                                        ^^^^^^^^^^^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt:414:59: warning: 'constructor(vararg p0: EditedMediaItem): EditedMediaItemSequence.Builder' is deprecated. Deprecated in Java.
+    val sequences = mutableListOf(EditedMediaItemSequence.Builder(editedVideo).build())
+                                                          ^^^^^^^
+modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt:444:45: warning: 'constructor(p0: (Mutable)List<EditedMediaItem>): EditedMediaItemSequence.Builder' is deprecated. Deprecated in Java.
+      sequences.add(EditedMediaItemSequence.Builder(audioItems).build())
+                                            ^^^^^^^

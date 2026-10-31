@@ -1,4 +1,4 @@
-import { themedSheet, getTheme } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -34,6 +34,7 @@ function initials(name?: string | null) {
 }
 
 export default function BusinessesScreen({ navigation }: any) {
+  const { t, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,7 +136,7 @@ export default function BusinessesScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => leave()} disabled={installing} accessibilityRole="button" accessibilityLabel="Back" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
@@ -244,7 +245,7 @@ const s = themedSheet((t) => ({
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm },
   avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: t.surface.sunken },
   avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.warm },
-  avatarTxt: { color: t.brand.base, fontSize: typeSize.body, fontWeight: fontWeight.heavy },
+  avatarTxt: { color: '#0B1E3D', fontSize: typeSize.body, fontWeight: fontWeight.heavy },
   rowText: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   name: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary },

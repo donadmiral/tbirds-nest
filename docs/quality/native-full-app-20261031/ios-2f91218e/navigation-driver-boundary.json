@@ -1,0 +1,57 @@
+{
+  "sourceSha256": "374718b274c3b9ea4fff1e17e627742f5f0c6fa256733ec7036f9f36ab925572",
+  "selectedLines": [
+    {
+      "line1": 191,
+      "text": "18:43:47.012 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on \"THE SMALL ADVENTURES, 2 memories\" RUNNING"
+    },
+    {
+      "line1": 198,
+      "text": "18:43:52.068 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on \"THE SMALL ADVENTURES, 2 memories\" COMPLETED"
+    },
+    {
+      "line1": 199,
+      "text": "18:43:52.068 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"Edit memory book\" is visible RUNNING"
+    },
+    {
+      "line1": 200,
+      "text": "18:48:20.650 [ WARN] maestro.orchestra.debug.ArtifactsGenerator.captureStepHierarchy: Failed to capture step hierarchy"
+    },
+    {
+      "line1": 201,
+      "text": "maestro.MaestroException$DriverTimeout: Maestro driver timed out during snapshot call with: Unable to perform work on main run loop, process main thread busy for 30.0s"
+    },
+    {
+      "line1": 220,
+      "text": "18:48:20.695 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot"
+    },
+    {
+      "line1": 221,
+      "text": "18:48:20.716 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line1": 222,
+      "text": "18:48:21.063 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"Edit memory book\" is visible FAILED"
+    },
+    {
+      "line1": 223,
+      "text": "18:48:21.113 [ERROR] maestro.orchestra.Orchestra.executeCommands: [Command execution] CommandFailed: null"
+    },
+    {
+      "line1": 224,
+      "text": "18:48:21.118 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot"
+    },
+    {
+      "line1": 225,
+      "text": "18:48:21.122 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line1": 226,
+      "text": "18:48:21.820 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run memory-navigation.yaml FAILED"
+    }
+  ],
+  "limits": [
+    "A native driver snapshot timeout reports a busy main run loop; this is not a retained app stack or a diagnosis of a particular reader callback.",
+    "The screenshot was obtained during failure handling, not a calibrated first frame."
+  ]
+}

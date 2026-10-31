@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit support ticket-read-error
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: support-ticket-read-error
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "(?i).*(could not load|try again|retry).*"
+    timeout: 15000
+- takeScreenshot: support-ticket-read-error

@@ -1,0 +1,124 @@
+{
+  "files": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/after-Profile-cover-pointer-path-at-1440.png",
+      "bytes": 137724,
+      "sha256": "dfb8348109465b525ad3b1a60152504b797cfc3180c11e0eedcd08a0be258880"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/after-Profile-cover-pointer-path-at-390.png",
+      "bytes": 100447,
+      "sha256": "6e572fb230a9b5f3cea22612a30fd02b5e06f14f2badf15f82a521917526b325"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/after-browser.json.gz",
+      "bytes": 5668,
+      "sha256": "ca27c6883259c0617796332dcfe5ea2cc484a409d8b9bd0dac0f3091d09cf3a4"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/after-browser.txt",
+      "bytes": 3470,
+      "sha256": "6dca5640df607d78d9b91168c49fcc0ecdb2163a2288f44553aeeb21a3434da4"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Business-creation-rejected-then-successful-retry.png",
+      "bytes": 58799,
+      "sha256": "fc82562e4fcdf6293dbccea8f27fc445fb5ecd2f243fb6a4f53f0a175f960d12"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Explore-rejected-with-retry.png",
+      "bytes": 7654,
+      "sha256": "a6f04cdd246b3116e5ba02218f5d4f826bcffba642afa2daef9caf0242a859ab"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Listing-storage-market-media-rejected-then-successful-submit.png",
+      "bytes": 33272,
+      "sha256": "0d1ec28e8350e6ef125a54eb4219af0f24d564cb84d36f3054dfe0a4f252121e"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Market-inbox-count-rejected-and-next-poll-recovery.png",
+      "bytes": 8742,
+      "sha256": "f4a08def250fd63471d5bfc292ffa63323b293b7242d747225f3c3ca9279b920"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Profile-cover-pointer-path-at-1440.png",
+      "bytes": 137724,
+      "sha256": "dfb8348109465b525ad3b1a60152504b797cfc3180c11e0eedcd08a0be258880"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Profile-cover-pointer-path-at-390.png",
+      "bytes": 100447,
+      "sha256": "6e572fb230a9b5f3cea22612a30fd02b5e06f14f2badf15f82a521917526b325"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Promotion-picker-resolved-and-content-retry.png",
+      "bytes": 40033,
+      "sha256": "ceff136eed636696713771a80660c4f4aa6e37c9f2c7c4a4841acb6bdfffcc94"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-Search-topics-rejected-with-retry.png",
+      "bytes": 12047,
+      "sha256": "24176894993c36a41f486bff4ad8d3a62bc5618a19c6803e4edb31c65fb06763"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-browser.json.gz",
+      "bytes": 5067,
+      "sha256": "66f59ee904fb6c0715d7aa2f7dfffe62484c775d866eedf892baf549623215ef"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-browser.txt",
+      "bytes": 4404,
+      "sha256": "aadc531ebb1da0b484ce14616ef53e22fea2cae4556c458e104f956f68678aa5"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-hidden-words-initial-resolved-and-successful-add.png",
+      "bytes": 26355,
+      "sha256": "92f59d7cd12dcdab8a41de8aa39d84156b5b6f52722eed4122642d011740d90e"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-muted-words-mutation-rejected-preserves-draft-and-retry.png",
+      "bytes": 22926,
+      "sha256": "cf261395724fe987d4c0a1bedcb4aea00343d39a96a223c40f8fd1810ff0991d"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-standing-resolved-with-retry.png",
+      "bytes": 29132,
+      "sha256": "f5fd51bdc07c6df7f611e0f54b29ca1467c4f54abf997fbdf33dd8664da31032"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/before-topic-resolved-with-retry.png",
+      "bytes": 12750,
+      "sha256": "45e8e115a50cf447ff8626737eb25637df9f9388203782ca794efa0638512e49"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/case-summary.json",
+      "bytes": 12672,
+      "sha256": "e2bdd3f9e19f5677baf6ced0f6fc05968ea35395b27be4358179e87ac22adba2"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/lint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/review.json",
+      "bytes": 12427,
+      "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/source-manifest.json",
+      "bytes": 4009,
+      "sha256": "5d115f67877f992977738bcc924ad2f4b76bc73fb92b5b750cd9ef657f9fee56"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/static-checks.json",
+      "bytes": 997,
+      "sha256": "241432c8f6002c05685f1fc87e32a3d4569f9217a312196124c2b66e4df555bd"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-repair/typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

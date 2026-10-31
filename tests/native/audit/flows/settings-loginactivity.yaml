@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit LoginActivity
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: settings-loginactivity
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Login activity"
+    timeout: 15000
+- takeScreenshot: settings-loginactivity

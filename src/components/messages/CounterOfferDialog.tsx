@@ -193,7 +193,7 @@ const s = themedSheet(t => ({
   content: { padding: 24, gap: 18 }, title: { fontSize: 24, fontWeight: '800', color: t.ink.primary },
   summary: { gap: 6, padding: 16, borderRadius: 14, backgroundColor: t.surface.sunken },
   label: { fontSize: 14, fontWeight: '700', color: t.ink.primary }, money: { fontSize: 26, fontWeight: '800', color: t.ink.primary },
-  help: { fontSize: 14, lineHeight: 21, color: t.ink.secondary }, error: { fontSize: 14, lineHeight: 21, color: t.status.danger },
+  help: { fontSize: 14, lineHeight: 21, color: t.ink.secondary }, error: { fontSize: 14, lineHeight: 21, color: t.ink.primary },
   input: { minHeight: 52, marginVertical: 10, paddingHorizontal: 14, borderWidth: 1, borderColor: t.surface.hairline, borderRadius: 12, color: t.ink.primary, fontSize: 22, backgroundColor: t.surface.canvas },
   progress: { flexDirection: 'row', alignItems: 'center', gap: 12 }, actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   secondary: { minHeight: 46, paddingHorizontal: 16, paddingVertical: 12, borderWidth: 1, borderColor: t.surface.hairline, borderRadius: 12, justifyContent: 'center' },
