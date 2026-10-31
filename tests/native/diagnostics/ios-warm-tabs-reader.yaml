@@ -1,0 +1,21 @@
+appId: app.platinumcircles.mobile.qa
+name: Diagnostic warm tabs then saved memory reader
+---
+# Additional diagnostic only. The original 85 acceptance cases remain unchanged.
+- runFlow: ../audit/flows/navigation-warm-tabs.yaml
+- tapOn:
+    id: main-tab-profile
+- assertVisible: Alex Rivera
+# Exact shelf/reader actions and readiness timeout from the frozen full flow.
+- scrollUntilVisible:
+    element: View all memory books
+    direction: DOWN
+    centerElement: true
+- tapOn: View all memory books
+- tapOn: Private
+- assertVisible: THE SMALL ADVENTURES, 2 memories
+- takeScreenshot: memory-shelf
+- tapOn: THE SMALL ADVENTURES, 2 memories
+- extendedWaitUntil:
+    visible: Edit memory book
+    timeout: 15000

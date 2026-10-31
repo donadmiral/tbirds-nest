@@ -1,0 +1,84 @@
+name: Recover retained iPhone audit with bounded diagnostics
+
+on:
+  push:
+    branches: [codex/native-audit-ios-recovery-20261031]
+    paths:
+      - .github/workflows/native-audit-ios-recovery.yml
+      - scripts/quality/native-ui-ios-audit-recovery.py
+      - scripts/quality/native-ui-ios-compatibility.py
+      - tests/native/diagnostics/ios-warm-tabs-reader.yaml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  recover-ios:
+    name: Recover iPhone baseline group ${{ matrix.shard }}
+    runs-on: macos-15-intel
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: settings
+            groups: settings,stories,directories
+          - shard: account
+            groups: support,auth,profile,business,memory
+          - shard: social
+            groups: navigation,feed,market,jobs,messages
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_APP_ENV: qa
+      EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+      MAESTRO_CLI_NO_ANALYTICS: 'true'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Check out only the reviewed recovery tools
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: recovery-tools
+          persist-credentials: false
+      - name: Check out the exact original binary and case source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: b568bd7b75bd25ad919afd8eac8d52300a5c3fcc
+          path: baseline
+          persist-credentials: false
+      - name: Retrieve the already-built signed Simulator app
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: native-audit-ios-binary
+          path: baseline/native-audit-binary
+          run-id: 41229206389
+          github-token: ${{ github.token }}
+      - name: Prepare the original consumer tools without rebuilding
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
+      - name: Install the pinned original Maestro CLI
+        working-directory: baseline
+        run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run unchanged cases with source-separated diagnostic recovery
+        env:
+          AUDIT_GROUPS: ${{ matrix.groups }}
+          RECOVERY_SOURCE: ${{ github.sha }}
+        run: |
+          python3 recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py \
+            --baseline "$PWD/baseline" --recovery-source "$RECOVERY_SOURCE" \
+            --groups "$AUDIT_GROUPS"
+      - name: Retain completed, failed and interrupted observations
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-audit-ios-${{ matrix.shard }}-recovery-results
+          path: |
+            baseline/native-audit-results/
+            baseline/native-ui-logs/
+          if-no-files-found: warn
+          retention-days: 7
