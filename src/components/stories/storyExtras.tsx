@@ -174,7 +174,7 @@ export function EntityStickerCard({ sticker, onPress }: { sticker: StoryTextStic
   const Card = (
     <View style={xs.entityCard}>
       {s.entityImage ? (
-        <ExpoImage source={{ uri: s.entityImage }} style={xs.entityImg} contentFit="cover" transition={0} />
+        <StoryPixelImage uri={s.entityImage} style={[xs.entityImg, {overflow:'hidden'}]} fit="cover" look={null} />
       ) : (
         <View style={[xs.entityImg, xs.entityImgEmpty]}><Feather name={icon as any} size={22} color="#0B1E3D" /></View>
       )}

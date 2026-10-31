@@ -9,7 +9,7 @@
  * Cleanup: keyboard listeners removed on unmount.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, Keyboard, Platform } from 'react-native';
 
 export interface KeyboardOrchestratorInput {

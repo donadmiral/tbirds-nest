@@ -61,7 +61,8 @@ ui_log_pid=$!
 xcrun simctl io "$ui_simulator" recordVideo --codec=h264 native-ui-logs/navigation.mp4 > native-ui-logs/recording.log 2>&1 &
 ui_video_pid=$!
 maestro --device "$ui_simulator" test --format junit --output native-ui-logs/maestro.xml \
-  --debug-output native-ui-logs/maestro tests/native/flows/navigation.yaml 2>&1 | tee native-ui-logs/maestro.log
+  --debug-output native-ui-logs/maestro --test-output-dir native-ui-logs/maestro \
+  tests/native/flows/navigation.yaml 2>&1 | tee native-ui-logs/maestro.log
 container="$(xcrun simctl get_app_container "$ui_simulator" app.platinumcircles.mobile.qa data)"
 cp "$container/Documents/native-ui-receipt.json" native-ui-logs/native-ui-receipt.json
 node scripts/quality/verify-native-ui.cjs ios

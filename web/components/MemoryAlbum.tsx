@@ -9,7 +9,7 @@ import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, Settings2, Trash2, X, Check, ArrowUp, ArrowDown, Volume2, VolumeX, Play, Pause } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
-  getMemoryBook, saveBookPresentation, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
+  getMemoryBook, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
   getMyStories, addMemoryPage, getAccessList, setAccess, searchPeople,
   COVER_COLORS, getMemoryBooks, type MemoryBookInfo, type MemoryAlbum, type MemoryPage, type AccessPerson,
 } from "@/lib/memoryAlbum";
@@ -19,6 +19,9 @@ import { MemoryBookCover, ResponsiveMemoryBookCover } from './memory/MemoryBookC
 import { MemoryStoryPreview } from './memory/MemoryStoryPreview';
 import { MemoryPageImage } from './memory/MemoryPageImage';
 import { MemoryFilm } from './memory/MemoryFilm';
+import {MemoryCoverControls,MemoryFilmControls} from './memory/MemoryCreativeControls';
+import {memoryCoverArtwork,memoryFilmSettings,memoryCreativeSaveError} from '../../shared/memoryBookCreative';
+import {saveMemoryCreativeBook} from '../../shared/memoryBookPersistence';
 import {MemoryPageTurn,MemoryTurnPreview,type MemoryPageTurnHandle} from './memory/MemoryPageTurn';
 import {useMemoryDialog} from './memory/useMemoryDialog';
 import { PostSoundtrack } from './PostSoundtrack';
@@ -235,11 +238,11 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
       {musicOpen&&uid&&album.is_owner?<SoundtrackPicker value={soundtrackSave.draft ? soundtrackSave.draft.selection : album.soundtrack??null} use="memory_album" ownerId={uid} originalAudio={false} onClose={()=>setMusicOpen(false)} onChange={selection=>{void soundtrackSave.save(selection);}}/>:null}
       {soundtrackSave.busy ? <p role="status" className="mb-3 text-sm text-muted">{soundtrackSave.draft?.retry === 'check' ? 'Checking saved soundtrack…' : 'Saving soundtrack…'}</p> : soundtrackSave.error ? <div className="mb-3 text-sm"><p role="alert" className="text-danger">{soundtrackSave.error}</p><button type="button" className="min-h-11 underline" onClick={()=>void soundtrackSave.retry()}>{soundtrackSave.needsConfirmation ? 'Check saved music' : 'Retry soundtrack save'}</button></div> : soundtrackSave.notice ? <p role="status" className="mb-3 text-sm text-muted">{soundtrackSave.notice}</p> : null}
       <PostSoundtrack key={album.id} selection={album.soundtrack} use="memory_album" active={view==='book'&&foreground&&!filmVisible&&(!playMode||playing)&&!manage&&!adding&&!musicOpen} autoPlay={playMode} controls={!playMode} className="mb-3" />
-      {filmVisible && pages.length > 0 && <MemoryFilm key={`${album.id}:${uid}`} title={album.title} pages={pages} soundtrack={album.soundtrack} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} />}
+      {filmVisible && pages.length > 0 && <MemoryFilm key={`${album.id}:${uid}`} bookId={album.id} revision={album.presentation_revision} filmSettings={album.film_settings} title={album.title} pages={pages} soundtrack={album.soundtrack} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} />}
       {mutationError&&<p role="alert" className="mb-3 text-sm text-danger">{mutationError}</p>}
       {view === "cover" ? (
         <section className="mx-auto flex max-w-[360px] flex-col items-center px-5 pb-8 pt-8 sm:pt-10">
-          <button type="button" aria-label={'Open '+album.title} onClick={openBook} className="w-full max-w-[300px] text-left transition-transform hover:-translate-y-1"><ResponsiveMemoryBookCover title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))}/></button>
+          <button type="button" aria-label={'Open '+album.title} onClick={openBook} className="w-full max-w-[300px] text-left transition-transform hover:-translate-y-1"><ResponsiveMemoryBookCover artwork={album.cover_artwork} title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))}/></button>
           {album.subtitle&&<p className="mt-7 text-center font-display text-[23px] leading-tight text-ink">{album.subtitle}</p>}
           <p className="mt-3 text-sm text-muted">{pages.length} {pages.length===1?'memory':'memories'}</p>
           <button onClick={openBook} className="mt-7 min-h-12 w-full rounded-2xl bg-[#142642] px-6 py-3 font-display text-[23px] text-[#FFFFFF]">Open book</button>
@@ -318,7 +321,7 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
       {page&&view==='book'&&memoryPageSoundtrack(page)?<PostSoundtrack key={page.id+':audio'} selection={memoryPageSoundtrack(page)} use="memory_album" active={!filmVisible&&!turning&&!manage&&!adding&&!musicOpen} controls className="mt-4 text-center"/>:null}
       {nextBook&&view==='book'&&idx>=pages.length-1&&<Link href={'/album/'+nextBook.id} className="mx-auto mt-5 block w-fit rounded-full bg-pearl px-5 py-2 text-sm font-semibold text-on-pearl">Next book: {nextBook.title}</Link>}
       {adding && album.is_owner ? <AddMemories albumId={album.id} onClose={() => { setAdding(false); load(); }} existing={pages} /> : null}
-      {manage && album.is_owner ? <ManageAlbum album={album} onClose={() => { setManage(false); load(); }} /> : null}
+      {manage && album.is_owner ? <ManageAlbum key={`${album.id}:${uid}`} ownerId={uid!} album={album} onClose={() => { setManage(false); load(); }} /> : null}
     </div>
   );
 }
@@ -399,8 +402,12 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
   );
 }
 
-function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => void }) {
-  const dialog=useMemoryDialog(true,onClose);
+function ManageAlbum({ album, ownerId, onClose }: { album: MemoryAlbum; ownerId:string; onClose: () => void }) {
+  const saveLock=useRef(false),epoch=useRef(0),sessionValid=useRef(true);
+  const [client]=useState(createClient);
+  const dialog=useMemoryDialog(true,()=>{if(!saveLock.current)onClose();});
+  const [revision]=useState(album.presentation_revision);
+  const [coverArtwork,setCoverArtwork]=useState(()=>memoryCoverArtwork(album.cover_artwork)),[filmSettings,setFilmSettings]=useState(()=>memoryFilmSettings(album.film_settings));
   const [title, setTitle] = useState(album.title);
   const [design,setDesign]=useState(album.cover_design??'keepsake');
   const [subtitle,setSubtitle]=useState(album.subtitle??'');
@@ -414,6 +421,8 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
   const [q, setQ] = useState("");
   const [results, setResults] = useState<AccessPerson[]>([]);
   const [mode, setMode] = useState<"allow" | "block">("block");
+  useEffect(()=>{const {data:{subscription}}=client.auth.onAuthStateChange((_event,session)=>{if(session?.user.id!==ownerId){epoch.current++;sessionValid.current=false;setError('The book session changed. Reopen the book before saving.');}});const invalidate=()=>{epoch.current++;subscription.unsubscribe();};return invalidate;},[client,ownerId]);
+
 
   useEffect(() => { getAccessList("allow").then(setAllow).catch(()=>setError("Chosen people could not load.")); getAccessList("block").then(setBlock).catch(()=>setError("Hidden people could not load.")); }, []);
   useEffect(() => {
@@ -425,11 +434,11 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
   const setList = mode === "allow" ? setAllow : setBlock;
 
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Book editor" className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={onClose}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Book editor" className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={()=>{if(!saveLock.current)onClose();}}>
       <div className="max-h-[88vh] w-full max-w-[520px] overflow-y-auto rounded-t-2xl bg-[var(--canvas)] p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <p className="font-display text-[25px] text-ink">Design your book</p>
-          <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={17} /></button>
+          <button disabled={busy} onClick={()=>{if(!saveLock.current)onClose();}} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={17} /></button>
         </div>
 
         <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Title</p>
@@ -437,7 +446,7 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
           className="mb-4 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
 
         <label className="mb-4 block text-xs font-semibold text-muted">Subtitle<input value={subtitle} onChange={e=>setSubtitle(e.target.value)} maxLength={120} placeholder="A small line to remember it by" className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-transparent px-3 py-2 text-sm font-normal text-ink"/></label>
-        <div className="mx-auto mb-6 w-[174px]"><MemoryBookCover title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...memoryCoverMedia(memoryCoverPage(album.pages,coverStoryId))} width={174} height={228}/></div>
+        <div className="mx-auto mb-6 w-[174px]"><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...memoryCoverMedia(memoryCoverPage(album.pages,coverStoryId))} width={174} height={228}/></div>
         <p className="mb-2 text-xs font-semibold uppercase text-muted">Cover memory</p>
         {album.pages.length ? <div className="mb-5 flex gap-2 overflow-x-auto pb-2">{album.pages.map((pg,i)=><button key={pg.id} aria-label={'Use memory '+(i+1)+' on the cover'} aria-pressed={coverStoryId===pg.story_id} onClick={()=>setCoverStoryId(pg.story_id??null)} className={'relative h-[88px] w-[70px] shrink-0 overflow-hidden rounded-lg border-2 '+(coverStoryId===pg.story_id?'border-ink':'border-transparent')}><MemoryStoryPreview story={{...pg,stickers_json:pg.stickers}}/>{coverStoryId===pg.story_id&&<span className="absolute bottom-1 right-1 rounded-full bg-ink p-1 text-white"><Check size={12}/></span>}</button>)}</div> : <p className="mb-4 text-sm text-muted">Add memories to choose a photo or video cover.</p>}
         <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Paper tint</p>
@@ -452,7 +461,8 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
         </div>
 
         <p className="mb-2 text-xs font-semibold uppercase text-muted">Cover design</p>
-        <div className="mb-4 flex gap-4 overflow-x-auto p-2">{MEMORY_DESIGNS.map(d=><button key={d.id} aria-label={`${d.label} cover design`} aria-pressed={design===d.id} onClick={()=>setDesign(d.id)} className={design===d.id?'':'opacity-45'}><MemoryBookCover title={title||'Memories'} subtitle={subtitle} color={color} design={d.id} {...memoryCoverMedia(memoryCoverPage(album.pages,coverStoryId))} width={74} height={97}/><span className="mt-2 block whitespace-nowrap text-xs">{d.label}</span></button>)}</div>
+        <div className="mb-4 flex gap-4 overflow-x-auto p-2">{MEMORY_DESIGNS.map(d=><button key={d.id} aria-label={`${d.label} cover design`} aria-pressed={design===d.id} onClick={()=>setDesign(d.id)} className={design===d.id?'':'opacity-45'}><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={d.id} {...memoryCoverMedia(memoryCoverPage(album.pages,coverStoryId))} width={74} height={97}/><span className="mt-2 block whitespace-nowrap text-xs">{d.label}</span></button>)}</div>
+        <MemoryCoverControls value={coverArtwork} onChange={setCoverArtwork} hasPhoto={!!memoryCoverPage(album.pages,coverStoryId)} disabled={busy}/><MemoryFilmControls value={filmSettings} onChange={setFilmSettings} disabled={busy}/>
         <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Who can open it</p>
         <div className="mb-4 flex flex-col gap-1.5">
           {AUDIENCES.map((a) => (
@@ -499,7 +509,7 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
         ))}
 
         {error&&<p role="alert" className="mt-3 text-sm text-danger">{error}</p>}
-        <button disabled={busy} onClick={async () => {if(busy)return;setBusy(true);setError('');try{if(!await saveBookPresentation(album.id,title.trim()||'Memories',color,audience,design,subtitle,coverStoryId))throw Error();onClose();}catch{setError('Book settings could not save. Your choices are kept.');}finally{setBusy(false);} }}
+        <button disabled={busy} onClick={async () => {if(saveLock.current)return;saveLock.current=true;setBusy(true);setError('');const expected=epoch.current;const current=()=>sessionValid.current&&expected===epoch.current;try{await saveMemoryCreativeBook(client,{ownerId,albumId:album.id,revision:revision??-1,audience,draft:{title:title.trim()||'Memories',subtitle,color,design,coverStoryId,artwork:coverArtwork,film:filmSettings},isCurrent:current});if(current())onClose();}catch(error){if(current())setError(memoryCreativeSaveError(error));}finally{saveLock.current=false;if(current())setBusy(false);} }}
           className="mt-4 min-h-12 w-full rounded-2xl bg-[#142642] py-3 text-sm font-semibold text-[#FFFFFF] disabled:opacity-50">{busy?'Saving…':'Save book'}</button>
       </div>
     </div>

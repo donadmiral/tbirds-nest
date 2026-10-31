@@ -31,6 +31,8 @@ jobs:
           deno-version: 2.1.4
       - name: Verify Edge runtime version
         run: deno --version
+      - name: Check authenticated push handlers and their pinned dependencies
+        run: deno check --no-lock --node-modules-dir=none supabase/functions/send-push-notification/index.ts supabase/functions/send-voip-push/index.ts
       - name: Test actual pinned-IP HTTPS and cancellation
         env:
           PLATINUM_LINK_TLS_FIXTURE: ${{ runner.temp }}/platinum-link-tls

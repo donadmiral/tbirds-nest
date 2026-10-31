@@ -1,0 +1,45 @@
+{
+  "recordedAt": "2026-10-31T01:07:45.516934+00:00",
+  "branchCommit": "645fcb137bf32abf28bca176ee556982ed705540",
+  "method": "Direct cloud-browser UI interaction with signed-in hosted QA sessions",
+  "web": {
+    "origin": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+    "checks": [
+      {
+        "journey": "Loaded Home to Messages to Home",
+        "result": "Loaded feed post present immediately in returned accessibility state; no Loading text in that observed state"
+      },
+      {
+        "journey": "Search conversations QA navigation, select Groups, visit Home and return",
+        "result": "Exact search draft and Groups selection preserved; then restored empty search and Chats"
+      }
+    ]
+  },
+  "admin": {
+    "origin": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+    "checks": [
+      {
+        "journey": "Content review full-screen photo dd607e75-0383-4f75-9301-c2f96aa8ae7d",
+        "result": "Decoded1080x1920 and visually dark; no application error shown. Stored source provenance is still under investigation, so this is not accepted as a correct rendered photo."
+      },
+      {
+        "journey": "Gallery b531613a-9f36-4f86-82e7-f00e54b55f34 portrait full screen",
+        "result": "Visible edited portrait QA graphic and attachment controls rendered"
+      },
+      {
+        "journey": "Next attachment, video playback, close viewer",
+        "result": "Video readyState4/no media error; currentTime advanced and Pause control shown; remaining videos paused after close"
+      }
+    ]
+  },
+  "limits": [
+    "Accessibility observations are not frame-by-frame timing measurements.",
+    "These live checks do not establish physical-device or external-provider acceptance.",
+    "The visually dark first QA source does not establish that its stored pixels are intentional or that upstream capture succeeded."
+  ],
+  "screenshot": {
+    "filename": "platinum-admin-photo-verified-1793408614414.jpg",
+    "sha256": "bc8635dfb50491ddccb50ad6a76873172348b3fab2d9907717ce9b171e869ef2",
+    "bytes": 46909
+  }
+}

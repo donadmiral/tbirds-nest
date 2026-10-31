@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useActorStore } from '../../stores/actorStore';
 import { jobsService, Job, JobCategory, JobApplication, JobRecommendation, ApplicationStatus, JobScope, JOB_POSTING_ACCOUNT_MESSAGE, STATUS_META as APPLICATION_STATUS_META } from '../../services/jobsService';
 import { useAuthStore } from '../../stores/authStore';
+import { navigationCache, navigationScope } from '../../lib/navigationCache';
 
 const CATEGORY_TABS = [
   { id: 'all', label: 'All Jobs', emoji: '💼' },
@@ -47,18 +48,6 @@ const INDUSTRIES = [
   'Legal', 'Human Resources', 'Entrepreneurship',
 ];
 
-const CATEGORY_COLORS: Record<string, string> = {
-  full_time: '#2563EB',
-  part_time: '#7C3AED',
-  internship: '#059669',
-  contract: '#B45309',
-  temporary: '#0E7490',
-  volunteering: '#EA580C',
-  startup: '#DC2626',
-  freelance: '#0891B2',
-  all: '#374151',
-};
-
 const STATUS_META: Record<ApplicationStatus, { label: string; color: string; bg: string }> = {
   ...APPLICATION_STATUS_META,
   applied:     { label: 'Applied',      color: '#2563EB', bg: '#EFF6FF' },
@@ -85,12 +74,6 @@ function computeMatchScore(job: Job, userProfile: any): number {
   return Math.min(99, score);
 }
 
-function matchColor(score: number): string {
-  if (score >= 80) return '#059669';
-  if (score >= 60) return '#D97706';
-  return '#6B7280';
-}
-
 function formatTime(d?: string | null): string {
   if (!d) return '';
   const diff = Date.now() - new Date(d).getTime();
@@ -105,16 +88,10 @@ function categoryLabel(c: string): string {
   return CATEGORY_TABS.find(t => t.id === c)?.label || c;
 }
 
-function initials(name?: string | null): string {
-  if (!name) return 'U';
-  const p = name.trim().split(' ').filter(Boolean);
-  return p.length === 1 ? p[0][0].toUpperCase() : `${p[0][0]}${p[1][0]}`.toUpperCase();
-}
-
 export default function JobsScreen({ navigation }: any) {
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const { profile } = useAuthStore();
+  const profile = useAuthStore(state => state.profile);
   const userId = profile?.id ?? null;
   const postingActorId = useActorStore(state => state.currentActor()?.actor_id ?? userId);
   const delegatedJobActor = !!postingActorId && postingActorId !== userId;
@@ -149,12 +126,6 @@ export default function JobsScreen({ navigation }: any) {
   });
 
 
-  const [referTarget,  setReferTarget]  = useState<Job | null>(null);
-  const [referSearch,  setReferSearch]  = useState('');
-  const [referResults, setReferResults] = useState<any[]>([]);
-  const [referNote,    setReferNote]    = useState('');
-  const [referring,    setReferring]    = useState(false);
-
   const [recTarget,      setRecTarget]      = useState<Job | null>(null);
   const [recName,        setRecName]        = useState('');
   const [recContact,     setRecContact]     = useState('');
@@ -168,47 +139,67 @@ export default function JobsScreen({ navigation }: any) {
   const [viewRecsJob,    setViewRecsJob]    = useState<Job | null>(null);
   const [jobRecs,        setJobRecs]        = useState<JobRecommendation[]>([]);
   const [loadingRecs,    setLoadingRecs]    = useState(false);
+  const [recommendationError, setRecommendationError] = useState<string | null>(null);
+  const recommendationRequest = useRef(0);
 
   const [busyMap, setBusyMap] = useState<Record<string, boolean>>({});
   const loadGeneration = useRef(0);
+  const loadedListKey = useRef<string | null>(null);
   const pendingSaves = useRef(new Set<string>());
+  const pendingDeletes = useRef(new Set<string>());
   const setBusy = (k: string, v: boolean) =>
     setBusyMap(p => { const n = {...p}; if(v) n[k]=true; else delete n[k]; return n; });
 
   const loadAll = useCallback(async (showLoader = true) => {
     const token = ++loadGeneration.current;
+    const scope = navigationScope();
+    const session = useAuthStore.getState().session;
+    const key = `jobs:${scopeMode}:${sortBy}`;
+    const current = () => token === loadGeneration.current && scope === navigationScope();
     setLoadError(null);
-    if (!userId) {
+    if (!userId || !scope || session?.user.id !== userId) {
       setJobs([]); setSavedIds(new Set()); setAppliedMap({}); setMyApplications([]);
+      loadedListKey.current = null;
       setLoading(false); setRefreshing(false); setLoadError('Sign in to browse jobs and your applications.');
       return;
     }
     try {
-      if (showLoader) setLoading(true);
-      const [fetchedJobs, savedJobIds, appMap, apps] = await Promise.all([
-        jobsService.getJobs({ sortBy, scope: scopeMode, userId }),
-        jobsService.getSavedJobIds(userId),
-        jobsService.getAppliedJobIds(userId),
-        jobsService.getMyApplications(userId),
-      ]);
-      if (token !== loadGeneration.current) return;
+      // Returning to the same list refreshes in place, including a loaded
+      // empty list. Keep the mounted list and its scroll position intact.
+      if (showLoader && loadedListKey.current !== key) setLoading(true);
+      const [fetchedJobs, savedJobIds, appMap, apps] = await navigationCache.load(scope, key, async signal => {
+        const options = { signal, accessToken: session.access_token };
+        return Promise.all([
+          jobsService.getJobs({ sortBy, scope: scopeMode, userId, ...options }),
+          jobsService.getSavedJobIds(userId, options),
+          jobsService.getAppliedJobIds(userId, options),
+          jobsService.getMyApplications(userId, options),
+        ]);
+      });
+      if (!current()) return;
+      loadedListKey.current = key;
       setJobs(fetchedJobs);
       const logos: Record<string, string> = {};
       fetchedJobs.forEach(j => { if (j.profile?.avatar_url) logos[j.posted_by] = j.profile.avatar_url; });
       setPosterLogos(logos);
-      setSavedIds(new Set(savedJobIds));
+      setSavedIds(previous => {
+        const next = new Set(savedJobIds);
+        // A background read cannot erase an optimistic save still in flight.
+        pendingSaves.current.forEach(id => { if (previous.has(id)) next.add(id); else next.delete(id); });
+        return next;
+      });
       setAppliedMap(appMap);
       setMyApplications(apps);
     } catch (e: any) {
-      if (token === loadGeneration.current) setLoadError(e?.message || 'Could not load jobs. Check your connection and try again.');
+      if (current()) setLoadError(e?.message || 'Could not load jobs. Check your connection and try again.');
     } finally {
-      if (token === loadGeneration.current) { setLoading(false); setRefreshing(false); }
+      if (current()) { setLoading(false); setRefreshing(false); }
     }
   }, [userId, sortBy, scopeMode]);
 
   useFocusEffect(useCallback(() => {
     void loadAll(true);
-    return () => { ++loadGeneration.current; };
+    return () => { ++loadGeneration.current; ++recommendationRequest.current; };
   }, [loadAll]));
 
   const displayJobs = useMemo(() => {
@@ -226,10 +217,6 @@ export default function JobsScreen({ navigation }: any) {
     return list;
   }, [jobs, activeTab, search]);
 
-  const savedJobs = useMemo(() => {
-    return jobs.filter(j => savedIds.has(j.id));
-  }, [jobs, savedIds]);
-
   const toggleSave = async (jobId: string) => {
     if (!userId || pendingSaves.current.has(jobId)) return;
     const token = loadGeneration.current;
@@ -240,7 +227,7 @@ export default function JobsScreen({ navigation }: any) {
     try {
       if (was) await jobsService.unsaveJob(userId, jobId);
       else await jobsService.saveJob(userId, jobId);
-    } catch (e) {
+    } catch {
       if (token === loadGeneration.current) {
         setSavedIds(p => { const n = new Set(p); if (was) n.add(jobId); else n.delete(jobId); return n; });
         Alert.alert('Could not save job', 'Your saved jobs have not changed. Please try again.');
@@ -249,15 +236,21 @@ export default function JobsScreen({ navigation }: any) {
   };
 
   const loadRecommendations = async (job: Job) => {
+    const request = ++recommendationRequest.current;
+    const scope = navigationScope();
+    const accessToken = useAuthStore.getState().session?.access_token;
+    if (!scope || !accessToken) return;
     setViewRecsJob(job);
+    setJobRecs([]);
+    setRecommendationError(null);
     setLoadingRecs(true);
     try {
-      const recs = await jobsService.getRecommendationsForJob(job.id);
-      setJobRecs(recs);
-    } catch (e) {
-      console.log('LOAD_RECS_ERR', e);
+      const recs = await navigationCache.load(scope, `job-recommendations:${job.id}`, signal => jobsService.getRecommendationsForJob(job.id, { signal, accessToken }));
+      if (request === recommendationRequest.current && scope === navigationScope()) setJobRecs(recs);
+    } catch {
+      if (request === recommendationRequest.current && scope === navigationScope()) setRecommendationError('Recommendations could not be loaded. Please try again.');
     } finally {
-      setLoadingRecs(false);
+      if (request === recommendationRequest.current && scope === navigationScope()) setLoadingRecs(false);
     }
   };
 
@@ -305,37 +298,26 @@ export default function JobsScreen({ navigation }: any) {
     }
   };
 
-  const searchUsersForRefer = async (q: string) => {
-    setReferSearch(q);
-    if (q.length < 2) { setReferResults([]); return; }
-    const { data } = await supabase.from('profiles')
-      .select('id, full_name, username, avatar_url, degree_program')
-      .neq('id', userId)
-      .or(`full_name.ilike.%${q}%,username.ilike.%${q}%`)
-      .limit(6);
-    setReferResults(data || []);
+  const confirmDeleteJob = (job: Job) => {
+    const scope = navigationScope();
+    if (!scope || job.posted_by !== userId || pendingDeletes.current.has(job.id)) return;
+    Alert.alert('Delete job?', 'This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        if (scope !== navigationScope() || pendingDeletes.current.has(job.id)) return;
+        pendingDeletes.current.add(job.id); setBusy(`delete-${job.id}`, true);
+        try {
+          await jobsService.deleteJob(job.id);
+          if (scope === navigationScope()) await loadAll(false);
+        } catch {
+          if (scope === navigationScope()) Alert.alert('Could not confirm deletion', 'Refresh the list before trying again.');
+        } finally {
+          pendingDeletes.current.delete(job.id);
+          if (scope === navigationScope()) setBusy(`delete-${job.id}`, false);
+        }
+      } },
+    ]);
   };
-
-  const submitRefer = async (referredUser: any) => {
-    if (!userId || !referTarget || referring) return;
-    setReferring(true);
-    try {
-      await jobsService.referUser({
-        referrerId: userId,
-        referredId: referredUser.id,
-        jobId: referTarget.id,
-        note: referNote,
-      });
-      setReferTarget(null);
-      setReferSearch('');
-      setReferResults([]);
-      setReferNote('');
-      Alert.alert('Referral sent!', `You referred ${referredUser.full_name || referredUser.username} to ${referTarget.title}.`);
-    } catch (e) {
-      Alert.alert('Error', 'Could not send referral.');
-    } finally { setReferring(false); }
-  };
-
   const submitPost = async () => {
     if (!userId || posting) return;
     if (delegatedJobActor) { Alert.alert('Choose your posting account', JOB_POSTING_ACCOUNT_MESSAGE); return; }
@@ -390,7 +372,7 @@ export default function JobsScreen({ navigation }: any) {
           <View style={{ flex: 1, minWidth: 0 }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
               <Text style={[s.hsTitle, { flex: 1 }]} numberOfLines={2}>{item.title}</Text>
-              <TouchableOpacity style={s.hsSave} onPress={() => toggleSave(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <TouchableOpacity style={s.hsSave} accessibilityRole="button" accessibilityLabel={isSaved ? 'Unsave job' : 'Save job'} accessibilityState={{ busy: !!busyMap[`save-${item.id}`], selected: isSaved }} disabled={!!busyMap[`save-${item.id}`]} onPress={() => toggleSave(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Ionicons name={isSaved ? 'bookmark' : 'bookmark-outline'} size={19} color={isSaved ? '#2563EB' : '#9CA3AF'} />
               </TouchableOpacity>
             </View>
@@ -464,10 +446,10 @@ export default function JobsScreen({ navigation }: any) {
             </TouchableOpacity>
             <TouchableOpacity
               style={s.hsLink}
-              onPress={() => Alert.alert('Delete job?', 'This cannot be undone.', [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive', onPress: async () => { await jobsService.deleteJob(item.id); loadAll(false); } },
-              ])}
+              accessibilityRole="button" accessibilityLabel="Delete job"
+              accessibilityState={{ busy: !!busyMap[`delete-${item.id}`] }}
+              disabled={!!busyMap[`delete-${item.id}`]}
+              onPress={() => confirmDeleteJob(item)}
             >
               <Text style={[s.hsLinkTxt, { color: '#DC2626' }]}>Delete</Text>
             </TouchableOpacity>
@@ -649,18 +631,18 @@ export default function JobsScreen({ navigation }: any) {
 
       
 
-      <Modal visible={!!viewRecsJob} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setViewRecsJob(null); setJobRecs([]); }}>
+      <Modal visible={!!viewRecsJob} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { ++recommendationRequest.current; setViewRecsJob(null); setJobRecs([]); }}>
         <SafeAreaView style={[s.modalSafe, { paddingTop: insets.top }]} edges={['left', 'right', 'bottom']}>
           <View style={s.modalHeader}>
             <Text style={s.modalTitle}>Recommendations {viewRecsJob?.title ? `— ${viewRecsJob.title}` : ''}</Text>
-            <TouchableOpacity onPress={() => { setViewRecsJob(null); setJobRecs([]); }} style={s.modalClose}>
+            <TouchableOpacity onPress={() => { ++recommendationRequest.current; setViewRecsJob(null); setJobRecs([]); }} style={s.modalClose}>
               <Text style={s.modalCloseTxt}>✕</Text>
             </TouchableOpacity>
           </View>
           <View style={s.recPrivacyNote}>
             <Text style={s.recPrivacyTxt}>🔒 Only you can see these recommendations.</Text>
           </View>
-          {loadingRecs
+          {recommendationError ? <View style={{ padding: 16 }}><Text accessibilityRole="alert">{recommendationError}</Text><TouchableOpacity accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => viewRecsJob && void loadRecommendations(viewRecsJob)}><Text>Try again</Text></TouchableOpacity></View> : loadingRecs
             ? <ListRowSkeleton />
             : (
               <FlatList

@@ -17,7 +17,7 @@ name: Full native app navigation
 - extendedWaitUntil:
     visible: A quiet morning in the desert. Small moments worth keeping.
     timeout: 30000
-- takeScreenshot: native-ui-logs/screenshots/home
+- takeScreenshot: home
 - tapOn: Latest
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - tapOn: For You
@@ -26,30 +26,30 @@ name: Full native app navigation
 - extendedWaitUntil:
     visible: Travel journal
     timeout: 15000
-- takeScreenshot: native-ui-logs/screenshots/market
+- takeScreenshot: market
 - tapOn: Home
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - tapOn: Jobs
 - extendedWaitUntil:
     visible: Product designer
     timeout: 15000
-- takeScreenshot: native-ui-logs/screenshots/jobs
+- takeScreenshot: jobs
 - tapOn: Messages
 - extendedWaitUntil:
     visible: Ready for our next adventure?
     timeout: 15000
-- takeScreenshot: native-ui-logs/screenshots/messages
+- takeScreenshot: messages
 - tapOn: Profile
 - extendedWaitUntil:
     visible: Alex Rivera
     timeout: 15000
 - assertVisible: Edit profile
-- takeScreenshot: native-ui-logs/screenshots/profile
+- takeScreenshot: profile
 - tapOn: Settings
 - extendedWaitUntil:
     visible: Settings
     timeout: 15000
-- takeScreenshot: native-ui-logs/screenshots/settings
+- takeScreenshot: settings
 - tapOn: Home
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - repeat:
@@ -59,4 +59,4 @@ name: Full native app navigation
       - assertVisible: Ready for our next adventure?
       - tapOn: Home
       - assertVisible: A quiet morning in the desert. Small moments worth keeping.
-- takeScreenshot: native-ui-logs/screenshots/returned-home
+- takeScreenshot: returned-home

@@ -28,8 +28,13 @@ enum StoryVideoComposition {
   private struct Job { var session: AVAssetExportSession?; var asset: AVAsset?; var writer: AVAssetWriter?; var cancelled = false }
   private static let lock = NSLock()
   private static var jobs: [String: Job] = [:]
+  private static var memoryReservation: String?
+  private static var memoryCancelled = false
+  static func reserveMemory(_ id: String) throws { lock.lock(); defer { lock.unlock() }; guard jobs.isEmpty, memoryReservation == nil else { throw StoryVideoError.invalid("Another video is still exporting.") }; memoryReservation = id; memoryCancelled = false }
+  static func releaseMemory(_ id: String) { lock.lock(); defer { lock.unlock() }; if memoryReservation == id { memoryReservation = nil; memoryCancelled = false } }
+  static func cancelMemory(_ id: String) { lock.lock(); if memoryReservation == id { memoryCancelled = true }; let children = memoryReservation == id ? Array(jobs.keys) : []; lock.unlock(); for child in children { cancel(child) } }
   static func cancel(_ id: String) { lock.lock(); jobs[id]?.cancelled = true; let session = jobs[id]?.session, asset = jobs[id]?.asset, writer = jobs[id]?.writer; lock.unlock(); asset?.cancelLoading(); if let writer, writer.status == .writing { writer.cancelWriting() }; session?.cancelExport() }
-  private static func begin(_ id: String) throws { lock.lock(); defer { lock.unlock() }; guard jobs[id] == nil, jobs.isEmpty else { throw StoryVideoError.invalid("Another video is still exporting.") }; jobs[id] = Job() }
+  private static func begin(_ id: String, reservation: String?) throws { lock.lock(); defer { lock.unlock() }; guard jobs[id] == nil, jobs.isEmpty, memoryReservation == reservation, !memoryCancelled else { throw StoryVideoError.invalid("Another video is still exporting or was cancelled.") }; jobs[id] = Job() }
   private static func attach(_ id: String, _ session: AVAssetExportSession) throws { lock.lock(); defer { lock.unlock() }; guard var job = jobs[id], !job.cancelled else { throw StoryVideoError.invalid("Video export was cancelled.") }; job.session = session; jobs[id] = job }
   private static func attachAsset(_ id: String, _ asset: AVAsset) throws { lock.lock(); defer { lock.unlock() }; guard var job = jobs[id], !job.cancelled else { throw StoryVideoError.invalid("Video export was cancelled.") }; job.asset = asset; jobs[id] = job }
   private static func attachWriter(_ id: String, _ writer: AVAssetWriter) throws { lock.lock(); defer { lock.unlock() }; guard var job = jobs[id], !job.cancelled else { throw StoryVideoError.invalid("Video export was cancelled.") }; job.writer = writer; jobs[id] = job }
@@ -91,13 +96,13 @@ enum StoryVideoComposition {
     guard writer.status == .completed else { throw writer.error ?? StoryVideoError.invalid("The story movie could not finish.") }
   }
 
-  static func make(_ request: [String: Any]) async throws -> [String: Any] {
+  static func make(_ request: [String: Any], reservation: String? = nil) async throws -> [String: Any] {
     guard let id = request["id"] as? String, id.count >= 8, id.count <= 120,
           let input = request["inputUri"] as? String, let output = request["outputUri"] as? String,
           let recipe = request["recipe"] as? [String: Any] else { throw StoryVideoError.invalid("The export request is incomplete.") }
     var source = try local(input)
     let destination = try local(output, output: true)
-    try begin(id)
+    try begin(id, reservation: reservation)
     var completed = false, stillSource: URL?
     let timeout = DispatchWorkItem { cancel(id) }
     DispatchQueue.global().asyncAfter(deadline: .now() + 180, execute: timeout)
@@ -107,7 +112,7 @@ enum StoryVideoComposition {
       guard let n = recipe[key] as? Double, n.isFinite, n >= min, n <= max else { throw StoryVideoError.invalid("The video \(key) is invalid.") }; return n
     }
     let width = try number("width", 2, 1080), height = try number("height", 2, 1920)
-    let start = try number("trimStart", 0, 86400), end = try number("trimEnd", 0.1, 86400)
+    let start = try number("trimStart", 0, 86400), end = try number("trimEnd", reservation == nil ? 0.1 : 0.05, 86400)
     let speed = try number("speed", 0.25, 4), volume = try number("volume", 0, 1)
     let scale = try number("scale", 0.35, 5), x = try number("x", -2, 2), y = try number("y", -2, 2)
     guard width.truncatingRemainder(dividingBy: 2) == 0, height.truncatingRemainder(dividingBy: 2) == 0,
@@ -135,6 +140,16 @@ enum StoryVideoComposition {
     try track.insertTimeRange(timeRange, of: video, at: .zero)
     track.preferredTransform = try await video.load(.preferredTransform)
     let outputDuration = CMTimeMultiplyByFloat64(timeRange.duration, multiplier: 1/speed)
+    var fromScale = 1.0, toScale = 1.0, motionX = 0.0, motionY = 0.0, fade = 0.0
+    if request["motion"] != nil || request["transition"] != nil {
+      guard reservation != nil,
+            let motion = request["motion"] as? [String: Any], let transition = request["transition"] as? [String: Any],
+            let from = motion["fromScale"] as? Double, let to = motion["toScale"] as? Double,
+            let mx = motion["x"] as? Double, let my = motion["y"] as? Double, let f = transition["fadeSec"] as? Double,
+            [from,to,mx,my,f].allSatisfy({ $0.isFinite }), from >= 1, from <= 1.1, to >= 1, to <= 1.1,
+            abs(mx) <= 0.05, abs(my) <= 0.05, f >= 0, f <= 0.5, f * 2 <= outputDuration.seconds + 0.001 else { throw StoryVideoError.invalid("The memory scene motion is invalid.") }
+      fromScale = from; toScale = to; motionX = mx; motionY = my; fade = f
+    }
     let audioMix = AVMutableAudioMix()
     var audioParameters: [AVAudioMixInputParameters] = []
     if volume > 0, let audio = try await asset.loadTracks(withMediaType: .audio).first,
@@ -209,7 +224,7 @@ enum StoryVideoComposition {
     }
     let background = try (request["backgroundUri"] as? String).map(image) ?? CIImage(color: .black).cropped(to: rect)
     let rawLayers = request["layers"] as? [[String: Any]] ?? []
-    guard rawLayers.count <= 23 else { throw StoryVideoError.invalid("Too many artwork layers.") }
+    guard rawLayers.count <= (reservation == nil ? 23 : 24) else { throw StoryVideoError.invalid("Too many artwork layers.") }
     let layers: [StoryExportLayer] = try rawLayers.map { raw in
       guard let path = raw["uri"] as? String, let from = raw["start"] as? Double, let to = raw["end"] as? Double,
             from.isFinite, to.isFinite, from >= 0, to > from, to <= outputDuration.seconds + 0.1 else { throw StoryVideoError.invalid("An artwork time range is invalid.") }
@@ -228,6 +243,18 @@ enum StoryVideoComposition {
       frame = frame.composited(over: background).cropped(to: rect)
       let time = request.compositionTime.seconds
       for layer in layers where time >= layer.start && time < layer.end { frame = layer.image.composited(over: frame) }
+      let fraction = max(0, min(1, time / outputDuration.seconds)), zoom = fromScale + (toScale-fromScale) * fraction
+      if zoom != 1 || motionX != 0 || motionY != 0 {
+        let dx = motionX * (fraction-0.5) * rect.width, dy = -motionY * (fraction-0.5) * rect.height
+        frame = frame.transformed(by: CGAffineTransform(translationX: -rect.midX, y: -rect.midY))
+          .transformed(by: CGAffineTransform(scaleX: zoom, y: zoom))
+          .transformed(by: CGAffineTransform(translationX: rect.midX+dx, y: rect.midY+dy)).cropped(to: rect)
+      }
+      if fade > 0 {
+        let opacity = max(0, min(1, min(time/fade, (outputDuration.seconds-time)/fade)))
+        frame = frame.applyingFilter("CIColorMatrix", parameters: ["inputAVector": CIVector(x: 0, y: 0, z: 0, w: opacity)])
+      }
+      frame = frame.composited(over: CIImage(color: .black).cropped(to: rect))
       request.finish(with: frame.cropped(to: rect), context: StoryVideoPixels.context)
     })
     videoComposition.renderSize = rect.size
@@ -240,6 +267,7 @@ enum StoryVideoComposition {
     videoComposition.colorYCbCrMatrix = AVVideoYCbCrMatrix_ITU_R_709_2
     guard let export = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality), export.supportedFileTypes.contains(.mp4) else { throw StoryVideoError.invalid("This video cannot be exported as MP4.") }
     export.outputURL = destination; export.outputFileType = .mp4; export.videoComposition = videoComposition
+    if reservation != nil, let limit = request["memoryFileLengthLimit"] as? Int, limit > 1024 { export.fileLengthLimit = Int64(limit) }
     export.audioMix = audioMix; export.shouldOptimizeForNetworkUse = true
     try attach(id, export)
     await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in export.exportAsynchronously { continuation.resume() } }

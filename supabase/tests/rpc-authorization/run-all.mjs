@@ -39,6 +39,8 @@ for (const {script, env = {}} of [
   {script: './test-studio-workflow-chain.mjs',env:{PLATINUM_QA_STUDIO_WORKFLOWS:'1'}},
   {script: './test-business-auth-chain.mjs'},
   {script: './test-business-auth-chain.mjs',env:{PLATINUM_QA_BUSINESS_AUTH:'1'}},
+  {script: './test-notification-preferences.mjs'},
+  {script: './test-notification-preferences.mjs',env:{NOTIFICATION_BUSINESS_FIXTURE:'1'}},
   {script: './test-offer-response-serialization.mjs'},
   {script: './test-original-music-library.mjs'},
   {script: './test-original-music-library.mjs',env:{MUSIC_FIXTURE_PREEXISTING:'1'}},

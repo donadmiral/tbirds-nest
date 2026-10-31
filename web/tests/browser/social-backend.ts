@@ -36,6 +36,7 @@ declare global { interface Window { __socialFixture: typeof fixture } }
 if (typeof window !== 'undefined') window.__socialFixture = fixture;
 class Query implements PromiseLike<QueryResult> {
   filters: [string, string, unknown][] = []; cols = '*'; options: QueryOptions = {}; one = false; operation = 'select'; values: FixtureRow = {}; maximum = Infinity;
+  headers = new Map<string, string>(); signal?: AbortSignal;
   constructor(public table: string) {}
   select(cols = '*', options: QueryOptions = {}) { this.cols = cols; this.options = options; return this; }
   update(value: FixtureRow) { this.operation = 'update'; this.values = value; return this; }
@@ -47,10 +48,14 @@ class Query implements PromiseLike<QueryResult> {
   ilike(key: string, value: unknown) { this.filters.push(['ilike', key, value]); return this; }
   in(key: string, value: unknown) { this.filters.push(['in', key, value]); return this; }
   is() { return this; } gte() { return this; } gt() { return this; } lt() { return this; } lte() { return this; } or() { return this; }
-  order() { return this; } limit(count: number) { this.maximum = count; return this; } range() { return this; } abortSignal() { return this; }
+  order() { return this; } limit(count: number) { this.maximum = count; return this; } range() { return this; }
+  abortSignal(signal: AbortSignal) { this.signal = signal; return this; }
+  setHeader(name: string, value: string) { this.headers.set(name.toLowerCase(), value); return this; }
   single() { this.one = true; return this; } maybeSingle() { this.one = true; return this; }
   async execute(): Promise<QueryResult> {
+    if (this.signal?.aborted) return { data: null, count: null, error: { message: 'Synthetic request cancelled' } };
     const requestedOwner = owner;
+    if (this.table === 'conversations' && this.operation === 'select' && this.cols === '*') receipt.push({ table: this.table, operation: 'select', authorizationPinned: this.headers.get('authorization') === `Bearer ${session()?.access_token}`, cancellable: !!this.signal });
     let rows: FixtureRow[] = this.table === 'conversations' ? conversations : this.table === 'messages' ? messages : this.table === 'profiles' ? Object.values(profiles) : this.table === 'posts' ? posts.map(row => ({ ...row, id: row.post_id, user_id: row.author_id })) : [];
     for (const [op, key, value] of this.filters) rows = rows.filter(row => op === 'eq' ? row[key] === value : op === 'neq' ? row[key] !== value : op === 'in' ? Array.isArray(value) && value.includes(row[key]) : op === 'ilike' ? String(row[key]).toLowerCase().startsWith(String(value).replace(/[%\\]/g, '').toLowerCase()) : true);
     const fail = (message: string) => ({ data: null, count: null, error: { message } });
@@ -81,7 +86,8 @@ const client = {
   },
   from: (table: string) => new Query(table),
   rpc(name: string, args: FixtureRow = {}) {
-    receipt.push({ rpc: name, args, owner });
+    const request: FixtureRow = { rpc: name, args, owner };
+    receipt.push(request);
     let data: unknown = [], error: FixtureError | null = null;
     if (name === 'get_feed' || name === 'get_discover_page') data = posts;
     else if (name === 'get_communities_page') data = community.name.toLowerCase().includes(String(args.p_query || '').toLowerCase()) ? [community] : [];
@@ -102,7 +108,11 @@ const client = {
     else if (name === 'search_people_page') { data = Object.values(profiles).filter(person => (person.full_name + person.username).toLowerCase().includes(String(args.p_q).toLowerCase())); if(faults.peopleRead) error = {message:'Synthetic people read failure'}; }
     else if (name === 'start_dm_ctx') { data = 'conversation-fixture'; if (faults.dm) error = { message: 'Synthetic conversation failure' }; }
     else if (name === 'handle_follow_action') data = { action: 'followed' };
-    const result = Object.assign(Promise.resolve({ data, error }), { abortSignal: () => result }); return result;
+    let signal: AbortSignal | undefined;
+    const result = Object.assign(Promise.resolve().then(() => signal?.aborted ? { data: null, error: { message: 'Synthetic request cancelled' } } : { data, error }), {
+      abortSignal(value: AbortSignal) { signal = value; request.cancellable = true; return result; },
+      setHeader(header: string, value: string) { if (header.toLowerCase() === 'authorization') request.authorizationPinned = value === `Bearer ${session()?.access_token}`; return result; },
+    }); return result;
   },
   functions: { invoke: async () => ({ data: null, error: null }) },
   channel: () => ({ on() { return this; }, subscribe() { return this; }, unsubscribe: async () => {} }),

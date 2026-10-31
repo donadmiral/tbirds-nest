@@ -43,7 +43,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { messageStatusService } from '../../services/messageStatusService';
-import { callService } from '../../services/callService';
+import '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
 import { signChatMedia, signChatMediaMap, isChatMediaUrl, signGroupAvatars } from '../../services/chatMediaService';
 import { useVoiceRecorder, formatVoiceDuration } from '../../controllers/messages/useVoiceRecorder';

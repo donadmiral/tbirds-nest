@@ -1,0 +1,113 @@
+{
+  "recordedAt": "2026-10-31T01:12:43.449377+00:00",
+  "status": "Compiled and packaged candidate; emulator execution pending; memory capability remains disabled.",
+  "capabilities": {
+    "storyVideoVersion": 1,
+    "storyAudioExportVersion": 1,
+    "memoryMovieVersion": 0
+  },
+  "sourceSha256": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "fae09b8a1f02f9fbf4cf550e0a0553a60ec929a33308ee4d72272d1f388d0a23",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "cdeed895ec4b1d7e163098794391a4772c1e869f2d493b9bcf8329392de9a5c4",
+    "scripts/quality/android-story-export/build.gradle": "43d2e6d7df99ba6fb4c51870416b93271cd074a150728042acfb5580cfc0a0ad",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt": "bca3081091b35a17c77b16a8bde24183a33caa73ba4c10d90a43337c867ecb57",
+    "scripts/quality/test-android-story-audio.sh": "8b9aba3df62726b0f367348015b16aa831962416696712f822796d4a0e66cdff",
+    "scripts/quality/compile-android-native.sh": "d638f2dedd0026cd91b149354927899185cbdf4c55c3f3db7a1b61b566f6fbf7",
+    ".github/workflows/android-native-compile.yml": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9"
+  },
+  "compile": {
+    "command": "ANDROID_HOME=/tmp/platinum-android-sdk GRADLE_USER_HOME=/tmp/platinum-android-gradle JAVA_HOME=/tmp/platinum-android-jdk/jdk-17.0.21+9 bash /tmp/platinum-android-wrapper/gradlew -p scripts/quality/android-story-export --offline --no-daemon --console=plain --max-workers=2 -Dorg.gradle.jvmargs=-Xmx2g\\ -XX:MaxMetaspaceSize=1g assembleDebug assembleDebugAndroidTest",
+    "exitCode": 0,
+    "log": "android-candidate-package.log",
+    "logSha256": "cb15d1826fcbd8f9a836174ae38f40580b2e2f9d14dc51b919acd0ce676cea07",
+    "productionCopiesVerified": true
+  },
+  "artifacts": [
+    {
+      "path": "scripts/quality/android-story-export/build/outputs/apk/debug/PlatinumStoryExportAcceptance-debug.apk",
+      "bytes": 4367551,
+      "sha256": "284c39e233c6f664c248bfd2e9e0d647eccb5c10efd5a08c4bc7961c4afbfdb8"
+    },
+    {
+      "path": "scripts/quality/android-story-export/build/outputs/apk/androidTest/debug/PlatinumStoryExportAcceptance-debug-androidTest.apk",
+      "bytes": 948559,
+      "sha256": "7e93a87e63ee44bd8d88858997bfe01373636dda04659009457d767a08891bbb"
+    }
+  ],
+  "declaredCases": {
+    "storyRetained": [
+      "selectedExcerptLoopsThroughActualStillMovie",
+      "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+      "longVoiceoverIsClippedToTheOutputMovie",
+      "soundtrackVolumeAndZeroGainAreEncoded",
+      "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+      "mutedOriginalDoesNotLeakIntoTheMovie",
+      "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop",
+      "originalOnlyAudioIsPreservedAndMeasured",
+      "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+      "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+      "fullColorMatrixScaleAndTranslationMatchPixels",
+      "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+      "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+      "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+      "invalidInputsCannotOverwriteOrEscapeTheCache",
+      "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+      "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+      "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+      "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+      "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+      "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+      "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+      "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk"
+    ],
+    "memoryNew": [
+      "stillScenesKeepOrderAndContinuousDuckedSoundtrack",
+      "videoPageAndBookAudioPreserveIndependentClocks",
+      "sceneArtworkFadeAndMotionUseLocalTime",
+      "onePassBookMusicDoesNotShortenSilentTail",
+      "zeroGainBookSelectionEncodesSilence",
+      "cancellationReleasesWriterBeforeRetryAndBlocksStory",
+      "cancelAllStopsMovieAndImagePreparation",
+      "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+      "normalizedPngIsBoundedAndPreservesTransparency",
+      "normalizedJpegHonorsExifOrientation",
+      "animatedContainersAreRejectedBeforeStaticPreparation",
+      "imagePreparationRejectsUnsafeInputsAndPreservesExistingFiles",
+      "movieLimitsAndGainContinuityAreEnforcedBeforeWriting",
+      "aggregateInputBytesAreBoundedWithoutCopyingLargeSources",
+      "sourcePathsRemainConfinedEvenThroughSymlinks",
+      "mutedVideoKeepsPageVoiceoverAndSilentCards"
+    ],
+    "total": 39,
+    "executedOnEmulator": false
+  },
+  "validation": [
+    "Shell syntax and all seven embedded Python programs compiled.",
+    "Workflow YAML parsed; bounded instrumentation deadline30 minutes, job deadline50 minutes.",
+    "Exact16-case memory method/measurement inventory verified; all23 Story test methods retained.",
+    "Main/test APK ZIP integrity, production engine DEX presence, test class DEX presence and exact binary fixture bytes verified.",
+    "Existing Story1/Audio1 native capabilities preserved; memory remains0."
+  ],
+  "independentReview": {
+    "reviewer": "music_completion",
+    "repairs": [
+      "Register deadlines/watchdogs under the active-job lock; prevent post-completion watchdog rescheduling.",
+      "Reject every shared unsupported animation marker, allGIF variants, and excessive PNG/WebP chunk counts.",
+      "JS staging normalizer output moved to cache root by its owning lane to match native output confinement."
+    ],
+    "finalNativeRead": "No further concrete blocker reported; generated-file execution remains required."
+  },
+  "limits": [
+    "This local gate compiles and packages native sources and tests; it does not run an emulator, decode a generated movie, install the product, access Supabase or certify physical-device behavior.",
+    "The output-size acceptance test injects sparse growth into its disposable job output to exercise the actual watchdog; it does not claim an actual256MiB encoded movie.",
+    "GIF/APNG/WebP assets include actual two-frame containers; marker-only mutations intentionally remove metadata and are separately checked for fail-closed handling.",
+    "The39-case hosted gate, independent retained-media decode and full Expo native compile must pass before memoryMovieVersion can become1."
+  ]
+}

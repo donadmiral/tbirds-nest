@@ -457,3 +457,12 @@ verify_jwt = false
 
 [functions.music-catalogue-ingest]
 verify_jwt = false
+
+# Push handlers authenticate before any privileged lookup or provider request.
+# Ordinary pushes require the Vault-held server credential. Call pushes verify
+# Auth plus live call/session authorization, or that exact server credential.
+[functions.send-push-notification]
+verify_jwt = false
+
+[functions.send-voip-push]
+verify_jwt = false

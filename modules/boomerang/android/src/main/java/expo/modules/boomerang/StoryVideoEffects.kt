@@ -26,10 +26,11 @@ internal class StoryCanvasEffect(
   private val background: File?,
   private val layers: List<StoryArtwork>,
   private val checkCurrent: () -> Unit,
+  private val timeOffset: Double = 0.0,
 ) : GlEffect {
   override fun toGlShaderProgram(context: Context, useHdr: Boolean): BaseGlShaderProgram {
     require(!useHdr) { "Story export requires SDR output." }
-    return StoryCanvasProgram(recipe, background, layers, checkCurrent)
+    return StoryCanvasProgram(recipe, background, layers, checkCurrent, timeOffset)
   }
 }
 
@@ -39,6 +40,7 @@ private class StoryCanvasProgram(
   background: File?,
   private val layers: List<StoryArtwork>,
   private val checkCurrent: () -> Unit,
+  private val timeOffset: Double,
 ) : BaseGlShaderProgram(false, 1) {
   private val program = GlProgram(VERTEX, FRAGMENT)
   private val bitmap = Bitmap.createBitmap(recipe.width, recipe.height, Bitmap.Config.ARGB_8888)
@@ -94,7 +96,7 @@ private class StoryCanvasProgram(
     try {
       checkCurrent()
       check(sourceWidth > 0 && sourceHeight > 0)
-      val time = presentationTimeUs / 1_000_000.0
+      val time = presentationTimeUs / 1_000_000.0 - timeOffset
       val active = layers.indices.filter { time >= layers[it].start && time < layers[it].end }
       if (active != previousLayers) {
         bitmap.eraseColor(Color.TRANSPARENT)
@@ -179,6 +181,72 @@ private class StoryCanvasProgram(
         }
         vec4 artwork = texture2D(uArtwork, bitmapUv);
         gl_FragColor = vec4(artwork.rgb + result.rgb * (1.0 - artwork.a), 1.0);
+      }
+    """
+  }
+}
+
+internal data class MemorySceneTransform(val duration: Double, val fade: Double,
+  val fromScale: Float, val toScale: Float, val x: Float, val y: Float, val start: Double = 0.0)
+
+/** Applied after the complete scene canvas, so artwork and background move/fade together. */
+@UnstableApi
+internal class MemorySceneEffect(private val transform: MemorySceneTransform, private val checkCurrent: () -> Unit) : GlEffect {
+  override fun toGlShaderProgram(context: Context, useHdr: Boolean): BaseGlShaderProgram {
+    require(!useHdr) { "Memory movie export requires SDR output." }
+    return MemorySceneProgram(transform, checkCurrent)
+  }
+}
+
+@UnstableApi
+private class MemorySceneProgram(private val transform: MemorySceneTransform, private val checkCurrent: () -> Unit) : BaseGlShaderProgram(false, 1) {
+  private val program = GlProgram(VERTEX, FRAGMENT)
+  private var released = false
+  init {
+    try { checkCurrent(); program.setBufferAttribute("aFramePosition", GlUtil.getNormalizedCoordinateBounds(), 4) }
+    catch (error: Exception) { release(); throw VideoFrameProcessingException(error) }
+  }
+  override fun configure(inputWidth: Int, inputHeight: Int): Size = Size(inputWidth, inputHeight)
+  override fun drawFrame(inputTexId: Int, presentationTimeUs: Long) {
+    try {
+      checkCurrent()
+      val time = (presentationTimeUs / 1_000_000.0 - transform.start).coerceIn(0.0, transform.duration)
+      val fraction = (time / transform.duration).toFloat()
+      val opacity = if (transform.fade > 0) minOf(1.0, time / transform.fade, (transform.duration - time) / transform.fade).coerceAtLeast(0.0).toFloat() else 1f
+      program.use()
+      program.setSamplerTexIdUniform("uInput", inputTexId, 0)
+      program.setFloatUniform("uScale", transform.fromScale + (transform.toScale - transform.fromScale) * fraction)
+      // GL's vertical coordinate increases upward; the editor's positive y moves down.
+      program.setFloatsUniform("uOffset", floatArrayOf(transform.x * (fraction - .5f), -transform.y * (fraction - .5f)))
+      program.setFloatUniform("uOpacity", opacity)
+      program.bindAttributesAndUniforms()
+      GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+      GlUtil.checkGlError()
+    } catch (error: Exception) { throw VideoFrameProcessingException(error, presentationTimeUs) }
+  }
+  override fun release() {
+    if (released) return
+    released = true
+    try { program.delete() } finally { super.release() }
+  }
+  companion object {
+    private const val VERTEX = """
+      attribute vec4 aFramePosition;
+      varying vec2 vCanvas;
+      void main() { gl_Position = aFramePosition; vCanvas = (aFramePosition.xy + 1.0) * 0.5; }
+    """
+    private const val FRAGMENT = """
+      precision highp float;
+      uniform sampler2D uInput;
+      uniform float uScale;
+      uniform vec2 uOffset;
+      uniform float uOpacity;
+      varying vec2 vCanvas;
+      void main() {
+        vec2 uv = (vCanvas - vec2(0.5) - uOffset) / uScale + vec2(0.5);
+        vec3 color = vec3(0.0);
+        if (uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0) color = texture2D(uInput, uv).rgb;
+        gl_FragColor = vec4(color * uOpacity, 1.0);
       }
     """
   }

@@ -130,22 +130,24 @@ function tabHarness() {
 }
 
 test('custom native tabs preserve accessibility, disabled state and activation handlers', () => {
-  const h = tabHarness(); let presses = 0;
-  const tab = h.button({ children: 'Home', accessibilityLabel: 'Home', accessibilityRole: 'button', accessibilityState: { selected: true }, testID: 'home-tab', disabled: true, onPress: () => presses++, reduceMotion: true });
+  const h = tabHarness(); let presses = 0, warmups = 0;
+  const tab = h.button({ children: 'Home', accessibilityLabel: 'Home', accessibilityRole: 'button', accessibilityState: { selected: true }, testID: 'home-tab', disabled: true, onPress: () => presses++, onWarm: () => warmups++, reduceMotion: true });
   assert.equal(tab.props.accessibilityLabel, 'Home'); assert.equal(tab.props.accessibilityRole, 'button');
   assert.equal(tab.props.accessibilityState.selected, true); assert.equal(tab.props.disabled, true); assert.equal(tab.props.testID, 'home-tab');
   tab.props.onPress(); assert.equal(presses, 1);
   assert.equal(tab.props.style[1].minHeight, 48); assert.equal(tab.props.style[1].minWidth, 48);
-  tab.props.onPressIn(); tab.props.onPressOut(); assert.equal(h.animations.length, 0);
+  tab.props.onPressIn(); tab.props.onPressOut(); assert.equal(h.animations.length, 0); assert.equal(warmups, 1);
   h.unmount();
 });
 
 test('native press animation works normally and resets when reduced motion turns on', () => {
-  const h = tabHarness(); const tab = h.button({ children: 'Home', reduceMotion: false });
-  tab.props.onPressIn(); assert.equal(h.animations.length, 1);
-  const reduced = h.button({ children: 'Home', reduceMotion: true });
+  const h = tabHarness(); let warmups = 0;
+  const onWarm = () => warmups++;
+  const tab = h.button({ children: 'Home', reduceMotion: false, onWarm });
+  tab.props.onPressIn(); assert.equal(h.animations.length, 1); assert.equal(warmups, 1);
+  const reduced = h.button({ children: 'Home', reduceMotion: true, onWarm });
   assert.equal(reduced.props.children.props.style.transform[0].scale.value, 1);
-  reduced.props.onPressIn(); reduced.props.onPressOut(); assert.equal(h.animations.length, 1);
+  reduced.props.onPressIn(); reduced.props.onPressOut(); assert.equal(h.animations.length, 1); assert.equal(warmups, 2);
   h.unmount();
 });
 

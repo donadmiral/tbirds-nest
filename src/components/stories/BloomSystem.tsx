@@ -5,13 +5,10 @@
  * Right-hand: + at bottom-right, tools bloom LEFT and UP (angles 240, 210, 180)
  * Left-hand: + at bottom-left, tools bloom RIGHT and UP (angles 300, 330, 0)
  */
-import React, { useCallback, useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { Animated, StyleSheet, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import {
-  surface, text as textColor, accent, border as borderToken,
-  easing, duration, feedback,
-} from '../../constants/tokens';
+import { text as textColor, accent, easing, duration, feedback } from '../../constants/tokens';
 import {
   BLOOM_TOOLS_RIGHT, BLOOM_TOOLS_LEFT, BLOOM_RADIUS,
   BLOOM_OPEN_SPRINGS, BLOOM_CLOSE_SPRING, BLOOM_STAGGERS,

@@ -26,7 +26,7 @@ cleanup() {
       wait "$video_pid" >/dev/null 2>&1 || true
       "$adb_bin" pull /sdcard/platinum-navigation.mp4 native-ui-logs/navigation.mp4 >/dev/null 2>&1 || true
     fi
-    "$adb_bin" exec-out run-as app.platinumcircles.mobile.qa cat files/native-ui-receipt.json > native-ui-logs/native-ui-receipt-final.json 2>/dev/null || true
+    "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt-final.json 2>/dev/null || true
     timeout 10 "$adb_bin" emu kill >/dev/null 2>&1 || true
     kill "$emulator_pid" >/dev/null 2>&1 || true
     wait "$emulator_pid" >/dev/null 2>&1 || true
@@ -59,7 +59,6 @@ if 'app.platinumcircles.mobile.qa' not in build.read_text(): raise SystemExit('I
 with build.open('a') as out:
     out.write('\n// Disposable Emulator-only fixture. The release variant bundles the actual JS.\n')
     out.write('android.buildTypes.release.signingConfig = android.signingConfigs.debug\n')
-    out.write('android.buildTypes.release.debuggable = true\n')
 manifest=Path('android/app/src/main/AndroidManifest.xml')
 text,count=re.subn(r'(<meta-data android:name="expo.modules.updates.ENABLED" android:value=")[^"]+("[^>]*>)',r'\g<1>false\2',manifest.read_text())
 if count!=1: raise SystemExit('Expected the generated Expo updates switch.')
@@ -85,6 +84,11 @@ for ((attempt=0; attempt<120; attempt++)); do
   sleep 2
 done
 test "$("$adb_bin" shell getprop sys.boot_completed | tr -d '\r')" = 1
+# The disposable AOSP image permits diagnostic root access. Keep the actual
+# release app non-debuggable and read only its synthetic acceptance receipt.
+"$adb_bin" root
+timeout 30 "$adb_bin" wait-for-device
+test "$("$adb_bin" shell id -u | tr -d '\r')" = 0
 "$adb_bin" install -r "$apk"
 "$adb_bin" logcat -c
 "$adb_bin" logcat > native-ui-logs/app.log 2>&1 &
@@ -92,6 +96,7 @@ log_pid=$!
 "$adb_bin" shell screenrecord --time-limit 180 /sdcard/platinum-navigation.mp4 > native-ui-logs/recording.log 2>&1 &
 video_pid=$!
 maestro --device "$ANDROID_SERIAL" test --format junit --output native-ui-logs/maestro.xml \
-  --debug-output native-ui-logs/maestro tests/native/flows/navigation.yaml 2>&1 | tee native-ui-logs/maestro.log
-"$adb_bin" exec-out run-as app.platinumcircles.mobile.qa cat files/native-ui-receipt.json > native-ui-logs/native-ui-receipt.json
+  --debug-output native-ui-logs/maestro --test-output-dir native-ui-logs/maestro \
+  tests/native/flows/navigation.yaml 2>&1 | tee native-ui-logs/maestro.log
+"$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt.json
 node scripts/quality/verify-native-ui.cjs android

@@ -27,12 +27,12 @@ android {
   testOptions { animationsDisabled true }
 }
 
-// Android's Java source exclusion does not exclude Kotlin sources. Copy the two
+// Android's Java source exclusion does not exclude Kotlin sources. Copy the three
 // production engine files byte-for-byte so the fixture cannot accidentally
 // compile the unrelated Expo wrapper or a test replacement of the renderer.
 tasks.register('copyProductionRenderer', Sync) {
   from '../../../modules/boomerang/android/src/main/java/expo/modules/boomerang'
-  include 'StoryVideoComposition.kt', 'StoryVideoEffects.kt'
+  include 'StoryVideoComposition.kt', 'StoryVideoEffects.kt', 'MemoryMovieComposition.kt'
   into layout.buildDirectory.dir('generated/production-renderer/expo/modules/boomerang')
 }
 tasks.named('preBuild').configure { dependsOn 'copyProductionRenderer' }

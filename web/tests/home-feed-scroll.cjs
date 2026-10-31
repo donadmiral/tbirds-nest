@@ -168,7 +168,7 @@ test('account switching, an explicit fresh refresh and expiry cannot reuse an ol
   h.controller.setOwner('bob'); await settle(); h.commit(); h.choose('latest'); await settle(); h.commit(); h.frame();
   assert.equal(h.scrolls.at(-1).top, 0); assert.equal(h.controller.getSnapshot().owner, 'bob');
   h.window.scrollY = 500; h.choose('for_you'); await settle(); h.commit(); h.frame();
-  h.advance(240001); h.choose('latest'); assert.equal(h.controller.getSnapshot().rows.length, 0);
+  h.advance(30 * 60_000 + 1); h.choose('latest'); assert.equal(h.controller.getSnapshot().rows.length, 0);
   assert.equal(h.controller.getSnapshot().scrollRestore.top, 0); await settle(); h.commit(); h.frame();
   assert.equal(h.scrolls.at(-1).top, 0); h.unmount();
 });

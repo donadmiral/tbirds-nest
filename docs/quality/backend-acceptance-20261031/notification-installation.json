@@ -1,0 +1,151 @@
+{
+  "recordedAt": "2026-10-31T00:58:01.950702Z",
+  "project": "uaulhuelcfkjwojtymmw",
+  "publishedBaseCommit": "645fcb137bf32abf28bca176ee556982ed705540",
+  "sources": [
+    {
+      "path": "supabase/migrations/20261031004936_notification_preferences_and_call_push_authorization.sql",
+      "sha256": "507e4094c600ff8d5b784ee1c8f3883d223ca9a64d4d50bb09ef7e197bc79d49",
+      "bytes": 6537,
+      "providerVersion": "20261031005714",
+      "sqlMd5": "7a5fd786be417e483f4f70b961a819d0"
+    },
+    {
+      "path": "supabase/migrations/20261031005240_notification_call_dispatch_deduplication.sql",
+      "sha256": "96906ff245b79bdf8cc18a8c059e2087a6107ef6917387c639ab5e7492ac31ee",
+      "bytes": 4594,
+      "providerVersion": "20261031005741",
+      "sqlMd5": "9d83bb3d8b3b35c2b8d00ec6aa848405"
+    }
+  ],
+  "tests": {
+    "path": "supabase/tests/rpc-authorization/test-notification-preferences.mjs",
+    "sha256": "8eee49766f54f35a274c40713313fb98e9c1fc6f9a2df64a25130385222574f5",
+    "currentQaFixture": {
+      "pass": 26,
+      "fail": 0,
+      "skip": 1
+    },
+    "businessBoundFixture": {
+      "pass": 27,
+      "fail": 0,
+      "skip": 0
+    },
+    "pairedSkip": "Actual bound-business issuance/revocation is exercised only in the second fixture.",
+    "runtime": "PGlite local PostgreSQL; actual deployed prerequisites restored; no provider push",
+    "commands": [
+      "node supabase/tests/rpc-authorization/test-notification-preferences.mjs",
+      "NOTIFICATION_BUSINESS_FIXTURE=1 node supabase/tests/rpc-authorization/test-notification-preferences.mjs"
+    ]
+  },
+  "primaryPostflight": [
+    {
+      "jsonb_build_object": {
+        "history": [
+          {
+            "name": "notification_preferences_and_call_push_authorization",
+            "version": "20261031005714",
+            "statements_md5": "7a5fd786be417e483f4f70b961a819d0"
+          }
+        ],
+        "functions": [
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+            "app": true,
+            "anon": false,
+            "owner": "postgres",
+            "service": false,
+            "body_md5": "8c65fa534acac30897a032631415bb76",
+            "signature": "authorize_call_push(uuid)",
+            "search_path": [
+              "search_path=\"\""
+            ],
+            "definition_md5": "57560ad73aca6b491e4d6e3e15203554"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "service": true,
+            "body_md5": "1507e2bb598198cb267d2dc6e37e6abc",
+            "signature": "get_notification_badge_count(uuid)",
+            "search_path": [
+              "search_path=\"\""
+            ],
+            "definition_md5": "b3b593b5353730642e848287f63ccdde"
+          },
+          {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+            "app": true,
+            "anon": false,
+            "owner": "postgres",
+            "service": false,
+            "body_md5": "4260ea0d3af834313d94e3216393de0c",
+            "signature": "set_notification_preference(text,boolean)",
+            "search_path": [
+              "search_path=\"\""
+            ],
+            "definition_md5": "271f5781e619cc67d720849aa117bca3"
+          }
+        ],
+        "observed_at": "2026-10-31T00:57:27.402573+00:00"
+      }
+    }
+  ],
+  "dedupPostflight": [
+    {
+      "jsonb_build_object": {
+        "table": {
+          "app": false,
+          "rls": true,
+          "anon": false,
+          "service": false,
+          "policies": 0,
+          "constraints": [
+            "FOREIGN KEY (call_id) REFERENCES call_sessions(id) ON DELETE CASCADE",
+            "PRIMARY KEY (call_id, recipient_id)",
+            "FOREIGN KEY (recipient_id) REFERENCES profiles(id) ON DELETE CASCADE"
+          ]
+        },
+        "claims": 0,
+        "history": [
+          {
+            "name": "notification_call_dispatch_deduplication",
+            "version": "20261031005741",
+            "statements_md5": "9d83bb3d8b3b35c2b8d00ec6aa848405"
+          }
+        ],
+        "function": {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "app": false,
+          "anon": false,
+          "owner": "postgres",
+          "service": true,
+          "body_md5": "caab7b952d9dc7a744f18d9a041916e7",
+          "signature": "claim_call_push_dispatch(uuid,uuid)",
+          "search_path": [
+            "search_path=\"\""
+          ],
+          "definition_md5": "71d1838d9c249cf856acac226a35ec19"
+        },
+        "observed_at": "2026-10-31T00:58:01.950702+00:00"
+      }
+    }
+  ],
+  "qaPushPrerequisites": {
+    "dispatchFunctionsPresent": false,
+    "vaultProjectUrlHost": "uaulhuelcfkjwojtymmw.supabase.co",
+    "vaultServiceKeyPresent": false,
+    "notificationHttpTriggerPresent": false,
+    "incomingCallTrigger": "Only persists notification rows; no provider HTTP request.",
+    "hookActivation": false
+  },
+  "externalPushesSent": 0,
+  "limitations": [
+    "Hosted actual Auth/RPC interaction remains pending disposable-account acceptance.",
+    "No physical iPhone/Android push receipt is claimed.",
+    "Private deduplication FK tests do not establish complete Auth/Storage/account-erasure acceptance.",
+    "Handler deployment and scoped Vault credential installation must precede dispatch-hook activation."
+  ]
+}

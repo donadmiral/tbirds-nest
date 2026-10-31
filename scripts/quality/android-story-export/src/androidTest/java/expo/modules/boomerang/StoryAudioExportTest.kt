@@ -77,7 +77,7 @@ class StoryAudioExportTest {
     return file
   }
 
-  private fun wav(name: String = "excerpt", duration: Int = 4, channels: Int = 1, frequency: Int? = null): File {
+  internal fun wav(name: String = "excerpt", duration: Int = 4, channels: Int = 1, frequency: Int? = null): File {
     val file = File(fixtures, "$name.wav")
     val sampleRate = 48_000; val frames = sampleRate * duration; val dataBytes = frames * channels * 2
     val buffer = ByteBuffer.allocate(44 + dataBytes).order(ByteOrder.LITTLE_ENDIAN)
@@ -139,7 +139,7 @@ class StoryAudioExportTest {
     return file.copyTo(File(evidence, "$name.mp4"), overwrite = true).also { file.delete() }
   }
 
-  private data class Audio(val rate: Int, val samples: FloatArray) {
+  internal data class Audio(val rate: Int, val samples: FloatArray) {
     fun amplitude(hz: Int, from: Double, to: Double): Double {
       val first = (from * rate).toInt().coerceIn(0, samples.size)
       val end = (to * rate).toInt().coerceIn(first, samples.size)
@@ -160,7 +160,7 @@ class StoryAudioExportTest {
     }
   }
 
-  private fun decodeAudio(file: File): Audio {
+  internal fun decodeAudio(file: File): Audio {
     val extractor = MediaExtractor(); var decoder: MediaCodec? = null
     try {
       extractor.setDataSource(file.path)
@@ -207,12 +207,12 @@ class StoryAudioExportTest {
     } finally { try { decoder?.stop() } catch (_: Exception) {} ; decoder?.release(); extractor.release() }
   }
 
-  private fun duration(file: File): Double {
+  internal fun duration(file: File): Double {
     val retriever = MediaMetadataRetriever()
     try { retriever.setDataSource(file.path); return retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)!!.toDouble() / 1000 }
     finally { retriever.release() }
   }
-  private fun videoFrames(file: File): Int {
+  internal fun videoFrames(file: File): Int {
     val extractor = MediaExtractor()
     try {
       extractor.setDataSource(file.path)
@@ -278,7 +278,7 @@ class StoryAudioExportTest {
     record("soundtrack gain", mapOf("quarterAmplitude" to amplitude, "zeroRms" to silentAudio.rms(.2, 1.8)))
   }
 
-  private fun sourceMovie(name: String = "source"): File {
+  internal fun sourceMovie(name: String = "source"): File {
     val request = request(name, 4.0); request["audio"] = sound(wav("original-tone", frequency = 330), 0.0, 4.0)
     return export(request, "$name-original-330hz")
   }

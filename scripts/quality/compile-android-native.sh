@@ -93,14 +93,14 @@ objects = list(Path('modules/boomerang/android/build').rglob('BoomerangModule.cl
 if not objects or any(p.read_bytes()[:4] != bytes.fromhex('cafebabe') for p in objects):
     raise SystemExit('Required Boomerang Kotlin bytecode was not compiled.')
 native_sources = {str(source): {'sha256': hashlib.sha256(source.read_bytes()).hexdigest(), 'compiled_classes': [str(p) for p in objects]}}
-for name, class_name in [('StoryVideoComposition.kt', 'StoryVideoComposition.class'), ('StoryVideoEffects.kt', 'StoryCanvasEffect.class')]:
+for name, class_name in [('StoryVideoComposition.kt', 'StoryVideoComposition.class'), ('StoryVideoEffects.kt', 'StoryCanvasEffect.class'), ('MemoryMovieComposition.kt', 'MemoryMovieComposition.class')]:
     engine_source = source.parent / name
     classes = list(Path('modules/boomerang/android/build').rglob(class_name))
     if not engine_source.is_file() or not classes or any(p.read_bytes()[:4] != bytes.fromhex('cafebabe') for p in classes):
         raise SystemExit(f'Required production story encoder bytecode was not compiled: {name}')
     native_sources[str(engine_source)] = {'sha256': hashlib.sha256(engine_source.read_bytes()).hexdigest(), 'compiled_classes': [str(p) for p in classes]}
-capabilities = re.search(r'Constants\("storyVideoVersion" to ([01]), "storyAudioExportVersion" to ([01])\)', source.read_text())
-if not capabilities:
+capabilities = re.search(r'Constants\("storyVideoVersion" to ([01]), "storyAudioExportVersion" to ([01]), "memoryMovieVersion" to ([01])\)', source.read_text())
+if not capabilities or capabilities.group(1) != '1' or capabilities.group(2) != '1':
     raise SystemExit('Review the native capability receipt after changing the Android bridge contract.')
 packages = list(Path('node_modules/expo/android/build').rglob('ExpoModulesPackageList.java'))
 if not any('expo.modules.boomerang.BoomerangModule' in p.read_text() for p in packages):
@@ -145,6 +145,8 @@ receipt = {
     'android_story_encoder_compiled': True,
     'advertised_story_video_version': int(capabilities.group(1)),
     'advertised_story_audio_export_version': int(capabilities.group(2)),
+    'android_memory_movie_encoder_compiled': True,
+    'advertised_memory_movie_version': int(capabilities.group(3)),
     'encoded_media_acceptance_inferred': False,
     'device_or_provider_acceptance': False,
     'app_installed_uploaded_or_submitted': False,

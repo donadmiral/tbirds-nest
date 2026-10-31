@@ -1,5 +1,7 @@
+import {FIXTURE_BOOK} from './memory-movie-auth-adapter';
+import {DEFAULT_MEMORY_FILM_SETTINGS} from '../../../shared/memoryBookCreative';
 import { createRoot } from 'react-dom/client';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MemoryFilm } from '../../components/memory/MemoryFilm';
 import { MemoryMovieExport } from '../../components/memory/MemoryMovieExport';
 import { memoryMovieLimit } from '../../lib/memoryFilmExport';
@@ -16,8 +18,10 @@ const pages: MemoryPage[] = [
 
 function Fixture() {
   const [open, setOpen] = useState(true), [film, setFilm] = useState(false), [revision, setRevision] = useState(0);
-  const params = new URLSearchParams(location.search), mode = params.get('mode');
-  const current = pages.map<MemoryPage>((page, index) => {
+  const search = location.search, mode = new URLSearchParams(search).get('mode');
+  const current = useMemo(() => {
+    const params = new URLSearchParams(search);
+    return pages.map<MemoryPage>((page, index) => {
     if (index) return page;
     if (mode === 'missing') return { ...page, media_url: '/missing.jpg' };
     if (mode === 'overflow') return { ...page, caption: 'Long original caption. '.repeat(100) };
@@ -28,12 +32,17 @@ function Fixture() {
     if (mode === 'image_inspection_cancel') return { ...page, media_url: '/slow-photo.png' };
     if (mode === 'static_images') return { ...page, media_url: '/static-photo.jpg', media_transform: { fit: 'cover', scale: 1, translateNX: 0, translateNY: 0 }, stickers: [{ ...timedSticker, photoUrl: '/static-sticker.png' }] };
     return page;
-  });
+    });
+  }, [mode,search]);
+  const filmSettings=mode==='automatic'?DEFAULT_MEMORY_FILM_SETTINGS:undefined;
+  useEffect(() => {
+    (window as Window&{movieBook?:unknown}).movieBook={id:FIXTURE_BOOK,title:'Synthetic memories',can_view:true,is_owner:true,pages:current,presentation_revision:0,film_settings:filmSettings};
+  }, [current,filmSettings]);
   useEffect(() => {
     const target = window as Window & { movieQA?: { memoryMovieLimit: typeof memoryMovieLimit; pages: MemoryPage[]; close: () => void; replace: () => void } };
     target.movieQA = { memoryMovieLimit, pages, close: () => setOpen(false), replace: () => setRevision(value => value + 1) };
     return () => { delete target.movieQA; };
   }, []);
-  return <main style={{ minHeight: '100vh', background: '#07111c', color: 'white', padding: 30 }}><h1>Synthetic memory movie verification</h1><p>Generated test media only. No account, provider or personal content.</p><button onClick={() => { setOpen(true); setFilm(false); }}>Open movie download</button><button onClick={() => { setOpen(true); setFilm(true); }}>Open memory film</button>{open && (film ? <MemoryFilm key={revision} title="Synthetic memories" pages={current} reduceMotion={false} onClose={() => setOpen(false)} onReadBook={() => setOpen(false)} onRetry={() => setRevision(value => value + 1)} /> : <MemoryMovieExport key={revision} title="Synthetic memories" pages={current} initialScore={mode === 'score'} scoreVolume={.32} initialOriginalAudio={mode !== 'silent'} onClose={() => setOpen(false)} onRefresh={() => setRevision(value => value + 1)} />)}</main>;
+  return <main style={{ minHeight: '100vh', background: '#07111c', color: 'white', padding: 30 }}><h1>Synthetic memory movie verification</h1><p>Generated test media only. No account, provider or personal content.</p><button onClick={() => { setOpen(true); setFilm(false); }}>Open movie download</button><button onClick={() => { setOpen(true); setFilm(true); }}>Open memory film</button>{open && (film ? <MemoryFilm bookId={FIXTURE_BOOK} revision={0} filmSettings={filmSettings} key={revision} title="Synthetic memories" pages={current} reduceMotion={false} onClose={() => setOpen(false)} onReadBook={() => setOpen(false)} onRetry={() => setRevision(value => value + 1)} /> : <MemoryMovieExport bookId={FIXTURE_BOOK} revision={0} filmSettings={filmSettings} key={revision} title="Synthetic memories" pages={current} initialScore={mode === 'score'} scoreVolume={.32} initialOriginalAudio={mode !== 'silent'} onClose={() => setOpen(false)} onRefresh={() => setRevision(value => value + 1)} />)}</main>;
 }
 createRoot(document.getElementById('root')!).render(<Fixture />);

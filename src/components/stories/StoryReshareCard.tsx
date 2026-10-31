@@ -7,7 +7,7 @@
  * it is live, and attribution stays attached wherever the card goes.
  */
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import VerifiedBadge from '../VerifiedBadge';
 import TierName from '../TierName';
@@ -25,7 +25,7 @@ export default function StoryReshareCard({ sticker, onOpen, onOpenProfile }: { s
       {img ? <StoryPixelImage uri={img} style={StyleSheet.absoluteFill} fit="contain" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0B1E3D' }]} />}
       <View style={c.shadeTop} pointerEvents="none" />
       <View style={c.head}>
-        {s.storyAuthorAvatar ? <Image source={{ uri: s.storyAuthorAvatar }} style={c.avatar} /> : <View style={[c.avatar, { backgroundColor: 'rgba(255,255,255,0.25)' }]} />}
+        {s.storyAuthorAvatar ? <StoryPixelImage uri={s.storyAuthorAvatar} style={[c.avatar, {overflow:'hidden'}]} fit="cover" look={null} /> : <View style={[c.avatar, { backgroundColor: 'rgba(255,255,255,0.25)' }]} />}
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
           <TierName userId={s.storyAuthorId} text={s.storyAuthorName || 'Story'} baseStyle={c.name} />
           {s.storyAuthorId ? <View style={{ marginLeft: 4 }}><VerifiedBadge userId={s.storyAuthorId} size={12} /></View> : null}

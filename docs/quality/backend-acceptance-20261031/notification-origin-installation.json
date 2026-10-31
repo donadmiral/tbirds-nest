@@ -1,0 +1,115 @@
+{
+  "recordedAt": "2026-10-31T01:06:50.614846+00:00",
+  "project": "uaulhuelcfkjwojtymmw",
+  "source": {
+    "path": "supabase/migrations/20261031010104_notification_dispatch_current_authorization.sql",
+    "sha256": "183d8971021874926a49a23795cffad122f3453b65a431a297147c8f69fb2c3b",
+    "bytes": 7626,
+    "providerVersion": "20261031010638"
+  },
+  "parentReview": "Root reviewed the entire source and approved after both fixtures passed.",
+  "tests": {
+    "path": "supabase/tests/rpc-authorization/test-notification-preferences.mjs",
+    "sha256": "8b7e4752b29350ff492296e312180c8fdba39993d02144bbf398b81579f804db",
+    "currentQa": {
+      "pass": 32,
+      "fail": 0,
+      "skip": 1
+    },
+    "businessBound": {
+      "pass": 33,
+      "fail": 0,
+      "skip": 0
+    },
+    "capture": {
+      "path": "supabase/tests/rpc-authorization/notification-call-baseline-20261031.json",
+      "sha256": "0da7d3935ece25de47857a4961adf4bbbf2fa30566f48fccfe6072c4ff8d2221"
+    },
+    "requestIsolation": "The captured legacy membership helper sets transaction-local row_security. The savepoint fixture restores PostgREST's per-request default before each simulated request.",
+    "coverage": [
+      "Direct and group RPC creation bind the exact live request session.",
+      "Absent, forged, foreign, anonymous, expired and revoked sessions fail closed.",
+      "Privileged manual calls retain insertion behavior but have no push provenance.",
+      "Per-send service check revalidates initiating session, current business member/device binding, current recipient membership/invitation, blocks, Auth/profile state, call state and expiry.",
+      "Claim is unique per call and recipient; claims do not replace fresh send authorization.",
+      "Session revocation cascades provenance and prevents subsequent sends."
+    ]
+  },
+  "postflight": {
+    "claims": 0,
+    "history": [
+      {
+        "name": "notification_dispatch_current_authorization",
+        "version": "20261031010638",
+        "statements_md5": "6879eb75346b8499f193676e576143d8"
+      }
+    ],
+    "origins": 0,
+    "trigger": {
+      "enabled": "O",
+      "definition": "CREATE TRIGGER aa_call_push_origin AFTER INSERT ON public.call_sessions FOR EACH ROW EXECUTE FUNCTION notification_delivery.record_call_origin()"
+    },
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "app": false,
+        "anon": false,
+        "owner": "postgres",
+        "service": true,
+        "body_md5": "31f2fe6c9822deff19946ce2ceef60d5",
+        "signature": "call_push_dispatch_allowed(uuid,uuid)",
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "definition_md5": "64a6e64e2b3513de0fdac026e279994b"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "app": false,
+        "anon": false,
+        "owner": "postgres",
+        "service": true,
+        "body_md5": "11f078fea8f7c8c91b9db7930ede54f5",
+        "signature": "claim_call_push_dispatch(uuid,uuid)",
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "definition_md5": "86836c7568738f29e8928c1dd520cc59"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "app": false,
+        "anon": false,
+        "owner": "postgres",
+        "service": false,
+        "body_md5": "cb859c0f5c8b9f0086601a16479779fa",
+        "signature": "notification_delivery.record_call_origin()",
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "definition_md5": "1f994fd9c6fe6906dd0fcc323aa0cf67"
+      }
+    ],
+    "observed_at": "2026-10-31T01:06:50.614846+00:00",
+    "origin_table": {
+      "app": false,
+      "rls": true,
+      "anon": false,
+      "service": false,
+      "policies": 0,
+      "constraints": [
+        "FOREIGN KEY (call_id) REFERENCES call_sessions(id) ON DELETE CASCADE",
+        "PRIMARY KEY (call_id)",
+        "FOREIGN KEY (session_id) REFERENCES auth.sessions(id) ON DELETE CASCADE",
+        "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+      ]
+    }
+  },
+  "externalPushesSent": 0,
+  "dispatchHooksActivated": false,
+  "limits": [
+    "Local provider-contract fixtures do not establish real Auth token issuance or physical push receipt.",
+    "No service credential, JWT or token is recorded.",
+    "Original installed notification receipt is preserved; this follow-up intentionally replaces only claim implementation and adds provenance/current eligibility."
+  ]
+}

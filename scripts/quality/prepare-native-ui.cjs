@@ -13,11 +13,14 @@ fs.mkdirSync('native-ui-logs/screenshots', { recursive: true });
 function files(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(item => {
     const file = path.join(directory, item.name);
-    return item.isDirectory() ? files(file) : /\.(tsx?|jsx?|swift|kt)$/.test(file) ? [file] : [];
+    return item.isDirectory() ? files(file) : /\.(?:[cm]?[jt]sx?|swift|kt|ya?ml|sh)$/.test(file) ? [file] : [];
   });
 }
 const source = ['App.tsx', 'index.js', 'app.config.js', 'package-lock.json', ...files('src'), ...files('shared'),
-  ...files('modules/boomerang/ios'), ...files('modules/boomerang/android/src/main')];
+  ...files('modules/boomerang/ios'), ...files('modules/boomerang/android/src/main'), ...files('tests/native'),
+  'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/verify-native-ui.cjs',
+  'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/test-ios-app-ui.sh',
+  'scripts/quality/test-android-app-ui.sh', '.github/workflows/native-app-ui.yml'];
 const hashes = Object.fromEntries(source.map(file => [file, crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')]));
 fs.writeFileSync('native-ui-logs/source.json', JSON.stringify({ commit: process.env.GITHUB_SHA, workflowRun: process.env.GITHUB_RUN_ID,
   mode: 'Complete production App and screens with an isolated synthetic HTTP/Realtime transport and CI-only entry overlay', hashes }, null, 2) + '\n');

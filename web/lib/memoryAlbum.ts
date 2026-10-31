@@ -15,6 +15,7 @@ export type MemoryPage = {
   duration_sec?: number | null; dual_front_url?: string | null; audio_url?: string | null; audio_title?: string | null;
 };
 export type MemoryAlbum = {
+  cover_artwork?: import('../../shared/memoryBookCreative').MemoryCoverArtwork; film_settings?: import('../../shared/memoryBookCreative').MemoryFilmSettings; presentation_revision?: number;
   subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null;
   id: string; user_id?: string; is_default?: boolean; cover_design?: string; soundtrack?: import("../../shared/soundtrack").SoundtrackSelection | null;
   is_owner: boolean; can_view: boolean; title: string;
@@ -33,7 +34,7 @@ export async function getMemoryAlbum(ownerId: string): Promise<MemoryAlbum | nul
   return album;
 }
 
-export type MemoryBookInfo = { id: string; title: string; subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null; cover_color: string; cover_design?: string; audience: string; count: number; is_default?: boolean; is_owner?: boolean; can_view?: boolean };
+export type MemoryBookInfo = { cover_artwork?: import('../../shared/memoryBookCreative').MemoryCoverArtwork; film_settings?: import('../../shared/memoryBookCreative').MemoryFilmSettings; presentation_revision?: number; id: string; title: string; subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null; cover_color: string; cover_design?: string; audience: string; count: number; is_default?: boolean; is_owner?: boolean; can_view?: boolean };
 
 export type MemoryShelf = { is_owner: boolean; books: MemoryBookInfo[] };
 

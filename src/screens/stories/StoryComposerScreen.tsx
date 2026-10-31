@@ -28,16 +28,13 @@ import { useStorySoundPreview } from '../../hooks/useStorySoundPreview';
 import { prepareStoryExportAudio, type PreparedStoryExportAudio } from '../../services/storyExportAudio';
 import VideoThumb from '../../components/VideoThumb';
 import StudioRail, { type RailItem } from '../../components/stories/StudioRail';
-import TrimStrip from '../../components/stories/TrimStrip';
+import '../../components/stories/TrimStrip';
 import StudioSheet, { type StudioTile } from '../../components/stories/StudioSheet';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  storiesService, StoryTextSticker, StoryStickerStyle, MediaFit, MediaTransform,
-  StoryCategory, StoryTextBackground,
-} from '../../services/storiesService';
+import { StoryTextSticker, StoryStickerStyle, MediaFit, MediaTransform, StoryCategory, StoryTextBackground } from '../../services/storiesService';
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
-import { stickerTextStyle, STICKER_STYLES, STICKER_STYLE_LABELS, BASE_FONT_SIZES } from '../../utils/stickerStyles';
+import { STICKER_STYLES, STICKER_STYLE_LABELS, BASE_FONT_SIZES } from '../../utils/stickerStyles';
 import StickerOverlay from '../../components/stories/StickerOverlay';
 import StickerPill from '../../components/stories/StickerPill';
 import PollCard from '../../components/stories/PollCard';
@@ -46,13 +43,13 @@ import TierName from '../../components/TierName';
 import DraggableSticker from '../../components/stories/DraggableSticker';
 import type { SmartGuideEntry } from '../../components/stories/DraggableSticker';
 import MediaCanvas from '../../components/stories/MediaCanvas';
-import CategoryPicker from '../../components/stories/CategoryPicker';
+import '../../components/stories/CategoryPicker';
 import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
 import MusicSheet from '../../components/stories/MusicSheet';
 import { FilterLayer, FilterPickerSheet } from '../../components/stories/StoryFilters';
 import type { StoryAudioDraft } from '../../services/storiesService';
-import StickerIcon from '../../components/stories/StickerIcons';
-import VideoTrimmer, { autoSegments, STORY_MAX_SEC } from '../../components/stories/VideoTrimmer';
+import '../../components/stories/StickerIcons';
+import VideoTrimmer, { STORY_MAX_SEC } from '../../components/stories/VideoTrimmer';
 import DrawSurface, { DrawingLayer, type DrawStroke } from '../../components/stories/DrawLayer';
 import { MiniSlider, AdjustPanel, AdjustLayer, BackgroundSheet, BackgroundLayer, AudioMixSheet, EntitySheet, PreviewChrome, type StoryAdjust, type StoryBg, type StoryMix, type EntityPick } from '../../components/stories/storyPanels';
 import { EXTRA_TEXT_STYLES, EXTRA_TEXT_LABELS, composedTextStyle, TEXT_ANIMS, fetchWeatherNow, PHOTO_SHAPES, TIME_STYLES, DATE_STYLES, WEATHER_STYLES } from '../../components/stories/storyExtras';
@@ -62,17 +59,10 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
-import {
-  getBloomTools, BLOOM_RADIUS, INVOKE_SIZE, BLOOM_TOOL_SIZE,
-  type BloomToolDef,
-} from '../../components/stories/composerTheme';
-import DualArrangementOverlay, { type CompositionPreset } from '../../components/stories/DualArrangementOverlay';
+import { getBloomTools, BLOOM_TOOL_SIZE } from '../../components/stories/composerTheme';
+import DualArrangementOverlay from '../../components/stories/DualArrangementOverlay';
 import { PanGestureHandler, TapGestureHandler } from 'react-native-gesture-handler';
-import {
-  BUBBLE_BASE_WIDTH, BUBBLE_BASE_HEIGHT,
-  Z_BUBBLE, Z_STICKERS, Z_CHROME, Z_BLOOM, Z_SCRIM,
-  SHADOW_BUBBLE, SHADOW_CANVAS,
-} from '../../constants/motionDualMemory';
+import { Z_BUBBLE, Z_STICKERS, Z_CHROME, Z_BLOOM, Z_SCRIM, SHADOW_BUBBLE, SHADOW_CANVAS } from '../../constants/motionDualMemory';
 import {
   palette, surface, text as textColor, accent, border as borderColor,
   space, typeSize, fontWeight,

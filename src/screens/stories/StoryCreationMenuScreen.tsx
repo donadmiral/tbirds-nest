@@ -6,16 +6,13 @@
  */
 
 import React, { useRef, useEffect, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, StatusBar,
-  Alert, Animated, Pressable, Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert, Animated, Pressable } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
+import 'expo-haptics';
 
 const BG_TOP = '#060410';
 const BG_BOTTOM = '#020408';

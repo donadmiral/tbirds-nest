@@ -64,7 +64,7 @@ function harness({ previewRows = [], heldTable = null, rpc } = {}) {
     feedModeRef: { current: 'latest' }, countCacheRef: { current: {} }, likedPostsRef: { current: {} },
     useAuthStore: { getState: () => ({ profile: { id: currentUser } }) },
     loadFeed: () => Promise.resolve(), scheduleRefresh() {},
-    overlayCounts: rows => rows, feedModeToServer: mode => mode, isMuted: () => false,
+    overlayCounts: rows => rows, feedModeToServer: mode => mode, isMutedRef: { current: () => false },
     mapFeedRow: row => ({ ...row, id: row.post_id, user_id: row.author_id }),
     hydratePostMedia: async rows => rows, renewFeedMedia,
     hydrateShares() {}, hydrateCollabs() {}, hydratePolls() {}, scorePost: () => 0,

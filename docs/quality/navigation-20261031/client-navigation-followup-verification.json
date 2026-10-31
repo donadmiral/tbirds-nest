@@ -1,0 +1,132 @@
+{
+  "recordedAt": "2026-10-31T00:58:14.794667+00:00",
+  "baseCommit": "645fcb137bf32abf28bca176ee556982ed705540",
+  "status": "Local navigation regression follow-up passed; publication and hosted UI evidence are separate.",
+  "followupFiles": [
+    "web/components/ScrollMemory.tsx",
+    "tests/feed-capacity.test.cjs",
+    "tests/navigation-accessibility.test.cjs",
+    "tests/quality/auth-transport-deadline.cjs",
+    "web/tests/home-feed-scroll.cjs",
+    "web/tests/scroll-memory-regressions.cjs",
+    "web/tests/username-regressions.cjs",
+    "web/tests/browser/social-backend.ts",
+    "web/tests/browser/social-run.cjs"
+  ],
+  "sourceSha256": {
+    "App.tsx": "bb3803e3848df6381de83d3e9fe08eb34c3c5aede3f95c456b659b292f9eb4dd",
+    "shared/feedTabCache.ts": "70138e2f943a80618a2b868552d42286383c59819360b739d1b70b91bc80b90b",
+    "shared/navigationCache.ts": "3c96b45ecbc04af6c214423d83bca2564659906c1781acf1ab265df53e3969ba",
+    "src/lib/navigationCache.ts": "fa5c62b6cd32c5e7eedb8ecc0dd0e8614242e93f1d83bf0f1d0d65de7f05046a",
+    "src/lib/screenTransition.ts": "99bdc97888e10aeed4aca45182d393d55df2c2968cf180ef3a8c7a57d8f9e8ef",
+    "src/navigation/AppNavigator.tsx": "aac024846148a7ca191acf33418e9c103531a80d2a74f50333daefd28422afe0",
+    "src/screens/feed/FeedScreen.tsx": "63716b02d5d188293b1995a89fc4d3b08f26097bb7ad56aebf4728224f296f17",
+    "src/screens/feed/TrendFeedScreen.tsx": "303a18d4847fcfd5c07ac7262e5cc994cc1722d9b5559efb8b9ec182a66c3abc",
+    "src/screens/market/ListingDetailScreen.tsx": "9b7ea5dc6d3c6a741bbdee9edb67142299b2fa67f53244a29f352fe942147ad3",
+    "src/screens/messages/ConversationsScreen.tsx": "6145eb0aea042e3f09f08615a84de01cbddf0cc705a7bce096bf03d8ba390f7d",
+    "src/screens/profile/ProfileScreen.tsx": "2e2e1e71ec87f663377553da60e50772817a28ed93f32970450316dc60bc25a3",
+    "src/screens/profile/UserProfileScreen.tsx": "65a3addfc5c8c7f6bcb7c612e18b95124482e959318db626081521a4b05902cc",
+    "src/services/navigationInbox.ts": "a57af040468d24fb2c889b466d7c43a1b2bdc83b3cf86a1dfb456e3d491c7f96",
+    "tests/feed-capacity.test.cjs": "695b833a0df9a737d5207c1c2fc5ade485f198972adbc4062de220e405b6d575",
+    "tests/navigation-accessibility.test.cjs": "a7020e67bf9fa12a017cf461a7da9b251361956c7ac999fd7e4a4a5d4337a4ad",
+    "tests/quality/auth-transport-deadline.cjs": "e97901dbb3fa187aa945e4e5f7412eebba61f0ea953425daa0a997508d160efe",
+    "web/app/layout.tsx": "1d9ca63f06ac5c3f2af064cbdd90aabbc5fba48b008b1bc23361602550adc811",
+    "web/components/HomeFeed.tsx": "813b0c26c2d2f0e781793b5b3533f26950c1d8de841e385b9083175966f688b6",
+    "web/components/MessagesApp.tsx": "807789168a00ac0cfd2e0e9dda7d23ed8198acf5e036d49260910406ff33c0a3",
+    "web/components/MobileTabBar.tsx": "ce47efa602487c41e46ced7d072bb87a383b0e238b2c82749ed32e3aceab3c50",
+    "web/components/Nav.tsx": "587a676715e2d592547ec1e6711ec4a137d879ee7d91ea048c2270739b5aa397",
+    "web/components/NavigationLink.tsx": "4a47846d88d9f740a98e16f1e7a6192055db155e6741702b935c4a0b7ad7dca9",
+    "web/components/NavigationSessionBoundary.tsx": "3f20fc9b6f0ddeb2421210ae06cd6d327a2d674b6f4660670d30280f3fc8572f",
+    "web/components/ScrollMemory.tsx": "215972f9f86dc707f93a40375a161c032e89dbdebe79327b752fecbbb086dfdb",
+    "web/lib/homeFeedController.ts": "49ec99aacd306f377f58fbabf31be9d77f110ca840bfa08bb8c098705d58af5a",
+    "web/lib/messageNavigationMemory.ts": "8e74753dfc0b4f6c42efa4c3dc01f144c6dbfb4828c8c92a2b6ed8ee5d218412",
+    "web/lib/messages.ts": "a34df05afd0964c6989186caf8a5a77d790aa227be248267947a11f0d467f8d8",
+    "web/lib/navigationCache.ts": "64260f2f9c45c7ed8b8f78d15592e6601ce5f4aa1ba6d197d62ad2a0742d3295",
+    "web/next.config.ts": "187e1df815d6b95d6d047870866bbc912d6654372705df087b20772736582b57",
+    "web/tests/browser/social-backend.ts": "abe8801c292b4b6bdd6cdc4860eaeeb611e1e352fd14ad97c8f9ab638188901e",
+    "web/tests/browser/social-run.cjs": "bc3c1d4265812480a4340162573340b21783e6ed83fb21bc1bcb710c0aa15802",
+    "web/tests/home-feed-scroll.cjs": "a02d0f375893886abe18a7eba084a22436e17426dc30a444904ecdb222dab64e",
+    "web/tests/scroll-memory-regressions.cjs": "929a55159ec6aa2e3a8eb374f712e309fedbd77f127f4203b7232f7a23f4b668",
+    "web/tests/username-regressions.cjs": "c1b1d6d2c3eb1c33e8218a144a231128d6b6db9c3a667efbd931d19eae2502d6"
+  },
+  "fullNodeSuites": [
+    {
+      "command": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+      "cwd": ".",
+      "exitCode": 0,
+      "tests": 1447,
+      "suites": 0,
+      "pass": 1447,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 51458.942826,
+      "log": "followup-native-node.log",
+      "logSha256": "896ecf7614fb6c8ed02f70020ac4c65b723bde30f03b8b74e4db25c715d23528"
+    },
+    {
+      "command": "node --test --test-concurrency=2 tests/*.cjs",
+      "cwd": "web",
+      "exitCode": 0,
+      "tests": 606,
+      "suites": 0,
+      "pass": 606,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 23674.12994,
+      "log": "followup-web-node.log",
+      "logSha256": "99baac626431cf961dad0e07fae80d665734ecc4b31f6bfc99468d2fbada7b3a"
+    }
+  ],
+  "browser": {
+    "command": "PLATINUM_CHROMIUM=/tmp/platinum-gate-chrome/chrome-linux64/chrome PLATINUM_SOCIAL_ARTIFACTS=/tmp/platinum-navigation-social-followup node web/tests/browser/social-run.cjs",
+    "exitCode": 0,
+    "runtime": "153.0.8010.12",
+    "checks": 39,
+    "browserErrors": [],
+    "receipt": "followup-public-web-browser.json",
+    "receiptSha256": "dd72c22a805e49c77b17444ac32748c1cd5348b8bf81aa934b354de0637a1d73",
+    "log": "followup-public-web.log",
+    "logSha256": "ce9f68a3b29d884ed66507db73b7ffb7c9f3c6b59c1764640dfb968f41950489"
+  },
+  "typeChecks": [
+    {
+      "cwd": ".",
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "exitCode": 0,
+      "log": "followup-native-types.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "cwd": "web",
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "exitCode": 0,
+      "log": "followup-web-types.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "lint": {
+    "cwd": "web",
+    "command": "node node_modules/eslint/bin/eslint.js components/ScrollMemory.tsx tests/browser/social-backend.ts --max-warnings 0",
+    "exitCode": 0,
+    "errors": 0,
+    "warnings": 0,
+    "log": "followup-web-lint.log",
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "repairs": [
+    "Reject nonnumeric, nonfinite or negative remembered offsets before scheduling restoration.",
+    "Retain expiry, account-switch, refresh, accessibility and feed-cursor assertions while updating fixtures for the 30-minute scoped cache, current mute ref, prefetch callback and NavigationLink.",
+    "Exercise actual ScrollMemory with the real scoped cache: before-paint restore, delayed-height deadline, all four input cancellation events, late callback rejection, query separation, and sign-out/A-to-B-to-A invalidation.",
+    "Add PostgREST setHeader and abortSignal support to the synthetic browser backend; verify actual inbox table and unread RPC requests pin the account and carry a cancellation signal."
+  ],
+  "limits": [
+    "Node suites ran against the shared working tree rooted at baseCommit, including the separate memory lane fixtures; sourceSha256 binds the navigation files and this follow-up, not an immutable whole-repository build.",
+    "Chromium ran the actual public-web modules against synthetic database/Auth/media and Next navigation adapters. This does not prove live Supabase or external-provider acceptance.",
+    "This receipt does not claim physical-device navigation timing, full-app Simulator/Emulator acceptance, release deployment, or globally zero native lint warnings.",
+    "Android whole-book source remains an unpublished, separate capability-0 draft and is not accepted by these Node/browser checks."
+  ]
+}

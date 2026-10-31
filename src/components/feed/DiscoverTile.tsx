@@ -13,7 +13,7 @@ import { Image as ExpoImage } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
 import VerifiedBadge from '../VerifiedBadge';
 import VideoThumb from '../VideoThumb';
-import { light } from '../../constants/tokens';
+import '../../constants/tokens';
 
 type Media = { is_sensitive?: boolean; url: string; media_type: 'image' | 'video'; edit?: any };
 export type TilePost = {

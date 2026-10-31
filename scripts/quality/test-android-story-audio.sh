@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Execute the production Android story encoder in an isolated instrumentation
+# Execute the production Android story and memory encoders in an isolated instrumentation
 # app. Everything installed here is synthetic and local to this disposable AVD.
 # This is neither a signed product release nor physical-device acceptance.
 if [[ "$(uname -s)" != Linux || "${CI:-}" != true ]]; then
@@ -72,12 +72,15 @@ with tarfile.open(root / 'node_modules/expo/template.tgz') as archive:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(archive.extractfile(member).read())
 sources = [root / 'modules/boomerang/android/src/main/java/expo/modules/boomerang' / name
-           for name in ('StoryVideoComposition.kt', 'StoryVideoEffects.kt')]
+           for name in ('StoryVideoComposition.kt', 'StoryVideoEffects.kt', 'MemoryMovieComposition.kt')]
 if not all(path.is_file() for path in sources):
     raise SystemExit('The actual production encoder sources are required.')
+fixtures = sorted((root / 'scripts/quality/android-story-export/src/androidTest').rglob('*'))
+fixtures = [p for p in fixtures if p.is_file()]
 print(json.dumps({
     'expo': expo, 'nativeToolchain': {k: versions[k] for k in ('agp', 'kotlin', 'compileSdk', 'minSdk')},
     'productionSources': {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
+    'acceptanceSources': {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in fixtures},
     'gradleWrapperSha256': hashlib.sha256((wrapper / 'gradle/wrapper/gradle-wrapper.jar').read_bytes()).hexdigest(),
     'scope': 'Actual production engine sources in a standalone local-only Android instrumentation application.'
 }, indent=2))
@@ -132,7 +135,7 @@ fi
 # Gradle installs only the ephemeral debug-signed harness and instrumentation
 # APKs; it does not install the Platinum Circles application or access QA data.
 set +e
-timeout 1200 bash "$work_dir/wrapper/gradlew" -p "$harness" --no-daemon --console=plain --stacktrace \
+timeout 1800 bash "$work_dir/wrapper/gradlew" -p "$harness" --no-daemon --console=plain --stacktrace \
   --max-workers=2 '-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g' \
   -I "$repo_root/scripts/quality/android-media-dependencies.init.gradle" \
   "-PplatinumStoryMediaReceipt=$evidence/media3-runtime.json" \
@@ -195,7 +198,7 @@ if not tests:
 harness_source = Path('scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt')
 expected_tests = set(re.findall(r'@Test\s+fun\s+(\w+)\s*\(', harness_source.read_text()))
 observed_tests = {case['name'] for case in tests if case['class'] == 'expo.modules.boomerang.StoryAudioExportTest'}
-if len(expected_tests) < 12 or not expected_tests.issubset(observed_tests):
+if len(expected_tests) < 23 or expected_tests != observed_tests:
     raise SystemExit('The complete declared encoder acceptance suite did not execute.')
 device_receipt = evidence / 'device/receipt.json'
 if not device_receipt.is_file():
@@ -203,7 +206,22 @@ if not device_receipt.is_file():
 measured = json.loads(device_receipt.read_text())
 if measured.get('media3Version') != '1.8.1' or len(measured.get('cases', [])) < len(expected_tests):
     raise SystemExit('The emulator did not retain measurements for every encoder case.')
+memory_source = harness_source.with_name('MemoryMovieExportTest.kt')
+expected_memory = set(re.findall(r'@Test\s+fun\s+(\w+)\s*\(', memory_source.read_text()))
+observed_memory = {case['name'] for case in tests if case['class'] == 'expo.modules.boomerang.MemoryMovieExportTest'}
+if len(expected_memory) < 16 or expected_memory != observed_memory:
+    raise SystemExit('The complete memory movie acceptance suite did not execute.')
+memory_receipt = evidence / 'device/memory-receipt.json'
+if not memory_receipt.is_file():
+    raise SystemExit('The emulator did not produce its memory movie measurements.')
+memory_measured = json.loads(memory_receipt.read_text())
+memory_cases = memory_measured.get('cases', [])
+if memory_measured.get('media3Version') != '1.8.1' or len(memory_cases) != len(expected_memory) or {c.get('case') for c in memory_cases} != expected_memory or any(c.get('passed') is not True for c in memory_cases):
+    raise SystemExit('The retained memory measurements do not exactly cover the declared cases.')
 preflight = json.loads((evidence / 'preflight.json').read_text())
+for name, expected in preflight['acceptanceSources'].items():
+    if hashlib.sha256(Path(name).read_bytes()).hexdigest() != expected:
+        raise SystemExit('Acceptance sources or binary fixtures changed during instrumentation.')
 for name, expected in preflight['productionSources'].items():
     if hashlib.sha256(Path(name).read_bytes()).hexdigest() != expected:
         raise SystemExit('Production encoder source changed during instrumentation.')
@@ -216,15 +234,24 @@ if {p.name for p in generated_root.rglob('*.kt')} != {Path(name).name for name i
 movies = sorted((evidence / 'device').glob('*.mp4'))
 if not movies or any(p.stat().st_size < 1024 for p in movies):
     raise SystemExit('The emulator did not retain valid-sized encoded movie evidence.')
+expected_memory_movies = {'memory-continuous-music.mp4', 'memory-independent-audio.mp4', 'memory-local-effects.mp4',
+                         'memory-one-pass.mp4', 'memory-zero-volume.mp4', 'memory-cancel-retry.mp4', 'memory-muted-original.mp4'}
+if not expected_memory_movies.issubset({p.name for p in movies}):
+    raise SystemExit('A measured memory movie was not retained for independent decoding.')
+images = [evidence / 'device' / name for name in ('memory-normalized-alpha.png', 'memory-normalized-exif.png', 'memory-prepare-retry.png')]
+if any(not p.is_file() or p.stat().st_size < 32 for p in images):
+    raise SystemExit('The normalized image evidence is missing.')
 receipt = {
     'commit': os.environ.get('GITHUB_SHA'), 'workflowRun': os.environ.get('GITHUB_RUN_ID'),
-    'result': 'Android production story encoder instrumentation passed',
+    'result': 'Android production story and memory encoder instrumentation passed',
     'preflight': preflight,
     'compiledSourceCopiesVerified': True,
     'media3Runtime': json.loads((evidence / 'media3-runtime.json').read_text()),
     'emulatorBuild': (evidence / 'emulator-build.log').read_text().strip(),
     'instrumentationTests': tests, 'measuredReceipt': measured,
+    'memoryMeasuredReceipt': memory_measured,
     'movies': [{'name': p.name, 'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in movies],
+    'normalizedImages': [{'name': p.name, 'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in images],
     'physicalDeviceAcceptance': False, 'installedProductAcceptance': False,
     'qaOrProductionDataAccessed': False, 'storeReleaseOrUpload': False,
 }

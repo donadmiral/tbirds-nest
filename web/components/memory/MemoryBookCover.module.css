@@ -17,3 +17,5 @@
 .empty { display:flex; height:100%; align-items:center; justify-content:center; flex-direction:column; gap:5px; opacity:.48; font-family:Georgia,serif; }
 .responsive { position:relative; display:block; width:100%; aspect-ratio:200/262; }
 .responsiveInner { position:absolute; inset:0; }
+
+.inscription{position:absolute;display:block;background:#fff8e7f0;color:#322d25;box-shadow:0 1px 5px #20190e28;line-height:1.2;white-space:pre-wrap;overflow-wrap:anywhere;text-align:center;transform:rotate(-2deg)}

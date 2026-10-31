@@ -11,12 +11,9 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
-import {
-  DELAY_GESTURE_RESTORE,
-  HAPTIC_SWAP,
-} from '../../constants/motionDualMemory';
-import type { BubbleTransform, DualLayout } from '../../types/dualMemoryTransform';
+import 'expo-haptics';
+import { DELAY_GESTURE_RESTORE } from '../../constants/motionDualMemory';
+import type { BubbleTransform } from '../../types/dualMemoryTransform';
 import type { CompositionPreset } from '../../components/stories/DualArrangementOverlay';
 
 export interface ArrangementControllerInput {

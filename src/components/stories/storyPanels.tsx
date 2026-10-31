@@ -6,7 +6,7 @@ import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
  * viewer replays them from the same numbers.
  */
 import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, PanResponder, TextInput, ScrollView, ActivityIndicator, Dimensions, useWindowDimensions } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';

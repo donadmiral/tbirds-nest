@@ -4,6 +4,34 @@ const { createClient } = require('@supabase/supabase-js');
 const { createFixture, FixtureWebSocket, OWNER } = require('../native/backend-fixture.cjs');
 const origin = 'https://uaulhuelcfkjwojtymmw.supabase.co';
 
+test('fixture installation initializes the real WHATWG types behind React Native lazy fetch before overriding it', async () => {
+  const vm = require('node:vm');
+  const fs = require('node:fs');
+  const { installFixtureTransport } = require('../native/install-fixture-transport.cjs');
+  const source = fs.readFileSync(require.resolve('whatwg-fetch'), 'utf8');
+  const runtime = vm.createContext({ URL, URLSearchParams, setTimeout, clearTimeout, console });
+  let initialized = 0;
+  Object.defineProperty(runtime, 'fetch', {
+    configurable: true,
+    get() {
+      initialized++;
+      Object.defineProperty(runtime, 'fetch', { configurable: true, writable: true, value: undefined });
+      vm.runInContext(source, runtime);
+      return runtime.fetch;
+    },
+    set(value) { Object.defineProperty(runtime, 'fetch', { configurable: true, writable: true, value }); },
+  });
+  const fixture = createFixture();
+  installFixtureTransport(fixture, FixtureWebSocket, runtime);
+  assert.equal(initialized, 1);
+  assert.equal(runtime.fetch, fixture.fetch);
+  assert.equal(runtime.WebSocket, FixtureWebSocket);
+  const headers = new runtime.Headers({ Authorization: 'Bearer synthetic' });
+  assert.equal(headers.get('authorization'), 'Bearer synthetic');
+  const response = new runtime.Response(JSON.stringify({ ready: true }), { headers: { 'Content-Type': 'application/json' } });
+  assert.equal((await response.json()).ready, true);
+});
+
 test('native UI fixtures run the actual Supabase authentication and PostgREST adapters without a provider request', async () => {
   const fixture = createFixture();
   const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {

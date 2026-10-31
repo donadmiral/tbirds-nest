@@ -29,7 +29,7 @@ function frame(uri: string): Promise<string> {
   return request;
 }
 
-export default function VideoThumb({ uri, posterUri, size = 64, radius = 8, height, fill, chip = true }: { uri: string; posterUri?: string | null; size?: number; radius?: number; height?: number; fill?: boolean; chip?: boolean }) {
+export default function VideoThumb({ uri, posterUri, size = 64, radius = 8, height, fill, chip = true, contentPosition }: { uri: string; posterUri?: string | null; size?: number; radius?: number; height?: number; fill?: boolean; chip?: boolean; contentPosition?: { left: `${number}%`; top: `${number}%` } }) {
   const h = height ?? size;
   const [failedPoster, setFailedPoster] = useState<string | null>(null);
   const usePoster = !!posterUri && failedPoster !== posterUri;
@@ -50,7 +50,7 @@ export default function VideoThumb({ uri, posterUri, size = 64, radius = 8, heig
   const failed = !usePoster && preview.source === uri && preview.failed;
   return (
     <View pointerEvents="none" accessibilityLabel={thumb ? 'Video preview' : failed ? 'Video preview unavailable. Open the post to retry.' : 'Loading video preview'} style={fill ? { width: '100%', height: '100%', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' } : { width: size, height: h, borderRadius: radius, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-      {thumb ? <ExpoImage source={{ uri: thumb }} style={fill ? { width: '100%', height: '100%' } : { width: size, height: h }} contentFit="cover" onError={() => {
+      {thumb ? <ExpoImage source={{ uri: thumb }} style={fill ? { width: '100%', height: '100%' } : { width: size, height: h }} contentFit="cover" contentPosition={contentPosition} onError={() => {
         if (usePoster) { setFailedPoster(posterUri!); return; }
         cache.delete(uri); setPreview({ source: uri, thumb: null, failed: true });
       }} /> : failed ? <Text numberOfLines={2} style={{ color: '#FFFFFF', fontSize: 11, textAlign: 'center', padding: 6 }}>Preview unavailable</Text> : <ActivityIndicator size="small" color="#FFFFFF" />}

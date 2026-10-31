@@ -171,7 +171,7 @@ test('actual native tab tree lands business accounts in Studio and personal acco
   const code = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   for (const account_type of ['business', 'personal', 'creator', undefined]) {
     const exports = {}, jsx = (type, props) => ({ type, props });
-    const scope = { exports, require: () => ({ jsx, jsxs: jsx }), useTheme: () => ({ t: {}, isDark: false }), useNavigationAccessibility: () => ({}), useSafeAreaInsets: () => ({ bottom: 0 }),
+    const scope = { exports, require: () => ({ jsx, jsxs: jsx }), React: { useCallback: fn => fn }, useTheme: () => ({ t: {}, isDark: false }), useNavigationAccessibility: () => ({}), useSafeAreaInsets: () => ({ bottom: 0 }),
       useAuthStore: selector => selector({ profile: { id: account_type || 'unknown', account_type } }), useState: value => [value, () => {}], useEffect() {}, Platform: { OS: 'ios' },
       Tab: { Navigator: 'Navigator', Screen: 'Screen' }, FeedStackNav: 'Feed', NetworkStackNav: 'Market', StudioScreen: 'Studio', JobsStackNav: 'Jobs', MessagesStackNav: 'Messages', ProfileStackNav: 'Profile',
     };

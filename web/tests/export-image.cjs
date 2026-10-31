@@ -5,16 +5,17 @@ const fixture = name => fs.readFileSync(path.join(__dirname, 'fixtures/export-im
 function load({ fetcher = fetch, timers = { setTimeout, clearTimeout } } = {}) {
   const modules = new Map();
   function source(name) {
+    name=path.resolve(name);
     if (modules.has(name)) return modules.get(name);
-    const exported = {}, code = ts.transpileModule(fs.readFileSync(path.join(root, 'lib', name + '.ts'), 'utf8'), {
+    const exported = {}, code = ts.transpileModule(fs.readFileSync(name + '.ts', 'utf8'), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     }).outputText;
     modules.set(name, exported);
-    vm.runInNewContext(code, { exports: exported, require: dependency => source(dependency.replace('./', '')),
+    vm.runInNewContext(code, { exports: exported, require: dependency => source(path.resolve(path.dirname(name),dependency)),
       Uint8Array, DataView, Blob, AbortController, Error, ...timers, fetch: fetcher });
     return exported;
   }
-  return source('exportImage');
+  return source(path.join(root,'lib','exportImage'));
 }
 const inspector = load();
 const unsupported = /Animated image files and GIFs cannot be exported/;

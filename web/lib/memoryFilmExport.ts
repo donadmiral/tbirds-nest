@@ -1,47 +1,25 @@
+import {memoryMovieLimit} from '../../shared/memoryMovieSupport';
 import { readSoundtrack, type SoundtrackSelection } from '../../shared/soundtrack';
 import { libraryExportAudio, assertLibraryExportRights } from './libraryExportAudio';
-import { MEMORY_SCORE_DUCK, memoryFilmItems, memoryPageSoundtrack, memoryFilmPhotoDuration, memoryFilmVideoWindow, type MemoryFilmItem, type MemoryFilmPage } from '../../shared/memoryFilm';
+import { MEMORY_SCORE_DUCK, memoryFilmItems, memoryPageSoundtrack, memoryFilmVideoWindow, type MemoryFilmPage } from '../../shared/memoryFilm';
+import {planMemoryMovie,memoryMovieTimeline,memoryMovieVisual,type MemoryMovieTimelineItem} from '../../shared/memoryMoviePlan';
 import { memoryStoryStickers } from '../../shared/memoryStoryPresentation';
 import { storyPhotoColorMatrix } from '../../shared/storyColorMatrix';
-import { storyVideoExportLimit, storyVideoLayerWindows, storyVideoMime, type StoryVideoRecipe } from '../../shared/storyVideoComposition';
+import { storyVideoLayerWindows, storyVideoMime, type StoryVideoRecipe } from '../../shared/storyVideoComposition';
 import { createStoryVideoRenderer } from './storyVideoExport';
 import { finalizeRecordedWebm } from './recordedWebm';
 import { decodeExportAudio, exportCancelled, exportStep, playExportAudio, type LocalExportAudio } from './videoExportAudio';
 
 export const MEMORY_MOVIE_WIDTH = 720, MEMORY_MOVIE_HEIGHT = 1280;
-export const MEMORY_MOVIE_MAX_PAGES = 30, MEMORY_MOVIE_MAX_SECONDS = 300;
+export const MEMORY_MOVIE_MAX_PAGES = 80, MEMORY_MOVIE_MAX_SECONDS = 300;
 type ExportPage = MemoryFilmPage & { dual_front_url?: string | null; audio_url?: string | null; audio_title?: string | null };
 export type MemoryMovieProgress = { phase: 'preparing' | 'rendering' | 'finishing'; message: string; percent: number };
-export type MemoryMovieCapture = { item: MemoryFilmItem; layer: 'background' | 'overlay'; clock: number };
+export type MemoryMovieCapture = { item: MemoryMovieTimelineItem; layer: 'background' | 'overlay'; clock: number };
 type Raster = { image: Blob; start: number; end: number };
-type Scene = { item: MemoryFilmItem; pageSound: SoundtrackSelection | null; duration: number; start: number; recipe: StoryVideoRecipe | null; background: Blob; layers: Raster[] };
+type Scene = { item: MemoryMovieTimelineItem; pageSound: SoundtrackSelection | null; duration: number; start: number; recipe: StoryVideoRecipe | null; background: Blob; layers: Raster[] };
 type ReadyScene = { scene: Scene; pageAudio: {buffer:AudioBuffer;selection:LocalExportAudio}|null; video: HTMLVideoElement | null; renderer: ReturnType<typeof createStoryVideoRenderer> | null; background: ImageBitmap; layers: { image: ImageBitmap; start: number; end: number }[]; gain: GainNode | null; source: MediaElementAudioSourceNode | null; dispose: () => void };
 
-/** Whole movies are all-or-nothing. An unavailable layer is never replaced by its poster. */
-export function memoryMovieLimit(pages: readonly ExportPage[], soundtrack?: unknown): string | null {
-  if (!pages.length) return 'Add a memory before downloading a movie.';
-  if (pages.length > MEMORY_MOVIE_MAX_PAGES) return `A browser movie can contain up to ${MEMORY_MOVIE_MAX_PAGES} memories. Create a shorter book before exporting.`;
-  if (soundtrack&&!readSoundtrack(soundtrack)) return 'Choose the book soundtrack again before exporting.';
-  const items = memoryFilmItems(pages);
-  for (let index = 0; index < pages.length; index++) {
-    const page = pages[index], item = items[index], prefix = `Memory ${index + 1}: `;
-    if (page.dual_front_url) return prefix + 'dual-camera composition cannot be exported yet. The second camera will not be discarded.';
-    if ((page.audio_url || page.audio_title) && !memoryPageSoundtrack(page)) return prefix + 'this older added audio needs verification. Upload the original and select it again before exporting.';
-    if ((page.media_type === 'image' || page.media_type === 'video') && !item.uri) return prefix + 'the original media is unavailable. Refresh the book and try again.';
-    if (item.uri && /\.gif(?:[?#]|$)|^data:image\/gif/i.test(item.uri)) return prefix + 'animated GIF media cannot be exported yet.';
-    const stickers = memoryStoryStickers(page.stickers);
-    const posts = stickers.filter(sticker => sticker.kind === 'post');
-    if (posts.length && (page.media_url || posts.length > 1)) return prefix + 'a shared-post card layered over another memory cannot be exported yet. The card will not be left out.';
-    if (posts.length && !page.media_url && (posts[0].postMediaType === 'image' || posts[0].postMediaType === 'video') && !item.uri) return prefix + 'the original shared media is unavailable. Refresh the book and try again.';
-    if (posts.some(post => post.postMediaEdit || post.postMediaPlayback)) return prefix + 'this shared post has its own media edits that movie export cannot reproduce yet. Its edits will not be discarded.';
-    // A shared post may itself be the primary media. Any other embedded video
-    // remains unsupported; the primary one is rendered as an actual video.
-    const artwork = stickers.filter(sticker => !(sticker.kind === 'post' && !page.media_url && sticker.postMediaUrl === item.uri));
-    const problem = storyVideoExportLimit(artwork);
-    if (problem) return prefix + problem;
-  }
-  return null;
-}
+export {memoryMovieLimit} from '../../shared/memoryMovieSupport';
 
 async function videoReady(url: string, signal: AbortSignal, start?: number) {
   const video = document.createElement('video'); video.crossOrigin = 'anonymous'; video.playsInline = true; video.preload = start == null ? 'metadata' : 'auto'; video.muted = true;
@@ -54,7 +32,7 @@ async function videoReady(url: string, signal: AbortSignal, start?: number) {
   };
   try {
     const metadata = wait('loadedmetadata'); video.src = url; video.load(); await metadata;
-    if (!Number.isFinite(video.duration) || video.duration <= 0 || !video.videoWidth || !video.videoHeight) throw new Error('A memory video has no finite duration or readable dimensions.');
+    if (!Number.isFinite(video.duration) || video.duration <= 0 || !video.videoWidth || !video.videoHeight || video.videoWidth>4096 || video.videoHeight>4096 || video.videoWidth*video.videoHeight>9_000_000) throw new Error('A memory video has no finite duration or readable dimensions.');
     if (start != null) {
       if (start > .001) { const sought = wait('seeked'); video.currentTime = start; await sought; if (Math.abs(video.currentTime - start) > .05) throw new Error('A memory video could not seek to its saved trim. No movie was created.'); }
       else if (video.readyState < 2) await wait('loadeddata');
@@ -74,13 +52,14 @@ async function raster(canvas: HTMLCanvasElement, signal: AbortSignal, background
 
 /** A finite, local movie with one continuous media timeline and bounded decoded memory. */
 export async function exportMemoryMovie(options: {
-  pages: readonly ExportPage[]; soundtrack?: unknown; signal: AbortSignal;
+  pages: readonly ExportPage[]; title?:string; filmSettings?:unknown; reduceMotion?:boolean; soundtrack?: unknown; signal: AbortSignal;
   originalAudio: boolean; score: { url: string; volume: number } | null; localAudio?: LocalExportAudio | null;
   capture: (request: MemoryMovieCapture, signal: AbortSignal) => Promise<HTMLCanvasElement>;
   progress: (progress: MemoryMovieProgress) => void;
 }): Promise<{ blob: Blob; extension: 'mp4' | 'webm'; duration: number; memories: number }> {
-  const problem = memoryMovieLimit(options.pages, options.soundtrack); if (problem) throw new Error(problem);
-  const savedMusic=readSoundtrack(options.soundtrack),pageSounds=options.pages.map(memoryPageSoundtrack).filter((value):value is SoundtrackSelection=>!!value);
+  const problem = memoryMovieLimit(options.pages, options.soundtrack,options.filmSettings); if (problem) throw new Error(problem);
+  const selectedPages=planMemoryMovie(options.pages,options.filmSettings).scenes.map(scene=>options.pages[scene.sourceIndex]);
+  const savedMusic=readSoundtrack(options.soundtrack),pageSounds=selectedPages.map(memoryPageSoundtrack).filter((value):value is SoundtrackSelection=>!!value);
   if(savedMusic&&options.localAudio)throw new Error('Remove the extra export audio to use your saved book soundtrack, or remove the book soundtrack first.');
   if(savedMusic)options={...options,score:null};
   if (typeof MediaRecorder === 'undefined' || typeof createImageBitmap === 'undefined') throw new Error('Movie export needs a current desktop browser with canvas recording.');
@@ -99,7 +78,7 @@ export async function exportMemoryMovie(options: {
   let scoreBuffer: AudioBuffer | null = null, localBuffer: AudioBuffer | null = null, scoreGain: GainNode | null = null;
   const stopAudio: (() => void)[] = [], ready = new Map<number, ReadyScene>(), pending = new Map<number, Promise<ReadyScene>>();
   let stream: MediaStream | null = null, recorder: MediaRecorder | null = null, frame = 0, watchdog: ReturnType<typeof setTimeout> | undefined, cleanupRecording = () => {};
-  const scenes: Scene[] = [], chunks: Blob[] = []; let duration = 0, recordedSeconds = 0, bytes = 0, captures = 0;
+  const scenes: Scene[] = [], chunks: Blob[] = []; let duration = 0, recordedSeconds = 0, bytes = 0, captures = 0, rasterBytes=0;let selectedCount=0;
   try {
     visibility(); call(); exportCancelled(signal);
     // Resume in the deliberate Download button gesture, before any fetch/capture.
@@ -121,23 +100,29 @@ export async function exportMemoryMovie(options: {
       scoreBuffer = await exportStep(audio.decodeAudioData(score), signal, 'The original memory score could not be decoded.');
       if (!Number.isFinite(scoreBuffer.duration) || scoreBuffer.duration <= 0 || scoreBuffer.duration > 180) throw new Error('The original memory score is invalid.');
     }
-    const items = memoryFilmItems(options.pages);
+    const initialPlan=planMemoryMovie(options.pages,options.filmSettings),sourceItems=memoryFilmItems(options.pages),durations:Record<string,number>={};
+    for(const scene of initialPlan.scenes){if(scene.kind!=='video')continue;exportCancelled(signal);const source=sourceItems[scene.sourceIndex];
+      options.progress({phase:'preparing',message:'Reading the movie’s video timing…',percent:0});
+      const video=await videoReady(source.uri!,signal);try{durations[source.id]=video.duration;}finally{video.pause();video.removeAttribute('src');video.load();}
+    }
+    const plan=planMemoryMovie(options.pages,options.filmSettings,durations);if(plan.estimated)throw new Error('A movie video duration could not be verified.');
+    const items=memoryMovieTimeline(options.pages,plan,options.title||'Memories');selectedCount=plan.selectedCount;
     for (let index = 0; index < items.length; index++) {
       exportCancelled(signal); const item = items[index];
-      options.progress({ phase: 'preparing', message: `Preparing memory ${index + 1} of ${items.length}…`, percent: Math.round(index / items.length * 100) });
-      let seconds = memoryFilmPhotoDuration(item) / 1000, recipe: StoryVideoRecipe | null = null;
+      options.progress({ phase: 'preparing', message: `Preparing scene ${index + 1} of ${items.length}…`, percent: Math.round(index / items.length * 100) });
+      const seconds=item.movie.durationSec;let recipe: StoryVideoRecipe | null = null;
       if (item.kind === 'video') {
-        const video = await videoReady(item.uri!, signal);
-        try {
-          const window = memoryFilmVideoWindow(item.page, video.duration); seconds = window.seconds!;
-          recipe = { width: MEMORY_MOVIE_WIDTH, height: MEMORY_MOVIE_HEIGHT, trimStart: window.start, trimEnd: window.end!, speed: window.speed, volume: options.originalAudio ? window.volume : 0, fit: window.fit, scale: window.scale, x: window.x, y: window.y, matrix: storyPhotoColorMatrix({ filterId: item.page.filter_id, filterAmt: window.filterAmt, adjust: window.adjust }) };
-        } finally { video.pause(); video.removeAttribute('src'); video.load(); }
+        const window=memoryFilmVideoWindow(item.page,durations[item.id]);
+        if(window.end==null||window.seconds==null||Math.abs(window.seconds-seconds)>.05)throw new Error('A memory’s video timing changed while preparing the movie.');
+        recipe = { width: MEMORY_MOVIE_WIDTH, height: MEMORY_MOVIE_HEIGHT, trimStart: window.start, trimEnd: window.end, speed: window.speed, volume: options.originalAudio ? window.volume : 0, fit: window.fit, scale: window.scale, x: window.x, y: window.y, matrix: storyPhotoColorMatrix({ filterId: item.page.filter_id, filterAmt: window.filterAmt, adjust: window.adjust }) };
       }
-      if (duration + seconds > MEMORY_MOVIE_MAX_SECONDS) throw new Error('This movie is longer than five minutes. Create a shorter book before exporting.');
+      if (duration + seconds > MEMORY_MOVIE_MAX_SECONDS+.001) throw new Error('This movie is longer than five minutes. Create a shorter book before exporting.');
       const windows = storyVideoLayerWindows(memoryStoryStickers(item.page.stickers), recipe || { trimStart: 0, trimEnd: seconds, speed: 1 });
-      captures += 1 + windows.length; if (captures > 120) throw new Error('This book has too many timed artwork changes for a browser movie. Simplify its layers before exporting.');
+      captures += 1 + windows.length; if (captures > 322) throw new Error('This book has too many timed artwork changes for a browser movie. Simplify its layers before exporting.');
       const background = await raster(await options.capture({ item, layer: 'background', clock: recipe?.trimStart || 0 }, signal), signal, true), layers: Raster[] = [];
-      for (const window of windows) layers.push({ image: await raster(await options.capture({ item, layer: 'overlay', clock: window.clock }, signal), signal), start: window.start, end: window.end });
+      rasterBytes+=background.size;
+      for (const window of windows) {const image=await raster(await options.capture({ item, layer: 'overlay', clock: window.clock }, signal), signal);rasterBytes+=image.size;layers.push({image,start:window.start,end:window.end});}
+      if(rasterBytes>192*1024*1024)throw new Error('The movie’s artwork exceeds the browser memory limit. Choose a shorter cut.');
       scenes.push({ item, pageSound:memoryPageSoundtrack(item.page), duration: seconds, start: duration, recipe, background, layers }); duration += seconds;
     }
     const prepare = (index: number): Promise<ReadyScene> => {
@@ -170,9 +155,12 @@ export async function exportMemoryMovie(options: {
     const canvas = document.createElement('canvas'); canvas.width = MEMORY_MOVIE_WIDTH; canvas.height = MEMORY_MOVIE_HEIGHT;
     const context = canvas.getContext('2d'); if (!context || !canvas.captureStream) throw new Error('This browser cannot record a memory movie.');
     const draw = (item: ReadyScene, time: number) => {
-      context.clearRect(0, 0, canvas.width, canvas.height); context.drawImage(item.background, 0, 0);
+      const visual=memoryMovieVisual(item.scene.item,time/item.scene.duration,options.reduceMotion);
+      context.save();context.fillStyle='#000000';context.fillRect(0,0,canvas.width,canvas.height);context.globalAlpha=visual.opacity;
+      context.translate(canvas.width/2+visual.x*canvas.width,canvas.height/2+visual.y*canvas.height);context.scale(visual.scale,visual.scale);context.translate(-canvas.width/2,-canvas.height/2);context.drawImage(item.background, 0, 0);
       if (item.renderer) { item.renderer.draw(); context.drawImage(item.renderer.canvas, 0, 0); }
       for (const layer of item.layers) if (time >= layer.start && time < layer.end) context.drawImage(layer.image, 0, 0);
+      context.restore();
     };
     draw(ready.get(0)!, 0); stream = canvas.captureStream(30);
     audioDestination?.stream.getAudioTracks().forEach(track => stream!.addTrack(track));
@@ -231,7 +219,7 @@ export async function exportMemoryMovie(options: {
     if (blob.size < 1024) throw new Error('The movie file is empty. No file was saved.');
     if(savedMusic)await assertLibraryExportRights(savedMusic,'memory_album',signal);
     for(const selection of new Map(pageSounds.map(sound=>[sound.soundId,sound])).values())await assertLibraryExportRights(selection,'memory_album',signal);
-    return { blob, extension: blob.type.includes('mp4') ? 'mp4' : 'webm', duration, memories: scenes.length };
+    return { blob, extension: blob.type.includes('mp4') ? 'mp4' : 'webm', duration, memories: selectedCount };
   } finally {
     if (!signal.aborted) controller.abort(new Error('Movie export finished.'));
     options.signal.removeEventListener('abort', cancel); document.removeEventListener('visibilitychange', visibility); window.removeEventListener('platinum:stop-media', interrupted); observer.disconnect();

@@ -15,7 +15,8 @@ export function ScrollMemory() {
     const scope = session.scope;
     if (!scope || session.changed) return;
     const key = `scroll:${pathname}?${search}`;
-    const saved = store.cache.read<number>(scope, key) ?? 0;
+    const stored = store.cache.read<number>(scope, key);
+    const saved = typeof stored === 'number' && Number.isFinite(stored) && stored >= 0 ? stored : 0;
     let lastTop = saved, active = true, restoring = saved > 0, frame = 0;
     const started = performance.now();
     const sameRoute = () => window.location.pathname === pathname && new URLSearchParams(window.location.search).toString() === search;

@@ -10,6 +10,15 @@ public class BoomerangModule: Module {
 
     Constant("storyVideoVersion") { 1 }
     Constant("storyAudioExportVersion") { 1 }
+    // Activated only after the whole-book generated-file acceptance gate passes.
+    Constant("memoryMovieVersion") { 0 }
+    AsyncFunction("composeMemoryMovie") { (request: [String: Any]) async throws -> [String: Any] in
+      try await MemoryMovieComposition.make(request)
+    }
+    AsyncFunction("prepareMemoryMovieImage") { (request: [String: Any]) async throws -> [String: Any] in
+      try await MemoryMovieComposition.prepareImage(request)
+    }
+    AsyncFunction("cancelMemoryMovie") { (id: String) in MemoryMovieComposition.cancel(id) }
     AsyncFunction("composeStory") { (request: [String: Any]) async throws -> [String: Any] in
       try await StoryVideoComposition.make(request)
     }

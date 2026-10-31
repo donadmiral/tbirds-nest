@@ -28,7 +28,7 @@ async function step<T>(work: PromiseLike<T>, signal: AbortSignal, timeout = 2000
 /** Library audio requires current server export rights. Local voiceover requires
  * its saved publication attestation. Staged files never become draft URLs. */
 export async function prepareStoryExportAudio(audio: StoryAudioDraft, volume: number, owner: string | null,
-  signal: AbortSignal, assertCurrent: () => void): Promise<PreparedStoryExportAudio> {
+  signal: AbortSignal, assertCurrent: () => void, use: 'story'|'memory_album' = 'story'): Promise<PreparedStoryExportAudio> {
   if (!owner || !Number.isFinite(volume) || volume < 0 || volume > 1 || !FileSystem.cacheDirectory) throw new Error('This soundtrack cannot be prepared for export.');
   const selection = { ...audio };
   let changed = false, released = false;
@@ -55,7 +55,7 @@ export async function prepareStoryExportAudio(audio: StoryAudioDraft, volume: nu
       return null;
     }
     if (selection.kind !== 'sound' || !selection.soundId) throw new Error('Choose verified audio from your library.');
-    const track = await step(authorizeLibraryAudioExport(supabase, { soundId: selection.soundId, startSec: selection.startSec ?? 0, durationSec: selection.durationSec ?? NaN }, 'story'), signal);
+    const track = await step(authorizeLibraryAudioExport(supabase, { soundId: selection.soundId, startSec: selection.startSec ?? 0, durationSec: selection.durationSec ?? NaN }, use), signal);
     ensure();
     return track;
   };

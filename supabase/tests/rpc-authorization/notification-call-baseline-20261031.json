@@ -1,0 +1,23 @@
+{
+  "triggers": [
+    "CREATE TRIGGER call_context_guard BEFORE INSERT ON public.call_sessions FOR EACH ROW EXECUTE FUNCTION guard_call_context()",
+    "CREATE TRIGGER call_session_lifecycle_guard BEFORE INSERT OR UPDATE ON public.call_sessions FOR EACH ROW EXECUTE FUNCTION guard_call_session_lifecycle()"
+  ],
+  "functions": [
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "md5": "28cfc14a15feb3568f32c34c9503fa7e",
+      "signature": "guard_call_context()",
+      "definition": "CREATE OR REPLACE FUNCTION public.guard_call_context()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nBEGIN\n IF auth.uid() IS NULL OR NEW.initiator_id IS DISTINCT FROM auth.uid() THEN RAISE EXCEPTION 'Call initiator must be the signed-in account' USING ERRCODE='42501'; END IF;\n IF NEW.is_group_call THEN\n   IF NEW.receiver_id IS NOT NULL OR NOT EXISTS(SELECT 1 FROM public.conversations c WHERE c.id=NEW.conversation_id AND c.is_group)\n     OR NOT public.is_conversation_member(NEW.conversation_id,auth.uid()) THEN\n     RAISE EXCEPTION 'Call requires current group membership' USING ERRCODE='42501';\n   END IF;\n ELSE\n   IF NEW.receiver_id IS NULL OR NEW.receiver_id=NEW.initiator_id OR EXISTS(\n     SELECT 1 FROM public.blocked_users b WHERE (b.blocker_id=NEW.initiator_id AND b.blocked_id=NEW.receiver_id)\n       OR (b.blocker_id=NEW.receiver_id AND b.blocked_id=NEW.initiator_id)) THEN\n     RAISE EXCEPTION 'Call is not available' USING ERRCODE='42501';\n   END IF;\n   IF NEW.conversation_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.conversations c WHERE c.id=NEW.conversation_id AND NOT c.is_group\n       AND ((c.user_1=NEW.initiator_id AND c.user_2=NEW.receiver_id) OR (c.user_2=NEW.initiator_id AND c.user_1=NEW.receiver_id))) THEN\n     RAISE EXCEPTION 'Call participants do not match the conversation' USING ERRCODE='42501';\n   END IF;\n END IF;\n RETURN NEW;\nEND;\n$function$\n"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "md5": "011d59f7065ed82f12f5d8965e79d37e",
+      "signature": "guard_call_session_lifecycle()",
+      "definition": "CREATE OR REPLACE FUNCTION public.guard_call_session_lifecycle()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nBEGIN\n IF TG_OP='INSERT' THEN\n   IF NEW.status<>'ringing' THEN RAISE EXCEPTION 'New calls must ring first' USING ERRCODE='42501'; END IF;\n   NEW.created_at:=now(); NEW.expires_at:=now()+interval '90 seconds';\n   NEW.started_at:=NULL; NEW.ended_at:=NULL; NEW.duration_sec:=NULL;\n   RETURN NEW;\n END IF;\n IF NEW.id IS DISTINCT FROM OLD.id OR NEW.initiator_id IS DISTINCT FROM OLD.initiator_id\n   OR NEW.receiver_id IS DISTINCT FROM OLD.receiver_id OR NEW.conversation_id IS DISTINCT FROM OLD.conversation_id\n   OR NEW.is_group_call IS DISTINCT FROM OLD.is_group_call OR NEW.created_at IS DISTINCT FROM OLD.created_at\n   OR NEW.expires_at IS DISTINCT FROM OLD.expires_at OR to_jsonb(NEW)->'is_video' IS DISTINCT FROM to_jsonb(OLD)->'is_video'\n   OR to_jsonb(NEW)->'call_type' IS DISTINCT FROM to_jsonb(OLD)->'call_type' THEN\n   RAISE EXCEPTION 'Call identity is immutable' USING ERRCODE='42501';\n END IF;\n NEW.started_at:=OLD.started_at; NEW.ended_at:=OLD.ended_at; NEW.duration_sec:=OLD.duration_sec;\n IF NEW.status IS DISTINCT FROM OLD.status THEN\n   IF OLD.status NOT IN('ringing','active') OR NEW.status NOT IN('active','ended','declined','missed')\n     OR (OLD.status='active' AND NEW.status NOT IN('ended')) THEN\n     RAISE EXCEPTION 'Invalid call transition' USING ERRCODE='42501';\n   END IF;\n   IF NEW.status='active' THEN\n     IF coalesce(OLD.expires_at,OLD.created_at+interval '90 seconds')<=now() THEN RAISE EXCEPTION 'Call expired'; END IF;\n     IF NOT OLD.is_group_call AND auth.uid() IS DISTINCT FROM OLD.receiver_id THEN RAISE EXCEPTION 'Only the receiver can answer' USING ERRCODE='42501'; END IF;\n     IF OLD.is_group_call AND NOT EXISTS(SELECT 1 FROM public.call_participants WHERE call_session_id=OLD.id AND status='joined' AND user_id<>OLD.initiator_id) THEN RAISE EXCEPTION 'No answering participant'; END IF;\n     NEW.started_at:=now();\n   ELSE\n     NEW.ended_at:=now(); NEW.duration_sec:=greatest(0,extract(epoch FROM(now()-coalesce(OLD.started_at,now())))::int);\n   END IF;\n END IF;\n RETURN NEW;\nEND;\n$function$\n"
+    }
+  ],
+  "observed_at": "2026-10-31T01:02:56.668482+00:00",
+  "project": "uaulhuelcfkjwojtymmw",
+  "scope": "Read-only definition/trigger capture. No rows, JWTs, push tokens or secrets."
+}

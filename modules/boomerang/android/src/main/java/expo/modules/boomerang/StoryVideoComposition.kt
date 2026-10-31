@@ -61,6 +61,13 @@ object StoryVideoComposition {
   private val main = Handler(Looper.getMainLooper())
   private val lock = Any()
   private var active: Job? = null
+  private var memoryOwner: String? = null
+
+  /** Reserve the renderer for an entire book, including private image preparation. */
+  internal fun reserveMemory(id: String): Boolean = synchronized(lock) {
+    if (active != null || memoryOwner != null) false else { memoryOwner = id; true }
+  }
+  internal fun releaseMemory(id: String) { synchronized(lock) { if (memoryOwner == id) memoryOwner = null } }
 
   private class Job(val id: String, val callback: (Result<Map<String, Any>>) -> Unit) {
     val thread = HandlerThread("PlatinumStoryExport")
@@ -86,18 +93,20 @@ object StoryVideoComposition {
     }
     val job = Job(id, callback)
     synchronized(lock) {
-      if (active != null) {
+      if (active != null || memoryOwner != null) {
         callback(Result.failure(IllegalStateException("Another video is still exporting."))); return
       }
       active = job
       job.thread.start()
       job.handler = Handler(job.thread.looper)
-    }
-    val timeout = Runnable { cancelJob(job) }; job.timeout = timeout
-    main.postDelayed(timeout, TIMEOUT_MS)
-    job.handler.post {
-      try { job.check(); prepare(context.applicationContext, request, job) }
-      catch (error: Exception) { finish(job, Result.failure(error)) }
+      // Register the deadline before another thread can cancel and finish the
+      // visible job, so shutdown always removes its actual pending monitor.
+      val timeout = Runnable { cancelJob(job) }; job.timeout = timeout
+      main.postDelayed(timeout, TIMEOUT_MS)
+      job.handler.post {
+        try { job.check(); prepare(context.applicationContext, request, job) }
+        catch (error: Exception) { finish(job, Result.failure(error)) }
+      }
     }
   }
 
@@ -147,10 +156,10 @@ object StoryVideoComposition {
     job.thread.quitSafely()
   }
 
-  private data class MediaInfo(val duration: Double, val hasVideo: Boolean, val hasAudio: Boolean,
+  internal data class MediaInfo(val duration: Double, val hasVideo: Boolean, val hasAudio: Boolean,
     val audioStart: Double = 0.0, val audioEnd: Double = 0.0)
 
-  private fun media(file: File): MediaInfo {
+  internal fun media(file: File): MediaInfo {
     val extractor = MediaExtractor()
     try {
       extractor.setDataSource(file.path)
@@ -197,7 +206,7 @@ object StoryVideoComposition {
     } finally { extractor.release() }
   }
 
-  private fun local(context: Context, raw: Any?, output: Boolean = false): File {
+  internal fun local(context: Context, raw: Any?, output: Boolean = false): File {
     val text = raw as? String ?: error("The export file is missing.")
     val uri = Uri.parse(text)
     require(uri.scheme == "file" && uri.host.isNullOrEmpty() && uri.query == null && uri.fragment == null) { "Export requires local media files." }
@@ -304,13 +313,13 @@ object StoryVideoComposition {
     return destination
   }
 
-  private fun image(file: File) {
+  internal fun image(file: File) {
     val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeFile(file.path, options)
     require(options.outWidth in 1..2200 && options.outHeight in 1..4000) { "Story artwork exceeds its size limit or could not be read." }
   }
 
-  private fun number(map: Map<*, *>, key: String, min: Double, max: Double): Double {
+  internal fun number(map: Map<*, *>, key: String, min: Double, max: Double): Double {
     val value = (map[key] as? Number)?.toDouble()
     require(value != null && value.isFinite() && value in min..max) { "The video $key is invalid." }
     return value
@@ -333,7 +342,7 @@ object StoryVideoComposition {
       number(map, "y", -2.0, 2.0).toFloat(), matrix.map { it.toFloat() }.toFloatArray())
   }
 
-  private fun processors(volume: Float, speed: Float = 1f): MutableList<AudioProcessor> {
+  internal fun processors(volume: Float, speed: Float = 1f): MutableList<AudioProcessor> {
     val channels = ChannelMixingAudioProcessor()
     for (count in 1..6) {
       // Mono duplication and stereo gain match the editor/iOS volume scale;
@@ -353,10 +362,10 @@ object StoryVideoComposition {
     return mutableListOf(ToInt16PcmAudioProcessor(), channels, resample)
   }
 
-  private fun clipped(file: File, start: Double, end: Double): MediaItem = clippedUs(file,
+  internal fun clipped(file: File, start: Double, end: Double): MediaItem = clippedUs(file,
     (start * 1_000_000).roundToLong(), (end * 1_000_000).roundToLong())
 
-  private fun clippedUs(file: File, start: Long, end: Long): MediaItem = MediaItem.Builder()
+  internal fun clippedUs(file: File, start: Long, end: Long): MediaItem = MediaItem.Builder()
     .setUri(Uri.fromFile(file))
     .setClippingConfiguration(MediaItem.ClippingConfiguration.Builder()
       .setStartPositionUs(start).setEndPositionUs(end).build())
@@ -461,7 +470,7 @@ object StoryVideoComposition {
     transformer.start(composition, output.path)
   }
 
-  private fun verify(file: File, uri: String, r: StoryRecipe, soundtrack: Boolean, expectedAudio: Boolean, checkCurrent: () -> Unit): Map<String, Any> {
+  internal fun verify(file: File, uri: String, r: StoryRecipe, soundtrack: Boolean, expectedAudio: Boolean, checkCurrent: () -> Unit): Map<String, Any> {
     require(file.length() > 1024) { "The exported video is empty." }
     val info = media(file)
     require(info.hasVideo && (!expectedAudio || info.hasAudio) && abs(info.duration - r.duration) < .25

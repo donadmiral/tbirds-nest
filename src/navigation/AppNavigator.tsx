@@ -3,7 +3,7 @@ import ProfileRestore from '../components/ProfileRestore';
 import MutedStoriesScreen from '../screens/profile/MutedStoriesScreen';
 import ArticleReaderScreen from '../screens/feed/ArticleReaderScreen';
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { navigationRevision, subscribeNavigationScope } from '../lib/navigationCache';
+import { navigationRevision, navigationScope, subscribeNavigationScope } from '../lib/navigationCache';
 import { AppState, InteractionManager, Platform, StyleSheet, View, Animated, Pressable , StatusBar } from 'react-native';
 import { refreshNavigationInbox } from '../services/navigationInbox';
 import { prefetch } from '../lib/screenTransition';
@@ -31,6 +31,7 @@ import * as Haptics from 'expo-haptics';
 import type { ComponentProps } from 'react';
 
 import { useAuthStore } from '../stores/authStore';
+import { useUnreadStore } from '../stores/unreadStore';
 import { supabase } from '../services/supabase';
 import { callService } from '../services/callService';
 import { setActiveCallNavId, clearCallNavGuard, isCallNavActive } from '../services/notificationBootstrap';
@@ -313,21 +314,22 @@ function MainTabs() {
     if (!userId) { setUnreadNotifs(0); return; }
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     let alive = true;
-    const current = () => alive && useAuthStore.getState().session?.user.id === userId;
+    const scope = navigationScope();
+    const session = useAuthStore.getState().session;
+    const current = () => alive && scope === navigationScope() && useAuthStore.getState().session?.user.id === userId;
     const loadUnread = async () => {
-      const { count } = await supabase
-        .from('notifications').select('id', { count: 'exact', head: true })
-        .eq('recipient_id', userId).is('read_at', null);
-      if (!current()) return;
-      const c = count || 0;
-      setUnreadNotifs(c);
-      // Icon badge policy: the number means unread MESSAGES only.
       try {
-        const { data: cu } = await supabase.rpc('get_context_unread');
-        if (!current()) return;
-        const msgCount = (((cu as any)?.personal ?? 0) + ((cu as any)?.groups ?? 0));
-        Notifications.setBadgeCountAsync(msgCount).catch(() => {});
-      } catch { if (current()) Notifications.setBadgeCountAsync(0).catch(() => {}); }
+        if (!current() || !session) return;
+        // The shared store deduplicates all tab requests and owns icon badges.
+        // Failed reads preserve the last known count on both surfaces.
+        const [{ count, error }] = await Promise.all([
+          supabase.from('notifications').select('id', { count: 'exact', head: true })
+            .eq('recipient_id', userId).is('read_at', null)
+            .setHeader('Authorization', `Bearer ${session.access_token}`),
+          useUnreadStore.getState().refresh(),
+        ]);
+        if (current() && !error && Number.isSafeInteger(count) && count! >= 0) setUnreadNotifs(count!);
+      } catch { /* Preserve the last known count until a successful refresh. */ }
     };
     const debouncedLoad = () => {
       if (debounceTimer) clearTimeout(debounceTimer);

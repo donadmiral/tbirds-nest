@@ -1,0 +1,134 @@
+{
+  "browser": "153.0.8010.12",
+  "cases": [
+    {
+      "mode": "original",
+      "bytes": 157715,
+      "codec": "vp9",
+      "duration": 7.0101,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "trimmed": [
+        126,
+        0,
+        0
+      ],
+      "first": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        0,
+        254,
+        0
+      ],
+      "untimed": [
+        237,
+        179,
+        67
+      ],
+      "red": [
+        126,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        125
+      ],
+      "last": [
+        21,
+        68,
+        92
+      ],
+      "sound": {
+        "before": 0,
+        "during": 0.03535797809754103,
+        "after": 0,
+        "voiceBefore": 0,
+        "voiceAfter": 0,
+        "originalDuring": 0.0499423357552834
+      },
+      "audioClosed": true,
+      "tracksEnded": true
+    },
+    {
+      "mode": "automatic",
+      "duration": 12.216399,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "titlePixels": 7379,
+      "closingPixels": 13388,
+      "start": [
+        3,
+        3,
+        3
+      ],
+      "photo": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        0,
+        254,
+        0
+      ],
+      "clip": [
+        126,
+        0,
+        0
+      ],
+      "text": [
+        21,
+        68,
+        92
+      ],
+      "sound": {
+        "before": 0,
+        "original": 0.049812002193077506,
+        "after": 0
+      }
+    },
+    {
+      "mode": "revoked",
+      "noDownloadAfterInvalidation": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "changed",
+      "noDownloadAfterInvalidation": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "account_roundtrip",
+      "noDownloadAfterInvalidation": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "unsupported_composition",
+      "limits": {
+        "gif": "Memory 1: Animated GIF export is not available yet. Remove the GIF to export this edited video.",
+        "animated": "Memory 1: Animated sticker export is not available yet. Set sticker animations to None to export this edited video.",
+        "nested": "Memory 1: a shared-post card layered over another memory cannot be exported yet. The card will not be left out.",
+        "dual": "Memory 1: dual-camera composition cannot be exported yet. The second camera will not be discarded.",
+        "savedAudio": "Memory 1: this older added audio needs verification. Upload the original and select it again before exporting.",
+        "soundtrack": "Choose the book soundtrack again before exporting.",
+        "missing": "Memory 1: the original media is unavailable. Refresh the book and try again.",
+        "tooMany": "A memory movie can contain up to 80 memories. Create a shorter book before exporting."
+      }
+    },
+    {
+      "mode": "film_entry_exit",
+      "keepsPaused": true,
+      "mobileNoOverflow": true
+    }
+  ],
+  "consoleErrors": []
+}

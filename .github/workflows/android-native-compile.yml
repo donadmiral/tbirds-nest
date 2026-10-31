@@ -43,9 +43,9 @@ concurrency:
 
 jobs:
   android-story-export:
-    name: Verify encoded story audio on Android Emulator
+    name: Verify encoded story audio and memory movies on Android Emulator
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 50
     env:
       CI: 'true'
       EXPO_NO_TELEMETRY: '1'
@@ -76,7 +76,7 @@ jobs:
         run: |
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
-      - name: Exercise the actual story encoder in an isolated emulator
+      - name: Exercise the actual story and memory encoders in an isolated emulator
         run: bash scripts/quality/test-android-story-audio.sh
       - name: Keep encoded media and instrumentation diagnostics
         if: always()

@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import 'expo-haptics';
 import {
   BLOOM_OPEN_SPRINGS,
   BLOOM_CLOSE_SPRING,
