@@ -32,6 +32,8 @@ Linking.addEventListener('url', ({ url }) => {
 // Require after replacing transports. Every real production component and
 // service is imported through App, including the actual Supabase SDK.
 const { registerRootComponent } = require('expo');
+// Match production bootstrap only after the isolated transport is installed.
+require('@daily-co/react-native-daily-js');
 const { linking } = require('../../src/navigation/linking');
 linking.prefixes.push('platinum-circles-qa://');
 linking.config.screens.NativeMemoryCaptureFixture = 'ui-fixture/memory';

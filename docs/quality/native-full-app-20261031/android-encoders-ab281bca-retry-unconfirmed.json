@@ -1,0 +1,60 @@
+{
+  "measuredAt": "2026-10-31T05:19:40.325147+00:00",
+  "headCommit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+  "testedMergeCommit": "f033c50196f6f5f115f451247073ccdb357025d4",
+  "tree": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+  "headAndMergeTreesEqual": true,
+  "workflowRun": 41169456380,
+  "originalFailedJobId": 124444050423,
+  "originalFailureReceipt": {
+    "path": "docs/quality/native-full-app-20261031/android-encoders-ab281bca-install-failure.json",
+    "sha256": "1bec0f413701c4e655e9eb771ad0361fd3c76594b9dfce3cc75a39277bc36938"
+  },
+  "retryInvocation": {
+    "tool": "mcp__codex_apps__github_rerun_workflow_job",
+    "arguments": {
+      "repo_full_name": "donadmiral/tbirds-nest",
+      "job_id": 124444050423
+    },
+    "wrapper": "functions.exec",
+    "authorization": "Root authorized exactly one retry of the failed encoder job on unchanged source after the standalone compiler sibling completed.",
+    "compilerSiblingCompletedBeforeInvocation": true,
+    "numberOfInvocations": 1,
+    "githubResultReceived": false,
+    "githubErrorReceived": false,
+    "requestId": null,
+    "executionCellId": null,
+    "outerToolOutcome": "aborted by user after 1551.9s",
+    "postAwaitResultStoreExecuted": false,
+    "remoteMutationOutcome": "unconfirmed"
+  },
+  "latestReadOnlyObservation": {
+    "observedAt": "2026-10-31T05:18:50Z",
+    "tool": "mcp__codex_apps__github_fetch_workflow_run_jobs",
+    "arguments": {
+      "repo_full_name": "donadmiral/tbirds-nest",
+      "run_id": 41169456380
+    },
+    "jobs": [
+      {
+        "id": 124444050402,
+        "name": "Compile Kotlin and Android native integration",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 124444050423,
+        "name": "Verify encoded story audio and memory movies on Android Emulator",
+        "status": "completed",
+        "conclusion": "failure"
+      }
+    ],
+    "retryJobObserved": false
+  },
+  "limits": [
+    "The local tool interruption does not prove that GitHub accepted or canceled a remote action.",
+    "The latest read-only job list shows the original jobs only; no retry completion or new encoder acceptance is inferred.",
+    "No second retry, workflow-wide rerun, remote ref change, or cancellation was issued by this agent.",
+    "This addendum records call state only and does not alter the source-bound original installation failure."
+  ]
+}

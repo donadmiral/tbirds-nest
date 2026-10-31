@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T05:29:44.656281+00:00",
+  "status": "Source-bound selector candidate accepted locally; complete Android/iPhone runtime journeys remain pending the next publication and native runs.",
+  "scope": "Mandatory Maestro selector correction plus removal of the final nested capture invocation for the separately reviewed two-required-flow orchestration. No production screen edits, deadline changes, optional assertions, hosted writes or ref changes.",
+  "base": {
+    "head": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "tree": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+    "previousTabIdFlowSha256": "f146d8c0db62cbc0b2683e5c0944b7ed604cf788ea1d7af25a76db2cbefbce91"
+  },
+  "actualFailure": {
+    "runId": 41169456344,
+    "jobId": 124444050317,
+    "artifactId": 13031278233,
+    "zipSha256": "56cf8b8b395cf928146290f9c120270ad5fd42556ae3a98a20a59dbe4452a2fd",
+    "testedMerge": "f033c50196f6f5f115f451247073ccdb357025d4",
+    "observed": "Sign-in, Home, Latest, For You and Market activation completed; exact Travel journal wait failed while the real iPhone accessibility tree contained View listing: Travel journal at [12,339][190,605].",
+    "evidenceSha256": {
+      "docs/quality/native-full-app-20261031/ios-ab281bca/market-ax.json": "71c2a1241e5915a37e9ebb0bd4598a17d4b4e6df953c194b975bd7919cfb09c0",
+      "docs/quality/native-full-app-20261031/ios-ab281bca/market-failure.png": "795aec1199d6c208e43d10a13de58c53cf0155960b759816e4f4dc91671b0f8b",
+      "docs/quality/native-full-app-20261031/ios-full-app-ab281bca-review.json": "0c557e7a95a80bbb79e4aab784c89cfc1b11de4b52bf0b08073bdaf6d2dd476f"
+    }
+  },
+  "corrections": [
+    {
+      "screen": "Market",
+      "match": "Exact production card label View listing: Travel journal.",
+      "basis": "Retained real iPhone AX plus actual Market renderItem and fixture listing; wrong listing title rejected."
+    },
+    {
+      "screen": "Jobs",
+      "match": "Exact standalone Product designer, or a complete grouped Product designer segment followed by complete Desert Studio segment.",
+      "basis": "Actual renderJob and fixture values; source-based projection of installed Fabric recursive descendant label joining. Wrong company or title suffix/prefix rejected. No runtime claim for this unreached screen."
+    },
+    {
+      "screen": "Messages",
+      "match": "Exact standalone Ready for our next adventure? with literal question mark, or complete Jordan Ellis segment followed by that exact preview segment. Same expression on all three repeated returns.",
+      "basis": "Actual renderItem and synthetic peer/conversation; source-based grouping projection. Wrong peer, changed preview or missing question mark rejected. No runtime claim for this unreached screen."
+    },
+    {
+      "screen": "Profile",
+      "match": "Exact final Edit profile label segment, permitting the existing installed Feather glyph prefix.",
+      "basis": "Actual ProfileHeader button JSX and installed glyph. Edit profile picture rejected. Standalone Alex Rivera and Settings expectations remain exact."
+    }
+  ],
+  "captureInvocation": {
+    "removed": "Only the final runFlow: memory-capture.yaml command.",
+    "ownership": "native_acceptance owns the companion scripts/helper/verifier that must run navigation and capture once each and require both outcomes. This receipt alone does not assert that orchestration is verified.",
+    "memoryCaptureByteIdenticalToHead": true,
+    "memoryNavigationByteIdenticalToHead": true,
+    "sameExistingMemoryNavigationInvocationRetained": true
+  },
+  "verification": {
+    "runtime": "v24.22.1",
+    "commandMode": "Individual Node processes with NODE_TEST_CONTEXT removed; real internal counters, not file-wrapper counts.",
+    "baselineRed": {
+      "flowSha256": "f146d8c0db62cbc0b2683e5c0944b7ed604cf788ea1d7af25a76db2cbefbce91",
+      "testSha256": "31b91899c5b86b28eb6412b9d349bba1b68a4bbda1c2e49df77fabddab58b5b7",
+      "pass": 0,
+      "fail": 4,
+      "logSha256": "671f0ef9b7567e27e79a3b55c7e719954bb073bcae0aa6461c2d5eb7c97d2e0f",
+      "logPath": "/tmp/platinum-native-content-selectors-before.log",
+      "note": "After completing fixture setup, all four failures were expected selector assertions; no harness exception."
+    },
+    "candidateGreen": [
+      {
+        "file": "tests/quality/native-flow-content-selectors.cjs",
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      },
+      {
+        "file": "tests/quality/native-tab-selectors.cjs",
+        "pass": 5,
+        "fail": 0,
+        "skip": 0
+      },
+      {
+        "file": "tests/quality/native-ui-fixture.cjs",
+        "pass": 10,
+        "fail": 0,
+        "skip": 0
+      }
+    ],
+    "focusedTotal": {
+      "pass": 19,
+      "fail": 0,
+      "skip": 0
+    },
+    "eslint": {
+      "file": "tests/quality/native-flow-content-selectors.cjs",
+      "exitCode": 0
+    },
+    "gitDiffCheckExitCode": 0,
+    "typescript": "Not repeated for this flow/CJS-only follow-up; production TypeScript remains the previously validated tab-ID candidate."
+  },
+  "sourceSha256": {
+    "tests/native/flows/navigation.yaml": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+    "tests/quality/native-flow-content-selectors.cjs": "31b91899c5b86b28eb6412b9d349bba1b68a4bbda1c2e49df77fabddab58b5b7",
+    "tests/quality/native-tab-selectors.cjs": "c12f82a06ed0973e5ea58ca8af6aea6c6c0f8fbbd019c18403d342601dcf209e",
+    "tests/quality/native-ui-fixture.cjs": "c62b06bc52b7a45fd0b28d0d7e2bbc799d20f90c7456df8584db8b7c30cbe790",
+    "src/navigation/AppNavigator.tsx": "ee5ce00883df84956d2840d4d70f7f0ed7395797a7889abbb2970d6f7fa455fe",
+    "tests/native/flows/memory-capture.yaml": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91",
+    "tests/native/flows/memory-navigation.yaml": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae",
+    "src/screens/market/MarketScreen.tsx": "393eb4c223d1463ffe416a9c86043f7a78f1d38e0779b191cc8742978f67767b",
+    "src/screens/jobs/JobsScreen.tsx": "8649b275bf96c5ee9612140c5f07862f0a7209aa5d2a590abb326b59e566c2cf",
+    "src/screens/messages/ConversationsScreen.tsx": "6145eb0aea042e3f09f08615a84de01cbddf0cc705a7bce096bf03d8ba390f7d",
+    "src/components/ProfileHeader.tsx": "421e63d3627a45141b87bcfd0da60a2bcbd52cc7645891b595d176e38f833f29",
+    "src/screens/profile/SettingsScreen.tsx": "97fc846eb68201611b1d7d20d20a2ccee544e0d9ce6343ee93cefeed71a3f1ff",
+    "tests/native/backend-fixture.cjs": "854cbd355bc8e02736997027fce630e22e298a62a3e1bcfb372d0648f0cf2eb9"
+  },
+  "installedContractSha256": {
+    "node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js": "7e8b8eb3271f2c4dcd79ef3cc490172382a551343c1d298993d853646443fdbc",
+    "node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm": "5d864bb59cc2ac795e5c5b5832d6d1b605b36ea9750e26e6026e4985148f3935",
+    "node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/Feather.json": "11df50e550ccd90cf40255c45354a35702444075f53360fe161e432834b486f3"
+  },
+  "priorCombinedGate": {
+    "path": "docs/quality/live-app-20261031/native-v4-root-regressions.json",
+    "sha256": "2ccd303d885b0d95e7b69d50869230113c04f482c479570bdd48e2f91a1fb9d1",
+    "status": "Historical: 1680 formal passes plus 33 separate auth checks predate these selector/test/orchestration changes. A new combined gate is required after both owners freeze."
+  },
+  "limitations": [
+    "These are source/fixture tests plus retained historical iPhone AX evidence; no new simulator result is claimed.",
+    "Grouped Jobs/Messages/Edit profile labels are inferred from actual render output and pinned native label semantics; dynamic native hierarchy still needs the complete-app rerun.",
+    "Test label projection is not a replacement native renderer.",
+    "No timeouts, optional conditions, page sequence, production accessibility labels or fixture content were weakened."
+  ]
+}

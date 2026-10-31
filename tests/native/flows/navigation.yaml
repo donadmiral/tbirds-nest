@@ -38,28 +38,33 @@ name: Full native app navigation
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - tapOn: For You
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
-- tapOn: Market
+- tapOn:
+    id: main-tab-market
 - extendedWaitUntil:
-    visible: Travel journal
+    visible: 'View listing: Travel journal'
     timeout: 15000
 - takeScreenshot: market
-- tapOn: Home
+- tapOn:
+    id: main-tab-feed
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
-- tapOn: Jobs
+- tapOn:
+    id: main-tab-jobs
 - extendedWaitUntil:
-    visible: Product designer
+    visible: '(?s)^(?:Product designer|(?:.*?, )?Product designer, (?:.*?, )?Desert Studio(?:, .*)?)$'
     timeout: 15000
 - takeScreenshot: jobs
-- tapOn: Messages
+- tapOn:
+    id: main-tab-messages
 - extendedWaitUntil:
-    visible: Ready for our next adventure?
+    visible: '(?s)^(?:Ready for our next adventure\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\?(?:, .*)?)$'
     timeout: 15000
 - takeScreenshot: messages
-- tapOn: Profile
+- tapOn:
+    id: main-tab-profile
 - extendedWaitUntil:
     visible: Alex Rivera
     timeout: 15000
-- assertVisible: Edit profile
+- assertVisible: '(?s)^(?:.*?, )?Edit profile$'
 - takeScreenshot: profile
 - runFlow: memory-navigation.yaml
 - tapOn: Settings
@@ -67,14 +72,16 @@ name: Full native app navigation
     visible: Settings
     timeout: 15000
 - takeScreenshot: settings
-- tapOn: Home
+- tapOn:
+    id: main-tab-feed
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - repeat:
     times: 3
     commands:
-      - tapOn: Messages
-      - assertVisible: Ready for our next adventure?
-      - tapOn: Home
+      - tapOn:
+          id: main-tab-messages
+      - assertVisible: '(?s)^(?:Ready for our next adventure\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\?(?:, .*)?)$'
+      - tapOn:
+          id: main-tab-feed
       - assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - takeScreenshot: returned-home
-- runFlow: memory-capture.yaml

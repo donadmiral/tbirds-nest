@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T04:50:49.244Z",
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "scope": "Fresh read-only QA database observations after the ab281bca app publication and quality CI. No hosted mutation, deployment or migration retry.",
+  "appSourceContext": {
+    "headSha": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "treeSha": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+    "note": "This app-source identity binds the known query file; it is not a claim that the backend was deployed from this commit."
+  },
+  "fingerprint": {
+    "observedAt": "2026-10-31T04:48:32.978949+00:00",
+    "value": "2f92a9d038364736fa2413bb6d05a160",
+    "expectedSafeStage3": "2f92a9d038364736fa2413bb6d05a160",
+    "exactSafeStage3Match": true,
+    "stage": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "catalogRecords": 99,
+    "queryPath": "supabase/ops/qa/business-auth-staged-20261031/postflight.sql",
+    "querySha256": "c514b9f829af6b68b47966f466cfb494dc128c1f053a53887869d23b85e35168",
+    "queryMatchesPublishedGitBlob": true,
+    "coverage": "Full known business-auth catalog fingerprint, including function definitions, owners/ACLs, schema, relations, columns, constraints, indexes, triggers, policies and hook configuration."
+  },
+  "metadata": {
+    "stage": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "history": [
+      {
+        "name": "qa_business_auth_01_foundation_20261031",
+        "sqlMd5": "5a65ff55953c0d1c31f72889ffb8210a",
+        "version": "20261031020659"
+      },
+      {
+        "name": "qa_business_auth_02_private_guards_20261031",
+        "sqlMd5": "d345fece1ff55a50935d13b0457a3a37",
+        "version": "20261031021053"
+      },
+      {
+        "name": "qa_business_auth_03_private_device_20261031",
+        "sqlMd5": "18ff7871146cb9d7d4c1a8171054e2d4",
+        "version": "20261031021956"
+      }
+    ],
+    "observedAt": "2026-10-31T04:50:28.910922+00:00",
+    "musicSchemaPresent": false,
+    "stage4PrivateFunction": null,
+    "activeBusinessAuthStatements": 0,
+    "notificationEventJobsPresent": false,
+    "notificationEventClaimPresent": false
+  },
+  "historyMatchesPreviousStage3Observation": true,
+  "metadataQuery": {
+    "sha256": "8e5a4a61313e05665e6c628578d73cb5d1a3dc638c19c6904d669ab6ac48be6e",
+    "sql": "begin read only;\nset local search_path=pg_catalog;\nselect jsonb_build_object(\n  'observedAt',clock_timestamp(),\n  'stage',obj_description(to_regnamespace('business_auth'),'pg_namespace'),\n  'history',(select coalesce(jsonb_agg(jsonb_build_object('name',name,'version',version,'sqlMd5',md5(array_to_string(statements,E'\\n'))) order by version),'[]'::jsonb) from supabase_migrations.schema_migrations where name like 'qa_business_auth_%'),\n  'stage4PrivateFunction',to_regprocedure('business_auth.triniti_business_signin_check(text,text,text,text,text)'),\n  'musicSchemaPresent',to_regnamespace('music_library') is not null,\n  'notificationEventJobsPresent',to_regclass('notification_delivery.event_jobs') is not null,\n  'notificationEventClaimPresent',to_regprocedure('public.claim_notification_event_dispatch(uuid,text)') is not null,\n  'activeBusinessAuthStatements',(select count(*) from pg_stat_activity where datname=current_database() and pid<>pg_backend_pid() and state='active' and (query ilike '%qa_business_auth_%' or query ilike '%business-auth:%' or query ilike '%BUSINESS_AUTH_STAGED%'))\n) as postflight;\nrollback;\n"
+  },
+  "releaseState": {
+    "businessPublicActivationInstalled": false,
+    "musicLibraryInstalled": false,
+    "notificationEventCandidateInstalled": false,
+    "commercialMusicLicensingChanged": false,
+    "productionModified": false
+  },
+  "previousStage4Invocation": {
+    "terminalOutcome": "unknown",
+    "retryAttempted": false,
+    "cancellationInferred": false,
+    "approvalRejectionInferred": false,
+    "evidence": "docs/quality/backend-acceptance-20261031/business-auth-retained-transport.json"
+  },
+  "limitations": [
+    "These are read-only snapshots at the recorded times; they do not run disposable actor journeys, deployed Edge delivery or production acceptance.",
+    "Zero active matching business-auth statements and an unchanged catalog do not establish cancellation or resolve the earlier silent connector invocation.",
+    "Business activation and downstream music contracts remain held; the notification-event capability stays source-only.",
+    "The ab281bca quality workflow failed on a legacy React Native test harness and skipped its backend steps. Independent local fixture passes are recorded separately and do not change that CI outcome."
+  ]
+}

@@ -98,12 +98,18 @@ test "$("$adb_bin" shell id -u | tr -d '\r')" = 0
 log_pid=$!
 "$adb_bin" shell screenrecord --time-limit 180 /sdcard/platinum-navigation.mp4 > native-ui-logs/recording.log 2>&1 &
 video_pid=$!
-maestro --device "$ANDROID_SERIAL" test --format junit --output native-ui-logs/maestro.xml \
-  --debug-output native-ui-logs/maestro --test-output-dir native-ui-logs/maestro \
-  tests/native/flows/navigation.yaml 2>&1 | tee native-ui-logs/maestro.log
-"$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt.json
-"$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-auth-diagnostics.json > native-ui-logs/native-ui-auth-diagnostics.json
+flow_status=0
+bash scripts/quality/run-native-ui-flows.sh "$ANDROID_SERIAL" || flow_status=$?
+evidence_status=0
+"$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt.json || evidence_status=1
+"$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-auth-diagnostics.json > native-ui-logs/native-ui-auth-diagnostics.json || evidence_status=1
 mkdir -p native-ui-logs/memory-capture
-"$adb_bin" pull /data/user/0/app.platinumcircles.mobile.qa/files/native-memory-capture/. native-ui-logs/memory-capture/
-python3 scripts/quality/verify-native-ui-memory.py
-node scripts/quality/verify-native-ui.cjs android
+"$adb_bin" pull /data/user/0/app.platinumcircles.mobile.qa/files/native-memory-capture/. native-ui-logs/memory-capture/ || evidence_status=1
+memory_status=0
+python3 scripts/quality/verify-native-ui-memory.py || memory_status=$?
+verification_status=0
+node scripts/quality/verify-native-ui.cjs android || verification_status=$?
+cat > native-ui-logs/phase-results.json <<EOF
+{"flows":$flow_status,"evidence":$evidence_status,"memoryDecoder":$memory_status,"fullAppVerifier":$verification_status}
+EOF
+if (( flow_status != 0 || evidence_status != 0 || memory_status != 0 || verification_status != 0 )); then exit 1; fi

@@ -1,0 +1,36 @@
+✔ actual shell requires two separate successful flows without a reset or repeated capture (105.445287ms)
+✔ navigation failure still attempts capture (112.29245ms)
+✔ capture failure preserves navigation success and fails the job (96.398789ms)
+✔ both failures remain recorded (98.453844ms)
+✔ a tee failure remains nonzero and does not suppress the capture invocation (94.578004ms)
+✔ zero CLI exits cannot pass a failed capture JUnit report (102.893875ms)
+✔ zero CLI exits cannot pass a skipped capture JUnit report (99.847691ms)
+✔ zero CLI exits cannot pass a skippedCount capture JUnit report (99.23085ms)
+✔ zero CLI exits cannot pass a errored capture JUnit report (103.30362ms)
+✔ zero CLI exits cannot pass a emptySuite capture JUnit report (100.532801ms)
+✔ zero CLI exits cannot pass a empty capture JUnit report (95.049075ms)
+✔ zero CLI exits cannot pass a missing capture JUnit report (104.756022ms)
+✔ zero CLI exits cannot pass a malformed capture JUnit report (96.232216ms)
+✔ zero CLI exits cannot pass a wrongFlow capture JUnit report (100.177908ms)
+✔ zero CLI exits cannot pass a missingStatus capture JUnit report (107.900137ms)
+✔ zero CLI exits cannot pass a duplicate capture JUnit report (105.509325ms)
+✔ missing, malformed, incomplete or repeated flow results fail closed (252.270828ms)
+✔ actual android shell tail aggregates none and always runs both existing verifiers (217.776791ms)
+✔ actual android shell tail aggregates navigation and always runs both existing verifiers (234.259301ms)
+✔ actual android shell tail aggregates decoder and always runs both existing verifiers (223.69622ms)
+✔ actual android shell tail aggregates fullVerifier and always runs both existing verifiers (231.493739ms)
+✔ actual android shell tail aggregates evidence and always runs both existing verifiers (250.482973ms)
+✔ actual ios shell tail aggregates none and always runs both existing verifiers (175.679527ms)
+✔ actual ios shell tail aggregates navigation and always runs both existing verifiers (199.996484ms)
+✔ actual ios shell tail aggregates decoder and always runs both existing verifiers (184.838693ms)
+✔ actual ios shell tail aggregates fullVerifier and always runs both existing verifiers (178.280203ms)
+✔ actual ios shell tail aggregates evidence and always runs both existing verifiers (179.913925ms)
+✔ capture remains a single separate deep-link flow and source receipts bind its runner (0.616179ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3962.413027

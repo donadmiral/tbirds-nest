@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T04:53:07.923066Z",
+  "scope": "Read-only feasibility review of a separate one-file validation PR; no commit, branch, PR or ref was created or changed.",
+  "base": {
+    "repository": "donadmiral/tbirds-nest",
+    "branch": "codex/app-quality-20261029",
+    "remoteObservedHeadSha": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "remoteReadUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/git/ref/heads/codex/app-quality-20261029",
+    "treeSha": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19"
+  },
+  "candidate": {
+    "changedFiles": [
+      "tests/navigation-accessibility.test.cjs"
+    ],
+    "fileMode": "100644",
+    "beforeBlobSha": "5835135602fa808c55b83deaa8e590757dd7952d",
+    "afterBlobSha": "ff2f3dfe3caba341e998601a99d72ec29e61f615",
+    "afterFileSha256": "fe2e7e0b5190104ed6c2a2e8d18f4ab9c76d89c4ec5bfa880c604dd202dc9ae5",
+    "computedTreeSha": "9bffd16d30397022e6530288475b28cb40783996",
+    "treeMethod": "Recursively serialize the existing Git tree entries, replace only the target blob, and SHA1 the canonical tree object bytes. Original tree reconstruction was independently asserted equal to its existing object ID. New tree objects were not persisted.",
+    "parentCommit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "commitSha": null,
+    "refsModified": false
+  },
+  "workflowReview": [
+    {
+      "path": ".github/workflows/android-native-compile.yml",
+      "name": "Android native compile",
+      "sha256": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+      "pullRequestConfigured": true,
+      "pullRequestBranches": null,
+      "pullRequestPaths": [
+        "modules/**",
+        "plugins/**",
+        "vendor/**",
+        "package.json",
+        "package-lock.json",
+        "app.json",
+        "app.config.js",
+        "android/**",
+        "scripts/quality/compile-android-native.sh",
+        "scripts/quality/test-android-story-audio.sh",
+        "scripts/quality/android-story-export/**",
+        "scripts/quality/android-media-dependencies.init.gradle",
+        ".github/workflows/android-native-compile.yml"
+      ],
+      "matchingPatterns": [],
+      "wouldTriggerForSingleFileComparison": false,
+      "concurrency": {
+        "group": "android-native-compile-${{ github.event.pull_request.number || github.ref }}",
+        "cancel-in-progress": "true"
+      }
+    },
+    {
+      "path": ".github/workflows/browser-quality.yml",
+      "name": "Browser interaction and video gates",
+      "sha256": "f70a018eb66aa51279290eedabca08992029d7880b26e5a852d3d2070c400f70",
+      "pullRequestConfigured": true,
+      "pullRequestBranches": null,
+      "pullRequestPaths": [
+        "admin-web/**",
+        "web/**",
+        "shared/**",
+        ".github/workflows/browser-quality.yml"
+      ],
+      "matchingPatterns": [],
+      "wouldTriggerForSingleFileComparison": false,
+      "concurrency": {
+        "group": "browser-quality-${{ github.event.pull_request.number || github.ref }}",
+        "cancel-in-progress": "true"
+      }
+    },
+    {
+      "path": ".github/workflows/ios-native-compile.yml",
+      "name": "iOS native compile",
+      "sha256": "41366d7673b2c4781c998cf80655fde1cc2041f19a607b10dc6dd088b5784510",
+      "pullRequestConfigured": true,
+      "pullRequestBranches": null,
+      "pullRequestPaths": [
+        "modules/**",
+        "plugins/**",
+        "vendor/**",
+        "package.json",
+        "package-lock.json",
+        "app.json",
+        "app.config.js",
+        "ios/**",
+        "scripts/quality/compile-ios-simulator.sh",
+        "scripts/quality/test-ios-story-audio.sh",
+        "scripts/quality/StoryAudioExportHarness.swift",
+        "scripts/quality/test-ios-memory-movie.sh",
+        "scripts/quality/MemoryMovieExportHarness.swift",
+        "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.*",
+        ".github/workflows/ios-native-compile.yml"
+      ],
+      "matchingPatterns": [],
+      "wouldTriggerForSingleFileComparison": false,
+      "concurrency": {
+        "group": "ios-native-compile-${{ github.event.pull_request.number || github.ref }}",
+        "cancel-in-progress": "true"
+      }
+    },
+    {
+      "path": ".github/workflows/native-app-ui.yml",
+      "name": "Full native application UI",
+      "sha256": "893ef1c3c6ae5976337ab7ecb12d6f8080ad51ddfa3e80995745f409540cddca",
+      "pullRequestConfigured": true,
+      "pullRequestBranches": null,
+      "pullRequestPaths": [
+        "App.tsx",
+        "src/**",
+        "shared/**",
+        "modules/**",
+        "plugins/**",
+        "vendor/**",
+        "package.json",
+        "package-lock.json",
+        "app.config.js",
+        "app.json",
+        "tests/native/**",
+        "scripts/quality/*native-ui*",
+        "scripts/quality/test-*-app-ui.sh",
+        "scripts/quality/verify-native-ui-memory.py",
+        ".github/workflows/native-app-ui.yml"
+      ],
+      "matchingPatterns": [],
+      "wouldTriggerForSingleFileComparison": false,
+      "concurrency": {
+        "group": "native-app-ui-v2-${{ github.event.pull_request.number || github.ref }}",
+        "cancel-in-progress": "true"
+      }
+    },
+    {
+      "path": ".github/workflows/typecheck.yml",
+      "name": "Type and quality gates",
+      "sha256": "dc41c9a035b84a2c562349a876b6e5805960ea1392e8bb0ad8e9244bfd50be0a",
+      "pullRequestConfigured": true,
+      "pullRequestBranches": null,
+      "pullRequestPaths": null,
+      "matchingPatterns": [],
+      "wouldTriggerForSingleFileComparison": true,
+      "concurrency": null
+    }
+  ],
+  "feasible": true,
+  "predictedAutomaticGithubActions": [
+    "Type and quality gates"
+  ],
+  "preservesCurrentNativeRuns": {
+    "baseBranchMoved": false,
+    "existingPrChanged": false,
+    "nativeWorkflowFilesChanged": false,
+    "nativePullRequestPathMatch": false,
+    "nativeConcurrencyGroupsUsePullRequestNumber": true
+  },
+  "conditions": [
+    "New branch must be created from exactly the recorded base commit, with only the one reviewed test-file replacement. Receipts and other working-tree changes must not be included.",
+    "The new PR must target codex/app-quality-20261029. A comparison against master would include the broader feature work and trigger native/browser paths.",
+    "Recheck base SHA and exact one-file comparison before creating the PR if the base changes.",
+    "This assesses the five repository GitHub Actions workflow definitions only. Installed external applications may independently create checks or deployments."
+  ],
+  "sourceUnchangedExceptTestHarness": true,
+  "validationEvidence": "docs/quality/live-app-20261031/navigation-accessibility-harness-fix.json"
+}

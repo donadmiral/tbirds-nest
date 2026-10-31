@@ -1,0 +1,224 @@
+{
+  "reviewedAt": "2026-10-31T05:27:48Z",
+  "package": "Maestro CLI",
+  "version": "2.11.0",
+  "tag": "cli-2.11.0",
+  "tagCommit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+  "officialReleaseArchiveSha256": "5384593cb4e7a106489e75a821d157dd43f4e438df6bc308b72e82c685e1283a",
+  "installerSha256": "30ed0ef0d19fa409b18177d850009b0094cb7d20c86cf3e7f9809ea4192587f5",
+  "sourceFiles": [
+    {
+      "path": "maestro-cli/src/main/java/maestro/cli/command/TestCommand.kt",
+      "upstreamBlobSha": "064ff51dd020f13aef0805da2edb3b4f05767d5e",
+      "retrievedGitBlobSha": "064ff51dd020f13aef0805da2edb3b4f05767d5e",
+      "gitBlobMatches": true,
+      "sha256": "bfd11b53dbc63c683ba03c9c7394be2b53abf8ceb46647cfbe64372c945fd2db",
+      "bytes": 28429,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-cli/src/main/java/maestro/cli/command/TestCommand.kt"
+    },
+    {
+      "path": "maestro-cli/src/main/java/maestro/cli/model/FlowStatus.kt",
+      "upstreamBlobSha": "9d433235fc10e21983f6436c1f8fdf0241ffcdcf",
+      "retrievedGitBlobSha": "9d433235fc10e21983f6436c1f8fdf0241ffcdcf",
+      "gitBlobMatches": true,
+      "sha256": "dd1e7957186702dad7dd0d2414f452d813faf9a9624f2d1509cf9befb5f7a1ce",
+      "bytes": 784,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-cli/src/main/java/maestro/cli/model/FlowStatus.kt"
+    },
+    {
+      "path": "maestro-cli/src/main/java/maestro/cli/report/JUnitTestSuiteReporter.kt",
+      "upstreamBlobSha": "5bb7de076415db915805330047b87bf79ef8728b",
+      "retrievedGitBlobSha": "5bb7de076415db915805330047b87bf79ef8728b",
+      "gitBlobMatches": true,
+      "sha256": "c543b3240b44beee89d83a4adeee342fba973e5a8a8c45f7dc36a9a179500436",
+      "bytes": 6358,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-cli/src/main/java/maestro/cli/report/JUnitTestSuiteReporter.kt"
+    },
+    {
+      "path": "maestro-cli/src/main/java/maestro/cli/runner/TestSuiteInteractor.kt",
+      "upstreamBlobSha": "b79b1070ad2eb6f801c21b032737ae03b200d4a5",
+      "retrievedGitBlobSha": "b79b1070ad2eb6f801c21b032737ae03b200d4a5",
+      "gitBlobMatches": true,
+      "sha256": "3180af75890b7674e3b4977f2b9741aa407ab1a868cf28d2e90e5d492eae9f17",
+      "bytes": 10893,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-cli/src/main/java/maestro/cli/runner/TestSuiteInteractor.kt"
+    },
+    {
+      "path": "maestro-cli/src/main/java/maestro/cli/session/MaestroSessionManager.kt",
+      "upstreamBlobSha": "cc05d696ae0515153fee4e6ae191b09492a31a5f",
+      "retrievedGitBlobSha": "cc05d696ae0515153fee4e6ae191b09492a31a5f",
+      "gitBlobMatches": true,
+      "sha256": "c85e4f0a63c79a5dd442340f1868a74789d19a89b56861f6ed44758847446494",
+      "bytes": 17609,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-cli/src/main/java/maestro/cli/session/MaestroSessionManager.kt"
+    },
+    {
+      "path": "maestro-cli/src/test/kotlin/maestro/cli/report/JUnitTestSuiteReporterTest.kt",
+      "upstreamBlobSha": "6bda7f05fde95fb79ba82309d1aabbe726c09c2e",
+      "retrievedGitBlobSha": "6bda7f05fde95fb79ba82309d1aabbe726c09c2e",
+      "gitBlobMatches": true,
+      "sha256": "2980d81d2b65bf603ce204137cafe7eebb9f047e8e5bb4e3b5638b6648b00387",
+      "bytes": 8645,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-cli/src/test/kotlin/maestro/cli/report/JUnitTestSuiteReporterTest.kt"
+    },
+    {
+      "path": "maestro-client/src/main/java/maestro/Maestro.kt",
+      "upstreamBlobSha": "1f850dce7dda23de26c7ea2a4108f29ce8a00462",
+      "retrievedGitBlobSha": "1f850dce7dda23de26c7ea2a4108f29ce8a00462",
+      "gitBlobMatches": true,
+      "sha256": "4b1b2f901f909d850970f3805e52e1b6ccf1895d28aa2b8d51ac054a8bb553fa",
+      "bytes": 31759,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/Maestro.kt"
+    },
+    {
+      "path": "maestro-client/src/main/java/maestro/android/AndroidDeviceConnection.kt",
+      "upstreamBlobSha": "d53fb6e54033539ef9e0f95d4b0002f70ccb2889",
+      "retrievedGitBlobSha": "d53fb6e54033539ef9e0f95d4b0002f70ccb2889",
+      "gitBlobMatches": true,
+      "sha256": "13f18c6f2fcbe099056d6b8b89403eb0676e71d35aca25d41c14551d4127ff74",
+      "bytes": 24017,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/android/AndroidDeviceConnection.kt"
+    },
+    {
+      "path": "maestro-client/src/main/java/maestro/drivers/AndroidDriver.kt",
+      "upstreamBlobSha": "8211337dcccc1728337a6f6a187bdc71fc6e2a14",
+      "retrievedGitBlobSha": "8211337dcccc1728337a6f6a187bdc71fc6e2a14",
+      "gitBlobMatches": true,
+      "sha256": "e491dc4e82aa40fb9aa2eb70e5ed0fb85749f2129df600bba88d84ab29b5567a",
+      "bytes": 63873,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/drivers/AndroidDriver.kt"
+    },
+    {
+      "path": "maestro-client/src/main/java/maestro/drivers/IOSDriver.kt",
+      "upstreamBlobSha": "8af50e6b65d983437cdd3f81fe2c20dc0b1a6cb9",
+      "retrievedGitBlobSha": "8af50e6b65d983437cdd3f81fe2c20dc0b1a6cb9",
+      "gitBlobMatches": true,
+      "sha256": "f4b0990e891edf7401c0cc163f11247c3a095dcd9d45e8c1977ba605e245a4d3",
+      "bytes": 27889,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/drivers/IOSDriver.kt"
+    },
+    {
+      "path": "maestro-ios/src/main/java/ios/LocalIOSDevice.kt",
+      "upstreamBlobSha": "afe8c683dc54f0dad201150adc0a0c9e32424028",
+      "retrievedGitBlobSha": "afe8c683dc54f0dad201150adc0a0c9e32424028",
+      "gitBlobMatches": true,
+      "sha256": "4c868cb335898fa95947398ec4998c562fcc16bacd601049e2d0d31296820655",
+      "bytes": 4741,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios/src/main/java/ios/LocalIOSDevice.kt"
+    },
+    {
+      "path": "maestro-ios/src/main/java/ios/xctest/XCTestIOSDevice.kt",
+      "upstreamBlobSha": "bf5759530c924ef12b85c0906adf3346ab14d933",
+      "retrievedGitBlobSha": "bf5759530c924ef12b85c0906adf3346ab14d933",
+      "gitBlobMatches": true,
+      "sha256": "db6b7ac98723d866cd105a919f9ccfef118a6c59b14d6a561f79e85a57b91188",
+      "bytes": 7402,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios/src/main/java/ios/xctest/XCTestIOSDevice.kt"
+    },
+    {
+      "path": "maestro-ios-driver/src/main/kotlin/device/SimctlIOSDevice.kt",
+      "upstreamBlobSha": "2894584cb188ce39131a433a7280becee2c02676",
+      "retrievedGitBlobSha": "2894584cb188ce39131a433a7280becee2c02676",
+      "gitBlobMatches": true,
+      "sha256": "5e683075148b70ec2273c7b85a4f6f77c0b0fbdf228d9ed6eb0e38461f55cf4f",
+      "bytes": 6212,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-driver/src/main/kotlin/device/SimctlIOSDevice.kt"
+    },
+    {
+      "path": "maestro-ios-driver/src/main/kotlin/util/LocalSimulatorUtils.kt",
+      "upstreamBlobSha": "2f8c6b2e20ccb4032c1a6d3046ca9e961cba5994",
+      "retrievedGitBlobSha": "2f8c6b2e20ccb4032c1a6d3046ca9e961cba5994",
+      "gitBlobMatches": true,
+      "sha256": "22ef8443efede84655fc329fac737cf8c64ad62f9e83c22ee3ce7c148ae9ac39",
+      "bytes": 23135,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-driver/src/main/kotlin/util/LocalSimulatorUtils.kt"
+    },
+    {
+      "path": "maestro-ios-driver/src/main/kotlin/util/XCRunnerCLIUtils.kt",
+      "upstreamBlobSha": "7b7c053b2e9878d957d62f5df4b5558e39c67e6d",
+      "retrievedGitBlobSha": "7b7c053b2e9878d957d62f5df4b5558e39c67e6d",
+      "gitBlobMatches": true,
+      "sha256": "b458d91e1d60e06a794a12cde7cec9dd72232fb9af312c15309c304ec7905126",
+      "bytes": 4477,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-driver/src/main/kotlin/util/XCRunnerCLIUtils.kt"
+    },
+    {
+      "path": "maestro-ios-driver/src/main/kotlin/xcuitest/XCTestDriverClient.kt",
+      "upstreamBlobSha": "a6289a3fe778daab5cabc7c0bdd9c9328b977c59",
+      "retrievedGitBlobSha": "a6289a3fe778daab5cabc7c0bdd9c9328b977c59",
+      "gitBlobMatches": true,
+      "sha256": "6f84cbe0d33a159f417446d31b81977583446987d40a0123ad2455d68be48489",
+      "bytes": 14450,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-driver/src/main/kotlin/xcuitest/XCTestDriverClient.kt"
+    },
+    {
+      "path": "maestro-ios-driver/src/main/kotlin/xcuitest/installer/LocalXCTestInstaller.kt",
+      "upstreamBlobSha": "34c0a0905a210049b62099308727bd1dceed3822",
+      "retrievedGitBlobSha": "34c0a0905a210049b62099308727bd1dceed3822",
+      "gitBlobMatches": true,
+      "sha256": "849ac3400e10883c40489d5ead787604164d33b8bc8fc07b19c27539e457993e",
+      "bytes": 10501,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-driver/src/main/kotlin/xcuitest/installer/LocalXCTestInstaller.kt"
+    },
+    {
+      "path": "maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/Handlers/LaunchAppHandler.swift",
+      "upstreamBlobSha": "54612ea18dcc173440788199fa26f62863708bb2",
+      "retrievedGitBlobSha": "54612ea18dcc173440788199fa26f62863708bb2",
+      "gitBlobMatches": true,
+      "sha256": "ebfd2ea529fc32133bfe169b5a8b77d0e52c329a0c5818a945942f626c164dd2",
+      "bytes": 867,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/Handlers/LaunchAppHandler.swift"
+    },
+    {
+      "path": "maestro-ios-xctest-runner/maestro-driver-iosUITests/maestro_driver_iosUITests.swift",
+      "upstreamBlobSha": "e41c4ec88b7b54777dfc4ed93382248c4376f4ac",
+      "retrievedGitBlobSha": "e41c4ec88b7b54777dfc4ed93382248c4376f4ac",
+      "gitBlobMatches": true,
+      "sha256": "c6055665f7fed629f861d8684697518248b468a15d4931c352b7208ecc940cbe",
+      "bytes": 5074,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-xctest-runner/maestro-driver-iosUITests/maestro_driver_iosUITests.swift"
+    },
+    {
+      "path": "maestro-ios-xctest-runner/maestro-driver-iosUITests/maestro_driver_iosUITestsLaunchTests.swift",
+      "upstreamBlobSha": "b185ce2f9b29d0f9d2549978cb1cb08b3c2294c3",
+      "retrievedGitBlobSha": "b185ce2f9b29d0f9d2549978cb1cb08b3c2294c3",
+      "gitBlobMatches": true,
+      "sha256": "4a96b04b507873752ea99f626055b1a093a82cceaf4d52ad1e8433207f404fc1",
+      "bytes": 832,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-xctest-runner/maestro-driver-iosUITests/maestro_driver_iosUITestsLaunchTests.swift"
+    },
+    {
+      "path": "maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt",
+      "upstreamBlobSha": "4127338828db0a14de0488873bac3bd5dfa6be66",
+      "retrievedGitBlobSha": "4127338828db0a14de0488873bac3bd5dfa6be66",
+      "gitBlobMatches": true,
+      "sha256": "06e8e2803af1c9704783452a22bf4a3652f89574f384e893afd97d5fcc9007b5",
+      "bytes": 77165,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt"
+    },
+    {
+      "path": "maestro-orchestra/src/main/java/maestro/orchestra/workspace/WorkspaceExecutionPlanner.kt",
+      "upstreamBlobSha": "1c2ce1e781f62155baac62bedbac5bbe5cb674bf",
+      "retrievedGitBlobSha": "1c2ce1e781f62155baac62bedbac5bbe5cb674bf",
+      "gitBlobMatches": true,
+      "sha256": "30e4964133849f3fffebb810846f1e4c490e47784929dd242e3d5db92693c951",
+      "bytes": 8399,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-orchestra/src/main/java/maestro/orchestra/workspace/WorkspaceExecutionPlanner.kt"
+    }
+  ],
+  "finding": "Pinned source contains no implicit AUT stop, clear-state or relaunch in separate CLI session startup/cleanup. Each command recreates Maestro driver connections; AUT lifecycle commands are explicit flow operations.",
+  "chains": {
+    "entry": "TestCommand.kt:477-500 -> MaestroSessionManager.newSession -> shutdown hook at119-131 -> session.close -> Maestro.close -> driver.close",
+    "android": "AndroidDriver.kt:112-149,170-200 installs/starts/closes only Maestro instrumentation and transport. AndroidDeviceConnection.kt:278-299 closes its shell stream/gRPC/ADB connection.",
+    "ios": "IOSDriver.kt:92-108 -> ios/LocalIOSDevice.kt:150-152 -> XCTestIOSDevice.kt:196-198 -> XCTestDriverClient.kt:223-225 -> LocalXCTestInstaller.kt:244-255 -> SimctlIOSDevice.kt:197-203. The sole stopped/uninstalled bundle in this cleanup is dev.mobile.maestro-driver-iosUITests.xctrunner.",
+    "flow": "Orchestra.kt:199-268 runs supplied commands and only configured onFlowStart/onFlowComplete hooks. The production QA capture flow has no launchApp/stopApp/clearState; it opens the explicit QA capture deep-link.",
+    "junit": "TestSuiteInteractor maps successful flow to FlowStatus.SUCCESS; JUnitTestSuiteReporter serializes this enum; its pinned test expects status=SUCCESS."
+  },
+  "orderedAlternative": "Pinned TestSuiteInteractor.kt:71-90 supports explicitly ordered flows with continueOnFailure=true in one session if future platform evidence requires avoiding driver restart. Not required by current source review.",
+  "limits": [
+    "Read-only official pinned source review, not a device experiment or decompilation of the release ZIP.",
+    "Driver restart can change which app is foreground; capture openLink reactivates the AUT. No claim that OS can never evict a background app.",
+    "Cumulative fixture, account readback, capture and full-app verification must remain mandatory so any process/state loss fails acceptance.",
+    "Official current sequential-execution docs recommend isolated flows; this specific cumulative QA sequence is deliberately validated against the pinned source and must pass its native rerun."
+  ]
+}

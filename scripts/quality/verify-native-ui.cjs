@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 const evidence = 'native-ui-logs';
 const source = JSON.parse(fs.readFileSync(path.join(evidence, 'source.json'), 'utf8'));
 const fixture = JSON.parse(fs.readFileSync(path.join(evidence, 'native-ui-receipt.json'), 'utf8'));
@@ -45,10 +46,8 @@ if (!bookReads.some(row => row.revision === 0 && row.title === 'THE SMALL ADVENT
   || bookReads.filter(row => row.revision === 1 && expectedCover(row)).length < 2) {
   throw new Error('The saved book was not read before editing and again after leaving and reopening it.');
 }
-const junit = fs.readFileSync(path.join(evidence, 'maestro.xml'), 'utf8');
-if (!/tests="[1-9]\d*"/.test(junit) || /<(failure|error)(\s|>)/.test(junit) || !/failures="0"/.test(junit)) {
-  throw new Error('The native accessibility flow did not complete successfully.');
-}
+const nativeFlows = JSON.parse(execFileSync('python3', [path.join(__dirname, 'native-ui-flow-results.py'), evidence], { encoding: 'utf8' }));
+if (nativeFlows.passed !== true) throw new Error('Both required native accessibility flows must complete successfully.');
 function collect(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const file = path.join(directory, entry.name);
@@ -81,6 +80,7 @@ fs.writeFileSync(path.join(evidence, 'receipt.json'), JSON.stringify({ passed: t
   nativeBridgeCrashLines: nativeBridgeFailures.length,
   accountIndexSaved: true, accountPersistenceFailureLines: accountPersistenceFailures.length,
   savedAccountReloadedThroughSecureStore: true,
+  requiredMaestroFlows: nativeFlows.flows,
   requestCount: fixture.requests.length, screenshots: media,
   repeatedFeedReturns: 5, signedReleaseCreated: false }, null, 2) + '\n');
 console.log('Full native App launched; auth, five tabs, settings, saved memory books, automatic films and real capture passed with no unsupported requests.');

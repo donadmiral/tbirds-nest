@@ -230,7 +230,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     'modules/boomerang/ios/BoomerangModule.swift', 'modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt',
     'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/entry.js',
     'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/verify-native-ui.cjs',
-    'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/test-ios-app-ui.sh', 'scripts/quality/test-android-app-ui.sh',
+    'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh', 'scripts/quality/test-android-app-ui.sh',
     'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
   const dependencyFiles = {
     '@supabase/supabase-js': ['package.json', 'dist/index.cjs', 'dist/index.mjs'],

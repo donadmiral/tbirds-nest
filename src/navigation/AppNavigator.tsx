@@ -363,6 +363,7 @@ function MainTabs() {
         headerShown: false, tabBarHideOnKeyboard: true, unmountOnBlur: false,
         tabBarActiveTintColor: t.ink.primary, tabBarInactiveTintColor: accessibility.highContrast ? t.ink.primary : t.ink.secondary,
         tabBarAccessibilityLabel: route.name === 'Feed' ? 'Home' : route.name,
+        tabBarTestID: `main-tab-${route.name.toLowerCase()}`,
         tabBarButton: (props) => <TabBarButton {...props} reduceMotion={accessibility.reduceMotion} onWarm={() => warmTab(route.name)} />,
         tabBarIcon: ({ focused, color, size }) => {
           if (route.name === 'Profile') return <ProfileTabAvatar userId={userId} uri={profile?.avatar_url}

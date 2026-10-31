@@ -92,13 +92,23 @@ xcrun simctl spawn "$ui_simulator" log stream --style compact --level info --pre
 ui_log_pid=$!
 xcrun simctl io "$ui_simulator" recordVideo --codec=h264 native-ui-logs/navigation.mp4 > native-ui-logs/recording.log 2>&1 &
 ui_video_pid=$!
-maestro --device "$ui_simulator" test --format junit --output native-ui-logs/maestro.xml \
-  --debug-output native-ui-logs/maestro --test-output-dir native-ui-logs/maestro \
-  tests/native/flows/navigation.yaml 2>&1 | tee native-ui-logs/maestro.log
-container="$(xcrun simctl get_app_container "$ui_simulator" app.platinumcircles.mobile.qa data)"
-cp "$container/Documents/native-ui-receipt.json" native-ui-logs/native-ui-receipt.json
-cp "$container/Documents/native-ui-auth-diagnostics.json" native-ui-logs/native-ui-auth-diagnostics.json
+flow_status=0
+bash scripts/quality/run-native-ui-flows.sh "$ui_simulator" || flow_status=$?
+evidence_status=0
+container="$(xcrun simctl get_app_container "$ui_simulator" app.platinumcircles.mobile.qa data)" || evidence_status=1
 mkdir -p native-ui-logs/memory-capture
-cp -R "$container/Documents/native-memory-capture/." native-ui-logs/memory-capture/
-python3 scripts/quality/verify-native-ui-memory.py
-node scripts/quality/verify-native-ui.cjs ios
+if [[ -n "$container" ]]; then
+  cp "$container/Documents/native-ui-receipt.json" native-ui-logs/native-ui-receipt.json || evidence_status=1
+  cp "$container/Documents/native-ui-auth-diagnostics.json" native-ui-logs/native-ui-auth-diagnostics.json || evidence_status=1
+  cp -R "$container/Documents/native-memory-capture/." native-ui-logs/memory-capture/ || evidence_status=1
+else
+  evidence_status=1
+fi
+memory_status=0
+python3 scripts/quality/verify-native-ui-memory.py || memory_status=$?
+verification_status=0
+node scripts/quality/verify-native-ui.cjs ios || verification_status=$?
+cat > native-ui-logs/phase-results.json <<EOF
+{"flows":$flow_status,"evidence":$evidence_status,"memoryDecoder":$memory_status,"fullAppVerifier":$verification_status}
+EOF
+if (( flow_status != 0 || evidence_status != 0 || memory_status != 0 || verification_status != 0 )); then exit 1; fi

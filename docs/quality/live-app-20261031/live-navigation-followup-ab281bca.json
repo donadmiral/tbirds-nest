@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-10-31T04:44:58.280Z",
+  "head": "ab281bcaab525331930f6238f97e46c169eee1ee",
+  "merge": "f033c50196f6f5f115f451247073ccdb357025d4",
+  "tree": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+  "deployment": "dpl_BZyKWqMVaJ7ce7kS5NVmfX1xNGAX",
+  "alias": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+  "transport": "Actual deployed web app and existing signed-in hosted QA session; no browser response substitution, route adapter, scripted network hold or hosted content write.",
+  "observations": [
+    {
+      "journey": "First Jobs to own Profile",
+      "result": "Outgoing Jobs/navigation remained in the first accessibility observation, then the profile completed with both books and seven posts; no fallback was captured for this transition."
+    },
+    {
+      "journey": "Cold Profile to Notifications",
+      "result": "Accessibility observation captured the passive Primary navigation, own-profile link, loading-main-content skip target and Opening page status. The Notifications empty state subsequently completed."
+    },
+    {
+      "journey": "Messages to cold Home",
+      "result": "Accessibility and screenshot captured passive navigation around the root skeleton, then actual Home content completed."
+    },
+    {
+      "journey": "Jobs to Home to Jobs",
+      "result": "Final returned view retained search design, Remote location, Freelance type and Highest Pay sort, plus the genuine empty result. The first intermediate returned accessibility snapshot had incomplete text during rendering; no every-frame or first-paint claim."
+    },
+    {
+      "journey": "Own Profile to Release gallery to Back",
+      "result": "The first returned accessibility view retained QA memories, Release gallery and the seven-post profile, with no loading marker."
+    }
+  ],
+  "applicationConsoleErrors": [],
+  "retrievedErrorLogs": 147,
+  "errorsCheckedFromUtc": "2026-10-31T04:40:00Z",
+  "screenshots": [
+    {
+      "path": "docs/quality/live-app-20261031/cold-home-navigation-live-ab281bca.jpg",
+      "bytes": 37030,
+      "sha256": "c9d3a022242efcaf9c1ee9f5142e05ec2657335c6a2e62897f36f6dd6fd221ac"
+    },
+    {
+      "path": "docs/quality/live-app-20261031/jobs-filter-return-live-ab281bca.jpg",
+      "bytes": 79163,
+      "sha256": "f41f59dbca582218a278d5426bb21a8748a9fff3a59e117ccf3581260a9fd6ac"
+    },
+    {
+      "path": "docs/quality/live-app-20261031/profile-book-return-live-ab281bca.jpg",
+      "bytes": 76331,
+      "sha256": "08ec9c95f5e268c5c77655b57361525cf50655d69ebc322968de431af3e8595d"
+    },
+    {
+      "path": "docs/quality/live-app-20261031/live-navigation-ab281bca-accessibility.json",
+      "bytes": 24023,
+      "sha256": "128f4d75253c7ca31a1d7d28a2e8d98f1970cbdf8053e06d5bffa116be12fc25"
+    }
+  ],
+  "noHostedContentMutations": true,
+  "limits": [
+    "Sparse UI/DOM observations, not GPU paint, every-frame continuity, production latency, concurrent load or physical iPhone/Safari acceptance.",
+    "No intentional delayed-response interruption was created on hosted transport; that behavior is covered by the actual-Next loopback CI probe.",
+    "Initial full-document load uses neutral loading until identity is verified; this change addresses subsequent eligible route transitions.",
+    "Playwright checkbox role lookup did not match the native AX Freelance control; the visible AX control was clicked successfully.",
+    "The earlier Notifications screenshot taken while clicking Messages shows outgoing Notifications, not the passive fallback, and is not used as fallback proof."
+  ]
+}
