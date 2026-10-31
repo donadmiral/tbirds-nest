@@ -1,0 +1,438 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T17:18:14.276796+00:00",
+  "status": "Failed required navigation and capture-heading checks; the capture route and real saved-account readback eventually completed once, but movie acceptance was not reached.",
+  "binding": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "testedMerge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "workflowRun": 41218724056,
+    "jobId": 124588620373,
+    "artifactId": 13050807476,
+    "artifactName": "ios-full-app-ui",
+    "artifactBytes": 29611771,
+    "artifactZipSha256": "58f7f2c882344c845031f68f3585eca853e224636d44ce53f579daa993a32e35",
+    "githubDigestVerified": true,
+    "archiveMembers": 56,
+    "singleArchive": "/tmp/ios-full-app-b5c9c82b.zip",
+    "extraction": "/tmp/ios-full-app-b5c9c82b-41218724056",
+    "sourceManifestCanonical": "docs/quality/native-full-app-20261031/android-full-app-b5c9c82b-source.json",
+    "sourceManifestSha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102",
+    "sameSourceManifestBytesAsAndroid": true
+  },
+  "timing": {
+    "jobStartedAt": "2026-10-31T16:14:39Z",
+    "jobCompletedAt": "2026-10-31T17:10:48Z",
+    "fullAppScript": {
+      "name": "Run bash scripts/quality/test-ios-app-ui.sh",
+      "status": "completed",
+      "conclusion": "failure",
+      "number": 8,
+      "started_at": "2026-10-31T16:17:01Z",
+      "completed_at": "2026-10-31T17:10:38Z"
+    },
+    "fullAppScriptElapsedSeconds": 3217,
+    "jobTimeoutMinutes": 75,
+    "upload": {
+      "name": "Retain actual app UI evidence",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 9,
+      "started_at": "2026-10-31T17:10:38Z",
+      "completed_at": "2026-10-31T17:10:44Z"
+    },
+    "qualification": "Workflow step times describe the whole script, not isolated build or UI latency. Archive timestamps without offsets are retained separately and do not supply a calibrated compiler duration."
+  },
+  "sourceVerification": {
+    "originalSourceHashCount": 498,
+    "matchedExactPublishedGitBlobs": true,
+    "overlaysBeforeAndAfterVerified": 6,
+    "installedDependencyFileHashesMatched": 9,
+    "sourceMemoryCapability": 0,
+    "capabilityMode": "qa-capability-overlay",
+    "productionCapabilityActivated": false,
+    "details": "docs/quality/native-full-app-20261031/ios-b5c9c82b/source-verification.json",
+    "expectedSourceReceipt": "docs/quality/native-full-app-20261031/native-full-app-b5c9c82b-expected-sources.json",
+    "expectedSourceReceiptSha256": "2e5a27635c432e491fcbe48e69f944a549c4b229c901ac5dc795ce545ec55f25",
+    "overlayRetention": "After-overlay byte streams are identical to the six copies already retained under android-b5c9c82b/overlays with .txt suffixes."
+  },
+  "buildAndSigning": {
+    "buildSucceeded": true,
+    "buildLogBytes": 18155718,
+    "buildLogSha256": "467df29455b3d0a298f3510adfe19c6e64d98b51f5a3dcb1a250dc4260cc8b9f",
+    "buildLogSuccessLine": 91338,
+    "bundleIdentifier": "app.platinumcircles.mobile.qa",
+    "architecture": "x86_64",
+    "platform": "iOS Simulator",
+    "hostSignatureVerifiedOnDisk": true,
+    "hostDesignatedRequirementSatisfied": true,
+    "executableBeforeSha256": "447f7f222822edbdcebebcd60a241e30dc341cb6b5182252b5e604e56218e8ae",
+    "executableAfterSha256": "8df65a173f41bc8772cd58efac179137d139a765c3034487399ac71cc44d854c",
+    "infoPlistSha256": "695880dfd2da619e68d6be176e80fbb2807123f68938733f5d94079e46672bdd",
+    "infoPlistUnchanged": true,
+    "simulatedEntitlements": {
+      "application-identifier": "FAKETEAMID.app.platinumcircles.mobile.qa",
+      "aps-environment": "development"
+    },
+    "defaultKeychainAccessGroup": "FAKETEAMID.app.platinumcircles.mobile.qa",
+    "embeddedSections": {
+      "__entitlements": {
+        "bytes": 340,
+        "sha256": "6d1dfd62b996dd1f84cc806664d39024f50ddcc2975d9b2f59d9292aa0aa72b1"
+      },
+      "__ents_der": {
+        "bytes": 107,
+        "sha256": "b92d648550347034acaa7d932207f1b01919c3616c4bdfce06a08aecab2de9cd"
+      }
+    },
+    "embeddedSectionsUnchanged": true,
+    "derPresent": true,
+    "derSemanticsDecoded": false,
+    "signingBoundary": "Host ad-hoc code signing and embedded Simulator entitlements are different metadata. No physical-device signature, Apple account operation or production entitlement change is claimed.",
+    "runtimeBoundary": "The pre-launch entitlement reader intentionally reports keychainRuntimeAccepted=false because static metadata cannot prove storage access. The later actual account-store readback below is independent runtime evidence."
+  },
+  "requiredFlows": {
+    "attempts": {
+      "schemaVersion": 1,
+      "mode": "same-app-required-flows",
+      "flows": [
+        {
+          "name": "navigation",
+          "flow": "tests/native/flows/navigation.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-navigation.xml"
+        },
+        {
+          "name": "memory-capture",
+          "flow": "tests/native/flows/memory-capture.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-memory-capture.xml"
+        }
+      ]
+    },
+    "junit": {
+      "navigation": {
+        "artifactPath": "maestro-navigation.xml",
+        "bytes": 585,
+        "sha256": "ed6fc01d37e190627f1fd1946d43eb3c91fbb0a4010e03f059bd7163c4ba3bbd",
+        "suite": {
+          "name": "Test Suite",
+          "device": "Platinum full app UI 41218724056 - iOS 18.5 - 7666C313-EA56-4793-B2B2-D4B83903E0FB",
+          "tests": "1",
+          "failures": "1",
+          "time": "399.053",
+          "timestamp": "2026-10-31T17:00:55"
+        },
+        "testcase": {
+          "id": "Full native app navigation",
+          "name": "Full native app navigation",
+          "classname": "Full native app navigation",
+          "file": "tests/native/flows/navigation.yaml",
+          "time": "398.747",
+          "timestamp": "2026-10-31T17:00:56",
+          "status": "ERROR"
+        },
+        "failure": "Assertion is false: \"Page 1 of 2\" is visible"
+      },
+      "memory-capture": {
+        "artifactPath": "maestro-memory-capture.xml",
+        "bytes": 646,
+        "sha256": "533f070bab6e50f998990e0a47887090e437f02dadd30407a1c22b7fcb9050dd",
+        "suite": {
+          "name": "Test Suite",
+          "device": "Platinum full app UI 41218724056 - iOS 18.5 - 7666C313-EA56-4793-B2B2-D4B83903E0FB",
+          "tests": "1",
+          "failures": "1",
+          "time": "57.094",
+          "timestamp": "2026-10-31T17:09:09"
+        },
+        "testcase": {
+          "id": "Actual native memory capture and encoding",
+          "name": "Actual native memory capture and encoding",
+          "classname": "Actual native memory capture and encoding",
+          "file": "tests/native/flows/memory-capture.yaml",
+          "time": "57.013",
+          "timestamp": "2026-10-31T17:09:09",
+          "status": "ERROR"
+        },
+        "failure": "Assertion is false: \"Native capture acceptance\" is visible"
+      }
+    },
+    "flowVerification": {
+      "passed": false,
+      "error": "The navigation Maestro pipeline did not exit successfully."
+    },
+    "navigation": "The mandatory Page 1 of 2 visibility assertion failed after the flow had passed reader Edit memory book readiness. This is later than the prior f4 readiness failure; it does not establish page-turn performance or cause.",
+    "capture": "A separate real Maestro capture testcase ran and failed Native capture acceptance visibility. It did not execute the subsequent saved-account UI assertion or cancellation/completed export commands.",
+    "independentVisualReview": "Navigation/capture commands, AX and screenshots are retained and reviewed separately by navigation_performance; they are not duplicated here."
+  },
+  "phaseExitCodes": {
+    "flows": 1,
+    "evidence": 1,
+    "memoryDecoder": 1,
+    "fullAppVerifier": 1
+  },
+  "eventualCaptureAndReadback": {
+    "rawFixtureReceipt": {
+      "artifactPath": "native-ui-receipt.json",
+      "bytes": 29938,
+      "sha256": "011f94165c1073c2168aafedded7a3c4015c38c080c504d269264e17b0beb48f"
+    },
+    "captureBoundaries": [
+      {
+        "sequence": 1,
+        "phase": "received",
+        "atUnixMs": 1793466609991,
+        "matched": true
+      },
+      {
+        "sequence": 2,
+        "phase": "parsed",
+        "atUnixMs": 1793466609995,
+        "matched": true,
+        "expectedPath": true
+      },
+      {
+        "sequence": 3,
+        "phase": "action-produced",
+        "atUnixMs": 1793466609996,
+        "matched": true,
+        "reset": true
+      },
+      {
+        "sequence": 4,
+        "phase": "mounted",
+        "atUnixMs": 1793466610029
+      },
+      {
+        "sequence": 5,
+        "phase": "readback-start",
+        "atUnixMs": 1793466610029
+      },
+      {
+        "sequence": 6,
+        "phase": "readback-complete",
+        "atUnixMs": 1793466610051,
+        "fulfilled": true,
+        "passed": true
+      }
+    ],
+    "captureBoundaryDropped": 0,
+    "accountReadbacks": [
+      {
+        "passed": true,
+        "reloaded": true,
+        "accountCount": 1
+      }
+    ],
+    "actualRuntimeReadbackPassed": true,
+    "completedReadbacks": 1,
+    "timelyRequiredHeadingOrAccountAssertionPassed": false,
+    "meaning": "The exact capture URL was received and parsed; the existing RESET action was produced; the actual capture component mounted and one guarded production accountsStore.init reload fulfilled with the original account/session comparison passing.",
+    "qualification": "Action production is not a direct dispatch probe. The later component/readback observations are distinct. A successful eventual readback does not retroactively pass the failed heading or the unexecuted account UI assertion. Cross-host/Simulator clock latency was not calibrated."
+  },
+  "readerBodyObservation": {
+    "events": 12,
+    "dropped": 0,
+    "responses": [
+      {
+        "id": 1,
+        "kind": "book",
+        "status": 200,
+        "bodyObserved": true,
+        "fulfilled": true,
+        "bodyStartUnixMs": 1793466423799,
+        "bodyCompleteUnixMs": 1793466423807,
+        "observedSettlementIntervalMs": 8
+      },
+      {
+        "id": 2,
+        "kind": "reactions",
+        "status": 200,
+        "bodyObserved": true,
+        "fulfilled": true,
+        "bodyStartUnixMs": 1793466423904,
+        "bodyCompleteUnixMs": 1793466423912,
+        "observedSettlementIntervalMs": 8
+      },
+      {
+        "id": 3,
+        "kind": "book",
+        "status": 200,
+        "bodyObserved": true,
+        "fulfilled": true,
+        "bodyStartUnixMs": 1793466564309,
+        "bodyCompleteUnixMs": 1793466564310,
+        "observedSettlementIntervalMs": 1
+      },
+      {
+        "id": 4,
+        "kind": "reactions",
+        "status": 200,
+        "bodyObserved": true,
+        "fulfilled": true,
+        "bodyStartUnixMs": 1793466564321,
+        "bodyCompleteUnixMs": 1793466564322,
+        "observedSettlementIntervalMs": 1
+      }
+    ],
+    "qualification": "These are selected original Response.text promise-settlement observations inside the app process. They do not prove JSON parsing, React commit or visual readiness, and this receipt makes no causal claim about the reader failure."
+  },
+  "accountAndAuthScope": "Canonical auth/fixture snapshots and deeper timing coverage are independently retained/reviewed by hosted_backend. This owner receipt binds the raw fixture artifact and actual completed readback without duplicating raw traces or interpreting absent unobserved events.",
+  "media": {
+    "screenRecording": {
+      "path": "navigation.mp4",
+      "bytes": 12089410,
+      "sha256": "14543754e05ae03e89f19de9b67b2d76a852b0cf520e4d92608c899cdb75bf77",
+      "codec": "h264",
+      "width": 1179,
+      "height": 2556,
+      "containerDurationSeconds": 731.546667,
+      "reportedFrameCount": 1301,
+      "metadataReceipt": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-video-metadata.json"
+    },
+    "memoryCaptureDirectoryPresent": false,
+    "producedMemoryMoviePresent": false,
+    "independentProducedMovieDecodePerformed": false,
+    "qualification": "The screen recording is not an exported memory movie. Container frame metadata is not a UI-FPS or calibrated latency measurement. No nonexistent movie was decoded."
+  },
+  "acceptance": {
+    "nativeAppCompiled": true,
+    "hostSignatureVerified": true,
+    "embeddedSimulatorEntitlementsVerified": true,
+    "eventualRealSavedAccountReadbackPassed": true,
+    "requiredFullNavigationPassed": false,
+    "requiredCaptureHeadingPassed": false,
+    "requiredCaptureAccountUiAssertionPassed": false,
+    "requiredCancelRetryCleanupAndMoviePassed": false,
+    "fullNativeAcceptancePassed": false,
+    "productionMemoryCapability": 0,
+    "physicalDeviceAcceptanceClaimed": false
+  },
+  "retainedOwnerFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/artifact-metadata.json",
+      "bytes": 745,
+      "sha256": "7e975103eac06068b2f7870cab4e65f36379ced8d56d2518d7e68949fa9b061a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/job-metadata.json",
+      "bytes": 3983,
+      "sha256": "10ec09b5355476e1a7c83b81336a0fc9491d8d3de689d1c6f8c0e0f2b41ac941"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/artifact-members.json",
+      "bytes": 10172,
+      "sha256": "7c6ae7c2795c395693ee21606dc4a805a6157f433148c5a74327a32e571c1266"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/source-verification.json",
+      "bytes": 3049,
+      "sha256": "609d441e43afb3a69aa945890acca1db3f230c1670db4dfcb823f547c40ddb28"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/flow-results.json",
+      "bytes": 351,
+      "sha256": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/phase-results.json",
+      "bytes": 63,
+      "sha256": "9488f7548883aadb3421cbedd6aa243cfc4a05c4fc03aad3b3792b1a871e4f1e"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/flow-verification.json",
+      "bytes": 89,
+      "sha256": "563b1fc2263772fab105ed01de4ef3fbadccc02cec744309682a392fb1cc83f6"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/simulator-entitlements-before-resign.json",
+      "bytes": 954,
+      "sha256": "b259ac93408286737a1691d94d5c4c9f1cfc75ca560c7e3b62953ee0c2c0ae14"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/simulator-entitlements.json",
+      "bytes": 954,
+      "sha256": "7260aebd85ac94ea9637482606c375b9bae9fd8bc389826b3479eb854abd72df"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/simulator-host-entitlements-before-resign.plist",
+      "bytes": 184,
+      "sha256": "00491886daae07a5296c8bad50f116bf006b0004d7bf7338ad46669fbd903a4a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/simulator-host-entitlements.plist",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/simulator-host-entitlements-before-resign.log.txt",
+      "bytes": 137,
+      "sha256": "88f02df28b6657104f4e977d5f70240680249de2ebfa3a06360ead59a2ca921c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/simulator-host-entitlements.log.txt",
+      "bytes": 137,
+      "sha256": "88f02df28b6657104f4e977d5f70240680249de2ebfa3a06360ead59a2ca921c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/simulator-signature-before-resign.log.txt",
+      "bytes": 950,
+      "sha256": "3cd043b0fd93d8a5eab349b6964741130f946834dae1c8a3f20af2651f5f0cbb"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/simulator-signature.log.txt",
+      "bytes": 950,
+      "sha256": "20ab209e9890933428503f180a97e8ef3e5a6dd4b9471ac5ff022eff55665ea8"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/simulator-signature-verification.log.txt",
+      "bytes": 283,
+      "sha256": "f0ccb9045d05b5def9c7ddf6c70864b92a59b61cdd39c431dd7b356ed1e5490e"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/simulator-signing.log.txt",
+      "bytes": 145,
+      "sha256": "072b72a1b428d4369dce58316e69aff87d3c6e34c017cd3e1226ddefdb2ee048"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/toolchain.log.txt",
+      "bytes": 51,
+      "sha256": "8d315d67a5517bc04b78c43c06e9ef5213bbb599704c907128dd3ad66b06ab29"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-video-metadata.json",
+      "bytes": 2867,
+      "sha256": "cdb6fc44175c45f0af399ebfea462600925a2d0f4b3d79a2ac7025a4e23f762b"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/build-log-projection.json",
+      "bytes": 844,
+      "sha256": "1f27c5924de2395caede80a4fd4a642274427e29e58e68215aa860b30b02be89"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/runtime-marker-scan.json",
+      "bytes": 822,
+      "sha256": "a8de8ed2bbacbb1031bedb8110ef644ce6f576ab5e67eb84b69b7880c8ad05d4"
+    }
+  ],
+  "actions": {
+    "artifactDownloads": 1,
+    "largeLiveOrCompletedJobLogFetches": 0,
+    "reruns": 0,
+    "cancellations": 0,
+    "refChanges": 0,
+    "sourceOrGateChangesDuringReview": false
+  },
+  "limits": [
+    "The complete native UI/movie gate remains failed despite the new eventual route and saved-account readback evidence.",
+    "The observed delay must be investigated without assuming that a URL match, routing semantics, optional reaction body handling, signing or an assertion deadline is defective. No fix or timeout change is made by this receipt.",
+    "Source/signing/phase evidence here is frozen independently of later diagnostic or repair proposals."
+  ],
+  "sharedReviews": {
+    "docs/quality/native-full-app-20261031/ios-b5c9c82b-navigation-independent-review.json": "40d61e223d81d8aafa0838bd15730524d4d1e9c566ae587a9077cf81d530b12b",
+    "docs/quality/native-full-app-20261031/ios-b5c9c82b-auth-independent-review.json": "73283497470ae64c86305cf44d249745f45c0adb7ebec1060848f4aa94395708"
+  }
+}

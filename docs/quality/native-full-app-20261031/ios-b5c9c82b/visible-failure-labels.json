@@ -1,0 +1,264 @@
+{
+  "navigation": [
+    {
+      "accessibilityText": "Platinum QA",
+      "bounds": "[0,0][393,852]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Back to profile",
+      "bounds": "[14,69][58,113]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Edit memory book",
+      "bounds": "[335,69][379,113]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "THE SMALL ADVENTURES",
+      "bounds": "[70,79][323,103]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "THE SMALL ADVENTURES",
+      "bounds": "[70,79][323,103]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Book soundtrack",
+      "bounds": "[156,123][236,167]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "By Alex Rivera",
+      "bounds": "[128,646][264,670]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "By Alex Rivera",
+      "bounds": "[128,646][264,670]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "2 memories",
+      "bounds": "[161,677][232,693]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "2 memories",
+      "bounds": "[161,677][232,693]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Open book",
+      "bounds": "[28,715][365,768]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Play continuous memory film with original music",
+      "bounds": "[28,778][365,828]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "\uf1c0, Add memories",
+      "bounds": "[28,838][365,881]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Vertical scroll bar, 2 pages",
+      "text": "0%",
+      "value": "0%",
+      "bounds": "[360,191][390,802]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Horizontal scroll bar, 1 page",
+      "text": "0%",
+      "value": "0%",
+      "bounds": "[49,819][343,849]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Vertical scroll bar, 2 pages",
+      "text": "0%",
+      "value": "0%",
+      "bounds": "[360,191][390,802]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Horizontal scroll bar, 1 page",
+      "text": "0%",
+      "value": "0%",
+      "bounds": "[49,819][343,849]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "5:07\u202fPM",
+      "bounds": "[53,19][89,39]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Cellular",
+      "text": "No signal",
+      "value": "No signal",
+      "bounds": "[282,23][301,35]",
+      "enabled": "true"
+    },
+    {
+      "text": "SSID, 3 of 3 Wi-Fi bars",
+      "value": "SSID, 3 of 3 Wi-Fi bars",
+      "bounds": "[308,23][325,35]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "100% battery power",
+      "text": "Not charging",
+      "value": "Not charging",
+      "bounds": "[333,22][360,35]",
+      "enabled": "true"
+    }
+  ],
+  "capture": [
+    {
+      "accessibilityText": "Platinum QA",
+      "bounds": "[0,0][393,852]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Close memory book",
+      "bounds": "[14,69][58,113]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "View all pages",
+      "bounds": "[301,69][337,113]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Page options",
+      "bounds": "[349,69][379,113]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "THE SMALL ADVENTURES",
+      "bounds": "[70,79][289,103]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "THE SMALL ADVENTURES",
+      "bounds": "[70,79][289,103]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Book soundtrack",
+      "bounds": "[156,123][236,167]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "01 \u2500",
+      "bounds": "[50,197][349,208]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "01 \u2500",
+      "bounds": "[50,197][349,208]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "WE TOOK THE LONG WAY HOME",
+      "bounds": "[82,406][316,428]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "WE TOOK THE LONG WAY HOME",
+      "bounds": "[82,406][316,428]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "WE TOOK THE LONG WAY HOME",
+      "bounds": "[54,621][344,660]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "WE TOOK THE LONG WAY HOME",
+      "bounds": "[54,621][344,660]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Jan 2, 2026",
+      "bounds": "[54,668][119,682]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Jan 2, 2026",
+      "bounds": "[54,668][119,682]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "\uf181, Like",
+      "bounds": "[280,662][344,688]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Previous memory",
+      "bounds": "[32,289][59,545]",
+      "enabled": "false"
+    },
+    {
+      "accessibilityText": "Next memory",
+      "bounds": "[340,289][367,545]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Previous memory",
+      "bounds": "[83,736][127,780]",
+      "enabled": "false"
+    },
+    {
+      "accessibilityText": "Play continuous memory film",
+      "bounds": "[139,736][183,780]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Page 1 of 2",
+      "bounds": "[211,750][237,766]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Page 1 of 2",
+      "bounds": "[211,750][237,766]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Next memory",
+      "bounds": "[265,736][309,780]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "5:09\u202fPM",
+      "bounds": "[52,19][90,39]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "Cellular",
+      "text": "No signal",
+      "value": "No signal",
+      "bounds": "[282,23][301,35]",
+      "enabled": "true"
+    },
+    {
+      "text": "SSID, 3 of 3 Wi-Fi bars",
+      "value": "SSID, 3 of 3 Wi-Fi bars",
+      "bounds": "[308,23][325,35]",
+      "enabled": "true"
+    },
+    {
+      "accessibilityText": "100% battery power",
+      "text": "Not charging",
+      "value": "Not charging",
+      "bounds": "[333,22][360,35]",
+      "enabled": "true"
+    }
+  ]
+}

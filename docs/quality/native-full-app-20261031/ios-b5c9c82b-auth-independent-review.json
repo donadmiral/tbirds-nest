@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "recordedAtUtc": "2026-10-31T17:18:00+00:00",
+  "conclusion": "Observed book/reaction bodies fulfilled and the real saved-account readback eventually passed. Capture event handling and mount occurred after the heading assertion had already failed; neither native flow is promoted to success. Retained auth activity does not support a continuous whole-JavaScript freeze across that capture assertion.",
+  "source": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "canonicalManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-b5c9c82b-source.json",
+      "bytes": 59522,
+      "sha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102"
+    },
+    "canonicalManifestByteIdenticalToArtifact": true,
+    "globalVerification": "Native owner independently verified 498 original sources, six overlays and nine dependency hashes. This reviewer did not duplicate the full verification.",
+    "selectedReviewedSources": [
+      {
+        "path": "tests/native/auth-diagnostics.cjs",
+        "publishedHeadSha256": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7",
+        "localMatchesPublishedHead": true,
+        "artifactOriginalSha256": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7"
+      },
+      {
+        "path": "tests/native/capture-boundary-trace.cjs",
+        "publishedHeadSha256": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb",
+        "localMatchesPublishedHead": true,
+        "artifactOriginalSha256": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb"
+      },
+      {
+        "path": "tests/native/backend-fixture.cjs",
+        "publishedHeadSha256": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d",
+        "localMatchesPublishedHead": true,
+        "artifactOriginalSha256": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d"
+      },
+      {
+        "path": "tests/native/entry.js",
+        "publishedHeadSha256": "826953456afbe130b718cc4c7a2cd8bfdfb584c88d0835291c7dad409d57528e",
+        "localMatchesPublishedHead": true,
+        "artifactOriginalSha256": "826953456afbe130b718cc4c7a2cd8bfdfb584c88d0835291c7dad409d57528e"
+      },
+      {
+        "path": "tests/native/account-readback.cjs",
+        "publishedHeadSha256": "b2b3d08f52305b704f0b4f0df7fc92e15c021f8d070a9653cb15fc90f946e4ce",
+        "localMatchesPublishedHead": true,
+        "artifactOriginalSha256": "b2b3d08f52305b704f0b4f0df7fc92e15c021f8d070a9653cb15fc90f946e4ce"
+      },
+      {
+        "path": "tests/native/MemoryCaptureFixtureScreen.tsx",
+        "publishedHeadSha256": "c3b4f3c429e2d7224fcc5d380f2769591bd9fd4431a3a392aa67910debc59f3f",
+        "localMatchesPublishedHead": true,
+        "artifactOriginalSha256": "c3b4f3c429e2d7224fcc5d380f2769591bd9fd4431a3a392aa67910debc59f3f"
+      },
+      {
+        "path": "src/stores/accountsStore.ts",
+        "publishedHeadSha256": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71",
+        "localMatchesPublishedHead": true,
+        "artifactOriginalSha256": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71"
+      }
+    ]
+  },
+  "artifact": {
+    "runId": 41218724056,
+    "jobId": 124588620373,
+    "completedAtUtc": "2026-10-31T17:10:48Z",
+    "artifactId": 13050807476,
+    "name": "ios-full-app-ui",
+    "zipBytes": 29611771,
+    "zipSha256": "58f7f2c882344c845031f68f3585eca853e224636d44ce53f579daa993a32e35",
+    "verification": "Single download and checksum verification by native_acceptance; this review consumed the shared extraction only."
+  },
+  "requiredReaderResponses": {
+    "responseCount": 4,
+    "bookResponses": 2,
+    "reactionResponses": 2,
+    "allStatus200": true,
+    "allBodyObserversInstalled": true,
+    "allTextPromisesFulfilled": true,
+    "bodyPromiseDurationsMs": [
+      8,
+      8,
+      1,
+      1
+    ],
+    "readerResponseDropped": 0,
+    "bookBodyCompletionUtc": [
+      "2026-10-31T17:07:03.807+00:00",
+      "2026-10-31T17:09:24.310+00:00"
+    ],
+    "reactionBodyCompletionUtc": [
+      "2026-10-31T17:07:03.912+00:00",
+      "2026-10-31T17:09:24.322+00:00"
+    ],
+    "interpretation": "No observed body remained pending for either selected book/reaction read. These are synthetic response text-promise timings, not hosted-network performance, JSON parse completion, media hydration or visual commit measurements."
+  },
+  "captureAndAccountReadback": {
+    "events": [
+      {
+        "sequence": 1,
+        "phase": "received",
+        "atUnixMs": 1793466609991,
+        "matched": true
+      },
+      {
+        "sequence": 2,
+        "phase": "parsed",
+        "atUnixMs": 1793466609995,
+        "matched": true,
+        "expectedPath": true
+      },
+      {
+        "sequence": 3,
+        "phase": "action-produced",
+        "atUnixMs": 1793466609996,
+        "matched": true,
+        "reset": true
+      },
+      {
+        "sequence": 4,
+        "phase": "mounted",
+        "atUnixMs": 1793466610029
+      },
+      {
+        "sequence": 5,
+        "phase": "readback-start",
+        "atUnixMs": 1793466610029
+      },
+      {
+        "sequence": 6,
+        "phase": "readback-complete",
+        "atUnixMs": 1793466610051,
+        "fulfilled": true,
+        "passed": true
+      }
+    ],
+    "captureBoundaryDropped": 0,
+    "accountReadbacks": [
+      {
+        "passed": true,
+        "reloaded": true,
+        "accountCount": 1
+      }
+    ],
+    "receivedUtc": "2026-10-31T17:10:09.991+00:00",
+    "mountedUtc": "2026-10-31T17:10:10.029+00:00",
+    "readbackCompleteUtc": "2026-10-31T17:10:10.051+00:00",
+    "receivedToReadbackCompleteMs": 60,
+    "readbackStartToCompleteMs": 22,
+    "actualProductionStoreBehavior": "accountsStore.init performs fresh SecureStore index/item reads and awaits auth.getSession. The guarded helper then verifies the saved account/token against the current synthetic owner session without logging tokens.",
+    "nativeLogCorroboration": "app.log line11892 records account init at17:10:10.048 with one stored account, inside the JS readback window17:10:10.029\u201310.051.",
+    "acceptanceLimit": "This is successful eventual simulator SecureStore/account reload evidence. It does not establish capture heading visibility, timely navigation or movie capture/export acceptance."
+  },
+  "uiCorrelation": {
+    "timelineSources": [
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-command-timeline.json",
+        "bytes": 14906,
+        "sha256": "8b04859feaeaca71188f71dee4efed9a4f479f8326977f953b4e97fba8f488a8"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/capture-command-timeline.json",
+        "bytes": 1934,
+        "sha256": "a05530ab75e93cf0d13c7da3f9a5db22214d411f2d3d868eec231fafccceee09"
+      }
+    ],
+    "pageOneAssertion": {
+      "sequence0": 45,
+      "step1": 46,
+      "depth": 1,
+      "kind": "assertConditionCommand",
+      "status": "FAILED",
+      "start": "2026-10-31T17:07:09.714+00:00",
+      "durationMs": 19040,
+      "end": "2026-10-31T17:07:28.754+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "Page 1 of 2",
+          "optional": false
+        }
+      },
+      "error": "Assertion is false: \"Page 1 of 2\" is visible"
+    },
+    "captureHeadingAssertion": {
+      "sequence0": 5,
+      "step1": 6,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "FAILED",
+      "start": "2026-10-31T17:09:24.716+00:00",
+      "durationMs": 32215,
+      "end": "2026-10-31T17:09:56.931+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "Native capture acceptance",
+          "optional": false
+        }
+      },
+      "timeout": "30000",
+      "error": "Assertion is false: \"Native capture acceptance\" is visible"
+    },
+    "receivedAfterHeadingAssertionEndMs": 13060.0,
+    "mountedAfterHeadingAssertionEndMs": 13098.0,
+    "readbackCompleteAfterHeadingAssertionEndMs": 13120.0,
+    "preciseAuthWindows": [
+      {
+        "name": "page_one_assertion",
+        "startUtc": "2026-10-31T17:07:09.714+00:00",
+        "endUtc": "2026-10-31T17:07:28.754+00:00",
+        "uiStatus": "FAILED",
+        "retainedEventCount": 0,
+        "firstEventUtc": null,
+        "lastEventUtc": null,
+        "phaseCounts": {},
+        "outcomeCounts": {},
+        "largestWaitMs": null,
+        "largestHoldMs": null,
+        "largestStorageDurationMs": null,
+        "acquisitionTimesUtc": []
+      },
+      {
+        "name": "capture_heading_assertion",
+        "startUtc": "2026-10-31T17:09:24.716+00:00",
+        "endUtc": "2026-10-31T17:09:56.931+00:00",
+        "uiStatus": "FAILED",
+        "retainedEventCount": 66,
+        "firstEventUtc": "2026-10-31T17:09:27.106+00:00",
+        "lastEventUtc": "2026-10-31T17:09:55.207+00:00",
+        "phaseCounts": {
+          "lock:requested": 11,
+          "lock:acquired": 11,
+          "storage:started": 11,
+          "storage:settled": 11,
+          "lock:released": 11,
+          "lock:settled": 11
+        },
+        "outcomeCounts": {
+          "fulfilled": 33
+        },
+        "largestWaitMs": 0.20699999999487773,
+        "largestHoldMs": 2.956000000005588,
+        "largestStorageDurationMs": 2.680999999982305,
+        "acquisitionTimesUtc": [
+          "2026-10-31T17:09:27.106+00:00",
+          "2026-10-31T17:09:30.621+00:00",
+          "2026-10-31T17:09:34.137+00:00",
+          "2026-10-31T17:09:37.653+00:00",
+          "2026-10-31T17:09:41.170+00:00",
+          "2026-10-31T17:09:44.687+00:00",
+          "2026-10-31T17:09:48.191+00:00",
+          "2026-10-31T17:09:51.691+00:00",
+          "2026-10-31T17:09:52.386+00:00",
+          "2026-10-31T17:09:54.123+00:00",
+          "2026-10-31T17:09:55.207+00:00"
+        ]
+      }
+    ],
+    "interpretation": [
+      "The exact failed capture-heading assertion contains66 retained auth/storage events:11 complete lock lifecycles and11 getItem pairs. Those observations show intermittent JS execution within that interval; they do not diagnose the later URL-listener handling or exclude shorter stalls.",
+      "The earlier170-event preliminary count included the prompt-return interval beginning17:09:22.341 and must not be described as the exact assertion count.",
+      "No auth/storage events occur in the Page1 assertion window. That absence alone proves neither JavaScript idleness nor a freeze.",
+      "Navigation visual conclusions and screenshots remain owned by the separate navigation review."
+    ]
+  },
+  "authTiming": {
+    "snapshotUtcFromAnchor": "2026-10-31T17:10:24.368+00:00",
+    "retainedEventCount": 1024,
+    "totalOperations": 424,
+    "droppedEvents": 182,
+    "droppedTracking": 0,
+    "retentionJoin": {
+      "lastInitialRetainedEventIndex": 511,
+      "lastInitialRetainedAtMs": 131430.784,
+      "lastInitialRetainedUtc": "2026-10-31T17:05:24.179+00:00",
+      "firstRecentRetainedEventIndex": 512,
+      "firstRecentRetainedAtMs": 209820.921,
+      "firstRecentRetainedUtc": "2026-10-31T17:06:42.569+00:00",
+      "droppedEvents": 182,
+      "interpretation": "182 middle events were discarded; the later reader and capture windows fall in the fully retained recent segment."
+    },
+    "largestRetainedWaitMs": 1478.9060000000027,
+    "largestRetainedHoldMs": 621.2050000000017,
+    "largestRetainedStorageDurationMs": 238.278999999995,
+    "retainedNonFulfilledOutcomes": [],
+    "activeLocksAtSnapshot": 0,
+    "waitingLocksAtSnapshot": 0,
+    "activeStorageAtSnapshot": 0,
+    "timerApiIdentityCount": 2,
+    "timerApiIdentityLimitReached": false,
+    "retainedTimerPairs": {
+      "(('function', 1), ('function', 2))": 598
+    },
+    "limits": [
+      "Reported maxima are maxima of retained observations, not the dropped middle interval.",
+      "Empty active arrays describe the persisted snapshot at17:10:24.368, not every instant of the run.",
+      "Timer descriptor identities are sampled at recorded phases and do not prove all unobserved timer behavior."
+    ]
+  },
+  "fixtureCounts": {
+    "requests": 277,
+    "relevantRequests": {
+      "/auth/v1/token": 1,
+      "/rest/v1/profiles": 22,
+      "/rest/v1/rpc/get_profile": 2,
+      "/rest/v1/rpc/get_memory_albums": 2,
+      "/rest/v1/rpc/get_memory_book": 2,
+      "/rest/v1/story_reactions": 2,
+      "/functions/v1/content-media-sign": 0
+    },
+    "bookReadRecords": 2,
+    "unhandled": 0,
+    "networkForwarded": false,
+    "limit": "Cumulative synthetic transport observations without per-request timestamps; no per-screen rate or absence of all possible feedback loops is inferred."
+  },
+  "clockAndPersistenceLimits": [
+    "Reader/capture events use JS Date.now wall time. Auth uses a monotonic-relative clock paired once with a wall-clock origin. Maestro command metadata and native app.log are separately recorded UTC values.",
+    "No explicit host/simulator offset or drift calibration was performed. The native account-init log within the JS readback window supports their alignment at that point;13.060seconds is the recorded-UTC comparison, not a calibrated event-delivery latency.",
+    "The received marker proves when the JS URL listener ran, not when iOS first received or queued the URL.",
+    "The fixture receipt is debounced and has no global snapshot timestamp. This populated receipt preserves all12 reader and6 capture markers with zero marker drops, but it does not certify all events after its final retained boundary.",
+    "Missing -final files are recorded as missing; they are not synthesized or summed with the normal exports."
+  ],
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/native-ui-auth-diagnostics.json",
+      "bytes": 196352,
+      "sha256": "c54b35a1cedb7b13dc9241b9d6abe4267f2a091d1b70c72a85f3b612d7a5ae52"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/native-ui-receipt.json",
+      "bytes": 29938,
+      "sha256": "011f94165c1073c2168aafedded7a3c4015c38c080c504d269264e17b0beb48f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/auth-timing-projection.json",
+      "bytes": 7166,
+      "sha256": "27141b526eb95ba832483f08070243f6e62f3ca71ba4e5c3e13c38b4fb4858e2"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/fixture-account-boundary-projection.json",
+      "bytes": 6603,
+      "sha256": "1dc59360d691b54ecab607c9bf3f271607e2bf8d91fb4c18b79248bc29109164"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/auth-account-log-projection.json",
+      "bytes": 1554,
+      "sha256": "1f652d8bf92a658a58ab1390ad48444a9f48f811ea206f5137799ad553bd5f18"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/auth-evidence-availability.json",
+      "bytes": 785,
+      "sha256": "87ec641d1726156b8d3004855d2a9f4d094fb4cd4eb88785ab496b7907cfd817"
+    }
+  ],
+  "actions": {
+    "downloads": 0,
+    "providerCalls": 0,
+    "sourceEdits": 0,
+    "testRuns": 0,
+    "refChanges": 0,
+    "rootReportEdits": 0
+  }
+}

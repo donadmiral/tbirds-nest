@@ -41,8 +41,8 @@ provenance, fixture and test changes. Workflow files, native flow commands,
 assertions, deadlines, native encoders and production movie capability remain
 unchanged.
 
-All four supporting workflows now pass on this exact source. The full
-installed-app run remains active:
+All four supporting workflows pass on this exact source. The full installed-app
+run has completed with failed acceptance on both platforms:
 
 | Gate | Current-source run | Result |
 | --- | --- | --- |
@@ -50,7 +50,7 @@ installed-app run remains active:
 | Browser interaction and media | [41218724100](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724100) | Passed |
 | iOS compilation and encoders | [41218724062](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062) | Passed |
 | Android compilation and encoders | [41218724047](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047) | Passed |
-| Complete installed native apps | [41218724056](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056) | Android failed after emulator host loss; iPhone still active at 17:00:12 UTC |
+| Complete installed native apps | [41218724056](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056) | Android emulator host loss; iPhone page-opening and capture-heading assertions failed. Both artifacts reviewed. |
 
 The fresh type/quality workflow passed: 1,853 root tests, 683 web tests,
 195 operations tests and two Edge TLS cases. Backend Node/RPC fixtures passed
@@ -121,18 +121,57 @@ inside the device. Twelve retained JavaScript log lines include two successful
 account-index writes; those writes do not establish saved-account readback.
 The owner, navigation and auth reviews preserve these limits independently.
 
-At 17:00:12 UTC, the iPhone job was still in its full-app script, with no failed
-step or artifact upload. Its final outcome remains open. Earlier supporting
-results and native failures below belong to `f4c35f32` and are not counted as
-new runtime passes for this source. Milestone 6 remains open.
+The iPhone job completed with failed acceptance at 17:10:48 UTC. Its single
+downloaded artifact matches SHA-256
+`58f7f2c882344c845031f68f3585eca853e224636d44ce53f579daa993a32e35`.
+All 498 original sources, six overlays and nine dependencies match this same
+published candidate. The Xcode Release build succeeded; local ad-hoc Simulator
+signing verifies, with unchanged embedded simulated entitlement hashes. This
+does not establish physical-device signing or Apple account authorization.
+
+Main pages and the private memory shelf passed. Unlike the preceding run,
+`Edit memory book` became visible and the semantic `Open book` tap completed.
+The required `Page 1 of 2` assertion then failed. Its captured accessibility tree
+and screenshot show closed-book controls and blank cover artwork, with no
+spinner. The button's observed bounds were above the home indicator. The
+published handler fades the cover and waits for a native animation completion
+before publishing the reader; the artifact is consistent with that incomplete
+handoff, without establishing the callback scheduler's cause.
+
+The separate capture flow started a real testcase. Its deep-link action and
+exact iOS Open prompt tap completed, but `Native capture acceptance` failed
+within its unchanged 30-second configured deadline. The failure screenshot
+instead shows the first book page, including `Page 1 of 2` and its expected
+caption. Film, settings/save/reopen, movie cancellation/retry and final cleanup
+steps remain unreached. No memory-export folder or movie was produced.
+
+The populated fixture independently records eventual capture URL receipt,
+matching parse, RESET action production, screen mount and a successful real
+saved-account reload. Those boundaries occur at 17:10:09.991–17:10:10.051 UTC,
+after the heading assertion's recorded end at 17:09:56.931 and its failure
+screenshot. One account was reloaded and verified. This is positive eventual
+account-readback evidence, not timely visible capture entry or movie acceptance.
+The approximate cross-clock gap is retained without claiming clock calibration.
+
+Both book response bodies and both reaction bodies fulfilled in one to eight
+milliseconds. During the exact failed capture-heading assertion, 66 retained
+auth/storage events include 11 complete lock lifecycles and 11 storage-read
+pairs; all observed outcomes fulfilled, with maximum wait 0.207 ms, hold
+2.956 ms and storage duration 2.681 ms. Callbacks continued during that window,
+so a continuous whole-JavaScript freeze is not supported. The 182 dropped auth
+events lie in an earlier retained-boundary interval, outside these reader and
+capture windows. Native event-delivery delay remains under investigation.
+
+Earlier supporting results and native failures below belong to `f4c35f32` and
+are not counted as new runtime passes for this source. Milestone 6 remains open.
 
 A scoped source/build review confirms that this Android QA build selected
 Skia Ganesh/OpenGL with Graphite off; reviewed movie effects also use GLES.
 This supports a GLES-only host-renderer isolation experiment. The reviewed
 follow-up below uses Mesa llvmpipe with positive host/emulator renderer checks,
 together with bounded host crash-record observation. No new device attempt or
-successful crash cure is claimed, and the active iPhone run's source has not
-been changed.
+successful crash cure is claimed. The completed iPhone run used the unchanged
+published source throughout.
 
 A new clean detached signed-QA checkout now contains this exact `b5c9c82b`
 source and tree. Thirteen critical files match published Git blobs. The cached
@@ -157,12 +196,17 @@ was performed. The earlier f4 CLI login observation below remains historical.
 [Android full-app review](native-full-app-20261031/android-full-app-b5c9c82b-review.json) ·
 [Independent Android navigation review](native-full-app-20261031/android-b5c9c82b-navigation-independent-review.json) ·
 [Independent Android auth review](native-full-app-20261031/android-b5c9c82b-auth-independent-review.json) ·
+[iPhone full-app review](native-full-app-20261031/ios-full-app-b5c9c82b-review.json) ·
+[Independent iPhone navigation review](native-full-app-20261031/ios-b5c9c82b-navigation-independent-review.json) ·
+[Independent iPhone auth and boundary review](native-full-app-20261031/ios-b5c9c82b-auth-independent-review.json) ·
 [GLES compatibility assessment](native-full-app-20261031/android-b5c9c82b-gles-compatibility-assessment.json) ·
 [Current-source signed-QA preparation](native-full-app-20261031/ios-signed-qa-preparation-b5c9c82b.json)
 
 ### Prepared next Android QA runner (v8)
 
-Eight source/test paths are prepared separately from the published app head.
+Eight source/test paths are saved separately from the published app head at
+`bdfa5bde6c68ca1e0b0f27b4ca43a5fd269ed0b7`. All 22 files in that checkpoint
+were read back and verified, totaling 348,158 bytes.
 They change Android CI host packages, its disposable renderer/diagnostics,
 source provenance and focused tests. They do not change production app code,
 native flow commands, assertions, deadlines, encoder implementations or
@@ -210,7 +254,7 @@ Actual Xvfb/emulator integration, successful journeys, account readback and
 movie acceptance still require the next installed-app run. The shared prior
 SwiftShader signature motivates this isolation; no faulting component or
 proven crash cure is asserted. Saving this candidate on the follow-up branch
-does not replace or cancel the active iPhone run.
+did not replace or cancel the completed iPhone run.
 
 [Independent renderer review](native-full-app-20261031/android-mesa-renderer-independent-review.json) ·
 [Host diagnostic preparation](native-full-app-20261031/native-emulator-host-diagnostics-preparation.json) ·
@@ -218,6 +262,25 @@ does not replace or cancel the active iPhone run.
 [Combined QA integration checks](native-full-app-20261031/native-v8-qa-integration.json) ·
 [Independent source/provenance review](native-full-app-20261031/native-v8-qa-scope-independent-review.json) ·
 [Expected native source manifest](native-full-app-20261031/native-v8-source-provenance-manifest.json)
+
+### Reader entry and page-turn repairs under review
+
+The iPhone artifact motivates a separate minimal production change: a loaded,
+authorized reader should open on the user's tap without waiting for a
+decorative cover-animation callback. Its actual-screen regression cases are
+being completed independently of the frozen Android QA candidate above.
+
+A controlled actual-component check also reproduced an adjacent page-turn
+weakness: withholding native completion strands committed and cancelled turns
+with controls unavailable. This path was not reached by the failed iPhone flow;
+it is a separate reproduced component failure. The proposed repair uses the
+existing intended visual duration as an alternate completion clock, retains
+first-result and ownership fences, and cancels at committed lifecycle changes.
+The final focused set currently passes 30 cases. Independent review found and
+reproduced a passive-cleanup race; layout-phase invalidation and explicit
+pre-passive-cleanup cases now cover it. These source changes remain under
+review and are not on the application branch. No native success or resolution
+of the separate capture-link delay is claimed.
 
 ## Previous published repair candidate: f4c35f32 (v6)
 

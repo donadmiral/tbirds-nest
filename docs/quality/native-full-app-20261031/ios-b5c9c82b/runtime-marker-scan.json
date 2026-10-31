@@ -1,0 +1,16 @@
+{
+  "sourceSha256": "23c92f2655d9ad0165fd5aa497b4a3b72b0dfb3552ec1ddf14da5ead7fb30c09",
+  "sourceBytes": 1707613,
+  "sourceLines": 11904,
+  "patterns": {
+    "javascriptFatal": "ReactNativeJS.*(?:HostObject|FATAL|Invariant Violation|Unhandled JS Exception)",
+    "nativeAppTermination": "(?:app\\.platinumcircles\\.mobile\\.qa|PlatinumQA).*(?:SIGSEGV|EXC_BAD_ACCESS|uncaught exception|Terminating app due)",
+    "secureStoreFailure": "(?:SecureStore|SecItem).*(?:-34018|missing entitlement|errSecMissingEntitlement)"
+  },
+  "matchingLineNumbers": {
+    "javascriptFatal": [],
+    "nativeAppTermination": [],
+    "secureStoreFailure": []
+  },
+  "qualification": "Pattern scan of retained output only; absence of matches does not establish overall JS liveness, account-readback completion or absence of unlogged failure."
+}

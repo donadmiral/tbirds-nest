@@ -1,0 +1,82 @@
+[
+  {
+    "sequence0": 0,
+    "step1": 1,
+    "depth": 0,
+    "kind": "defineVariablesCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:09:10.507+00:00",
+    "durationMs": 15,
+    "end": "2026-10-31T17:09:10.522+00:00"
+  },
+  {
+    "sequence0": 1,
+    "step1": 2,
+    "depth": 0,
+    "kind": "applyConfigurationCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:09:10.524+00:00",
+    "durationMs": 1,
+    "end": "2026-10-31T17:09:10.525+00:00"
+  },
+  {
+    "sequence0": 2,
+    "step1": 3,
+    "depth": 0,
+    "kind": "openLinkCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:09:10.525+00:00",
+    "durationMs": 5867,
+    "end": "2026-10-31T17:09:16.392+00:00",
+    "link": "platinum-circles-qa://ui-fixture/memory"
+  },
+  {
+    "sequence0": 3,
+    "step1": 4,
+    "depth": 0,
+    "kind": "runFlowCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:09:16.394+00:00",
+    "durationMs": 8322,
+    "end": "2026-10-31T17:09:24.716+00:00",
+    "condition": {
+      "platform": "IOS",
+      "visible": {
+        "textRegex": "^Open in \u201cPlatinum QA\u201d\\?$",
+        "optional": false
+      }
+    }
+  },
+  {
+    "sequence0": 4,
+    "step1": 5,
+    "depth": 1,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:09:20.648+00:00",
+    "durationMs": 4067,
+    "end": "2026-10-31T17:09:24.715+00:00",
+    "selector": {
+      "textRegex": "Open",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 5,
+    "step1": 6,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "FAILED",
+    "start": "2026-10-31T17:09:24.716+00:00",
+    "durationMs": 32215,
+    "end": "2026-10-31T17:09:56.931+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "Native capture acceptance",
+        "optional": false
+      }
+    },
+    "timeout": "30000",
+    "error": "Assertion is false: \"Native capture acceptance\" is visible"
+  }
+]

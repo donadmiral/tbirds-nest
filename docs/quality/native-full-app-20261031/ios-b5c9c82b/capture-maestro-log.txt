@@ -1,0 +1,22 @@
+17:09:10.513 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Define variables RUNNING
+17:09:10.524 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Define variables COMPLETED
+17:09:10.524 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Apply configuration RUNNING
+17:09:10.525 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Apply configuration COMPLETED
+17:09:10.526 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Open platinum-circles-qa://ui-fixture/memory RUNNING
+17:09:10.543 [ INFO] maestro.Maestro.openLink: Opening link platinum-circles-qa://ui-fixture/memory for app: app.platinumcircles.mobile.qa with autoVerify config as false
+17:09:16.393 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Open platinum-circles-qa://ui-fixture/memory COMPLETED
+17:09:16.396 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is IOS and "^Open in “Platinum QA”\?$" is visible RUNNING
+17:09:20.649 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on "Open" RUNNING
+17:09:21.881 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=Open, title=, value=, text=, hintText=, resource-id=, bounds=[197,446][331,490], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=197, y=446, width=134, height=44))
+17:09:22.333 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)
+17:09:22.341 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (264, 468) using hierarchy based logic for wait
+17:09:22.349 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array
+17:09:22.349 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+17:09:24.715 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed.
+17:09:24.715 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on "Open" COMPLETED
+17:09:24.716 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is IOS and "^Open in “Platinum QA”\?$" is visible COMPLETED
+17:09:24.717 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that "Native capture acceptance" is visible RUNNING
+17:09:56.930 [ERROR] maestro.orchestra.Orchestra.executeCommands: [Command execution] CommandFailed: Assertion is false: "Native capture acceptance" is visible
+17:09:58.365 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot
+17:09:58.366 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+17:09:58.646 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that "Native capture acceptance" is visible FAILED

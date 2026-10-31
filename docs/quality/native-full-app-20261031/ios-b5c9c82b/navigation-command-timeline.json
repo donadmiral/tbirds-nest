@@ -1,0 +1,636 @@
+[
+  {
+    "sequence0": 0,
+    "step1": 1,
+    "depth": 0,
+    "kind": "defineVariablesCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:01:18.671+00:00",
+    "durationMs": 27,
+    "end": "2026-10-31T17:01:18.698+00:00"
+  },
+  {
+    "sequence0": 1,
+    "step1": 2,
+    "depth": 0,
+    "kind": "applyConfigurationCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:01:18.702+00:00",
+    "durationMs": 95,
+    "end": "2026-10-31T17:01:18.797+00:00"
+  },
+  {
+    "sequence0": 2,
+    "step1": 3,
+    "depth": 0,
+    "kind": "launchAppCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:01:18.831+00:00",
+    "durationMs": 83303,
+    "end": "2026-10-31T17:02:42.134+00:00"
+  },
+  {
+    "sequence0": 3,
+    "step1": 4,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:02:42.374+00:00",
+    "durationMs": 39910,
+    "end": "2026-10-31T17:03:22.284+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "Sign in",
+        "optional": false
+      }
+    },
+    "timeout": "30000"
+  },
+  {
+    "sequence0": 4,
+    "step1": 5,
+    "depth": 0,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:03:22.287+00:00",
+    "durationMs": 11901,
+    "end": "2026-10-31T17:03:34.188+00:00",
+    "selector": {
+      "textRegex": "Username or email",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 5,
+    "step1": 6,
+    "depth": 0,
+    "kind": "inputTextCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:03:34.188+00:00",
+    "durationMs": 11493,
+    "end": "2026-10-31T17:03:45.681+00:00"
+  },
+  {
+    "sequence0": 6,
+    "step1": 7,
+    "depth": 0,
+    "kind": "runFlowCommand",
+    "status": "SKIPPED",
+    "start": "2026-10-31T17:03:45.683+00:00",
+    "durationMs": 42,
+    "end": "2026-10-31T17:03:45.725+00:00",
+    "condition": {
+      "platform": "ANDROID"
+    }
+  },
+  {
+    "sequence0": 7,
+    "step1": 8,
+    "depth": 0,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:03:45.726+00:00",
+    "durationMs": 5449,
+    "end": "2026-10-31T17:03:51.175+00:00",
+    "selector": {
+      "textRegex": "Password",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 8,
+    "step1": 9,
+    "depth": 0,
+    "kind": "inputTextCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:03:51.175+00:00",
+    "durationMs": 2074,
+    "end": "2026-10-31T17:03:53.249+00:00"
+  },
+  {
+    "sequence0": 9,
+    "step1": 10,
+    "depth": 0,
+    "kind": "runFlowCommand",
+    "status": "SKIPPED",
+    "start": "2026-10-31T17:03:53.250+00:00",
+    "durationMs": 1,
+    "end": "2026-10-31T17:03:53.251+00:00",
+    "condition": {
+      "platform": "ANDROID"
+    }
+  },
+  {
+    "sequence0": 10,
+    "step1": 11,
+    "depth": 0,
+    "kind": "runFlowCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:03:53.252+00:00",
+    "durationMs": 4737,
+    "end": "2026-10-31T17:03:57.989+00:00",
+    "condition": {
+      "platform": "IOS"
+    }
+  },
+  {
+    "sequence0": 11,
+    "step1": 12,
+    "depth": 1,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:03:53.254+00:00",
+    "durationMs": 4734,
+    "end": "2026-10-31T17:03:57.988+00:00",
+    "selector": {
+      "textRegex": "Platinum Circles",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 12,
+    "step1": 13,
+    "depth": 0,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:03:57.989+00:00",
+    "durationMs": 12855,
+    "end": "2026-10-31T17:04:10.844+00:00",
+    "selector": {
+      "textRegex": "Sign in",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 13,
+    "step1": 14,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:04:10.844+00:00",
+    "durationMs": 1591,
+    "end": "2026-10-31T17:04:12.435+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+        "optional": false
+      }
+    },
+    "timeout": "30000"
+  },
+  {
+    "sequence0": 14,
+    "step1": 15,
+    "depth": 0,
+    "kind": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:04:12.436+00:00",
+    "durationMs": 1681,
+    "end": "2026-10-31T17:04:14.117+00:00",
+    "path": "home"
+  },
+  {
+    "sequence0": 15,
+    "step1": 16,
+    "depth": 0,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:04:14.117+00:00",
+    "durationMs": 15762,
+    "end": "2026-10-31T17:04:29.879+00:00",
+    "selector": {
+      "textRegex": "Latest",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 16,
+    "step1": 17,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:04:29.881+00:00",
+    "durationMs": 1783,
+    "end": "2026-10-31T17:04:31.664+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+        "optional": false
+      }
+    }
+  },
+  {
+    "sequence0": 17,
+    "step1": 18,
+    "depth": 0,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:04:32.046+00:00",
+    "durationMs": 15238,
+    "end": "2026-10-31T17:04:47.284+00:00",
+    "selector": {
+      "textRegex": "For You",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 18,
+    "step1": 19,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:04:47.288+00:00",
+    "durationMs": 1427,
+    "end": "2026-10-31T17:04:48.715+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+        "optional": false
+      }
+    }
+  },
+  {
+    "sequence0": 19,
+    "step1": 20,
+    "depth": 0,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:04:48.716+00:00",
+    "durationMs": 10891,
+    "end": "2026-10-31T17:04:59.607+00:00",
+    "selector": {
+      "idRegex": "main-tab-market",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 20,
+    "step1": 21,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:04:59.608+00:00",
+    "durationMs": 1154,
+    "end": "2026-10-31T17:05:00.762+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "View listing: Travel journal",
+        "optional": false
+      }
+    },
+    "timeout": "15000"
+  },
+  {
+    "sequence0": 21,
+    "step1": 22,
+    "depth": 0,
+    "kind": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:05:00.764+00:00",
+    "durationMs": 198,
+    "end": "2026-10-31T17:05:00.962+00:00",
+    "path": "market"
+  },
+  {
+    "sequence0": 22,
+    "step1": 23,
+    "depth": 0,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:05:00.962+00:00",
+    "durationMs": 8769,
+    "end": "2026-10-31T17:05:09.731+00:00",
+    "selector": {
+      "idRegex": "main-tab-feed",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 23,
+    "step1": 24,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:05:09.732+00:00",
+    "durationMs": 1518,
+    "end": "2026-10-31T17:05:11.250+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+        "optional": false
+      }
+    }
+  },
+  {
+    "sequence0": 24,
+    "step1": 25,
+    "depth": 0,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:05:11.297+00:00",
+    "durationMs": 9787,
+    "end": "2026-10-31T17:05:21.084+00:00",
+    "selector": {
+      "idRegex": "main-tab-jobs",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 25,
+    "step1": 26,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:05:21.084+00:00",
+    "durationMs": 959,
+    "end": "2026-10-31T17:05:22.043+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "(?s)^(?:Product designer|(?:.*?, )?Product designer, (?:.*?, )?Desert Studio(?:, .*)?)$",
+        "optional": false
+      }
+    },
+    "timeout": "15000"
+  },
+  {
+    "sequence0": 26,
+    "step1": 27,
+    "depth": 0,
+    "kind": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:05:22.044+00:00",
+    "durationMs": 226,
+    "end": "2026-10-31T17:05:22.270+00:00",
+    "path": "jobs"
+  },
+  {
+    "sequence0": 27,
+    "step1": 28,
+    "depth": 0,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:05:22.272+00:00",
+    "durationMs": 2457,
+    "end": "2026-10-31T17:05:24.729+00:00",
+    "selector": {
+      "idRegex": "main-tab-messages",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 28,
+    "step1": 29,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:05:24.729+00:00",
+    "durationMs": 32557,
+    "end": "2026-10-31T17:05:57.286+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "(?s)^(?:Ready for our next adventure\\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\\?(?:, .*)?)$",
+        "optional": false
+      }
+    },
+    "timeout": "15000"
+  },
+  {
+    "sequence0": 29,
+    "step1": 30,
+    "depth": 0,
+    "kind": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:05:57.287+00:00",
+    "durationMs": 202,
+    "end": "2026-10-31T17:05:57.489+00:00",
+    "path": "messages"
+  },
+  {
+    "sequence0": 30,
+    "step1": 31,
+    "depth": 0,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:05:57.490+00:00",
+    "durationMs": 3046,
+    "end": "2026-10-31T17:06:00.536+00:00",
+    "selector": {
+      "idRegex": "main-tab-profile",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 31,
+    "step1": 32,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:06:00.537+00:00",
+    "durationMs": 43393,
+    "end": "2026-10-31T17:06:43.930+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "Alex Rivera",
+        "optional": false
+      }
+    },
+    "timeout": "15000"
+  },
+  {
+    "sequence0": 32,
+    "step1": 33,
+    "depth": 0,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:06:44.065+00:00",
+    "durationMs": 968,
+    "end": "2026-10-31T17:06:45.033+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "(?s)^(?:.*?, )?Edit profile$",
+        "optional": false
+      }
+    }
+  },
+  {
+    "sequence0": 33,
+    "step1": 34,
+    "depth": 0,
+    "kind": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:06:45.034+00:00",
+    "durationMs": 274,
+    "end": "2026-10-31T17:06:45.308+00:00",
+    "path": "profile"
+  },
+  {
+    "sequence0": 34,
+    "step1": 35,
+    "depth": 0,
+    "kind": "runFlowCommand",
+    "status": "FAILED",
+    "start": "2026-10-31T17:06:45.308+00:00",
+    "durationMs": 44925,
+    "end": "2026-10-31T17:07:30.233+00:00",
+    "error": "Assertion is false: \"Page 1 of 2\" is visible"
+  },
+  {
+    "sequence0": 35,
+    "step1": 36,
+    "depth": 1,
+    "kind": "applyConfigurationCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:06:45.310+00:00",
+    "durationMs": 0,
+    "end": "2026-10-31T17:06:45.310+00:00"
+  },
+  {
+    "sequence0": 36,
+    "step1": 37,
+    "depth": 1,
+    "kind": "scrollUntilVisible",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:06:45.311+00:00",
+    "durationMs": 5535,
+    "end": "2026-10-31T17:06:50.846+00:00",
+    "selector": {
+      "textRegex": "View all memory books",
+      "optional": false
+    },
+    "timeout": "20000",
+    "centerElement": true
+  },
+  {
+    "sequence0": 37,
+    "step1": 38,
+    "depth": 1,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:06:50.847+00:00",
+    "durationMs": 6325,
+    "end": "2026-10-31T17:06:57.172+00:00",
+    "selector": {
+      "textRegex": "View all memory books",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 38,
+    "step1": 39,
+    "depth": 1,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:06:57.173+00:00",
+    "durationMs": 2722,
+    "end": "2026-10-31T17:06:59.895+00:00",
+    "selector": {
+      "textRegex": "Private",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 39,
+    "step1": 40,
+    "depth": 1,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:06:59.895+00:00",
+    "durationMs": 894,
+    "end": "2026-10-31T17:07:00.789+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "THE SMALL ADVENTURES, 2 memories",
+        "optional": false
+      }
+    }
+  },
+  {
+    "sequence0": 40,
+    "step1": 41,
+    "depth": 1,
+    "kind": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:07:00.790+00:00",
+    "durationMs": 212,
+    "end": "2026-10-31T17:07:01.002+00:00",
+    "path": "memory-shelf"
+  },
+  {
+    "sequence0": 41,
+    "step1": 42,
+    "depth": 1,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:07:01.003+00:00",
+    "durationMs": 4097,
+    "end": "2026-10-31T17:07:05.100+00:00",
+    "selector": {
+      "textRegex": "THE SMALL ADVENTURES, 2 memories",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 42,
+    "step1": 43,
+    "depth": 1,
+    "kind": "assertConditionCommand",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:07:05.101+00:00",
+    "durationMs": 830,
+    "end": "2026-10-31T17:07:05.931+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "Edit memory book",
+        "optional": false
+      }
+    },
+    "timeout": "15000"
+  },
+  {
+    "sequence0": 43,
+    "step1": 44,
+    "depth": 1,
+    "kind": "scrollUntilVisible",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:07:05.933+00:00",
+    "durationMs": 860,
+    "end": "2026-10-31T17:07:06.793+00:00",
+    "selector": {
+      "textRegex": "Open book",
+      "optional": false
+    },
+    "timeout": "20000",
+    "centerElement": false
+  },
+  {
+    "sequence0": 44,
+    "step1": 45,
+    "depth": 1,
+    "kind": "tapOnElement",
+    "status": "COMPLETED",
+    "start": "2026-10-31T17:07:06.793+00:00",
+    "durationMs": 2920,
+    "end": "2026-10-31T17:07:09.713+00:00",
+    "selector": {
+      "textRegex": "Open book",
+      "optional": false
+    }
+  },
+  {
+    "sequence0": 45,
+    "step1": 46,
+    "depth": 1,
+    "kind": "assertConditionCommand",
+    "status": "FAILED",
+    "start": "2026-10-31T17:07:09.714+00:00",
+    "durationMs": 19040,
+    "end": "2026-10-31T17:07:28.754+00:00",
+    "condition": {
+      "visible": {
+        "textRegex": "Page 1 of 2",
+        "optional": false
+      }
+    },
+    "error": "Assertion is false: \"Page 1 of 2\" is visible"
+  }
+]

@@ -1,0 +1,776 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-31T17:17:45.181182+00:00",
+  "scope": "Independent read-only visible command, accessibility, screenshot and focused source review of the b5 iPhone artifact. Native owns full source/signing/phases/movie validation; Hosted owns canonical auth/fixture/boundary analysis.",
+  "verdict": "FAILED_REQUIRED_FLOWS: main pages, private shelf and loaded-book readiness passed. Open book did not expose Page 1 during its assertion; the error image shows blank cover artwork with closed-book controls. Capture heading also failed; its error image shows the first book page instead. The capture route and saved-account readback eventually completed after the visible deadline, but no movie attempt occurred.",
+  "binding": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "workflowRun": 41218724056,
+    "jobId": 124588620373,
+    "artifact": {
+      "id": 13050807476,
+      "name": "ios-full-app-ui",
+      "bytes": 29611771,
+      "sha256": "58f7f2c882344c845031f68f3585eca853e224636d44ce53f579daa993a32e35",
+      "verification": "Reused Native owner single SHA-verified download/extraction; no duplicate provider or archive request."
+    },
+    "extraction": "/tmp/ios-full-app-b5c9c82b-41218724056",
+    "sourceManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-b5c9c82b-source.json",
+      "sha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102",
+      "matchesArchiveBytes": true,
+      "completeCoverageAttributedToNativeOwner": "498 originals, six overlays and nine installed dependency files"
+    },
+    "independentFocusedSourceComparisons": [
+      {
+        "path": "tests/native/flows/navigation.yaml",
+        "sha256": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+        "gitBlob": "c662810f0f5ac430a86be27b1f5bdc0d2c1ffae9",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "tests/native/flows/memory-navigation.yaml",
+        "sha256": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792",
+        "gitBlob": "561e27736c8cbeb558c205fa8ee7197157020fca",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "tests/native/flows/memory-capture.yaml",
+        "sha256": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde",
+        "gitBlob": "f48932ce85f613a4ae25bbd45028c2407fbc061b",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+        "sha256": "63cf58cdf501ef43c333c9cce04ba3620fb775f1de532e4d92ace987d0d8826f",
+        "gitBlob": "20c546cf43cb15064fd7f6a871e3017d1cfd7d18",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "src/components/memory/MemoryFilm.tsx",
+        "sha256": "3b144c45ce8f5b85ef890806c2f3e0752b1e77950f7cfa9b357fb6e1c46971b4",
+        "gitBlob": "64f6c75a6567e74dcba01ad5d9ea7a54d955d209",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "src/components/memory/MemoryMovieExport.tsx",
+        "sha256": "f08a34b3f5ebf06a43cabf717e6e8b0cf3eda145a5ecfa38ccd99eb4823bae3a",
+        "gitBlob": "e0a4f4b0663f1e0beb5b519b6b1e65eeb19f15f7",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "src/navigation/AppNavigator.tsx",
+        "sha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+        "gitBlob": "0113dc21c01f41f298b3c52ac79c5103cf7f9964",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "tests/native/entry.js",
+        "sha256": "826953456afbe130b718cc4c7a2cd8bfdfb584c88d0835291c7dad409d57528e",
+        "gitBlob": "7714edb3a013ed8e879184370822567cdd07ae42",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "tests/native/capture-boundary-trace.cjs",
+        "sha256": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb",
+        "gitBlob": "17e812548d46359d87758de837d69e0d4d3b9f96",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "tests/native/MemoryCaptureFixtureScreen.tsx",
+        "sha256": "c3b4f3c429e2d7224fcc5d380f2769591bd9fd4431a3a392aa67910debc59f3f",
+        "gitBlob": "3ec24081eb7ede2ad62ff73cfa69003f2f2a04f5",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "tests/native/backend-fixture.cjs",
+        "sha256": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d",
+        "gitBlob": "b359683ac3ab9f9052aeb665695e2adce92e0a3e",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "tests/native/memory-fixture.cjs",
+        "sha256": "9368a168342678a62e4c5aee24bfa2cbeba8d6245c1ff2910fa1494e4724b7d7",
+        "gitBlob": "83ace2bba75f9f04d97b68c395dafc4b3f16cbc7",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "tests/native/memory-capture-observer.cjs",
+        "sha256": "9f341201ee67393a29ac614afd3bf1e91b84430c46c27f784d54d84a43e6e6a4",
+        "gitBlob": "f2e96feca168536becf13f7503ea8744da3817fd",
+        "matchesLiteralB5AndArtifact": true
+      },
+      {
+        "path": "tests/native/account-readback.cjs",
+        "sha256": "b2b3d08f52305b704f0b4f0df7fc92e15c021f8d070a9653cb15fc90f946e4ce",
+        "gitBlob": "800562f550a9f81f20fa69c5d619445d4f14de1b",
+        "matchesLiteralB5AndArtifact": true
+      }
+    ]
+  },
+  "navigation": {
+    "junit": {
+      "tests": 1,
+      "failures": 1,
+      "suiteSeconds": 399.053,
+      "testcaseSeconds": 398.747,
+      "testcaseStatus": "ERROR",
+      "failure": "Assertion is false: \"Page 1 of 2\" is visible"
+    },
+    "recordedCommands": 46,
+    "commandStatusCounts": {
+      "COMPLETED": 42,
+      "SKIPPED": 2,
+      "FAILED": 2
+    },
+    "countLimit": "The two failed command records are the containing runFlow and its single failed Page 1 assertion. These command counts include configuration/platform branches; JUnit contains one failed testcase.",
+    "passedContent": [
+      "Initial Home post and Latest/For You switches",
+      "Market Travel journal listing and Home return",
+      "Jobs Product designer/Desert Studio",
+      "Messages Jordan Ellis and exact preview",
+      "Profile Alex Rivera/Edit profile",
+      "Centered View all memory books entry, Private filter and exact two-memory card",
+      "Edit memory book readiness and Open book visible/tap command"
+    ],
+    "screensVisuallyInspected": [
+      "home",
+      "market",
+      "jobs",
+      "messages",
+      "profile",
+      "memory-shelf",
+      "navigation-failure",
+      "capture-failure"
+    ],
+    "readerStages": {
+      "bookTap": {
+        "sequence0": 41,
+        "step1": 42,
+        "depth": 1,
+        "kind": "tapOnElement",
+        "status": "COMPLETED",
+        "start": "2026-10-31T17:07:01.003+00:00",
+        "durationMs": 4097,
+        "end": "2026-10-31T17:07:05.100+00:00",
+        "selector": {
+          "textRegex": "THE SMALL ADVENTURES, 2 memories",
+          "optional": false
+        }
+      },
+      "loadedReadiness": {
+        "sequence0": 42,
+        "step1": 43,
+        "depth": 1,
+        "kind": "assertConditionCommand",
+        "status": "COMPLETED",
+        "start": "2026-10-31T17:07:05.101+00:00",
+        "durationMs": 830,
+        "end": "2026-10-31T17:07:05.931+00:00",
+        "condition": {
+          "visible": {
+            "textRegex": "Edit memory book",
+            "optional": false
+          }
+        },
+        "timeout": "15000"
+      },
+      "openBookVisibility": {
+        "sequence0": 43,
+        "step1": 44,
+        "depth": 1,
+        "kind": "scrollUntilVisible",
+        "status": "COMPLETED",
+        "start": "2026-10-31T17:07:05.933+00:00",
+        "durationMs": 860,
+        "end": "2026-10-31T17:07:06.793+00:00",
+        "selector": {
+          "textRegex": "Open book",
+          "optional": false
+        },
+        "timeout": "20000",
+        "centerElement": false
+      },
+      "openBookTap": {
+        "sequence0": 44,
+        "step1": 45,
+        "depth": 1,
+        "kind": "tapOnElement",
+        "status": "COMPLETED",
+        "start": "2026-10-31T17:07:06.793+00:00",
+        "durationMs": 2920,
+        "end": "2026-10-31T17:07:09.713+00:00",
+        "selector": {
+          "textRegex": "Open book",
+          "optional": false
+        }
+      },
+      "pageAssertion": {
+        "sequence0": 45,
+        "step1": 46,
+        "depth": 1,
+        "kind": "assertConditionCommand",
+        "status": "FAILED",
+        "start": "2026-10-31T17:07:09.714+00:00",
+        "durationMs": 19040,
+        "end": "2026-10-31T17:07:28.754+00:00",
+        "condition": {
+          "visible": {
+            "textRegex": "Page 1 of 2",
+            "optional": false
+          }
+        },
+        "error": "Assertion is false: \"Page 1 of 2\" is visible"
+      }
+    },
+    "semanticOpenTap": {
+      "loggedAtUtc": "2026-10-31T17:07:08.237Z",
+      "elementBounds": {
+        "x": 28,
+        "y": 715,
+        "width": 337,
+        "height": 53
+      },
+      "resolvedCenter": {
+        "x": 196,
+        "y": 741
+      },
+      "meaning": "Semantic tap on the expected enabled Open book button; no coordinate was added to the flow. The center is above the system home indicator."
+    },
+    "failureAX": {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-failure-ax.json",
+      "openBookPresent": true,
+      "editBookPresent": true,
+      "pageOnePresent": false,
+      "spinnerPresent": false,
+      "keyboardPresent": false
+    },
+    "failureScreenshot": "Loaded book title/header, Music, author, two-memory count and Open book/Play memories controls remain. The cover-art region is blank. This is not the f4 full-page loading spinner.",
+    "failureArtifactTiming": {
+      "assertionMetadataEndUtc": "2026-10-31T17:07:28.754Z",
+      "lastPreErrorHierarchyDoneUtc": "2026-10-31T17:07:28.749551Z",
+      "postErrorHierarchyStartUtc": "2026-10-31T17:07:28.805165Z",
+      "postErrorHierarchyDoneUtc": "2026-10-31T17:07:29.729435Z",
+      "screenshotRequestUtc": "2026-10-31T17:07:30.027Z",
+      "explicitPageAssertionTimeoutInYaml": false,
+      "limit": "Metadata, driver polling and saved post-error artifacts describe different instants. The 19,040ms command duration is not an isolated application-animation or data-fetch measurement."
+    },
+    "duplicateContainingFlowImage": {
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/screenshots/step-035-runFlow.png",
+      "sha256": "d277660ff6dcc4563bbd9bd1b6b01fffdf021271ae800fb763b19fb9848f4fc2",
+      "sameBytesAsRetainedFailure": true
+    },
+    "notReached": [
+      "Successful Page 1 assertion and its following title assertion",
+      "Next memory/Page 2",
+      "Film and export entry/dismissal checks",
+      "Book settings and cover/film edits",
+      "Saved revision after reopening",
+      "Settings and repeated Home/Messages return loop"
+    ]
+  },
+  "capture": {
+    "junit": {
+      "tests": 1,
+      "failures": 1,
+      "suiteSeconds": 57.094,
+      "testcaseSeconds": 57.013,
+      "testcaseStatus": "ERROR",
+      "failure": "Assertion is false: \"Native capture acceptance\" is visible"
+    },
+    "recordedCommands": 6,
+    "commandStatusCounts": {
+      "COMPLETED": 5,
+      "FAILED": 1
+    },
+    "openLink": {
+      "sequence0": 2,
+      "step1": 3,
+      "depth": 0,
+      "kind": "openLinkCommand",
+      "status": "COMPLETED",
+      "start": "2026-10-31T17:09:10.525+00:00",
+      "durationMs": 5867,
+      "end": "2026-10-31T17:09:16.392+00:00",
+      "link": "platinum-circles-qa://ui-fixture/memory"
+    },
+    "promptBranch": {
+      "sequence0": 3,
+      "step1": 4,
+      "depth": 0,
+      "kind": "runFlowCommand",
+      "status": "COMPLETED",
+      "start": "2026-10-31T17:09:16.394+00:00",
+      "durationMs": 8322,
+      "end": "2026-10-31T17:09:24.716+00:00",
+      "condition": {
+        "platform": "IOS",
+        "visible": {
+          "textRegex": "^Open in \u201cPlatinum QA\u201d\\?$",
+          "optional": false
+        }
+      }
+    },
+    "promptTap": {
+      "sequence0": 4,
+      "step1": 5,
+      "depth": 1,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "start": "2026-10-31T17:09:20.648+00:00",
+      "durationMs": 4067,
+      "end": "2026-10-31T17:09:24.715+00:00",
+      "selector": {
+        "textRegex": "Open",
+        "optional": false
+      }
+    },
+    "headingAssertion": {
+      "sequence0": 5,
+      "step1": 6,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "FAILED",
+      "start": "2026-10-31T17:09:24.716+00:00",
+      "durationMs": 32215,
+      "end": "2026-10-31T17:09:56.931+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "Native capture acceptance",
+          "optional": false
+        }
+      },
+      "timeout": "30000",
+      "error": "Assertion is false: \"Native capture acceptance\" is visible"
+    },
+    "promptTapLoggedAtUtc": "2026-10-31T17:09:22.341Z",
+    "failureAX": {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/capture-failure-ax.json",
+      "pageOnePresent": true,
+      "firstMemoryTitlePresent": true,
+      "closeMemoryBookPresent": true,
+      "nativeCaptureHeadingPresent": false,
+      "savedAccountReadbackHeadingPresent": false,
+      "systemOpenPromptPresent": false
+    },
+    "failureScreenshot": "The same navigation book is now open on its first page, with exact WE TOOK THE LONG WAY HOME content, Like control, reader buttons and 1/2 indicator. The capture screen is not visible.",
+    "failureArtifactTiming": {
+      "assertionMetadataEndUtc": "2026-10-31T17:09:56.931Z",
+      "configuredTimeoutMs": 30000,
+      "metadataDurationMs": 32215,
+      "lastPreErrorHierarchyDoneUtc": "2026-10-31T17:09:56.925326Z",
+      "postErrorHierarchyStartUtc": "2026-10-31T17:09:56.973917Z",
+      "postErrorHierarchyDoneUtc": "2026-10-31T17:09:57.700113Z",
+      "screenshotRequestUtc": "2026-10-31T17:09:58.365Z"
+    },
+    "laterBoundaryEvidence": {
+      "sourceInArchive": "native-ui-receipt.json",
+      "sourceSHA256": "011f94165c1073c2168aafedded7a3c4015c38c080c504d269264e17b0beb48f",
+      "sourceBytes": 29938,
+      "canonicalRetentionOwner": "hosted_backend",
+      "events": [
+        {
+          "sequence": 1,
+          "phase": "received",
+          "atUnixMs": 1793466609991,
+          "matched": true,
+          "atUtc": "2026-10-31T17:10:09.991+00:00"
+        },
+        {
+          "sequence": 2,
+          "phase": "parsed",
+          "atUnixMs": 1793466609995,
+          "matched": true,
+          "expectedPath": true,
+          "atUtc": "2026-10-31T17:10:09.995+00:00"
+        },
+        {
+          "sequence": 3,
+          "phase": "action-produced",
+          "atUnixMs": 1793466609996,
+          "matched": true,
+          "reset": true,
+          "atUtc": "2026-10-31T17:10:09.996+00:00"
+        },
+        {
+          "sequence": 4,
+          "phase": "mounted",
+          "atUnixMs": 1793466610029,
+          "atUtc": "2026-10-31T17:10:10.029+00:00"
+        },
+        {
+          "sequence": 5,
+          "phase": "readback-start",
+          "atUnixMs": 1793466610029,
+          "atUtc": "2026-10-31T17:10:10.029+00:00"
+        },
+        {
+          "sequence": 6,
+          "phase": "readback-complete",
+          "atUnixMs": 1793466610051,
+          "fulfilled": true,
+          "passed": true,
+          "atUtc": "2026-10-31T17:10:10.051+00:00"
+        }
+      ],
+      "dropped": 0,
+      "accountReadbacks": [
+        {
+          "passed": true,
+          "reloaded": true,
+          "accountCount": 1
+        }
+      ],
+      "mountAfterHeadingAssertionEndMs": 13098,
+      "readbackAfterHeadingAssertionEndMs": 13120,
+      "interpretation": "The exact URL was received, parsed and converted to RESET, then the fixture mounted and real saved-account reload passed after the required heading assertion had already failed. Action-produced alone is not a dispatch/visibility proof; the later mounted marker is separate. No timely capture entry or passed UI flow is inferred."
+    },
+    "movieAndCleanup": {
+      "memoryCaptureDirectoryExists": false,
+      "cancellationButtonReached": false,
+      "cancelledExportAttemptWitnessed": false,
+      "completedRetryWitnessed": false,
+      "movieReadyVisible": false,
+      "movieFilePresent": false,
+      "cleanupAcceptanceReached": false,
+      "reason": "The flow stopped at the fixture heading, before readback assertion or either export button. Native owner separately verifies artifact movie absence/global gates."
+    }
+  },
+  "sourceAndCauseReview": {
+    "bookResponseEvidence": {
+      "sourceInArchive": "native-ui-receipt.json",
+      "sourceSHA256": "011f94165c1073c2168aafedded7a3c4015c38c080c504d269264e17b0beb48f",
+      "readerResponseDropped": 0,
+      "events": [
+        {
+          "sequence": 1,
+          "id": 1,
+          "kind": "book",
+          "phase": "response-ready",
+          "bodyObserved": true,
+          "status": 200,
+          "atUnixMs": 1793466423798,
+          "atUtc": "2026-10-31T17:07:03.798+00:00"
+        },
+        {
+          "sequence": 2,
+          "id": 1,
+          "kind": "book",
+          "phase": "body-start",
+          "atUnixMs": 1793466423799,
+          "atUtc": "2026-10-31T17:07:03.799+00:00"
+        },
+        {
+          "sequence": 3,
+          "id": 1,
+          "kind": "book",
+          "phase": "body-complete",
+          "fulfilled": true,
+          "atUnixMs": 1793466423807,
+          "atUtc": "2026-10-31T17:07:03.807+00:00"
+        },
+        {
+          "sequence": 4,
+          "id": 2,
+          "kind": "reactions",
+          "phase": "response-ready",
+          "bodyObserved": true,
+          "status": 200,
+          "atUnixMs": 1793466423903,
+          "atUtc": "2026-10-31T17:07:03.903+00:00"
+        },
+        {
+          "sequence": 5,
+          "id": 2,
+          "kind": "reactions",
+          "phase": "body-start",
+          "atUnixMs": 1793466423904,
+          "atUtc": "2026-10-31T17:07:03.904+00:00"
+        },
+        {
+          "sequence": 6,
+          "id": 2,
+          "kind": "reactions",
+          "phase": "body-complete",
+          "fulfilled": true,
+          "atUnixMs": 1793466423912,
+          "atUtc": "2026-10-31T17:07:03.912+00:00"
+        },
+        {
+          "sequence": 7,
+          "id": 3,
+          "kind": "book",
+          "phase": "response-ready",
+          "bodyObserved": true,
+          "status": 200,
+          "atUnixMs": 1793466564309,
+          "atUtc": "2026-10-31T17:09:24.309+00:00"
+        },
+        {
+          "sequence": 8,
+          "id": 3,
+          "kind": "book",
+          "phase": "body-start",
+          "atUnixMs": 1793466564309,
+          "atUtc": "2026-10-31T17:09:24.309+00:00"
+        },
+        {
+          "sequence": 9,
+          "id": 3,
+          "kind": "book",
+          "phase": "body-complete",
+          "fulfilled": true,
+          "atUnixMs": 1793466564310,
+          "atUtc": "2026-10-31T17:09:24.310+00:00"
+        },
+        {
+          "sequence": 10,
+          "id": 4,
+          "kind": "reactions",
+          "phase": "response-ready",
+          "bodyObserved": true,
+          "status": 200,
+          "atUnixMs": 1793466564321,
+          "atUtc": "2026-10-31T17:09:24.321+00:00"
+        },
+        {
+          "sequence": 11,
+          "id": 4,
+          "kind": "reactions",
+          "phase": "body-start",
+          "atUnixMs": 1793466564321,
+          "atUtc": "2026-10-31T17:09:24.321+00:00"
+        },
+        {
+          "sequence": 12,
+          "id": 4,
+          "kind": "reactions",
+          "phase": "body-complete",
+          "fulfilled": true,
+          "atUnixMs": 1793466564322,
+          "atUtc": "2026-10-31T17:09:24.322+00:00"
+        }
+      ],
+      "interpretation": "Both selected book and reaction response bodies fulfilled; the first pair preceded loaded-book readiness. These body boundaries do not identify all later scheduling or UI commit stages."
+    },
+    "demonstratedGatingWeakness": "In literal b5 MemoryAlbumScreen openBook(), the cover animates toward opacity zero, while setOpened(true) occurs only inside the native Animated.timing completion callback. The already authorized loaded reader therefore remains unavailable when completion delivery is withheld or delayed.",
+    "observedCompatibilityWithSource": "The saved navigation failure state has blank artwork and closed-book controls, consistent with a cover transition whose reader handoff has not committed. The later capture failure shows Page 1 with the exact expected accessibility label.",
+    "notEstablished": [
+      "Exact cause or continuous duration of native animation callback delay",
+      "Exact native/JS deep-link delivery delay mechanism",
+      "A total continuous JavaScript freeze during either interval",
+      "A selector or keyboard mismatch",
+      "That the optional-reaction repair caused the readiness difference between runs"
+    ],
+    "followUpBoundary": "Root authorized a separate minimal synchronous reader-entry repair and actual-component completion-withheld regression. This baseline receipt is sealed before that source edit and makes no repair/native-cure claim."
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-commands.json",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/commands.json",
+      "bytes": 75393,
+      "sha256": "0c2e29f2c6c212037606f5c55390f58ab23a074529f43cebebbe7243158af2dd",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-artifact-manifest.json",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/manifest.json",
+      "bytes": 1077,
+      "sha256": "cd9cc7c32e0ae5388df1d16341be5d0f9508bc5989d6046fc1ae59a92400f3ff",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-junit.xml",
+      "sourceInArchive": "maestro-navigation.xml",
+      "bytes": 585,
+      "sha256": "ed6fc01d37e190627f1fd1946d43eb3c91fbb0a4010e03f059bd7163c4ba3bbd",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-maestro-log.txt",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/logs/maestro.log",
+      "bytes": 32449,
+      "sha256": "f061ea17d2ab3f020d1be5f8e8e6a0ea9a042cec53abd994eb7727c49a797d78",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-failure-ax.json",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/screen-hierarchy/step-046-assertCondition-Page_1_of_2.json",
+      "bytes": 30771,
+      "sha256": "ae2b654269e971f0af9ca6049b6f1a0e403aedab419e5544332371dd20b38d6f",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-failure.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/screenshots/step-046-assertCondition-Page_1_of_2.png",
+      "bytes": 127304,
+      "sha256": "d277660ff6dcc4563bbd9bd1b6b01fffdf021271ae800fb763b19fb9848f4fc2",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-home.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/takeScreenshot/home.png",
+      "bytes": 353437,
+      "sha256": "0fbce2d49c72d873a9665965622a7fcd02a63f01db9ac858e61c69a49906ee3b",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-jobs.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/takeScreenshot/jobs.png",
+      "bytes": 226945,
+      "sha256": "94232bdc07cbcbc91961496442cb6bcf65a009083511da61d28aee96e0dca65f",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-market.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/takeScreenshot/market.png",
+      "bytes": 196188,
+      "sha256": "fcd6f26801bae6dba862f14a139356ae24f6e7ccc77e1ad0ba1dd9b4bb870bb7",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-memory-shelf.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/takeScreenshot/memory-shelf.png",
+      "bytes": 312038,
+      "sha256": "dbdcf6a9ef541b0c6c10be0b3c70679217a20a9905a5702974a4b88ec05a7d83",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-messages.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/takeScreenshot/messages.png",
+      "bytes": 186795,
+      "sha256": "5aeb963139c35946a6648b1f55b10b5cc1c6018ec7efa14f95cb75085bbe687e",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-profile.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/takeScreenshot/profile.png",
+      "bytes": 352570,
+      "sha256": "73f7d96554b9f929c0ac88eea9ffda94d429357ec6c570e40a79eef038c7a287",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-command-timeline.json",
+      "bytes": 14906,
+      "sha256": "8b04859feaeaca71188f71dee4efed9a4f479f8326977f953b4e97fba8f488a8",
+      "derived": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/navigation-xctest-failure-window.json",
+      "bytes": 5027,
+      "sha256": "cd768809fc100d95f44d4a58023bdb269ed2b52d7fb568e1700935cc782a0027",
+      "derived": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/capture-commands.json",
+      "sourceInArchive": "maestro/memory-capture/2026-10-31_170815/Actual native memory capture and encoding/commands.json",
+      "bytes": 5606,
+      "sha256": "deecfd27c0dde6b478eff9368b9fcd5c33c970679b2d68597320f8957b62484d",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/capture-artifact-manifest.json",
+      "sourceInArchive": "maestro/memory-capture/2026-10-31_170815/Actual native memory capture and encoding/manifest.json",
+      "bytes": 958,
+      "sha256": "33477ae5e611fd65b6636d0eed6bdfe4c77fe5298bfb6bac89b31c7f201c1f15",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/capture-junit.xml",
+      "sourceInArchive": "maestro-memory-capture.xml",
+      "bytes": 646,
+      "sha256": "533f070bab6e50f998990e0a47887090e437f02dadd30407a1c22b7fcb9050dd",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/capture-maestro-log.txt",
+      "sourceInArchive": "maestro/memory-capture/2026-10-31_170815/Actual native memory capture and encoding/logs/maestro.log",
+      "bytes": 2969,
+      "sha256": "2164418202b671676e02dc98959e450065afce1ad82188f92789509ce6d94196",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/capture-failure-ax.json",
+      "sourceInArchive": "maestro/memory-capture/2026-10-31_170815/Actual native memory capture and encoding/screen-hierarchy/step-006-assertCondition-Native_capture_acceptanc.json",
+      "bytes": 35950,
+      "sha256": "dfbb324bc3d4406855fab3cb1d55cfce1afc2b7065229ff740abe34a5edbe31f",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/capture-failure.png",
+      "sourceInArchive": "maestro/memory-capture/2026-10-31_170815/Actual native memory capture and encoding/screenshots/step-006-assertCondition-Native_capture_acceptanc.png",
+      "bytes": 408461,
+      "sha256": "7e6894163da543c5d0fe3cd32ceece94f5ba172d302e5708065f318557fd64f1",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/capture-command-timeline.json",
+      "bytes": 1934,
+      "sha256": "a05530ab75e93cf0d13c7da3f9a5db22214d411f2d3d868eec231fafccceee09",
+      "derived": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/capture-xctest-failure-window.json",
+      "bytes": 6095,
+      "sha256": "9e5e0a62134c50bb4ac753f188c80549f373fbcdb7c02f84ccd45384c9dc160c",
+      "derived": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b/visible-failure-labels.json",
+      "bytes": 6346,
+      "sha256": "c0f7a45573b563be9212a281ec86055ecfb33928a008760e7e1c829b5a4c8db3",
+      "derived": true
+    }
+  ],
+  "limits": [
+    "Both required native flows remain failed; later fixture mount/readback does not override their JUnit failures.",
+    "The exact Page 1 label exists in the later actual AX, so no relaxed selector or longer deadline follows from this evidence.",
+    "Only saved post-error AX/PNGs are retained, not every successful/failed polling payload. No continuous blank duration, frame rate or production latency is inferred.",
+    "Cross-file wall-time comparisons use recorded epoch timestamps and the same runner/simulator UTC timeline; they are not a calibrated event-delivery latency measurement.",
+    "Synthetic text-book navigation and synthetic capture fixture do not establish provider acceptance, physical-device acceptance or signed distribution.",
+    "No film, settings, movie, cancellation/retry or cleanup acceptance was reached by this current run."
+  ],
+  "actions": {
+    "providerCalls": 0,
+    "duplicateDownloads": 0,
+    "sourceEdits": 0,
+    "flowEdits": 0,
+    "deadlineChanges": 0,
+    "testGroups": 0,
+    "refChanges": 0
+  }
+}

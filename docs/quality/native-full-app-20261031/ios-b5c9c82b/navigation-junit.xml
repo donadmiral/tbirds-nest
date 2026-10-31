@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum full app UI 41218724056 - iOS 18.5 - 7666C313-EA56-4793-B2B2-D4B83903E0FB" tests="1" failures="1" time="399.053" timestamp="2026-10-31T17:00:55">
+    <testcase id="Full native app navigation" name="Full native app navigation" classname="Full native app navigation" file="tests/native/flows/navigation.yaml" time="398.747" timestamp="2026-10-31T17:00:56" status="ERROR">
+      <failure>Assertion is false: "Page 1 of 2" is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>
