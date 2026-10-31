@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit Channels
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: directories-channels
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Channels"
+    timeout: 15000
+- takeScreenshot: directories-channels

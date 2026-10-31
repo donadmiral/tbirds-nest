@@ -1,0 +1,28 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit add muted word
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: settings-muted-word-write
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Muted words"
+    timeout: 15000
+
+- tapOn: Add a word or phrase
+- inputText: audit-muted-word
+- tapOn: Add
+- assertVisible: audit-muted-word
+- takeScreenshot: settings-muted-word-write

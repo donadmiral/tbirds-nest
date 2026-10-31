@@ -1,0 +1,40 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit independent cover settings entry
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: memory-cover-settings
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Edit memory book"
+    timeout: 15000
+
+- tapOn: Edit memory book
+- assertVisible: Book settings
+- tapOn: Book title
+- eraseText
+- inputText: AUDIT BOOK TITLE
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element: Save memory book
+    direction: DOWN
+    centerElement: true
+- tapOn: Save memory book
+- assertVisible: '(?s)^.*book cover: AUDIT BOOK TITLE\..*$'
+- takeScreenshot: memory-cover-settings

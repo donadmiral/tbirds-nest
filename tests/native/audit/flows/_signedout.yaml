@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit signed-out setup
+---
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - launchApp:
+          clearState: true
+          permissions:
+            notifications: deny
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - launchApp:
+          clearState: true
+          clearKeychain: true
+          permissions:
+            notifications: deny
+- extendedWaitUntil:
+    visible: Sign in
+    timeout: 30000

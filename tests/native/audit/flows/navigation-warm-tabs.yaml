@@ -1,0 +1,42 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit repeated main tab controls
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: navigation-warm-tabs
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "A quiet morning in the desert. Small moments worth keeping."
+    timeout: 15000
+
+- repeat:
+    times: 3
+    commands:
+      - tapOn:
+          id: main-tab-market
+      - assertVisible: 'View listing: Travel journal'
+      - tapOn:
+          id: main-tab-messages
+      - assertVisible: Messages
+      - tapOn:
+          id: main-tab-jobs
+      - assertVisible: Jobs
+      - tapOn:
+          id: main-tab-profile
+      - assertVisible: Alex Rivera
+      - tapOn:
+          id: main-tab-feed
+      - assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- takeScreenshot: navigation-warm-tabs

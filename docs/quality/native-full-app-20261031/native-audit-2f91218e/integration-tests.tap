@@ -1,0 +1,23 @@
+✔ native feature shards cover every declared group once and consume one platform build (27.329428ms)
+✔ actual coverage collector rejects absent, failed, duplicate and wrong-source results (53.161589ms)
+✔ all native audit shell paths parse and keep the original independent full UI gates (14.192668ms)
+✔ every executable case has one explicit flow, immutable identity and meaningful mandatory assertion (97.732111ms)
+✔ declared nested entry states survive the installed real stack/tab routers (6.693198ms)
+✔ actual SDK sees the original ticket body with empty history; no invented backfill (52.9359ms)
+✔ actual SDK preserves controlled list-error (7018.490299ms)
+✔ actual SDK preserves controlled ticket-read-error (7013.082309ms)
+✔ actual SDK preserves controlled history-error (7007.749868ms)
+✔ successful reply and failed reopen remain separate SDK outcomes (3.347626ms)
+✔ missing ticket remains null and no positive fallback record is created (2.078036ms)
+✔ Support fixture rejects unsigned access, another owner, unsupported methods/fields and outside origins (3.895626ms)
+✔ scenario selection rejects unknown/mismatched/repeated state and preserves base memory methods (2.660403ms)
+✔ actual Python runner continues after failure and rejects empty/skipped/malformed/unbound reports (410.545792ms)
+✔ disposable preparation retains exact anchors and rejects a second overlay before native build (111.216543ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21871.277743

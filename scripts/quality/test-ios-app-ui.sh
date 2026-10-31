@@ -5,6 +5,12 @@ if [[ "$(uname -s)" != Darwin || "$(uname -m)" != x86_64 || "${CI:-}" != true ]]
   exit 2
 fi
 node scripts/quality/prepare-native-ui.cjs
+audit_build_only="${PLATINUM_NATIVE_AUDIT_BUILD_ONLY:-0}"
+if [[ "$audit_build_only" != 0 && "$audit_build_only" != 1 ]]; then
+  printf '%s\n' 'Invalid native audit build mode.' >&2
+  exit 2
+fi
+if [[ "$audit_build_only" == 1 ]]; then node scripts/quality/prepare-native-ui-audit.cjs; fi
 ui_simulator=''
 ui_log_pid=''
 ui_video_pid=''
@@ -83,6 +89,17 @@ for suffix in ('-before-resign', ''):
     if set(host) - {'get-task-allow', 'com.apple.security.get-task-allow'}:
         raise SystemExit('Unexpected application entitlements in the host Simulator signature.')
 PY
+# Preserve the completed Simulator signature and executable exactly. Consumers
+# extract and verify this app; they never rebuild, rebundle, or sign it again.
+if [[ "$audit_build_only" == 1 ]]; then
+  mkdir -p native-audit-build
+  python3 scripts/quality/native-ui-audit-binary.py --platform ios \
+    --binary "$app" --source "$GITHUB_SHA" --tree "$(git rev-parse 'HEAD^{tree}')" \
+    --output native-audit-build/binary-manifest.json
+  COPYFILE_DISABLE=1 tar -czf "$PWD/native-audit-build/qa.app.tar.gz" -C "$(dirname "$app")" "$(basename "$app")"
+  cp native-ui-logs/source.json native-audit-build/source.json
+  exit 0
+fi
 runtime="$(xcrun simctl list runtimes --json | python3 -c 'import json,sys; items=[x for x in json.load(sys.stdin)["runtimes"] if x.get("isAvailable") and x["identifier"].startswith("com.apple.CoreSimulator.SimRuntime.iOS-")]; preferred=next((x for x in items if x["version"]=="18.5"),None); print(preferred["identifier"] if preferred else "")')"
 test -n "$runtime"
 ui_simulator="$(xcrun simctl create "Platinum full app UI ${GITHUB_RUN_ID}" com.apple.CoreSimulator.SimDeviceType.iPhone-16 "$runtime")"

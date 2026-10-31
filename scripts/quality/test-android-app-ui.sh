@@ -5,6 +5,12 @@ if [[ "$(uname -s)" != Linux || "${CI:-}" != true || ! -r /dev/kvm || ! -w /dev/
   exit 2
 fi
 node scripts/quality/prepare-native-ui.cjs
+audit_build_only="${PLATINUM_NATIVE_AUDIT_BUILD_ONLY:-0}"
+if [[ "$audit_build_only" != 0 && "$audit_build_only" != 1 ]]; then
+  printf '%s\n' 'Invalid native audit build mode.' >&2
+  exit 2
+fi
+if [[ "$audit_build_only" == 1 ]]; then node scripts/quality/prepare-native-ui-audit.cjs; fi
 android_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
 sdk_manager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"
 avd_manager="$android_sdk/cmdline-tools/latest/bin/avdmanager"
@@ -112,6 +118,17 @@ with zipfile.ZipFile(sys.argv[1]) as z:
     if len(z.read('assets/index.android.bundle'))<100000: raise SystemExit('Full JavaScript app bundle is missing.')
     if not any(p.startswith('lib/x86_64/') for p in z.namelist()): raise SystemExit('Emulator ABI is missing.')
 PY
+# The independent audit reuses these exact bytes in every feature shard.
+# The normal full-application journey below is unchanged when this flag is off.
+if [[ "$audit_build_only" == 1 ]]; then
+  mkdir -p native-audit-build
+  cp "$apk" native-audit-build/app-release.apk
+  python3 scripts/quality/native-ui-audit-binary.py --platform android \
+    --binary native-audit-build/app-release.apk --source "$GITHUB_SHA" \
+    --tree "$(git rev-parse 'HEAD^{tree}')" --output native-audit-build/binary-manifest.json
+  cp native-ui-logs/source.json native-audit-build/source.json
+  exit 0
+fi
 printf 'no\n' | "$avd_manager" create avd --force --name platinum_app_ui --package 'system-images;android-35;default;x86_64' --path "$ANDROID_AVD_HOME/platinum_app_ui.avd"
 # Isolate the common packaged SwiftShader GLES path observed in both crashes.
 # This QA app compiles Skia Ganesh/OpenGL and its movie effects use GLES.

@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit MemoryAlbum
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: memory-memoryalbum
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Edit memory book"
+    timeout: 15000
+- takeScreenshot: memory-memoryalbum

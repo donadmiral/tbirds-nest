@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit CreateBusiness
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: business-createbusiness
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "New business"
+    timeout: 15000
+- takeScreenshot: business-createbusiness

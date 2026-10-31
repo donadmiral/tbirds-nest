@@ -1,0 +1,23 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit support original-body
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: support-original-body
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Original support question from the member."
+    timeout: 15000
+- takeScreenshot: support-original-body
