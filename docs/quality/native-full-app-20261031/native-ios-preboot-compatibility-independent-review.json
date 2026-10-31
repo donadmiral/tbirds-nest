@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "kind": "ios-recovery-preboot-compatibility-independent-review",
+  "reviewedBy": "navigation_performance",
+  "reviewedAtUtc": "2026-10-31T19:51:15.600666+00:00",
+  "decision": "ACCEPTED_NO_SOURCE_CHANGE_REQUESTED",
+  "candidate": [
+    {
+      "file": "scripts/quality/native-ui-ios-compatibility.py",
+      "bytes": 3981,
+      "sha256": "0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9"
+    },
+    {
+      "file": "scripts/quality/native-ui-ios-audit-recovery.py",
+      "bytes": 36037,
+      "sha256": "428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2"
+    },
+    {
+      "file": "tests/quality/native-ios-audit-recovery.cjs",
+      "bytes": 23145,
+      "sha256": "f376a4afe51afd047e11952baec680625f3b1a7ac53ec8c1f9bab5ed6d26bca5"
+    }
+  ],
+  "frozenSourceHashesUnchangedBeforeAfterTests": true,
+  "reviewedUnchangedConsumers": [
+    {
+      "file": "tests/quality/native-ios-audit-compatibility.cjs",
+      "bytes": 2696,
+      "sha256": "64b392be02229a04ed5c9356a3573c776034842fbeb1955a4dea905c28fe0bc7"
+    },
+    {
+      "file": "scripts/quality/native-ui-audit-runner.py",
+      "bytes": 15481,
+      "sha256": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352"
+    },
+    {
+      "file": "scripts/quality/run-native-ui-audit-device.sh",
+      "bytes": 5329,
+      "sha256": "a4b4ab4b133e0c271849cadd2797385995fab023f8982fbb68d0e703aced44fb"
+    },
+    {
+      "file": ".github/workflows/native-audit-ios-recovery.yml",
+      "bytes": 3309,
+      "sha256": "22de2db0bf3341ac98bf6a0dde5b6b3d70d9eadbfdc82e472af0093c3edfba26"
+    },
+    {
+      "file": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+      "bytes": 709,
+      "sha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82"
+    }
+  ],
+  "findings": [
+    "The split preserves actual Intel Darwin host, exact producer Xcode and Simulator SDK, actual bundle identifier/platform/SDK/deployment metadata, actual Mach-O x86_64 architecture, and strict deep signature verification. These immutable checks run before Simulator create/boot in the recovery helper.",
+    "After bootstatus, the helper still reads the available runtime list, requires the original available runtime/version, reads current devices, and requires exactly the selected UDID in Booted state under that runtime. No guest uname is used.",
+    "Each compatibility command keeps its existing30-second limit; create/boot and bootstatus keep120/300-second limits. Existing setup timeout/error evidence and owned-process cleanup remain. The change does not increase a test or metadata deadline.",
+    "The actual app binary digest is checked again immediately before installation, so a file change after immutable verification fails closed. Source/runner/manifest/binary binding, original cases, per-case outcomes and final binary checks remain.",
+    "The combined verify_compatibility API still executes both phases for existing callers. The running d46 normal consumer invokes that combined API after boot; this recovery-only ordering correction does not retroactively change the current run."
+  ],
+  "verification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-ios-audit-recovery.cjs tests/quality/native-ios-audit-compatibility.cjs",
+    "exitCode": 0,
+    "formalCases": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "durationMs": 1156.865853,
+    "nestedPythonCases": 22,
+    "countRule": "The22 nested Python checks are contained in one of the4 formal cases; do not add them to the formal total.",
+    "output": {
+      "file": "docs/quality/native-full-app-20261031/native-ios-preboot-compatibility-independent/focused.tap",
+      "bytes": 1068,
+      "sha256": "1fe4ab08c5962adcd8c926c8d5c6a6e6df9d3ace239093deac87f9d76b6af2c8"
+    },
+    "meaningfulChecks": "Executed extracted actual main setup statements in order:5 immutable reads, create/boot/bootstatus,2 live runtime/device reads, binary recheck/install. A changed pre-install app digest rejects installation. Existing wrong-host/bundle/toolchain/runtime, timeout, extraction, trace and owned-child limits remain covered."
+  },
+  "limits": [
+    "Local commands controlling macOS metadata and Simulator responses are doubles; this is not an actual macOS, Simulator, launch or85-case acceptance.",
+    "The ordering repair addresses a demonstrated setup-risk boundary, not a proven cause of the observed postboot SDK command delay. It may still fail honestly on a future host/tool error.",
+    "No reader, product runtime, native library, binary bytes, signature, build, source ref or provider data was changed by this review.",
+    "Reusing a future d46 producer artifact requires an explicitly reviewed immutable d46 source/tree/runner/manifest/app-digest binding; the current recovery helper remains bound to the older b568 binary."
+  ]
+}

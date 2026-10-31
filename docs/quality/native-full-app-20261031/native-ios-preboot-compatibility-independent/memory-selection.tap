@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: recovery workflow consumes the exact existing app and separates helper provenance
+ok 1 - recovery workflow consumes the exact existing app and separates helper provenance
+  ---
+  duration_ms: 13.365045
+  type: 'test'
+  ...
+# Subtest: extra diagnostic preserves the existing warm flow and exact initial memory commands
+ok 2 - extra diagnostic preserves the existing warm flow and exact initial memory commands
+  ---
+  duration_ms: 8.495403
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 61.699465

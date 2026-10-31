@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "reviewedBy": "navigation_performance",
+  "reviewedAtUtc": "2026-10-31T19:53:30.461158+00:00",
+  "decision": "ACCEPTED_MEMORY_ONLY_RECOVERY_SCOPE",
+  "finalFourPaths": [
+    {
+      "file": ".github/workflows/native-audit-ios-recovery.yml",
+      "bytes": 3118,
+      "sha256": "4e2fdec570152c12f3f2cd3da7502c4126510cb5dc0bded0919104bc1171c134"
+    },
+    {
+      "file": "tests/quality/native-ios-audit-recovery.cjs",
+      "bytes": 23611,
+      "sha256": "1d14471f7ae5b17dee2b4c76e840990de5faca4f008f713b5cf57b36feb9031e"
+    },
+    {
+      "file": "scripts/quality/native-ui-ios-compatibility.py",
+      "bytes": 3981,
+      "sha256": "0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9"
+    },
+    {
+      "file": "scripts/quality/native-ui-ios-audit-recovery.py",
+      "bytes": 36037,
+      "sha256": "428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2"
+    }
+  ],
+  "priorIndependentPhaseReview": {
+    "file": "docs/quality/native-full-app-20261031/native-ios-preboot-compatibility-independent-review.json",
+    "bytes": 4959,
+    "sha256": "d04ed3b11fe02f7447b6fcdfcaffb49c34eed866507c5befc9f661d690868fea"
+  },
+  "delta": "The recovery workflow selects one memory shard instead of three full-baseline shards. The test now asserts that exact selection and the selected/unselected case count. Both reviewed phase helpers remain byte-identical.",
+  "selectedOriginalCases": [
+    "memory-memoryalbum",
+    "memory-reader-controls",
+    "memory-cover-settings",
+    "memory-film-export-entry",
+    "memory-capture-session"
+  ],
+  "selectedOriginalCount": 5,
+  "unselectedOriginalCount": 80,
+  "unselectedGroupCount": 12,
+  "diagnostic": "The existing if-memory guard runs the separate warm-tabs\u2192Profile\u2192shelf\u2192reader diagnostic before run_cases. It is recorded with countedInBaseline85=false and its original600-second CLI budget/15-second reader assertion. A failed diagnostic does not prevent original cases from being attempted; either diagnostic or case failure still fails recovery.",
+  "preserved": [
+    "Literal b568 baseline source, original producer run41229206389 and exact original app/runner/manifest bindings.",
+    "Original five memory flows, assertions, individual deadlines and source/binary final checks.",
+    "Explicit selectedGroups/unselectedGroups and allControlsAccepted=false in the recovery summary.",
+    "The running d46 full85-per-platform audit is unchanged."
+  ],
+  "verification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap --test-name-pattern='recovery workflow consumes|extra diagnostic preserves' tests/quality/native-ios-audit-recovery.cjs",
+    "exitCode": 0,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 61.699465,
+    "output": {
+      "file": "docs/quality/native-full-app-20261031/native-ios-preboot-compatibility-independent/memory-selection.tap",
+      "bytes": 589,
+      "sha256": "c108a2946b99360d1d2f6968814dfe985eb5be3c41453e551e61bef9b6bc475f"
+    },
+    "finalHashesUnchanged": true
+  },
+  "limits": [
+    "The earlier4-case phase review and this2-case selection check are separate runs; no native execution or85-case acceptance follows.",
+    "The80 unselected baseline cases remain unexecuted by this memory-only recovery.",
+    "No production/binary/fixture/flow edits or ref changes were made by the reviewer."
+  ]
+}

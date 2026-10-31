@@ -1,0 +1,47 @@
+{
+  "preparedAt": "2026-10-31T19:51:14.799679+00:00",
+  "sourceFiles": {
+    "scripts/quality/native-ui-ios-compatibility.py": "0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9",
+    "scripts/quality/native-ui-ios-audit-recovery.py": "428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2",
+    "tests/quality/native-ios-audit-recovery.cjs": "f376a4afe51afd047e11952baec680625f3b1a7ac53ec8c1f9bab5ed6d26bca5"
+  },
+  "scope": "QA consumption only; no app rebuild, rebundle, signing or product/assertion deadline change.",
+  "beforeEvidence": {
+    "runId": 41235415260,
+    "confirmedShards": [
+      "account",
+      "social"
+    ],
+    "failure": "After successful boot, Xcode version checks pass but the SDK version query exceeds the existing 30-second bound with a running leader and no output.",
+    "causeLimit": "No specific service, lock or CPU cause is established."
+  },
+  "change": [
+    "Read and match actual host, Xcode, SDK, bundle metadata, Mach-O and signature before Simulator creation.",
+    "After bootstatus, separately verify the real available runtime/version and exact selected Booted UDID.",
+    "Recheck exact app digest before installation; persist both compatibility phases and every command boundary.",
+    "Keep combined shared API for existing callers. Current d46 normal consumers retain their original ordering until separately corrected."
+  ],
+  "validation": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-ios-audit-recovery.cjs tests/quality/native-ios-audit-compatibility.cjs",
+    "formalPassed": 4,
+    "nestedPythonPassed": 22,
+    "failed": 0,
+    "skipped": 0,
+    "lintExitCode": 0,
+    "pythonAstParse": "passed",
+    "actualMainSetupStatementsExecuted": true,
+    "noInstallAfterChangedAppDigest": true
+  },
+  "unchangedBudgets": {
+    "metadataReadSeconds": 30,
+    "createSeconds": 120,
+    "bootSeconds": 120,
+    "bootstatusSeconds": 300,
+    "caseSeconds": [
+      180,
+      300
+    ],
+    "readerAssertionMilliseconds": 15000
+  },
+  "runtimeLimit": "Controlled tests prove ordering/guards, not that preboot queries will avoid the observed CI delay. Original app, binary provenance, case assertions and outcomes remain required."
+}

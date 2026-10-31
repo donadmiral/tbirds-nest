@@ -1,0 +1,52 @@
+{
+  "preparedAt": "2026-10-31T19:53:25.641560+00:00",
+  "applicationSource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "producerRunId": 41229206389,
+  "sourceFiles": {
+    ".github/workflows/native-audit-ios-recovery.yml": "4e2fdec570152c12f3f2cd3da7502c4126510cb5dc0bded0919104bc1171c134",
+    "scripts/quality/native-ui-ios-compatibility.py": "0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9",
+    "scripts/quality/native-ui-ios-audit-recovery.py": "428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2",
+    "tests/quality/native-ios-audit-recovery.cjs": "1d14471f7ae5b17dee2b4c76e840990de5faca4f008f713b5cf57b36feb9031e"
+  },
+  "selectedGroups": [
+    "memory"
+  ],
+  "selectedOriginalCases": [
+    "memory-memoryalbum",
+    "memory-reader-controls",
+    "memory-cover-settings",
+    "memory-film-export-entry",
+    "memory-capture-session"
+  ],
+  "selectedOriginalCount": 5,
+  "unselectedGroups": [
+    "navigation",
+    "feed",
+    "market",
+    "jobs",
+    "messages",
+    "profile",
+    "settings",
+    "support",
+    "business",
+    "stories",
+    "directories",
+    "auth"
+  ],
+  "unselectedOriginalCount": 80,
+  "separateDiagnostic": {
+    "flow": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+    "runsBeforeOriginalCases": true,
+    "countedInBaselineCases": false,
+    "attempts": 1
+  },
+  "validation": {
+    "phaseSplitFormalPassed": 4,
+    "phaseSplitNestedPythonPassed": 22,
+    "selectionAndDiagnosticFormalPassedAfterMatrixChange": 2,
+    "countsOverlap": true,
+    "failures": 0,
+    "newSourceChangesBeyondReviewedPhaseSplit": "Workflow matrix only and exact selection assertions. Helpers and actual case/diagnostic flows unchanged."
+  },
+  "coverageLimit": "The repaired d46 candidate owns the complete 85-case audit on each platform. This retained older binary run isolates the related reader path and original five memory cases; it does not accept unselected groups or the repaired candidate."
+}

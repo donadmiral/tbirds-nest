@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "candidateCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+  "candidateTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+  "parents": [
+    "0969400c77e05da3ce0f931c9b25e88b93315439",
+    "d74c4a0f759961bebb1ef3ac4bbd8085ae7a2bc5"
+  ],
+  "branch": "codex/native-v6-followup-20261031",
+  "previousBranchHead": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "forced": false,
+  "branchReadbackVerified": true,
+  "commitTreeAndParentsReadbackVerified": true,
+  "baseProductCheckpoint": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+  "baseTree": "cde37bb9b55c73d5f2afd45a9be4b76fc89b1170",
+  "deltaPaths": 216,
+  "verifiedBinaryBlobs": 52,
+  "sourceSnapshot": "/tmp/platinum-native-candidate-6tsjro7a",
+  "nativeRun": 41235679679,
+  "nativeRunCreatedAt": "2026-10-31T19:45:14Z",
+  "appPrHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "appPrHeadUnchanged": true,
+  "reason": "Launch one corrected binary per platform across all 85 independent cases before advancing the application PR and starting its separate required workflows.",
+  "scope": "Published reviewed product checkpoint plus classified native fixture/flow/runner corrections. Runtime device acceptance is pending."
+}

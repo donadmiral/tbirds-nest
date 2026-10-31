@@ -1,15 +1,18 @@
 {
   "schemaVersion": 1,
-  "updatedAtUtc": "2026-10-31T19:44:14.755301+00:00",
+  "updatedAtUtc": "2026-10-31T19:59:13Z",
   "source": {
     "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
     "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
     "repository": "donadmiral/tbirds-nest",
     "pullRequest": 3,
-    "role": "App/PR baseline; grouped product repairs are published separately as c20cc9e5 while corrected native acceptance is prepared.",
-    "repairCheckpoint": "c20cc9e55657291d7c7c964cd4a5f622d051e24f"
+    "role": "App/PR baseline retained while the consolidated d46c50f0 candidate completes native acceptance; no duplicate app-head build cycle.",
+    "repairCheckpoint": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+    "nativeCandidate": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "nativeCandidateTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+    "candidatePublicationReceipt": "../live-app-20261031/native-candidate-d46c50f0-publication.json"
   },
-  "phase": "Combined application and browser regressions passed; Android encoder repair passed; corrected native audit candidate is being consolidated.",
+  "phase": "Combined application and browser regressions passed; Android encoder repair passed; consolidated d46c50f0 native builds are running before the two 85-case audits. Separate old-binary recovery targets the unresolved iPhone reader path.",
   "retiredProgressCounter": "The former 5/6 count represented a narrow repair cycle and is not whole-product progress. It is no longer the current status measure.",
   "inventory": {
     "native": {
@@ -1122,6 +1125,13 @@
     "native": "native_acceptance; media/runner and installed-evidence diagnosis; navigation_performance reader render diagnosis",
     "root": "Support atomicSQL and integration; finalmediachrome; combinedgates and publication"
   },
+  "activeWorkers": {
+    "concurrencyLimit": 4,
+    "root": "Integration, report, source-bound publication and completed-gate preservation",
+    "hosted_backend": "d46c50f0 Android producer and all three Android case shards",
+    "navigation_performance": "d46c50f0 iPhone producer and all three iPhone case shards",
+    "native_acceptance": "39913314 retained-binary memory-only recovery and reader/setup diagnosis"
+  },
   "localRepairReceipts": {
     "support": {
       "path": "support/lifecycle-repair/support-lifecycle-repair.json",
@@ -1169,16 +1179,28 @@
     }
   },
   "activeNativeAudit": {
-    "binaryAndTestSource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
-    "applicationSource": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
-    "baselineRun": 41229206389,
-    "androidRecoveryRun": 41231522956,
-    "androidRecoveryWorkflowSource": "23cf8777768451a74d24339b77f0fae2c41ba415",
-    "caseInventory": 85,
-    "entryOnlyCases": 59,
-    "controlErrorSignedOutCaptureCases": 26,
+    "binaryAndTestSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "sourceTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+    "run": 41235679679,
+    "androidProducerJob": 124638843088,
+    "iosProducerJob": 124638843259,
+    "caseInventoryPerPlatform": 85,
+    "entryOnlyCasesPerPlatform": 59,
+    "controlErrorSignedOutCaptureCasesPerPlatform": 26,
+    "shardsPerPlatform": 3,
     "allControlsAccepted": false,
-    "state": "Android three recovery consumers active; iPhone producer/consumers tracked separately. No completed native case count inferred from job execution."
+    "state": "Both source-bound producers are building. Case shards have not started; no current-candidate native pass count is inferred from build status.",
+    "reusePolicy": "Preserve active builds. Runner-only corrections reuse the exact artifact with separately verified helper provenance; no app rebuild, rebundle or re-sign.",
+    "previousBaseline": {
+      "binaryAndTestSource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+      "applicationSource": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "producerRun": 41229206389,
+      "androidRecoveryRun": 41231522956,
+      "androidRecoveryWorkflowSource": "23cf8777768451a74d24339b77f0fae2c41ba415",
+      "androidAttempted": 85,
+      "androidPassed": 48,
+      "androidFailed": 37
+    }
   },
   "combinedLocalRegression": {
     "receipt": "combined-regression/application-results.json",
@@ -1187,7 +1209,10 @@
     "adminPassed": 284,
     "backendPassed": 328,
     "backendConditionalSkipped": 3,
-    "status": "Allfourapplicationgroupspassed;RPCmatrixandnewnativeharnessdiagnosticsseparate"
+    "rpcPassed": 883,
+    "rpcConditionalSkipped": 3,
+    "rpcReceipt": "combined-regression/rpc-results.json",
+    "status": "All four application groups and the RPC matrix passed; new native harness diagnostics are recorded separately."
   },
   "combinedBrowserRegression": {
     "receipt": "docs/quality/full-platform-audit-20261031/combined-browser/acceptance.json",
@@ -1224,7 +1249,7 @@
       "causeLimit": "Original setup failure lacked process-exit/partial-output metadata; cold-start versus inherited-pipe contribution is not established.",
       "correctionCommit": "c1bb0784ba031ac8dc4e14f5d0cdeeacadd024c5",
       "correctedRun": 41234444953,
-      "correctedStatus": "running"
+      "correctedStatus": "failed before app installation: all three simulators booted, then recovery-only five-second Xcode metadata reads timed out"
     },
     "androidEncoder": {
       "run": 41233788259,
@@ -1249,7 +1274,36 @@
       "correctionCommit": "0969400c77e05da3ce0f931c9b25e88b93315439",
       "correctionScope": "Use the existing normal-runner 30-second metadata budget and retain each setup read; application assertions and case deadlines unchanged.",
       "nextRun": 41235415260,
-      "nextRunStatus": "running"
+      "nextRunStatus": "failed before app installation: all three Xcode reads passed within 30 seconds, then SDK metadata reads timed out after simulator boot",
+      "setupFailureReceipt": "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41235415260/setup-failure.json"
+    },
+    "iosMemoryOnlyPrebootRecovery": {
+      "sourceCommit": "39913314f866c6446e5a8bbfdd86f4e35cb27ed1",
+      "sourceTree": "8a1fd51e93829475ea4463f22981fbb3e3599c48",
+      "run": 41236355546,
+      "job": 124640857650,
+      "binarySource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+      "binaryArtifact": 13053723906,
+      "appDigestSha256": "61aa632c9499117c7d0f7cc7901e58eb6470d7aeffb6d6eb41aad87119f79b65",
+      "selectedOriginalCases": 5,
+      "excludedOldSourceCases": 80,
+      "separateDiagnostic": "Warm tabs to Profile shelf to memory reader, before the five unchanged original memory cases; never counted in the original 85-case audit.",
+      "orderingCorrection": "Immutable host, Xcode, SDK, bundle, Mach-O and signature checks precede simulator boot; available runtime and exact booted-device checks follow it, and exact app bytes are rechecked before install.",
+      "status": "running",
+      "limit": "This ordering has not yet proved a cure for the SDK metadata timeout or the application reader stall. Do not increase budgets again without diagnosis if the preboot SDK read also fails.",
+      "selectionReceipt": "docs/quality/native-full-app-20261031/native-audit-ios-recovery/memory-only-selection.json",
+      "independentReview": "docs/quality/native-full-app-20261031/native-ios-preboot-compatibility-independent-review.json"
     }
+  },
+  "latestHostedReadOnlyCheck": {
+    "metadataObservedAtUtc": "2026-10-31T19:48:12.783527Z",
+    "catalogObservedAtUtc": "2026-10-31T19:48:20.046786Z",
+    "project": "uaulhuelcfkjwojtymmw",
+    "catalogFingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "stage": 3,
+    "historyEntries": 3,
+    "matchingActiveStatements": 0,
+    "receipt": "../live-app-20261031/backend-stage3-postflight-d46c50f0.json",
+    "interpretation": "Catalog and history remain unchanged. A quiet database does not establish terminal outcomes or cancellation of either earlier migration request; no retry or alternate DDL route is authorized by this observation."
   }
 }

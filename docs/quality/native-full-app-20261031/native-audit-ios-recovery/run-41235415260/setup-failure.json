@@ -1,0 +1,180 @@
+{
+  "reviewedAt": "2026-10-31T19:51:45.208122+00:00",
+  "runId": 41235415260,
+  "recoverySource": "0969400c77e05da3ce0f931c9b25e88b93315439",
+  "applicationSource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "allShardsTerminal": true,
+  "attemptedCases": 0,
+  "requiredCases": 85,
+  "classification": "All shards complete create/boot/bootstatus and actual host/Xcode checks, then time out the postboot SDK version query. This is a setup failure before installation and not an application or compatibility-mismatch verdict.",
+  "shards": [
+    {
+      "shard": "account",
+      "jobId": 124638041051,
+      "completedAt": "2026-10-31T19:46:16Z",
+      "artifact": {
+        "id": 13056135067,
+        "bytes": 10454,
+        "sha256": "e17fbcd4830bd39201f79b9e2948ad1d37686d1cdfbfa5220783710a6fb1be5c"
+      },
+      "attemptedCases": 0,
+      "stage": "compatibility-simulator-sdk",
+      "command": [
+        "xcrun",
+        "--sdk",
+        "iphonesimulator",
+        "--show-sdk-version"
+      ],
+      "timeoutSeconds": 30,
+      "elapsedSeconds": 30.25515032100003,
+      "leaderRunningAtTimeout": true,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "completedSetup": [
+        {
+          "stage": "create",
+          "elapsedSeconds": 10.263787732000026,
+          "exitCode": 0
+        },
+        {
+          "stage": "boot",
+          "elapsedSeconds": 4.348177319000001,
+          "exitCode": 0
+        },
+        {
+          "stage": "bootstatus",
+          "elapsedSeconds": 126.98185322800003,
+          "exitCode": 0
+        },
+        {
+          "stage": "compatibility-host-architecture",
+          "elapsedSeconds": 0.0005081920000407081,
+          "exitCode": 0
+        },
+        {
+          "stage": "compatibility-xcode-version",
+          "elapsedSeconds": 11.229550254999992,
+          "exitCode": 0
+        }
+      ],
+      "retainedFiles": {
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41235415260/account/setup-commands.json": "49ba0a76784adde088252f2a2b6c7225650b0daf373cdf1b464e833e1c097bd0",
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41235415260/account/recovery-provenance.json": "04de4945b7a32d046e40bf5095b22e5bb530970f07f70faa0b3a6b4f4594080f"
+      }
+    },
+    {
+      "shard": "social",
+      "jobId": 124638041315,
+      "completedAt": "2026-10-31T19:46:00Z",
+      "artifact": {
+        "id": 13054329937,
+        "bytes": 10486,
+        "sha256": "34cf755a9a68f83ddb5ca615e286f33237b5b08ce376ebc6b41a591da1433e0a"
+      },
+      "attemptedCases": 0,
+      "stage": "compatibility-simulator-sdk",
+      "command": [
+        "xcrun",
+        "--sdk",
+        "iphonesimulator",
+        "--show-sdk-version"
+      ],
+      "timeoutSeconds": 30,
+      "elapsedSeconds": 30.001753258000008,
+      "leaderRunningAtTimeout": true,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "completedSetup": [
+        {
+          "stage": "create",
+          "elapsedSeconds": 41.18770583199989,
+          "exitCode": 0
+        },
+        {
+          "stage": "boot",
+          "elapsedSeconds": 4.645394478999833,
+          "exitCode": 0
+        },
+        {
+          "stage": "bootstatus",
+          "elapsedSeconds": 95.25374262700007,
+          "exitCode": 0
+        },
+        {
+          "stage": "compatibility-host-architecture",
+          "elapsedSeconds": 0.00035680099995261116,
+          "exitCode": 0
+        },
+        {
+          "stage": "compatibility-xcode-version",
+          "elapsedSeconds": 22.804964300999927,
+          "exitCode": 0
+        }
+      ],
+      "retainedFiles": {
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41235415260/social/setup-commands.json": "f0447d38723526eb9ee0fc9d3bb115d1f2326b8a8051cae3fdc51a76b220bd9b",
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41235415260/social/recovery-provenance.json": "cbf3ef825b4b6548dccaae4fa9225c525521746cdfd3875b10a7d302f9486689"
+      }
+    },
+    {
+      "shard": "settings",
+      "jobId": 124638041264,
+      "completedAt": "2026-10-31T19:47:24Z",
+      "artifact": {
+        "id": 13055139625,
+        "bytes": 10502,
+        "sha256": "e461c42a31e16f428e36d9522e405aa92ad63e23bb4239f4d0052befe235ade8"
+      },
+      "attemptedCases": 0,
+      "stage": "compatibility-simulator-sdk",
+      "command": [
+        "xcrun",
+        "--sdk",
+        "iphonesimulator",
+        "--show-sdk-version"
+      ],
+      "timeoutSeconds": 30,
+      "elapsedSeconds": 30.003354040999966,
+      "leaderRunningAtTimeout": true,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "completedSetup": [
+        {
+          "stage": "create",
+          "elapsedSeconds": 51.56214961099994,
+          "exitCode": 0
+        },
+        {
+          "stage": "boot",
+          "elapsedSeconds": 6.535475880000035,
+          "exitCode": 0
+        },
+        {
+          "stage": "bootstatus",
+          "elapsedSeconds": 129.45323563299996,
+          "exitCode": 0
+        },
+        {
+          "stage": "compatibility-host-architecture",
+          "elapsedSeconds": 3.1921482069999456,
+          "exitCode": 0
+        },
+        {
+          "stage": "compatibility-xcode-version",
+          "elapsedSeconds": 21.37288467899998,
+          "exitCode": 0
+        }
+      ],
+      "retainedFiles": {
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41235415260/settings/setup-commands.json": "734ead967d49ad28abb10793bbfe071fe9a195f400dd0e10e3da6a445ad8ac01",
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41235415260/settings/recovery-provenance.json": "eba8020381989453f02ce29be3194442b8e3b6895cc950e5d529e57834b523f5"
+      }
+    }
+  ],
+  "proposedIsolation": "Run the same immutable host/toolchain/bundle checks before Simulator creation, then verify actual runtime/selected Booted device afterward. Keep metadata30s and all product deadlines unchanged.",
+  "limits": [
+    "No specific service, lock or CPU cause is established.",
+    "No native case, account readback, reader, capture or decoder acceptance.",
+    "The normal d46 consumer shares the original postboot metadata query; its actual outcome remains separately owned and must not be inferred from this older binary recovery."
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "kind": "original-binary-ios-audit-diagnostic-recovery",
+  "applicationSourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "applicationSourceTree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+  "producerRunId": 41229206389,
+  "binarySha256": "61aa632c9499117c7d0f7cc7901e58eb6470d7aeffb6d6eb41aad87119f79b65",
+  "sourceReceiptSha256": "35d710d00324f3a2eb815f38b87bf95b24b3225a1aaad2e7985083cf3cba11fe",
+  "auditManifestSha256": "f0b37826ed8709e0772e5d9ea4d73d9e7ef48ab7d2894440608ab2e59848b1fe",
+  "originalRunnerSha256": "b77ada1570ab2c78d27518c7b109eb06b802e8b6e86f737459beeb9b9bdf60f8",
+  "recoverySourceCommit": "0969400c77e05da3ce0f931c9b25e88b93315439",
+  "recoveryRunId": "41235415260",
+  "recoveryRunAttempt": "1",
+  "helperSha256": "b813a675b8fa910f39b02c41a9dca9c611adf21f2a9857d7d9ed5b373b56a8c8",
+  "compatibilityHelperSha256": "aac09dde4774aa6d1f1f875a7e37a73aa642260555aad73044a2ad582a94e380",
+  "workflowSha256": "22de2db0bf3341ac98bf6a0dde5b6b3d70d9eadbfdc82e472af0093c3edfba26",
+  "selectedGroups": [
+    "feed",
+    "jobs",
+    "market",
+    "messages",
+    "navigation"
+  ],
+  "selectedCaseCount": 31,
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false,
+  "originalCasesUnchanged": true,
+  "diagnosticLimits": {
+    "snapshotIntervalSeconds": 5,
+    "maxTraceBytesPerFile": 2097152,
+    "samplePairsPerShard": 1,
+    "sampleSecondsPerProcess": 3,
+    "sampleIntervalMilliseconds": 10,
+    "sampleWallBudgetSeconds": 8,
+    "sampleBytesPerProcess": 2097152,
+    "nativeBodiesReadAgain": false,
+    "coreEnvironmentArgvOrHeapCaptured": false
+  },
+  "coverageLimit": "Original memory cases enter the reader directly. One separately reported diagnostic uses three existing warm-tab cycles followed by Profile/shelf/book. It is a related path, not the identical original single-cycle full journey; isolated success cannot establish its cure.",
+  "observationOverhead": "Snapshots add bounded file/command work; sample briefly suspends threads at each sampling interval. Original test deadlines and outcomes are not adjusted."
+}

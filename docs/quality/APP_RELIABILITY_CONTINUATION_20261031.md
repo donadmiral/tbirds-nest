@@ -5,7 +5,7 @@ native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
-## Current work: grouped cross-platform repairs and installed-device diagnosis
+## Current work: published repair candidate and parallel device acceptance
 
 The previous **5/6 counter is retired**. It described a narrow repair cycle,
 not whole-product completion. The user requested a broad error inventory,
@@ -16,12 +16,24 @@ remaining installed or hosted acceptance. These records include product,
 measurement and test-infrastructure defects; they are not 39 separate product
 features or a completion percentage.
 
-The published application baseline remains `2f91218e`. A coordinated working
-copy contains the repaired Support flows, nine member-web issue families,
-held settings-save recovery, seven admin reporting/layout findings, three API
+The consolidated repair candidate is published as
+[`d46c50f0`](https://github.com/donadmiral/tbirds-nest/commit/d46c50f09164c75c7fe8cdba0c3470c272b1ab4e),
+with verified tree `b9816fb408382a5e4ae4277111128e458b1d524f`.
+It contains the repaired Support flows, nine member-web issue families, held
+settings-save recovery, seven admin reporting/layout findings, three API
 contract findings, five custom-action receipt failures, native theme/version
 repairs, media readability fixes and the diagnosed Android movie dependency
-repair. The combined local application regression passed. The repair checkpoint is published as `c20cc9e5`; the app/PR head remains `2f91218e` until the native findings are consolidated.
+repair. The combined local application and browser regressions passed on the
+grouped product repair source, `c20cc9e5`; the subsequent native fixture and
+runner corrections do not change that product source. The app/PR head remains
+`2f91218e` while the candidate's native findings are collected, avoiding another
+app-head-triggered build cycle.
+
+The [current native audit](https://github.com/donadmiral/tbirds-nest/actions/runs/41235679679)
+builds one source-bound binary for each platform. Each binary feeds three
+parallel feature groups, with 85 independent cases per platform. At the latest
+retained checkpoint, both producers are building and the case groups have not
+started. No current-candidate native case passes are inferred from build status.
 
 ### Progress by verified scope
 
@@ -32,10 +44,30 @@ repair. The combined local application regression passed. The repair checkpoint 
 | Admin reporting and commands |Complete admin suite284/284;12/12 reporting browser and21/21 custom-control browser cases | Locally verified; current hosted session is signed out |
 | Native theme and media labels |111/111 theme cases plus7/7 media contrast cases; existing9 player/selector cases preserved | Source/render/color evidence; device visual acceptance pending |
 | Android movie |40/40 actual encoder instrumentation cases passed on the repair checkpoint; the B-frame case retains45 video-page frames with a33.334ms boundary gap | Standalone emulator evidence passed; complete installed-app export still pending |
-| Android broad audit |85/85 baseline cases executed:48passed,37failed,0case timeouts | All failures assigned to fixture, interaction, existing Support or media repairs; corrected candidate device run pending |
-| iPhone installed app |Original main tabs and private shelf passed; reader stall remains unresolved. First no-rebuild recovery attempt failed in simulator setup, before all85cases | Reviewed setup/process correction published as `c1bb0784`; existing binary reused for the next run |
+| Android broad audit |85/85 baseline cases executed:48passed,37failed,0case timeouts | All failures classified and grouped corrections published; `d46c50f0` build is running before the 85-case retest |
+| iPhone broad audit |Original main tabs and private shelf passed; reader stall remains unresolved | `d46c50f0` build is running before all85cases; separate retained-binary investigation targets the unresolved reader path |
 | Combined regression |Phone/root2,168/2,168; web683/683; admin284/284; database328passed plus3conditional skips; RPC883passed plus3conditional skips |Passed. Four test adapters/contracts were repaired together without changing product assertions. |
 | Complete browser regression |307/307 scenarios across all13workflow groups, including actual exports; no process timeouts |Passed on the grouped repair source with synthetic provider boundaries; hosted acceptance separate |
+
+All four available workers have distinct current ownership: Android audit,
+iPhone audit, the retained iPhone binary's reader/setup investigation, and
+integration/publication. Current builds are preserved. A runner-only correction
+uses the existing exact binary with separately verified helper provenance and
+does not trigger another app compile.
+
+The earlier iPhone recovery attempts did not reach application testing. The
+first stopped during simulator creation; the second completed boot but exposed
+a recovery-only five-second Xcode metadata deadline; the third passed the
+Xcode read within the normal 30-second budget but timed out reading SDK metadata
+after boot. Those outcomes are retained as setup failures, not app failures or
+case passes. The current
+[memory-only recovery](https://github.com/donadmiral/tbirds-nest/actions/runs/41236355546),
+source `39913314`, moves immutable toolchain/bundle checks before simulator boot,
+then verifies the live runtime and exact booted device. It reuses the unchanged
+`b568bd7b` binary, first runs the separate warm-tab-to-reader diagnostic, and
+then runs the five original memory cases. The other 80 old-source cases are
+excluded because the new candidate owns the full audit. Whether this ordering
+resolves the SDK timeout, and whether the reader itself passes, remain unproven.
 
 The native audit contains 59 entry-only cases and 26 selected control, error,
 signed-out and capture cases. The source inventory contains 89 distinct native
@@ -52,10 +84,13 @@ an application, network or automation root cause. The next native diagnostic
 must retain request traces and thread evidence rather than assume a cause.
 
 Hosted QA migration advancement remains held because two earlier authorized
-requests have no proven terminal outcome. Available member/admin sessions are
-signed out. Apple sign-in is not retried, no new signed-device acceptance is
-claimed, and TestFlight remains on hold. These are separate from the completed
-local repairs and ongoing simulator/emulator audit.
+requests have no proven terminal outcome. The latest read-only check at
+19:48 UTC still shows the stage-three catalog and history unchanged, with no
+matching active statement; this does not prove that either earlier request is
+cancelled. Available member/admin sessions are signed out. Apple sign-in is not
+retried, no new signed-device acceptance is claimed, and TestFlight remains on
+hold. These are separate from the completed local repairs and ongoing
+simulator/emulator audit.
 
 ## Published baseline: 2f91218e (v8)
 
