@@ -14,8 +14,14 @@ This is a milestone count, not a whole-product completion percentage. The
 [native workflow](https://github.com/donadmiral/tbirds-nest/actions/runs/41173170193)
 remain available independently of the chat connection.
 
-Status snapshot: **2026-10-31 06:02 UTC**. The Android complete-app run has
+Status snapshot: **2026-10-31 06:30 UTC**. The Android complete-app run has
 finished with an emulator-process crash; the iPhone run remains active.
+The iPhone combined build/test step began at 05:38:02 UTC and had run for
+52 minutes 45 seconds at the 06:30:47 status read. Detailed artifact upload had
+not begun. Status requests were responding normally. One large job-log request
+returned `Transport closed`; that tooling error supplies no native phase or app
+failure evidence, and it was not retried. Review continues through the status
+and artifact endpoints.
 
 The published source is `e173b2dbcf253342be5683fa85f102aa38065411`. Its tested PR
 merge is `e6ca24e27b00207344eb7989ed53d2305cb04cf3`. Both have tree
@@ -762,14 +768,33 @@ and [independent review](backend-acceptance-20261031/notification-event-root-rev
 
 ## Release boundaries
 
-The four preview deployments are ready for the published checkpoint. The review
-branch remains a draft. No production frontend promotion, merge, new signed
-build or new TestFlight submission is claimed by this continuation.
+The web and admin aliases retain their verified READY deployments with relevant
+inputs equal to the current source. The review branch remains a draft. No
+production frontend promotion, merge, new signed build or new TestFlight
+submission is claimed by this continuation.
 
-The repository retains the Apple team and App Store Connect identifiers and the
-historical build 16 receipt. The attempted current App Store Connect browser
-check did not complete, so current signed-release access and Apple processing
-state remain unverified. Simulator work continues independently.
+The iPhone release configuration is prepared: version 1.1.0, project/app/team
+identifiers, production submission profile, and remote build auto-increment.
+The preview profile is a signed internal QA device build with the separate QA
+bundle/backend. It is not a QA TestFlight submission profile. The current-source
+signed artifact still needs its own build ID, exact source/profile/bundle,
+versions and IPA digest. The historical build 16 receipt does not cover this
+source, and the next remote build number is not inferred from that history or
+the local buildNumber field.
+
+Expo's [managed-credentials documentation](https://docs.expo.dev/app-signing/managed-credentials/)
+allows stored signing credentials to be reused through an authenticated Expo
+account. A fresh Apple sign-in is not inherently required for that route. The
+supported read-only `eas whoami` check was performed with official EAS CLI 27.2.0
+from an isolated temporary package cache; it returned exit 1 and `Not logged in`.
+The current environment therefore has no usable logged-in Expo CLI session.
+Stored remote signing/submission credential validity remains unknown. No login,
+project link, signed build or submission was attempted. The earlier Apple
+browser check was not repeated. Simulator work continues independently.
+
+[Signed-release configuration and exact handoff](native-full-app-20261031/ios-signed-release-handoff-e173b2db.json) ·
+[Observed Expo session check](native-full-app-20261031/expo-existing-session-observation-e173b2db.json) ·
+[Bounded iPhone log-tool outcome](native-full-app-20261031/ios-e173b2db-log-transport-observation.json)
 
 The remaining release work includes the blocked hosted installation, complete
 native UI/capture results, physical-device Photos/camera/interruption and push/call

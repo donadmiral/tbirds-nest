@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T06:27:35Z",
+  "scope": "Bounded read-only release handoff audit from public tracked configuration, retained receipts and official Expo documentation. No credential/secret inspection, Apple sign-in retry, EAS account check, build, submission, provider mutation, source edit or ref change was performed.",
+  "source": {
+    "publishedHead": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "testedPrMerge": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+    "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+    "preparedAndroidHarnessCheckpoint": "9327 (reported by parent; not an iPhone signed-build receipt)",
+    "allReviewedProductionAndReleaseConfigFilesMatchPublishedHead": true,
+    "sha256": {
+      "app.json": {
+        "sha256": "129b756b7bf5e6e1b6b456bbe982f63923b83b0568fa41cac6721a892ea555c2",
+        "matchesPublishedHead": true
+      },
+      "app.config.js": {
+        "sha256": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+        "matchesPublishedHead": true
+      },
+      "eas.json": {
+        "sha256": "2743117e9493cb0e2ef3eb452f3c7bf166700adf0ac4088a3dcc5ba89e85efd7",
+        "matchesPublishedHead": true
+      },
+      "package.json": {
+        "sha256": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+        "matchesPublishedHead": true
+      },
+      ".easignore": {
+        "sha256": "9c57368cd63ca32d8cce18c532b4f9275192edc6bb61209c40dec13715f82ae1",
+        "matchesPublishedHead": true
+      },
+      "index.js": {
+        "sha256": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+        "matchesPublishedHead": true
+      },
+      "modules/boomerang/ios/BoomerangModule.swift": {
+        "sha256": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+        "matchesPublishedHead": true
+      },
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": {
+        "sha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+        "matchesPublishedHead": true
+      },
+      "shared/musicAvailability.ts": {
+        "sha256": "4d5685745d2ddfc3941fbee61e404a5f05b3620ff30b4c8c928af968205af157",
+        "matchesPublishedHead": true
+      },
+      "scripts/quality/prepare-native-ui.cjs": {
+        "sha256": "9afa9baef4388c76155dab43708deb0c667a17b5f50e866c5afc0c74c94c8d84",
+        "matchesPublishedHead": true
+      },
+      "scripts/quality/test-ios-app-ui.sh": {
+        "sha256": "138f2ac2e8ed32e09f4b6b5ca6e4c4b07a6f1c93b7373767703dbfd97b3f8077",
+        "matchesPublishedHead": true
+      }
+    }
+  },
+  "mainFinding": "The project identity, iPhone build profiles and production submission destination already exist. A new signed artifact for e173 is not evidenced. Fresh Apple authentication is not inherently necessary if the existing Expo account can use valid uploaded signing credentials and an assigned submission API key; neither current access nor credential validity was checked in this audit.",
+  "preparedConfiguration": {
+    "applicationName": "PlatinumCircles",
+    "expoOwner": "donadmiral",
+    "expoSlug": "platinum-circles",
+    "easProjectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+    "userFacingVersion": "1.1.0",
+    "packageJsonVersion": "1.0.0",
+    "localIosBuildNumber": "1",
+    "versionSource": "remote",
+    "easCliRequirement": ">= 16.20.0",
+    "versionInterpretation": "Expo app version 1.1.0 is the user-facing release version. package.json version 1.0.0 is not the iOS marketing version. With remote version source and autoIncrement, local buildNumber 1 does not identify the next EAS build. Historical build 16 does not prove the next counter is 17; inspect the remote value once authorized Expo access is available.",
+    "profiles": [
+      {
+        "name": "development",
+        "distribution": "internal",
+        "developmentClient": true,
+        "iosSimulator": false,
+        "autoIncrement": false,
+        "environment": "development",
+        "channel": "qa-development",
+        "appEnvironment": "qa",
+        "backendHost": "uaulhuelcfkjwojtymmw.supabase.co",
+        "bundleIdentifier": "app.platinumcircles.mobile.qa",
+        "privateMediaSessionsEnabled": "false"
+      },
+      {
+        "name": "preview",
+        "distribution": "internal",
+        "developmentClient": false,
+        "iosSimulator": false,
+        "autoIncrement": true,
+        "environment": "preview",
+        "channel": "qa-preview",
+        "appEnvironment": "qa",
+        "backendHost": "uaulhuelcfkjwojtymmw.supabase.co",
+        "bundleIdentifier": "app.platinumcircles.mobile.qa",
+        "privateMediaSessionsEnabled": "false"
+      },
+      {
+        "name": "production",
+        "distribution": "store (EAS default; not explicitly set)",
+        "developmentClient": false,
+        "iosSimulator": false,
+        "autoIncrement": true,
+        "environment": "production",
+        "channel": null,
+        "appEnvironment": "production",
+        "backendHost": "prlkikhckbifseosbukl.supabase.co",
+        "bundleIdentifier": "app.platinumcircles.mobile",
+        "privateMediaSessionsEnabled": "false"
+      }
+    ],
+    "submission": {
+      "profile": "production",
+      "appStoreConnectAppId": "6764038613",
+      "appleTeamId": "6PHMSMFKSF",
+      "qaStoreSubmissionProfilePresent": false
+    },
+    "assetsPresent": {
+      "assets/icon.png": true,
+      "assets/splash.png": true,
+      "assets/notification-icon.png": true
+    },
+    "nativeProject": "No generated ios project is tracked. The existing EAS archive rules intentionally omit generated native directories so the configured Expo plugins generate the native project during the real build.",
+    "archiveRules": "The existing tracked EAS archive rules exclude local generated outputs, configuration and signing material; their hash is unchanged from the retained October 25 archive review. That review is historical, not a new e173 cloud-archive inspection.",
+    "configuredNativeIntegration": [
+      "CallKeep and custom PushKit plugin",
+      "expo-notifications",
+      "SecureStore",
+      "Camera/photo/microphone/location permission descriptions",
+      "iOS deployment target 15.1 and audio/voip background modes"
+    ],
+    "newSignedInstaller": "No tracked .ipa or .xcarchive is present; no retained e173 EAS signed-build or submission receipt was found. Existing Simulator .app artifacts cannot serve as a physical iPhone/TestFlight installer."
+  },
+  "distributionDecision": {
+    "physicalQa": "The existing preview profile builds the separate app.platinumcircles.mobile.qa app against QA with internal device distribution. It is the already-prepared path for a signed QA phone installation, subject to valid QA provisioning and the target device being included for ad-hoc distribution.",
+    "testflight": "The only prepared submit profile is production, for app.platinumcircles.mobile and App Store Connect app 6764038613. The production build points to production backend prlkikhckbifseosbukl.",
+    "consequence": "Do not interpret preview as a TestFlight build, or submit the QA bundle to the production app record. A separate QA TestFlight path would require deliberately prepared store distribution and the matching QA app/submission record; those artifacts are not established by this repo.",
+    "noNewPathCreated": true
+  },
+  "historicalAndCurrentAccessEvidence": {
+    "lastRetainedSignedProductionBuild": {
+      "date": "2026-10-29",
+      "buildNumber": 16,
+      "easBuildId": "df17a360-0dcd-4ece-9624-4dc2084c10c8",
+      "easSubmissionId": "21c8a8ae-68af-4a35-a6dc-8c206021681e",
+      "recordedAppleState": "VALID / READY_FOR_BETA_TESTING",
+      "existingInternalGroups": [
+        "Don",
+        "Team (Expo)"
+      ],
+      "physicalInstallationVerified": false,
+      "coversCurrentSource": false,
+      "evidence": "docs/quality/RELEASE_EVIDENCE_20261029.md"
+    },
+    "currentAccessReceipt": "docs/quality/native-full-app-20261031/apple-access-readiness.json",
+    "latestRetainedAppleBrowserAttempt": {
+      "recordedAtUtc": "2026-10-31T03:34:43.302076Z",
+      "outcome": "aborted by user after 4.8 seconds; no page state returned",
+      "interpretation": "Does not establish whether Apple authentication or build state is available. Not retried."
+    },
+    "historicalExpoCaution": "The October 25 report records a CLI authorization approval rejection, while October 29 records a later successful signed build and submission. The old rejection must not be treated as proof of the present account state.",
+    "newerSimulatorSigning": "The newer signing/account receipts concern the x86_64 iPhone Simulator and its ad-hoc host signing/embedded entitlements. They do not establish device distribution credentials or TestFlight access.",
+    "nativeOwnerConfirmation": "native_acceptance reported no newer signed-production or physical-device receipt in its scope; no new access query was requested."
+  },
+  "whatCanProceedWithoutFreshAppleAuthentication": [
+    {
+      "work": "Finish the already-running iPhone full-app gate and the separately reviewed supported-mode Android follow-up, retaining exact-source receipts.",
+      "access": "No Apple authentication; existing GitHub Simulator/Emulator workflow. Do not interrupt the current iPhone job."
+    },
+    {
+      "work": "Freeze the actual accepted application source and assemble the release identity, profile, backend and capability manifest from the existing source/receipts.",
+      "access": "Repository-only. This audit supplies the configuration map; no new broad suite is needed merely to restate passing gates."
+    },
+    {
+      "work": "Resolve the pending native whole-book capability decision after required full-app navigation/account/capture acceptance.",
+      "access": "Source review/validation is Apple-independent. Current production declares memoryMovieVersion 0 on both platforms; the QA harness deliberately overlays 1. A signed build using unchanged source keeps that capability off. This audit changes no gate."
+    },
+    {
+      "work": "Continue the existing backend request-state resolution and coordinated compatibility work, preserving music/private-media/notification holds.",
+      "access": "Independent of Apple, but stage 4 has its own unresolved connector outcome. This is not permission to retry the ambiguous migration or activate dependent services."
+    },
+    {
+      "work": "Read the current Expo identity/project and remote iOS version using supported CLI commands, if root authorizes and an installed CLI/session is available.",
+      "access": "Does not require an Apple sign-in. Not executed in this audit; stop on any authentication/linking prompt rather than continuing it."
+    },
+    {
+      "work": "Create a signed device/store build using already-uploaded valid credentials after the release owner clears the relevant gates.",
+      "access": "Conditionally no fresh Apple login: official Expo guidance permits credential reuse by authorized Expo users. Existing Expo access and credential validity remain unverified."
+    },
+    {
+      "work": "Submit that exact store build using an already-assigned App Store Connect API key after release approval.",
+      "access": "Conditionally no fresh Apple login: EAS Submit can reuse the assigned API key. Its existence/validity and current submission access remain unverified; this audit does not inspect or create credentials."
+    }
+  ],
+  "remainingConcreteWork": [
+    {
+      "step": 1,
+      "item": "Complete installed native app acceptance on the intended source.",
+      "currentEvidence": "At the parent report snapshot 06:02 UTC, iPhone e173 was active; Android e173 failed after a confirmed host emulator SIGSEGV. Standalone encoder and compile successes are separate evidence.",
+      "completionReceipt": "Required navigation, memory capture, saved-account readback, independent media decoding and full-app verification, each source-bound; no skipped/optional gate substitution."
+    },
+    {
+      "step": 2,
+      "item": "Select and record the signed delivery target and release capability set.",
+      "currentEvidence": "preview is QA internal distribution; production is the existing store app/backend. Whole-book native capability is still 0, commercial music is false, and private-media sessions are false.",
+      "completionReceipt": "Exact source commit, profile, bundle/backend, app version and intentional enabled/held capabilities. Enabling a capability requires its existing acceptance gate, not just configuration editing."
+    },
+    {
+      "step": 3,
+      "item": "Establish usable Expo access, then verify version and the appropriate existing signing path.",
+      "currentEvidence": "Identifiers are ready, but no current successful CLI/account check or e173 signing result is retained.",
+      "completionReceipt": "Account/project match, actual remote build version and successful use of the correct distribution profile. If credentials require renewal or a QA device is absent, an authorized Apple operation is then needed; do not infer that need prematurely."
+    },
+    {
+      "step": 4,
+      "item": "Build the fresh signed iPhone artifact and bind it to accepted source.",
+      "currentEvidence": "Build 16 is historical; simulator artifacts use QA transports/capability overlays and are not release installers.",
+      "completionReceipt": "EAS build ID, source commit/archive identity, profile, bundle/backend, app and build versions, final .ipa digest and relevant signed entitlements. A production-targeted build also requires the coordinated production compatibility/provider/private-media release decisions already listed in the current report."
+    },
+    {
+      "step": 5,
+      "item": "Perform actual phone acceptance, then submit and verify the intended TestFlight build.",
+      "currentEvidence": "Physical Photos/camera/interruption, real push/calls, provider-backed behavior and device performance remain separate. No new submission was made.",
+      "completionReceipt": "Install the exact signed QA/device build for the physical matrix; submit the explicitly selected production build only when cleared, record Apple processing and existing internal-group availability, then verify its installation. Upload/TestFlight readiness alone is not proof of the installed phone experience."
+    }
+  ],
+  "futureCommandsNotExecuted": [
+    {
+      "purpose": "Existing Expo account identity only",
+      "command": "eas whoami",
+      "prerequisite": "Root authorizes the bounded read-only check with an already-installed CLI. No login, credentials entry or secret-file inspection; stop if authentication is requested."
+    },
+    {
+      "purpose": "Existing configured EAS project only",
+      "command": "eas project:info",
+      "workingDirectory": "/workspace/scratch/f9638ed3020b/platinum-circles",
+      "prerequisite": "Identity is appropriate and an existing session is usable. Expected project: 6962a2bb-3ebe-4ff8-8d35-e4fb58271259, owner donadmiral, slug platinum-circles. Stop on any login or linking prompt; do not run project:init."
+    },
+    {
+      "purpose": "Read the current production iOS remote version",
+      "command": "eas build:version:get --platform ios --profile production --json --non-interactive",
+      "prerequisite": "Authorized Expo access. This reads the counter; do not run version:set or assume the next number from local buildNumber."
+    },
+    {
+      "purpose": "Signed internal QA build",
+      "command": "eas build --platform ios --profile preview --non-interactive --freeze-credentials",
+      "prerequisite": "A reviewed CLI supporting these documented flags, release-owner go-ahead, accepted source and valid existing QA provisioning for the intended device. No build authorized by this audit."
+    },
+    {
+      "purpose": "Signed production store build",
+      "command": "eas build --platform ios --profile production --non-interactive --freeze-credentials",
+      "prerequisite": "Release-owner go-ahead, production compatibility/capability gates and valid existing distribution credentials. No automatic submission."
+    },
+    {
+      "purpose": "Submit the explicitly verified store build",
+      "command": "eas submit --platform ios --profile production --id <verified-EAS-build-id> --non-interactive --no-auto-testflight-setup",
+      "prerequisite": "Release-owner go-ahead, the accepted exact store artifact and a valid assigned submission key. Use an explicit ID, not an unrelated latest build; preserve existing groups unless a separate change is approved."
+    }
+  ],
+  "officialDocumentation": [
+    {
+      "url": "https://docs.expo.dev/eas/cli/",
+      "facts": "Documents whoami/account:view, project:info, build:version:get, build --freeze-credentials and submit --id. whoami and project:info usages do not advertise --non-interactive; do not invent that flag."
+    },
+    {
+      "url": "https://docs.expo.dev/app-signing/managed-credentials/",
+      "facts": "Existing hosted credentials are reused; authorized Expo collaborators can build after those credentials are configured without Apple Developer-team access."
+    },
+    {
+      "url": "https://docs.expo.dev/app-signing/apple-developer-program-roles-and-permissions/",
+      "facts": "Already uploaded credentials can be used without a fresh Apple login; credential creation/renewal or provisioning changes require the appropriately authorized Apple user."
+    },
+    {
+      "url": "https://docs.expo.dev/build-reference/app-versions/",
+      "facts": "With remote version source, EAS manages the developer build number; local ios.buildNumber is ignored for this purpose. App version remains explicitly controlled."
+    },
+    {
+      "url": "https://docs.expo.dev/build/internal-distribution/",
+      "facts": "Internal iOS distribution uses ad-hoc/enterprise provisioning; ad-hoc installs are limited to device UDIDs included in the profile."
+    },
+    {
+      "url": "https://docs.expo.dev/submit/ios/",
+      "facts": "Submission needs a store .ipa and the existing App Store Connect destination. Non-interactive submit uses the assigned API key or fails if it is absent; it does not set one up. TestFlight processing is distinct from public App Review."
+    }
+  ],
+  "evidenceSha256": {
+    "docs/quality/native-full-app-20261031/apple-access-readiness.json": "547076912a9f2ba1e585d9001faa528c76946ccd3d634975ee67e7c0adee7df5",
+    "docs/quality/RELEASE_EVIDENCE_20261029.md": "b9f80f4d4c981b6cd86000951a6f0517ae1bb5126c0ce2c3832c6056edcca99c",
+    "docs/quality/NATIVE_RELEASE_20261025.json": "9ebe5f731dea07200b91f4ccd473ba34571545f8a02dda712c18292dd995cb32",
+    "docs/quality/APP_RELIABILITY_CONTINUATION_20261031.md": "681ecc700484a52f22436d67f05bfd72aa1f4af682795e772de1603325932de1",
+    "docs/quality/live-app-20261031/ci-quality-e173b2db.json": "4702f926d4532f8033004f4cc17b8ed7b6de346f65f2fdb7659c4bf689e76729",
+    "docs/quality/live-app-20261031/backend-stage3-postflight-e173b2db.json": "2cf94400cefcf06a4b54abcd17ca9d448ac9452c8ff657a4d880280e1849605a",
+    "docs/quality/live-app-20261031/backend-stage4-request-state-assessment.json": "806ddba373f24ff7a17b3470881932893ff0d6a5ef9cfa68457371abc04a56e4",
+    "docs/quality/native-full-app-20261031/ios-signing-account-ab281bca-review.json": "d141bbcd14d6312206d2171b3e3832682e969c41eb88f5738c18f8bf556436ea",
+    "docs/quality/native-full-app-20261031/android-full-app-e173b2db-emulator-disappearance.json": "b2b424e66b2bda355f082387098324c5c5939db5a3c348a50d46254d82dd47d7"
+  },
+  "newInformationAdded": "Source-bound profile/backend mapping, remote-version interpretation, explicit absence of a QA store submission profile, conditional credential-reuse path without fresh Apple authentication, and exact future command templates. Existing reports remain authoritative for the underlying runtime/backend observations.",
+  "notPerformed": [
+    "No Apple or Expo account check",
+    "No credential, secret-file or environment-value probe",
+    "No CLI installation or authentication",
+    "No build, TestFlight submission, release automation or external message",
+    "No production or QA backend call",
+    "No tests or capability/release-gate edit",
+    "No app source, configuration, ref or publication change"
+  ]
+}

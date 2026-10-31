@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "headCommit": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "testedMergeCommit": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+  "runId": 41173170193,
+  "jobId": 124455216930,
+  "operation": "github.fetch_workflow_job_logs",
+  "readOnly": true,
+  "requestedAtUtc": "2026-10-31 06:29:44 UTC",
+  "returnedResultObservedByUtc": "2026-10-31 06:30:28 UTC",
+  "exactRemoteCompletionTimeRecorded": false,
+  "terminalToolOutcome": "error",
+  "error": "Transport closed",
+  "usableLogReturned": false,
+  "attempts": 1,
+  "retried": false,
+  "executionCellId": "318",
+  "localWaitNotes": "Two local wait calls were aborted before dispatch. The fully awaited operation had nevertheless returned its terminal error, confirmed by reading the stored result. The execution-cell identifier is not a provider job or approval identifier.",
+  "subsequentReadOnlyJobObservation": {
+    "observedAtUtc": "2026-10-31 06:30:47 UTC",
+    "source": "native_acceptance authenticated job-status read",
+    "status": "in_progress",
+    "activeStep": "test-ios-app-ui.sh",
+    "activeStepStartedAtUtc": "2026-10-31 05:38:02 UTC",
+    "reportedStepElapsedSeconds": 3165,
+    "artifactUploadStarted": false,
+    "metadataRequestReturnedNormally": true
+  },
+  "nextEvidencePath": "Continue the responsive job-status/artifact reads and inspect the retained archive once uploaded.",
+  "limits": [
+    "The tool transport error does not establish an iPhone application, compilation or UI-test failure.",
+    "No internal compilation-versus-UI phase was learned from this request.",
+    "No job cancellation, rerun, source-ref change, timeout change, approval rejection or authentication attempt occurred.",
+    "The cause of the user's ChatGPT connection warning is not established by this observation."
+  ]
+}
