@@ -1,0 +1,50 @@
+{
+  "buildLogSha256": "320ca328a97e4f85ebf962b5ad25eae7276ccf4c3b4667785acb32796866114a",
+  "buildLogBytes": 18326194,
+  "buildSuccess": [
+    {
+      "line": 93421,
+      "text": "** BUILD SUCCEEDED **"
+    }
+  ],
+  "zipEntryTimes": {
+    "source.json": {
+      "dateTimeUTC": "2026-10-31T07:09:34+00:00",
+      "bytes": 59282,
+      "crc32": "bd425b48"
+    },
+    "prebuild.log": {
+      "dateTimeUTC": "2026-10-31T07:10:02+00:00",
+      "bytes": 168,
+      "crc32": "34fbc40a"
+    },
+    "pods.log": {
+      "dateTimeUTC": "2026-10-31T07:15:16+00:00",
+      "bytes": 32837,
+      "crc32": "3923e0c3"
+    },
+    "build.log": {
+      "dateTimeUTC": "2026-10-31T07:50:52+00:00",
+      "bytes": 18326194,
+      "crc32": "5a0eb13e"
+    },
+    "maestro-navigation.log": {
+      "dateTimeUTC": "2026-10-31T08:05:26+00:00",
+      "bytes": 144,
+      "crc32": "827015eb"
+    },
+    "maestro-memory-capture.log": {
+      "dateTimeUTC": "2026-10-31T08:11:44+00:00",
+      "bytes": 2282,
+      "crc32": "4c8e4b29"
+    }
+  },
+  "zipTimePrecisionSeconds": 2,
+  "sourcePreparationToBuildLogSeconds": 2478,
+  "sourcePreparationToBuildLogMeaning": "41m18s between retained source manifest and successful build log archive timestamps; includes preparation and CocoaPods, not solely compiler time.",
+  "scriptStart": "2026-10-31T07:09:34Z",
+  "scriptCompleted": "2026-10-31T08:12:48Z",
+  "scriptSeconds": 3794,
+  "jobCompleted": "2026-10-31T08:13:06Z",
+  "jobTimeoutMinutes": 75
+}

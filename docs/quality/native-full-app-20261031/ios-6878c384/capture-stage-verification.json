@@ -1,0 +1,33 @@
+{
+  "requiredFlowAttemptedExactlyOnce": true,
+  "exitCode": 1,
+  "firstFailureStage": "Maestro iOS driver initialization before any capture testcase",
+  "exception": "LocalXCTestInstaller.IOSDriverTimeoutException",
+  "error": "iOS driver not ready in time",
+  "captureJUnitPresent": false,
+  "captureCommandsHierarchyScreenshotsPresent": false,
+  "fixtureCaptureDirectoryPresent": false,
+  "accountReadbackResults": [],
+  "movieProduced": false,
+  "memoryMovieDecoded": false,
+  "driverTimeline": {
+    "cliFailureLogArchiveTimeUTC": "2026-10-31T08:11:44+00:00",
+    "driverRunningTestsUTC": "2026-10-31T08:11:08.276641Z",
+    "driverOwnSixClassificationTestsCompletedUTC": "2026-10-31T08:12:02.918Z",
+    "httpServerTestStartedUTC": "2026-10-31T08:12:03.020Z",
+    "httpServerStartedUTC": "2026-10-31T08:12:03.722796Z"
+  },
+  "interpretation": "The driver HTTP server became ready after the archived CLI startup failure. The six passing classification tests belong to Maestro itself and are not application acceptance cases.",
+  "phaseResults": {
+    "flows": 1,
+    "evidence": 1,
+    "memoryDecoder": 1,
+    "fullAppVerifier": 1
+  },
+  "evidencePhaseBoundary": "The retained account and auth files exist. The required native-memory-capture directory is absent; the tested iOS script unconditionally copies it and marks a failed copy as evidence_status=1. No claim that all evidence collection failed.",
+  "limits": [
+    "No capture deep-link, reset, asset download, image capture, bridge, encode, cancellation, cleanup or real account-readback gate was executed by this invocation.",
+    "The late driver startup cause is not established. No timeout, gate or source change is proposed from it.",
+    "Current auth trace ends before Profile; it cannot establish app JavaScript health during this driver startup."
+  ]
+}

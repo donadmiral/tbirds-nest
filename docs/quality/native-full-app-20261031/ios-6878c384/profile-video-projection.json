@@ -1,0 +1,75 @@
+{
+  "sourceArtifactPath": "navigation.mp4",
+  "sourceSha256": "cd3f1933cbcbfc9d7d53c9d997c7231a6ecf406e60c4241c4f631a710929df2a",
+  "sourceBytes": 21506684,
+  "kind": "Simulator navigation screen recording, not an exported memory movie or an app-FPS benchmark.",
+  "ffprobe": {
+    "codec": "h264",
+    "width": 1179,
+    "height": 2556,
+    "durationSeconds": 925.036667,
+    "frameCountFromMetadata": 3853,
+    "formatCreationTime": "2026-10-31T07:56:35.000000Z",
+    "streamCreationTime": "2026-10-31T07:56:36.000000Z"
+  },
+  "decodedFrames": [
+    {
+      "zeroBasedFrameIndexFromOriginalReview": 1361,
+      "ptsSeconds": 456.926667,
+      "file": "video-messages-pts456926667.png",
+      "observation": "Messages, Jordan Ellis and literal message preview are visible.",
+      "sha256": "de0cb61b50b3ddf4e640b73b74e768b1bf980e80379ea6396057221aad2a7071"
+    },
+    {
+      "zeroBasedFrameIndexFromOriginalReview": 1362,
+      "ptsSeconds": 456.97,
+      "file": "video-profile-pts456970000.png",
+      "observation": "Profile, Alex Rivera, Edit profile, selected Profile tab and memory shelf skeleton are visible.",
+      "sha256": "a159ce6fd836283d5c617b5b80b4e31d285fef8fec26d2ac8af11055bad56729"
+    }
+  ],
+  "recoveryDecodedPts": {
+    "readInterval": "456%480",
+    "pts": [
+      456.915,
+      456.926667,
+      456.97,
+      457.013333,
+      457.016667,
+      457.023333,
+      476.828333,
+      476.868333,
+      476.938333
+    ]
+  },
+  "sparseEncodingGap": {
+    "previousFramePtsSeconds": 457.023333,
+    "nextFramePtsSeconds": 476.828333,
+    "gapSeconds": 19.805,
+    "observationFromOriginalReview": "Both bounding decoded frames show Profile/Alex Rivera and the memory shelf skeleton."
+  },
+  "extraction": {
+    "program": "ffmpeg",
+    "arguments": [
+      "-v",
+      "error",
+      "-ss",
+      "456.91",
+      "-copyts",
+      "-i",
+      "navigation.mp4",
+      "-frames:v",
+      "3",
+      "-fps_mode",
+      "vfr",
+      "frame-%02d.png"
+    ],
+    "retainedOutputs": "Second and third full-size decoded PNGs, without cropping or rescaling. Recovery rechecked frame PTS values with ffprobe over absolute interval456%480 and visually reinspected the Profile frame."
+  },
+  "limits": [
+    "Creation tags differ by one second and are not a separately instrumented wall-clock-to-PTS synchronization. Correspondence with the correct tab tap supports, but does not calibrate, visual timing.",
+    "The adjacent-frame visual transition does not measure tap-to-render latency.",
+    "Sparse variable-frame-rate recording can retain an unchanged visual frame; a gap does not by itself prove a JS freeze, dropped display frames, or uninterrupted healthy JS execution.",
+    "The recording shows pixels, not the accessibility hierarchy used by a failed lookup."
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+  "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+  "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+  "sourceManifest": {
+    "path": "docs/quality/native-full-app-20261031/android-full-app-6878c384-source.json",
+    "sha256": "46316da9f904617b1c9f2ec5e56a65251795cf5c8d28b4bcaa8d2b3dcadbe2f3",
+    "bytes": 59282
+  },
+  "recoveryVerification": "All496 literal published head Git blobs were freshly rechecked after recovery; the old PR merge tree was freshly verified using authenticated GitHub git/commits metadata. The recovered manifest equals the canonical copy preserved in f4c35f32.",
+  "exactSourceSetEntries": 496,
+  "matchedPublishedGitBlobs": 496,
+  "retainedOverlaysBeforeAfterVerified": [
+    {
+      "sourceFile": "src/services/supabase.ts",
+      "before": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+      "after": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+      "retained": {
+        "path": "docs/quality/native-full-app-20261031/ios-6878c384/overlays/src__services__supabase.ts.txt",
+        "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+        "bytes": 5251,
+        "recoveryKind": "byte-identical artifact overlay; inert text suffix"
+      }
+    },
+    {
+      "sourceFile": "modules/boomerang/ios/BoomerangModule.swift",
+      "before": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+      "after": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+      "retained": {
+        "path": "docs/quality/native-full-app-20261031/ios-6878c384/overlays/modules__boomerang__ios__BoomerangModule.swift.txt",
+        "sha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+        "bytes": 16619,
+        "recoveryKind": "byte-identical artifact overlay; inert text suffix"
+      }
+    },
+    {
+      "sourceFile": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "before": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+      "after": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+      "retained": {
+        "path": "docs/quality/native-full-app-20261031/ios-6878c384/overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt.txt",
+        "sha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+        "bytes": 2990,
+        "recoveryKind": "byte-identical artifact overlay; inert text suffix"
+      }
+    },
+    {
+      "sourceFile": "src/navigation/AppNavigator.tsx",
+      "before": "ee5ce00883df84956d2840d4d70f7f0ed7395797a7889abbb2970d6f7fa455fe",
+      "after": "7943987cda8b99c0a731d6965df634160a90dcfd8da109a4c099c9a09a4b80fa",
+      "retained": {
+        "path": "docs/quality/native-full-app-20261031/ios-6878c384/overlays/src__navigation__AppNavigator.tsx.txt",
+        "sha256": "7943987cda8b99c0a731d6965df634160a90dcfd8da109a4c099c9a09a4b80fa",
+        "bytes": 37969,
+        "recoveryKind": "byte-identical artifact overlay; inert text suffix"
+      }
+    },
+    {
+      "sourceFile": "metro.config.js",
+      "before": null,
+      "after": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534",
+      "retained": {
+        "path": "docs/quality/native-full-app-20261031/ios-6878c384/overlays/metro.config.js.txt",
+        "sha256": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534",
+        "bytes": 72,
+        "recoveryKind": "byte-identical artifact overlay; inert text suffix"
+      }
+    },
+    {
+      "sourceFile": "index.js",
+      "before": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+      "after": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c",
+      "retained": {
+        "path": "docs/quality/native-full-app-20261031/ios-6878c384/overlays/index.js.txt",
+        "sha256": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c",
+        "bytes": 33,
+        "recoveryKind": "byte-identical artifact overlay; inert text suffix"
+      }
+    }
+  ],
+  "dependencyManifestByteIdenticalToAndroid": true,
+  "historicalInstalledDependencyFileHashesMatched": 9,
+  "recoveredWorkspaceDependencyFilesRechecked": [
+    {
+      "path": "node_modules/@supabase/supabase-js/package.json",
+      "sha256": "697dd1bfd66925a5b586c52e0324517979a6650c45bdba8e03014b197e87304e"
+    },
+    {
+      "path": "node_modules/@supabase/supabase-js/dist/index.cjs",
+      "sha256": "b8ab8bdba298f953d755556979998098309d4d3bface6628ff9b8afd0a96ca4b"
+    },
+    {
+      "path": "node_modules/@supabase/supabase-js/dist/index.mjs",
+      "sha256": "a5a16d1d34369ee35c55f3029c1db2ca3bca0c53eb217b1c649822c2f1fc2736"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/package.json",
+      "sha256": "35ad1a61ad02fb70467db0ae2238f3d8fd7009729be73207bacc8f3ac07e4b93"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/src/lib/locks.ts",
+      "sha256": "6d1ec3ee482d09c887d4212de582b13128af365a85f5b64893a25d09bc6c8668"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/dist/main/index.js",
+      "sha256": "a43ea0c523b8f4f8b8d59bc3b16b9ec9158cad05de53ffc92238fceb26d8bcfd"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/dist/module/index.js",
+      "sha256": "9be5694df0e46b33d4f3b7bb8bad0ecef05ce343a5734376d6b4c93a8233eba7"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/dist/main/lib/locks.js",
+      "sha256": "9891124da312e1c4ba73296c98dc018ba2532a856ea39248f0e951036892b4e0"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/dist/module/lib/locks.js",
+      "sha256": "bd308c17475037290c30f3c8455858368e3c0e170a156fb8361a71c7dc056c87"
+    }
+  ],
+  "dependencyVerificationReference": "docs/quality/native-full-app-20261031/android-6878c384/source-verification.json",
+  "sourceMemoryCapability": 0,
+  "capabilityMode": "qa-capability-overlay",
+  "productionCapabilityActivated": false
+}

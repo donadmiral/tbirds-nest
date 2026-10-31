@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum full app UI 41179235060 - iOS 18.5 - CB2A71A6-2470-4D79-83F2-EC16986D26D0" tests="1" failures="1" time="390.352" timestamp="2026-10-31T07:58:56">
+    <testcase id="Full native app navigation" name="Full native app navigation" classname="Full native app navigation" file="tests/native/flows/navigation.yaml" time="389.04" timestamp="2026-10-31T07:58:56" status="ERROR">
+      <failure>Assertion is false: "Alex Rivera" is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

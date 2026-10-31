@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-31 14:49:21 UTC",
+  "commit": "f4c35f32795be5f196840c37382143a2d7e33d55",
+  "prMerge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+  "verifiedHeadTree": "7699f995aa8e5192658f785258eb48f408af6a39",
+  "mergeTreeVerification": "Root independently verified exact merge parents and identical tree7699f995aa8e5192658f785258eb48f408af6a39 through the authenticated GitHub API.",
+  "method": "Read-only authenticated deployment, current alias and bounded build-event inspection; complete literal Git object comparison of each app/shared/root dependencies. No hosted journey, deployment, environment, alias or ref mutation.",
+  "applications": [
+    {
+      "application": "web",
+      "project": {
+        "id": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+        "name": "platinum-web"
+      },
+      "requestedDeployment": {
+        "id": "dpl_5X5yPpNnQ5zRe9PLngzkL5oB4Mfc",
+        "commit": "f4c35f32795be5f196840c37382143a2d7e33d55",
+        "branch": "codex/app-quality-20261029",
+        "state": "CANCELED",
+        "url": "https://platinum-ktsrm97qm-intobank.vercel.app",
+        "createdAt": 1793457796902,
+        "cancellationReason": "The deployment was canceled because the Ignored Build Step command returned exit code 0.",
+        "ignoreCommand": "Running \"pc_sha=$VERCEL_GIT_PREVIOUS_SHA; case \"$pc_sha\" in ''|*[!0-9a-fA-F]*) exit 1;; esac; [ \"${#pc_sha}\" -eq 40 ] || exit 1; [ \"$pc_sha\" = \"$(git rev-parse HEAD)\" ] && exit 1; git diff --quiet \"$pc_sha\" HEAD -- . ../shared && exit 0; exit 1\""
+      },
+      "retainedReadyDeployment": {
+        "id": "dpl_BZyKWqMVaJ7ce7kS5NVmfX1xNGAX",
+        "commit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+        "state": "READY",
+        "url": "https://platinum-47i0ssv6k-intobank.vercel.app",
+        "branchAlias": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+        "aliasDeploymentId": "dpl_BZyKWqMVaJ7ce7kS5NVmfX1xNGAX"
+      },
+      "sourceEquivalence": {
+        "application": "web",
+        "retainedCommit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+        "candidate": "f4c35f32795be5f196840c37382143a2d7e33d55",
+        "inputs": [
+          {
+            "path": "web",
+            "candidateAndRetainedGitObject": "99cfcd225fdf6de428c5b797e2d2c48f07a77bd8"
+          },
+          {
+            "path": "shared",
+            "candidateAndRetainedGitObject": "d676187cb20ae4f214d76754f987357ae41fca15"
+          },
+          {
+            "path": "package.json",
+            "candidateAndRetainedGitObject": "30c0b9e16b8a4822e372c59e677e348a76d3622d"
+          },
+          {
+            "path": "package-lock.json",
+            "candidateAndRetainedGitObject": "929eea34c7feeffa664089b0c708420e0cd92c96"
+          },
+          {
+            "path": "vendor",
+            "candidateAndRetainedGitObject": "81790cd76439aa7d7ac4898663cfe08bf88dfae2"
+          }
+        ]
+      },
+      "earlierIsolatedBranchDeployment": {
+        "id": "dpl_HobvcnvAPpGQJVvgbtgQ8c1cL6BZ",
+        "commit": "f4c35f32795be5f196840c37382143a2d7e33d55",
+        "branch": "codex/native-v6-followup-20261031",
+        "state": "ERROR",
+        "url": "https://platinum-o29t5k9il-intobank.vercel.app",
+        "createdAt": 1793432670573,
+        "errorCode": "BUILD_UTILS_SPAWN_1",
+        "errorMessage": "Command \"npm run build\" exited with 1",
+        "prebuildFailure": "Build configuration: missing required environment variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "interpretation": "Build environment precheck stopped this isolated-branch deployment before application compilation. Variable names only were read from build events; no values were retrieved or changed."
+      },
+      "selectedBuildEvents": [
+        {
+          "atMs": 1793457808550,
+          "type": "stderr",
+          "text": "The deployment was canceled because the Ignored Build Step command returned exit code 0."
+        },
+        {
+          "atMs": 1793457808512,
+          "type": "stdout",
+          "text": "Running \"pc_sha=$VERCEL_GIT_PREVIOUS_SHA; case \"$pc_sha\" in ''|*[!0-9a-fA-F]*) exit 1;; esac; [ \"${#pc_sha}\" -eq 40 ] || exit 1; [ \"$pc_sha\" = \"$(git rev-parse HEAD)\" ] && exit 1; git diff --quiet \"$pc_sha\" HEAD -- . ../shared && exit 0; exit 1\""
+        },
+        {
+          "atMs": 1793457802653,
+          "type": "stdout",
+          "text": "Cloning github.com/donadmiral/tbirds-nest (Branch: codex/app-quality-20261029, Commit: f4c35f3)"
+        },
+        {
+          "atMs": 1793432686686,
+          "type": "stderr",
+          "text": "Error: [BUILD_UTILS_SPAWN_1] Command \"npm run build\" exited with 1"
+        },
+        {
+          "atMs": 1793432686669,
+          "type": "stderr",
+          "text": "Build configuration: missing required environment variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        },
+        {
+          "atMs": 1793432679343,
+          "type": "stdout",
+          "text": "Cloning github.com/donadmiral/tbirds-nest (Branch: codex/native-v6-followup-20261031, Commit: f4c35f3)"
+        }
+      ]
+    },
+    {
+      "application": "admin",
+      "project": {
+        "id": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+        "name": "admin-web"
+      },
+      "requestedDeployment": {
+        "id": "dpl_7A2RnCRKXvtC8Ym165RgVpCV4FWU",
+        "commit": "f4c35f32795be5f196840c37382143a2d7e33d55",
+        "branch": "codex/app-quality-20261029",
+        "state": "CANCELED",
+        "url": "https://admin-fwlyrqqgc-intobank.vercel.app",
+        "createdAt": 1793457796856,
+        "cancellationReason": "The deployment was canceled because the Ignored Build Step command returned exit code 0.",
+        "ignoreCommand": "Running \"case \"$VERCEL_GIT_PREVIOUS_SHA\" in ''|*[!0-9a-fA-F]*) exit 1;; esac; [ \"${#VERCEL_GIT_PREVIOUS_SHA}\" -eq 40 ] || exit 1; git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- . && exit 0; exit 1\""
+      },
+      "retainedReadyDeployment": {
+        "id": "dpl_AVkd9Ygx8v6eUkmVnFRm8ErzBrSM",
+        "commit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+        "state": "READY",
+        "url": "https://admin-9csh4ygo3-intobank.vercel.app",
+        "branchAlias": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+        "aliasDeploymentId": "dpl_AVkd9Ygx8v6eUkmVnFRm8ErzBrSM"
+      },
+      "sourceEquivalence": {
+        "application": "admin-web",
+        "retainedCommit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+        "candidate": "f4c35f32795be5f196840c37382143a2d7e33d55",
+        "inputs": [
+          {
+            "path": "admin-web",
+            "candidateAndRetainedGitObject": "37d06fed5fed387da0c9b5ad499a3a84fc83721f"
+          },
+          {
+            "path": "shared",
+            "candidateAndRetainedGitObject": "d676187cb20ae4f214d76754f987357ae41fca15"
+          },
+          {
+            "path": "package.json",
+            "candidateAndRetainedGitObject": "30c0b9e16b8a4822e372c59e677e348a76d3622d"
+          },
+          {
+            "path": "package-lock.json",
+            "candidateAndRetainedGitObject": "929eea34c7feeffa664089b0c708420e0cd92c96"
+          },
+          {
+            "path": "vendor",
+            "candidateAndRetainedGitObject": "81790cd76439aa7d7ac4898663cfe08bf88dfae2"
+          }
+        ]
+      },
+      "earlierIsolatedBranchDeployment": {
+        "id": "dpl_2DxYRFxZgSStvHJ5y114senumGTJ",
+        "commit": "f4c35f32795be5f196840c37382143a2d7e33d55",
+        "branch": "codex/native-v6-followup-20261031",
+        "state": "ERROR",
+        "url": "https://admin-hxtsvbepr-intobank.vercel.app",
+        "createdAt": 1793432670523,
+        "errorCode": "BUILD_UTILS_SPAWN_1",
+        "errorMessage": "Command \"npm run build\" exited with 1",
+        "prebuildFailure": "Build configuration: missing required environment variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY",
+        "interpretation": "Build environment precheck stopped this isolated-branch deployment before application compilation. Variable names only were read from build events; no values were retrieved or changed."
+      },
+      "selectedBuildEvents": [
+        {
+          "atMs": 1793457801660,
+          "type": "stderr",
+          "text": "The deployment was canceled because the Ignored Build Step command returned exit code 0."
+        },
+        {
+          "atMs": 1793457801633,
+          "type": "stdout",
+          "text": "Running \"case \"$VERCEL_GIT_PREVIOUS_SHA\" in ''|*[!0-9a-fA-F]*) exit 1;; esac; [ \"${#VERCEL_GIT_PREVIOUS_SHA}\" -eq 40 ] || exit 1; git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- . && exit 0; exit 1\""
+        },
+        {
+          "atMs": 1793457797607,
+          "type": "stdout",
+          "text": "Cloning github.com/donadmiral/tbirds-nest (Branch: codex/app-quality-20261029, Commit: f4c35f3)"
+        },
+        {
+          "atMs": 1793432677457,
+          "type": "stderr",
+          "text": "Error: [BUILD_UTILS_SPAWN_1] Command \"npm run build\" exited with 1"
+        },
+        {
+          "atMs": 1793432677435,
+          "type": "stderr",
+          "text": "Build configuration: missing required environment variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY"
+        },
+        {
+          "atMs": 1793432671526,
+          "type": "stdout",
+          "text": "Cloning github.com/donadmiral/tbirds-nest (Branch: codex/native-v6-followup-20261031, Commit: f4c35f3)"
+        }
+      ]
+    }
+  ],
+  "changedSourcePathsSince6878": [
+    "modules/boomerang/memoryComposition.ts",
+    "src/components/stories/StoryPixelImage.tsx",
+    "src/navigation/AppNavigator.tsx",
+    "tests/native/flows/memory-navigation.yaml",
+    "tests/quality/native-memory-capture-image-readiness.cjs",
+    "tests/quality/native-memory-export.cjs",
+    "tests/quality/native-memory-shelf-entry.cjs",
+    "tests/quality/native-navigation-handler.cjs"
+  ],
+  "changedDocumentationCountSince6878": 94,
+  "priorEvidence": {
+    "deploymentReview": "docs/quality/live-app-20261031/deployment-review-6878c384.json",
+    "hostedWebObservation": "docs/quality/live-app-20261031/live-navigation-followup-ab281bca.json",
+    "reuseDecision": "Current aliases still serve the same READY builds and complete relevant Git inputs match. Prior live checks keep their original account/timing/sample limits; no repeated hosted journey was needed."
+  },
+  "limits": [
+    "Current PR-branch deployments are CANCELED by the existing ignored-build step, not fresh successful builds at this SHA.",
+    "Earlier isolated-checkpoint ERROR deployments remain recorded separately; the required-variable precheck failed and was not bypassed.",
+    "Git input equivalence does not establish environment, backend or runtime-data equivalence. No environment values were read.",
+    "Fresh browser run41211437263 and full-native run41211437305 are separate acceptance evidence; their unfinished work is not counted as passing here."
+  ]
+}

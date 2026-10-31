@@ -5,7 +5,7 @@ native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
-## Current follow-up checkpoint: v6
+## Current published repair candidate: f4c35f32 (v6)
 
 Repair-cycle progress: **5 of 6 milestones complete**. The remaining milestone
 is complete installed-app acceptance on iPhone Simulator and Android Emulator.
@@ -14,14 +14,21 @@ This is a milestone count, not a whole-product completion percentage. The
 [workflow history](https://github.com/donadmiral/tbirds-nest/actions/workflows/native-app-ui.yml)
 remain available independently of the chat connection.
 
-This follow-up is prepared for the isolated
-`codex/native-v6-followup-20261031` checkpoint. The application/PR source remains
-`6878c384f4f2de8b4bcf2cf49e6597b250bd9bde`; the new repairs have not launched a
-replacement native run. At the latest read-only status, **07:39:15 UTC**, the
-iPhone job in
-[complete-native run 41179235060](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235060)
-is still running on that published baseline. Its actual settings, film/export
-handoff, capture and save results remain pending.
+The reviewed v6 checkpoint is now published as application/PR head
+[`f4c35f32795be5f196840c37382143a2d7e33d55`](https://github.com/donadmiral/tbirds-nest/commit/f4c35f32795be5f196840c37382143a2d7e33d55).
+Its current PR merge is `6f3204cd44996dfe66ffe2dcf7192543805aa912`; both have the
+verified tree `7699f995aa8e5192658f785258eb48f408af6a39`. The four repairs below
+are included in that source. The earlier isolated checkpoint is preserved in
+its history; it is no longer merely a proposed follow-up.
+
+Fresh [complete-native run 41211437305](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437305),
+[browser run 41211437263](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437263)
+and [type/quality run 41211437271](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437271)
+were launched on this source. At the **14:50 UTC** read-only status snapshot,
+the new acceptance work remains in progress. No new native pass is claimed.
+The observations immediately below belong to the preceding `6878c384`
+application, whose Android and iPhone complete-app jobs both finished with
+failed acceptance.
 
 ### What the Android baseline established
 
@@ -61,7 +68,46 @@ level of residual. The required flow and media verifiers remain failed.
 [Android flow, source and capture receipt](native-full-app-20261031/android-full-app-6878c384-review.json) ·
 [Independent auth and account-readback review](native-full-app-20261031/android-6878c384-auth-independent-review.json)
 
-### Four reviewed repairs awaiting installed-app acceptance
+### What the preceding iPhone baseline established
+
+The iPhone job in
+[run 41179235060](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235060)
+finished with **failed acceptance at 08:13:06 UTC**. Native compilation and
+simulator signing succeeded. Home, Market, Jobs and Messages checks passed;
+the exact Alex Rivera assertion failed after the correct Profile tab was tapped.
+The later failure screenshot visibly shows that name, and its accessibility
+tree contains two exact matching labels with Profile selected.
+
+The retained screen recording changes from Messages at presentation timestamp
+456.926667 seconds to visible Profile/Alex Rivera at 456.970000 seconds. Its
+creation tags are consistent with the logged tab tap, but are not a calibrated
+latency anchor. The saved failure hierarchy and screenshot were collected after
+the failed lookup; the matching polls' actual hierarchy payloads were not
+retained. This evidence does not demonstrate an incorrect selector or a late
+blank Profile. The exact assertion and its existing deadline remain unchanged.
+The memory shelf is still a skeleton in the retained Profile evidence. The
+auth/fixture snapshot ends before the Profile tap, so its stable timer identities
+and bounded waits cannot establish what happened afterward or rule out a later
+read-feedback problem.
+
+The separately required capture CLI was attempted once but failed during iOS
+driver startup, before a capture testcase or JUnit report existed. Memory-reader,
+film/export, settings, saved-account readback and movie acceptance were not
+reached. The retained navigation MP4 is a simulator screen recording, not an
+exported memory movie. This older run cannot validate the published modal repair
+or show whether the newer navigation-handler repair resolves the Profile symptom.
+
+After transient workspace loss, the original artifact was recovered with the
+same verified ZIP digest. Its raw evidence and source bindings were restored.
+The auth review was reproduced byte-identically; the navigation and owner
+receipts explicitly identify themselves as regenerated and retain their original
+hashes as historical provenance. Recovery is not a new installed-app test.
+
+[iPhone flow, source, signing and capture-startup receipt](native-full-app-20261031/ios-full-app-6878c384-review.json) ·
+[Independent navigation and recording review](native-full-app-20261031/ios-6878c384-navigation-independent-review.json) ·
+[Independent auth coverage review](native-full-app-20261031/ios-6878c384-auth-independent-review.json)
+
+### Four published repairs awaiting installed-app acceptance
 
 | Repair | Resulting behavior and retained boundaries |
 | --- | --- |
@@ -93,6 +139,24 @@ warning-free auth trace. Milestone 6 remains open.
 [Independent capture fade review](native-full-app-20261031/native-memory-capture-fade-independent-review.json) ·
 [Shelf-entry repair](native-full-app-20261031/android-6878c384-shelf-entry-repair.json) ·
 [Independent shelf-entry review](native-full-app-20261031/android-6878c384-shelf-entry-independent-review.json)
+
+### Current hosted deployment binding
+
+The current `f4c35f32` PR-branch web and admin builds were intentionally canceled
+by their existing ignored-build steps. Their branch aliases still serve the READY
+web `ab281bca` and admin `26e80ae9` deployments. Complete application, shared,
+root package/lock and vendor Git objects match the published repair candidate,
+so the earlier hosted observations remain applicable within their original
+account and sample limits. No hosted journey was repeated for unchanged inputs.
+
+The earlier builds from the isolated v6 branch at the same commit are recorded
+separately as **ERROR**: their prebuild checks rejected missing required Supabase
+environment variables before application compilation. No variable values were
+retrieved, configuration changed or failed check bypassed. Source equivalence
+does not establish environment or backend-data equivalence, and the current
+ignored builds are not new successful builds at this SHA.
+
+[Current deployment and input-equivalence receipt](live-app-20261031/deployment-review-f4c35f32.json)
 
 ## Published supporting baseline: 6878c384
 
@@ -155,7 +219,7 @@ both completed successfully on the published source above.
 | Browser media and layouts | 12 story, 25 memory, five music and five cover-editor cases passed; 288 layouts had zero measured overflow or overlap; CI reported 18 encoded outputs |
 | Standalone native encoders | 58 passed, zero failures or skips: 39 Android, eight iOS story and 11 iOS memory cases |
 | Standalone native compilation | Android and iOS Simulator passed in 620 and 957 seconds respectively |
-| Complete installed native apps | Android failed as described above; iPhone remains running in [run 41179235060](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235060). Milestone 6 remains open |
+| Complete installed native apps | Both Android and iPhone failed in [run 41179235060](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235060), with the distinct evidence boundaries described above. Milestone 6 remains open |
 
 The browser artifact ZIP digest and 24 source hashes were checked. The real
 Next cold-route probe retained navigation across all 124 sampled frames,

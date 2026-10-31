@@ -1,0 +1,838 @@
+{
+  "schemaVersion": 2,
+  "recordedAt": "2026-10-31 14:51:45 UTC",
+  "purpose": "Publication and exact-source recovery of the reviewed v6 native repairs.",
+  "repository": "donadmiral/tbirds-nest",
+  "pullRequest": 3,
+  "applicationBranch": "codex/app-quality-20261029",
+  "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+  "parent": "07700fe7f3ab092d07ded4ae50e33bf9adec013c",
+  "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+  "mergeCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+  "baseCommit": "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+  "publication": {
+    "previousHead": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "method": "Expected-head, non-force fast-forward",
+    "observedNewPrHeadAt": "2026-10-31T14:43:29Z",
+    "retainedOriginalIphoneRun": 41179235060,
+    "originalIphoneResult": "Failure; completed 2026-10-31T08:13:06Z",
+    "sourceChangesAfterIndependentReviews": false
+  },
+  "checkpoint": {
+    "branch": "codex/native-v6-followup-20261031",
+    "originalSavedFileCount": 77,
+    "originalSavedBytes": 1724841,
+    "allOriginalSavedBytesReadBack": true,
+    "independentTreeVerification": true
+  },
+  "recovery": {
+    "missingCheckoutObservedAt": "2026-10-31T14:42:08Z",
+    "restoredFromExistingGitCommit": true,
+    "restoredFileCount": 77,
+    "sourceTestFlowFilesRechecked": 8,
+    "applicationAndMergeTreeMatch": true,
+    "lockedDependencyRestoreExitCode": 0,
+    "node": "v24.22.1",
+    "originalLocalPublicationReceiptHistoricalSha256": "1bfc06c684c973dfc1cdb35376b435a9aad561796b7c8b26087e73708b2167c4",
+    "currentReceiptRegenerated": true
+  },
+  "localGate": {
+    "receipt": "../native-full-app-20261031/native-v6-final-root-regressions.json",
+    "receiptSha256": "62cb7d74fc829c8339ed5eb7052321a1e8dbb00660f748b404addb62cf47177b",
+    "selectedFiles": 172,
+    "formalPassed": 1770,
+    "failed": 0,
+    "skipped": 0,
+    "separateStandaloneAuthChecks": 33,
+    "nativeTypeScriptExitCode": 0,
+    "newFormalCases": 19
+  },
+  "freshRuns": {
+    "quality": 41211437271,
+    "browser": 41211437263,
+    "iosIntegrationAndEncoders": 41211437309,
+    "androidIntegrationAndEncoders": 41211437311,
+    "fullNativeApplications": 41211437305
+  },
+  "freshFullNativeJobs": {
+    "ios": 124567097560,
+    "android": 124567097694
+  },
+  "boundaries": [
+    "Fresh installed-app acceptance is still required; local/focused tests are not a native runtime pass.",
+    "Source publication did not cancel or restart the preserved preceding iPhone run.",
+    "No merge, production promotion, signed-device build, TestFlight submission, migration retry or production capability activation was performed."
+  ],
+  "files": [
+    {
+      "index": 0,
+      "path": "docs/quality/APP_RELIABILITY_CONTINUATION_20261031.md",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 70581,
+      "sha256": "6929a608fb5bb6390f272ea290b86c4f48f472a1c219bbfe909214671c516102",
+      "blobSha": "c62cb3965c09b0fc0c800ca97895b0a20fa080cb",
+      "parts": 4
+    },
+    {
+      "index": 1,
+      "path": "docs/quality/live-app-20261031/backend-stage3-postflight-6878c384.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 3630,
+      "sha256": "c8950205d83aae4b71564cf2a25922de1ff7a722acef85c04a6bfab62aceaac1",
+      "blobSha": "7c20df7f65e00e6693c01027cc8fbd402ee06498",
+      "parts": 1
+    },
+    {
+      "index": 2,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384-auth-independent-review.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 18665,
+      "sha256": "95b58f6f821cd7c29905ae917f4f677e100554496eafd1eeabdbdbb5c450dae0",
+      "blobSha": "771584b54872dd5c7736eb2063a09c460caf0788",
+      "parts": 1
+    },
+    {
+      "index": 3,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384-shelf-entry-independent-review.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 2248,
+      "sha256": "ab01633496a55e675df2ba0be182c91fad405eb1871e0b5f39f9fca15e869457",
+      "blobSha": "d0a23216ccea4faabcc911faba183c257c38ef30",
+      "parts": 1
+    },
+    {
+      "index": 4,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384-shelf-entry-repair.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 11191,
+      "sha256": "c6b6cdb936238d0b97e40a56cc4f32856f0a189c417671792da91bb60b571eb8",
+      "blobSha": "b234e706b4e1f1c34572581846a698a7729d940c",
+      "parts": 1
+    },
+    {
+      "index": 5,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/artifact.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 748,
+      "sha256": "cce1c95a1f8f93cc81f62c4f6ffa37a8d6471a4442cf864a987e4516a3664585",
+      "blobSha": "62b16e7c5689b2f7714ecf39e421689d89999f28",
+      "parts": 1
+    },
+    {
+      "index": 6,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/auth-account-log-excerpt.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 3408,
+      "sha256": "1b93efad154851cf7110646834c897ee44739b9f0c23138f8c5c90fe99a7b19d",
+      "blobSha": "ce0a0c62dda02ec2c426cb34bd91090875ea2c1b",
+      "parts": 1
+    },
+    {
+      "index": 7,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/build-renderer-projection.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 1661,
+      "sha256": "6a13e3145ce09dd2b17bc289c0ee2ed16ba1af575fb5dca1aab079c520d42a8d",
+      "blobSha": "47a668f0c604ee259ede132217996df80793eb4f",
+      "parts": 1
+    },
+    {
+      "index": 8,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-color-measurements.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 3380,
+      "sha256": "c472844d39f1639067969a2bb4a1f81ea2918faf6d6b7cc824e5cccc88f9339d",
+      "blobSha": "565db3fc26f0268737892b48d85221b618df6d68",
+      "parts": 1
+    },
+    {
+      "index": 9,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-commands.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 13909,
+      "sha256": "4d29c9491fec731255977a359a50d22b5898ec09ddcf20ef0b0636aa71947fa7",
+      "blobSha": "f3e0579290bde2a803022766b71155ecceeaad33",
+      "parts": 1
+    },
+    {
+      "index": 10,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-failure-ax.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 45588,
+      "sha256": "7acdf6b7cacbbe2c70cc382ebc7c270eb30562bb2aa09a8509233d54c3d4c81b",
+      "blobSha": "a9a0c393b5455d390d283e93f785a1a0b407c2d5",
+      "parts": 3
+    },
+    {
+      "index": 11,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-failure.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 35416,
+      "sha256": "64297d5aec57ab156a9710da6d923cb40bfed9fea9668098daf962069d7e8da7",
+      "blobSha": "748515d1b582f7955327d4d2a528f248fe81a8d4",
+      "parts": 3
+    },
+    {
+      "index": 12,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-junit.xml",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 574,
+      "sha256": "e809a919c569ff51a31316c32219f078f9ce6940ae0cba3536e47b267143687f",
+      "blobSha": "d8dc5696e6ad6bd08193320806cb6e506ced20ea",
+      "parts": 1
+    },
+    {
+      "index": 13,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-verification.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 6329,
+      "sha256": "21fb4a22633d055d03e98fb1d109025e8ee10c930b4caa39cde7ddb0a9487712",
+      "blobSha": "b7c1a904c89587dc7fc5b663cc261eef2733c646",
+      "parts": 1
+    },
+    {
+      "index": 14,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/emulator.log.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 9409,
+      "sha256": "17d6245c5d24a1744adb55ce4b52fe29c41a5cd2462a1a0f5e1d2cd6e62cbc23",
+      "blobSha": "684fd15823bd641482a8e3e9d8a9d370ba1762bc",
+      "parts": 1
+    },
+    {
+      "index": 15,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/flow-results.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 351,
+      "sha256": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85",
+      "blobSha": "f70d0de831278257855d30473a05355f3e9f6e6d",
+      "parts": 1
+    },
+    {
+      "index": 16,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/flow-verification.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 89,
+      "sha256": "563b1fc2263772fab105ed01de4ef3fbadccc02cec744309682a392fb1cc83f6",
+      "blobSha": "a643e3ad25c9ffee13e92d01837c99a4d8ff308a",
+      "parts": 1
+    },
+    {
+      "index": 17,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/home.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 51604,
+      "sha256": "0f81e2a840c35d6276d1eb31de2b86b1e5e2e5b8335f35e802cc8c1ef86898c5",
+      "blobSha": "aec5a8b892bbac5fd008a0a23c6fe6acffa86ef8",
+      "parts": 4
+    },
+    {
+      "index": 18,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/job.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 3743,
+      "sha256": "e78aa7aa3be1a9f538d8c66dad6e6e539279b6114db9fea021fac22a9582e825",
+      "blobSha": "680e3ab4188f028b253d57a2d6aaa8e52cecffe1",
+      "parts": 1
+    },
+    {
+      "index": 19,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/maestro-2.11.0-ScrollDirection.kt.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 349,
+      "sha256": "761456db488b32a031d9a797afab0e589447c0deca37f4660ea112c094193269",
+      "blobSha": "2bf8fdd9049778adddfed80da8356ad9de9868ac",
+      "parts": 1
+    },
+    {
+      "index": 20,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/maestro-2.11.0-UiElement.kt.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 3928,
+      "sha256": "15d1a4c9380eaa3b03953b198dfd53a10b3e8c5042dd12cad89dbcca8d85bea7",
+      "blobSha": "36b148d62b10777270f822836f248390ca71bf74",
+      "parts": 1
+    },
+    {
+      "index": 21,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-00.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 51507,
+      "sha256": "aeaa6b5ad3552fdca3f9889fab4f0fe265861f9c2deab5469d0bc64becc9ba64",
+      "blobSha": "6b2218295c9c428ee1a6eb5e2895dd178cb86b78",
+      "parts": 4
+    },
+    {
+      "index": 22,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-01.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 3682,
+      "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+      "blobSha": "5e7f6acdd14d53165c33f46eb319223c7965e545",
+      "parts": 1
+    },
+    {
+      "index": 23,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-02.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 29156,
+      "sha256": "640cc29c1ee90e88514af38625a694c0f4727df249bbee7e57b05c6004b59a16",
+      "blobSha": "05905f60c26a19b599dd474991d49c873650ab3c",
+      "parts": 2
+    },
+    {
+      "index": 24,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-03.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 25920,
+      "sha256": "a4c3e48e9171ab80ae02b3268d6f8840f4d9e48f53eddc715cd3aac084dca30c",
+      "blobSha": "79fad544fb8550832ad7ae5842667bd97bb3cfd7",
+      "parts": 2
+    },
+    {
+      "index": 25,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-04.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 31276,
+      "sha256": "73cee8956fc630885d928992cc209a7d1c0e89ef54796092e828e36e4982a885",
+      "blobSha": "4c15f3ca33fb908aac5c52b3d9fd99a5f4d0111a",
+      "parts": 3
+    },
+    {
+      "index": 26,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-05.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 25920,
+      "sha256": "a4c3e48e9171ab80ae02b3268d6f8840f4d9e48f53eddc715cd3aac084dca30c",
+      "blobSha": "79fad544fb8550832ad7ae5842667bd97bb3cfd7",
+      "parts": 2
+    },
+    {
+      "index": 27,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-06.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 6363,
+      "sha256": "a03bcb57307b71892ab0dec56bb41d90a30cf678d4bf2e0f6e3d271ea44a39df",
+      "blobSha": "540af02714d649f2166673a8f15b48bbcc7f7677",
+      "parts": 1
+    },
+    {
+      "index": 28,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-07.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 23373,
+      "sha256": "1807d6b35db779381358d183ad5a4c77a33afe7999e78d151fa5a09cdfd28803",
+      "blobSha": "57cad3bc8941b58d4456ce658275d2b675cd5e69",
+      "parts": 2
+    },
+    {
+      "index": 29,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-08.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 37037,
+      "sha256": "7218605432415de41b38bb68ac330186b4102d22899d61f88118d378ce943354",
+      "blobSha": "3ddcf05546a7c4550c668b62d0c150f0e17ae662",
+      "parts": 3
+    },
+    {
+      "index": 30,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-09.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 3682,
+      "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+      "blobSha": "5e7f6acdd14d53165c33f46eb319223c7965e545",
+      "parts": 1
+    },
+    {
+      "index": 31,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-10.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 76163,
+      "sha256": "03081613e7cba8374d570d7803cbb378a56c07bed86b06f0c865618d74cf27b7",
+      "blobSha": "42c0adbd6e1dab04444dfdf88e4354b2648f9040",
+      "parts": 6
+    },
+    {
+      "index": 32,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-11.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 3682,
+      "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+      "blobSha": "5e7f6acdd14d53165c33f46eb319223c7965e545",
+      "parts": 1
+    },
+    {
+      "index": 33,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/receipt.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 11498,
+      "sha256": "2707c98b8e09e8b13c2abfa53fcb3a688a4ef1fcf356c38884b95dce5a611632",
+      "blobSha": "c27bce9b454127f9e3508872323811cafa399e8f",
+      "parts": 1
+    },
+    {
+      "index": 34,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-navigation-before.yaml.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 3746,
+      "sha256": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae",
+      "blobSha": "3d182dec89fce8dd397d55ef07f267d0172b88a6",
+      "parts": 1
+    },
+    {
+      "index": 35,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/native-ui-auth-diagnostics.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 184780,
+      "sha256": "d7842204207c470226d5e5cbfcd4b2423177743fa84e65f5605dda354d1f0997",
+      "blobSha": "2a98c6fa081ff1053b8091028c7a97356cda9ceb",
+      "parts": 10
+    },
+    {
+      "index": 36,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/native-ui-receipt.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 81008,
+      "sha256": "b883e19fe355718423785f146313622f70d4a57496a5bd07d22221a7eb551a9a",
+      "blobSha": "8281a9c899f8d1e38d6a8c7ac2212dc430b00b8c",
+      "parts": 5
+    },
+    {
+      "index": 37,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-commands.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 70315,
+      "sha256": "885ed3ac2bd57a877cabecbafb1790c0dddce091988c98e7bbfd324d17848af7",
+      "blobSha": "e281aa1345398253852ffc983a38a60ae8ef28b3",
+      "parts": 4
+    },
+    {
+      "index": 38,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-handler-after.tap",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 7071,
+      "sha256": "3bccd374d98170b192fdac62c9620b8f6784356bb091fa400560b4b1518c320d",
+      "blobSha": "f3686e1ebbf48d14130892e3f60b2904d48c0b8b",
+      "parts": 1
+    },
+    {
+      "index": 39,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-handler-before.tap",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 4723,
+      "sha256": "772265c5f76654923f6a4cb1dd9f7f058d6fbf548a01b27bac9ebaf3a97ddb0c",
+      "blobSha": "8bb438e3950e8d55bea41037c6c186fd9500b5f2",
+      "parts": 1
+    },
+    {
+      "index": 40,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-junit.xml",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 516,
+      "sha256": "12400ee8e446ffeef08a94064c7a5a79ed90e5a3454e5c3a92dc38bab51eaf8a",
+      "blobSha": "cd4c8e4708d8d5a18ffbb8cdf38215a3b6203af9",
+      "parts": 1
+    },
+    {
+      "index": 41,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-video-verification.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 2180,
+      "sha256": "fe09a9faba7e2d3b94667a817c5b42b858fe7e7a3cdf2a2a458746d47b476a36",
+      "blobSha": "4683e2fbd60e9c112e4393fa6d5332fdef601bde",
+      "parts": 1
+    },
+    {
+      "index": 42,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/phase-results.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 63,
+      "sha256": "d3388f807e9264bbef275e0947dce5f7a6c88bef6b45a0bfafdfb3932febd89c",
+      "blobSha": "71d9aeb7a709c307b069db11db4550f3d303510a",
+      "parts": 1
+    },
+    {
+      "index": 43,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-after.tap",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 931,
+      "sha256": "40f9fb50e33a308ef700986a2cc83f6180b258acb4af459169c88c48c1e8d1cd",
+      "blobSha": "f19ddf65303e67174dc5146d0646b5dd32e66894",
+      "parts": 1
+    },
+    {
+      "index": 44,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-before.tap",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 2720,
+      "sha256": "9cf7de7a9d5650400173a3acdcc7bee3e59bef3b04b13f03ed12ac3ce3fb88bb",
+      "blobSha": "67f59b208770c02c7e080697cb080aa37ffaf4b9",
+      "parts": 1
+    },
+    {
+      "index": 45,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-failure-ax.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 121752,
+      "sha256": "ce78935c253d13b8e5a399cb2ce475740af9f4eb2d6d57bc6c5ee32bb04528a2",
+      "blobSha": "98b195ec0b7802dc928e253d545adc95583f9c33",
+      "parts": 7
+    },
+    {
+      "index": 46,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-failure.png",
+      "mode": "100644",
+      "encoding": "base64",
+      "bytes": 35027,
+      "sha256": "ef97e00206fb3b293810a91eee9e4284ce4af67f84e3d7827a741963f5db8aec",
+      "blobSha": "d1338bdd0ceebd1d8191511290e1eac2fa76d908",
+      "parts": 3
+    },
+    {
+      "index": 47,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-maestro-log.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 3488,
+      "sha256": "f5ac63b3fd094ed4793c3c90afa679e2fca37f280de12f6c22c4268c9323729a",
+      "blobSha": "1ec92e799a67eef5b8a8740fd04bffe3420e23b7",
+      "parts": 1
+    },
+    {
+      "index": 48,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/source-verification.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 1906,
+      "sha256": "afec5293edeb4e9f428bfc29bd0a08ace1a96704a8a37cfce1b6def5302a7fe2",
+      "blobSha": "a7171a74df09805a8dd525976dfa4e55677ab904",
+      "parts": 1
+    },
+    {
+      "index": 49,
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/toolchain.log.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 199,
+      "sha256": "ce4d3a9267e0a3cc61da7b1fd7540dc0033332a025f10970aa0aa5994c36b252",
+      "blobSha": "3ae78516117f668d3920dee9ffbf118bf6ac46f2",
+      "parts": 1
+    },
+    {
+      "index": 50,
+      "path": "docs/quality/native-full-app-20261031/android-full-app-6878c384-review.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 17052,
+      "sha256": "da073e0ea98e1b09f1e87a2327116a7d64bf13936511dc14c90e5702b36f13d6",
+      "blobSha": "6ddd86b272df60e49889fa88e0997ad1ecc21d8a",
+      "parts": 1
+    },
+    {
+      "index": 51,
+      "path": "docs/quality/native-full-app-20261031/android-full-app-6878c384-source.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 59282,
+      "sha256": "46316da9f904617b1c9f2ec5e56a65251795cf5c8d28b4bcaa8d2b3dcadbe2f3",
+      "blobSha": "d004ee1b307160880ed499da9bd048f0a9c96c5a",
+      "parts": 3
+    },
+    {
+      "index": 52,
+      "path": "docs/quality/native-full-app-20261031/ios-signed-release-readiness-6878c384.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 8837,
+      "sha256": "6c358bd210b984857d63eed3bf593973b0bfc3f958bc539205e43d78a7f14b01",
+      "blobSha": "b5ebd5019775ab67d6558cbf0500fee182a6a0de",
+      "parts": 1
+    },
+    {
+      "index": 53,
+      "path": "docs/quality/native-full-app-20261031/native-compile-6878c384-status.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 16215,
+      "sha256": "9d70af7b70db6fd831a3e40897755fc437027d6c4a504647d41e21564a9822ac",
+      "blobSha": "db5f9a165f0bb7c999dd3f25d81abbcbece19937",
+      "parts": 1
+    },
+    {
+      "index": 54,
+      "path": "docs/quality/native-full-app-20261031/native-memory-bridge-independent-review.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 7060,
+      "sha256": "661fb9136ed6fd63e4e74726bb4deff508aee42d861f49ed4de86cc492e5757d",
+      "blobSha": "88b75effeffb50fa65f5a09337b20ff589a15f0f",
+      "parts": 1
+    },
+    {
+      "index": 55,
+      "path": "docs/quality/native-full-app-20261031/native-memory-bridge-repair.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 6625,
+      "sha256": "fe4f1aa73719a502011ade51a98b6f2fc8f5027f55adb6528cdc8cfcce307c86",
+      "blobSha": "f8dffc41b04096316addd7afa8b5f8689e88b98e",
+      "parts": 1
+    },
+    {
+      "index": 56,
+      "path": "docs/quality/native-full-app-20261031/native-memory-bridge-repair/after.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 2220,
+      "sha256": "72d9b3bed786e939dd56cdeba9c5334a8f98775dd80513efbdc8ad9dc1c2e6b1",
+      "blobSha": "03cddc6c024c218fc224bed310757198fb065923",
+      "parts": 1
+    },
+    {
+      "index": 57,
+      "path": "docs/quality/native-full-app-20261031/native-memory-bridge-repair/before.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 9560,
+      "sha256": "d996d3dce0152fc0d08281a527ffe9b3d4d7e33b5effe136b069e8a91813b185",
+      "blobSha": "89a58ab8bb8e26092fdde857f4fc406bbed85200",
+      "parts": 1
+    },
+    {
+      "index": 58,
+      "path": "docs/quality/native-full-app-20261031/native-memory-bridge-repair/independent-focused.tap",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 5052,
+      "sha256": "0d0684e8cdba79f0650295ed6c293b567f8dbc0905f769d9cb772eca726d08c5",
+      "blobSha": "16e692909962147b81e2d1e9a933119698c1a604",
+      "parts": 1
+    },
+    {
+      "index": 59,
+      "path": "docs/quality/native-full-app-20261031/native-memory-bridge-repair/installed-expo-converter-extract.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 4790,
+      "sha256": "8b3557653bb208e0d89a575d44eec99d9637c48071bfb0bf91272e4ab8578bb3",
+      "blobSha": "73eb1d62e93b196b463e6e5e3c1b1e705d490e5f",
+      "parts": 1
+    },
+    {
+      "index": 60,
+      "path": "docs/quality/native-full-app-20261031/native-memory-capture-fade-independent-review.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 7557,
+      "sha256": "39348eb35b336e230d6d5d5c6c7272e635c2294e35d8f429c57a5153eeaf8859",
+      "blobSha": "464f42fe5850cacf5d23f2043d3d89c330e5b256",
+      "parts": 1
+    },
+    {
+      "index": 61,
+      "path": "docs/quality/native-full-app-20261031/native-memory-capture-fade-independent.tap",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 2899,
+      "sha256": "2d3ee03337cc450fcac1e7f55a81607afd426217c4b0497d50d80476ccb3f583",
+      "blobSha": "665495692a74e736cbd6be87a9812463cb738c69",
+      "parts": 1
+    },
+    {
+      "index": 62,
+      "path": "docs/quality/native-full-app-20261031/native-memory-capture-fade-repair.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 6137,
+      "sha256": "5787b5d67a0198b1cb74025042651d9d03c87dbd5d83db1e9439af97f6390ac2",
+      "blobSha": "6a9299f664586de78827365bf2518c3b654f135a",
+      "parts": 1
+    },
+    {
+      "index": 63,
+      "path": "docs/quality/native-full-app-20261031/native-navigation-focus-feedback-independent-review.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 5919,
+      "sha256": "ca1d32ea78bef2df32b6e4c89d62aca207ae42dc08544c6fc0a84e1aaa23b8ec",
+      "blobSha": "43cb89b1902bf18f66018997916b6e81c531f839",
+      "parts": 1
+    },
+    {
+      "index": 64,
+      "path": "docs/quality/native-full-app-20261031/native-navigation-focus-feedback-repair.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 12073,
+      "sha256": "b038ffbe722cd906e988939c9764af7163d20daa85a99eb6dd8a80176565d2a7",
+      "blobSha": "8cafccd25a7f39bff7c84a275cf08588901ee8d6",
+      "parts": 1
+    },
+    {
+      "index": 65,
+      "path": "docs/quality/native-full-app-20261031/native-navigation-handler-independent.tap",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 1394,
+      "sha256": "6ef20304c4185b5767594faf72db9c47384f346e49baab8cae70290213d5bb10",
+      "blobSha": "20c2c46f908145cc697876144153369b663156e5",
+      "parts": 1
+    },
+    {
+      "index": 66,
+      "path": "docs/quality/native-full-app-20261031/native-v6-final-root-regressions.json",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 108131,
+      "sha256": "62cb7d74fc829c8339ed5eb7052321a1e8dbb00660f748b404addb62cf47177b",
+      "blobSha": "b03f8a95ec0030b6c0a431746f3b378aadf247e6",
+      "parts": 6
+    },
+    {
+      "index": 67,
+      "path": "docs/quality/native-full-app-20261031/native-v6-local/root-isolated.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 205012,
+      "sha256": "ff13f43051dc82132886d00a78cc1a4dce6806cc0b71b68941efbf3c160bd7ae",
+      "blobSha": "3cd29e167651f3f215fa2423d5cd9e0c99851a17",
+      "parts": 10
+    },
+    {
+      "index": 68,
+      "path": "docs/quality/native-full-app-20261031/native-v6-local/typescript.txt",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "blobSha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "parts": 1
+    },
+    {
+      "index": 69,
+      "path": "modules/boomerang/memoryComposition.ts",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 4733,
+      "sha256": "38debdfe443ebdc3b728cb5a3f8605f203866a8dfc7c56daab14896686e9eead",
+      "blobSha": "0f07267962ffe42f5583db08300dd11bd7e1995f",
+      "parts": 1
+    },
+    {
+      "index": 70,
+      "path": "src/components/stories/StoryPixelImage.tsx",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 5159,
+      "sha256": "e1063b3d571d3823eac5b5fcaca2d167d3990df0988fde1b99ccb1c3f1697e6e",
+      "blobSha": "a6c42ee561ecae53f80b0e274210cdb5da1fce8f",
+      "parts": 1
+    },
+    {
+      "index": 71,
+      "path": "src/navigation/AppNavigator.tsx",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 37975,
+      "sha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+      "blobSha": "0113dc21c01f41f298b3c52ac79c5103cf7f9964",
+      "parts": 2
+    },
+    {
+      "index": 72,
+      "path": "tests/native/flows/memory-navigation.yaml",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 3770,
+      "sha256": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792",
+      "blobSha": "561e27736c8cbeb558c205fa8ee7197157020fca",
+      "parts": 1
+    },
+    {
+      "index": 73,
+      "path": "tests/quality/native-memory-capture-image-readiness.cjs",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 9200,
+      "sha256": "730ccd2d07e8d9c8c1a34bcb50da7b1595d6e7514001ca9b1a5e34fd30e45171",
+      "blobSha": "8846b4cdc9d5c4a6f78d1e25b635fdef49b9df8c",
+      "parts": 1
+    },
+    {
+      "index": 74,
+      "path": "tests/quality/native-memory-export.cjs",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 23120,
+      "sha256": "4a40c71e24d7f23aa9f4995d5a29edacac116b7976bb7a6dcd25780498a80696",
+      "blobSha": "c571ce08ffbadd809ddd7f3b47566033af1b01bf",
+      "parts": 2
+    },
+    {
+      "index": 75,
+      "path": "tests/quality/native-memory-shelf-entry.cjs",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 5367,
+      "sha256": "cb6e2b846921a1e73a78f9c1e05248c7915c8bc350f8b3b1f546892b94155af7",
+      "blobSha": "9a52333e51635d7e6eb8c2c8451ead96ad9e3cad",
+      "parts": 1
+    },
+    {
+      "index": 76,
+      "path": "tests/quality/native-navigation-handler.cjs",
+      "mode": "100644",
+      "encoding": "utf-8",
+      "bytes": 13217,
+      "sha256": "583b51e9b3eba3471ebfc612a44a3045203b5843682bf4d235a2c5084a1a0add",
+      "blobSha": "f1c3a14dd69a4fe2d32a53a506e4f52a622dcaeb",
+      "parts": 1
+    }
+  ]
+}
