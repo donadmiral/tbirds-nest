@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: continuous native film waits for media, advances every page, and loops without stopping
+ok 1 - continuous native film waits for media, advances every page, and loops without stopping
+  ---
+  duration_ms: 437.55999
+  type: 'test'
+  ...
+# Subtest: a one-photo film replays with a fresh clock and native pause/background do not jump time
+ok 2 - a one-photo film replays with a fresh clock and native pause/background do not jump time
+  ---
+  duration_ms: 215.069188
+  type: 'test'
+  ...
+# Subtest: a one-photo native loop remounts its media frame so the next run receives readiness
+ok 3 - a one-photo native loop remounts its media frame so the next run receives readiness
+  ---
+  duration_ms: 219.994821
+  type: 'test'
+  ...
+# Subtest: native film controls wrap both directions, preserve the book, and isolate original audio from music
+ok 4 - native film controls wrap both directions, preserve the book, and isolate original audio from music
+  ---
+  duration_ms: 129.563237
+  type: 'test'
+  ...
+# Subtest: native film pauses music on calls and releases a soundtrack loaded after unmount
+ok 5 - native film pauses music on calls and releases a soundtrack loaded after unmount
+  ---
+  duration_ms: 230.265976
+  type: 'test'
+  ...
+# Subtest: native film media deadline is actionable and does not silently skip a failed page
+ok 6 - native film media deadline is actionable and does not silently skip a failed page
+  ---
+  duration_ms: 134.366549
+  type: 'test'
+  ...
+# Subtest: native film private backdrops are uncached and its prefetch effect skips private capabilities
+ok 7 - native film private backdrops are uncached and its prefetch effect skips private capabilities
+  ---
+  duration_ms: 531.513857
+  type: 'test'
+  ...
+# Subtest: native film video honors trim/speed and advances once at the real media boundary
+ok 8 - native film video honors trim/speed and advances once at the real media boundary
+  ---
+  duration_ms: 101.960098
+  type: 'test'
+  ...
+# Subtest: native film video cannot complete or continue playback while backgrounded or inactive
+ok 9 - native film video cannot complete or continue playback while backgrounded or inactive
+  ---
+  duration_ms: 85.611983
+  type: 'test'
+  ...
+# Subtest: native film gives stalled video an error instead of remaining stuck after initial readiness
+ok 10 - native film gives stalled video an error instead of remaining stuck after initial readiness
+  ---
+  duration_ms: 71.353629
+  type: 'test'
+  ...
+# Subtest: native film video progress and deliberate pauses reset its stalled-media deadline
+ok 11 - native film video progress and deliberate pauses reset its stalled-media deadline
+  ---
+  duration_ms: 92.791719
+  type: 'test'
+  ...
+# Subtest: native film photo artwork follows the playback clock and freezes on pause
+ok 12 - native film photo artwork follows the playback clock and freezes on pause
+  ---
+  duration_ms: 75.213059
+  type: 'test'
+  ...
+# Subtest: film source selection includes embedded videos and text posts without inventing URLs
+ok 13 - film source selection includes embedded videos and text posts without inventing URLs
+  ---
+  duration_ms: 69.144977
+  type: 'test'
+  ...
+# Subtest: original music assets match and their generated receipt verifies duration, codec, clipping and seam
+ok 14 - original music assets match and their generated receipt verifies duration, codec, clipping and seam
+  ---
+  duration_ms: 3.499771
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2420.212025

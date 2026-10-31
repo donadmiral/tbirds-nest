@@ -5,30 +5,85 @@ native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
-## Current saved checkpoint
+## Current follow-up candidate
 
 Repair-cycle progress: **5 of 6 milestones complete**. The remaining milestone
 is complete installed-app acceptance on iPhone Simulator and Android Emulator.
 This is a milestone count, not a whole-product completion percentage. The
 [review checklist](https://github.com/donadmiral/tbirds-nest/pull/3) and
-[native workflow](https://github.com/donadmiral/tbirds-nest/actions/runs/41173170193)
+[workflow history](https://github.com/donadmiral/tbirds-nest/actions/workflows/native-app-ui.yml)
 remain available independently of the chat connection.
 
-Status snapshot: **2026-10-31 06:30 UTC**. The Android complete-app run has
-finished with an emulator-process crash; the iPhone run remains active.
-The iPhone combined build/test step began at 05:38:02 UTC and had run for
-52 minutes 45 seconds at the 06:30:47 status read. Detailed artifact upload had
-not begun. Status requests were responding normally. One large job-log request
-returned `Transport closed`; that tooling error supplies no native phase or app
-failure evidence, and it was not retried. Review continues through the status
-and artifact endpoints.
+The follow-up combines the reviewed Android emulator correction, the exact iOS
+capture confirmation, native film/export dismissal ownership, and two
+source-reproduced QA capture setup repairs. It is based on application head
+`e173b2dbcf253342be5683fa85f102aa38065411` through the previously saved evidence
+and follow-up checkpoint `a042acc7cf2ea2efaa690069162b2a2276414912`.
+The exact published head and new CI runs are tracked in the review checklist.
 
-The published source is `e173b2dbcf253342be5683fa85f102aa38065411`. Its tested PR
+The production change is confined to the film, movie-export component and their
+shared dismissal hook. iOS retains each native modal while closing and completes
+the parent handoff only after native acknowledgement. Playback/export cleanup
+starts immediately. Duplicate, unmounted and old-account callbacks cannot
+complete a later visit. Ordinary same-book refreshes preserve a legitimate
+close. Android retains immediate completion because its Modal does not provide
+the iOS acknowledgement.
+
+The QA capture route replaces only navigation routes, removing a previous
+screen-owned modal while keeping the existing app providers, stores, transport
+and cumulative evidence. The fixture media adapter uses the installed public
+Expo Asset API to materialize its three registered bundled assets on Android.
+Actual installed JavaScript/router tests reproduce both previous mismatches.
+No application/auth reset, new sign-in, network fallback, relaxed assertion,
+longer deadline or production capability activation was added.
+
+The final local gate passed **all 169 selected files: 1,751 formal cases, zero
+failures or skips**, plus the separate successful 33-check auth program. Its
+formal cases include 21 new modal lifecycle, 13 new capture setup and five new
+confirmation cases. The selected files and all snapshotted inputs stayed
+unchanged through the run. Full native TypeScript, scoped lint, shell syntax
+and whitespace checks passed. Independent reviews accepted the modal,
+confirmation, asset and route changes.
+
+The first restricted local run retained six failing file results: required
+subprocess or loopback operations returned EPERM. That result is preserved.
+The approved execution reran the identical source and assertions, using the
+same per-file method and concurrency as the preceding verified local gate;
+every file passed. Local formal counts and standalone auth checks are kept
+separate from CI's file-wrapper counting.
+
+These are source and local regression results. A fresh complete iPhone and
+Android run still must establish native settings presentation, real packaged
+resource/file access, account readback, movie generation, cancellation/retry,
+cleanup and independent decoding. The preceding green CI and failed complete
+native attempt below are bound to their earlier source, not substituted for
+this new runtime acceptance.
+
+[Final combined local gate](native-full-app-20261031/native-v5-final-root-regressions.json) ·
+[Retained restricted-run result](native-full-app-20261031/native-v5-root-sandbox-attempt.json) ·
+[Modal repair and source binding](native-full-app-20261031/native-memory-modal-dismissal-repair.json) ·
+[Independent modal review](native-full-app-20261031/native-memory-modal-dismissal-independent-review.json) ·
+[Capture setup repairs](native-full-app-20261031/native-capture-setup-repair.json) ·
+[Independent capture setup review](native-full-app-20261031/native-capture-setup-independent-review.json)
+
+## Last completed native acceptance attempt: e173b2db
+
+Status snapshot: **2026-10-31 06:43 UTC**. Both complete-native jobs have
+finished with failed acceptance. Android lost its host emulator process during
+the first memory-book scroll. iPhone passed the main screens, shelf, two reader
+pages, film and export entry, then failed settings presentation. Its independent
+capture attempt was blocked by the exact iOS application-opening confirmation.
+The iPhone script ran from 05:38:02 to 06:35:38 UTC, uploaded its evidence, and
+the job finished at 06:35:56. The downloaded archive and its source hashes were
+verified. Focused follow-up repairs are being reviewed before publishing a
+combined candidate for the next installed-app run.
+
+That attempt used source `e173b2dbcf253342be5683fa85f102aa38065411`. Its tested PR
 merge is `e6ca24e27b00207344eb7989ed53d2305cb04cf3`. Both have tree
 `37ca8db90469d32a2a2d7b3069db54b522926530`. These identities were checked against
 the fetched repository and the CI artifacts.
 
-| Gate on this source | Observed result |
+| Gate on that source | Observed result |
 | --- | --- |
 | Root regression CI | 1,713 passed; no failures or skips |
 | Web and operations CI | 683 and 195 passed |
@@ -38,7 +93,7 @@ the fetched repository and the CI artifacts.
 | Browser media and layouts | CI reported 18 encoded outputs and 288 cover layouts; the artifact retains reports rather than movie binaries |
 | Standalone native encoders | 58 cases passed; artifact/source hashes and 57 media hashes and lengths verified |
 | Swift and Kotlin integration | Both compilation jobs passed |
-| Complete installed native apps | iPhone still running; Android main screens passed before the host emulator terminated with SIGSEGV during memory-book navigation |
+| Complete installed native apps | Both failed: iPhone settings presentation and capture-link confirmation; Android host emulator SIGSEGV. Complete navigation, account readback and capture remain open |
 
 The final local root gate passed all 166 selected files: 1,712 formal cases plus
 the separate successful 33-check auth program. CI counts that program as one
@@ -86,19 +141,66 @@ application log contains no match for the earlier auth-lock warning, but the
 missing diagnostic events cannot establish stable timer IDs or lock durations.
 Its skipped-frame notices also prohibit a native speed-pass claim.
 
-The follow-up prepared locally changes one emulator argument from the deprecated
+The follow-up changes one emulator argument from the deprecated
 `swiftshader_indirect` mode to the supported `software` selector. Android's
 [current graphics documentation](https://developer.android.com/studio/run/emulator-acceleration)
 identifies that deprecation and the supported modes. This is a bounded
 configuration correction and a discriminating next run, not a proven cure for
 the specific crash. Application code, acceptance assertions, device profile,
-memory, timeouts and runner tier are unchanged. Publication waits for the active
-iPhone job to finish so that its useful execution is preserved.
+memory, timeouts and runner tier are unchanged. This correction is included in
+the combined follow-up above and requires its fresh emulator run.
 
 [Android flow/source failure receipt](native-full-app-20261031/android-full-app-e173b2db-failure.json) ·
 [Independent Android auth-log review](native-full-app-20261031/android-e173b2db-auth-independent-review.json) ·
 [Emulator crash and one-flag follow-up review](native-full-app-20261031/android-full-app-e173b2db-emulator-disappearance.json) ·
 [Memory-flow source preflight](native-full-app-20261031/native-memory-flows-source-review-e173b2db.json)
+
+### iPhone complete-app result and presentation follow-up
+
+The verified iPhone archive contains 59 files and has SHA256
+`06c1849b074c079ebc70b5032ed4b7f7289650064ef62408f06359921250b5b0`.
+All 495 source-manifest hashes and all six source-overlay pairs match the tested
+merge. The simulator signature, generated application identity and embedded
+entitlements passed verification. Two actual account-index writes completed
+without a retained keychain write error; the dedicated readback has not run.
+The retained iPhone auth trace uses stable timer function identities across all
+616 retained lock events. Its 153 settled locks and 204 settled auth-storage
+operations fulfilled, with no operation still active in the final snapshot and
+no captured acquisition-timeout warning. Coverage is partial: the bounded trace
+retained 1,024 events and discarded 658 middle events. These results do not prove
+all-operation coverage, Android timer acceptance or SecureStore readback.
+
+Navigation passed Home, Market, Jobs, Messages, Profile, the private memory
+shelf, both exact reader captions, reflective film, export entry, return to
+Page 2 and closing the reader. Maestro then tapped the correct enabled Edit
+memory book control. The following Book settings assertion failed after
+19.6 seconds, before any keyboard interaction. The failure accessibility tree
+and PNG show the cover, while retained video contains a translucent settings
+sheet and the fixture recorded the settings editor's audience lookup. This
+establishes inconsistent native presentation. It does not uniquely prove its
+UIKit/Fabric cause. The implemented bounded repair completes native modal
+dismissal before unmounting film/export or changing the underlying reader.
+Focused lifecycle verification passes; the next native run remains required.
+
+The independent capture flow attempted its deep link once but stopped at the
+system confirmation `Open in “Platinum QA”?`. The target capture route never
+mounted, so neither saved-account readback nor movie generation ran. The
+follow-up handles only that exact prompt on iOS using its semantic Open button.
+All 18 original capture commands and their required assertions remain intact.
+Its five retained-evidence/condition cases and the existing 28 required-flow
+orchestration cases pass locally. A passing capture, independent movie decode
+and final full-app verifier are still required.
+
+One earlier large job-log request returned `Transport closed`. That terminal
+tooling error returned no log, was not retried, and does not establish the cause
+of an app failure or of the user's chat connection interruption. The archive
+supplied the bounded evidence above.
+
+[iPhone full-app/source/signing review](native-full-app-20261031/ios-full-app-e173b2db-review.json) ·
+[Bounded iPhone auth runtime review](native-full-app-20261031/ios-e173b2db-auth-runtime-review.json) ·
+[Memory navigation evidence](native-full-app-20261031/ios-e173b2db-memory-navigation-review.json) ·
+[Capture confirmation repair](native-full-app-20261031/ios-capture-open-link-repair.json) ·
+[Independent confirmation review](native-full-app-20261031/ios-capture-open-link-independent-review.json)
 
 ## Preceding checkpoints
 
@@ -788,12 +890,19 @@ account. A fresh Apple sign-in is not inherently required for that route. The
 supported read-only `eas whoami` check was performed with official EAS CLI 27.2.0
 from an isolated temporary package cache; it returned exit 1 and `Not logged in`.
 The current environment therefore has no usable logged-in Expo CLI session.
-Stored remote signing/submission credential validity remains unknown. No login,
-project link, signed build or submission was attempted. The earlier Apple
-browser check was not repeated. Simulator work continues independently.
+A subsequent read-only browser check found an existing authenticated session for
+`donadmiral` and opened the Platinum Circles project. Its details drawer confirms
+the same owner, slug and project ID as the repository configuration. The browser
+session does not authenticate the CLI, and no cookies or credentials were copied.
+The overview lists an earlier successful iOS build/submission on source
+`1bb8246`, which does not cover the current candidate. Stored remote
+signing/submission credential validity remains unknown. No login, project link,
+signed build or submission was attempted. The earlier Apple browser check was
+not repeated. Simulator work continues independently.
 
 [Signed-release configuration and exact handoff](native-full-app-20261031/ios-signed-release-handoff-e173b2db.json) ·
 [Observed Expo session check](native-full-app-20261031/expo-existing-session-observation-e173b2db.json) ·
+[Verified existing Expo browser access](native-full-app-20261031/expo-browser-existing-session-observation.json) ·
 [Bounded iPhone log-tool outcome](native-full-app-20261031/ios-e173b2db-log-transport-observation.json)
 
 The remaining release work includes the blocked hosted installation, complete

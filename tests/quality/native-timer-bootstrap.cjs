@@ -109,6 +109,10 @@ function runtime({ platform = 'android', qa = false, env = {} } = {}) {
       // contract remains correct even if linking later acquires an auth import.
       events.push('linking'); startAuth(); return { linking };
     }
+    if (name === '@react-navigation/native') return {
+      CommonActions: require('@react-navigation/routers/lib/commonjs/CommonActions'),
+      getActionFromState: require('@react-navigation/core/lib/commonjs/getActionFromState').default,
+    };
     throw Error('Unexpected entry dependency: ' + name);
   }
   function loadEntry(file) { return evaluate(compile(file), file, requireEntry); }

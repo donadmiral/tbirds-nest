@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: iOS Close memory film pauses immediately and waits for one native dismissal
+not ok 1 - iOS Close memory film pauses immediately and waits for one native dismissal
+  ---
+  duration_ms: 245.040642
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-modal-lifecycle.cjs:15:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    parent must retain the component during native dismissal
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-modal-lifecycle.cjs:21:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: iOS export cancellation aborts immediately, retains its subtree, and notifies parent once after dismissal
+not ok 2 - iOS export cancellation aborts immediately, retains its subtree, and notifies parent once after dismissal
+  ---
+  duration_ms: 39.614995
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-modal-lifecycle.cjs:190:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-modal-lifecycle.cjs:195:67)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 290.580986

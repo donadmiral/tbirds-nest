@@ -6,6 +6,7 @@ import {memoryMovieCompositionAvailable} from '../../../modules/boomerang/memory
 import {memoryMovieContentStamp,type MemoryMovieSnapshot} from '../../../shared/memoryMovieAccess';
 import {planMemoryMovie} from '../../../shared/memoryMoviePlan';
 import {useCallContext} from '../../contexts/CallContext';
+import {useNativeModalDismissal} from '../../hooks/useNativeModalDismissal';
 import {exportNativeMemoryMovie,type NativeMemoryCapture,type NativeMemoryProgress} from '../../services/memoryMovieExport';
 import {memoryMovieStep} from '../../services/memoryMovieFiles';
 import {SUPABASE_URL} from '../../services/supabase';
@@ -18,12 +19,14 @@ type CaptureState=NativeMemoryCapture&{key:number};
 export default function MemoryMovieExport({bookId,expected,originalAudio,scoreVolume,reduceMotion,onClose}:{bookId?:string;expected:MemoryMovieSnapshot;originalAudio:boolean;scoreVolume:number|null;reduceMotion:boolean;onClose:()=>void}){
  const {width,height}=useWindowDimensions(),insets=useSafeAreaInsets(),{callState}=useCallContext(),canvasWidth=Math.max(90,Math.min(320,width-48,(height-Math.max(20,insets.top)-Math.max(24,insets.bottom)-230)*9/16)),canvasHeight=canvasWidth*16/9;
  const [capture,setCapture]=useState<CaptureState|null>(null),[progress,setProgress]=useState<NativeMemoryProgress|null>(null),[error,setError]=useState(''),[movie,setMovie]=useState<Movie|null>(null),[saving,setSaving]=useState(false),[saved,setSaved]=useState(false);
+ const dismissal=useNativeModalDismissal(bookId);
  const canvas=useRef<View>(null),sequence=useRef(0),readiness=useRef(new Map<string,StoryPhotoReadiness>()),layout=useRef(0),textOverflow=useRef(false),scope=useRef<AbortController|null>(null),result=useRef<Movie|null>(null),busy=useRef(false),permissionPrompt=useRef(false);
  const report=useCallback((id:string,status:StoryPhotoReadiness)=>{if(status==='removed')readiness.current.delete(id);else readiness.current.set(id,status);},[]);
  let stamp='',snapshotProblem='';
  try{stamp=memoryMovieContentStamp(expected,SUPABASE_URL);}catch{snapshotProblem='This book’s artwork could not be read. Reopen the book before creating its movie.';}
  const current=useRef({stamp,bookId});current.current={stamp,bookId};
  const dispose=useCallback(()=>{scope.current?.abort();scope.current=null;result.current?.release();result.current=null;},[]);
+ const close=()=>dismissal.dismiss(onClose,dispose);
  useEffect(()=>()=>dispose(),[dispose]);
  useEffect(()=>{dispose();setMovie(null);setProgress(null);setCapture(null);},[stamp,bookId,dispose]);
  useEffect(()=>{const sub=AppState.addEventListener('change',state=>{if((state==='background'||state!=='active'&&!permissionPrompt.current)&&scope.current){setError('Export stopped while the app was interrupted. Keep this screen open and retry.');dispose();setMovie(null);}});return()=>sub.remove();},[dispose]);
@@ -45,7 +48,7 @@ export default function MemoryMovieExport({bookId,expected,originalAudio,scoreVo
   try{const uri=await memoryMovieStep(work,signal,'A memory page could not be captured.');if(signal.aborted){releaseCapture(uri);throw new Error('Memory movie export was cancelled.');}accepted=true;return uri;}catch(error){abandoned=true;throw error;}
  },[]);
  const create=async()=>{
-  if(busy.current||!bookId||snapshotProblem)return;busy.current=true;dispose();setMovie(null);setSaved(false);setError('');setProgress({message:'Checking your book and media access…',percent:0});
+  if(dismissal.isDismissing()||busy.current||!bookId||snapshotProblem)return;busy.current=true;dispose();setMovie(null);setSaved(false);setError('');setProgress({message:'Checking your book and media access…',percent:0});
   const abort=new AbortController(),identity={stamp,bookId};scope.current=abort;
   const live=()=>scope.current===abort&&!abort.signal.aborted&&current.current.stamp===identity.stamp&&current.current.bookId===identity.bookId;
   try{
@@ -56,7 +59,7 @@ export default function MemoryMovieExport({bookId,expected,originalAudio,scoreVo
   finally{busy.current=false;if(scope.current===abort)setProgress(null);}
  };
  const save=async()=>{
-  const prepared=result.current,abort=scope.current;if(!prepared||!abort||busy.current||abort.signal.aborted)return;busy.current=true;setSaving(true);setError('');
+  const prepared=result.current,abort=scope.current;if(dismissal.isDismissing()||!prepared||!abort||busy.current||abort.signal.aborted)return;busy.current=true;setSaving(true);setError('');
   try{
    await prepared.assertRights();permissionPrompt.current=true;let permission:Awaited<ReturnType<typeof MediaLibrary.requestPermissionsAsync>>;try{permission=await MediaLibrary.requestPermissionsAsync(true);}finally{permissionPrompt.current=false;}
    if(!permission.granted)throw new Error('Allow Photos access to save this memory movie.');
@@ -68,9 +71,9 @@ export default function MemoryMovieExport({bookId,expected,originalAudio,scoreVo
  };
  let count=0;try{count=planMemoryMovie(expected.pages,expected.filmSettings).selectedCount;}catch{}
  const titleCard=capture?.item.movie.titleCard,scale=canvasWidth/390;
- return <Modal visible animationType={reduceMotion?'none':'slide'} presentationStyle="fullScreen" onRequestClose={()=>{dispose();onClose();}}>
+ return <Modal visible={dismissal.visible} animationType={reduceMotion?'none':'slide'} presentationStyle="fullScreen" onRequestClose={close} onDismiss={dismissal.onDismiss}>
   <View style={[s.root,{paddingTop:Math.max(20,insets.top),paddingBottom:Math.max(24,insets.bottom)}]}>
-   <View style={s.header}><Text style={s.title}>Your memory movie</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Close movie export" onPress={()=>{dispose();onClose();}} style={s.button}><Text style={s.secondary}>{progress?'Cancel':'Close'}</Text></TouchableOpacity></View>
+   <View style={s.header}><Text style={s.title}>Your memory movie</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Close movie export" onPress={close} style={s.button}><Text style={s.secondary}>{progress?'Cancel':'Close'}</Text></TouchableOpacity></View>
    <Text style={s.description}>{expected.title} · {count} {count===1?'memory':'memories'}</Text>
    <View style={s.preview}>
     {capture?<StoryPhotoReadinessContext.Provider value={report}><View ref={canvas} key={capture.key} collapsable={false} style={{width:canvasWidth,height:canvasHeight,backgroundColor:capture.layer==='overlay'?'transparent':'#142642'}} onLayout={()=>{layout.current=capture.key;}}>

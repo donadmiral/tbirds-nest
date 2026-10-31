@@ -1,0 +1,3485 @@
+File: tests/account-storage-erasure.test.cjs
+✔ worker requires scoped credentials and ignores caller-supplied account IDs (5.71659ms)
+✔ Storage API removal precedes metadata acknowledgement, application cleanup and Auth API removal (2.819593ms)
+✔ unsafe, unleased or oversized queue results cannot delete objects or accounts (1.347274ms)
+✔ Storage errors, stale leases and unacknowledged deletes never advance to Auth deletion (2.343953ms)
+✔ a crash after file removal resumes without deleting the same file again (0.413129ms)
+✔ more batches and review outcomes do not delete the identity prematurely (2.172429ms)
+✔ Auth failures remain pending and final acknowledgement must verify completion (0.745468ms)
+✔ client status validates the exact receipt and never treats malformed or partial data as completion (0.824114ms)
+✔ a lost request response recovers using the same receipt anonymously after session revocation (0.841109ms)
+✔ unconfirmed requests preserve their error and do not fall back to the old destructive RPC (0.5977ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 27.202728
+
+File: tests/call-media.test.cjs
+✔ a screen share fills its view without cropping, mirroring or playing the camera instead (75.304787ms)
+✔ selecting another share follows its tracks and screen audio while preserving every microphone (18.603292ms)
+✔ stopped or blocked shares never render persistent stale video or screen audio (12.103948ms)
+✔ a departed selected sharer falls back to another current share (20.867466ms)
+✔ all group participants are reachable across bounded four-camera pages (12.577065ms)
+✔ departures clamp the page to the remaining participants instead of showing a blank grid (9.893653ms)
+✔ legacy SDK tracks remain supported only when current track state is absent (10.970098ms)
+✔ voice calls enter screen viewing and return to the voice layout when sharing stops (80.741485ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 259.252507
+
+File: tests/call-transitions.test.cjs
+✔ late accept/decline/missed callbacks cannot revive or overwrite a settled direct call (124.754995ms)
+✔ missed timer cannot interrupt active call and legacy direct lifecycle cannot end shared group call (48.962102ms)
+✔ call connection has timeout cleanup and rejects insecure or denied provider responses (61.114691ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 249.146292
+
+File: tests/chat-media-cache.test.cjs
+✔ web/lib/chatMedia.ts: same account reuses media until the short one-minute cache expiry (55.903521ms)
+✔ web/lib/chatMedia.ts: a changed canonical locator cannot reuse the same message's URL (17.643037ms)
+✔ web/lib/chatMedia.ts: account switching and sign-out while idle clear old capabilities (16.449359ms)
+✔ web/lib/chatMedia.ts: pending account switch discards both cached hits and late results (14.611842ms)
+✔ web/lib/chatMedia.ts: signing out and back in during a batch fences the old session (16.432233ms)
+✔ web/lib/chatMedia.ts: a switch during the second batch also discards completed first-batch results (22.644143ms)
+✔ web/lib/chatMedia.ts: a rejected stale request cannot return earlier cached hits (13.288022ms)
+✔ web/lib/chatMedia.ts: an obsolete getSession result cannot restore the previous account (18.871907ms)
+✔ web/lib/chatMedia.ts: initial-session delivery during getSession keeps valid first loads working (17.072707ms)
+✔ web/lib/chatMedia.ts: getSession also detects a changed account when no event has arrived (13.529137ms)
+✔ web/lib/chatMedia.ts: null sessions and Auth failures never expose public-form private locators (9.45022ms)
+✔ web/lib/chatMedia.ts: returned signing failure retains partial success without a public fallback (14.472637ms)
+✔ web/lib/chatMedia.ts: thrown signing failure retains partial success without a public fallback (11.523523ms)
+✔ web/lib/chatMedia.ts: empty and public non-chat media do not create an Auth subscription (10.546013ms)
+✔ web/lib/chatMedia.ts: one listener per client; replacement unsubscribes and fences old work (12.864553ms)
+✔ web/lib/chatMedia.ts: only requested, string-valued response URLs enter the cache (9.89892ms)
+✔ src/services/chatMediaService.ts: same account reuses media until the short one-minute cache expiry (12.889806ms)
+✔ src/services/chatMediaService.ts: a changed canonical locator cannot reuse the same message's URL (18.756182ms)
+✔ src/services/chatMediaService.ts: account switching and sign-out while idle clear old capabilities (21.868796ms)
+✔ src/services/chatMediaService.ts: pending account switch discards both cached hits and late results (9.078642ms)
+✔ src/services/chatMediaService.ts: signing out and back in during a batch fences the old session (14.892355ms)
+✔ src/services/chatMediaService.ts: a switch during the second batch also discards completed first-batch results (8.081333ms)
+✔ src/services/chatMediaService.ts: a rejected stale request cannot return earlier cached hits (9.159722ms)
+✔ src/services/chatMediaService.ts: an obsolete getSession result cannot restore the previous account (8.295829ms)
+✔ src/services/chatMediaService.ts: initial-session delivery during getSession keeps valid first loads working (7.012589ms)
+✔ src/services/chatMediaService.ts: getSession also detects a changed account when no event has arrived (9.26039ms)
+✔ src/services/chatMediaService.ts: null sessions and Auth failures never expose public-form private locators (7.46858ms)
+✔ src/services/chatMediaService.ts: returned signing failure retains partial success without a public fallback (8.181621ms)
+✔ src/services/chatMediaService.ts: thrown signing failure retains partial success without a public fallback (9.485953ms)
+✔ src/services/chatMediaService.ts: empty and public non-chat media do not create an Auth subscription (17.854618ms)
+✔ src/services/chatMediaService.ts: one listener per client; replacement unsubscribes and fences old work (8.585977ms)
+✔ src/services/chatMediaService.ts: only requested, string-valued response URLs enter the cache (9.730342ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 465.543784
+
+File: tests/chat-quality.test.cjs
+✔ native history opens latest bounded page and preserves realtime arrivals (14.173933ms)
+✔ native failed history can retry and stale response never changes destination chat (16.110369ms)
+✔ native older page uses cursor, coalesces duplicate taps, and keeps current edits (10.751781ms)
+✔ confirmed history replaces a queued optimistic copy with the same message ID (11.135157ms)
+✔ an older page finishing after a conversation switch cannot unlock the new request (5.968491ms)
+✔ camera/gallery shared video send awaits upload and preserves explicit failure (22.985195ms)
+✔ native reaction failure reports error and duplicate taps cannot race writes (4.233816ms)
+✔ native sent and received bubble text remains paired in dark mode (24.266062ms)
+✔ private video uploads never generate thumbnails or retain inline preview bytes (5.963083ms)
+✔ old-account media upload completions cannot send or release a new operation lock (4.633815ms)
+✔ edited private photos are fenced at the chooser and after upload (6.433887ms)
+✔ late native history and typing from another account cannot repopulate the same chat (8.197614ms)
+✔ native sealed image/video bubbles never mount ordinary thumbnails, image viewers or playback (56.498167ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 198.103536
+
+File: tests/client-diagnostics.test.cjs
+✔ diagnostics do not include raw error messages, stacks, arbitrary context or forged category values (2.013648ms)
+✔ reporting deduplicates, limits a minute to five reports, recovers after time reset and contains rejected transports (4.094895ms)
+✔ web/error.tsx requests fresh server data with the installed Next retry API (37.66927ms)
+✔ web/global-error.tsx requests fresh server data with the installed Next retry API (10.101279ms)
+✔ admin-web/error.tsx requests fresh server data with the installed Next retry API (24.64743ms)
+✔ admin-web/global-error.tsx requests fresh server data with the installed Next retry API (6.593506ms)
+✔ admin diagnostic endpoint rejects untrusted origins, anonymous requests, oversized input and re-sanitizes accepted reports (30.333663ms)
+✔ optional-authenticator staff diagnostics still require verified current staff and forward only the user token (23.040334ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 144.961447
+
+File: tests/commerce-domain.test.cjs
+✔ financial totals retain exact cents across large totals and mixed decimal input (1.661011ms)
+✔ CSV neutralizes formula injection including whitespace while preserving quoted multiline content (0.376575ms)
+✔ carousel destinations use exact app routes and reject script, protocol-relative and credential URLs (0.497814ms)
+✔ participants receive only meaningful lifecycle actions and pending payments cannot be cancelled (1.43955ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.890841
+
+File: tests/creator-monetization.test.cjs
+✔ commerce rejects cross-account records, impossible live readiness and malformed monetary values (1.726747ms)
+✔ excluded creator product writes are unavailable before any RPC is issued (0.487576ms)
+✔ USD parses exact decimal strings without floating-point rounding (0.426256ms)
+✔ unknown currency is never silently given USD decimal units (0.112735ms)
+✔ wrong-account, malformed balances and duplicate summaries cannot reach the UI (0.492504ms)
+✔ inconsistent program and payout readiness is rejected before display (0.50418ms)
+✔ zero-value or malformed recorded money movements are not rendered as financial activity (0.359288ms)
+✔ unavailable service is not presented as an empty earnings account (1.222036ms)
+✔ mutations send the expected user and reject empty or failed responses (0.61976ms)
+✔ IntoBank is primary and unsupported creator payout calls fail before any network activity (0.622124ms)
+✔ a link or approved creator alone never enables payouts (0.226813ms)
+✔ canonical receipts must bind exact payout, recipient, currency, amount and provider (0.418695ms)
+✔ a stalled operation stops blocking the UI without claiming the server cancelled it (2.499752ms)
+✔ approved revenue shares allocate every minor unit without floats or hidden tip fees (0.352528ms)
+✔ statement validates account, exact amounts and last-row cursor (0.335673ms)
+✔ payout requests preserve the supplied key and money amount and never claim success on empty responses (0.40806ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15.998764
+
+File: tests/creator-payout-worker.test.cjs
+✔ adapter refuses live mode, live keys and non-HTTPS endpoints before sending (1.748809ms)
+✔ canonical receipt binds environment, exact decimal amount, destination and payout reference (0.698867ms)
+✔ bank acceptance and settlement without credit never become paid or not sent (0.334001ms)
+✔ POST sends decimal text and original idempotency reference; GET never resubmits funds (19.770786ms)
+✔ worker authorizes service caller before DB access and remains disabled by default (5.178989ms)
+✔ dispatch marker commits before POST and a timeout records uncertainty, never rejection (1.459454ms)
+✔ expired dispatch recovers with GET only, then persists verified finality (1.436861ms)
+✔ missing canonical receipt leaves funds pending without a new POST (2.993197ms)
+✔ provider capability errors are visible to operators without releasing reserved payouts (3.809997ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 43.115271
+
+File: tests/daily-call-access.test.cjs
+✔ direct owner can obtain a token bound to the private session (126.00222ms)
+✔ direct receiver can obtain a token bound to the private session (21.744375ms)
+✔ revoked business sessions cannot reach Daily even with a still-valid signed Auth JWT (23.086021ms)
+✔ business revocation during provider issuance prevents returning the meeting credential (25.951576ms)
+✔ unauthenticated and unrelated callers cannot contact the room provider (36.350073ms)
+✔ a joined current group member can join the shared room (14.344554ms)
+✔ a invited group participant cannot mint credentials (12.888705ms)
+✔ a declined group participant cannot mint credentials (10.426077ms)
+✔ a left group participant cannot mint credentials (16.753243ms)
+✔ a removed group member, including the original owner, cannot mint credentials (10.767544ms)
+✔ a ended call cannot mint fresh credentials (11.174567ms)
+✔ a missed call cannot mint fresh credentials (11.43523ms)
+✔ a declined call cannot mint fresh credentials (17.750197ms)
+✔ expired ringing calls are rejected with both explicit and legacy expiry (35.017826ms)
+✔ new rooms enable screen sharing while preserving privacy, expiry and voice camera defaults (8.247326ms)
+✔ existing rooms retain their configuration without an unrequested live update (7.623991ms)
+✔ simultaneous creation recovers by reading the same private room (8.80071ms)
+✔ unexpected public rooms fail closed (9.166928ms)
+✔ access read errors cannot become authorization or call-not-found success (27.006106ms)
+✔ invalid IDs and methods do not reach the provider (60.562214ms)
+✔ failed or malformed provider tokens cannot report a successful call join (20.182662ms)
+✔ group token request binds the exact admission identity and rejects a replaced device before contacting Daily (21.90681ms)
+✔ admission replaced during token minting never returns the obsolete credential (9.324438ms)
+✔ malformed admission identities are rejected without provider requests (45.01324ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 602.129111
+
+File: tests/export-data.test.cjs
+✔ one complete snapshot uses the original caller token and shared deadline (5.293848ms)
+✔ archive larger than the old 5000 limit preserves every returned record (6.812939ms)
+✔ wrong account, wrong profile, truncated collection and missing collection are rejected (3.156738ms)
+✔ row and byte limits refuse a partial archive (3.011054ms)
+✔ database errors hide private details, oversized archives and expired users have explicit status (3.370241ms)
+✔ authentication, method and preflight checks precede private snapshot reads (0.6529ms)
+✔ hung authentication and hung database requests terminate without partial data (21.231432ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 47.907493
+
+File: tests/faststart-video.test.cjs
+✔ ordinary JWTs and wrong methods never reach privileged preflight or storage (9.090906ms)
+✔ an unbound object or unavailable preflight stays untouched and is not even downloaded (3.052014ms)
+✔ private buckets, missing versions, image files and invalid locators cannot reach processing (2.64744ms)
+✔ the authorized same-version path remuxes real bytes and supplies only the guarded capability metadata (1.860773ms)
+✔ a stale downloaded ETag cannot overwrite the current generation (0.604849ms)
+✔ binding or version changes after download skip the write and release the lease (1.053968ms)
+✔ a final SQL race rejection has no fallback upsert, delete or unguarded retry (0.580262ms)
+✔ download failures, already-faststart files and oversized files release their capability without rewriting (1.236065ms)
+✔ a malformed or mismatched server proof never authorizes a download (1.244748ms)
+✔ the actual entry uses an authenticated uncached download and a non-upserting Storage update (13.654009ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41.373834
+
+File: tests/feed-capacity.test.cjs
+✔ off-feed comment insert and delete cause no lookups or state changes (25.664865ms)
+✔ on-feed top-level insert still updates the preview and count (12.342783ms)
+✔ late insert lookup cannot repopulate a preview after cleanup changes (13.206442ms)
+✔ late insert lookup cannot repopulate a preview after account changes (9.172666ms)
+✔ late insert lookup cannot repopulate a preview after post changes (12.16327ms)
+✔ account change while refreshing a deleted comment prevents a follow-up author query (9.21618ms)
+✔ loadFeed preserves server comment totals when preview results are capped (13.124121ms)
+✔ loadMore preserves server comment totals when preview results are capped (11.315153ms)
+✔ a late refresh cannot overwrite a newer request (13.737231ms)
+✔ refresh cannot render after an account or feed mode switch (15.341088ms)
+✔ background refresh updates visible rows without moving them and holds new posts (8.155021ms)
+✔ live rows render and stop loading before comment enrichment completes (9.874557ms)
+✔ a late pagination response cannot append into a different feed (5.933657ms)
+✔ off-feed reactions and counts never expand account state (6.874019ms)
+✔ background reconciliation removes revoked posts while preserving older accessible rows (9.707011ms)
+✔ paging retains its cursor after a signing failure so retry cannot skip a page (6.941398ms)
+✔ media refresh renews only missing, expiring or suspicious capabilities and retains order (0.274493ms)
+✔ native launch applies the known mute preferences before an optional network refresh completes (3.612968ms)
+✔ Discover pages use one category query and background refresh preserves the continuation anchor (13.214303ms)
+✔ Discover signing failure retains raw-page offset and retry advances it only after hydration (7.458618ms)
+✔ restoring a disk snapshot establishes its first cursor without moving the reader (13.830188ms)
+✔ pagination cannot race a restored-tab refresh and skip its next page (13.108037ms)
+✔ a timed-out refresh releases pagination and cannot overwrite a later page (14.258027ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 256.383162
+
+File: tests/feed-load-harness.test.cjs
+✔ load testing is local by default and remote staging requires exact explicit opt-in (2.508515ms)
+✔ GET-only probe counts errors and missing initial content rather than treating redirects as success (50.497798ms)
+✔ invalid thresholds and unbounded slow runs are rejected before any network request (3.789036ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 61.059835
+
+File: tests/feed-snapshot.test.cjs
+✔ snapshot whitelist strips private fields, signed media, and ineligible rows (1.780585ms)
+✔ snapshot is bounded and duplicates do not consume extra slots (0.409051ms)
+✔ saved snapshots expire and cannot be read by another owner or mode (0.667381ms)
+✔ invalid, future, foreign-owner and obsolete-version persisted data fail closed (0.357515ms)
+✔ signing out purges a write already in flight and prevents resurrection (0.481147ms)
+✔ visibility changes invalidate eligibility checks that started before clearing (0.283436ms)
+✔ an empty verified live feed removes the older snapshot (0.262516ms)
+✔ refresh merge updates in place and only user-requested replacement reorders (0.448849ms)
+✔ prefetch is capped to nearby safe images and video posters, never video bytes (0.488518ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12.675282
+
+File: tests/fullscreen-video-accessibility.test.cjs
+✔ native fullscreen controls expose clear action names and a seekable timeline (3.908503ms)
+✔ native accessible seeking clamps to the recording boundaries (0.976335ms)
+✔ screen reader users retain playback controls instead of losing focus to auto-hide (1.219872ms)
+✔ late initial accessibility query cannot undo a newer screen-reader setting (1.062461ms)
+✔ closing the player clears timers and ignores an outstanding accessibility query (0.916656ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.774926
+
+File: tests/group-call-service.test.cjs
+✔ native group start uses one server-authorized shared session, regardless of caller/channel input (98.958724ms)
+✔ failed server admission creates no member rows or push (18.244624ms)
+✔ failed session lookup leaves the created membership and does not notify receivers (15.188634ms)
+✔ join updates participant membership through the canonical RPC and reports denial (30.196564ms)
+✔ leave and decline change only the authenticated participant via RPC (14.066395ms)
+✔ leave and decline do not conceal server errors (27.278195ms)
+✔ empty identity/session requests cannot mutate a call (10.971138ms)
+✔ the real call setup waits for membership and never requests media credentials after denial (32.332301ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 264.350597
+
+File: tests/intobank-link-sheet.test.cjs
+✔ only the current sheet reports a confirmed successful link (99.127762ms)
+✔ an A-to-B-to-A account switch invalidates the old link completion (21.686756ms)
+✔ dismissal and reopening invalidate the former sheet operation (16.612526ms)
+✔ errors from an old account or unmounted sheet do not raise stale alerts or state writes (27.1522ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 179.405742
+
+File: tests/intobank-link-state.test.cjs
+✔ legacy global cache and another account never supply the current account status (3.307489ms)
+✔ an outage retains only this account last-known state and the error (1.224759ms)
+✔ a late cached state cannot replace the confirmed server answer (0.393709ms)
+✔ an older refresh cannot overwrite a newer refresh or its cache (0.339309ms)
+✔ confirmed unlink invalidates an in-flight linked status (0.255646ms)
+✔ account switches and disposal suppress late responses and cache writes (0.3953ms)
+✔ confirmed cache writes preserve order when native storage is slow (0.363934ms)
+✔ refresh keeps an in-memory confirmation while its cache write is still pending (0.522718ms)
+✔ a remounted controller waits for the previous confirmed write before reading cache (0.460377ms)
+✔ empty owner never reads or persists connection state (0.282014ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15.269603
+
+File: tests/link-preview.test.cjs
+✔ Deno TCP/TLS reader handles content length, EOF, informational and chunked framing with partial reads/writes (8.838384ms)
+✔ Deno HTTP framing rejects ambiguous, malformed, truncated, compressed and oversized heads (42.39859ms)
+✔ Deno body limits stop HTML early and reject oversized raster length, chunks or EOF streams (101.950515ms)
+✔ Deno cancellation and the absolute deadline close an unfinished socket without accepting partial images (18.137637ms)
+✔ Deno late TCP connection is closed after an aborted request and never starts TLS or sends HTTP (14.946328ms)
+✔ network policy rejects local, special, mapped, tunnel and noncanonical private URLs (0.957772ms)
+✔ each redirect is independently validated and a private DNS answer stops before connection (1.455428ms)
+✔ DNS rebinding cannot replace the checked socket destination and TLS retains the real hostname (0.92577ms)
+✔ public relative redirects work, while loops, downgrade, excessive hops and slow DNS stop (17.024852ms)
+✔ the actual stream reader bounds HTML bytes and closes the upstream early (2.261433ms)
+✔ the actual stream reader rejects compression, non-HTML, large images and unfinished bodies (1.23237ms)
+✔ CORS works and authentication, anonymous accounts, bad URLs and oversized bodies stop before fetch (29.053263ms)
+✔ fresh previews ignore all submitted metadata, preserve exact cache keys and expose only service thumbnail tokens (2.445563ms)
+✔ unverified or future-dated cache entries cannot bypass the verified fetch, while fresh cache hits avoid it (2.973799ms)
+✔ unavailable cache writes still return a text preview and never create a broken thumbnail capability (2.233161ms)
+✔ concurrent requests coalesce one bounded authenticated fetch and one service budget claim (1.035481ms)
+✔ thumbnail GET uses only a service cache token, revalidates every destination and rejects non-raster bytes (1.709692ms)
+✔ repeated public thumbnail reads reuse bounded bytes and cold isolates still require the persistent budget (4.922863ms)
+✔ independent first writers return the stable token from the atomic service store (1.05502ms)
+✔ metadata parser handles attribute order, entities and relative images, and discards private images (0.389131ms)
+✔ native preview fetches through the server only and provider failures keep plain-link publishing available (9.438487ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 273.168282
+
+File: tests/market-reviews.test.cjs
+✔ review writes bind the expected account and canonical completed order, never caller-chosen seller/listing (2.041419ms)
+✔ read requests carry complete cursor and bounded page size (0.268915ms)
+✔ review and listing reporting use distinct checked RPCs with expected user (0.451102ms)
+✔ missing confirmation and database failures reject, with safe user-facing error messages (0.931589ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12.423041
+
+File: tests/marketplace-recommendations.test.cjs
+✔ restored feed pages identify market attachments while retaining jobs and other product links (1.02774ms)
+✔ market cards show actual purchase ratings or a truthful seller label (12.369673ms)
+✔ recommendation reads forward cancellation, bound visible cards, and reject unusable media (0.591819ms)
+✔ failed recommendations remain an error instead of inventing an empty successful catalog (0.580824ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20.626573
+
+File: tests/media-delivery.test.cjs
+✔ capabilities are pinned to the configured origin, object and opaque token (1.723713ms)
+✔ private delivery images do not use persistent disk cache (0.365867ms)
+✔ bytes stream only after two current proof checks; secrets and cache headers never escape (5.305975ms)
+✔ forged capabilities and denied proofs cannot cause a privileged fetch (1.970526ms)
+✔ all single-range forms work and invalid reversed/empty/multi/zero ranges stop before Storage (3.392494ms)
+✔ upstream range failures stay 416 and a missing file is 410 (1.142388ms)
+✔ revocation, object replacement or proof failure while fetching suppresses all bytes (1.507014ms)
+✔ active HTML and SVG payloads cannot be served as private attachments (0.819364ms)
+✔ HEAD fetches only headers while preserving no-store and range metadata (0.462239ms)
+✔ consumer cancellation aborts the active upstream download (0.520605ms)
+✔ request cancellation reaches a pending Storage fetch (0.735571ms)
+✔ new clients explicitly opt into no-store delivery, with no signed or public fallback (1.537408ms)
+✔ a legacy client retains its reviewed signed-URL contract during staged migration (0.66706ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26.240562
+
+File: tests/message-delivery.test.cjs
+✔ a committed message with a lost response reconciles without inserting another row (1.699868ms)
+✔ unknown outcomes retain their ID, and a failed reconciliation does not replay (0.318298ms)
+✔ a collision with different content and a definitive denial never look delivered (0.523369ms)
+✔ the actual native sender persists the ID before sending and handles a lost committed response (104.574104ms)
+✔ outbox flush skips other accounts and legacy IDs and retains uncertain delivery (10.980602ms)
+✔ message IDs use random UUID format (2.099144ms)
+✔ the actual native sender stops if the account changes during conversation lookup (57.249964ms)
+✔ realtime confirmation arriving before an uncertain send result keeps its confirmed status (78.145316ms)
+✔ background receipt synchronization confirms the open chat without a history reload (100.06598ms)
+✔ shared-post reconciliation never confirms a different post with the same message ID (0.427679ms)
+✔ shared-post lost responses reconcile once while normal messages accept nullable share fields (0.392457ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 362.905113
+
+File: tests/message-outbox.test.cjs
+✔ enqueue and connectivity changes wait for hydration and preserve old plus new messages (95.797489ms)
+✔ flush waits for durable hydration and removes only confirmed messages (39.52311ms)
+✔ a denied item remains reviewable without blocking later queued messages (29.143195ms)
+✔ other accounts and legacy entries are preserved without automatic replay (17.740193ms)
+✔ failed hydration cannot replace saved messages with a new queue (16.355739ms)
+✔ a failed persistence write rejects enqueue before any delivery attempt (12.453641ms)
+✔ checking a selected message does not get stuck behind an earlier pending item (11.419778ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 239.374695
+
+File: tests/message-receipts.test.cjs
+✔ DM receipts use one checked server call, preserving delivered/viewed timestamps (1.084384ms)
+✔ group receipts use the authenticated member watermark contract (0.157721ms)
+✔ native actual receipt handler ignores a background, unfocused, unloaded or scrolled-away chat (127.98653ms)
+✔ failed native receipt does not invent read status and can retry the same message (62.180832ms)
+✔ unread counts consume canonical and legacy fields and add duplicate conversation rows (0.920563ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 209.617086
+
+File: tests/native-call-reliability.test.cjs
+✔ native permissions are confirmed before creating or accepting a call on Android and iOS (180.869523ms)
+✔ a cancelled outgoing request closes its late-created session without reviving media (36.945167ms)
+✔ poor quality alone does not start a disconnect timeout; actual Daily events reconnect (27.648009ms)
+✔ unhold and reconnect preserve the user mic, camera and speaker choices (29.131649ms)
+✔ late navigation cleanup cannot reset a newer active call (28.489145ms)
+✔ group heartbeat is bound to the exact admitted identity so an old device cannot renew a later rejoin (29.994376ms)
+✔ failed native hangup survives process restart and retries the accepted-before-media race (18.522361ms)
+✔ pending hangups cannot replay under a different signed-in account (5.077259ms)
+✔ group retry carries the exact original membership and unguarded failures are never queued (5.130687ms)
+✔ an old OS end callback cannot terminate the current native call (24.320551ms)
+✔ accepting an incoming call removes the banner without ending CallKit calls (19.619995ms)
+✔ bounded cleanup does not wait forever on a stuck native provider promise (11.306971ms)
+✔ denied camera upgrade preserves audio call without enabling the camera (22.607022ms)
+✔ incoming calls missed before subscription are reconciled on startup (17.612996ms)
+✔ account switching during a pending status lookup prevents the subsequent hangup write (5.759291ms)
+✔ old native callbacks cannot end or reopen a call after an A-to-B-to-A session change (16.306726ms)
+✔ simultaneous native answers navigate once using stored caller metadata (23.600052ms)
+✔ a late initial Notifee response cannot replace a newer live action (19.314455ms)
+✔ failed foreground declines do not remove the retryable native notification (19.67864ms)
+✔ pending incoming lookup is aborted on listener unmount and cannot revive a banner or route (22.499375ms)
+✔ two different native answers cannot race into separate call screens before React updates (27.941791ms)
+✔ a native hangup cancels an answer lookup that has not completed (16.157747ms)
+✔ a native hangup after startCall but before the next React render ends that call (16.577305ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 632.395366
+
+File: tests/native-quality-regressions.test.cjs
+✔ light: meaningful metadata and primary button pairs remain readable (463.516835ms)
+✔ dark: meaningful metadata and primary button pairs remain readable (326.562338ms)
+✔ a late unsave from Saved cannot remove a listing after switching views (14.054151ms)
+✔ a late save failure cannot restore the previous account saved state or show an alert (7.340707ms)
+✔ market scroll loads beyond 30, deduplicates overlap, and stops at the last page (57.699076ms)
+✔ failed next page preserves loaded listings and retry uses the same offset (29.451038ms)
+✔ invalidated market response never replaces a newer query result (25.644398ms)
+✔ account standing transport failure does not become a clean record (3.744007ms)
+✔ campaign refresh failure preserves known campaigns and exposes the error (11.735421ms)
+✔ MFA removal verifies before removing the factor (4.621437ms)
+✔ MFA removal rejects an invalid code (4.013604ms)
+✔ new native CV upload is private, immutable, typed and opened through a short-lived authorized link (11.158757ms)
+✔ CV upload rejects account changes, oversized files and storage errors without a public fallback (14.978761ms)
+✔ CV opening refuses foreign links, arbitrary schemes, malformed references and unrelated storage buckets (4.648948ms)
+✔ market service sends pagination offset through the ranked feed contract (12.880345ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1030.705806
+
+File: tests/navigation-accessibility.test.cjs
+✔ native chrome starts still, opaque and readable while preferences load (56.258402ms)
+✔ a preference event cannot be overwritten by a stale initial read (9.564491ms)
+✔ Android keeps opacity and listens to its own contrast setting (6.342568ms)
+✔ native query failures retain usable chrome and unmount removes listeners (12.934663ms)
+✔ custom native tabs preserve accessibility, disabled state and activation handlers (36.497075ms)
+✔ native press animation works normally and resets when reduced motion turns on (36.081199ms)
+✔ accessible native navigation stays visible while the content scrolls (25.925312ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 189.320621
+
+File: tests/order-request.test.cjs
+✔ an uncertain create retry preserves the original actor, payload and request identity (0.872373ms)
+✔ deadline exits a stalled request but does not pretend to cancel a possible server commit (5.171145ms)
+✔ only definite database rejections discard a create retry identity (0.173996ms)
+✔ admin order search preserves a valid paired cursor and rejects partial or injected values (1.556349ms)
+✔ repeated community actions share a lock and old-account completion cannot unlock the new account (0.322193ms)
+✔ community transport rejection returns a recoverable error and releases only its own action (0.2514ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.920856
+
+File: tests/payment-intent.test.cjs
+✔ closing and restarting the client restores the same reference and exact payload (2.341554ms)
+✔ simultaneous taps reuse one persisted identity rather than racing two payments (0.318088ms)
+✔ recovery is isolated by signed-in user, conversation and recipient (0.291259ms)
+✔ corrupt or mismatched saved state blocks a new identity and is never discarded (0.713309ms)
+✔ a storage failure prevents preparing a payment for submission (1.634444ms)
+✔ old cleanup cannot erase a newer identity (0.482079ms)
+✔ stored recovery data excludes credentials, email, notes and arbitrary fields (0.388041ms)
+✔ an enqueue acknowledgement, malformed response or unknown error is never completion (0.19019ms)
+✔ only confirmed transaction references or explicit terminal failure settle the UI (0.192433ms)
+✔ marketplace order identity survives restart and cannot drift on a retry (0.482539ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15.051478
+
+File: tests/payment-provider-status.test.cjs
+✔ only allowlisted diagnostics and scopes reach operator or customer messages (1.130343ms)
+✔ successful connection checks do not assert environment, scopes or live settlement (0.576798ms)
+✔ missing, malformed and future checks never become healthy; failures hide raw payloads (0.281044ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8.284074
+
+File: tests/payment-receipt.test.cjs
+✔ realtime delivery and receipt refresh both use the same server message identity (1.539785ms)
+✔ pending, failed, mismatched and inaccessible payments cannot become receipt bubbles (0.517692ms)
+✔ a missing or text-only message is reported, never replaced with a fabricated receipt (0.430883ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12.634874
+
+File: tests/payment-service.test.cjs
+✔ status lookup uses GET and the canonical local Edge Functions URL (28.056537ms)
+✔ only the explicit missing-record code permits a same-reference retry (6.79151ms)
+✔ switching the signed-in account prevents payment and status requests (2.526587ms)
+✔ a missing native confirmation module never silently bypasses authorisation (1.529479ms)
+✔ a pending payment acknowledgement remains pending and preserves the original request (1.848249ms)
+✔ linking redeems an approval code and rejects an unconfirmed response (3.914628ms)
+✔ connection status accepts only an explicit successful boolean answer (11.057013ms)
+✔ recipient status distinguishes a confirmed disconnection from an outage (7.840523ms)
+✔ unlink requires confirmed success and preserves the authenticated account boundary (7.859511ms)
+✔ wallet reads never invent zero balance or a disconnected account from incomplete data (10.411493ms)
+✔ provider permission errors identify unavailable linking without blaming the approval code (2.526727ms)
+✔ bank approval failures remain exceptions, never completed or safe-to-repeat payments (4.044549ms)
+✔ a missing environment configuration gives setup guidance without exposing the server error (1.667814ms)
+(node:232743) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 100.159939
+
+File: tests/post-media-editing.test.cjs
+✔ applying one look across media preserves each crop, caption timing, cover and people tags (2.405348ms)
+✔ new post frames default to 4:5 and preserve existing square, landscape and original recipes (0.254645ms)
+✔ trim selection bounds stay valid and selected cover frames are before end of file (0.233494ms)
+✔ caption normalization removes blanks and invalid windows, clamps duration, and bounds text and count (0.281394ms)
+✔ captions use absolute source time, disappear on their end boundary, and prefer a newer overlapping cue (0.519134ms)
+✔ caption timing commits finite fractional drafts, rejects invalid text and clamps to the trimmed clip (0.215927ms)
+✔ rotation parts preserve full turns, right-angle bases and signed straighten endpoints (0.221456ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9.553782
+
+File: tests/post-sharing.test.cjs
+✔ web: pending share keeps its ID across retries and reload after a lost accepted response (120.220996ms)
+✔ web: share is durably persisted before POST and a write failure prevents POST (36.845824ms)
+✔ web: account change after persistence retains the share without a POST (45.979439ms)
+✔ web: concurrent duplicate taps share one persisted message and POST (24.046458ms)
+✔ web: definite denial retains the same reviewable share for an explicit retry (13.739508ms)
+✔ web: recipient and conversation boundaries do not reuse an unrelated pending ID (19.81818ms)
+✔ native: pending share keeps its ID across retries and reload after a lost accepted response (50.002075ms)
+✔ native: share is durably persisted before POST and a write failure prevents POST (35.273872ms)
+✔ native: account change after persistence retains the share without a POST (37.922097ms)
+✔ native: concurrent duplicate taps share one persisted message and POST (14.200697ms)
+✔ native: definite denial retains the same reviewable share for an explicit retry (14.888158ms)
+✔ native: recipient and conversation boundaries do not reuse an unrelated pending ID (15.117726ms)
+✔ native: hydration and durable-write waits complete before network delivery (15.437015ms)
+✔ web: duplicate taps with a delayed Auth response cannot create another share after the first confirms (9.880602ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 460.427876
+
+File: tests/post-voice-effects.test.cjs
+✔ voice presets change pitch and pace on the same video player, keeping source audio synchronized (0.880435ms)
+✔ a reused player restores natural pitch for the next original clip (0.195517ms)
+✔ viewer speed combines with authored speed without losing the saved effect or exceeding audible rates (0.167397ms)
+✔ shared post playback snapshots allow only supported bounded fields (0.628054ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6.950803
+
+File: tests/private-media-cleanup.test.cjs
+✔ cleanup authenticates dedicated credential then removes the exact approved object (5.646996ms)
+✔ ordinary credentials, forged paths and live references never delete files (1.207096ms)
+✔ storage failure releases a retryable result instead of claiming deletion (0.562777ms)
+✔ background remux never rewrites private chat objects (0.273542ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12.698518
+
+File: tests/private-media-reader-regressions.test.cjs
+✔ native standalone post signs its main media, product images and article gallery under the owning post (99.577828ms)
+✔ native standalone reader fails closed when media access is denied (34.02159ms)
+✔ native post response cannot publish after an account switch (27.519206ms)
+✔ native unavailable post clears retained media before any row fetch (17.958504ms)
+✔ web lazy edit cover is post-bound and hydrated before it reaches playback (20.621751ms)
+✔ web lazy edit failures and disposed requests never retain raw cover URLs (39.134511ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 243.500195
+
+File: tests/private-media-session.test.cjs
+✔ open returns only bounded grant metadata and never fetches object bytes (4.92934ms)
+✔ media reads reauthorize every request, preserve range, and stream no-store without a capability URL (3.378859ms)
+✔ denied, expired and unauthenticated requests never reach storage (0.794279ms)
+✔ forged origins, traversal and unsupported content cannot be streamed (1.31913ms)
+✔ close uses the request identity and never exposes an internal error (0.458895ms)
+✔ closing during a pending open hides synchronously and revokes the late grant under original credentials (1.256338ms)
+✔ account switch cannot publish a late private grant (0.592151ms)
+✔ expired or mismatched grants are rejected before any content is displayed (1.135691ms)
+✔ malformed IDs and invalid range requests do not reach storage (1.199073ms)
+✔ close received while storage is preparing bytes prevents the response from being delivered (2.959192ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.59746
+
+File: tests/private-screen-capture.test.cjs
+✔ overlapping viewers share a serialized OS capture lease and only the last close releases it (63.81398ms)
+✔ native switcher protection failure rejects opening and unwinds the partial lease (14.560917ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 82.894905
+
+File: tests/profile-mention-lookup.test.cjs
+✔ mention "musa_test" opens only exact (1744.147299ms)
+✔ mention "MUSA_TEST" opens only exact (9.972711ms)
+✔ mention "legacy_name" opens only case (6.32913ms)
+✔ mention "missing_user" opens only no account (5.282256ms)
+✔ mention "ordinary" opens only ordinary (5.218933ms)
+✔ mention "rate%value" opens only percent (4.822048ms)
+✔ mention "slash\\_name" opens only slash (5.205513ms)
+✔ mention "%" opens only no account (7.239166ms)
+✔ mention "*" opens only no account (6.606278ms)
+✔ native SDK transports the escaped underscore literally (5.980346ms)
+✔ a PostgREST star alias that matches exactly one unrelated account is rejected (5.866007ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1883.428357
+
+File: tests/quality/app-interaction-sweep.cjs
+✔ collaboration identity removes self/duplicate accounts while preserving two people with the same name (2.405814ms)
+✔ feed memory expires capabilities and clearing an account removes every tab (0.255797ms)
+✔ native tab effect restores For You immediately and distinguishes a first visit from a resolved empty feed (134.309513ms)
+✔ native cached disk snapshot keeps its pending cursor refresh across tab changes (57.417082ms)
+✔ author highlights read only positive reactions from the actual post author and preserve chronological order below a pin (0.663486ms)
+✔ an unavailable pin feature cannot erase author likes or a readable thread (0.259101ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 210.029259
+
+File: tests/quality/apple-music-regressions.cjs
+✔ only canonical HTTPS Apple song links are accepted (1.55692ms)
+✔ catalog output strips playable audio and rejects untrusted artwork (0.276787ms)
+✔ signed ES256 token is short-lived, origin-bound and cryptographically valid (8.279047ms)
+✔ anonymous accounts and missing sessions cannot access tokens or catalog (3.887298ms)
+✔ wrong origin and originless token requests are rejected before signing (1.4413ms)
+✔ browser receives token for its exact allowed origin and no-store response (0.670927ms)
+✔ missing credentials are an explicit unavailable state, never fake results (0.909768ms)
+✔ native catalog uses server token and returns only normalized references (1.294143ms)
+✔ invalid queries do not touch Apple (1.500207ms)
+✔ provider rate limits and errors remain failures (1.362083ms)
+✔ repeated per-user requests are bounded (4.53485ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31.072102
+
+File: tests/quality/auth-callback-logging.cjs
+✔ cold PKCE callback sends its code to Auth without logging the URL, code, or email (101.814393ms)
+✔ stored bearer recovery and provider rejections never log credentials or provider error text (25.564271ms)
+✔ warm verification callback never logs its token or untrusted type parameter (20.047998ms)
+✔ parser, provider and initial-link exceptions remain private while error paths execute (56.263346ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 221.756946
+
+File: tests/quality/auth-regressions.cjs
+PASS cached launch opens while the profile request is slow
+PASS profile-cache reading starts while Auth is pending and publishes only for the resolved owner
+PASS parallel cached profile cannot cross an account change while initial Auth is pending
+PASS token refresh preserves the current profile on a returned network error
+PASS manual profile refresh preserves the profile on a thrown network error
+PASS token refresh updates the session without waiting for its profile fetch
+PASS a stale refresh cannot restore a signed-out profile
+PASS a stale profile result cannot repopulate the cache after sign-out
+PASS setSession clears a different account profile immediately
+PASS setSession invalidates an older profile refresh
+PASS switching accounts discards an out-of-order auth profile result
+PASS sign-out invalidates reads before its deferred event handler runs
+PASS startup does not miss sign-out while getSession is pending
+PASS startup does not overwrite an account switch while getSession is pending
+PASS late INITIAL_SESSION cannot undo sign-out
+PASS late INITIAL_SESSION can recover a timed-out launch
+PASS late getSession can recover a timed-out launch without a second auth event
+PASS late getSession cannot recover a launch after explicit sign-out
+PASS background profile metadata is not attached to another account session
+PASS INITIAL_SESSION can finish launch when getSession hangs
+PASS uncached startup stops waiting at the profile deadline and reuses its request
+PASS uncached auth events stop waiting at the profile deadline and heal later
+PASS profile healing shares one in-flight read across repeated retries
+PASS successful launch clears all timeout timers
+PASS reinitializing removes the previous recovery URL listener
+PASS recovery URLs are not logged
+PASS consumed recovery links do not reopen recovery
+PASS recovery events retain the recovery gate while loading the matching profile
+PASS a same-tick token refresh cannot discard the password recovery gate
+PASS suppressed recovery events do not reopen the recovery gate
+PASS suppressed recovery sign-out clears the recovery gate and launch spinner
+PASS a genuine missing profile is not replaced with a stale cached profile
+PASS a failed account-reactivation update does not announce success
+33/33 auth regression checks passed
+
+File: tests/quality/auth-service-recovery.cjs
+✔ password reset verifies the recovery code purpose, not a sign-in code (99.342239ms)
+✔ a rejected recovery code is surfaced without pretending the reset succeeded (18.176493ms)
+✔ sign-up and resend do not write account identifiers or redirect capabilities to logs (14.757554ms)
+✔ provider sign-up errors are returned without being copied into logs (16.346696ms)
+✔ password characters including surrounding spaces are preserved on sign-in (13.681138ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 180.0988
+
+File: tests/quality/auth-transport-deadline.cjs
+✔ Auth response retains original status, headers, URL metadata and readable bytes (86.782955ms)
+✔ Storage, REST, Edge and unrelated-origin streams bypass the Auth deadline unchanged (59.586926ms)
+✔ pre-aborted Request and init signals never start Auth network work (10.888371ms)
+✔ Auth headers waiting for caller cannot return a late response (12.978661ms)
+✔ Auth headers waiting for deadline cannot return a late response (10.01287ms)
+✔ the Auth caller also aborts a body stalled after headers (16.821356ms)
+✔ the Auth deadline also aborts a body stalled after headers (7.037775ms)
+✔ native buffered-response fallback is bounded through arrayBuffer completion (7.375873ms)
+✔ Auth body buffering is bounded for both declared and actual bytes (21.263393ms)
+✔ caller abort listeners are removed after Auth success and failure (19.866675ms)
+✔ refresh grants preserve their 60-second budget through the body while login keeps 15 seconds (15.192736ms)
+Error [TimeoutError]: Authentication request timed out.
+    at requestError (shared/authFetch.ts:10:19)
+    at stop (shared/authFetch.ts:50:78)
+    at Object.fn (shared/authFetch.ts:53:59)
+    at Object.deadline (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/auth-transport-deadline.cjs:23:175)
+    at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/auth-transport-deadline.cjs:144:55)
+    at async Test.run (node:internal/test_runner/test:1409:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+✔ node_modules/@supabase/supabase-js setSession rejects a stalled headers without a late session write, then retries (32.214367ms)
+Error [TimeoutError]: Authentication request timed out.
+    at requestError (shared/authFetch.ts:10:19)
+    at stop (shared/authFetch.ts:50:78)
+    at Object.fn (shared/authFetch.ts:53:59)
+    at Object.deadline (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/auth-transport-deadline.cjs:23:175)
+    at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/auth-transport-deadline.cjs:144:55)
+    at async Test.run (node:internal/test_runner/test:1409:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+✔ node_modules/@supabase/supabase-js setSession rejects a stalled body without a late session write, then retries (8.057608ms)
+✔ web/node_modules/@supabase/supabase-js setSession rejects a stalled headers without a late session write, then retries (32.485977ms)
+✔ web/node_modules/@supabase/supabase-js setSession rejects a stalled body without a late session write, then retries (6.533691ms)
+✔ the web singleton factory installs the same Auth-only transport (13.112609ms)
+✔ actual native tab tree lands business accounts in Studio and personal accounts in Feed (42.514641ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 409.21025
+
+File: tests/quality/boomerang-cancellation.cjs
+✔ the linked Android stub is not an available encoder and cannot start work (3.192566ms)
+✔ the current native bridge reserves before encoding and preserves a completed output (4.684175ms)
+✔ cancelling immediately settles the bridge and cancels exactly the reserved native job (1.19419ms)
+✔ older and partially upgraded installed builds remain compatible and discard late successful output (1.495314ms)
+✔ an already cancelled request never reserves a job or starts an encoder (1.378482ms)
+✔ native start and encode failures release the reservation without deleting a possibly active file (1.544266ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18.138527
+
+File: tests/quality/build-env-regressions.cjs
+✔ web: missing configuration identifies every required name (42.049054ms)
+✔ web: partial and whitespace-only configuration fails without logging values (77.270052ms)
+✔ web: complete synthetic configuration passes without authenticating or logging keys (61.676536ms)
+✔ web: local HTTP backend URLs remain supported (43.074295ms)
+✔ web: malformed and non-HTTP URLs fail with the variable name only (104.627725ms)
+✔ web: production env files load with process values taking precedence (69.151109ms)
+✔ web: npm build stops before Next compilation when configuration is absent (153.754708ms)
+✔ admin-web: missing configuration identifies every required name (44.295555ms)
+✔ admin-web: partial and whitespace-only configuration fails without logging values (114.050495ms)
+✔ admin-web: complete synthetic configuration passes without authenticating or logging keys (45.144622ms)
+✔ admin-web: local HTTP backend URLs remain supported (36.043991ms)
+✔ admin-web: malformed and non-HTTP URLs fail with the variable name only (107.982516ms)
+✔ admin-web: production env files load with process values taking precedence (68.234673ms)
+✔ admin-web: npm build stops before Next compilation when configuration is absent (134.42596ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1108.912344
+
+File: tests/quality/business-access-rpc.cjs
+✔ business access loads through the protected RPC and shows retry rather than an empty team on failure (129.459945ms)
+✔ business access rejects another account response and provides an exit into Studio (49.571693ms)
+✔ owner bootstrap and later code creation use explicit minimal roles and expected account (73.738036ms)
+✔ business code creation serializes double taps and cannot reveal a previous account code (25.55483ms)
+✔ an Auth switch during the pre-mutation check prevents any business command (25.309358ms)
+✔ support and admin views cannot issue codes and the last-owner controls are disabled (79.666245ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 390.023568
+
+File: tests/quality/business-session-clients.cjs
+✔ device registration is secure, stable and singleflight across concurrent requests (136.460765ms)
+✔ device corrupt failure never falls back or invokes business Auth (56.637824ms)
+✔ device read failure never falls back or invokes business Auth (44.601947ms)
+✔ device write failure never falls back or invokes business Auth (32.693554ms)
+✔ device readback failure never falls back or invokes business Auth (27.198603ms)
+✔ device random failure never falls back or invokes business Auth (40.919414ms)
+✔ team sign-in serializes double taps and installs the validated bound session once (41.117121ms)
+✔ team DEVICE_APPROVAL_REQUIRED preserves the account and releases retry (28.304232ms)
+✔ team DEVICE_BLOCKED preserves the account and releases retry (31.882357ms)
+✔ team ACCESS_REJECTED preserves the account and releases retry (27.21055ms)
+✔ team TRY_LATER preserves the account and releases retry (23.81808ms)
+✔ team BUSINESS_SESSION_UNAVAILABLE preserves the account and releases retry (23.668559ms)
+✔ a late team response cannot install after cancel (30.255479ms)
+✔ a late team response cannot install after account (22.567666ms)
+✔ a late team response cannot install after silent-account (31.00927ms)
+✔ a late team response cannot install after unmount (29.148828ms)
+✔ a late team response cannot install after back (19.706059ms)
+✔ legacy unbound responses and wrong destination identities fail before session installation (86.536442ms)
+✔ stalled requests time out and preserve a retry path (25.950574ms)
+✔ final installation cannot be cancelled and a wrong installed identity is not declared successful (24.277868ms)
+✔ initial account-check failures are retryable and late initial snapshots cannot undo Auth events (52.598424ms)
+✔ owner setup requires an explicit confirmation and sends proof on both requests (61.966078ms)
+✔ owner setup prompt cannot be reused after account (34.981831ms)
+✔ owner setup prompt cannot be reused after unmount (45.667357ms)
+✔ owner setup prompt cannot be reused after cancel (51.790484ms)
+✔ owner setup prompt cannot be reused after dismiss (26.453564ms)
+✔ late owner launch cannot install after cancel (26.300379ms)
+✔ late owner launch cannot install after account (23.642321ms)
+✔ late owner launch cannot install after silent-account (30.939627ms)
+✔ late owner launch cannot install after unmount (22.734764ms)
+✔ owner approval-required errors never bootstrap or install automatically (24.929658ms)
+✔ application drafts and history are scoped to the confirmed account (33.03044ms)
+✔ application failures retain the draft and successful duplicate taps write once (29.844894ms)
+✔ application mutation and handle lookups discard stale account results (28.548703ms)
+✔ a concurrent Auth event for a different session cannot complete the intended handoff (21.845022ms)
+✔ owner legacy and destination failures never replace the personal session (80.226901ms)
+✔ failed application history offers retry without inventing an empty successful read (22.200465ms)
+✔ a silent personal account switch prevents an application write (26.643515ms)
+✔ signed-out team members can install a verified business session without a personal session (19.967414ms)
+✔ current owners open a business by its verified list ID without an application (20.643731ms)
+✔ nonowner business cards have no owner launch capability (69.784098ms)
+✔ direct owner bootstrap is explicit and cannot be replayed after an account switch (20.376226ms)
+✔ owned-business launch ignores a late response after cancel (19.941425ms)
+✔ owned-business launch ignores a late response after account (31.245057ms)
+✔ owned-business launch ignores a late response after silent-account (23.810358ms)
+✔ owned-business launch ignores a late response after unmount (22.803694ms)
+✔ current-owner launch rejects a valid session for a different business and revoked ownership (44.077864ms)
+✔ owned-business list errors offer retry and old account results cannot repopulate the list (19.552272ms)
+ℹ tests 48
+ℹ suites 0
+ℹ pass 48
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1735.600049
+
+File: tests/quality/call-membership-recovery.cjs
+✔ group-call recovery fences a delayed leave to its own admission and cannot evict a rejoin or another user (1803.039478ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1810.256518
+
+File: tests/quality/call-revocation-worker.cjs
+✔ revocation worker requires server credential and bans the old admission id (100.156794ms)
+✔ provider failure keeps the same durable job available for retry (12.254438ms)
+✔ a dedicated worker credential rejects even the service-role key when configured (7.760928ms)
+✔ Vault authorization runs before cleanup and returns only a strict boolean decision (33.438113ms)
+✔ Vault validator failure does not authorize or attempt any cleanup (6.837699ms)
+✔ configured environment credential avoids a database authentication dependency (6.340668ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 174.029033
+
+File: tests/quality/call-worker-credential.cjs
+✔ worker credential stays in Vault, persists across reruns, and exposes only a service-role boolean check (1939.105692ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1944.557272
+
+File: tests/quality/catalogue-ingestion.cjs
+✔ provider-neutral ingestion verifies both pushed and persisted bytes before finalization (135.66365ms)
+✔ unlicensed provider or mismatched track cannot store any bytes (23.335471ms)
+✔ service keys and app JWTs do not authenticate catalogue pushes (35.172104ms)
+✔ invalid lengths, unsupported MIME and invalid digest fail before reservation (48.580931ms)
+✔ wrong persisted bytes cannot be finalized even after successful Storage upload (11.197363ms)
+✔ malformed incoming audio cannot reach Storage (7.573131ms)
+✔ a verified exact retry reuses the sound without another upload (8.583818ms)
+✔ licence revoked during verification prevents finalization success (13.164357ms)
+✔ path substitution and extra file ownership components are rejected before Storage (10.891593ms)
+✔ deadline stops a stalled provider lookup and aborts the shared signal (16.453716ms)
+✔ deadline also stops an uncooperative uploaded-body stream (11.067382ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 327.555622
+
+File: tests/quality/channel-studio-desks.cjs
+✔ native Studio Settings replaces failed-load spinner with retry, then loads the saved business (218.388888ms)
+✔ native channel settings keep unsaved edits across callback changes and read the current member notification value (36.094722ms)
+✔ native channel settings reject partial loads instead of exposing blank editable defaults (31.037161ms)
+✔ native directory failures are visible, and old search results cannot replace a newer query (33.589196ms)
+✔ native channel creation prevents double taps and ignores old-account completion (10.832506ms)
+✔ web channel creation prevents double taps and ignores old-account completion (10.682977ms)
+✔ native channel mutations report transport failure, serialize taps and suppress late results (8.685948ms)
+✔ web member roles report network failure and do not apply a successful response after unmount (40.852848ms)
+✔ native business code creation cannot duplicate a tap or reveal a previous account code (21.686425ms)
+✔ native Studio creates and binds the first owner and limits later default codes to editor (44.854269ms)
+✔ native channel media chooser stops after an account switch during permission (28.305011ms)
+✔ native channel icon upload cannot mutate the channel after its account or sheet changes (11.397928ms)
+✔ native channel read markers require a foreground focused unobscured latest view and can retry errors (14.212789ms)
+✔ web channel read markers ignore hidden, unfocused, obscured and scrolled-away updates (17.064235ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 535.626346
+
+File: tests/quality/chat-attachment-cards.cjs
+✔ contacts become bounded structured cards with safe phone/email actions (1.818425ms)
+✔ unstructured text, wrong versions, oversized payloads and unsafe contacts are rejected (0.365638ms)
+✔ location cards accept coordinate boundaries and produce an HTTPS map link (0.341623ms)
+✔ locations reject out-of-range, missing, nonnumeric or invalid date payloads (0.179815ms)
+✔ untrusted optional accuracy values are omitted rather than displayed as GPS precision (0.252712ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9.024497
+
+File: tests/quality/chat-call-authorization.cjs
+✔ actual migration closes private-media forgery, limited-view and group-call authorization paths (1692.612592ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1704.099471
+
+File: tests/quality/chat-history-loading.cjs
+✔ authorized chat history displays while all independent decorations are still pending (11.512747ms)
+✔ media authorization remains mandatory before history can appear (5.243154ms)
+✔ an enrichment failure never hides already authorized and published messages (5.08434ms)
+✔ stale metadata cannot start signing or decorations after a conversation or account change (23.097069ms)
+✔ stale signed responses cannot publish messages or release a newer loading state (11.163424ms)
+✔ late enrichment failure cannot modify the next history request (4.964613ms)
+✔ messages arriving while history is signed survive its publication (4.333365ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.710217
+
+File: tests/quality/chat-media-signer.cjs
+✔ signer signs only authorized canonical objects with two-minute noncached grants (89.450287ms)
+✔ signer rejects forged origins, traversal and signed-URL locators: https://evil.test/storage/v1/object/public/chat-media/00000000-0000-4000-8000-000000000002/photo.jpg (16.955725ms)
+✔ signer rejects forged origins, traversal and signed-URL locators: https://project.supabase.co/storage/v1/object/public/chat-media/00000000-0000-4000-8000-000000000002/%2e%2e/other.jpg (14.803198ms)
+✔ signer rejects forged origins, traversal and signed-URL locators: https://project.supabase.co/storage/v1/object/sign/chat-media/00000000-0000-4000-8000-000000000002/photo.jpg?token=old (14.009481ms)
+✔ generic fetch never signs limited-view photos or their thumbnails (11.858066ms)
+✔ private-session installations reject the legacy protocol and issue no capability (14.639398ms)
+✔ compatible production consumption uses a real counted grant and only its remaining lifetime (19.919365ms)
+✔ limited-view requests require one message and an idempotency key before consuming (26.688623ms)
+✔ denied, mismatched and expired legacy grants cannot sign any object (57.909825ms)
+✔ auth, membership, RPC and provider failures cannot fall back to public media (36.306393ms)
+✔ invalid batches and methods are rejected before signing (10.166447ms)
+✔ legacy native numeric cache-busters resolve to the same canonical private object (11.765409ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 337.82546
+
+File: tests/quality/chat-storage-cutover.cjs
+✔ private cutover enforces actual storage RLS while preserving authorized legacy readers (1831.504243ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1840.59121
+
+File: tests/quality/content-media-concurrency.cjs
+✔ installed SDK reproduces the old lock stall: getUser() blocks unrelated profile queries before fetch (11.118137ms)
+✔ post and album media verification run concurrently without holding session or database reads (6.118ms)
+✔ failed server verification cannot reach the signer or return raw media (1.61076ms)
+✔ A to B to A account changes during signing invalidate the original capability result (5.033836ms)
+✔ a request cancelled before transport does not start network work (39.544097ms)
+✔ transport removes its caller abort listener after success and failure (46.514591ms)
+✔ a profile read deadline includes the SDK pre-fetch wait and cancels late transport (23.619388ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 144.227404
+
+File: tests/quality/content-media-regressions.cjs
+✔ content parsing accepts current project only and rejects traversal/encoded alternatives (1.58464ms)
+✔ embedded post requests are independent and duplicate IDs are removed (1.087255ms)
+✔ authorized URLs are replaced and missing capabilities are cleared in every nested field (0.393131ms)
+✔ text-only content does not add authentication or signing round trips (0.31145ms)
+✔ account changes discard capabilities rather than applying them to another viewer (1.350033ms)
+✔ signer rejects unauthenticated calls and never signs client-supplied paths (3.164331ms)
+✔ only verified manifest objects may enter the signing batch (4.112781ms)
+✔ missing manifest is a failure, and denied content returns no capability (1.233551ms)
+✔ article covers request the linked post and draft references remain a distinct permission (0.254195ms)
+✔ unsigned and foreign responses cannot become media capabilities (0.897525ms)
+✔ malformed JSON values fail as client errors before manifest or signing (1.434648ms)
+✔ expired capabilities never reach a rendered row (0.602029ms)
+✔ Markdown images hydrate without changing text or turning ordinary links into media (0.191613ms)
+✔ canonical reshares remove signed tokens from nested objects and Markdown before storage (0.302256ms)
+✔ owner upload hydration uses the separate server ownership manifest and never persists previews (0.692151ms)
+✔ upload requests cannot bypass authenticated owner authorization or mix modes (0.965635ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25.381328
+
+File: tests/quality/conversation-targets.cjs
+✔ share selector uses safe directory RPC and canonical group flag, and omits unaccepted requests and duplicate community chats (2.915183ms)
+✔ community API outage keeps private and group destinations available with a retry warning (1.056951ms)
+✔ profile lookup failure never offers an anonymous ambiguous target and does not hide groups (0.581479ms)
+✔ memberships paginate beyond the first hundred with one consistent snapshot (0.877115ms)
+✔ new message searches preserve literal punctuation and wildcard characters (0.754965ms)
+✔ message composer next and cancel route deterministically without delayed navigation (0.334614ms)
+✔ a stalled community read reaches partial results and releases its deadline (19.093576ms)
+✔ a stalled new-recipient search becomes a retryable error (8.749285ms)
+✔ read deadlines abort supported network requests and always clear the timer (3.640944ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 46.311594
+
+File: tests/quality/dark-surfaces-sweep.cjs
+✔ MemoryAlbumScreen.tsx keeps actual text and control colors readable in Light, Dim and Lights out (168.478037ms)
+✔ SavedPostsScreen.tsx keeps actual text and control colors readable in Light, Dim and Lights out (56.514477ms)
+✔ NetworkScreen.tsx keeps actual text and control colors readable in Light, Dim and Lights out (58.239513ms)
+✔ NotificationsScreen.tsx keeps actual text and control colors readable in Light, Dim and Lights out (72.993252ms)
+✔ SearchScreen.tsx keeps actual text and control colors readable in Light, Dim and Lights out (61.932804ms)
+✔ SellerTrust.tsx keeps actual text and control colors readable in Light, Dim and Lights out (27.841198ms)
+✔ SellerReviews.tsx keeps actual text and control colors readable in Light, Dim and Lights out (45.210189ms)
+✔ ReportListingSheet.tsx keeps actual text and control colors readable in Light, Dim and Lights out (29.05495ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 528.008542
+
+File: tests/quality/deep-link-security.cjs
+✔ malformed escapes and invalid UTF-8 never reach the tolerant navigation decoder (49.815777ms)
+✔ the published advisory-shaped oversized input is rejected without invoking dependency parsing (11.22476ms)
+✔ oversized well-formed paths are bounded while a path at the documented limit still works (7.90563ms)
+✔ actual Navigation 6 parser still resolves the app post, profile, chat and story routes (7.915965ms)
+✔ PKCE, email and recovery callback paths preserve valid query and fragment payloads (7.818702ms)
+✔ valid UTF-8, escaped delimiters, literal percent signs and repeated query values retain their meaning (4.926572ms)
+✔ both authenticated and unauthenticated containers use the guarded cold and warm link configuration (4.648522ms)
+✔ unknown valid routes retain the navigation library result (3.762514ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 103.938162
+
+File: tests/quality/deployment-skip-regressions.cjs
+✔ shared contract changes rebuild the web app (45.428046ms)
+✔ web: unchanged app since the successful deployment is skipped (32.717743ms)
+✔ web: changed app builds while an unrelated app can be skipped (34.54817ms)
+✔ web: earlier application changes still build after a SQL-only final commit (43.040756ms)
+✔ web: a new branch without a previous successful SHA builds (22.245469ms)
+✔ web: unknown and malformed previous SHAs build (23.125688ms)
+✔ web: shallow history missing the previous commit builds (49.637129ms)
+✔ web: git errors normalize to build rather than an ambiguous exit status (22.347404ms)
+✔ admin-web: unchanged app since the successful deployment is skipped (28.183304ms)
+✔ admin-web: changed app builds while an unrelated app can be skipped (31.206537ms)
+✔ admin-web: earlier application changes still build after a SQL-only final commit (43.861828ms)
+✔ admin-web: a new branch without a previous successful SHA builds (22.100435ms)
+✔ admin-web: unknown and malformed previous SHAs build (23.35393ms)
+✔ admin-web: shallow history missing the previous commit builds (46.656169ms)
+✔ admin-web: git errors normalize to build rather than an ambiguous exit status (17.191327ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 493.530266
+
+File: tests/quality/directory-media-sweep.cjs
+✔ Network uses paged authorized community membership, without querying protected tables (2.706545ms)
+✔ a directory source error never masquerades as empty and does not erase healthy sections (0.72466ms)
+✔ community requests and failed leaves use verified server outcomes before changing membership (60.180708ms)
+✔ Saved Posts exposes authorized text while signing, then replaces only with signed media (21.666654ms)
+✔ Saved Posts preserves readable rows and offers retry on read or media failure (37.266177ms)
+✔ Saved Posts fences stale accounts and a failed unsave never resurrects a successful unsave (32.48191ms)
+✔ search source errors stay separate, signed media is required, and old query responses cannot win (23.565568ms)
+✔ search fails closed when block settings cannot load and clears every vertical for an empty query (13.036905ms)
+✔ seller history failures never invent a new seller and stale responses cannot update a different seller (7.80371ms)
+✔ SavedPostsScreen.tsx back button returns through the real registered root, tab and home screen when history is absent (14.387519ms)
+✔ SearchScreen.tsx back button returns through the real registered root, tab and home screen when history is absent (25.243904ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 245.617503
+
+File: tests/quality/draft-soundtrack-interaction.cjs
+✔ native music browse → excerpt → mix uses authorized real rows and commits bounded controls (75.317117ms)
+✔ native real Originals and Saved filters recheck rights; bookmarks store IDs for the current account only (101.772299ms)
+✔ native denied selection settles, blocks Done, exposes retry and allows removal without committing (46.930664ms)
+✔ native empty music library does not invent songs and keeps original-audio guidance (51.775088ms)
+✔ web music browse → excerpt → mix uses authorized real rows and commits bounded controls (34.042707ms)
+✔ web real Originals and Saved filters recheck rights; bookmarks store IDs for the current account only (64.339343ms)
+✔ web denied selection settles, blocks Done, exposes retry and allows removal without committing (25.951931ms)
+✔ web empty music library does not invent songs and keeps original-audio guidance (30.154115ms)
+✔ native search and selected mini player remain inside the keyboard avoidance area (27.055976ms)
+✔ saved soundtrack preferences reject objects/URLs and reauthorize all IDs for the requested use (12.72108ms)
+✔ native draft actual video clock drives soundtrack; volume changes do not seek or recreate playback (11.710373ms)
+✔ native draft pauses original/music when another editor opens, app backgrounds or a call arrives (9.902433ms)
+✔ native photo draft has explicit music control, while picker preview uses its shared play control (9.444549ms)
+✔ web draft uses actual media clock/rate, gates stalled audio and mixes without resetting the video (21.849634ms)
+✔ web draft stops original/music when inactive, hidden or interrupted by a call (23.873402ms)
+✔ web photo draft exposes music play controls outside the picker and respects parent active state (13.049003ms)
+✔ controlled web soundtrack resumes from parent video play after an interruption and keeps one audio stream (9.88071ms)
+✔ controlled web soundtrack rights failure remains closed with a reachable retry (8.919607ms)
+✔ native emergency original-audio gate shows a clear unavailable state and never requests catalog or rights data (36.043301ms)
+✔ web emergency original-audio gate shows a clear unavailable state and never requests catalog or rights data (29.164439ms)
+✔ web playback remains silent and exposes no fake play/retry control when original audio is disabled (8.536101ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 661.273273
+
+File: tests/quality/edit-profile-save.cjs
+✔ saving waits for uploads and requires a successfully loaded profile (74.332083ms)
+✔ duplicate save taps issue one update and refresh every saved profile field (7.31155ms)
+✔ no affected row or transport failure keeps edits and unlocks retry (19.426699ms)
+✔ late saves cannot alter the next account, including switch away and back (12.864332ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 122.55626
+
+File: tests/quality/finance-unavailable-release.cjs
+✔ the new finance and commerce release gates are fixed off (0.753189ms)
+✔ excluded statement, product and commerce services issue zero reads or writes (0.723164ms)
+✔ native creator product panel immediately explains unavailability without a spinner, form or missing RPC (32.241547ms)
+✔ web creator product panel immediately explains unavailability without a spinner, form or missing RPC (16.463317ms)
+✔ creator review action remains unavailable even if an old client submits its form (9.099921ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 75.326541
+
+File: tests/quality/hiring-workflow.cjs
+✔ recruiter pagination reports all status counts and decisions enforce ownership, concurrency, withdrawal and exactly-once notifications (1736.488544ms)
+✔ shared clients pass full cursor and concurrency tokens; invalid deep links cannot fetch (55.675172ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1798.325233
+
+File: tests/quality/incoming-call-access.cjs
+✔ payload parsing accepts actual Expo and Notifee video formats and rejects malformed routes (116.098046ms)
+✔ recipient identity, active status and fresh invitation precede any native display (28.192689ms)
+✔ stored caller metadata, original bearer and AbortSignal are used for every read (23.585469ms)
+✔ group calls require this account to remain invited, including the final recheck (67.410292ms)
+✔ a call ending while its profile loads cannot open a stale screen (16.023069ms)
+✔ A to B to A rejects pending work without rebinding its bearer (22.725152ms)
+✔ deadline and owner teardown settle uncooperative transports and prevent late action (33.294306ms)
+✔ group decline uses the actual stored call kind and original owner (16.491569ms)
+✔ offline and unconfirmed direct declines remain retryable (42.244357ms)
+✔ task errors and unrelated data cannot ring before authorization (21.804618ms)
+✔ duplicate background deliveries coalesce while using stored recipient metadata (36.408049ms)
+✔ native display failure falls back with authoritative recipient routing (20.510353ms)
+✔ Notifee distinguishes dismissed0 from action2 and only confirms successful declines (74.93508ms)
+✔ unknown and decline initial actions cannot open the incoming call screen (84.293798ms)
+✔ a notification whose display finishes after account teardown is immediately removed (26.6037ms)
+✔ native notification timeout respects the remaining authoritative invitation lifetime (33.064177ms)
+✔ a caller ending while Android creates its notification channel cannot ring (31.139976ms)
+✔ an invitation expiring during notification display is removed on completion (66.156576ms)
+✔ an invitation expiring during Expo fallback scheduling is removed on completion (66.583645ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 835.111971
+
+File: tests/quality/job-application-self-service.cjs
+✔ applicant pages are private, bounded and stable across ties, inserts and null legacy dates (1806.521119ms)
+✔ withdrawal requires applicant ownership and fresh state; retry retains history with one audit event and receipt (1391.363663ms)
+✔ application clients propagate errors, validate pagination and send concurrency tokens (62.22416ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3266.902079
+
+File: tests/quality/jobs-market-regressions.cjs
+✔ web: low price is the primary sort, even when the cheapest listing is older (100.717118ms)
+✔ web: high price is the primary sort (27.253216ms)
+✔ web: the All category does not exclude every listing (16.007047ms)
+✔ web: selected category still filters results (14.883542ms)
+✔ web: ranked feed normalizes the All category (14.193137ms)
+✔ web: listing query errors remain distinguishable from no listings (15.312665ms)
+✔ web: ranking errors remain distinguishable from no listings (9.346534ms)
+✔ web: ranked listing hydration failures are surfaced (13.642762ms)
+✔ web: failed save rejects so UI can roll back (11.430562ms)
+✔ web: failed unsave rejects so UI can roll back (8.747163ms)
+✔ web: signed out save cannot report success (8.024198ms)
+✔ web: public browsing permits an absent auth session (8.611112ms)
+✔ web: saved-list errors do not silently clear saved state (9.173069ms)
+✔ web: transient auth errors remain visible (6.959923ms)
+✔ native: low price is the primary sort, even when the cheapest listing is older (17.880554ms)
+✔ native: high price is the primary sort (10.366355ms)
+✔ native: later price-sorted pages continue after the first page (9.250233ms)
+✔ native: the All category does not exclude every listing (8.722517ms)
+✔ native: selected category still filters results (8.465247ms)
+✔ native: ranked feed normalizes the All category (7.581858ms)
+✔ native: listing query errors remain distinguishable from no listings (8.816044ms)
+✔ native: ranking errors remain distinguishable from no listings (7.450595ms)
+✔ native: ranked listing hydration failures are surfaced (12.205301ms)
+✔ native: failed save rejects so UI can roll back (10.909334ms)
+✔ native: failed unsave rejects so UI can roll back (12.960713ms)
+✔ native: signed out save cannot report success (7.17599ms)
+✔ native: public browsing permits an absent auth session (7.168318ms)
+✔ native: saved-list errors do not silently clear saved state (9.407354ms)
+✔ native: transient auth errors remain visible (9.63574ms)
+✔ web/lib/jobs.ts: deadline closes at the exact timestamp, without a 24-hour rounding window (3.41143ms)
+✔ web/lib/jobs.ts: every supported hiring stage has its own label (3.266477ms)
+✔ src/services/jobsService.ts: deadline closes at the exact timestamp, without a 24-hour rounding window (36.655823ms)
+✔ src/services/jobsService.ts: every supported hiring stage has its own label (21.579346ms)
+✔ native: applicant query failures surface to the employer retry state (23.537328ms)
+✔ native: my applications surface a failed page instead of reporting an empty history (27.368686ms)
+✔ native: getJobs preserves an unavailable response for the retry UI (21.579916ms)
+✔ native: getSavedJobs preserves an unavailable response for the retry UI (20.50794ms)
+✔ native: getSavedJobIds preserves an unavailable response for the retry UI (25.725688ms)
+✔ native: getAppliedJobIds preserves an unavailable response for the retry UI (15.833701ms)
+✔ native: open-role availability and popularity ordering are applied before the page limit (17.631067ms)
+✔ native: Near me requires a city instead of returning every location (17.722741ms)
+✔ native job publishing writes the verified signed-in owner used by the hiring RPCs (21.085119ms)
+✔ native job publishing permits a signed-in business account when it is also the posting owner (29.018985ms)
+✔ native job publishing blocks a delegated organization before creating an unmanageable job (18.781289ms)
+✔ a caller cannot substitute the selected actor ID for the authenticated job owner (13.605181ms)
+✔ changing the posting actor during authorization prevents job publication (15.371746ms)
+✔ failed account verification cannot publish a job using the cached profile owner (12.451363ms)
+✔ native: recruiter updates cannot overwrite a withdrawn application (12.820196ms)
+✔ listing card: failed unsave restores a previous successful save without a parent callback (13.321224ms)
+✔ listing card: rapid repeated clicks send only one pending save (7.721493ms)
+ℹ tests 50
+ℹ suites 0
+ℹ pass 50
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 801.7804
+
+File: tests/quality/jobs-navigation.cjs
+✔ a warm Jobs return preserves the mounted list while all reads refresh with one pinned session and cancellation signal (173.653771ms)
+✔ a loaded empty Jobs list also stays ready on a warm return (59.240049ms)
+✔ a failed background refresh keeps the previous Jobs list and exposes its error (53.968231ms)
+✔ an account switch aborts the original Jobs reads and prevents a late response from changing the screen (51.754082ms)
+✔ refreshing the Jobs list does not overwrite an optimistic save still being confirmed (45.313684ms)
+✔ the Jobs first render consumes the current session snapshot before any effects run (92.00495ms)
+✔ revisiting a loaded Jobs filter restores its rows before paint while its fresh read is pending (54.881484ms)
+✔ an uncached Jobs selection does not relabel old rows after its read fails (62.181046ms)
+✔ restoring a filter invalidates its outgoing refresh before that response can publish (52.291172ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 652.379425
+
+File: tests/quality/jobs-parity.cjs
+✔ native recruiter uses server totals and cursor pages instead of truncating the list (175.350117ms)
+✔ native recruiter exposes failed reads as retryable errors, not no applications (83.829034ms)
+✔ native recruiter ignores a late previous-stage response (73.737368ms)
+✔ native recruiter clears private applicants when the signed-in identity changes (56.265772ms)
+✔ jobs back follows the current stack, and direct links have a real tab destination (1.887467ms)
+✔ native detail verifies a route snapshot before offering an application to a now-closed job (43.602646ms)
+✔ native detail cannot offer Apply when application history failed to load (44.914236ms)
+✔ web browse renders a retry state instead of claiming an empty jobs catalogue on query failure (25.630818ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 511.302714
+
+File: tests/quality/legacy-limited-media.cjs
+✔ legacy viewer consumes by message ID and renders only the authenticated, bounded byte endpoint (21.492739ms)
+✔ account changes while opening never reveal the returned capability (0.48255ms)
+✔ closing before the reply is terminal and aborts transport (0.571861ms)
+✔ expired, excessively long, mismatched and invalid grants fail closed (3.398601ms)
+✔ a refused protected endpoint never falls back to a public URL or another protocol (0.541487ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32.325851
+
+File: tests/quality/lens-camera-interaction.cjs
+✔ camera opens without a microphone prompt, flips the regular camera, and records at 1080p (130.81203ms)
+✔ denied microphone permission never starts video capture (58.907078ms)
+✔ available lenses load, their camera flips, and successful readiness does not become a timeout error (48.06944ms)
+✔ lens search and its choices move above the iPhone keyboard and return when dismissed (47.183596ms)
+✔ a stalled lens load exits the spinner with working recovery, without disabling ordinary effects (48.22569ms)
+✔ lens video rejection is caught and capture becomes usable again (37.470282ms)
+✔ a photo that finishes after leaving the camera cannot navigate over the next screen (45.865652ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 423.600022
+
+File: tests/quality/link-preview-publication.cjs
+✔ native dismissed preview stays dismissed after a late same-URL refresh and caption edits (39.447692ms)
+✔ native preview dismissal resets for an empty new draft and another account (8.289019ms)
+✔ native preview rejects a late result immediately after an Auth owner change (6.644398ms)
+✔ native URL changes and cleanup reject responses from a superseded preview request (4.538366ms)
+✔ native publication cannot attach a stale preview after its URL changes or is removed (40.273637ms)
+✔ native publication preserves the current link without depending on a cache acknowledgment (11.522918ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 130.047842
+
+File: tests/quality/marketplace-refresh.cjs
+✔ web refresh removes blocked sellers immediately and fences old, aborted and cross-account responses (74.793556ms)
+✔ native refresh removes blocked sellers immediately and fences old, aborted and cross-account responses (131.446172ms)
+✔ web feed refresh, visible return and owned block events refresh the shelf but foreign-account events do nothing (16.146674ms)
+✔ native pull refresh fetches recommendations and focus/background changes own the request lifecycle (66.750848ms)
+✔ web block and mute events are emitted with the owner only after successful writes (10.589882ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 305.883158
+
+File: tests/quality/memory-creative-plan.cjs
+✔ legacy books retain original timing while explicit new settings enable automatic movies (1.274489ms)
+✔ cover settings reject delivery URLs, unknown keys, unbounded framing and hostile enum objects (0.471044ms)
+✔ film settings require the complete versioned contract and actual booleans (0.156021ms)
+✔ save acknowledgement must identify the expected book and carry a valid revision and documents (0.433709ms)
+✔ original cut preserves every authored trim, speed, original gain and page order (1.003349ms)
+✔ short automatic cuts deterministically spread through the book and retain its first and last memories (1.564166ms)
+✔ full automatic movies keep all eighty memories and fit the five-minute bound (0.956791ms)
+✔ chronological cuts sort real dates stably and keep undated memories last (0.324419ms)
+✔ unmeasured videos stay explicitly estimated and measured trims cannot outlast the source (0.287875ms)
+✔ plans contain no playback URLs and reject empty, duplicate, oversized or changed books (0.762253ms)
+✔ creative saves send one atomic owner-checked revision and exact documents (1.657915ms)
+✔ creative mutations reject wrong owners and stale account scopes before a write (0.687073ms)
+✔ a mutation acknowledgement cannot confirm another book, unchanged revision or missing documents (0.804947ms)
+✔ create retries preserve a caller-owned request UUID and exact story order (0.805067ms)
+✔ an account round trip during a successful write prevents its UI acknowledgement (0.451105ms)
+✔ creative create and save pin the starting JWT and reject sticky account round trips (0.700183ms)
+✔ title cards, timing and movement are the same explicit preview/export timeline (0.518073ms)
+✔ saved excerpt duration never pretends to be measured source-video duration (0.192935ms)
+✔ book access accepts fresh delivery capabilities for the same immutable object (2.149799ms)
+✔ book revocation, revision changes and edited pages stop an export (2.066581ms)
+✔ an account round trip permanently invalidates the active movie access session (0.632453ms)
+✔ native movie contract binds total scenes, finite source edits and the continuous soundtrack envelope (0.682146ms)
+✔ native movie acknowledgement verifies actual timeline, dimensions, scene count, bytes and audio (0.512044ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 113.977668
+
+File: tests/quality/memory-film-lifecycle.cjs
+✔ native initial loading deadline excludes manual pause and restarts on resume (219.420144ms)
+✔ native initial loading deadline excludes background and restarts on resume (112.850221ms)
+✔ native initial loading deadline excludes active call and restarts on resume (115.874068ms)
+✔ native initial loading deadline excludes inactive film and restarts on resume (78.322879ms)
+✔ native late image readiness cannot replace the current ready page or satisfy a new loop (82.709806ms)
+✔ native stale video callbacks cannot replace current progress, readiness, or an actionable failure (70.775627ms)
+✔ native video stall remains terminal across active and foreground changes until remount (81.180432ms)
+✔ native video provider error remains terminal across active and foreground changes until remount (68.7671ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 835.785504
+
+File: tests/quality/memory-film.cjs
+✔ continuous native film waits for media, advances every page, and loops without stopping (295.548487ms)
+✔ a one-photo film replays with a fresh clock and native pause/background do not jump time (126.047146ms)
+✔ a one-photo native loop remounts its media frame so the next run receives readiness (89.684479ms)
+✔ native film controls wrap both directions, preserve the book, and isolate original audio from music (99.20165ms)
+✔ native film pauses music on calls and releases a soundtrack loaded after unmount (175.975459ms)
+✔ native film media deadline is actionable and does not silently skip a failed page (93.343823ms)
+✔ native film private backdrops are uncached and its prefetch effect skips private capabilities (347.61713ms)
+✔ native film video honors trim/speed and advances once at the real media boundary (74.943657ms)
+✔ native film video cannot complete or continue playback while backgrounded or inactive (78.099499ms)
+✔ native film gives stalled video an error instead of remaining stuck after initial readiness (63.55021ms)
+✔ native film video progress and deliberate pauses reset its stalled-media deadline (99.909373ms)
+✔ native film photo artwork follows the playback clock and freezes on pause (74.986601ms)
+✔ film source selection includes embedded videos and text posts without inventing URLs (62.864949ms)
+✔ original music assets match and their generated receipt verifies duration, codec, clipping and seam (1.34294ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1700.743621
+
+File: tests/quality/memory-media-regressions.cjs
+✔ web album loader commits authorized media (6.039043ms)
+✔ web late album read cannot restore an old account's media (3.145017ms)
+✔ web failed album authorization clears media and offers retry (3.228951ms)
+✔ native album loader commits authorized media (6.964107ms)
+✔ native late album read cannot restore an old account's media (7.157031ms)
+✔ native failed album authorization clears media and offers retry (6.043519ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39.240261
+
+File: tests/quality/memory-page-turn.cjs
+✔ turn bounds never wrap, including an empty book (1.13308ms)
+✔ short drags cancel, deliberate drags commit, and flicks must move in the intended direction (0.181448ms)
+✔ rapid navigation stays locked through commit until the new React page is acknowledged (0.155619ms)
+✔ a cancelled, reordered or replaced book rejects its old animation callback (0.199344ms)
+✔ front and back hinge angles are continuous and reduced motion has no timed turn (0.232993ms)
+✔ native swipe completes or returns to its starting page, including interrupted gestures (36.037399ms)
+✔ native rapid taps, stale callbacks and route changes cannot skip pages (22.88567ms)
+✔ native reduced motion navigates immediately without starting a page animation (18.574203ms)
+✔ native animated sheets keep exactly one live media child and static adjacent previews (19.990041ms)
+✔ turning video pages only use an authorized poster or a text fallback on both platforms (30.591941ms)
+✔ cover stamps use the chosen memory date and never invent a trip date (11.8771ms)
+✔ web pointer cancellation and vertical scrolling preserve the current page (21.190521ms)
+✔ web committed swipe changes one page and preserves the single media child during the hinge (12.195079ms)
+✔ web tap and keyboard requests share a lock, and reduced motion commits without a frame (31.542952ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 214.11362
+
+File: tests/quality/memory-picker-accessibility.cjs
+✔ text stories retain a readable preview instead of a blank media tile (64.604214ms)
+✔ a video without a thumbnail uses a muted video frame, never an image element with an mp4 URL (17.014113ms)
+✔ a broken poster falls back to authorized original media and a broken image has a clear placeholder (14.295375ms)
+✔ story selection buttons have caption/date labels and announce selected and already-added states (64.959057ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 176.037155
+
+File: tests/quality/memory-playback.cjs
+✔ photos advance after their displayed duration, never before the first ready frame (0.781782ms)
+✔ pausing or backgrounding preserves elapsed time and never skips pages on return (0.235837ms)
+✔ manual next, previous, album switch and replay each start a fresh page clock (0.143411ms)
+✔ photo durations are finite and readable even when old metadata is invalid (0.240515ms)
+✔ the portable hook retains progress, uses the latest completion callback, and releases its timer (22.805221ms)
+✔ the portable hook pauses elapsed time and hides the old page progress before the next effect (8.563074ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.913329
+
+File: tests/quality/memory-soundtrack-save.cjs
+✔ book music saves serialize same-frame choices and confirm the actual row before reporting success (41.01068ms)
+✔ a returned book music rejection keeps the draft and confirms the saved value before retrying (14.579244ms)
+✔ resolved network and proxy errors after a committed book write recover with a read only (41.819513ms)
+✔ an uncertain book write requires a read and cannot replay or replace its soundtrack blindly (17.07969ms)
+✔ a recovered different server value remains authoritative while the unsaved book choice is retained (17.77171ms)
+✔ a successful book write with a failed confirmation retries only the read (10.006052ms)
+✔ book music removal is confirmed as null and retains its removal draft on failure (11.577238ms)
+✔ one deadline bounds stalled book authentication without sending a later write (9.182898ms)
+✔ book write timeout aborts transport, preserves the draft and ignores late completion (9.912023ms)
+✔ malformed, wrong-book, wrong-owner and non-owner confirmations never become saved state (44.771505ms)
+✔ route changes invalidate late book writes and old-render save callbacks (9.187325ms)
+✔ an account round trip before a render cannot revive a book soundtrack save (10.077727ms)
+✔ book save readback keeps the initiating token through a harmless token refresh (11.960403ms)
+✔ unmount during book write or confirmation produces no late UI update (14.537632ms)
+✔ non-owners, mismatched sessions and invalid soundtrack recipes cannot write book music (27.488766ms)
+✔ native book music controls retain failed choices and expose bounded save/status recovery (8.653498ms)
+✔ native confirmed book soundtrack updates only that book and cancels stale full-book reads (26.608708ms)
+✔ web book music controls retain failed choices and expose bounded save/status recovery (4.563227ms)
+✔ web confirmed book soundtrack updates only that book and cancels stale full-book reads (13.259778ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 351.854738
+
+File: tests/quality/memory-stability-regressions.cjs
+✔ refresh retains the existing owner shelf instead of collapsing profile height (51.211269ms)
+✔ failed refresh keeps existing books and exposes retry; missing payload is not a successful empty shelf (8.762308ms)
+✔ owner changes clear prior books and late requests cannot restore them (6.201202ms)
+✔ book images use full originals, fall back to posters, and offer a working retry after both fail (23.015962ms)
+✔ a renewed signed image source can display after the old source failed (5.708115ms)
+✔ screen navigation delegates to the reader that owns and locks the turn (2.388972ms)
+✔ page-turn touch regions leave bottom video and caption controls unobstructed (3.531727ms)
+✔ web shelf retains existing books during a same-profile refresh (7.606504ms)
+✔ web book photos preserve originals and recover from a failed original and poster (5.874752ms)
+✔ leaving a book during add does not add subsequent selected stories or update the new book (4.7481ms)
+✔ closing a book cancels its pending page animation before it can change the page (2.979792ms)
+✔ concurrent focus and foreground shelf refreshes share the same read (4.099734ms)
+✔ book controls and titles become usable before a stalled cover verification completes (7.03412ms)
+✔ failed cover verification leaves real books and creation controls available with retry (4.682944ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 142.950006
+
+File: tests/quality/memory-story-presentation.cjs
+✔ saved recipe accepts legacy JSON and bounds invalid playback values without music fields (1.230824ms)
+✔ native reader plays the observed 0.5–3.5 second excerpt at 1.5× and preserves original volume (31.127511ms)
+✔ native page turns, calls and backgrounding pause the existing player without a stale trim callback restarting it (19.272883ms)
+✔ web reader metadata and manual seeks honor trim, rate and original volume (13.049799ms)
+✔ web turn pause/resume keeps one source and rejects hidden or call-time play events (11.153774ms)
+✔ native photo pages render saved text and drawing together, and clip changes cannot keep old layers (24.703645ms)
+✔ web photo pages render saved text and drawing together, and clip changes cannot keep old layers (14.601155ms)
+✔ timed text and drawing follow the video media clock in both readers (27.28157ms)
+✔ native fullscreen manual pause survives turns, backgrounding and calls (10.505207ms)
+✔ web excerpt boundary is enforced on decoded frames before a coarse timeupdate and cancels on turns (12.522441ms)
+✔ native layout cells keep their normalized geometry and text stories retain both gradient colors (21.147938ms)
+✔ an authorized album refresh closes an expanded URL when that source is no longer present (4.261673ms)
+✔ legacy album layer JSON is decoded before the existing capability collector; denied URLs never reach the renderer (29.167351ms)
+✔ native Play book advances exactly once at the saved video excerpt and pauses its player (11.085783ms)
+✔ native Play book also finishes when the decoder emits its end event without a final time update (11.014909ms)
+✔ web Play book advances once on decoded excerpt end instead of looping the same page (10.800954ms)
+✔ native memory photos use the saved pixel grade once while videos retain their playback overlays (14.804446ms)
+✔ Android memory video overlays remain present when only its export encoder is available (16.798145ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 295.787413
+
+File: tests/quality/music-catalogue-client.cjs
+✔ catalogue availability requires an explicit recognized server version and true boolean (1.689902ms)
+✔ a missing capability is unavailable while a broken internal function remains a visible retry error (0.933416ms)
+✔ native soundtrack readers require catalogue readiness and hydrate only authorized matching rows (10.352672ms)
+✔ web soundtrack readers require catalogue readiness and hydrate only authorized matching rows (10.850006ms)
+✔ export uses the installed contract and preserves excerpts after the first 30 seconds (1.215122ms)
+✔ catalogue exports require the current server gate, even with a plausible authorization response (0.880988ms)
+✔ v2 authorization denial never falls back to legacy export permission (0.353912ms)
+✔ export rejects wrong tracks, unsupported sources and changed excerpt limits (0.65121ms)
+✔ invalid local excerpts are rejected before any server call (0.575808ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33.707574
+
+File: tests/quality/music-disabled-release.cjs
+✔ original audio is enabled while catalogue licensing cannot be activated by client configuration (0.811885ms)
+✔ native soundtrack services use server-authorized originals and hydrate private playback (71.587024ms)
+✔ web soundtrack services use server-authorized originals and hydrate private playback (38.757776ms)
+✔ web publication preserves original soundtrack metadata and the source-video recipe (94.319592ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 222.36229
+
+File: tests/quality/music-favorites.cjs
+✔ native: rapid bookmark clicks send one owner-pinned mutation and change UI only on confirmation (211.143442ms)
+✔ native: lost save response blocks replay until a read reconciles the committed status (83.539135ms)
+✔ native: A-to-B-to-A before rendering fences a pending favorite completion (60.41113ms)
+✔ native: unmount discards late saved reads and their error callbacks (41.023369ms)
+✔ native: all 200 valid saved IDs remain available after adding a bookmark (53.576436ms)
+✔ web: rapid bookmark clicks send one owner-pinned mutation and change UI only on confirmation (31.963846ms)
+✔ web: lost save response blocks replay until a read reconciles the committed status (30.333706ms)
+✔ web: A-to-B-to-A before rendering fences a pending favorite completion (33.798501ms)
+✔ web: unmount discards late saved reads and their error callbacks (35.23496ms)
+✔ web: all 200 valid saved IDs remain available after adding a bookmark (34.211524ms)
+✔ story: rapid bookmark clicks send one owner-pinned mutation and change UI only on confirmation (43.279395ms)
+✔ story: lost save response blocks replay until a read reconciles the committed status (21.471332ms)
+✔ story: A-to-B-to-A before rendering fences a pending favorite completion (27.877666ms)
+✔ story: unmount discards late saved reads and their error callbacks (27.898812ms)
+✔ story: all 200 valid saved IDs remain available after adding a bookmark (27.633672ms)
+✔ native: choosing the same sound again rechecks availability and releases its checking state (29.45318ms)
+✔ web: choosing the same sound again rechecks availability and releases its checking state (29.01135ms)
+✔ web story Saved resolves an authorized recording outside the browse page (24.138417ms)
+✔ saved ID parsing preserves all valid preferences and reauthorization runs at most four reads together (9.861304ms)
+✔ partial saved authorization preserves usable rows and reports the unresolved count (4.2461ms)
+✔ web story selection cannot emit onChange or release a later busy state after unmount (32.181575ms)
+✔ web story account invalidation rejects late preview and selection callbacks (29.415724ms)
+✔ web favorite read/write pin Authorization, preserve all IDs and accept the previous client argument position (17.048272ms)
+✔ web favorite helpers reject an A-to-B-to-A change during initial session lookup before any RPC (25.8657ms)
+✔ legacy client-only favorite helpers reject a stale session and identity round trips observed during lookup (37.967326ms)
+✔ web favorite helpers reject stale completions and malformed or unconfirmed responses (36.324934ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1048.88354
+
+File: tests/quality/music-maintenance.cjs
+✔ scoped worker rejects app tokens, service credentials and wrong methods without database access (28.135821ms)
+✔ valid cleanup deletes only the database-issued object and acknowledges afterwards (4.426616ms)
+✔ false Storage success cannot release quota and schedules retry (2.19436ms)
+✔ absent objects are acknowledged without another Storage deletion (1.39957ms)
+✔ another owner path, invalid identity and injected traversal never reach Storage (4.494585ms)
+✔ invalid worker authentication and an unavailable lease cannot delete anything (1.716266ms)
+✔ changed objects stay for review, and review-only work has a bounded batch (4.252779ms)
+✔ Storage failure retains the lease record for retry without acknowledgement (1.639563ms)
+✔ worker deadline bounds an uncooperative RPC and aborts its signal (1.295968ms)
+✔ storage deadline bounds an uncooperative fetch and cancellation body never blocks success (5.847657ms)
+✔ catalogue cleanup uses its own lease RPCs and the validated provider path (1.614336ms)
+✔ catalogue cleanup rejects provider traversal and cross-track path substitution (1.159086ms)
+✔ a parent deadline reached while checking a lease prevents a new Storage request (1.389465ms)
+✔ a continuous original backlog cannot starve catalogue cleanup in the same bounded batch (1.899606ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 69.984105
+
+File: tests/quality/native-account-readback.cjs
+✔ QA readback runs the unchanged production account save and reload path, returning no stored contents (81.650116ms)
+✔ an account left only in memory after a caught storage-write failure cannot pass readback (21.351356ms)
+✔ persisted refresh contents must match the active synthetic session (13.88803ms)
+✔ a session changing during readback cannot pass for the previous account (11.483692ms)
+✔ production configuration and a different actor are rejected before storage reads (13.912678ms)
+✔ fixture readback receipts retain only booleans and a count even if extra fields are supplied (1.092988ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.310034
+
+File: tests/quality/native-auth-diagnostics.cjs
+✔ actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span (4.127505ms)
+✔ lock wrapper preserves receiver, timeout arguments, callback arguments and result references (1.010837ms)
+✔ acquisition timeout retains the original error without invoking work or recording error content (0.644258ms)
+✔ callback and storage failures retain rejection identity and leave no false active operation (0.875018ms)
+✔ storage arguments, optional callbacks, receiver and resolved values survive observation (0.402353ms)
+✔ event retention is bounded while preserving startup and recent observations (1.342537ms)
+✔ diagnostic clock and sink errors cannot change auth results (0.315394ms)
+✔ timer descriptors identify lazy getters without invoking or changing them (0.491113ms)
+✔ timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence (0.355373ms)
+✔ timer descriptor failures and bounded identity overflow preserve auth behavior (1.487819ms)
+✔ one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations (0.350706ms)
+✔ native factory rejects production or real-provider configuration before filesystem access (5.99226ms)
+✔ native trace writes are batched, serialized, isolated from storage and recover after failure (3.909033ms)
+✔ disposable source overlay changes only the reviewed three anchors and retains SDK lock and storage (0.408452ms)
+✔ disposable preparation retains diagnostic source, original auth hash and exact overlay content (84.331231ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111.815473
+
+File: tests/quality/native-call-event-lifecycle.cjs
+✔ native actions arriving during setup wait for the current owner and setup runs once (107.526561ms)
+✔ a native hangup before owner hydration supersedes its queued answer (28.050285ms)
+✔ cold initial answer and end actions replay as one final hangup (26.760376ms)
+✔ native event, initial cache and didLoad replay never answer the same call twice (36.174042ms)
+✔ old owner teardown cannot remove a replacement owner or receive delayed initial actions (22.542084ms)
+✔ expired actions and malformed identifiers never reach a later listener (16.960673ms)
+✔ failed native setup removes partial listeners and a later setup can recover (14.794495ms)
+✔ VoIP token replay and call replay share one listener without replacing each other (16.755877ms)
+✔ Android sign-in initialization registers once without the installed library permission or settings prompts (56.410226ms)
+✔ Android passive initialization still replays and de-duplicates cold answer events (38.464123ms)
+✔ Android events drained during native registration replay before the initial cache becomes empty (30.487152ms)
+✔ Android background preparation falls back quietly when native calling is unavailable (63.348668ms)
+✔ Android previously enabled native accounts remain ready without requesting access again (29.531365ms)
+✔ failed Android registration removes partial listeners and can recover without prompting (29.615019ms)
+✔ iOS keeps the installed CallKit setup and all four event listeners (23.023376ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 547.797195
+
+File: tests/quality/native-capture-open-link.cjs
+✔ the iOS handoff condition and semantic Open target match the retained real system alert (1.826058ms)
+✔ an identical-looking Android alert never triggers the iOS handoff action (0.211481ms)
+✔ another app title or nonliteral punctuation cannot authorize an Open tap (0.207175ms)
+✔ no handoff dialog leaves unrelated Open controls untouched (0.155189ms)
+✔ confirmation handling preserves the required route, storage and export assertions (0.516741ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8.125349
+
+File: tests/quality/native-capture-setup.cjs
+✔ android actual adapter reads only the registered packaged asset 1 (464.99872ms)
+✔ android actual adapter reads only the registered packaged asset 2 (5.305159ms)
+✔ android actual adapter reads only the registered packaged asset 3 (4.365555ms)
+✔ ios actual adapter reads only the registered packaged asset 1 (4.004343ms)
+✔ ios actual adapter reads only the registered packaged asset 2 (4.480024ms)
+✔ ios actual adapter reads only the registered packaged asset 3 (3.998765ms)
+✔ unissued media and forbidden request options cannot reach asset delivery (4.193011ms)
+✔ remote and arbitrary asset schemes are rejected before the native resource API (23.801602ms)
+✔ materialized file scheme, presence and byte bounds still fail closed (14.622833ms)
+✔ real adapter cancellation closes a held second chunk exactly once (7.343017ms)
+✔ actual QA capture link resets navigator routes while retaining the app runtime and cumulative receipt (14.970374ms)
+✔ noncapture links preserve the installed default action semantics (2.132308ms)
+✔ a similar route name, wrong path or multiroute state cannot use the capture-only route replacement (1.111095ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 566.724273
+
+File: tests/quality/native-comment-actions.cjs
+✔ two immediate presses send a native comment only once and clear only the confirmed draft (36.235783ms)
+✔ a rejected native comment preserves text, reply and GIF for retry (11.957344ms)
+✔ a late comment response cannot erase a new account or thread draft, even after returning to the same account (5.676836ms)
+✔ off or limited native comments cannot submit through a stale enabled button (12.008724ms)
+✔ failed moderation reports a failure instead of reloading as if saved (5.475139ms)
+✔ native pin uses the checked command, waits for confirmation and rejects a nonauthor (6.686641ms)
+✔ native comment deletion scopes the write to the writer and reports uncertain failure (4.92639ms)
+✔ an old native comment action cannot run after leaving a thread, including returning to the same identity (34.120069ms)
+✔ native Restrict rejects an old nested confirmation and an old outer menu after identity changes (16.444774ms)
+✔ native Restrict sends once, waits for confirmation and exposes a rejected write (16.409972ms)
+✔ an in-flight native Restrict response cannot notify or unlock a replacement context (36.583755ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 204.213634
+
+File: tests/quality/native-dependency-compat.cjs
+✔ Expo and React Native resolve one compatible Metro maintenance family and load their real config (249.031363ms)
+✔ both actual Metro asset pipelines preserve dimensions, scale variants and non-image assets (11.899174ms)
+✔ disguised zero-length ICNS, HEIF and JXL containers are rejected without hanging Metro (223.658027ms)
+✔ PostCSS does not read an absolute or parent source-map path from untrusted CSS (15.407848ms)
+✔ Expo actual PostCSS loader still runs configured plugins, nested rules and source maps (5.418305ms)
+✔ tooling UUID implementations reject undersized v5 output buffers (5.246532ms)
+✔ the actual Xcode project generator retains unique 24-character identifiers (36.338894ms)
+✔ the actual ngrok wrapper generates a v4 tunnel name without starting a process or network request (9.385604ms)
+✔ installed CallKeep exposes one Android React method per name and keeps the four-argument call bridge (6.378739ms)
+✔ CallKeep config plugin matches Expo 54 and retains explicit calling permissions in modifier preview (67.985934ms)
+✔ Daily supports the installed storage and WebRTC peers and preserves its real iOS bundle-cache behavior (15.842397ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 652.523274
+
+File: tests/quality/native-draft-follow-reliability.cjs
+✔ draft restoration preserves new text and switches typed before local storage returns (159.630495ms)
+✔ empty initial render cannot erase a saved draft before hydration completes (93.600875ms)
+✔ old account hydration cannot populate or persist into the next owner draft (50.204038ms)
+✔ draft timer and pending hydration cannot write after sign-out or unmount (92.815168ms)
+✔ failed draft read preserves storage until the user makes a deliberate new edit (43.820536ms)
+✔ resolved follow denial rolls back, shows retry, and an explicit retry can succeed (51.033142ms)
+✔ duplicate follow taps share one operation and denial restores an existing following state (29.520474ms)
+✔ late old-account follow failure cannot roll back a newer account or clear its lock (27.098495ms)
+✔ retry reconciles an already committed follow without a duplicate insert (24.175672ms)
+✔ stale follow-list reads and an old retry cannot repopulate another account (19.36339ms)
+✔ follow-list read errors are visible and retryable instead of looking empty (20.860243ms)
+✔ a list read that started before a successful follow cannot undo its new state (24.625605ms)
+✔ follow completion after unmount cannot roll back state or show a stale error (19.772932ms)
+✔ a list read started during a follow cannot overwrite its later confirmed result (21.895217ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 686.394913
+
+File: tests/quality/native-environment.cjs
+✔ internal builds use isolated backend and separately installed app IDs (2.6631ms)
+✔ a mixed QA and production build is rejected (2.733283ms)
+✔ production application identity stays stable (0.628425ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11.580554
+
+File: tests/quality/native-flow-content-selectors.cjs
+✔ Market waits for the actual card label retained in the iPhone accessibility tree (65.920264ms)
+✔ Jobs requires the exact title alone or the actual grouped title and company (97.439104ms)
+✔ Messages preserves the exact peer and literal preview in grouped rows and repeated returns (59.182737ms)
+✔ Edit profile accepts its actual icon-plus-label group while standalone profile and settings checks remain exact (10.95249ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 239.00114
+
+File: tests/quality/native-memory-export.cjs
+✔ private downloads stream in bounded writes and dispose only their own workspace (115.591321ms)
+✔ unknown-length downloads enforce the byte ceiling before a chunk reaches disk (32.629295ms)
+✔ cancelling a blocked media reader closes it and removes the partial file (26.426015ms)
+✔ foreign links and unapproved public objects never start a download (19.371842ms)
+✔ local copies validate size and retain their source through export cleanup (22.65221ms)
+✔ a low-space constructor allocates no workspace and timed steps release their listener (21.241123ms)
+✔ whole-book capability requires the complete supported native contract on each phone platform (104.227627ms)
+✔ invalid scene and normalized-image acknowledgements cannot become saved files (12.169682ms)
+✔ abort reaches the native job and rejects a late successful encoder response (9.371773ms)
+✔ pre-aborted exports and unavailable builds never invoke native encoding (20.010682ms)
+✔ unimplemented animated native artwork cannot silently export as a static layer (13.078018ms)
+✔ native preparation captures writing and every artwork layer from authorized private sources (144.695788ms)
+✔ capture errors and revoked artwork links fail the whole native preparation and clean temporary bytes (234.097121ms)
+✔ cancelling during capture cannot submit a partial native scene and removes captured files (109.864002ms)
+✔ reduced-motion preparation emits a still transform and zero fade in the actual native request (99.44964ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1012.068779
+
+File: tests/quality/native-memory-modal-lifecycle.cjs
+✔ iOS Close memory film pauses immediately and waits for one native dismissal (259.467162ms)
+✔ iOS Read memory book pauses immediately and waits for one native dismissal (141.32035ms)
+✔ iOS native close request uses the same deferred film lifecycle (85.212128ms)
+✔ film unmount invalidates a retained native dismissal callback (87.361632ms)
+✔ film same-owner replacement invalidates dismissal before React renders the replacement session (88.244337ms)
+✔ film account ABA invalidates dismissal before React renders the replacement session (71.948262ms)
+✔ film book replacement discards the old action and late acknowledgements cannot close the replacement (83.347319ms)
+✔ a stale film control cannot start dismissal of a replacement book (70.533859ms)
+✔ same-book page and delivery refresh preserves the intended film close (88.846076ms)
+✔ film post handoff waits for native dismissal and retains a refreshed identical source (94.527352ms)
+✔ a removed or changed film source cannot dispatch its stale post navigation (58.695996ms)
+✔ Android Close memory film completes once without an unavailable onDismiss event (60.690013ms)
+✔ Android Read memory book completes once without an unavailable onDismiss event (84.015182ms)
+✔ iOS export cancellation aborts immediately, retains its subtree, and notifies parent once after dismissal (26.380518ms)
+✔ closing a ready iOS movie releases its result before native acknowledgement and blocks stale Photos actions (17.565507ms)
+✔ export unmount invalidates its pending native close acknowledgement (26.794248ms)
+✔ export same-owner replacement cannot dispatch an old close or restart old work (38.199333ms)
+✔ export account ABA cannot dispatch an old close or restart old work (19.457413ms)
+✔ export book replacement waits for old dismissal and ignores old callbacks during the replacement close (16.448208ms)
+✔ same-book export presentation refresh preserves its legitimate close (15.282696ms)
+✔ Android export cancellation remains immediate and exactly once without onDismiss (20.239906ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1465.038995
+
+File: tests/quality/native-music-sheet.cjs
+✔ native voiceover capability failure has a real retry without requesting a microphone early (196.107561ms)
+✔ native bookmarks wait for the confirmed baseline and serialize rapid taps on each sound (89.280987ms)
+✔ lost bookmark responses require a status read and the next action uses the recovered value (76.216958ms)
+✔ two independent bookmark completions preserve both values in either order (46.792929ms)
+✔ foreground recovery waits for earlier bookmark writes before reading server status (65.918592ms)
+✔ Saved reauthorizes bookmarked IDs even when absent from the first browse page (48.621225ms)
+✔ partial Saved failures retain checked rows, expose retry and preserve the attached selection (33.123769ms)
+✔ Saved checks at most four rows concurrently and stops scheduling after the picker closes (38.776423ms)
+✔ one Saved deadline prevents 200 stalled favorites from starting repeated timeout batches (47.744258ms)
+✔ a previously rendered Saved control cannot play a sound whose current authorization is denied (34.512464ms)
+✔ only the newest preview can start, including native loads completing out of order (43.669789ms)
+✔ same-frame preview taps retain one request and a second tap cancels a pending preview (35.913617ms)
+✔ old native status callbacks and revoked old checks cannot stop a newer preview (29.660058ms)
+✔ native previews obey current excerpt limits and use the chosen offset (37.04958ms)
+✔ shrunk excerpt rights and warmed-cache revocation prevent playback and attachment (27.095822ms)
+✔ backgrounding cancels pending microphone permission even after foreground return (26.556878ms)
+✔ a call cancels a late native recorder and prevents a replacement until it is released (30.591399ms)
+✔ preview and microphone mode changes are serialized and call interruption keeps the call audio session (44.004272ms)
+✔ inactive followed by background preserves a completed voiceover without autoplay (28.604443ms)
+✔ account changes invalidate late selections and previews even when the original account returns (28.162463ms)
+✔ disabling the sheet stops playback and closes the pending operation immediately (33.333167ms)
+✔ pending stop cannot reset the audio session after a newer recording starts (44.939068ms)
+✔ native saved-sound reads and mutations pin the initiating session and reject a mismatched owner (11.404589ms)
+✔ native favorite mutations reject malformed success acknowledgements (24.968559ms)
+✔ native favorite reads reject malformed or oversized baselines and preserve all valid IDs (29.084971ms)
+✔ native favorite transport rejects an account round trip during session lookup before dispatch (10.0703ms)
+✔ native favorite transport discards late confirmation after identity change and releases its watcher (5.55465ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1178.199044
+
+File: tests/quality/native-private-diagnostics.cjs
+✔ SingleImage load failure reports its event without logging signed media or provider error text (68.734539ms)
+✔ CarouselImageItem load failure reports its event without logging signed media or provider error text (13.818479ms)
+✔ push registration and rotation persist complete tokens without exposing token suffixes or account identifiers (41.032125ms)
+✔ push channel and token persistence failures log fixed outcomes without serializing provider errors (19.355288ms)
+✔ denied push permission reports a non-sensitive outcome and never persists a token (11.911331ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 160.572366
+
+File: tests/quality/native-simulator-entitlements.cjs
+✔ Simulator entitlement reader verifies actual Mach-O/plist fixtures and rejects missing or mismatched identities (80.295144ms)
+✔ actual Simulator signing check: valid (27.255802ms)
+✔ actual Simulator signing check: empty-host (24.282604ms)
+✔ actual Simulator signing check: changed-embedded (24.382721ms)
+✔ actual Simulator signing check: non-adhoc (23.687773ms)
+✔ actual Simulator signing check: host-app-entitlement (24.997932ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 211.810139
+
+File: tests/quality/native-story-export-audio.cjs
+✔ native library export stages a private verified excerpt, rechecks rights, and removes only its own files (132.393685ms)
+✔ native own voiceover uses one pass and never deletes the draft recording (57.972872ms)
+✔ native voiceover refuses missing attestation and unverified remote sources (64.930868ms)
+✔ native export refuses public/signed storage and foreign URLs before downloading audio (82.426232ms)
+✔ native download cancellation removes a partial file and a late native write (22.833835ms)
+✔ native account A to B to A during soundtrack download cannot revive the old export (31.866667ms)
+✔ native revocation after audio staging makes final rights check fail and staging remains releasable (30.384669ms)
+✔ native exported audio must fit its actual verified file and current excerpt allowance (65.108595ms)
+✔ native corrupt or over-limit downloads never enter the encoder (75.597551ms)
+✔ native final soundtrack permission checks observe draft changes and do not reuse released files (50.593635ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 622.292633
+
+File: tests/quality/native-story-interactions.cjs
+✔ native story completions belong to one visit, including account return and effect remount (11.976276ms)
+✔ native story identity checks reject old controls and session changes before a render (19.142569ms)
+✔ an account round trip before React renders cannot revive an earlier story callback (8.985968ms)
+✔ same-frame native reaction taps send one toggle and late completion cannot change another story (60.523318ms)
+✔ native reaction failure cannot roll back a later account or write after unmount (86.423659ms)
+✔ a reaction read started before a mutation cannot replace its confirmed selection (54.740822ms)
+✔ failed initial reaction hydration prevents a blind toggle (30.507406ms)
+✔ a pending initial reaction read cannot submit as the next signed-in viewer (33.692015ms)
+✔ an uncertain reaction offers a status read without replaying the toggle (38.82871ms)
+✔ native poll same-frame duplicate taps submit one vote and use the returned server record (31.878124ms)
+✔ late native poll success and failure do not affect the next story (51.335327ms)
+✔ native poll rejects a stale option and a malformed success without displaying a vote (25.206259ms)
+✔ closing native poll voters invalidates late response and late failure (46.193505ms)
+✔ only the latest native voter option may populate the open sheet (30.042867ms)
+✔ voter load errors produce a retry state instead of an empty vote count (30.522227ms)
+✔ story reaction service propagates a failed read instead of fabricating an empty reaction set (19.352369ms)
+✔ native poll card shows saving without claiming a server vote and becomes retryable after failure (0.668064ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 672.187343
+
+File: tests/quality/native-tab-bar.cjs
+✔ iPhone portrait safe area encloses native tab buttons with keepVisible=false (58.386201ms)
+✔ iPhone portrait safe area encloses native tab buttons with keepVisible=true (9.933218ms)
+✔ iPhone landscape safe area encloses native tab buttons with keepVisible=false (8.894509ms)
+✔ iPhone landscape safe area encloses native tab buttons with keepVisible=true (9.164756ms)
+✔ Android compact minimum inset encloses native tab buttons with keepVisible=false (7.027519ms)
+✔ Android compact minimum inset encloses native tab buttons with keepVisible=true (5.034073ms)
+✔ Android gesture inset encloses native tab buttons with keepVisible=false (6.049228ms)
+✔ Android gesture inset encloses native tab buttons with keepVisible=true (5.750889ms)
+✔ focused descriptor and safe-area style changes recompute the native container using installed style flattening (6.714843ms)
+✔ nonnumeric or invalid dimensions use native parent bounds without invented sizes (13.426192ms)
+✔ default and nonabsolute tab bars retain their natural parent sizing and bottom placement (6.666357ms)
+✔ scroll hide/reveal remains active normally and stops when reduced-motion or screen-reader visibility is requested (6.032804ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 149.999457
+
+File: tests/quality/native-tab-selectors.cjs
+✔ ios personal tabs keep stable native IDs, labels and activation through the installed navigator (147.519198ms)
+✔ ios business tabs keep stable native IDs, labels and activation through the installed navigator (48.531859ms)
+✔ android personal tabs keep stable native IDs, labels and activation through the installed navigator (45.58547ms)
+✔ android business tabs keep stable native IDs, labels and activation through the installed navigator (56.72847ms)
+✔ native flows select all main tabs by their rendered IDs and preserve the navigation sequence (85.829334ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 396.592678
+
+File: tests/quality/native-theme-inputs.cjs
+✔ feed render and style tokens switch light to dark to light with readable paired action colors (222.006395ms)
+✔ settings search accepts text and clears it in a flexible 48-point control across themes (33.225729ms)
+✔ SearchScreen.tsx keeps search input readable and tall enough in both palettes (34.344016ms)
+✔ ConversationsScreen.tsx keeps search input readable and tall enough in both palettes (30.650867ms)
+✔ CreateGroupScreen.tsx keeps search input readable and tall enough in both palettes (22.08993ms)
+✔ FollowListScreen.tsx keeps search input readable and tall enough in both palettes (31.580466ms)
+✔ feed article excerpts remain readable on the active article surface (69.502661ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 451.173791
+
+File: tests/quality/native-timer-bootstrap.cjs
+✔ actual Android Daily timer replacement leaves the earlier SDK acquisition timeout alive after fulfilled auth (4.398618ms)
+✔ actual production entry initializes Daily once before auth and the SDK cancels its original acquisition timeout (5.20153ms)
+✔ actual QA entry installs its guarded transports before Daily and initializes timers before linking or App auth (15.753459ms)
+✔ production or real-provider QA configuration cannot initialize Daily or app auth (16.807921ms)
+✔ actual iOS Daily entry does not replace timer registries during an existing SDK acquisition (1.397318ms)
+✔ bootstrapped actual SDK lock still excludes work and rejects at its configured 5000 ms acquisition deadline (3.002682ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.262813
+
+File: tests/quality/native-ui-fixture.cjs
+✔ fixture installation initializes the real WHATWG types behind React Native lazy fetch before overriding it (4.337438ms)
+✔ native UI fixtures run the actual Supabase authentication and PostgREST adapters without a provider request (38.262456ms)
+✔ an unimplemented endpoint or external provider is a recorded failure, never a green empty response (0.780089ms)
+✔ the full app connectivity probe has an explicit local health response and retains abort/offline failures (1.109333ms)
+✔ the isolated socket completes actual Phoenix join/heartbeat messages without opening a network socket (3.419386ms)
+✔ observed Home ancillary requests return the exact synthetic unread and empty-announcement/ranking contracts (3.298717ms)
+✔ the Jobs screen application helper reads the versioned empty page through the actual Supabase adapter (197.551538ms)
+✔ the observed Home marketplace helper reads its empty recommendation shelf through the actual Supabase adapter (16.838637ms)
+✔ native book fixtures persist a revisioned owner edit through actual Supabase adapters and a fresh shelf/read (3.828928ms)
+✔ private synthetic books deny another actor and reject a previous session token after an owner returns (5.68339ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 280.54856
+
+File: tests/quality/native-ui-flows.cjs
+✔ actual shell requires two separate successful flows without a reset or repeated capture (104.102659ms)
+✔ navigation failure still attempts capture (96.933956ms)
+✔ capture failure preserves navigation success and fails the job (104.712326ms)
+✔ both failures remain recorded (101.001842ms)
+✔ a tee failure remains nonzero and does not suppress the capture invocation (97.069401ms)
+✔ zero CLI exits cannot pass a failed capture JUnit report (93.611729ms)
+✔ zero CLI exits cannot pass a skipped capture JUnit report (102.413831ms)
+✔ zero CLI exits cannot pass a skippedCount capture JUnit report (95.463306ms)
+✔ zero CLI exits cannot pass a errored capture JUnit report (108.386962ms)
+✔ zero CLI exits cannot pass a emptySuite capture JUnit report (106.012611ms)
+✔ zero CLI exits cannot pass a empty capture JUnit report (102.55231ms)
+✔ zero CLI exits cannot pass a missing capture JUnit report (114.851352ms)
+✔ zero CLI exits cannot pass a malformed capture JUnit report (121.099558ms)
+✔ zero CLI exits cannot pass a wrongFlow capture JUnit report (99.95149ms)
+✔ zero CLI exits cannot pass a missingStatus capture JUnit report (99.61888ms)
+✔ zero CLI exits cannot pass a duplicate capture JUnit report (107.51316ms)
+✔ missing, malformed, incomplete or repeated flow results fail closed (225.405361ms)
+✔ actual android shell tail aggregates none and always runs both existing verifiers (223.928441ms)
+✔ actual android shell tail aggregates navigation and always runs both existing verifiers (248.806581ms)
+✔ actual android shell tail aggregates decoder and always runs both existing verifiers (266.820372ms)
+✔ actual android shell tail aggregates fullVerifier and always runs both existing verifiers (245.966877ms)
+✔ actual android shell tail aggregates evidence and always runs both existing verifiers (230.001014ms)
+✔ actual ios shell tail aggregates none and always runs both existing verifiers (197.06467ms)
+✔ actual ios shell tail aggregates navigation and always runs both existing verifiers (177.175373ms)
+✔ actual ios shell tail aggregates decoder and always runs both existing verifiers (185.049749ms)
+✔ actual ios shell tail aggregates fullVerifier and always runs both existing verifiers (181.533077ms)
+✔ actual ios shell tail aggregates evidence and always runs both existing verifiers (190.350437ms)
+✔ capture remains a single separate deep-link flow and source receipts bind its runner (0.423173ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4040.542102
+
+File: tests/quality/native-ui-runtime-diagnostics.cjs
+✔ full-app runtime verifier requires an actual saved account index on both native log formats (7.85694ms)
+✔ full-app runtime verifier requires the later actual account-store readback (1.922591ms)
+✔ a caught keychain failure or native bridge crash cannot be masked by a later successful log (2.520502ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17.138899
+
+File: tests/quality/native-vendor-compat.cjs
+✔ actual consumers load the reviewed local sources and every recorded upstream/source hash matches (3.533033ms)
+✔ the unchanged upstream 0.5.1 decoder regression suite passes through the callable CJS adaptation (108.982715ms)
+✔ the real query-string 7 consumer preserves plus signs, Unicode, arrays, fragments and tolerant malformed decoding (3.773908ms)
+✔ both decoder denial-of-service shapes finish in bounded subprocesses through the actual query-string consumer (141.980513ms)
+✔ deepmerge fixes the reproduced null/primitive/null-prototype/own-key poison paths on both inputs (1.455764ms)
+✔ deepmerge keeps ordinary data, symbols, array/custom merge, clone controls and inherited-setter safety (0.978311ms)
+✔ Expo actual modifyConfigAsync retains native/plugin options and prevents inherited config poisoning (10.642572ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 281.126827
+
+File: tests/quality/native-verification-offers.cjs
+✔ late verification session cannot overwrite a newly signed-in account (99.129279ms)
+✔ verification pending Auth validation is discarded on unmount or sign-out (55.098399ms)
+✔ matching confirmed email keeps the normal verified profile-setup flow (22.492983ms)
+✔ wrong email and unconfirmed Auth records cannot show verification success (37.617426ms)
+✔ foreground polling is single-flight and changing the email invalidates its old result (16.453039ms)
+✔ bearer verification for a different email never replaces the Auth session (19.829141ms)
+✔ Android and iOS Counter both require amount review and Cancel never declines (67.919038ms)
+✔ invalid monetary input stays editable and never reaches the offer endpoint (16.139517ms)
+✔ double-tap submits exactly one reviewed counter with the current backend signature (15.758206ms)
+✔ missing hardened capability and wrong offer ownership fail closed (52.351424ms)
+✔ changed offer and account change during revalidation prevent a counter (25.248661ms)
+✔ uncertain response checks status without replay and closing ignores a late result (25.869066ms)
+✔ the shipping chat Counter action opens the scoped dialog without any offer mutation (73.055263ms)
+✔ counter monetary boundaries stay exact through input and review (37.615603ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 572.135045
+
+File: tests/quality/navigation-cache.cjs
+✔ resolved navigation content is synchronously available and isolated by session and business key (1.171275ms)
+✔ account A→B→A cancels work immediately and its late result cannot refill the cache (2.787685ms)
+✔ a navigation tap shares the prefetch already in flight, including empty results (0.514958ms)
+✔ failed and timed-out refreshes preserve the established content and abort transport (5.650251ms)
+✔ navigation memory has a finite LRU budget and rejects expired or future-dated entries (0.255447ms)
+✔ JWT refresh keeps a session namespace while reauthentication and account changes invalidate it (0.415172ms)
+✔ native cache is cleared while screens are unmounted and a same-account token refresh retains it (26.962826ms)
+✔ native transition prefetch deduplicates and never waits for an artificial transition timer (12.00635ms)
+✔ a native prefetch cancelled by signout cannot return another session result (13.611235ms)
+✔ browser Auth observation precedes lookup and stale getSession cannot undo a rapid account round trip (9.811367ms)
+✔ normal browser JWT rotation does not reset navigation or declare an account change (10.72261ms)
+✔ server renders never share a navigation cache between requests (5.189272ms)
+✔ the actual App session callback clears React Query and cancels an old ignored-signal request across A→B→A (26.610627ms)
+✔ native inbox intent and screen share four parallel first-stage reads with a pinned owner token (29.255532ms)
+✔ failed native inbox refresh preserves loaded conversations and never converts denied settings into success (18.636043ms)
+✔ native inbox aborts first-stage transport and never starts another-account detail reads (32.428615ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 203.351628
+
+File: tests/quality/navigation-directory.cjs
+✔ ranked Market counts scanned rows even when RLS hydration removes visible records (68.299399ms)
+✔ Market starts saved-state and ranked reads together and does not mask their failures (31.813909ms)
+✔ retained Market pages use current RLS/filter data in batches of at most 100 and two at once (22.78279ms)
+✔ Market cancellation stops retained batches and ignores a late read across A to B to A (23.177411ms)
+✔ all directory stages share a 12-second bound even when a transport never settles (17.177576ms)
+✔ Market background reconciliation retains scroll and cursor, removes revoked rows, and adopts updated values (17.359755ms)
+✔ Market filter reads keep price/category/sort and owner selling context on the server (14.667169ms)
+✔ community invitations are merged once, and a partial or malformed directory response never becomes an empty success (85.154249ms)
+✔ directory mutations pin their owner, reject pre-dispatch account round trips and clear subscriptions (28.918436ms)
+✔ real Supabase query builders keep explicit owner Authorization for directory RPCs and writes (76.211669ms)
+✔ Market restores a loaded grid and exact saved scroll before a slow focus refresh, with no focus debounce (65.393316ms)
+✔ Market tab returns restore each loaded view while failed refresh leaves content and scroll visible (57.065654ms)
+✔ Market only debounces changed text, preserves loaded content while typing, and cancels departed searches (47.365866ms)
+✔ market clears retained rows, controls and requests across an account round trip (47.056274ms)
+✔ channels clears retained rows, controls and requests across an account round trip (54.197317ms)
+✔ Channels restores each tab and scroll immediately, keeps data on error, and removes revoked invitations after success (44.913765ms)
+✔ an already resolved empty directory remains an empty view during a slow refresh (43.794628ms)
+✔ Market only marks a save after confirmation and ignores an older refresh saved-state response (44.99129ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 806.028971
+
+File: tests/quality/navigation-screens.cjs
+✔ topic reads pin the owner token and never mask a network error with a compatibility query (44.464123ms)
+✔ missing topic RPC fallback counts scanned rows so a false-positive page does not trap pagination (14.875798ms)
+✔ topic background refresh keeps loaded rows, cursor and scroll while deleting revoked retained rows (9.372176ms)
+✔ failed or departed-account topic refresh cannot erase or replace a resolved list (11.63687ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 86.007318
+
+File: tests/quality/notification-event-dispatch.cjs
+✔ canonical DB claim controls the fixed target and all outgoing fields (23.04274ms)
+✔ only a canonical call claim selects the call endpoint (1.068984ms)
+✔ arbitrary routing, recipient, body, credential and SQL fields fail before privileged lookup (2.471097ms)
+✔ expired, stale and replayed claims never reach the downstream service (0.400479ms)
+✔ a pause or legacy-mode switch after claim prevents forwarding, but still records the skip (0.518724ms)
+✔ an unavailable recheck records uncertainty instead of forwarding or reusing the token (0.544892ms)
+✔ invalid DB receipts cannot choose another target or an arbitrary event (0.741422ms)
+✔ production and missing service configuration are refused before any claim (0.322825ms)
+✔ method and body size bounds reject oversized inputs without dispatch (0.44165ms)
+✔ uncertain provider outcomes remain one-shot and never echo sensitive failure bodies (0.708482ms)
+✔ recipient skip and provider rejection are persisted with exact terminal outcomes (1.71177ms)
+✔ failed acknowledgement never reports completion or retries the forward call (0.576178ms)
+✔ cancellation before lookup or while the claim result is uncertain never forwards (0.889139ms)
+✔ cancellation during forwarding records uncertainty using an independent acknowledgement deadline (0.477062ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 40.550081
+
+File: tests/quality/notification-loading.cjs
+✔ notification text and controls publish before thumbnail signing or decoration settles (42.089559ms)
+✔ late first-page media cannot discard an appended notification page (22.068516ms)
+✔ a thumbnail outage keeps notification metadata and shows an inline retry (26.631253ms)
+✔ a failed refresh preserves already visible activity instead of replacing the list with a full-screen error (38.855818ms)
+✔ a media response cannot overwrite a read or invitation change made after publication (10.231391ms)
+✔ session A-to-B-to-A invalidates a pending metadata response before publishing or signing (9.504371ms)
+✔ session changes also suppress late media and media errors (14.386107ms)
+✔ failed periodic renewal strips expired capabilities without deleting readable activity (10.023796ms)
+✔ malformed metadata cannot establish a successful empty activity result (32.525229ms)
+✔ pagination does not dispatch after the navigation session has been cleared (11.408424ms)
+✔ invitation cleanup follows invitation identity changes without rerunning for photo decoration (5.559474ms)
+✔ an unavailable or malformed collaborator lookup cannot remove invitations or delete notifications (57.873593ms)
+✔ an invitation check cannot remove rows after a refresh or same-user session restart (26.919686ms)
+✔ verified answered invitations are removed without touching open invitations or ordinary activity (18.021589ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 333.31517
+
+File: tests/quality/notification-preferences.cjs
+✔ master pause silences every category and restoring it preserves individually muted categories (1.120171ms)
+✔ explicit category enable recovers old master-toggle booleans and per-type disables (0.486637ms)
+✔ quiet hours handle midnight, local offsets and exact boundaries equally for calls and ordinary pushes (0.2444ms)
+✔ unknown, missing and deactivated accounts never receive pushes (0.241876ms)
+✔ a full off/on/remount journey persists master state and category choices (2.19894ms)
+✔ rapid repeated taps cannot race full JSON snapshots or overwrite another device category (4.58187ms)
+✔ a stale refresh cannot overwrite an optimistic choice or its confirmed database result (0.828ms)
+✔ database rejection and malformed confirmations restore the saved choice and show an issue (1.033633ms)
+✔ switching accounts during load or save suppresses late data and status changes (0.786639ms)
+✔ timeout aborts transport, unlocks controls and keeps established preferences (10.178515ms)
+✔ disposal before the scheduled request prevents transport and later callbacks entirely (0.318159ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 27.348152
+
+File: tests/quality/notification-tap.cjs
+✔ cold and live notification delivery share one action and one acknowledgement (78.406347ms)
+✔ cold Auth hydration binds the first account and waits for its ready navigation (20.336831ms)
+✔ unready navigation expires without leaving the old recursive polling timer behind (13.054153ms)
+✔ an A to B to A account switch aborts a pending action and fences its late result (10.895352ms)
+✔ deadline settles an uncooperative pending transport and cleanup blocks later responses (11.649513ms)
+✔ decline works without navigation but only for a valid incoming call (21.278419ms)
+✔ another account, malformed routing and unknown actions cannot route or mutate (12.822672ms)
+✔ a failed action may be retried and notification storms have a bounded pending queue (23.001187ms)
+✔ actual hook ignores a delayed cold response after a live tap and validates route IDs (28.99634ms)
+✔ actual call tap releases its navigation reservation on account switch during profile loading (30.900876ms)
+✔ actual direct-call decline uses the captured account and never also declines a group call (21.134267ms)
+✔ failed direct decline stays retryable until the stored call confirms the action (14.71539ms)
+✔ a failed call lookup cannot consume the decline response or replace an authoritative missing result (14.414196ms)
+✔ exhausted call-open transport retries preserve the notification for another attempt (14.716752ms)
+✔ actual pinned call transport propagates errors while retaining the legacy optional contract (29.894954ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 356.327739
+
+File: tests/quality/original-audio-infrastructure.cjs
+✔ WAV inspection derives duration from actual PCM bytes and rejects malformed or overlong input (281.152813ms)
+✔ the original memory score is a complete inspectable M4A audio asset (0.758076ms)
+✔ bundled MP3 audio is inspected frame by frame and rejects a truncated final frame (0.846678ms)
+✔ finalizer accepts verified bytes and passes the exact observed object version (8.413786ms)
+✔ wrong owner/path and unauthorized reservations never download Storage (5.984717ms)
+✔ a completed retry reuses its sound without reading or creating another object (6.253063ms)
+✔ hash, byte size, MIME and incomplete streams cannot finalize (10.223002ms)
+✔ oversized request bodies are rejected before account lookup (3.099707ms)
+✔ account revocation during verification prevents finalization (3.654484ms)
+✔ private audio URLs are recognized by both canonical and no-store client hydration (25.820206ms)
+✔ legacy Storage signing can never issue a reusable capability for original audio (18.918918ms)
+✔ verification deadlines abort stalled account reads and service finalization (28.191975ms)
+✔ missing or paused server capability keeps original uploads unavailable (19.267527ms)
+✔ stalled request and audio streams cannot outlive the deadline even when cancellation stalls (29.271556ms)
+✔ rejecting an incomplete body does not wait for an uncooperative cancel promise (4.729177ms)
+✔ original upload reserves, transfers and finalizes once, then reuses the verified retry (10.523856ms)
+✔ an A-to-B-to-A change during the initial Auth read prevents reservation and releases its subscription (2.454967ms)
+✔ an account change during Storage transfer cannot finalize the old account audio (2.383301ms)
+✔ retained storage exhaustion is distinct from the daily upload limit and cannot start a transfer (5.061978ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 473.508821
+
+File: tests/quality/original-audio-library-state.cjs
+✔ web library rejects an old A-to-B-to-A load and unsubscribes on close (92.034274ms)
+✔ web library serializes reuse changes and an old mutation cannot lock the next login (33.227184ms)
+✔ web token refresh preserves the loaded original library (34.906908ms)
+✔ web a stalled library read exposes retry and cannot overwrite the recovered list (37.203702ms)
+✔ native library rejects an old A-to-B-to-A load and unsubscribes on close (26.06376ms)
+✔ native library serializes reuse changes and an old mutation cannot lock the next login (18.413999ms)
+✔ native token refresh preserves the loaded original library (13.477266ms)
+✔ native a stalled library read exposes retry and cannot overwrite the recovered list (18.971977ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 280.509931
+
+File: tests/quality/parity-navigation.cjs
+✔ horizontal swipes advance in both directions, vertical reading and small movement stay put (0.83519ms)
+✔ settings Back follows history and direct-entry pages fall back to their parent (6.788622ms)
+✔ post paragraphs, headings, lists and links remain readable in light mode (43.559827ms)
+✔ post paragraphs, headings, lists and links remain readable in dark mode (19.555521ms)
+✔ the expanded native carousel retains mixed attachment order and opens the tapped item (84.537129ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 173.468
+
+File: tests/quality/post-editor-interaction.cjs
+✔ video cover dragging uses the current trim window, width and callback after a rerender (214.286779ms)
+✔ selected covers clamp into the trimmed clip and never request the exact end-of-file frame (74.654538ms)
+✔ a late thumbnail from the previous media cannot replace the current cover (76.680734ms)
+✔ short iPhones keep post editor actions pinned and all media tools horizontally reachable (63.406187ms)
+✔ native shared-post stories show caption, uncropped media, handle and a working glass post link (19.315677ms)
+✔ web shared-post stories use the same complete photo layout and retain post and author navigation (18.938582ms)
+✔ scaled story-review thumbnails lay out a shared post in the original stage coordinates (16.79932ms)
+✔ completed video cover decoding follows the edited attachment through reorder and ignores a newer edit (64.469133ms)
+✔ native caption decimal drafts survive typing and Apply without requiring blur (81.020692ms)
+✔ native right-angle rotations keep the straighten slider bounded and preserve its offset (56.287098ms)
+✔ native Original and 4:5 remain mutually exclusive for a 800×1000 source (103.299226ms)
+✔ native Original and 1:1 remain mutually exclusive for a 1000×1000 source (113.524416ms)
+✔ native Original and 16:9 remain mutually exclusive for a 1600×900 source (113.274052ms)
+✔ native voice editor changes the same video player and retains the recipe on Apply (42.816642ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1066.863176
+
+File: tests/quality/post-soundtrack-quality.cjs
+✔ soundtrack parser rejects corrupt values and exposes only a bounded recipe (1.551726ms)
+✔ music clock follows seek, trim and repeat positions without accumulating drift (0.217691ms)
+✔ failed media attachment retries original post and preserves soundtrack, edits and tags (46.696438ms)
+✔ lost post response can retry without duplicate post or attachment identities (19.56201ms)
+✔ upload failure cannot publish an empty media post (15.555609ms)
+✔ account change after post write halts subsequent attachments until original account returns (18.862861ms)
+✔ same-tick double tap starts only one publisher (11.678335ms)
+✔ a custom video cover uploads with the post and local draft URIs never enter the saved recipe (16.620306ms)
+✔ a cover upload failure cannot publish a video with a broken preview, and retry keeps its identity (10.850677ms)
+✔ an emergency original-audio capability shutdown omits selected and saved soundtrack metadata without changing original video edits (13.829996ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 174.174762
+
+File: tests/quality/post-upload-draft-ownership.cjs
+✔ native draft intents reopen the active upload or retained retry without replacing it (100.51921ms)
+✔ native external quote and thread intents still open normally when no upload owns the draft (25.259043ms)
+✔ React to video cannot open camera permission while an upload owns the composer (6.703577ms)
+✔ a late reaction video cannot replace media belonging to an upload started while camera was open (6.343476ms)
+✔ late gallery results cannot alter the upload snapshot or the visible progress attachments (5.673469ms)
+✔ cancelling the feed effects camera returns to the intact post draft (8.502427ms)
+✔ returning a captured effect appends full-strength media and selects the new attachment (8.707489ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 173.876357
+
+File: tests/quality/post-voice-viewer.cjs
+✔ fullscreen mixed-media viewer hands the original order and voice recipe to the same carousel player (67.332921ms)
+✔ expanded native video respects saved pitch, mute and trim while viewer speed stays synchronized (57.804363ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.064564
+
+File: tests/quality/private-reader-compat.cjs
+✔ web/lib/chatMedia.ts delivers group avatars without persistent signed URLs and rejects late account responses (54.955446ms)
+✔ src/services/chatMediaService.ts delivers group avatars without persistent signed URLs and rejects late account responses (22.979606ms)
+✔ web/lib/applicationCv.ts re-signs legacy CV references instead of opening old public URLs (6.144061ms)
+✔ src/services/applicationCvService.ts re-signs legacy CV references instead of opening old public URLs (9.375664ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 153.15303
+
+File: tests/quality/profile-content-regressions.cjs
+✔ profile posts publishes authorized metadata while private previews resolve (103.293768ms)
+✔ profile reposts publishes authorized metadata while private previews resolve (81.820657ms)
+✔ profile saved publishes authorized metadata while private previews resolve (66.938496ms)
+✔ profile tagged publishes authorized metadata while private previews resolve (49.230081ms)
+✔ account ABA and superseded loads cannot replace the current profile feed (76.026ms)
+✔ query and signing failures expose retry without stranding the profile spinner (71.667938ms)
+✔ legacy video metadata stays video and normalizing does not reorder cached source arrays (0.407911ms)
+✔ visitor profile honors server content visibility before requesting posts (11.014108ms)
+✔ visitor profile signs post previews and drops old account/target responses (17.014657ms)
+✔ profile focus starts and restarts content without waiting for a header refresh (11.363462ms)
+✔ reselecting a loaded tab keeps its content visible while media access refreshes (38.317243ms)
+✔ a hanging optional collaboration query cannot hold own posts or first-page loading (41.518539ms)
+✔ a read that never reaches transport settles with retry, and a late response cannot replace it (36.772357ms)
+✔ a media outage leaves the authorized post content usable and a retry replaces its stripped previews (34.190923ms)
+✔ pending media is a loading state, not an unavailable photo; text-only posts never display a media spinner (0.207746ms)
+✔ a consumed profile prefetch cannot hide updated follow or visibility state on refresh (8.887504ms)
+✔ warm Profile focus keeps every paged row and scroll, rechecks RLS, and preserves its scanned cursor (57.353509ms)
+✔ a warm Profile signing outage preserves authorized pages while keeping revoked rows removed (32.752869ms)
+✔ warm reposts removes revoked previews before a failed signing refresh (28.132427ms)
+✔ warm saved removes revoked previews before a failed signing refresh (34.40531ms)
+✔ warm tagged removes revoked previews before a failed signing refresh (30.58452ms)
+✔ the story indicator pins its session, aborts on same-user ABA, and ignores late data (59.621221ms)
+✔ the story indicator has a deadline, catches transport errors, and cancels on blur (147.518208ms)
+✔ profile header and optional reach use the initiating token without blocking visible metadata (49.885557ms)
+✔ header prefetch and metadata deadlines cannot dispatch late or cross-session reach requests (127.825826ms)
+✔ a delayed collaborator decoration cannot discard an appended own page or alter its cursor (27.937821ms)
+✔ a generally readable former collaboration requires a current accepted link before publication (93.63326ms)
+✔ Profile pagination has a synchronous lock, preserves failed-page retry, and ignores a blur cancellation (35.141554ms)
+✔ Profile refresh blocks pagination only during its active metadata/signing read (38.918118ms)
+✔ an explicit pull refresh replaces old pages, while ordinary focus preserves them (40.456224ms)
+✔ the own-page cursor preserves PostgreSQL microseconds and rejects unsafe cursor values (29.712455ms)
+✔ retained Profile reads have at most two100-ID batches and one total deadline (42.210138ms)
+✔ a session A-to-B-to-A transition aborts current Profile metadata before React can rerender (28.428315ms)
+✔ private Profile media verification and every signing batch use the initiating token, then stop on account change (28.505244ms)
+✔ profile scroll offsets stay separate for each tab and are applied without animation before paint (12.047916ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1605.003353
+
+File: tests/quality/profile-media-renewal.cjs
+✔ profile renewal keeps pagination and renews only expiring signed attachments (63.806562ms)
+✔ a late renewal cannot overwrite a newer profile read or a changed account (57.319138ms)
+✔ denied media stays denied after refresh and signing outages expose a retry message (40.950863ms)
+✔ a media renewal cannot replace a newer metadata edit that retains the same expiry (15.735053ms)
+✔ same-user session round trips abort periodic renewal before React rerenders and never restart old work (23.773625ms)
+✔ leaving a profile aborts its renewal and suppresses late errors (12.635226ms)
+✔ inactive and signed-out profiles dispatch no renewal (26.502165ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 247.397616
+
+File: tests/quality/profile-shelf-lifecycle.cjs
+✔ mounted shelf shares focus/foreground requests and renders working books before cover verification (48.064493ms)
+✔ failed mounted shelf read replaces its spinner with a working retry (27.928207ms)
+✔ blur/refocus starts a fresh shelf read and old responses cannot win (29.020927ms)
+✔ an account switch immediately hides the old shelf and cannot adopt its late covers (29.386896ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 139.420348
+
+File: tests/quality/qa-notification-setup.cjs
+✔ only the prepared nonce authorizes the single narrow installer call (38.462586ms)
+✔ missing and wrong nonces fail before any privileged operation (1.763518ms)
+✔ production, malformed configuration and invalid windows fail closed (1.939067ms)
+✔ request bodies cannot select a target, key, account or SQL operation (3.155299ms)
+✔ an empty HTTP body stream remains a zero-byte setup request (1.132378ms)
+✔ non-POST methods cannot invoke setup (0.602608ms)
+✔ database failures and malformed acknowledgements return no sensitive details (2.055138ms)
+✔ the database single-use refusal is surfaced without automatic retry (0.890041ms)
+✔ an already interrupted caller never starts the privileged operation (0.88896ms)
+✔ interruption during an uncertain setup does not retry or report success (1.356698ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 59.355498
+
+File: tests/quality/setup-profile-username.cjs
+✔ reserved usernames use the server availability contract and cannot advance onboarding (5.649844ms)
+✔ availability failure is explicit, blocks Continue, and can retry successfully (2.110099ms)
+✔ an older available result cannot override a newer reserved username (2.083599ms)
+✔ editing the name immediately invalidates its confirmation before the next effect (2.188724ms)
+✔ account changes and unmounting discard late username results (3.704628ms)
+✔ a profile save completing after an account switch cannot refresh or announce success in the new account (2.272438ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23.766846
+
+File: tests/quality/social-interaction-regressions.cjs
+✔ sponsored cards preserve actual viewer interactions and use bounded batched reads (79.865178ms)
+✔ failed relationship reads never fabricate false interaction state (21.639077ms)
+✔ account changes discard sponsored state from the previous viewer (13.207163ms)
+✔ signed-out promo reads do not query private viewer relations (13.08949ms)
+✔ interaction network exceptions return a failure for optimistic rollback (7.037391ms)
+✔ already established likes are idempotent; unrelated failures are not success (12.222895ms)
+✔ unlike is scoped to the current viewer and target post (4.425105ms)
+✔ a completed write from the previous account is not applied to the new viewer (4.811223ms)
+✔ a returned auth error cannot authorize an interaction from stale session data (4.566433ms)
+✔ a failed media authorization never exposes an unhydrated sponsored card (12.747217ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 190.915498
+
+File: tests/quality/soundtrack-playback.cjs
+✔ offscreen soundtracks stay unloaded until their post is activated (39.014398ms)
+✔ actual video clock controls seek, trim offset, rate and stalled playback (16.41122ms)
+✔ background and incoming call pause before another audio clock tick (15.684541ms)
+✔ a late loaded track cannot play over an incoming call (13.99281ms)
+✔ rights revocation stops playback and cannot resume on the next tick (11.49304ms)
+✔ mix and trim controls update the loaded sound without refetching or recreating it (11.679224ms)
+✔ disabled original-audio capability never resolves or loads an attached soundtrack or starts a rights timer (13.940734ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 135.028662
+
+File: tests/quality/story-audio-playback-regressions.cjs
+✔ zero initial volume can unmute without recreating or restarting the soundtrack (6.115614ms)
+✔ pause and foreground recovery preserve the same audio instance (1.744017ms)
+✔ late old story audio unloads without playing over the next story (1.255128ms)
+✔ playback load failures expose recovery and retry creates a new attempt (1.204103ms)
+✔ native selecting a reusable sound refreshes authorization but stores no playback token (10.40597ms)
+✔ native late sound selection cannot attach after closing the picker (5.70597ms)
+✔ native revoked sound selection keeps the draft unchanged and releases its lock (4.868768ms)
+✔ restored native sound drafts resolve by ID and renew without persisting capabilities (10.873158ms)
+✔ native sound preview fences old account results and clears denied sound on renewal (8.440336ms)
+✔ incoming calls pause story audio and block a late load from starting (1.250121ms)
+✔ story audio loops at the licensed excerpt boundary rather than the full asset duration (0.872585ms)
+✔ native original starts and loops at the persisted excerpt offset (1.044137ms)
+✔ revocation pauses a warmed native sound and retry cannot restart it (1.054152ms)
+✔ native story commit rechecks the edited range before attaching it (7.075336ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 67.865352
+
+File: tests/quality/story-audio-web-regressions.cjs
+✔ web original upload reserves, uploads without overwrite, verifies and returns a server ID without a playback token (160.500852ms)
+✔ actual byte format, duration and size fail before any reservation or Storage write (234.271037ms)
+✔ account changes before or during upload cannot attach audio to another account (69.774623ms)
+✔ previews use the verified sound ID and never trust arbitrary or older audio URLs (73.095412ms)
+✔ the story library requests only server-authorized sound rows for story use (28.687524ms)
+✔ an older backend cannot return playable story audio before the verified library is installed (37.077285ms)
+✔ story audio rejects catalogue rows even if a backend returns one (29.430388ms)
+✔ web story previews accept later excerpts only within the current source and grant (57.349254ms)
+✔ web story previews and attachments reject shrunk grants and invalid excerpts before delivery (338.477497ms)
+✔ web story previews reject missing or malformed current excerpt rights (207.776772ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1243.337121
+
+File: tests/quality/story-capture-delivery.cjs
+✔ mixed gallery assets retain photo/video identity and duration independently of the route mode (45.344958ms)
+✔ multi-clip retries skip confirmed clips and reuse the uncertain request payload and ID (21.524599ms)
+✔ an account switch after a clip RPC prevents local confirmation and further publishing (13.056893ms)
+✔ Camera Kit capture rejects overlapping, timed-out, error and closed requests; stale responses cannot settle another capture (16.835745ms)
+✔ Camera Kit validates real media data and discards a file that finishes writing after closure (14.091005ms)
+✔ Camera Kit photos and video use the SDK capture output, preserve microphone audio and release capture tracks (3.271436ms)
+✔ Camera Kit stops requested during startup, reports encoder failures and never waits silently for an absent recording (1.357228ms)
+✔ the shipping Camera Kit HTML contains the exact reviewed runtime source and valid JavaScript (18.579033ms)
+✔ layer timing clamps invalid windows and preserves a positive duration inside every clip (13.278529ms)
+✔ native trim playback preserves paused seek positions and loops only while playing (130.452364ms)
+✔ Camera Kit ignores out-of-order Lens loads and blocks capture while a Lens changes (1.328235ms)
+✔ Camera Kit serializes Lens SDK mutations so a slow earlier apply cannot replace the latest choice (1.395003ms)
+✔ Camera Kit disposal fences pending Lens loads and their late errors (1.069555ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 301.369551
+
+File: tests/quality/story-capture-lifecycle.cjs
+✔ Boomerang records one silent 1080p clip and blocks double taps until native encoding finishes (118.798648ms)
+✔ selected Boomerang effects use their actual engine and failure never silently publishes a straight clip (42.27685ms)
+✔ backgrounding during native Boomerang encoding invalidates its late completion and releases camera/timers (35.037173ms)
+✔ the native Boomerang deadline aborts encoding before starting the fallback engine (28.464856ms)
+✔ closing or unmounting during native encoding cancels its job without handing off a stale result (43.72328ms)
+✔ an unfinished Boomerang recording settles to a retry instead of spinning forever (25.178593ms)
+✔ layout waits for all decoded images, hides editing rings, and exports once at 1080×1920 (47.71011ms)
+✔ layout ignores a picker result after navigation and an export completed in the background (63.781065ms)
+✔ layout render timeout exposes an error and permits retry (32.491134ms)
+✔ layout pan uses loaded image geometry and updates its bounds after resizing (25.752123ms)
+✔ local Boomerang engine ignores a file read that finishes after cancellation (10.267286ms)
+✔ local Boomerang engine cannot hand off a saved result after cancellation (9.71283ms)
+✔ local Boomerang engine has one deadline and rejects late or invalid results (15.569222ms)
+✔ actual frame-engine script starts at decoded time zero, creates a forward/reverse clip, and releases resources (8.437993ms)
+✔ actual Slo-Mo and Echo engine paths change the encoded frames/timing and fail honestly without an encoder (8.834596ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 523.597379
+
+File: tests/quality/story-dual-capture.test.cjs
+✔ video dual capture uses the picture camera session for the reaction photo (6.190264ms)
+✔ inactive camera is unmounted rather than left recording on Android (0.834779ms)
+✔ camera waits for readiness and a rapid double tap starts only one photo capture (1.315397ms)
+✔ a capture finishing after blur cannot advance or schedule a reaction countdown (1.029295ms)
+✔ dual mode cannot change while microphone permission is still pending (1.024609ms)
+✔ a countdown animation completing after blur cannot restart the reaction sequence (0.99826ms)
+✔ a stuck dual photo request settles to an error and releases the capture lock (1.230702ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19.342136
+
+File: tests/quality/story-editing-state.cjs
+✔ native framing retains the latest grade, trim, speed and original sound (13.325478ms)
+✔ native reference-card taps show placement actions and never enter text deletion (15.88075ms)
+✔ native text commits preserve shared cards and concurrent sticker changes (38.460041ms)
+✔ native text editor rejects an attempted reference-card edit before changing editor ownership (11.638484ms)
+✔ native adjustment taps and full-width drags change the rendered value and finish at both endpoints (74.364041ms)
+✔ native Save renders a text/shared-card composition rather than requiring an original photo URI (19.113089ms)
+✔ native image export refuses missing/loading photos instead of saving a broken image (44.691095ms)
+✔ native Save double taps and permission completion after an account change cannot save another draft (10.933766ms)
+✔ native video Save composes actual artwork and saves only the verified edited output (11.175762ms)
+✔ native video export keeps older builds and account changes from saving an unedited or stale file (20.326465ms)
+✔ older Android Save explains its required build before permissions or native work (10.405394ms)
+✔ Android Save delegates provider video staging to the gated native job and saves only its verified output (21.296904ms)
+✔ Android native input failure or account cancellation cannot save to Photos (25.92693ms)
+✔ all native story exports retain an account round-trip cancellation before Photos (30.880383ms)
+✔ Android export capability never opens unsupported video color controls (5.115351ms)
+✔ Android keeps legacy preview overlays while iPhone pixel preview suppresses duplicate color (14.148229ms)
+✔ the active native draft renders export progress and its Cancel/Back stops pending output before Photos (33.721365ms)
+✔ native export stops offering cancellation once Photos has accepted the final save (25.593529ms)
+✔ native photo and text stories with audio export movies with a final rights check and cleanup (29.529163ms)
+✔ native revocation during video composition prevents a Photos save and releases audio (9.858764ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 472.462893
+
+File: tests/quality/story-engagement-quality.cjs
+✔ denying countdown notifications never records success or schedules a local reminder (1.336497ms)
+✔ expired or invalid countdowns do not ask for notification access (0.344217ms)
+✔ countdown scheduling must succeed before recording, and repeated taps reuse the same reminder (0.948326ms)
+✔ a failed countdown response rolls back only the newly scheduled reminder (2.503546ms)
+✔ failed native question sends keep the sheet and answer and release the send lock (11.985075ms)
+✔ native question double taps submit once and stale completions cannot change another account (8.00158ms)
+✔ native Add yours cancellation never records a joined response or discards the current story (9.74748ms)
+✔ story privacy switches keep their confirmed value when a write is rejected or changes zero rows (16.638926ms)
+✔ story privacy writes deduplicate taps and a late response never changes the next account (10.186977ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 140.686892
+
+File: tests/quality/story-music-disabled-ui.cjs
+✔ an emergency original-audio shutdown keeps a working original-video volume control with no audio hooks (100.663718ms)
+✔ native sound mix separately controls original video and verified added audio (14.303998ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 120.109767
+
+File: tests/quality/story-photo-pixels.cjs
+✔ neutral edits and zero filter intensity leave the decoded pixels unchanged (25.198278ms)
+✔ brightness increases and decreases real channel values, retaining alpha (0.763063ms)
+✔ saturation and monochrome presets change pixel chroma rather than tinting it (0.956979ms)
+✔ contrast, warmth, tint, fade and each tonal slider alter the actual photo (1.445708ms)
+✔ highlights and shadows depend on pixel luminance, not location on the canvas (0.616438ms)
+✔ every saved filter has finite Skia output and partial intensity changes its result (10.212055ms)
+✔ photo playback retains only spatial grain and vignette overlays, avoiding a second color grade (0.333ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85.894195
+
+File: tests/quality/story-publication-regressions.cjs
+✔ native poll child rejection keeps the original story and retries only its missing child (172.046025ms)
+✔ native selected-recipient failure does not produce success or insert a new story on retry (71.271117ms)
+✔ native actor changes during an upload prevent the base story insert (86.249798ms)
+✔ native account changes during an upload prevent the base story insert (74.88716ms)
+✔ native partial retry rejects changed audience and leaves the original story untouched (68.42376ms)
+✔ native draft reorder during upload updates the original draft by id (67.256001ms)
+✔ native lost insert response locks replay and keeps the draft visible (56.772694ms)
+✔ native same-tick duplicate publish calls perform one insert (59.50705ms)
+✔ native mention rejection remains a failure until the same story is completed (37.002321ms)
+✔ native voiceover publication requires rights attestation before any upload (38.639532ms)
+✔ native failed photo_sticker keeps the draft and retry reuses the confirmed main upload (40.147897ms)
+✔ native failed front_photo keeps the draft and retry reuses the confirmed main upload (47.0902ms)
+✔ native failed voiceover keeps the draft and retry reuses the confirmed main upload (38.026948ms)
+✔ native asset uploads are bounded to three, deduplicated, and all finish before story insert (47.25585ms)
+✔ native failed upload always clears its abort timer (47.723235ms)
+✔ simultaneous sticker transforms merge against the current draft after reorder (2.529422ms)
+✔ book picker receives only confirmed publication IDs and does not navigate away first (48.721317ms)
+✔ typed story mentions exclude deleted handles and do not mistake email addresses for tags (2.452068ms)
+✔ native whole-surface hold ends only its own pause and clears cancelled timers (3.987895ms)
+✔ publishing resolves newly typed handles before saving even when editor lookup has not returned (42.667635ms)
+✔ mention lookup failure creates no partial story and remains retryable (41.73637ms)
+✔ native reply controls are stored in the original story insert for each clip and default to allowed (52.944748ms)
+✔ shipping native publisher attaches verified originals with their excerpt and video mix while catalogue licensing is disabled (75.544053ms)
+✔ native verified audio denial preserves the draft and never inserts a story with an unapproved sound (83.156865ms)
+✔ native audio publication and reads fail closed when the server capability is absent (46.759292ms)
+✔ native audio readers and publication reject catalogue and unverified legacy sources (110.5008ms)
+✔ native story audio keeps full track duration so later excerpts remain selectable (33.626735ms)
+✔ native story catalogue reads and publication require the explicit v2 server gate (36.043021ms)
+✔ native account changes while verified original audio finishes prevent story publication (46.386983ms)
+✔ native Add yours joins only after a confirmed new story and retries the same saved story (34.010672ms)
+✔ native story speed persists even when it is the only non-default media edit (32.934314ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1665.547645
+
+File: tests/quality/story-studio-interaction.cjs
+✔ corrupt stored sticker favorites cannot replace lists with objects or invalid entries (126.501213ms)
+✔ iPhone keyboard lifts a bounded sticker sheet; Android uses its resized window only once (83.680495ms)
+✔ iPhone waits for native dismissal before opening the chosen editor and cancels on unmount (45.347562ms)
+✔ sticker search has an explicit empty result and the sheet retains a reachable close action (18.138704ms)
+✔ text editor keeps save and cancel outside scrolling tools and wires every editing command (7.294399ms)
+✔ an interrupted viewer gesture clears the surface hold and long-press timer before resuming (46.106198ms)
+✔ small-screen sticker content can scroll below the fixed close header (15.84013ms)
+✔ short iPhone music search stays above the keyboard with a pinned close action and one native modal (59.938764ms)
+✔ shipping native sound sheet exposes original upload and recording without starting a microphone or claiming catalogue access (44.533658ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 454.385955
+
+File: tests/quality/story-trending-canvas.test.cjs
+✔ ranked previews reject missing, denied, expired, mismatched and duplicate author media (1.750603ms)
+✔ network failures and signing failures never reuse unresolved ranking rows (1.756712ms)
+✔ account change during signing discards the previous account preview (0.384677ms)
+✔ signed out caller performs no ranking request (0.179235ms)
+✔ canvas movement preserves grab offset, snaps to centre and clamps overscroll (0.394993ms)
+✔ edited text updates interactive question, countdown and location metadata (0.203881ms)
+✔ dual capture preserves Android content URIs and real portrait video dimensions (21.410691ms)
+✔ dual capture fails visibly instead of constructing a zero-size missing image (8.048245ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41.080153
+
+File: tests/quality/story-video-composition.cjs
+✔ video recipe bounds output dimensions without changing canvas aspect, keeps edit duration and original mix (0.973576ms)
+✔ invalid metadata and excessive slowed clips cannot start export (0.435252ms)
+✔ export uses actual color matrix and clamps hostile geometry/volume values (0.349857ms)
+✔ timed artwork partitions its real source windows into speed-adjusted output time (0.863374ms)
+✔ animated or embedded media never silently becomes a static export (0.326933ms)
+✔ export format is chosen only when the recorder reports support (0.134799ms)
+✔ an older native build cannot claim edited video export (81.407443ms)
+✔ Android export stays unavailable until a complete version-one encoder is installed (139.680875ms)
+✔ Android version-one export is independent of the iPhone-only native preview (60.128352ms)
+✔ native bridge cancels pending work and rejects late completion after an account fence (17.959969ms)
+✔ both native bridges verify output identity, finite media duration, dimensions and bytes (388.927966ms)
+✔ native controller maintains actual clock events, bounded settings, exact seeks and released fencing (65.505812ms)
+✔ only the new audio-capable native build can export a soundtrack or still movie (51.037985ms)
+✔ native soundtrack export cannot report success when the encoded file lost its audio (18.599533ms)
+✔ Android keeps Expo video even when its native audio encoder is available (51.351136ms)
+✔ Android published story viewers retain color overlays independently of export support (42.330357ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 947.091704
+
+File: tests/quality/story-viewer-privacy-regressions.cjs
+✔ native story cache is scoped to the signed-in viewer (2.345772ms)
+✔ native story cache refreshes expired capabilities instead of rendering them (0.794922ms)
+✔ a late native story read cannot repopulate media after an account switch (0.784898ms)
+✔ native story cache refreshes expired stories even while signed media is still valid (1.209224ms)
+✔ native trending tile opens the exact selected story (1.320834ms)
+✔ expired native trending target does not open an unrelated story (0.699332ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.796817
+
+File: tests/quality/theme-store-hydration.cjs
+✔ late saved theme hydration cannot overwrite a newer user choice (2.090093ms)
+✔ system mode resolves against the latest system appearance while storage is pending (0.667605ms)
+✔ explicit appearance is preserved when the operating system changes (0.748073ms)
+✔ lights out is a distinct persisted dark palette and survives system changes (0.701405ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.164257
+
+File: tests/quality/unread-session.cjs
+✔ simultaneous tab refreshes share one authenticated request and one complete unread result (95.567286ms)
+✔ offline and malformed unread responses preserve the previous counts and icon badge (23.010381ms)
+✔ logout aborts old unread work and a late response cannot restore another account counts (20.023734ms)
+✔ an A to B to A session round trip rejects the original A response (14.754981ms)
+✔ signed-out refreshes cannot issue an authenticated unread request (16.186162ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 182.750123
+
+File: tests/quality/upload-preview-regressions.cjs
+✔ web preview hides unsigned media and never changes the editable source (23.166942ms)
+✔ web account changes immediately remove preview capabilities (9.633504ms)
+✔ web a late prior draft preview cannot overwrite another draft (10.28803ms)
+✔ native preview hides unsigned media and never changes the editable source (8.445281ms)
+✔ native account changes immediately remove preview capabilities (6.224955ms)
+✔ native a late prior draft preview cannot overwrite another draft (8.483857ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 71.710557
+
+File: tests/quality/upload-safe-regressions.cjs
+✔ unsupported video conversion cannot silently relabel QuickTime bytes as MP4 (4.78452ms)
+✔ failed image conversion cannot silently relabel HEIC bytes as JPEG (0.975649ms)
+✔ successful image conversion uses a new file and releases native objects (0.810336ms)
+✔ successful video conversion clears its timeout (0.755775ms)
+✔ timed-out conversion cancels native work and preserves the unsupported original (0.944243ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.811394
+
+File: tests/quality/video-thumb-lifecycle.cjs
+✔ reused video tiles immediately hide the old frame and ignore late results (2.813371ms)
+✔ short videos retry their first frame and failures expose a readable state (0.925676ms)
+✔ a missing cached image fails visibly and a new signed URL gets a fresh frame (0.873789ms)
+✔ a selected cover loads without decoding video, and a failed cover falls back to a frame (0.947988ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.770762
+
+File: tests/quality/voice-recorder-reliability.cjs
+✔ duplicate start requests acquire the microphone only once (3.433606ms)
+✔ concurrent stops share the finalized file; retry keeps it until explicitly cleared (1.603787ms)
+✔ cancelling the permission prompt cannot start a late recording or release the operation lock early (0.889763ms)
+✔ cancelling during preparation cleans the native recorder and restores playback mode (1.088285ms)
+✔ cancelling an in-flight stop suppresses its result and blocks a new recording until cleanup completes (1.002509ms)
+✔ permission denial is visible and does not prepare or change audio mode (2.583733ms)
+✔ native start failure releases a prepared recording and audio mode (0.94907ms)
+✔ stop failure still restores playback mode and permits another attempt (0.912376ms)
+✔ unmounting while prepare resolves later cleans up without updating unmounted state (0.987187ms)
+✔ the native limit and displayed/file durations remain capped at five minutes (0.950953ms)
+✔ a stale URI cannot turn a failed active stop into a successful voice note (0.845929ms)
+✔ a native duration-limit finalization remains sendable when stop reports already stopped (0.947278ms)
+✔ cancel during audio-mode setup restores playback and keeps the lock until cleanup finishes (0.781634ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24.932878
+
+File: tests/quality/web-message-outbox.cjs
+✔ lost accepted POST recovers after reload without creating a second message (122.430667ms)
+✔ offline queue survives, duplicate retries share one attempt, and account switches cannot send (16.10325ms)
+✔ explicit rejection retains recoverable same-ID intent and sign-out removes private drafts (15.293876ms)
+✔ storage failure does not accept a message that cannot be recovered (18.27874ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 177.891017
+
+File: tests/send-money-sheet-context.test.cjs
+✔ current payment completes once and retains the prepared reference (132.26301ms)
+✔ a signed-out sheet exits loading with its existing sign-in error and no requests (46.005369ms)
+✔ old completed payment cannot own a new sheet after reopen (44.971194ms)
+✔ old completed payment cannot own a new sheet after account ABA (41.37007ms)
+✔ old completed payment cannot own a new sheet after conversation ABA (28.420544ms)
+✔ stale preparation cannot dispatch a payment after reopen (29.828051ms)
+✔ stale preparation cannot dispatch a payment after listing (24.823115ms)
+✔ stale preparation cannot dispatch a payment after recipient (28.173771ms)
+✔ late failed send cannot replace reopened recovery state (24.199811ms)
+✔ unmounted payment completion preserves intent cleanup without UI writes (29.080055ms)
+✔ stale linking completion skips wallet lookup and cannot unlock a newer link (25.79549ms)
+✔ market payment uses the accepted server order total and binds the resulting intent to that order (19.845009ms)
+✔ an order for another buyer cannot expose an enabled payment flow (26.855503ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 508.924625
+
+File: tests/story-message-reference.test.cjs
+✔ story replies retain only a reference and use the personal canonical conversation (1.488867ms)
+✔ expired, private/unavailable or replies-disabled stories do not create conversations (0.432378ms)
+✔ account change after story read prevents initiating a conversation (0.204922ms)
+✔ story reference parser rejects arbitrary URLs and malformed IDs (0.175279ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8.983084
+
+File: tests/studio-reliability.test.cjs
+✔ a lost new-draft response retains the persistent key and retries the same account and payload (1.703178ms)
+✔ changed content gets a new creation identity and other accounts never reuse pending identities (0.368573ms)
+✔ existing drafts use their known ID, and failed persistence prevents unsafe new creation (0.415232ms)
+✔ an absent server save ID never clears recovery, and confirmation cannot clear a newer pending save (0.455551ms)
+✔ campaign dates, budget and delivery cap reject invalid or silently normalized values (1.189651ms)
+✔ native Planner serializes same-tick publishes and retains the draft ID after publish failure (46.100355ms)
+✔ web Planner serializes same-tick publishes and retains the draft ID after publish failure (16.705096ms)
+✔ Studio resources discard stale search and account responses while preserving refresh failures as errors (17.383754ms)
+✔ a failed Studio refresh keeps the last confirmed data and shows a retryable error (5.803425ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 107.398753
+
+File: tests/verification-integrity.test.cjs
+✔ account reports preserve failed submission and handle an existing open report (1.649899ms)
+✔ evidence rejects executable URLs, embedded credentials and malformed payloads (0.606002ms)
+✔ active server flag is authoritative over old approved/revoked application (0.153836ms)
+✔ badges batch requests, fail closed on stale tier and release listeners (3.609845ms)
+✔ badges discard revoked cached claims and hide unconfirmed results on refresh failure (0.634124ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.957414
+

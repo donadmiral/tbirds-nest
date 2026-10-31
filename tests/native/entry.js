@@ -35,7 +35,20 @@ const { registerRootComponent } = require('expo');
 // Match production bootstrap only after the isolated transport is installed.
 require('@daily-co/react-native-daily-js');
 const { linking } = require('../../src/navigation/linking');
+const { CommonActions, getActionFromState } = require('@react-navigation/native');
 linking.prefixes.push('platinum-circles-qa://');
 linking.config.screens.NativeMemoryCaptureFixture = 'ui-fixture/memory';
+const defaultLinkAction = linking.getActionFromState || getActionFromState;
+linking.getActionFromState = (state, options) => {
+  const route = state.routes[0];
+  if (state.routes.length === 1 && route?.name === 'NativeMemoryCaptureFixture'
+    && route.path === 'ui-fixture/memory') {
+    // Remove prior screen-owned Modals even when navigation failed mid-sheet.
+    // Only navigator routes change: App providers, auth/account stores, the
+    // synthetic transport and its cumulative receipt remain in this process.
+    return CommonActions.reset({ index: 0, routes: [route] });
+  }
+  return defaultLinkAction(state, options);
+};
 const App = require('../../App').default;
 registerRootComponent(App);

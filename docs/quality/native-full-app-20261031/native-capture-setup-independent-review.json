@@ -1,0 +1,216 @@
+{
+  "review": "Independent review of QA capture route replacement and registered packaged asset materialization",
+  "recordedAtUtc": "2026-10-31T07:01:19.243985+00:00",
+  "baseHead": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "status": "Accepted within the bounded QA-only scope. Native device acceptance remains pending.",
+  "sourceEditsByReviewer": false,
+  "ownerReceipt": {
+    "path": "docs/quality/native-full-app-20261031/native-capture-setup-repair.json",
+    "sha256": "be1bb8c99c56fa2667914dc98259abfa08439b9ee5ac98b5e960c2ed7ef7bb1f"
+  },
+  "frozenSources": [
+    {
+      "path": "tests/native/entry.js",
+      "sha256": "f2b85281d0355d80ff005627005d8fa07aa131ba2626a70c216d925669803f55"
+    },
+    {
+      "path": "tests/native/expo-fetch-fixture.cjs",
+      "sha256": "581958e6f71da21d7707863ad3b30062a9c47682eb2611c697055e03f3f7beec"
+    },
+    {
+      "path": "tests/quality/native-capture-setup.cjs",
+      "sha256": "3acca49540381734d53e55f954ddea6eabe7175bf363b51e81a4ba963c112547"
+    },
+    {
+      "path": "tests/quality/native-timer-bootstrap.cjs",
+      "sha256": "f9527e61f00a4c0e400e7a759121df6e0b7f4a01eae7df3b8620bf400a9ced2c"
+    }
+  ],
+  "sourceHashesMatchBeforeAndAfterIndependentRun": true,
+  "navigationReview": {
+    "exactTrigger": "One parsed route named NativeMemoryCaptureFixture whose path is exactly ui-fixture/memory. The mandatory flow uses platinum-circles-qa://ui-fixture/memory without extra query parameters.",
+    "actualInstalledExecution": "Installed getStateFromPath, getActionFromState and StackRouter execute in the focused cases. The prior default NAVIGATE retains the previous MemoryAlbum route; the replacement RESET has exactly the capture route and removes the old book route key.",
+    "unchangedOtherRoutes": "Similar names, wrong paths, multi-route states and noncapture links delegate to the installed/default action. A capture path with query parameters is intentionally outside this exact reset trigger.",
+    "architecture": "The action changes navigator route state. The actual App, QueryClientProvider, auth/account module stores and CallProvider are outside/above that route state. The QA route is injected only inside the existing authenticated screen branch. Fixture runtime and receipt remain module-scoped; entry registration/transport installation are not repeated by a link action.",
+    "securityAndState": "No new sign-in, clearState, app relaunch, session setter, account reset, provider re-registration or transport replacement is introduced. The existing environment/synthetic-key guards and transport-before-Daily/App ordering remain.",
+    "importantTestLimit": "entryRuntime auth/accounts are controlled standalone sentinel values, not actual providers/stores. Their unchanged assertions do not establish native auth or keychain continuity. Source architecture and actual reducer behavior establish the scope of the action; saved-account readback and native trace remain the actual acceptance gate.",
+    "nativeModalLimit": "Removing the prior route makes its screen-owned modal unmount through the real navigator lifecycle. The local reducer test does not render UIKit or prove native dismissal completion. The mandatory native route-visible assertion remains unchanged."
+  },
+  "assetReview": {
+    "registeredInputs": [
+      "memory-capture-photo.png",
+      "memory-capture-sticker.png",
+      "memory-capture-video.mp4"
+    ],
+    "registeredInputsOnly": "The authorized fixture file must be an own property of a fixed map of three static require calls. External user data cannot select a new asset module. Issued fixture capability, GET-only request options, omitted credentials and redirect:error remain required.",
+    "demonstratedMismatch": "The installed RN release resolver returns bare Android resource names. Installed Asset.fromModule marks image resources downloaded and leaves localUri as the resource name, so its downloadAsync shortcut cannot provide a file:// URI to the streaming File API.",
+    "repair": "For an Android URI containing only lowercase letters, digits or underscores, construct a fresh public Asset descriptor with the same registered name/type/hash/URI and call its public downloadAsync. Do not mutate downloaded flags or the global Asset caches. iOS file:// resolution continues through the public Asset API.",
+    "nativeContract": "Installed Android AssetModule uses openAssetResourceStream for names without a colon; ResourceAsset resolves only application raw/drawable resources. File URIs return locally, including explicit handling for android_res resources. The adapter rejects non-file/non-resource schemes before this API. The native URI.toURL branch cannot reach HTTP(S) from accepted URI forms.",
+    "bounds": "The materialized URI must be file:// and the native File must exist with size from1 through8MiB. Abort is checked before materialization and before returning a readable response; the held second chunk rejects on abort, closes once and records cancellation. Fixture authority is rechecked for each actual read. No native or JavaScript network fallback is added.",
+    "abortQualification": "Public Asset materialization has no AbortSignal parameter. A local native copy already in progress may finish after cancellation; the temporary probe verifies the actual adapter closes that late handle exactly once and streams no bytes. This review does not claim cancellation of the native copy itself or change the production downloader deadlines.",
+    "nativeDeliveryLimit": "Focused cases execute the installed Asset class and RN release resolver, actual QA adapter, actual authority fixture and actual packaged bytes. The native resource/file bridge is simulated. No APK or iPhone filesystem delivery occurs locally."
+  },
+  "independentVerification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-capture-setup.cjs tests/quality/native-timer-bootstrap.cjs",
+    "exitCode": 0,
+    "counts": {
+      "tests": 19,
+      "pass": 19,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "breakdown": {
+      "captureSetup": 13,
+      "actualSdkDailyBootstrap": 6
+    },
+    "raw": {
+      "path": "docs/quality/native-full-app-20261031/native-capture-setup/independent-focused.tap",
+      "sha256": "39890e1c0649b993d2571493210f26791c5a2f331f02d5d6407cc3fe6f58099f"
+    },
+    "supplementalAbortProbes": {
+      "cases": 2,
+      "passed": 2,
+      "failed": 0,
+      "path": "docs/quality/native-full-app-20261031/native-capture-setup/independent-abort-probes.json",
+      "sha256": "bbf1d8968cd6fc2a69105643cc3f17bf1e3f980f93b35a917054b3f054fab1df",
+      "script": "docs/quality/native-full-app-20261031/native-capture-setup/independent-abort-probes.cjs.txt",
+      "scriptSha256": "bb5c9b1d25f3eae1718c0a6ca3bf9070e57158b3fbf45082faa2ad8b7bdeff9a",
+      "reproduction": "Run node on the retained .cjs.txt script from the repository root with installed dependencies. It disables test registration and adds an await only to the already-mocked native Asset bridge in the owner test harness; production adapter/source stay untouched."
+    },
+    "coverage": "All three registered assets read exact bytes on Android and iOS; invalid capabilities/options/schemes/materialized-file bounds fail closed; second-chunk cancellation closes once; actual parser/reducer capture reset and noncapture behavior; Expo/Daily/App guard ordering and genuine SDK contention timeout remain covered.",
+    "notRerun": "No broad suite, CI workflow, browser journey, simulator build, signing operation, actual capture or encoder run."
+  },
+  "installedVersions": {
+    "react-native": {
+      "installed": "0.81.5",
+      "locked": "0.81.5"
+    },
+    "expo-asset": {
+      "installed": "12.0.14",
+      "locked": "12.0.14"
+    },
+    "expo-file-system": {
+      "installed": "19.0.24",
+      "locked": "19.0.24"
+    },
+    "@react-navigation/native": {
+      "installed": "6.1.18",
+      "locked": "6.1.18"
+    },
+    "@react-navigation/core": {
+      "installed": "6.4.17",
+      "locked": "6.4.17"
+    },
+    "@react-navigation/routers": {
+      "installed": "6.1.9",
+      "locked": "6.1.9"
+    }
+  },
+  "installedContractHashes": [
+    {
+      "path": "node_modules/expo-asset/src/Asset.ts",
+      "sha256": "25d8a9dcc9a1f2bc3af02c8ce91dac06caf46cfa52f18b7a250694ab7eefda13"
+    },
+    {
+      "path": "node_modules/expo-asset/src/PlatformUtils.ts",
+      "sha256": "95aeecf9bbfff1038efa123b6c2c2897c79f0c89ff4a1f3ba38c244da02ee6bd"
+    },
+    {
+      "path": "node_modules/expo-asset/android/src/main/java/expo/modules/asset/AssetModule.kt",
+      "sha256": "93c3bbfbd0fd2e4f5c5e0f355ebb5d6bb9ffdaf837a646eb474410eee5001598"
+    },
+    {
+      "path": "node_modules/expo-asset/android/src/main/java/expo/modules/asset/ResourceAsset.kt",
+      "sha256": "23d06143879ce9dec3cf79c2106292f1339b8ff0be02d36eec87267e7678479e"
+    },
+    {
+      "path": "node_modules/react-native/Libraries/Image/AssetSourceResolver.js",
+      "sha256": "3412b00f989dc6a5001ac6387e92bbbcbebc37f2dcde59dee03fbae8f7c31b8e"
+    },
+    {
+      "path": "node_modules/react-native/Libraries/Image/resolveAssetSource.js",
+      "sha256": "f72cfb80713119ee62624d2517c9475ee8245a4946226fbbf902b8d58316fdb6"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/lib/commonjs/getStateFromPath.js",
+      "sha256": "2e16cc394ac5275e8915f0c8c51bee8ff74b29f0470a5cb9930ace8ffdcc2a7b"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/lib/commonjs/getActionFromState.js",
+      "sha256": "ae5ed7cd194c0dcc8b30b31b24f6523d86549e36c6551e2f216b2be3bf033090"
+    },
+    {
+      "path": "node_modules/@react-navigation/routers/lib/commonjs/StackRouter.js",
+      "sha256": "6a2f6009cf85952db37a3724be70c981789a66660ea8c68d2ccfae6744ff8cbf"
+    },
+    {
+      "path": "node_modules/@react-navigation/routers/lib/commonjs/BaseRouter.js",
+      "sha256": "17d79db9fb3a5f0ab0c2a0e06326dc5e42230698e5776cca8665731aa2100d68"
+    }
+  ],
+  "architectureAndFixtureHashes": [
+    {
+      "path": "App.tsx",
+      "sha256": "bb3803e3848df6381de83d3e9fe08eb34c3c5aede3f95c456b659b292f9eb4dd"
+    },
+    {
+      "path": "src/navigation/AppNavigator.tsx",
+      "sha256": "ee5ce00883df84956d2840d4d70f7f0ed7395797a7889abbb2970d6f7fa455fe"
+    },
+    {
+      "path": "src/navigation/linking.ts",
+      "sha256": "341bf4e12b941139270d1fbb3744588aaeb85b2c9103d04d2740203b12948670"
+    },
+    {
+      "path": "src/stores/authStore.ts",
+      "sha256": "9c5950ee56445bad08c7c89f9672f00077220222b6f04499033f1dcee5af13d3"
+    },
+    {
+      "path": "src/stores/accountsStore.ts",
+      "sha256": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71"
+    },
+    {
+      "path": "tests/native/fixture-runtime.cjs",
+      "sha256": "f49fead1a57074329faa1388fc3b3c9529e925aac0afce8fdc62213306e06792"
+    },
+    {
+      "path": "tests/native/install-fixture-transport.cjs",
+      "sha256": "38eb646e480b80eabf9ba013e2d6140350b4dccf9fd3fb726e569915de80ddda"
+    },
+    {
+      "path": "tests/native/MemoryCaptureFixtureScreen.tsx",
+      "sha256": "2733bae6355e06851454cab5e73e7579bff585b23de5aa2b8259acae7f68de2d"
+    },
+    {
+      "path": "tests/native/account-readback.cjs",
+      "sha256": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19"
+    },
+    {
+      "path": "tests/native/metro-config.cjs",
+      "sha256": "ef3ce3ec3050e53d98b457c6b1e9aa8abfc8490091637a011112bb82d3c0a90f"
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui.cjs",
+      "sha256": "9afa9baef4388c76155dab43708deb0c667a17b5f50e866c5afc0c74c94c8d84"
+    },
+    {
+      "path": "tests/native/flows/memory-capture.yaml",
+      "sha256": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde"
+    },
+    {
+      "path": "tests/native/assets/memory-capture-photo.png",
+      "sha256": "3b9a7aeedbf62a83256e320ad4472fb50d32ceb9f3ff62fc98f903d4fae9cd65"
+    },
+    {
+      "path": "tests/native/assets/memory-capture-sticker.png",
+      "sha256": "1eb3f1a983c7a13e77c00ffdc1d89f44e1bd01b5ac94131c6c6026a0d2836fdb"
+    },
+    {
+      "path": "tests/native/assets/memory-capture-video.mp4",
+      "sha256": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2"
+    }
+  ],
+  "nextAcceptance": "The next complete native jobs must retain one cumulative process/transport trace, pass the mandatory saved-account readback, perform real cancellation and complete capture/encoding, decode the retained movie, and pass strict flow/JUnit/cleanup verification. No acceptance threshold or timeout is weakened."
+}

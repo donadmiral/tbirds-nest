@@ -3,10 +3,10 @@ const root=path.resolve(__dirname,'../..');
 const walk=node=>!node?[]:Array.isArray(node)?node.flatMap(walk):typeof node==='object'?[node,...walk(node.props?.children)]:[];
 const words=node=>!node?'':Array.isArray(node)?node.map(words).join(' '):typeof node==='object'?words(node.props?.children):typeof node==='function'?'':String(node);
 
-function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',media_url:'signed:first'},{id:'two',media_type:'image',media_url:'signed:second'}],deferredAudio=false,component='film',videoPage={id:'video',media_type:'video',media_url:'signed:clip',media_transform:{trimStart:2,trimEnd:5,speed:2}}}={}){
+function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',media_url:'signed:first'},{id:'two',media_type:'image',media_url:'signed:second'}],deferredAudio=false,component='film',os='ios',bookId='book-a',videoPage={id:'video',media_type:'video',media_url:'signed:clip',media_transform:{trimStart:2,trimEnd:5,speed:2}}}={}){
  const slots=[],timers=new Map(),effects=[],appListeners=new Set(),windowListeners=new Map(),documentListeners=new Map(),players=[],sounds=[];
  let cursor=0,dirty=true,tree,now=0,nextTimer=0,active=true,callState='idle',closed=0,read=0,retries=0,audioResolve,unloaded=false;
- let renderedPages=pages,progress=[],ended=0,ready=0,failed=0;
+ let renderedPages=pages,renderedBookId=bookId,sessionScope='1:owner',progress=[],ended=0,ready=0,failed=0;const posts=[];
  const equal=(a,b)=>a&&b&&a.length===b.length&&a.every((x,i)=>Object.is(x,b[i]));
  const hooks={
   useRef(value){const i=cursor++;return slots[i]||(slots[i]={current:value});},
@@ -31,7 +31,7 @@ function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',medi
  function load(file){file=path.resolve(root,file);if(cache.has(file))return cache.get(file);const module={exports:{}};cache.set(file,module.exports);let source=fs.readFileSync(file,'utf8');if(file.endsWith('/MemoryFilm.tsx'))source+='\nexport const __TestFilmVideo = FilmVideo;';
   const localRequire=name=>{
    if(name==='react')return {...hooks,default:hooks};if(name==='react/jsx-runtime')return runtime;
-   if(name==='react-native')return{Modal:'Modal',View:'View',Text:'Text',TouchableOpacity:'TouchableOpacity',ActivityIndicator:'ActivityIndicator',StyleSheet:{create:value=>value,absoluteFill:{},absoluteFillObject:{}},Animated:{Value:class{constructor(value){this.value=value;}setValue(value){this.value=value;}},View:'AnimatedView',timing:()=>({start(){},stop(){}})},AppState:app,AccessibilityInfo:{isScreenReaderEnabled:async()=>false,addEventListener:()=>({remove(){}})}};
+   if(name==='react-native')return{Platform:{OS:os},Modal:'Modal',View:'View',Text:'Text',TouchableOpacity:'TouchableOpacity',ActivityIndicator:'ActivityIndicator',StyleSheet:{create:value=>value,absoluteFill:{},absoluteFillObject:{}},Animated:{Value:class{constructor(value){this.value=value;}setValue(value){this.value=value;}},View:'AnimatedView',timing:()=>({start(){},stop(){}})},AppState:app,AccessibilityInfo:{isScreenReaderEnabled:async()=>false,addEventListener:()=>({remove(){}})}};
    if(name==='expo-image')return{Image:Object.assign('Image',{prefetch:async()=>true})};
    if(name==='expo-av')return{Audio:audioAPI};
    if(name.endsWith('modules/boomerang/storyVideo')) { const api=localRequire('expo-video'); return {StoryVideoView:api.VideoView,useStoryVideoPlayer:api.useVideoPlayer}; }
@@ -42,6 +42,8 @@ function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',medi
    if(name.includes('CallContext'))return{useCallContext:()=>({callState})};
    if(name.includes('SafeArea'))return{useSafeAreaInsets:()=>({top:0,bottom:0})};
    if(name.endsWith('useMemoryPlayback'))return{useMemoryPlayback:load('shared/useMemoryPlayback.ts').createMemoryPlaybackHook(hooks)};
+   if(name.endsWith('useNativeModalDismissal'))return load('src/hooks/useNativeModalDismissal.ts');
+   if(name.endsWith('/lib/navigationCache'))return{navigationScope:()=>sessionScope};
    if(name.endsWith('useMemoryDialog'))return{useMemoryDialog:()=>hooks.useRef(null)};
    if(name.endsWith('MemoryPageImage'))return{__esModule:true,default:'MemoryPageImage',MemoryPageImage:'MemoryPageImage'};
    if(name.endsWith('MemoryStoryFrame'))return{__esModule:true,default:'MemoryStoryFrame',MemoryStoryFrame:'MemoryStoryFrame'};
@@ -52,18 +54,18 @@ function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',medi
    if(name==='@expo/vector-icons')return{Feather:'Feather'};
    return{default:name};
   };
-  vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{module,exports:module.exports,require:localRequire,...globals});cache.set(file,module.exports);return module.exports;
+  vm.runInNewContext(ts.transpileModule(source,{fileName:file,compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{module,exports:module.exports,require:localRequire,...globals});cache.set(file,module.exports);return module.exports;
  }
  const source=platform==='native'?'src/components/memory/MemoryFilm.tsx':'web/components/memory/MemoryFilm.tsx';
  const mod=load(source),Component=component==='video'?mod.__TestFilmVideo:platform==='native'?mod.default:mod.MemoryFilm;
  function allNodes(){const nodes=walk(tree);for(const node of [...nodes])if(node.type==='MemoryStoryFrame'&&typeof node.props.children==='function')nodes.push(...walk(node.props.children(platform==='native'?{fit:'contain',style:{}}:{})));return nodes;}
- function render(){let guard=0;while(dirty&&!unloaded){if(++guard>40)throw Error('render loop');dirty=false;cursor=0;tree=Component(component==='video'?{item:load('shared/memoryFilm.ts').memoryFilmItems([videoPage])[0],active,muted:true,onReady:()=>ready++,onError:()=>failed++,onProgress:value=>progress.push(value),onEnd:()=>ended++}:{title:'Our moments',pages:renderedPages,active,reduceMotion:false,onClose:()=>closed++,onReadBook:()=>read++,onRetry:()=>retries++,onPost:()=>closed++});for(const node of allNodes()){if(node.type==='audio'&&node.props.ref)node.props.ref.current=audioNode;if(node.type==='video'&&node.props.ref)node.props.ref.current=videoNode;}while(effects.length)effects.shift()();}}
+ function render(){let guard=0;while(dirty&&!unloaded){if(++guard>40)throw Error('render loop');dirty=false;cursor=0;tree=Component(component==='video'?{item:load('shared/memoryFilm.ts').memoryFilmItems([videoPage])[0],active,muted:true,onReady:()=>ready++,onError:()=>failed++,onProgress:value=>progress.push(value),onEnd:()=>ended++}:{bookId:renderedBookId,title:'Our moments',pages:renderedPages,active,reduceMotion:false,onClose:()=>closed++,onReadBook:()=>read++,onRetry:()=>retries++,onPost:id=>{posts.push(id);closed++;}});for(const node of allNodes()){if(node.type==='audio'&&node.props.ref)node.props.ref.current=audioNode;if(node.type==='video'&&node.props.ref)node.props.ref.current=videoNode;}while(effects.length)effects.shift()();}}
  async function settle(){for(let i=0;i<8;i++){render();await new Promise(resolve=>setImmediate(resolve));}render();}
- return{settle,nodes:allNodes,words:()=>words(tree).replace(/\s+/g,' ').trim(),sounds,players,audioNode,videoNode,progress,get ended(){return ended;},get ready(){return ready;},get failed(){return failed;},get closed(){return closed;},get read(){return read;},get retries(){return retries;},load,
+ return{settle,nodes:allNodes,words:()=>words(tree).replace(/\s+/g,' ').trim(),sounds,players,audioNode,videoNode,progress,posts,get ended(){return ended;},get ready(){return ready;},get failed(){return failed;},get closed(){return closed;},get read(){return read;},get retries(){return retries;},load,
   press(label){const node=allNodes().find(node=>(node.props['aria-label']??node.props.accessibilityLabel)===label);if(!node)throw Error('Missing control: '+label);(node.props.onClick??node.props.onPress)();},
   mediaReady(){const node=allNodes().find(node=>node.type==='MemoryPageImage');node?.props.onReady();},
   async tick(ms){now+=ms;for(const [id,timer] of [...timers])if(timer.at<=now){if(timer.interval)timer.at=now+timer.delay;else timers.delete(id);timer.fn();}await settle();},
-  setActive(value){active=value;dirty=true;},setPages(value){renderedPages=value;dirty=true;},setCall(value){callState=value;document.documentElement.dataset.platinumCallActive=value==='idle'?'false':'true';observer?.();dirty=true;},
+  setActive(value){active=value;dirty=true;},setPages(value){renderedPages=value;dirty=true;},setBook(value){renderedBookId=value;dirty=true;},setSessionScope(value){sessionScope=value;dirty=true;},setCall(value){callState=value;document.documentElement.dataset.platinumCallActive=value==='idle'?'false':'true';observer?.();dirty=true;},
   setForeground(value){app.currentState=value?'active':'background';document.hidden=!value;for(const fn of appListeners)fn(app.currentState);for(const fn of documentListeners.get('visibilitychange')??[])fn();},
   resolveAudio(){audioResolve?.();},
   dispose(){unloaded=true;audioNode.isConnected=false;videoNode.isConnected=false;for(const slot of slots)slot?.cleanup?.();},get timerCount(){return timers.size;},

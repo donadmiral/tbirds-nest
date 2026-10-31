@@ -72,7 +72,7 @@
         "after": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
         "verified": true,
         "retained": {
-          "path": "docs/quality/native-full-app-20261031/android-e173b2db/overlays/src__services__supabase.ts",
+          "path": "docs/quality/native-full-app-20261031/android-e173b2db/overlays/src__services__supabase.ts.txt",
           "bytes": 5251,
           "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5"
         }

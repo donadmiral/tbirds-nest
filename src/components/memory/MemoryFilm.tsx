@@ -1,6 +1,6 @@
 import { readSoundtrack } from '../../../shared/soundtrack';
 import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, Animated, AppState, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -9,6 +9,7 @@ import { StoryVideoView as VideoView, useStoryVideoPlayer as useVideoPlayer } fr
 import { useSafeAreaInsets } from '../SafeArea';
 import { useCallContext } from '../../contexts/CallContext';
 import { useMemoryPlayback } from '../../hooks/useMemoryPlayback';
+import { useNativeModalDismissal } from '../../hooks/useNativeModalDismissal';
 import MemoryPageImage from './MemoryPageImage';
 import MemoryStoryFrame from './MemoryStoryFrame';
 import MemoryMovieExport from './MemoryMovieExport';
@@ -31,6 +32,7 @@ export default function MemoryFilm({ bookId,revision,title, pages, soundtrack, f
   const [selection, setSelection] = useState({ id: items[0]?.id ?? '', run: 0 });
   const [playing, setPlaying] = useState(true);
   const [exportOpen,setExportOpen]=useState(false);
+  const dismissal = useNativeModalDismissal(bookId);
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
   const [music, setMusic] = useState(true), [volume, setVolume] = useState(savedMusic?.volume??MEMORY_SCORE_VOLUME);
   const [originalMuted, setOriginalMuted] = useState(()=>filmSettings?!memoryFilmSettings(filmSettings).originalAudio:true);
@@ -44,8 +46,12 @@ export default function MemoryFilm({ bookId,revision,title, pages, soundtrack, f
   const key = `${item?.id}:${item?.uri}:${selection.run}:${attempt}`;
   const error = failure.key === key ? failure.message : '';
   const ready = item?.kind === 'text' || readyKey === key;
-  const allowed = active && foreground && callState === 'idle' && playing && !error && !exportOpen;
-  const current = useRef({ items, index, key, allowed }); current.current = { items, index, key, allowed };
+  const allowed = active && foreground && callState === 'idle' && playing && !error && !exportOpen && dismissal.visible;
+  const current = useRef({ items, index, key, allowed });
+  useLayoutEffect(() => { current.current = { items, index, key, allowed }; }, [items, index, key, allowed]);
+  const stopForDismissal = () => { current.current.allowed = false; setPlaying(false); };
+  const closeFilm = () => dismissal.dismiss(onClose, stopForDismissal);
+  const readBook = () => dismissal.dismiss(onReadBook, stopForDismissal);
   const mediaReady = (eventKey: string) => { if (current.current.key === eventKey) setReadyKey(eventKey); };
   const mediaFailed = (eventKey: string, message: string) => { if (current.current.key === eventKey) setFailure({ key: eventKey, message }); };
   const mediaProgress = (eventKey: string, value: number) => { if (current.current.key === eventKey) setVideoState({ key: eventKey, progress: value }); };
@@ -93,13 +99,13 @@ export default function MemoryFilm({ bookId,revision,title, pages, soundtrack, f
   },[fade,visual.opacity,reduceMotion]);
   const retry = () => { setAttempt(value => value + 1); onRetry(); };
   if (!item) return null;
-  return <Modal visible animationType={reduceMotion ? 'none' : 'fade'} presentationStyle="fullScreen" onRequestClose={onClose}>
+  return <Modal visible={dismissal.visible} animationType={reduceMotion ? 'none' : 'fade'} presentationStyle="fullScreen" onRequestClose={closeFilm} onDismiss={dismissal.onDismiss}>
     <View style={s.root}>
       <View style={[s.header, { paddingTop: Math.max(12, insets.top) }]}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close memory film" onPress={onClose} style={s.icon}><Feather name="x" size={22} color="#fff" /></TouchableOpacity>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close memory film" onPress={closeFilm} style={s.icon}><Feather name="x" size={22} color="#fff" /></TouchableOpacity>
         <View style={s.heading}><Text style={s.eyebrow}>MEMORIES</Text><Text numberOfLines={1} style={s.title}>{title}</Text></View>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Create memory movie" onPress={()=>{setPlaying(false);setExportOpen(true);}} style={s.icon}><Feather name="download" size={21} color="#fff" /></TouchableOpacity>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Read memory book" onPress={onReadBook} style={s.icon}><Feather name="book-open" size={21} color="#fff" /></TouchableOpacity>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Create memory movie" onPress={()=>{if(dismissal.isDismissing())return;setPlaying(false);setExportOpen(true);}} style={s.icon}><Feather name="download" size={21} color="#fff" /></TouchableOpacity>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Read memory book" onPress={readBook} style={s.icon}><Feather name="book-open" size={21} color="#fff" /></TouchableOpacity>
       </View>
       <View style={s.timeline} accessibilityRole="progressbar" accessibilityLabel={`Memory ${index + 1} of ${items.length}`} accessibilityValue={{ min: 0, max: 100, now: Math.round(displayedProgress * 100) }}>
         {items.map((entry, i) => <View key={entry.id} style={s.segment}><View style={[s.segmentFill, { width: `${i < index ? 100 : i === index ? displayedProgress * 100 : 0}%` }]} /></View>)}
@@ -117,7 +123,7 @@ export default function MemoryFilm({ bookId,revision,title, pages, soundtrack, f
       <View style={[s.footer, { paddingBottom: Math.max(18, insets.bottom) }]}>
         {!!cut.error&&<Text accessibilityRole="alert" style={s.notice}>{cut.error}</Text>}{cut.plan?.settings.mode==='automatic'&&<Text style={s.sourceText}>{cut.plan.settings.style} · {cut.plan.selectedCount} of {cut.plan.sourceCount} memories · {Math.ceil(cut.plan.durationSec)} seconds{cut.plan.estimated?' estimated':''}</Text>}
         {!!item.page.caption && item.kind !== 'text' && <Text numberOfLines={2} style={s.caption}>{item.page.caption}</Text>}
-        {!!item.postId && <TouchableOpacity accessibilityRole="button" onPress={() => { setPlaying(false); onPost(item.postId!); }} style={s.source}><Text numberOfLines={1} style={s.sourceText}>{item.author ? `Shared from ${item.author}` : 'View original post'} <Feather name="arrow-up-right" size={12} /></Text></TouchableOpacity>}
+        {!!item.postId && <TouchableOpacity accessibilityRole="button" onPress={() => { const {id,postId}=item; dismissal.dismiss(()=>onPost(postId!),stopForDismissal,()=>current.current.items.some(entry=>entry.id===id&&entry.postId===postId)); }} style={s.source}><Text numberOfLines={1} style={s.sourceText}>{item.author ? `Shared from ${item.author}` : 'View original post'} <Feather name="arrow-up-right" size={12} /></Text></TouchableOpacity>}
         <View style={s.controls}>
           <TouchableOpacity accessibilityRole="button" accessibilityLabel="Previous memory" onPress={() => advance(-1)} style={s.icon}><Feather name="skip-back" size={22} color="#fff" /></TouchableOpacity>
           <TouchableOpacity accessibilityRole="button" accessibilityLabel={playing ? 'Pause memory film' : 'Play memory film'} onPress={() => setPlaying(value => !value)} style={[s.icon, s.play]}><Feather name={playing ? 'pause' : 'play'} size={23} color="#10151c" /></TouchableOpacity>

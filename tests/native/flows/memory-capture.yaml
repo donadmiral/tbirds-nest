@@ -3,6 +3,14 @@ name: Actual native memory capture and encoding
 ---
 # The preceding navigation flow authenticated the actual production App.
 - openLink: platinum-circles-qa://ui-fixture/memory
+# iOS presents this app handoff confirmation; Maestro's iOS openLink does not
+# handle it. Accept only the observed QA-app prompt, then require the real route.
+- runFlow:
+    when:
+      platform: iOS
+      visible: '^Open in “Platinum QA”\?$'
+    commands:
+      - tapOn: Open
 - extendedWaitUntil:
     visible: Native capture acceptance
     timeout: 30000

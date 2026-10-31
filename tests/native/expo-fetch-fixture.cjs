@@ -2,6 +2,7 @@
  * No native or JavaScript network fallback exists in this module. */
 const { Asset } = require('expo-asset');
 const { File } = require('expo-file-system');
+const { Platform } = require('react-native');
 const { fixtureRuntime } = require('./fixture-runtime.cjs');
 const assets = {
   'memory-capture-photo.png': require('./assets/memory-capture-photo.png'),
@@ -14,8 +15,16 @@ async function fetch(url, init = {}) {
   const allowed = fixture.authorizeMemoryMedia(url);
   if (init.credentials !== 'omit' || init.redirect !== 'error' || init.method && init.method !== 'GET') throw new Error('Unexpected synthetic memory request options.');
   if (init.signal?.aborted) throw aborted();
-  const asset = Asset.fromModule(assets[allowed.file]);
-  if (/^https?:/i.test(asset.uri)) throw new Error('The synthetic media asset must be packaged in the actual app.');
+  if (!Object.hasOwn(assets, allowed.file)) throw new Error('Unknown packaged synthetic media asset.');
+  let asset = Asset.fromModule(assets[allowed.file]);
+  const resource = Platform.OS === 'android' && /^[a-z0-9_]+$/.test(asset.uri);
+  if (!asset.uri.startsWith('file://') && !resource) throw new Error('The synthetic media asset must be packaged in the actual app.');
+  if (resource) {
+    // Asset.fromModule treats Android drawable names as already downloaded for
+    // Image compatibility. A fresh public Asset descriptor asks Expo's native
+    // resource reader to materialize these registered bytes in its file cache.
+    asset = new Asset({ name: asset.name, type: asset.type, hash: asset.hash, uri: asset.uri });
+  }
   await asset.downloadAsync();
   if (!asset.localUri?.startsWith('file://')) throw new Error('The packaged synthetic media is not a local file.');
   const file = new File(asset.localUri);

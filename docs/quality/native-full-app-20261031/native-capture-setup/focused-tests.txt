@@ -1,0 +1,27 @@
+✔ android actual adapter reads only the registered packaged asset 1 (446.620273ms)
+✔ android actual adapter reads only the registered packaged asset 2 (5.423841ms)
+✔ android actual adapter reads only the registered packaged asset 3 (4.542311ms)
+✔ ios actual adapter reads only the registered packaged asset 1 (4.349456ms)
+✔ ios actual adapter reads only the registered packaged asset 2 (4.801433ms)
+✔ ios actual adapter reads only the registered packaged asset 3 (4.139747ms)
+✔ unissued media and forbidden request options cannot reach asset delivery (5.087945ms)
+✔ remote and arbitrary asset schemes are rejected before the native resource API (21.641926ms)
+✔ materialized file scheme, presence and byte bounds still fail closed (16.383449ms)
+✔ real adapter cancellation closes a held second chunk exactly once (4.510985ms)
+✔ actual QA capture link resets navigator routes while retaining the app runtime and cumulative receipt (16.214639ms)
+✔ noncapture links preserve the installed default action semantics (2.690168ms)
+✔ a similar route name, wrong path or multiroute state cannot use the capture-only route replacement (1.323703ms)
+✔ actual Android Daily timer replacement leaves the earlier SDK acquisition timeout alive after fulfilled auth (3.724645ms)
+✔ actual production entry initializes Daily once before auth and the SDK cancels its original acquisition timeout (3.83651ms)
+✔ actual QA entry installs its guarded transports before Daily and initializes timers before linking or App auth (8.712022ms)
+✔ production or real-provider QA configuration cannot initialize Daily or app auth (13.354831ms)
+✔ actual iOS Daily entry does not replace timer registries during an existing SDK acquisition (1.557668ms)
+✔ bootstrapped actual SDK lock still excludes work and rejects at its configured 5000 ms acquisition deadline (8.661678ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 894.0217
