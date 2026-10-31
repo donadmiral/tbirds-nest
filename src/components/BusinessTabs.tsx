@@ -7,7 +7,7 @@
  * gathered in one place instead of buried in whichever post carried it. That is
  * the thing X cannot do, because its cards only ever point off-platform.
  */
-import { themedSheet, getTheme } from '../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Linking, Alert, TextInput,
@@ -39,6 +39,7 @@ type Product = {
 };
 
 export function BusinessProducts({ businessId, navigation }: { businessId: string; navigation: any }) {
+  useTheme();
   const [rows, setRows] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +120,7 @@ function Stars({ value, size = 13, onPick }: { value: number; size?: number; onP
 }
 
 export function BusinessReviews({ businessId, canReview }: { businessId: string; canReview: boolean }) {
+  useTheme();
   const [rows, setRows] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -209,6 +211,7 @@ type SellerListing = {
  * account_type. Sold items are hidden by default: a shop shows what you can buy.
  */
 export function SellerListings({ sellerId, navigation, isSelf }: { sellerId: string; navigation: any; isSelf: boolean }) {
+  useTheme();
   const [rows, setRows] = useState<SellerListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -293,9 +296,9 @@ const s = themedSheet((t) => ({
   soldBadge: {
     position: 'absolute', top: 8, left: 8,
     paddingHorizontal: 7, paddingVertical: 3, borderRadius: radius.sm,
-    backgroundColor: t.surface.scrim,
+    backgroundColor: 'rgba(0,0,0,0.7)',
   },
-  soldBadgeTxt: { fontSize: 9, fontWeight: fontWeight.heavy, color: t.ink.inverse, letterSpacing: 0.6 },
+  soldBadgeTxt: { fontSize: 9, fontWeight: fontWeight.heavy, color: '#FFFFFF', letterSpacing: 0.6 },
   cardMeta: { fontSize: typeSize.micro, color: t.ink.muted },
   pad: { padding: 14 },
   empty: { alignItems: 'center', paddingVertical: 44, paddingHorizontal: 36, gap: 6 },

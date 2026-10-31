@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "flowCount": 85,
+  "allParsed": true,
+  "caseNamesMatch": true,
+  "appIdsMatch": true,
+  "mandatoryAssertionsPresent": true,
+  "noOptionalOrCoordinateSelectors": true,
+  "scopedEslintExitCode": 0,
+  "nodeSyntaxExitCode": 0,
+  "gitDiffCheckExitCode": 0
+}

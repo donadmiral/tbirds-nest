@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "kind": "android-encoder-c20-independent-artifact-review",
+  "reviewedAt": "2026-10-31T19:34:41.040959+00:00",
+  "outcome": "accepted-for-the-existing-standalone-Android-encoder-scope",
+  "workflow": {
+    "runId": 41233788259,
+    "jobId": 124633195489,
+    "artifactExtraction": "/tmp/android-encoder-c20-41233788259",
+    "singleArchiveDownloadAndZipVerificationOwner": "root; no download or rerun by this reviewer",
+    "sourceCommit": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+    "sourceTree": "cde37bb9b55c73d5f2afd45a9be4b76fc89b1170",
+    "triggerAndWorkflowCommit": "d74c4a0f759961bebb1ef3ac4bbd8085ae7a2bc5",
+    "sourceBindingPublication": {
+      "file": "docs/quality/full-platform-audit-20261031/grouped-checkpoint-publication.json",
+      "bytes": 1368,
+      "sha256": "4881059f5fd848d07ded785b4e4dec0f56a3c25baefa31935076ad8d6a8cf8f7"
+    },
+    "distinction": "receipt.json commit is the trigger SHA d74; exact tested input source is c20/treecde37, as separately checked in workflow-provenance.json."
+  },
+  "sourceVerification": {
+    "inputs": 21,
+    "allMatchLiteralTree": true,
+    "allMatchCurrentFrozenSources": true,
+    "productionEngineCopies": 3,
+    "compiledCopiesVerifiedByRetainedCiReceipt": true,
+    "literalCommitObjectAvailableLocally": false,
+    "literalTreeObjectAvailableLocally": true,
+    "commitToTreeBinding": "Root previously verified remote commit/tree and retained the exact publication receipt; reviewer directly rehashed all 21 paths from the local literal tree without fetching."
+  },
+  "execution": {
+    "formalJUnitCases": 40,
+    "storyCases": 23,
+    "memoryCases": 17,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 93.558,
+    "allExpectedSourceMethodsPresentExactlyOnce": true,
+    "bothNativeMeasurementReceiptsAllPassed": true,
+    "platform": "Android API35 x86_64 emulator",
+    "notAdditionalTests": "This review parsed the existing CI result and decoded its retained media; it did not rerun instrumentation or add another 40 to the CI count."
+  },
+  "dependencies": {
+    "resolvedConfiguration": "debugRuntimeClasspath",
+    "media3Components": 10,
+    "allVersion": "1.11.1",
+    "scope": "The resolved runtime graph of the standalone instrumentation app. Full Expo app and expo-video adapter/runtime compatibility remain separate gates."
+  },
+  "bFrameRegression": {
+    "sourceHasActualReorderedPackets": true,
+    "reorderedTailFrames": 3,
+    "expectedVideoPageFrames": 45,
+    "observedVideoPageFrames": 45,
+    "totalOutputFrames": 105,
+    "nativeBoundaryGapUs": 33334,
+    "independentExactBoundaryGapUs": 33334,
+    "testMaximumBoundaryGapUs": 40000,
+    "existingGeneralMaximumGapUs": 120000,
+    "independentMaximumGapUs": 33334,
+    "decodedPortraitSize": [
+      720,
+      1280
+    ],
+    "redBlueBeforeNextPageAndGreenAfter": true,
+    "maximumRgbChannelError": 5,
+    "nativePixelTolerance": 30,
+    "assertionsPreserved": true,
+    "sourceAssetSha256": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2",
+    "outputSha256": "6037d7ea830fe2d17023ffafa207bb12dc44d389d9cc264cc97c1d55bfa61564"
+  },
+  "otherChecks": {
+    "retainedMovieFileHashes": 40,
+    "retainedNormalizedImageHashes": 3,
+    "allMediaHashesMatchReceipt": true,
+    "alphaAndExifPixelsIndependentlyChecked": true,
+    "retainedNativeCancellationAndRetryCasesPassed": true,
+    "completionBoundaryRaceLimit": "The retained Story cancellation-boundary case had 4/4 completions before cancellation and 0 rejected outputs; it does not independently demonstrate the rejected side of that exact race. Separate blocked-provider and active-writer cancellation/cleanup/retry cases did pass."
+  },
+  "evidence": [
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/android-encoder-c20-boundary-2-45.png",
+      "bytes": 12384,
+      "sha256": "393e41460da784db1fe58b6bdbd60789fc76cb0f2f4f8eaea9d24d04913cb48f"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/android-encoder-c20-boundary-2-6.png",
+      "bytes": 5953,
+      "sha256": "2ea9fa7400aa0fead1c435ba734e560a310136a04a364e9ee902e1aef367b1ac"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/independent-measurements.json",
+      "bytes": 11132,
+      "sha256": "22c676bf8818618608c6b1ee37a0666b6065bcec009e6acb85567ebe4884e277"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/instrumentation-junit.xml",
+      "bytes": 6128,
+      "sha256": "4fe35474b9e5ae8da9a3cbfcf768294f08276e38e2c87f7a4f054e2687d172eb"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/junit-projection.json",
+      "bytes": 7154,
+      "sha256": "c141c893ed30288a9c4443620d476f66204b3290bddbbd4b324331646a58918b"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/media3-runtime.json",
+      "bytes": 1593,
+      "sha256": "520b47703a1de5edef082f65161ff36aeda302b02b4536255c6deda4e02eb989"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/native-memory-measurements.json",
+      "bytes": 7387,
+      "sha256": "c17c3f29f49ce2d38f334fd428abe793b5b591d463016b2af7f6b35908382334"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/native-story-measurements.json",
+      "bytes": 4276,
+      "sha256": "037bb0e02a43f49dcc04033b811db7456e95fab44bead2b09b1dfff2dd540567"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/preflight.json",
+      "bytes": 1988,
+      "sha256": "2897a564efc5814075b157c7c21d3b8d3c883c519b0189a0d5dd45eb60f0ce4f"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/source-verification.json",
+      "bytes": 9775,
+      "sha256": "53ab7a3b1a5a81c1dc6e76d06a4bca01c2aadf53048dce33f6cef4bc6d45fb12"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/workflow-provenance.json",
+      "bytes": 3860,
+      "sha256": "7d7ac15489b3229d2a548821a11b6bcb33e14e1a6b193028f861c74f4b573deb"
+    }
+  ],
+  "limits": [
+    "This verifies native production encoder engines in the isolated instrumentation application, not the full Expo app, React Native bridge, UI capture/export flow, signed distribution or physical devices.",
+    "All 43 retained media files were hash-checked, including fixture/source MP4s. That file count is not a count of distinct end-user export actions.",
+    "Independent local decoding sampled the B-frame boundary and normalized alpha/EXIF outputs. Other audio/effect/negative-case assertions are supported by the 40 real native test results and their retained measurements, not by a second complete independent audio/video analysis.",
+    "Production movie capability remains gated at 0; no release feature flag, provider data, build submission, source or ref was changed."
+  ]
+}

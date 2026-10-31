@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="expo.modules.boomerang.MemoryMovieExportTest" tests="40" failures="0" errors="0" skipped="0" time="93.558" timestamp="2026-10-31T19:26:03" hostname="localhost">
+  <properties>
+    <property name="device" value="emulator-5556 - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":" />
+  </properties>
+  <testcase name="imagePreparationRejectsUnsafeInputsAndPreservesExistingFiles" classname="expo.modules.boomerang.MemoryMovieExportTest" time="0.051" />
+  <testcase name="reorderedBFramesSurviveTheTrimEndBeforeTheNextPage" classname="expo.modules.boomerang.MemoryMovieExportTest" time="6.195" />
+  <testcase name="aggregateInputBytesAreBoundedWithoutCopyingLargeSources" classname="expo.modules.boomerang.MemoryMovieExportTest" time="0.052" />
+  <testcase name="sourcePathsRemainConfinedEvenThroughSymlinks" classname="expo.modules.boomerang.MemoryMovieExportTest" time="0.028" />
+  <testcase name="stillScenesKeepOrderAndContinuousDuckedSoundtrack" classname="expo.modules.boomerang.MemoryMovieExportTest" time="7.176" />
+  <testcase name="normalizedJpegHonorsExifOrientation" classname="expo.modules.boomerang.MemoryMovieExportTest" time="0.025" />
+  <testcase name="animatedContainersAreRejectedBeforeStaticPreparation" classname="expo.modules.boomerang.MemoryMovieExportTest" time="0.001" />
+  <testcase name="sceneArtworkFadeAndMotionUseLocalTime" classname="expo.modules.boomerang.MemoryMovieExportTest" time="6.07" />
+  <testcase name="movieLimitsAndGainContinuityAreEnforcedBeforeWriting" classname="expo.modules.boomerang.MemoryMovieExportTest" time="0.101" />
+  <testcase name="outputByteCeilingCancelsAndRemovesTheOwnedFile" classname="expo.modules.boomerang.MemoryMovieExportTest" time="0.809" />
+  <testcase name="videoPageAndBookAudioPreserveIndependentClocks" classname="expo.modules.boomerang.MemoryMovieExportTest" time="8.794" />
+  <testcase name="cancellationReleasesWriterBeforeRetryAndBlocksStory" classname="expo.modules.boomerang.MemoryMovieExportTest" time="2.509" />
+  <testcase name="onePassBookMusicDoesNotShortenSilentTail" classname="expo.modules.boomerang.MemoryMovieExportTest" time="5.183" />
+  <testcase name="mutedVideoKeepsPageVoiceoverAndSilentCards" classname="expo.modules.boomerang.MemoryMovieExportTest" time="6.868" />
+  <testcase name="zeroGainBookSelectionEncodesSilence" classname="expo.modules.boomerang.MemoryMovieExportTest" time="3.255" />
+  <testcase name="cancelAllStopsMovieAndImagePreparation" classname="expo.modules.boomerang.MemoryMovieExportTest" time="0.888" />
+  <testcase name="normalizedPngIsBoundedAndPreservesTransparency" classname="expo.modules.boomerang.MemoryMovieExportTest" time="0.629" />
+  <testcase name="trimmingPastShortOriginalAudioProducesAValidSilentMovie" classname="expo.modules.boomerang.StoryAudioExportTest" time="2.466" />
+  <testcase name="matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut" classname="expo.modules.boomerang.StoryAudioExportTest" time="1.007" />
+  <testcase name="videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack" classname="expo.modules.boomerang.StoryAudioExportTest" time="2.87" />
+  <testcase name="cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput" classname="expo.modules.boomerang.StoryAudioExportTest" time="2.997" />
+  <testcase name="onePassVoiceoverEndsInSilenceWithoutShorteningVideo" classname="expo.modules.boomerang.StoryAudioExportTest" time="1.134" />
+  <testcase name="invalidInputsCannotOverwriteOrEscapeTheCache" classname="expo.modules.boomerang.StoryAudioExportTest" time="0.028" />
+  <testcase name="backgroundCancellationSettlesOnceAndPreservesTheDraftInputs" classname="expo.modules.boomerang.StoryAudioExportTest" time="0.026" />
+  <testcase name="soundtrackVolumeAndZeroGainAreEncoded" classname="expo.modules.boomerang.StoryAudioExportTest" time="1.863" />
+  <testcase name="fullColorMatrixScaleAndTranslationMatchPixels" classname="expo.modules.boomerang.StoryAudioExportTest" time="1.006" />
+  <testcase name="selectedExcerptLoopsThroughActualStillMovie" classname="expo.modules.boomerang.StoryAudioExportTest" time="1.162" />
+  <testcase name="originalOnlyAudioIsPreservedAndMeasured" classname="expo.modules.boomerang.StoryAudioExportTest" time="3.154" />
+  <testcase name="mutedOriginalDoesNotLeakIntoTheMovie" classname="expo.modules.boomerang.StoryAudioExportTest" time="3.098" />
+  <testcase name="unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved" classname="expo.modules.boomerang.StoryAudioExportTest" time="4.428" />
+  <testcase name="oversizedUnknownLengthProviderCannotConsumeUnboundedDisk" classname="expo.modules.boomerang.StoryAudioExportTest" time="0.429" />
+  <testcase name="verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas" classname="expo.modules.boomerang.StoryAudioExportTest" time="2.212" />
+  <testcase name="canvasBackgroundAndTimedArtworkMatchDecodedPixels" classname="expo.modules.boomerang.StoryAudioExportTest" time="1.131" />
+  <testcase name="cancellationStopsTheWriterCleansThePartialAndAllowsRetry" classname="expo.modules.boomerang.StoryAudioExportTest" time="1.281" />
+  <testcase name="fullPortraitResolutionProducesActualVideoAndSoundtrack" classname="expo.modules.boomerang.StoryAudioExportTest" time="2.256" />
+  <testcase name="knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd" classname="expo.modules.boomerang.StoryAudioExportTest" time="4.153" />
+  <testcase name="longVoiceoverIsClippedToTheOutputMovie" classname="expo.modules.boomerang.StoryAudioExportTest" time="0.856" />
+  <testcase name="blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk" classname="expo.modules.boomerang.StoryAudioExportTest" time="0.683" />
+  <testcase name="trimmedAndAcceleratedVideoUsesOutputTimeForArtwork" classname="expo.modules.boomerang.StoryAudioExportTest" time="3.029" />
+  <testcase name="slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop" classname="expo.modules.boomerang.StoryAudioExportTest" time="3.375" />
+</testsuite>

@@ -24,6 +24,15 @@ name: Audit submitted ticket keeps original question
 - tapOn: Other
 - tapOn: In a few words
 - inputText: Fresh audit ticket
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element: What happened, and what you expected
+    direction: DOWN
+    centerElement: true
 - tapOn: What happened, and what you expected
 - inputText: My original question must remain visible.
 - runFlow:

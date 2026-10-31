@@ -1,0 +1,38 @@
+{
+  "reviewedAt": "2026-10-31T19:33:31.698961+00:00",
+  "scope": "Next coordinated native audit only; original b568 recovery runner and cases unchanged.",
+  "sourceFiles": {
+    "scripts/quality/native-ui-audit-runner.py": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352",
+    "tests/quality/native-audit-diagnostic-gate.cjs": "d6a46b26f987fd9f361811d390b71dd98e44490f5843434eceeb8b521a32572e"
+  },
+  "before": {
+    "method": "Execute the same two actual-runner tests against the current runner with only the new diagnostics rejection removed.",
+    "formalTests": 2,
+    "failed": 2
+  },
+  "after": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-audit-diagnostic-gate.cjs",
+    "formalPassed": 2,
+    "formalFailed": 0,
+    "nestedPythonPassed": 9,
+    "lintExitCode": 0,
+    "pythonAstParse": "passed"
+  },
+  "behavior": [
+    "Reject nonempty diagnostics or positive diagnosticsDropped even when UI/JUnit succeed.",
+    "Reject malformed diagnostic collection/drop types, including boolean or negative drop counts.",
+    "Run the same check before signed-out acceptance.",
+    "Retain only issue and numeric counts, never diagnostic payloads, in case results.",
+    "Keep clean controlled Support HTTP errors and legacy clean receipt shapes compatible.",
+    "Continue the following independent case after diagnostic rejection."
+  ],
+  "subprocessReview": {
+    "caseAndDecoder": "run_owned waits for the process leader; stdout is a regular log file, not a pipe requiring EOF. It does not have the recovery bounded_command selector-loop defect.",
+    "normalColdSetup": "The existing shell create/boot commands do not impose the recovery original30-second create ceiling; all three original baseline consumers passed create/boot before the separate guest-uname defect.",
+    "remainingBoundedReads": "Normal metadata/container subprocess reads still use30-second communicate bounds. A failure remains a failed collection/case and does not prove native app failure. No broader subprocess rewrite was made."
+  },
+  "limits": [
+    "No fresh native runtime acceptance from these controlled tests.",
+    "Baseline source/code outcome is not overwritten; current compiled recovery continues unchanged."
+  ]
+}

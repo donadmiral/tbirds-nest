@@ -428,7 +428,7 @@ const st = themedSheet((t) => ({
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 13, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: t.surface.hairline },
   actionTxt: { fontSize: 12.5, fontWeight: '700', color: t.ink.primary },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30 },
-  errTxt: { fontSize: 14.5, fontWeight: '600', color: '#DC2626', textAlign: 'center' },
+  errTxt: { fontSize: 14.5, fontWeight: '600', color: t.ink.primary, textAlign: 'center' },
   retry: { marginTop: 12, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 999, backgroundColor: t.brand.base },
   retryTxt: { color: t.ink.inverse, fontSize: 13.5, fontWeight: '700' },
   emptyTitle: { fontSize: 16, fontWeight: '800', color: t.ink.primary, marginTop: 12 },

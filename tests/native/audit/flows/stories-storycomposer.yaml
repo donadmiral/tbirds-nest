@@ -18,6 +18,12 @@ name: Audit StoryComposer
 - tapOn:
     id: native-audit-open-case
 - extendedWaitUntil:
+    visible: "Save text sticker"
+    timeout: 15000
+- tapOn: Type here
+- inputText: Audit story text
+- tapOn: Save text sticker
+- extendedWaitUntil:
     visible: "Next"
     timeout: 15000
 - takeScreenshot: stories-storycomposer

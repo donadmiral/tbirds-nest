@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
 const { execFileSync } = require('node:child_process');
 const YAML = require('yaml');
 const root = path.resolve(__dirname, '../..');
@@ -64,4 +65,24 @@ test('all native audit shell paths parse and keep the original independent full 
     assert.match(script, /verify-native-ui\.cjs/);
     assert.match(script, /native-ui-audit-binary\.py/);
   }
+});
+
+test('actual Android SDK setup finds its own adb even when platform-tools is absent from PATH', () => {
+  const source = fs.readFileSync(path.join(root, 'scripts/quality/run-native-ui-audit-device.sh'), 'utf8');
+  const start = source.indexOf('  android_sdk='), end = source.indexOf('  export ANDROID_AVD_HOME=', start);
+  assert(start > 0 && end > start, 'the executed setup must be extracted from the real consumer');
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'native audit sdk-'));
+  try {
+    const sdk = path.join(directory, 'sdk with spaces');
+    for (const file of ['cmdline-tools/latest/bin/sdkmanager', 'cmdline-tools/latest/bin/avdmanager', 'platform-tools/adb']) {
+      const target = path.join(sdk, file);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, file.endsWith('/adb') ? '#!/bin/sh\n[ "$1" = version ] || exit 42\nprintf "Android Debug Bridge fixture\\n"\n' : '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    }
+    fs.mkdirSync(path.join(directory, 'native-ui-logs'));
+    const block = source.slice(start, end);
+    execFileSync('bash', ['-euc', block], { cwd: directory, env: { ...process.env, ANDROID_HOME: sdk, ANDROID_SDK_ROOT: '' } });
+    assert.match(fs.readFileSync(path.join(directory, 'native-ui-logs/android-platform-tools.log'), 'utf8'), /Android Debug Bridge fixture/);
+    assert.throws(() => execFileSync('bash', ['-euc', block], { cwd: directory, env: { ...process.env, ANDROID_HOME: '', ANDROID_SDK_ROOT: '' }, stdio: 'pipe' }), error => error.status === 2 && /requires an installed Android SDK/.test(String(error.stderr)));
+  } finally { fs.rmSync(directory, { recursive: true, force: true }); }
 });

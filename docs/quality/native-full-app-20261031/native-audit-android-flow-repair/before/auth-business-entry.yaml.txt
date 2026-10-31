@@ -1,0 +1,8 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit business sign-in form entry
+---
+- runFlow: _signedout.yaml
+- tapOn: Business sign-in
+- assertVisible: Business handle
+- assertVisible: Personal access code
+- takeScreenshot: auth-business-entry

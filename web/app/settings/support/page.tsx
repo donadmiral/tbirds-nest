@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronRight, LifeBuoy } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-
-type Ticket = { id: string; kind: string; subject: string; status: string; created_at: string; updated_at: string | null };
+import { createMemberSupportRequest } from "@/lib/memberSupport";
+import { readSupportTickets, supportError, type SupportTicket } from "../../../../shared/memberSupport";
+import { readWithDeadline } from "../../../../shared/readDeadline";
 
 export default function SupportPage() {
   const [supabase] = useState(createClient);
@@ -14,42 +15,94 @@ export default function SupportPage() {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const submitting = useRef(false);
+  const visit = useRef(0);
+  const readRevision = useRef(0), mutation = useRef(0);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [ready, setReady] = useState(false);
+  const [initialError, setInitialError] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
+  const [listLoading, setListLoading] = useState(false);
 
-  const load = useCallback(async (me: string) => {
-    const { data } = await supabase.from("support_tickets").select("id, kind, subject, status, created_at, updated_at")
-      .eq("user_id", me).order("created_at", { ascending: false }).limit(10);
-    setTickets(data ?? []);
+  const load = useCallback(async (owner: string, generation = visit.current) => {
+    if (generation !== visit.current) return;
+    const read = ++readRevision.current;
+    const current = () => generation === visit.current && read === readRevision.current;
+    setListLoading(true);
+    setListError(null);
+    try {
+      const rows = await readSupportTickets(supabase, owner);
+      if (current()) setTickets(rows);
+    } catch {
+      if (current()) setListError("Your messages could not be loaded. Please try again.");
+    } finally {
+      if (current()) setListLoading(false);
+    }
   }, [supabase]);
 
-  useEffect(() => {
-    void (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      const me = auth.user?.id ?? null;
-      setUid(me);
-      if (!me) { setReady(true); return; }
-      const { data: prof } = await supabase.from("profiles").select("deactivated_at").eq("id", me).maybeSingle();
-      const appeal = !!prof?.deactivated_at;
+  const initialize = useCallback(async () => {
+    const generation = ++visit.current;
+    ++readRevision.current; ++mutation.current;
+    submitting.current = false; setBusy(false);
+    setReady(false);
+    setInitialError(null);
+    try {
+      const { data: auth, error: authError } = await readWithDeadline(supabase.auth.getUser());
+      if (authError) throw authError;
+      if (generation !== visit.current) return;
+      const owner = auth.user?.id ?? null;
+      setUid(owner);
+      if (!owner) { setTickets([]); return; }
+      const [profile] = await Promise.all([
+        readWithDeadline(supabase.from("profiles").select("deactivated_at").eq("id", owner).maybeSingle()),
+        load(owner, generation),
+      ]);
+      if (profile.error) throw profile.error;
+      if (generation !== visit.current) return;
+      const appeal = !!profile.data?.deactivated_at;
       setIsAppeal(appeal);
-      if (appeal) setSubject("Appeal my suspension");
-      await load(me);
-      setReady(true);
-    })();
+      if (appeal) setSubject(value => value || "Appeal my suspension");
+    } catch {
+      if (generation === visit.current) setInitialError("Support could not be loaded. Check your connection and try again.");
+    } finally {
+      if (generation === visit.current) setReady(true);
+    }
   }, [supabase, load]);
 
+  const invalidateVisit = useCallback(() => {
+    ++visit.current; ++readRevision.current; ++mutation.current;
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => { if (active) void initialize(); });
+    return () => { active = false; invalidateVisit(); };
+  }, [initialize, invalidateVisit]);
+
   const submit = async () => {
-    if (!uid || busy) return;
+    if (!uid || submitting.current) return;
     if (!subject.trim() || !body.trim()) { alert("A subject and a message are required."); return; }
+    submitting.current = true;
     setBusy(true);
-    const { error } = await supabase.from("support_tickets").insert({
-      user_id: uid, kind: isAppeal ? "appeal" : "support", subject: subject.trim(), body: body.trim(),
-    });
-    setBusy(false);
-    if (error) { alert("Could not send: " + error.message); return; }
-    setSubject(isAppeal ? "Appeal my suspension" : ""); setBody("");
-    await load(uid);
-    alert(isAppeal ? "Your appeal is with the operations team. The outcome will appear here." : "Your message is with the operations team. The reply will appear here.");
+    const generation = visit.current, sentSubject = subject, sentBody = body;
+    const attempt = ++mutation.current;
+    ++readRevision.current; setListLoading(false);
+    try {
+      const confirmation = await createMemberSupportRequest(supabase, uid, { kind: isAppeal ? "appeal" : "support", subject: sentSubject, body: sentBody },
+        () => generation === visit.current && attempt === mutation.current);
+      const accepted = await confirmation.accept(() => {
+        ++readRevision.current;
+        setSubject(value => value === sentSubject ? (isAppeal ? "Appeal my suspension" : "") : value);
+        setBody(value => value === sentBody ? "" : value);
+      });
+      if (!accepted || generation !== visit.current || attempt !== mutation.current) return;
+      await load(uid, generation);
+      if (generation === visit.current) alert(isAppeal ? "Your appeal is with the operations team. The outcome will appear here." : "Your message is with the operations team. The reply will appear here.");
+    } catch (error) {
+      if (generation === visit.current && attempt === mutation.current) alert(supportError(error, "Sending could not be confirmed. Your draft is kept. Try again to check the same request."));
+    } finally {
+      if (attempt === mutation.current) { submitting.current = false; setBusy(false); }
+    }
   };
 
   const pill = (status: string) => {
@@ -64,24 +117,26 @@ export default function SupportPage() {
       <p className="pb-5 text-[13px] leading-relaxed text-muted">{isAppeal
         ? "Your account is suspended. Tell the operations team why it should be restored — a person reads every appeal."
         : "Write to the Platinum Circles operations team. A person reads every message and the reply appears here."}</p>
-
-      {!ready ? <p className="py-8 text-center text-sm text-muted">Loading</p> : !uid ? (
+      {!ready ? <p role="status" className="py-8 text-center text-sm text-muted">Loading</p> : initialError ? (
+        <div role="alert" className="rounded-lg border border-danger/30 p-4 text-sm text-ink">
+          <p>{initialError}</p><button onClick={() => void initialize()} className="mt-3 rounded-lg bg-ink px-4 py-2 font-bold text-white">Try again</button>
+        </div>
+      ) : !uid ? (
         <p className="rounded-lg border border-dashed border-ink/15 px-4 py-8 text-center text-[13.5px] text-muted">Sign in to contact support.</p>
       ) : (
         <>
-          <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Subject" className="mb-2.5 w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-          <textarea value={body} onChange={e => setBody(e.target.value)} placeholder={isAppeal ? "Your case for restoration..." : "What do you need help with?"} className="mb-3 h-32 w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-          <button onClick={submit} disabled={busy} className="w-full rounded-full bg-ink py-3 text-[14px] font-bold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">{busy ? "Sending" : isAppeal ? "Send appeal" : "Send to operations"}</button>
-
-          {tickets.length ? <p className="mb-2 mt-7 text-[11px] font-semibold uppercase tracking-wide text-muted">Your messages</p> : null}
-          {tickets.map(t => (
-            <Link key={t.id} href={"/settings/support/" + t.id} className="mb-2 block rounded-lg border border-ink/10 p-3 transition-colors duration-[140ms] hover:bg-surface">
-              <span className="flex items-center gap-2">
-                <span className="min-w-0 flex-1 truncate text-[13.5px] font-bold text-ink">{t.subject}</span>
-                {pill(t.status)}
-                <ChevronRight size={15} className="shrink-0 text-muted" />
-              </span>
-              <span className="mt-1.5 block text-[11px] text-muted">{new Date(t.updated_at || t.created_at).toLocaleString()}</span>
+          <label className="sr-only" htmlFor="support-subject">Subject</label>
+          <input id="support-subject" value={subject} maxLength={160} onChange={e => setSubject(e.target.value)} placeholder="Subject" className="mb-2.5 w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+          <label className="sr-only" htmlFor="support-body">Message</label>
+          <textarea id="support-body" value={body} maxLength={2000} onChange={e => setBody(e.target.value)} placeholder={isAppeal ? "Your case for restoration..." : "What do you need help with?"} className="mb-3 h-32 w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+          <button onClick={() => void submit()} disabled={busy} className="w-full rounded-full bg-ink py-3 text-[14px] font-bold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">{busy ? "Sending" : isAppeal ? "Send appeal" : "Send to operations"}</button>
+          <p className="mb-2 mt-7 text-[11px] font-semibold uppercase tracking-wide text-muted">Your messages</p>
+          {listError ? <div role="alert" className="mb-3 rounded-lg border border-danger/30 p-3 text-sm text-ink"><p>{listError}</p><button disabled={listLoading} onClick={() => void load(uid)} className="mt-2 underline">Try again</button></div> : null}
+          {listLoading ? <p role="status" className="text-sm text-muted">Loading messages</p> : !listError && !tickets.length ? <p className="text-sm text-muted">You have no support messages yet.</p> : null}
+          {tickets.map(ticket => (
+            <Link key={ticket.id} href={"/settings/support/" + ticket.id} className="mb-2 block rounded-lg border border-ink/10 p-3 transition-colors duration-[140ms] hover:bg-surface">
+              <span className="flex items-center gap-2"><span className="min-w-0 flex-1 truncate text-[13.5px] font-bold text-ink">{ticket.subject}</span>{pill(ticket.status)}<ChevronRight size={15} className="shrink-0 text-muted" /></span>
+              <span className="mt-1.5 block text-[11px] text-muted">{new Date(ticket.updated_at || ticket.created_at).toLocaleString()}</span>
             </Link>
           ))}
         </>

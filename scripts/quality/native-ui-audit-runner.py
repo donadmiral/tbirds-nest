@@ -2,6 +2,7 @@
 """Run independent cases against one already-built QA binary. No build/rebundle/sign."""
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -87,6 +88,15 @@ def validate_receipt(path, case):
         if receipt.get('mode') != 'synthetic-native-ui' or receipt.get('networkForwarded') is not False:
             raise ValueError('incorrect-transport')
         audit = receipt.get('audit', {})
+        diagnostics = audit.get('diagnostics', [])
+        dropped = audit.get('diagnosticsDropped', 0)
+        if not isinstance(diagnostics, list) or type(dropped) is not int or dropped < 0:
+            raise ValueError('malformed-audit-diagnostics')
+        if diagnostics or dropped:
+            # A handled diagnostic RPC still reports a product error. Retain
+            # only counts here; never copy its payload into the case result.
+            return {'passed': False, 'issue': 'reported-client-error',
+                    'diagnosticCount': len(diagnostics), 'diagnosticsDropped': dropped}
         if case['kind'] == 'signed-out-control':
             if audit.get('caseId') is not None or receipt.get('unhandled') or audit.get('rejected'):
                 raise ValueError('unexpected-signed-out-fixture-state')
@@ -132,7 +142,7 @@ def run_owned(args, timeout, **kwargs):
         raise
 
 
-def validate_device(platform, device, compatibility):
+def validate_device(platform, device, compatibility, binary=None, toolchain=None):
     def read(args):
         return subprocess.check_output(args, stderr=subprocess.PIPE, timeout=30).decode().strip()
     if platform == 'android':
@@ -143,12 +153,13 @@ def validate_device(platform, device, compatibility):
         if read(['adb', '-s', device, 'shell', 'id', '-u']) != '0':
             raise ValueError('The isolated AOSP diagnostic-root image is required for private synthetic receipts')
     else:
-        devices = json.loads(read(['xcrun', 'simctl', 'list', 'devices', '--json']))['devices']
-        selected = [item for item in devices.get(compatibility['runtimeIdentifier'], []) if item.get('udid') == device]
-        if len(selected) != 1 or selected[0].get('state') != 'Booted':
-            raise ValueError('The expected iOS Simulator runtime/device is not booted')
-        if read(['xcrun', 'simctl', 'spawn', device, 'uname', '-m']) != compatibility['abi']:
-            raise ValueError('Simulator ABI does not match the built binary')
+        if binary is None or not toolchain:
+            raise ValueError('Actual Simulator app and producer toolchain are required')
+        helper = Path(__file__).with_name('native-ui-ios-compatibility.py')
+        spec = importlib.util.spec_from_file_location('ios_compatibility', helper)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.verify_compatibility(binary, {'nativeCompatibility': compatibility, 'toolchain': toolchain}, device, read)
 
 
 def collect(platform, device, target):
@@ -247,7 +258,8 @@ def main():
     validate_binary(binary_manifest, args.binary, args.platform, args.expected_source, args.expected_tree)
     if sha256_file(manifest_path) != binary_manifest['auditManifestSha256']:
         raise ValueError('Audit scenarios differ from the compiled binary')
-    validate_device(args.platform, args.device, binary_manifest['nativeCompatibility'])
+    validate_device(args.platform, args.device, binary_manifest['nativeCompatibility'],
+                    binary=args.binary, toolchain=binary_manifest['toolchain'])
     selected = set(manifest['groups']) if args.groups == 'all' else set(args.groups.split(','))
     if not selected or not selected <= set(manifest['groups']):
         raise ValueError('Unknown or empty feature group selection')

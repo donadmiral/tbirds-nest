@@ -1,0 +1,1018 @@
+[
+  {
+    "id": "profile-editprofile",
+    "group": "profile",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793472860098,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2193
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 22217
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793472899758
+  },
+  {
+    "id": "profile-userprofile",
+    "group": "profile",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793472899759,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 1931
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 21964
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": false,
+      "issue": "unhandled-fixture-contract"
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793472937497
+  },
+  {
+    "id": "profile-followlist",
+    "group": "profile",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793472937497,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 1390
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 16318
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 12,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793472976201
+  },
+  {
+    "id": "profile-mynetwork",
+    "group": "profile",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793472976202,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2910
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 28966
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": false,
+      "issue": "unhandled-fixture-contract"
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473012452
+  },
+  {
+    "id": "support-contactsupport",
+    "group": "support",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473012453,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2147
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 27256
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 19,
+      "auditRequestCount": 1,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473049684
+  },
+  {
+    "id": "support-ticket",
+    "group": "support",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473049685,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2183
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 26927
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 19,
+      "auditRequestCount": 2,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473084855
+  },
+  {
+    "id": "business-businessapply",
+    "group": "business",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473084856,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2383
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 23982
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 22,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473120790
+  },
+  {
+    "id": "business-businessaccess",
+    "group": "business",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473120791,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2106
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 24557
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 19,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473157320
+  },
+  {
+    "id": "business-createbusiness",
+    "group": "business",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473157321,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2106
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 26310
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 19,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473193877
+  },
+  {
+    "id": "business-businesses",
+    "group": "business",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473193878,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2438
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 21931
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": false,
+      "issue": "unhandled-fixture-contract"
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473229629
+  },
+  {
+    "id": "memory-memoryalbum",
+    "group": "memory",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473229629,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2817
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 16016
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 15,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473265265
+  },
+  {
+    "id": "support-original-body",
+    "group": "support",
+    "kind": "error-or-content-contract",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473265266,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2461
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 29873
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 22,
+      "auditRequestCount": 2,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473316943
+  },
+  {
+    "id": "support-missing-ticket",
+    "group": "support",
+    "kind": "error-or-content-contract",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473316944,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2464
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 22793
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 22,
+      "auditRequestCount": 2,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473368278
+  },
+  {
+    "id": "support-ticket-read-error",
+    "group": "support",
+    "kind": "error-or-content-contract",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473368279,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2599
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 32271
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 22,
+      "auditRequestCount": 5,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473420658
+  },
+  {
+    "id": "support-history-error",
+    "group": "support",
+    "kind": "error-or-content-contract",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473420660,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2594
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 26348
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 22,
+      "auditRequestCount": 5,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473472487
+  },
+  {
+    "id": "support-list-error",
+    "group": "support",
+    "kind": "error-contract",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473472488,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2541
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 30163
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 22,
+      "auditRequestCount": 4,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473523741
+  },
+  {
+    "id": "support-fresh-ticket-body",
+    "group": "support",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473523742,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2595
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 26963
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 24,
+      "auditRequestCount": 1,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473586387
+  },
+  {
+    "id": "support-reopen-error",
+    "group": "support",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473586388,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2644
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 23410
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 24,
+      "auditRequestCount": 2,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473647580
+  },
+  {
+    "id": "support-reply-error",
+    "group": "support",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473647581,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2644
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 24294
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 24,
+      "auditRequestCount": 2,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473709395
+  },
+  {
+    "id": "memory-reader-controls",
+    "group": "memory",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473709396,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3088
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 16338
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 18,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473758932
+  },
+  {
+    "id": "memory-cover-settings",
+    "group": "memory",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473758933,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 5939
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 27814
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 30,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473836085
+  },
+  {
+    "id": "memory-film-export-entry",
+    "group": "memory",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473836086,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3179
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 16641
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 19,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473890065
+  },
+  {
+    "id": "memory-capture-session",
+    "group": "memory",
+    "kind": "same-session-memory-capture",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473890066,
+    "status": "failed",
+    "timeoutSeconds": 300,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 13083
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 78736
+      },
+      {
+        "directory": "memory-capture",
+        "collected": true
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 61,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": 1,
+    "finishedAtEpochMs": 1793473964455
+  },
+  {
+    "id": "auth-empty-signin",
+    "group": "auth",
+    "kind": "signed-out-control",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473964456,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 463
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 4597
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 2,
+      "signedIn": false
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473978356
+  },
+  {
+    "id": "auth-forgot-password",
+    "group": "auth",
+    "kind": "signed-out-control",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473978358,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 628
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 4599
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 5,
+      "signedIn": false
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793474010048
+  },
+  {
+    "id": "auth-signup-entry",
+    "group": "auth",
+    "kind": "signed-out-control",
+    "attempts": 1,
+    "startedAtEpochMs": 1793474010049,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 573
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 4596
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 4,
+      "signedIn": false
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793474037885
+  },
+  {
+    "id": "auth-business-entry",
+    "group": "auth",
+    "kind": "signed-out-control",
+    "attempts": 1,
+    "startedAtEpochMs": 1793474037886,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 573
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 4298
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 4,
+      "signedIn": false
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793474065773
+  }
+]

@@ -21,6 +21,10 @@ name: Audit independent film and export entry
     visible: "Edit memory book"
     timeout: 15000
 
+- scrollUntilVisible:
+    element: Play continuous memory film with original music
+    direction: DOWN
+    centerElement: true
 - tapOn: Play continuous memory film with original music
 - tapOn:
     text: Pause memory film

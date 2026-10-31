@@ -1,0 +1,217 @@
+{
+  "cases": [
+    {
+      "name": "imagePreparationRejectsUnsafeInputsAndPreservesExistingFiles",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "0.051"
+    },
+    {
+      "name": "reorderedBFramesSurviveTheTrimEndBeforeTheNextPage",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "6.195"
+    },
+    {
+      "name": "aggregateInputBytesAreBoundedWithoutCopyingLargeSources",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "0.052"
+    },
+    {
+      "name": "sourcePathsRemainConfinedEvenThroughSymlinks",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "0.028"
+    },
+    {
+      "name": "stillScenesKeepOrderAndContinuousDuckedSoundtrack",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "7.176"
+    },
+    {
+      "name": "normalizedJpegHonorsExifOrientation",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "0.025"
+    },
+    {
+      "name": "animatedContainersAreRejectedBeforeStaticPreparation",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "0.001"
+    },
+    {
+      "name": "sceneArtworkFadeAndMotionUseLocalTime",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "6.07"
+    },
+    {
+      "name": "movieLimitsAndGainContinuityAreEnforcedBeforeWriting",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "0.101"
+    },
+    {
+      "name": "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "0.809"
+    },
+    {
+      "name": "videoPageAndBookAudioPreserveIndependentClocks",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "8.794"
+    },
+    {
+      "name": "cancellationReleasesWriterBeforeRetryAndBlocksStory",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "2.509"
+    },
+    {
+      "name": "onePassBookMusicDoesNotShortenSilentTail",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "5.183"
+    },
+    {
+      "name": "mutedVideoKeepsPageVoiceoverAndSilentCards",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "6.868"
+    },
+    {
+      "name": "zeroGainBookSelectionEncodesSilence",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "3.255"
+    },
+    {
+      "name": "cancelAllStopsMovieAndImagePreparation",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "0.888"
+    },
+    {
+      "name": "normalizedPngIsBoundedAndPreservesTransparency",
+      "classname": "expo.modules.boomerang.MemoryMovieExportTest",
+      "time": "0.629"
+    },
+    {
+      "name": "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "2.466"
+    },
+    {
+      "name": "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "1.007"
+    },
+    {
+      "name": "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "2.87"
+    },
+    {
+      "name": "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "2.997"
+    },
+    {
+      "name": "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "1.134"
+    },
+    {
+      "name": "invalidInputsCannotOverwriteOrEscapeTheCache",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "0.028"
+    },
+    {
+      "name": "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "0.026"
+    },
+    {
+      "name": "soundtrackVolumeAndZeroGainAreEncoded",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "1.863"
+    },
+    {
+      "name": "fullColorMatrixScaleAndTranslationMatchPixels",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "1.006"
+    },
+    {
+      "name": "selectedExcerptLoopsThroughActualStillMovie",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "1.162"
+    },
+    {
+      "name": "originalOnlyAudioIsPreservedAndMeasured",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "3.154"
+    },
+    {
+      "name": "mutedOriginalDoesNotLeakIntoTheMovie",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "3.098"
+    },
+    {
+      "name": "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "4.428"
+    },
+    {
+      "name": "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "0.429"
+    },
+    {
+      "name": "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "2.212"
+    },
+    {
+      "name": "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "1.131"
+    },
+    {
+      "name": "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "1.281"
+    },
+    {
+      "name": "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "2.256"
+    },
+    {
+      "name": "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "4.153"
+    },
+    {
+      "name": "longVoiceoverIsClippedToTheOutputMovie",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "0.856"
+    },
+    {
+      "name": "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "0.683"
+    },
+    {
+      "name": "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "3.029"
+    },
+    {
+      "name": "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop",
+      "classname": "expo.modules.boomerang.StoryAudioExportTest",
+      "time": "3.375"
+    }
+  ],
+  "formalCases": 40,
+  "memoryCases": 17,
+  "storyCases": 23,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "seconds": 93.558,
+  "allSourceTestNamesPresentExactlyOnce": true,
+  "buildSummary": [
+    "Verified 10 resolved Media3 runtime components at 1.11.1.",
+    "emulator-5556 - 15 Tests 39/40 completed. (0 skipped) (0 failed)",
+    "BUILD SUCCESSFUL in 3m 17s"
+  ]
+}

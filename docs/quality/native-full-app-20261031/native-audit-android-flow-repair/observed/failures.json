@@ -1,0 +1,1813 @@
+{
+  "sourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "sourceTree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+  "recoveryRunId": 41231522956,
+  "observedUiFailures": 17,
+  "cases": [
+    {
+      "id": "stories-storycomposer",
+      "shard": "settings",
+      "failure": [
+        "Assertion is false: \"Next\" is visible"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 14,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "a41e9852f26bcacdbb6f52b4b03b09cd4dbc59dd540c67e20eedcd2dba22fbc9",
+      "lastCommands": [
+        {
+          "command": {
+            "hideKeyboardCommand": {
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 22,
+          "timestamp": 1793473647411,
+          "duration": 934,
+          "error": null
+        },
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "tapOnElement": {
+                    "selector": {
+                      "textRegex": "Native audit launcher",
+                      "optional": false
+                    },
+                    "retryIfNoChange": false,
+                    "waitUntilVisible": false,
+                    "longPress": false,
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "IOS"
+              },
+              "optional": false
+            }
+          },
+          "status": "SKIPPED",
+          "sequenceNumber": 23,
+          "timestamp": 1793473648346,
+          "duration": 0,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "idRegex": "native-audit-open-case",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 24,
+          "timestamp": 1793473648346,
+          "duration": 3625,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Next",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 25,
+          "timestamp": 1793473651971,
+          "duration": 15230,
+          "error": "Assertion is false: \"Next\" is visible"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/stories-storycomposer.ax.json",
+          "sha256": "9f062d48a8d9dba483e4ae36ad88b4f35c9323793d635ba754b93048b34f471e",
+          "bytes": 61350
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/stories-storycomposer.png",
+          "sha256": "d76063c5612538758506b645557d48a143d3c8c067ff6fc22f2033ff542f735f",
+          "bytes": 23893
+        }
+      ]
+    },
+    {
+      "id": "settings-appearance",
+      "shard": "settings",
+      "failure": [
+        "Element not found: Text matching regex: (?s)^Appearance, (?:Follows your phone|Light|Dim|Lights out)$"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 27,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "57f92a967df8e4bdb80ab5245f4818ce8a923f9b6744a2846bbac9583cd0d029",
+      "lastCommands": [
+        {
+          "command": {
+            "inputTextCommand": {
+              "text": "Appearance",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 27,
+          "timestamp": 1793473925236,
+          "duration": 1831,
+          "error": null
+        },
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "hideKeyboardCommand": {
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "ANDROID"
+              },
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 28,
+          "timestamp": 1793473927067,
+          "duration": 1164,
+          "error": null
+        },
+        {
+          "command": {
+            "hideKeyboardCommand": {
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 29,
+          "timestamp": 1793473927068,
+          "duration": 1162,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "(?s)^Appearance, (?:Follows your phone|Light|Dim|Lights out)$",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 30,
+          "timestamp": 1793473928231,
+          "duration": 17113,
+          "error": "Element not found: Text matching regex: (?s)^Appearance, (?:Follows your phone|Light|Dim|Lights out)$"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/settings-appearance.ax.json",
+          "sha256": "3c2bc897a4445cc39270e560c1000f12088a82313f91f6744e27aec6af1713e1",
+          "bytes": 99300
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/settings-appearance.png",
+          "sha256": "22da07e021e9a3e3d9cce9c48a125215579be7b52ae546493a57bf085c686c2c",
+          "bytes": 32410
+        }
+      ]
+    },
+    {
+      "id": "support-original-body",
+      "shard": "account",
+      "failure": [
+        "Assertion is false: \"Original support question from the member.\" is visible"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 2,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "c011788e0fa94fee538f4942e1728b35cafff749ddf93ffb685ef9c87af293cb",
+      "lastCommands": [
+        {
+          "command": {
+            "hideKeyboardCommand": {
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 22,
+          "timestamp": 1793473296734,
+          "duration": 1019,
+          "error": null
+        },
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "tapOnElement": {
+                    "selector": {
+                      "textRegex": "Native audit launcher",
+                      "optional": false
+                    },
+                    "retryIfNoChange": false,
+                    "waitUntilVisible": false,
+                    "longPress": false,
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "IOS"
+              },
+              "optional": false
+            }
+          },
+          "status": "SKIPPED",
+          "sequenceNumber": 23,
+          "timestamp": 1793473297753,
+          "duration": 1,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "idRegex": "native-audit-open-case",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 24,
+          "timestamp": 1793473297754,
+          "duration": 2534,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Original support question from the member.",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 25,
+          "timestamp": 1793473300289,
+          "duration": 15299,
+          "error": "Assertion is false: \"Original support question from the member.\" is visible"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-original-body.ax.json",
+          "sha256": "ced7c71550aa46d5b1a08ec98d33472943b8077f5a0b09081b6173f194e0fb20",
+          "bytes": 73091
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-original-body.png",
+          "sha256": "6a54fb533d5ef89acba8b1427f718568c2098e0b4309e93d23676efffab4b6ba",
+          "bytes": 20662
+        }
+      ]
+    },
+    {
+      "id": "support-missing-ticket",
+      "shard": "account",
+      "failure": [
+        "Assertion is false: \"(?i).*(not found|unavailable|could not load).*\" is visible"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 2,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "dd3925ee1ac8828e16fc741338f2b055c9e7dee42cd86bd77187aa705e31eff4",
+      "lastCommands": [
+        {
+          "command": {
+            "hideKeyboardCommand": {
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 22,
+          "timestamp": 1793473348444,
+          "duration": 957,
+          "error": null
+        },
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "tapOnElement": {
+                    "selector": {
+                      "textRegex": "Native audit launcher",
+                      "optional": false
+                    },
+                    "retryIfNoChange": false,
+                    "waitUntilVisible": false,
+                    "longPress": false,
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "IOS"
+              },
+              "optional": false
+            }
+          },
+          "status": "SKIPPED",
+          "sequenceNumber": 23,
+          "timestamp": 1793473349402,
+          "duration": 0,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "idRegex": "native-audit-open-case",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 24,
+          "timestamp": 1793473349402,
+          "duration": 2223,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "(?i).*(not found|unavailable|could not load).*",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 25,
+          "timestamp": 1793473351625,
+          "duration": 15299,
+          "error": "Assertion is false: \"(?i).*(not found|unavailable|could not load).*\" is visible"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-missing-ticket.ax.json",
+          "sha256": "72c2075333424c3585809f2fed2d0884bc16d260d8979e06cfd5e40c49db8aa3",
+          "bytes": 73076
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-missing-ticket.png",
+          "sha256": "96ba9408e00dba3c5847ad44e5f06192b76550c97f9abeaf0a612417a617f57c",
+          "bytes": 18818
+        }
+      ]
+    },
+    {
+      "id": "support-ticket-read-error",
+      "shard": "account",
+      "failure": [
+        "Assertion is false: \"(?i).*(could not load|try again|retry).*\" is visible"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 5,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "2d901d6454575fdfff6a35beeb6bc4736213ef5385b9b98c6cf0237cec2e9297",
+      "lastCommands": [
+        {
+          "command": {
+            "hideKeyboardCommand": {
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 22,
+          "timestamp": 1793473400181,
+          "duration": 943,
+          "error": null
+        },
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "tapOnElement": {
+                    "selector": {
+                      "textRegex": "Native audit launcher",
+                      "optional": false
+                    },
+                    "retryIfNoChange": false,
+                    "waitUntilVisible": false,
+                    "longPress": false,
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "IOS"
+              },
+              "optional": false
+            }
+          },
+          "status": "SKIPPED",
+          "sequenceNumber": 23,
+          "timestamp": 1793473401124,
+          "duration": 1,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "idRegex": "native-audit-open-case",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 24,
+          "timestamp": 1793473401125,
+          "duration": 2540,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "(?i).*(could not load|try again|retry).*",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 25,
+          "timestamp": 1793473403666,
+          "duration": 15602,
+          "error": "Assertion is false: \"(?i).*(could not load|try again|retry).*\" is visible"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-ticket-read-error.ax.json",
+          "sha256": "24d191cd5df5ed4b54a8697cf0d7accf979730bd4ffa4680a89d0b8280cb8334",
+          "bytes": 73075
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-ticket-read-error.png",
+          "sha256": "30019dc8215597ea4fce94b60cc268b861ece69794eae9d33b597be7dc40abf9",
+          "bytes": 18964
+        }
+      ]
+    },
+    {
+      "id": "support-history-error",
+      "shard": "account",
+      "failure": [
+        "Assertion is false: \"(?i).*(could not load|try again|retry).*\" is visible"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 5,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "7a3da992e355e9905a92e296e805c13d0643579ada2055a7b547800f9e9a7bb1",
+      "lastCommands": [
+        {
+          "command": {
+            "hideKeyboardCommand": {
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 22,
+          "timestamp": 1793473452528,
+          "duration": 999,
+          "error": null
+        },
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "tapOnElement": {
+                    "selector": {
+                      "textRegex": "Native audit launcher",
+                      "optional": false
+                    },
+                    "retryIfNoChange": false,
+                    "waitUntilVisible": false,
+                    "longPress": false,
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "IOS"
+              },
+              "optional": false
+            }
+          },
+          "status": "SKIPPED",
+          "sequenceNumber": 23,
+          "timestamp": 1793473453527,
+          "duration": 1,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "idRegex": "native-audit-open-case",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 24,
+          "timestamp": 1793473453528,
+          "duration": 2274,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "(?i).*(could not load|try again|retry).*",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 25,
+          "timestamp": 1793473455802,
+          "duration": 15223,
+          "error": "Assertion is false: \"(?i).*(could not load|try again|retry).*\" is visible"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-history-error.ax.json",
+          "sha256": "7973ddd631f2c9a55ed49d47776d0a9b563ca9a3ab3b6a55fccceb63b1cdf03d",
+          "bytes": 73092
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-history-error.png",
+          "sha256": "85d2893d3720a26c7ec0219468a7d24533c6a80b1bb57aca64a076ae13391bbe",
+          "bytes": 20667
+        }
+      ]
+    },
+    {
+      "id": "support-list-error",
+      "shard": "account",
+      "failure": [
+        "Assertion is false: \"(?i).*(could not load|try again|retry).*\" is visible"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 4,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "5b8440f99d8b3d4c22d3bb47d6c924f59bdbbece9b8f21169ba3cc23d103ba17",
+      "lastCommands": [
+        {
+          "command": {
+            "hideKeyboardCommand": {
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 22,
+          "timestamp": 1793473503622,
+          "duration": 972,
+          "error": null
+        },
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "tapOnElement": {
+                    "selector": {
+                      "textRegex": "Native audit launcher",
+                      "optional": false
+                    },
+                    "retryIfNoChange": false,
+                    "waitUntilVisible": false,
+                    "longPress": false,
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "IOS"
+              },
+              "optional": false
+            }
+          },
+          "status": "SKIPPED",
+          "sequenceNumber": 23,
+          "timestamp": 1793473504595,
+          "duration": 0,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "idRegex": "native-audit-open-case",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 24,
+          "timestamp": 1793473504595,
+          "duration": 2477,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "(?i).*(could not load|try again|retry).*",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 25,
+          "timestamp": 1793473507072,
+          "duration": 15274,
+          "error": "Assertion is false: \"(?i).*(could not load|try again|retry).*\" is visible"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-list-error.ax.json",
+          "sha256": "98cc488374b2d15de7c040bcbad241f56db4e3db14db38d92fc47c665c817dc0",
+          "bytes": 96664
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-list-error.png",
+          "sha256": "cc2e5de1655becda0ae82848abb5f8b7b83e887b9e50c9ecd05ba6f482a4f97b",
+          "bytes": 36625
+        }
+      ]
+    },
+    {
+      "id": "support-fresh-ticket-body",
+      "shard": "account",
+      "failure": [
+        "Element not found: Text matching regex: What happened, and what you expected"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 24,
+        "auditRequestCount": 1,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "b644bcdafc43fd4c4bc85d3c518c1a7e0a83cec2f955641f7c547d6bcbf64b09",
+      "lastCommands": [
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Other",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 26,
+          "timestamp": 1793473559025,
+          "duration": 3105,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "In a few words",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 27,
+          "timestamp": 1793473562131,
+          "duration": 2551,
+          "error": null
+        },
+        {
+          "command": {
+            "inputTextCommand": {
+              "text": "Fresh audit ticket",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 28,
+          "timestamp": 1793473564682,
+          "duration": 3019,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "What happened, and what you expected",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 29,
+          "timestamp": 1793473567701,
+          "duration": 17175,
+          "error": "Element not found: Text matching regex: What happened, and what you expected"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-fresh-ticket-body.ax.json",
+          "sha256": "9c5b8c10a2e7145c7ace521ce6cb0ba3506beb13d42f96e9fa13fb5c60bde854",
+          "bytes": 123445
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-fresh-ticket-body.png",
+          "sha256": "ce42bc7b727aa82f508c43b7328d258aeec60145637f15c63753f5a20ab36316",
+          "bytes": 37887
+        }
+      ]
+    },
+    {
+      "id": "support-reopen-error",
+      "shard": "account",
+      "failure": [
+        "Element not found: Text matching regex: Send"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 24,
+        "auditRequestCount": 2,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "58faa4a48b6b9ea945413bd62e3a9ee76c0d441c8a3269bfe2ddfb06cbd273a9",
+      "lastCommands": [
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Audit support question",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 25,
+          "timestamp": 1793473621208,
+          "duration": 121,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Write to reopen this ticket",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 26,
+          "timestamp": 1793473621330,
+          "duration": 2495,
+          "error": null
+        },
+        {
+          "command": {
+            "inputTextCommand": {
+              "text": "Please reopen this synthetic ticket.",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 27,
+          "timestamp": 1793473623825,
+          "duration": 5189,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Send",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 28,
+          "timestamp": 1793473629014,
+          "duration": 17158,
+          "error": "Element not found: Text matching regex: Send"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reopen-error.ax.json",
+          "sha256": "39328a0dccdd1083a68264ac8a85423da4295b7833161500ef75a61f31313924",
+          "bytes": 97988
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reopen-error.png",
+          "sha256": "01a61b93dffbf99936b13edd870e8ee7f18ce7a1056b693fdea27f1384d8e185",
+          "bytes": 23455
+        }
+      ]
+    },
+    {
+      "id": "support-reply-error",
+      "shard": "account",
+      "failure": [
+        "Element not found: Text matching regex: Send"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 24,
+        "auditRequestCount": 2,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "2c55d8e4293a8649f54a70f399e4b83c121d6cff5b97cc783a8d768b8bac5a43",
+      "lastCommands": [
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Audit support question",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 25,
+          "timestamp": 1793473682900,
+          "duration": 113,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Write a reply",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 26,
+          "timestamp": 1793473683014,
+          "duration": 2546,
+          "error": null
+        },
+        {
+          "command": {
+            "inputTextCommand": {
+              "text": "Please retain this draft after failure.",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 27,
+          "timestamp": 1793473685560,
+          "duration": 5251,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Send",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 28,
+          "timestamp": 1793473690812,
+          "duration": 17168,
+          "error": "Element not found: Text matching regex: Send"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reply-error.ax.json",
+          "sha256": "2bbfb9f02c71256fba66b1a0606fcd6c6c4fae4444ef8ce0ac2a830f33fc68df",
+          "bytes": 97985
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reply-error.png",
+          "sha256": "86170413a05b3e4d1d8b556377c9da92e9c92e108417c0081a62e5012bd3ed93",
+          "bytes": 23653
+        }
+      ]
+    },
+    {
+      "id": "memory-cover-settings",
+      "shard": "account",
+      "failure": [
+        "Assertion is false: \"(?s)^.*book cover: AUDIT BOOK TITLE\\..*$\" is visible"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 30,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "bbf5d7ab9728798c1bffd6c6e664bdd82d0484921ec5655df96ce67b54972a8f",
+      "lastCommands": [
+        {
+          "command": {
+            "hideKeyboardCommand": {
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 32,
+          "timestamp": 1793473804514,
+          "duration": 1078,
+          "error": null
+        },
+        {
+          "command": {
+            "scrollUntilVisible": {
+              "selector": {
+                "textRegex": "Save memory book",
+                "optional": false
+              },
+              "direction": "DOWN",
+              "scrollDuration": "40",
+              "visibilityPercentage": 100,
+              "timeout": "20000",
+              "centerElement": true,
+              "originalSpeedValue": "40",
+              "optional": false,
+              "visibilityPercentageNormalized": 1.0
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 33,
+          "timestamp": 1793473805592,
+          "duration": 9213,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Save memory book",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 34,
+          "timestamp": 1793473814805,
+          "duration": 2671,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "(?s)^.*book cover: AUDIT BOOK TITLE\\..*$",
+                  "optional": false
+                }
+              },
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 35,
+          "timestamp": 1793473817476,
+          "duration": 17267,
+          "error": "Assertion is false: \"(?s)^.*book cover: AUDIT BOOK TITLE\\..*$\" is visible"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-cover-settings.ax.json",
+          "sha256": "0686e92c3cacf96df33d5d9acae5b6601e00640a7a7ec3dcd89e2e4ab8e89301",
+          "bytes": 80122
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-cover-settings.png",
+          "sha256": "29431410058ea3ef74f70cecead31779b8bde007d8a29628728a26950d4bc220",
+          "bytes": 30313
+        }
+      ]
+    },
+    {
+      "id": "memory-film-export-entry",
+      "shard": "account",
+      "failure": [
+        "Element not found: Text matching regex: Play continuous memory film with original music"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "29d5da435a61e82707b29fe749b3fbdab88b6ad1db37eece7bdb1e4b05f06277",
+      "lastCommands": [
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "tapOnElement": {
+                    "selector": {
+                      "textRegex": "Native audit launcher",
+                      "optional": false
+                    },
+                    "retryIfNoChange": false,
+                    "waitUntilVisible": false,
+                    "longPress": false,
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "IOS"
+              },
+              "optional": false
+            }
+          },
+          "status": "SKIPPED",
+          "sequenceNumber": 23,
+          "timestamp": 1793473869145,
+          "duration": 0,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "idRegex": "native-audit-open-case",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 24,
+          "timestamp": 1793473869146,
+          "duration": 2347,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Edit memory book",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 25,
+          "timestamp": 1793473871493,
+          "duration": 122,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Play continuous memory film with original music",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 26,
+          "timestamp": 1793473871615,
+          "duration": 17115,
+          "error": "Element not found: Text matching regex: Play continuous memory film with original music"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-film-export-entry.ax.json",
+          "sha256": "1625261f5a981ad8117a056f1fab7c265bb0ec07bbbc9414946bd083a3ee86d7",
+          "bytes": 80114
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-film-export-entry.png",
+          "sha256": "29f176a746b385861c6426f5268b71117c83aabb9d23e59e50cead53d1ed00f7",
+          "bytes": 29779
+        }
+      ]
+    },
+    {
+      "id": "auth-forgot-password",
+      "shard": "account",
+      "failure": [
+        "Element not found: Text matching regex: Send code"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 5,
+        "signedIn": false
+      },
+      "sourceCommandsSha256": "ba2263afcfe7c6b0512ad17e5fcb3a8e101fc5c5248dba92a0a9462902e04d29",
+      "lastCommands": [
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Sign in",
+                  "optional": false
+                }
+              },
+              "timeout": "30000",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 7,
+          "timestamp": 1793473985754,
+          "duration": 1798,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Forgot password",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 8,
+          "timestamp": 1793473987553,
+          "duration": 3679,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Reset password",
+                  "optional": false
+                }
+              },
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 9,
+          "timestamp": 1793473991232,
+          "duration": 152,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Send code",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 10,
+          "timestamp": 1793473991384,
+          "duration": 17037,
+          "error": "Element not found: Text matching regex: Send code"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-forgot-password.ax.json",
+          "sha256": "86d7255a9c4ce451169ac001f8c87b126d7255a32d9fee8a5156e8ba9fda8b92",
+          "bytes": 98076
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-forgot-password.png",
+          "sha256": "bedc543878be915b68c6d283b070d458c1ab8157d92c186b7e49e834a48fbe3a",
+          "bytes": 38992
+        }
+      ]
+    },
+    {
+      "id": "auth-signup-entry",
+      "shard": "account",
+      "failure": [
+        "Element not found: Text matching regex: Create an account"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 4,
+        "signedIn": false
+      },
+      "sourceCommandsSha256": "0e6739ab7b49fb67e89c06089c16235207320b0e3951859b4d41fa3bc2f5eba5",
+      "lastCommands": [
+        {
+          "command": {
+            "launchAppCommand": {
+              "appId": "app.platinumcircles.mobile.qa",
+              "clearState": true,
+              "permissions": {
+                "notifications": "deny"
+              },
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 5,
+          "timestamp": 1793474017152,
+          "duration": 375,
+          "error": null
+        },
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "launchAppCommand": {
+                    "appId": "app.platinumcircles.mobile.qa",
+                    "clearState": true,
+                    "clearKeychain": true,
+                    "permissions": {
+                      "notifications": "deny"
+                    },
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "IOS"
+              },
+              "optional": false
+            }
+          },
+          "status": "SKIPPED",
+          "sequenceNumber": 6,
+          "timestamp": 1793474017528,
+          "duration": 1,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Sign in",
+                  "optional": false
+                }
+              },
+              "timeout": "30000",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 7,
+          "timestamp": 1793474017529,
+          "duration": 1679,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Create an account",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 8,
+          "timestamp": 1793474019209,
+          "duration": 17112,
+          "error": "Element not found: Text matching regex: Create an account"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-signup-entry.ax.json",
+          "sha256": "104c97e96f19c7101636ba6c3a5633fc428b4e77316671fcfd01e33b87deb334",
+          "bytes": 60566
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-signup-entry.png",
+          "sha256": "ca1cb3d62defbfd1d8db077c894c4e707d032bf911a9dedc7474abe15aab4418",
+          "bytes": 31842
+        }
+      ]
+    },
+    {
+      "id": "auth-business-entry",
+      "shard": "account",
+      "failure": [
+        "Element not found: Text matching regex: Business sign-in"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 4,
+        "signedIn": false
+      },
+      "sourceCommandsSha256": "360851a34f3ef5f21663a9f9467a7804ca0623ce2bd54cb773fa0b9910b24cd6",
+      "lastCommands": [
+        {
+          "command": {
+            "launchAppCommand": {
+              "appId": "app.platinumcircles.mobile.qa",
+              "clearState": true,
+              "permissions": {
+                "notifications": "deny"
+              },
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 5,
+          "timestamp": 1793474044927,
+          "duration": 282,
+          "error": null
+        },
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "launchAppCommand": {
+                    "appId": "app.platinumcircles.mobile.qa",
+                    "clearState": true,
+                    "clearKeychain": true,
+                    "permissions": {
+                      "notifications": "deny"
+                    },
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "IOS"
+              },
+              "optional": false
+            }
+          },
+          "status": "SKIPPED",
+          "sequenceNumber": 6,
+          "timestamp": 1793474045210,
+          "duration": 1,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Sign in",
+                  "optional": false
+                }
+              },
+              "timeout": "30000",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 7,
+          "timestamp": 1793474045211,
+          "duration": 2047,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Business sign-in",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 8,
+          "timestamp": 1793474047258,
+          "duration": 17120,
+          "error": "Element not found: Text matching regex: Business sign-in"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-business-entry.ax.json",
+          "sha256": "c42b28fd0f12d6fd52105d9f6240e37de0c86d4cc056c610299ce89a23ae3954",
+          "bytes": 60566
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-business-entry.png",
+          "sha256": "02a22c9141c9ea036f74f2247466b8338a18dc95a7927601bd7d59cc711d1541",
+          "bytes": 31738
+        }
+      ]
+    },
+    {
+      "id": "market-createlisting",
+      "shard": "social",
+      "failure": [
+        "Assertion is false: \"Title\" is visible"
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "d4ca7377bb2f00b9ed49ffdc798de4094b3857fb9a6f5fc354804dd3ff15281b",
+      "lastCommands": [
+        {
+          "command": {
+            "hideKeyboardCommand": {
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 22,
+          "timestamp": 1793473341322,
+          "duration": 957,
+          "error": null
+        },
+        {
+          "command": {
+            "runFlowCommand": {
+              "commands": [
+                {
+                  "tapOnElement": {
+                    "selector": {
+                      "textRegex": "Native audit launcher",
+                      "optional": false
+                    },
+                    "retryIfNoChange": false,
+                    "waitUntilVisible": false,
+                    "longPress": false,
+                    "optional": false
+                  }
+                }
+              ],
+              "condition": {
+                "platform": "IOS"
+              },
+              "optional": false
+            }
+          },
+          "status": "SKIPPED",
+          "sequenceNumber": 23,
+          "timestamp": 1793473342280,
+          "duration": 1,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "idRegex": "native-audit-open-case",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 24,
+          "timestamp": 1793473342281,
+          "duration": 2436,
+          "error": null
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Title",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 25,
+          "timestamp": 1793473344717,
+          "duration": 15263,
+          "error": "Assertion is false: \"Title\" is visible"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/market-createlisting.ax.json",
+          "sha256": "5b99d9ffb6f0742f0db0ea8aac11c9b7507c106e14212e895ea15450b03c6a74",
+          "bytes": 75856
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/market-createlisting.png",
+          "sha256": "7f7b142145a9a2cc409698d3418a582fcff809e0a737b8c55a2662be5d300d21",
+          "bytes": 19121
+        }
+      ]
+    },
+    {
+      "id": "feed-article-draft",
+      "shard": "social",
+      "failure": [
+        "Element not found: Text matching regex: Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images."
+      ],
+      "fixture": {
+        "passed": true,
+        "requestCount": 15,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "sourceCommandsSha256": "88f42ff5fb9a23224fb850d4e8fc582b26b9b4db33c81679364d745674d9dccf",
+      "lastCommands": [
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Article",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 25,
+          "timestamp": 1793474164486,
+          "duration": 126,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Title",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 26,
+          "timestamp": 1793474164612,
+          "duration": 2529,
+          "error": null
+        },
+        {
+          "command": {
+            "inputTextCommand": {
+              "text": "An audit article",
+              "optional": false
+            }
+          },
+          "status": "COMPLETED",
+          "sequenceNumber": 27,
+          "timestamp": 1793474167141,
+          "duration": 2767,
+          "error": null
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "status": "FAILED",
+          "sequenceNumber": 28,
+          "timestamp": 1793474169909,
+          "duration": 17130,
+          "error": "Element not found: Text matching regex: Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/feed-article-draft.ax.json",
+          "sha256": "127e857259263d35e11b05d081fc883794bfbf69a0bf00d9057fd5d8488c8bcb",
+          "bytes": 136565
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/feed-article-draft.png",
+          "sha256": "ade7197ab14f4c38703be335a386228353227f24fd63a65a53b3fd2b5c6edca5",
+          "bytes": 38160
+        }
+      ]
+    }
+  ]
+}

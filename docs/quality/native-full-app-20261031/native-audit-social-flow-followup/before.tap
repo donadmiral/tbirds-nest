@@ -1,0 +1,65 @@
+TAP version 13
+# Subtest: Trend entry uses the actual normalized header and requires a resolved empty result instead of accepting the error header
+not ok 1 - Trend entry uses the actual normalized header and requires a resolved empty result instead of accepting the error header
+  ---
+  duration_ms: 111.655731
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-social-entry-controls.cjs:60:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'Memories'
+    - '#memories'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '#memories'
+  actual: 'Memories'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-social-entry-controls.cjs:71:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.start (node:internal/test_runner/test:1262:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: empty activity requires the actual empty state and absence of an unread-only action, without claiming a positive mark-read test
+not ok 2 - empty activity requires the actual empty state and absence of an unread-only action, without claiming a positive mark-read test
+  ---
+  duration_ms: 138.267379
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-social-entry-controls.cjs:82:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'Audit empty notifications and mark read'
+    - 'Audit empty notifications'
+                                ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'Audit empty notifications'
+  actual: 'Audit empty notifications and mark read'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-social-entry-controls.cjs:97:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 500.79553

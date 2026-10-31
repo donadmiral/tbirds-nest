@@ -1,0 +1,52 @@
+{
+  "commands": [
+    {
+      "stage": "create",
+      "timeoutSeconds": 120,
+      "startedAtEpochMs": 1793475090547,
+      "status": "completed",
+      "stdoutBytes": 37,
+      "stdoutTail": "3FE2B728-E4F9-490E-9B74-A250CD9AA32F\n",
+      "stdoutTruncated": false,
+      "stderrBytes": 0,
+      "stderrTail": "",
+      "stderrTruncated": false,
+      "exitCode": 0,
+      "elapsedSeconds": 65.36601214699999,
+      "leaderCompletedBeforePipeEOF": false,
+      "finishedAtEpochMs": 1793475155935
+    },
+    {
+      "stage": "boot",
+      "timeoutSeconds": 120,
+      "startedAtEpochMs": 1793475155937,
+      "status": "completed",
+      "stdoutBytes": 0,
+      "stdoutTail": "",
+      "stdoutTruncated": false,
+      "stderrBytes": 0,
+      "stderrTail": "",
+      "stderrTruncated": false,
+      "exitCode": 0,
+      "elapsedSeconds": 10.09527406999996,
+      "leaderCompletedBeforePipeEOF": false,
+      "finishedAtEpochMs": 1793475166040
+    },
+    {
+      "stage": "bootstatus",
+      "timeoutSeconds": 300,
+      "startedAtEpochMs": 1793475166097,
+      "status": "completed",
+      "stdoutBytes": 38548,
+      "stdoutTail": "erminal=NO, Elapsed=03:50.\n\tWaiting on System App\n\n[2026-10-31 19:36:30 +0000] Status=4, isTerminal=NO, Elapsed=03:50.\n\tWaiting on System App\n\n[2026-10-31 19:36:32 +0000] Status=4, isTerminal=NO, Elapsed=03:51.\n\tWaiting on System App\n\n[2026-10-31 19:36:33 +0000] Status=4, isTerminal=NO, Elapsed=03:53.\n\tWaiting on System App\n\n[2026-10-31 19:36:33 +0000] Status=4, isTerminal=NO, Elapsed=03:53.\n\tWaiting on System App\n\n[2026-10-31 19:36:34 +0000] Status=4, isTerminal=NO, Elapsed=03:54.\n\tWaiting on System App\n\n[2026-10-31 19:36:35 +0000] Status=4, isTerminal=NO, Elapsed=03:56.\n\tWaiting on System App\n\n[2026-10-31 19:36:36 +0000] Status=4, isTerminal=NO, Elapsed=03:56.\n\tWaiting on System App\n\n[2026-10-31 19:36:37 +0000] Status=4, isTerminal=NO, Elapsed=03:57.\n\tWaiting on System App\n\n[2026-10-31 19:36:38 +0000] Status=4, isTerminal=NO, Elapsed=03:58.\n\tWaiting on System App\n\n[2026-10-31 19:36:39 +0000] Status=4, isTerminal=NO, Elapsed=03:59.\n\tWaiting on System App\n\n[2026-10-31 19:36:41 +0000] Status=4, isTerminal=NO, Elapsed=04:01.\n\tWaiting on System App\n\n[2026-10-31 19:36:41 +0000] Status=4, isTerminal=NO, Elapsed=04:01.\n\tWaiting on System App\n\n[2026-10-31 19:36:46 +0000] Status=4, isTerminal=NO, Elapsed=04:02.\n\tWaiting on System App\n\n[2026-10-31 19:36:46 +0000] Status=4, isTerminal=NO, Elapsed=04:04.\n\tWaiting on System App\n\n[2026-10-31 19:36:46 +0000] Status=4, isTerminal=NO, Elapsed=04:04.\n\tWaiting on System App\n\n[2026-10-31 19:36:46 +0000] Status=4, isTerminal=NO, Elapsed=04:05.\n\tWaiting on System App\n\n[2026-10-31 19:36:46 +0000] Status=4, isTerminal=NO, Elapsed=04:06.\n\tWaiting on System App\n\n[2026-10-31 19:36:47 +0000] Status=4, isTerminal=NO, Elapsed=04:07.\n\tWaiting on System App\n\n[2026-10-31 19:36:48 +0000] Status=4, isTerminal=NO, Elapsed=04:08.\n\tWaiting on System App\n\n[2026-10-31 19:36:50 +0000] Status=4, isTerminal=NO, Elapsed=04:09.\n\tWaiting on System App\n\n[2026-10-31 19:36:51 +0000] Status=4, isTerminal=NO, Elapsed=04:11.\n\tWaiting on System App\n\n[2026-10-31 19:36:51 +0000] Status=4, isTerminal=NO, Elapsed=04:12.\n\tWaiting on System App\n\n[2026-10-31 19:36:53 +0000] Status=4, isTerminal=NO, Elapsed=04:12.\n\tWaiting on System App\n\n[2026-10-31 19:36:53 +0000] Status=4, isTerminal=NO, Elapsed=04:13.\n\tWaiting on System App\n\n[2026-10-31 19:36:54 +0000] Status=4, isTerminal=NO, Elapsed=04:14.\n\tWaiting on System App\n\n[2026-10-31 19:36:55 +0000] Status=4, isTerminal=NO, Elapsed=04:15.\n\tWaiting on System App\n\n[2026-10-31 19:36:57 +0000] Status=4, isTerminal=NO, Elapsed=04:16.\n\tWaiting on System App\n\n[2026-10-31 19:36:57 +0000] Status=4, isTerminal=NO, Elapsed=04:17.\n\tWaiting on System App\n\n[2026-10-31 19:37:03 +0000] Status=4, isTerminal=NO, Elapsed=04:19.\n\tWaiting on System App\n\n[2026-10-31 19:37:03 +0000] Status=4, isTerminal=NO, Elapsed=04:20.\n\tWaiting on System App\n\n[2026-10-31 19:37:03 +0000] Status=4, isTerminal=NO, Elapsed=04:21.\n\tWaiting on System App\n\n[2026-10-31 19:37:03 +0000] Status=4, isTerminal=NO, Elapsed=04:23.\n\tWaiting on System App\n\n[2026-10-31 19:37:04 +0000] Status=4, isTerminal=NO, Elapsed=04:24.\n\tWaiting on System App\n\n[2026-10-31 19:37:05 +0000] Status=4, isTerminal=NO, Elapsed=04:25.\n\tWaiting on System App\n\n[2026-10-31 19:37:05 +0000] Status=4, isTerminal=NO, Elapsed=04:25.\n\tWaiting on System App\n\n[2026-10-31 19:37:05 +0000] Status=4, isTerminal=NO, Elapsed=04:25.\n\tWaiting on System App\n\n[2026-10-31 19:37:06 +0000] Status=4, isTerminal=NO, Elapsed=04:26.\n\tWaiting on System App\n\n[2026-10-31 19:37:10 +0000] Status=4, isTerminal=NO, Elapsed=04:27.\n\tWaiting on System App\n\n[2026-10-31 19:37:10 +0000] Status=4, isTerminal=NO, Elapsed=04:28.\n\tWaiting on System App\n\n[2026-10-31 19:37:10 +0000] Status=4, isTerminal=NO, Elapsed=04:29.\n\tWaiting on System App\n\n[2026-10-31 19:37:17 +0000] Status=4, isTerminal=NO, Elapsed=04:31.\n\tWaiting on System App\n\n[2026-10-31 19:37:17 +0000] Status=4, isTerminal=NO, Elapsed=04:33.\n\tWaiting on System App\n\n[2026-10-31 19:37:17 +0000] Status=4, isTerminal=NO, Elapsed=04:35.\n\tWaiting on System App\n\n[2026-10-31 19:37:17 +0000] Status=4294967295, isTerminal=YES, Elapsed=04:35.\n\tFinished\n\n",
+      "stdoutTruncated": true,
+      "stderrBytes": 0,
+      "stderrTail": "",
+      "stderrTruncated": false,
+      "exitCode": 0,
+      "elapsedSeconds": 278.25957390200006,
+      "leaderCompletedBeforePipeEOF": true,
+      "finishedAtEpochMs": 1793475449964
+    }
+  ]
+}

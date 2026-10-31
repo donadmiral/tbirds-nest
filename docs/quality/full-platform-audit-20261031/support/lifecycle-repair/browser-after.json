@@ -1,0 +1,2260 @@
+{
+  "source": "local-working-tree",
+  "checkedAt": "2026-10-31T18:47:32.010Z",
+  "scope": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+  "runtime": "153.0.8010.12",
+  "cases": [
+    {
+      "id": "SUP-001",
+      "name": "Support list renders the returned owner ticket",
+      "scenario": "ok",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-002",
+      "name": "Failed ticket-list read shows a recoverable error, not an empty inbox",
+      "scenario": "list-error",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nYour messages could not be loaded. Please try again.\n\nTry again",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          },
+          {
+            "text": "Try again",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-003",
+      "name": "Missing ticket resolves to a not-found/access state with an exit",
+      "scenario": "missing-ticket",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\n\nThis ticket is not available to this account.",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [],
+        "inputs": []
+      }
+    },
+    {
+      "id": "SUP-004",
+      "name": "Failed ticket read exposes an error and retry",
+      "scenario": "ticket-error",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\n\nThis ticket could not be loaded. Please try again.\n\nTry again",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Try again",
+            "disabled": false
+          }
+        ],
+        "inputs": []
+      }
+    },
+    {
+      "id": "SUP-005",
+      "name": "Failed message read is reported separately from an empty conversation",
+      "scenario": "messages-error",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nReplies could not be loaded. Please try again.\n\nTry again\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Try again",
+            "disabled": false
+          },
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-006",
+      "name": "Signed-out support displays sign-in guidance without ticket reads",
+      "scenario": "signed-out",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSign in to contact support.",
+        "reads": [],
+        "writes": [],
+        "buttons": [],
+        "inputs": []
+      }
+    },
+    {
+      "id": "SUP-007",
+      "name": "New support request validates empty fields without writing",
+      "scenario": "ok",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "A subject and a message are required."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-008",
+      "name": "Rejected request keeps the draft and releases Send",
+      "scenario": "write-reject",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Sending could not be confirmed. Your draft is kept. Try again to check the same request."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "32105649-48fd-449f-a0f6-cb553ffef3b1",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "id": "32105649-48fd-449f-a0f6-cb553ffef3b1",
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "Keep my subject",
+              "body": "Keep my support draft"
+            },
+            "filters": {},
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": "Keep my subject"
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": "Keep my support draft"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-009",
+      "name": "Successful request makes one write and shows the returned ticket",
+      "scenario": "ok",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Your message is with the operations team. The reply will appear here."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nNew issue\nWith the team\n10/31/2026, 8:00:00 PM\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "id": "abfbaf07-6f34-4f2b-b609-53e27be1866e",
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "New issue",
+              "body": "Synthetic new issue"
+            },
+            "filters": {},
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-010",
+      "name": "Returned ticket and message render with a working reply control",
+      "scenario": "ok",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": "Synthetic reply"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-011",
+      "name": "Rejected reply preserves draft and releases Send",
+      "scenario": "write-reject",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Your reply could not be confirmed. Your draft is kept. Try again to check the same request."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "49777a91-2b01-4ae1-80e5-89de0c0914ce",
+              "p_body": "Keep this reply"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": "Keep this reply"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-012",
+      "name": "An atomic reply failure preserves the draft and does not insert a partial message",
+      "scenario": "status-error",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Your reply could not be confirmed. Your draft is kept. Try again to check the same request."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nSolved\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "d2af5431-dc7f-48b5-861e-a53ecab7eb4f",
+              "p_body": "Please reopen my ticket"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": "Please reopen my ticket"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-013",
+      "name": "Unexpected rejected support submission does not leave Sending locked",
+      "scenario": "write-throw",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Sending could not be confirmed. Your draft is kept. Try again to check the same request."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "4e3fd244-96c4-4acb-8bc0-0229179048d6",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "id": "4e3fd244-96c4-4acb-8bc0-0229179048d6",
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "Transport problem",
+              "body": "Do not lose this"
+            },
+            "filters": {},
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": "Transport problem"
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": "Do not lose this"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-014",
+      "name": "Unexpected rejected reply does not leave Send locked",
+      "scenario": "write-throw",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Your reply could not be confirmed. Your draft is kept. Try again to check the same request."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "4bc4af7c-3adc-4e75-bb09-420ca936892f",
+              "p_body": "Do not lose my reply"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": "Do not lose my reply"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-015",
+      "name": "A confirmed reply uses one atomic request and renders its readback",
+      "scenario": "ok",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nOne atomic reply\n\nYou · 10/31/2026, 8:02:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "891a443f-253e-40c8-a937-532213c11326",
+              "p_body": "One atomic reply"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-016",
+      "name": "Lost reply response retries the same UUID without a duplicate",
+      "scenario": "write-lost",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Your reply could not be confirmed. Your draft is kept. Try again to check the same request."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nA recoverable reply\n\nYou · 10/31/2026, 8:02:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "b39d7970-3f43-4892-9773-84c31b985961",
+              "p_body": "A recoverable reply"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          },
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "b39d7970-3f43-4892-9773-84c31b985961",
+              "p_body": "A recoverable reply"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-017",
+      "name": "Missing atomic contract preserves the draft without unsafe legacy writes",
+      "scenario": "rpc-missing",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Support replies are temporarily unavailable. Your draft is kept. Please try again later."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "012c9f87-73df-4959-952a-fe033cfa1ef2",
+              "p_body": "Keep until available"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": "Keep until available"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-018",
+      "name": "List retry recovers the actual returned ticket",
+      "scenario": "list-error",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-019",
+      "name": "Held list read reaches a bounded error and can recover",
+      "scenario": "read-held",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-020",
+      "name": "Signed-out ticket does not query private conversation data",
+      "scenario": "signed-out",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\n\nSign in to view this support ticket.",
+        "reads": [],
+        "writes": [],
+        "buttons": [],
+        "inputs": []
+      }
+    },
+    {
+      "id": "SUP-021",
+      "name": "Lost create response confirms the exact stored ticket without a duplicate",
+      "scenario": "write-lost",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Your message is with the operations team. The reply will appear here."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nRecover a sent ticket\nWith the team\n10/31/2026, 8:00:00 PM\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "1d2f9332-990f-4148-ae8a-0aa3e147bb18",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "id": "1d2f9332-990f-4148-ae8a-0aa3e147bb18",
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "Recover a sent ticket",
+              "body": "Already committed before the response was lost"
+            },
+            "filters": {},
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-022",
+      "name": "Rapid repeated reply activation makes only one request",
+      "scenario": "ok",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nOnly one copy\n\nYou · 10/31/2026, 8:02:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "113bd8b0-5ab2-4a5a-a5c5-c04ed75915bd",
+              "p_body": "Only one copy"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-023",
+      "name": "Older history retry cannot erase a confirmed reply or restore a stale solved state",
+      "scenario": "messages-error",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nConfirmed after old history started\n\nYou · 10/31/2026, 8:02:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "bc9b3594-4962-4aa9-bb52-b0884002f891",
+              "p_body": "Confirmed after old history started"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-024",
+      "name": "Older list retry cannot erase the newly confirmed ticket",
+      "scenario": "list-error",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Your message is with the operations team. The reply will appear here."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nNewer confirmed ticket\nWith the team\n10/31/2026, 8:00:00 PM\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "id": "38e8af8f-3106-4f37-bbf1-d3f1ed85fc9e",
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "Newer confirmed ticket",
+              "body": "Do not replace this with the older list"
+            },
+            "filters": {},
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-025",
+      "name": "reply: queued preparation is rejected across A to B to A",
+      "scenario": "ok",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Sign in to the same account before sending this message. Your draft is kept."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": "Session-bound draft"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-026",
+      "name": "reply: ordinary token refresh keeps the captured bearer and permits confirmation",
+      "scenario": "ok",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nSession-bound draft\n\nYou · 10/31/2026, 8:02:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "bd1fb99f-01fa-4863-b0f7-fdea722f5d5b",
+              "p_body": "Session-bound draft"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-027",
+      "name": "reply: leaving the actual page before hashing completes prevents dispatch",
+      "scenario": "ok",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-028",
+      "name": "reply: a discarded completion retains its UUID for a later same-payload submission",
+      "scenario": "write-held",
+      "route": "/settings/support/ticket-a",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nSession-bound draft\n\nYou · 10/31/2026, 8:02:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "6391a55d-11f2-437f-8687-1da60bb00e50",
+              "p_body": "Session-bound draft"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          },
+          {
+            "table": "rpc",
+            "operation": "send_member_support_reply",
+            "values": {
+              "p_expected_user": "member-a",
+              "p_ticket_id": "ticket-a",
+              "p_request_id": "6391a55d-11f2-437f-8687-1da60bb00e50",
+              "p_body": "Session-bound draft"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-029",
+      "name": "create: queued preparation is rejected across A to B to A",
+      "scenario": "ok",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Sign in to the same account before sending this message. Your draft is kept."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": "Session-bound ticket"
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": "Session-bound draft"
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-030",
+      "name": "create: ordinary token refresh keeps the captured bearer and permits confirmation",
+      "scenario": "ok",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Your message is with the operations team. The reply will appear here."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nSession-bound ticket\nWith the team\n10/31/2026, 8:00:00 PM\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "id": "fdccdd53-53f3-4a92-aaf2-26bee2002af2",
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "Session-bound ticket",
+              "body": "Session-bound draft"
+            },
+            "filters": {},
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-031",
+      "name": "create: leaving the actual page before hashing completes prevents dispatch",
+      "scenario": "ok",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nBack to support\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles · 10/31/2026, 8:01:00 PM\n\nReply\nSend",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [],
+        "buttons": [
+          {
+            "text": "Send",
+            "disabled": true
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Write a reply",
+            "value": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUP-032",
+      "name": "create: a discarded completion retains its UUID for a later same-payload submission",
+      "scenario": "write-held",
+      "route": "/settings/support",
+      "status": "passed",
+      "errors": [],
+      "alerts": [
+        "Your message is with the operations team. The reply will appear here."
+      ],
+      "observed": {
+        "text": "Actual member support pages · synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSubject\nMessage\nSend to operations\n\nYOUR MESSAGES\n\nSession-bound ticket\nWith the team\n10/31/2026, 8:00:00 PM\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "reads": [
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "ticket-a",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_messages",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "ticket_id": "ticket-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "profiles",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "id": "92cd8482-65f1-42aa-8196-975354586b13",
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          },
+          {
+            "table": "support_tickets",
+            "operation": "select",
+            "values": {},
+            "filters": {
+              "user_id": "member-a"
+            },
+            "owner": "member-a",
+            "headers": {}
+          }
+        ],
+        "writes": [
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "id": "92cd8482-65f1-42aa-8196-975354586b13",
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "Session-bound ticket",
+              "body": "Session-bound draft"
+            },
+            "filters": {},
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          },
+          {
+            "table": "support_tickets",
+            "operation": "insert",
+            "values": {
+              "id": "92cd8482-65f1-42aa-8196-975354586b13",
+              "user_id": "member-a",
+              "kind": "support",
+              "subject": "Session-bound ticket",
+              "body": "Session-bound draft"
+            },
+            "filters": {},
+            "owner": "member-a",
+            "headers": {
+              "Authorization": "Bearer synthetic.eyJzdWIiOiJtZW1iZXItYSIsInNlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJleHAiOjQxMDI0NDQ4MDB9.0"
+            }
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Send to operations",
+            "disabled": false
+          }
+        ],
+        "inputs": [
+          {
+            "placeholder": "Subject",
+            "value": ""
+          },
+          {
+            "placeholder": "What do you need help with?",
+            "value": ""
+          }
+        ]
+      }
+    }
+  ]
+}

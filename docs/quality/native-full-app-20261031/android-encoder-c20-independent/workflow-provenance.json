@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+  "sourceTree": "cde37bb9b55c73d5f2afd45a9be4b76fc89b1170",
+  "triggerCommit": "d74c4a0f759961bebb1ef3ac4bbd8085ae7a2bc5",
+  "workflowCommit": "d74c4a0f759961bebb1ef3ac4bbd8085ae7a2bc5",
+  "workflowRef": "donadmiral/tbirds-nest/.github/workflows/android-encoder-validation.yml@refs/heads/codex/android-encoder-validation-20261031",
+  "workflowRun": "41233788259",
+  "runAttempt": "1",
+  "instrumentationCaseCounts": {
+    "StoryAudioExportTest": 23,
+    "MemoryMovieExportTest": 17
+  },
+  "inputSha256": {
+    ".github/workflows/android-native-compile.yml": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+    "package-lock.json": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+    "package.json": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+    "scripts/quality/android-media-dependencies.init.gradle": "90860a9da3b8db77843eadc04700fff2f5716b740f76bdbe46a0451eb498ad03",
+    "scripts/quality/android-story-export/.gitignore": "48beb236df7bcd0e416ba90634a2bce8c8660529b83a959043981276783fd79c",
+    "scripts/quality/android-story-export/build.gradle": "42e5b2f4c85dcdf88fa922bdb7228053c526b6e9f7cc607b842d35ee6f965c06",
+    "scripts/quality/android-story-export/gradle.properties": "d477c6ea499a0b0916442e37bca983ae0a6f22d4b8c22f1882be0e5cd34b7b4c",
+    "scripts/quality/android-story-export/settings.gradle": "c28f8c006ff219e6e7e8c9dc90d5d2eff36eb87b59f0dd7596ee7e1be61d695b",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt": "9fe378b36f7edaeb3f8dd8f0527cb9dcee294b0d3cf05c1b4fe28dff7799f4bd",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "c26c3ca6a5037772c19b43723445a25d4f0ef7c834f1608ff25d89faf4ac8e4b",
+    "scripts/quality/android-story-export/src/main/AndroidManifest.xml": "a6c09b92672c80c279243f688eff43369a6d327305e40e9d6fc99edadf0d07be",
+    "scripts/quality/android-story-export/src/main/java/expo/modules/boomerang/FixtureMediaProvider.kt": "6b253b3cf247efdaee5e539361de5f4189d1fe0641def507c5b92cac79efb450",
+    "scripts/quality/test-android-story-audio.sh": "fab3525d32329475e2e8e733f20d932729d90de664002b54ebb2c0cb0c79f9eb",
+    "tests/native/assets/memory-capture-video.mp4": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2"
+  },
+  "encoderReceiptCommitMeaning": "The unchanged script receipt.commit is GITHUB_SHA (trigger commit). Source identity is the separately checked sourceCommit/sourceTree here.",
+  "scope": "Pinned production encoder sources in the existing standalone instrumentation app; no full Expo app or release build."
+}

@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: new member reply and reopening commit together with an owned receipt
+ok 1 - new member reply and reopening commit together with an owned receipt
+  ---
+  duration_ms: 2274.997529
+  type: 'test'
+  ...
+# Subtest: replaying a confirmed reply does not reopen a subsequently solved ticket
+ok 2 - replaying a confirmed reply does not reopen a subsequently solved ticket
+  ---
+  duration_ms: 6.351372
+  type: 'test'
+  ...
+# Subtest: a request UUID is bound to the exact body and ticket
+ok 3 - a request UUID is bound to the exact body and ticket
+  ---
+  duration_ms: 6.54935
+  type: 'test'
+  ...
+# Subtest: cross-account ticket access and changed account identity are rejected
+ok 4 - cross-account ticket access and changed account identity are rejected
+  ---
+  duration_ms: 5.073641
+  type: 'test'
+  ...
+# Subtest: anonymous execution and authenticated roles without a user are denied
+ok 5 - anonymous execution and authenticated roles without a user are denied
+  ---
+  duration_ms: 9.515983
+  type: 'test'
+  ...
+# Subtest: legacy direct member insert receives the same atomic reopening
+ok 6 - legacy direct member insert receives the same atomic reopening
+  ---
+  duration_ms: 4.237353
+  type: 'test'
+  ...
+# Subtest: a no-op legacy conflict retry does not reopen the ticket
+ok 7 - a no-op legacy conflict retry does not reopen the ticket
+  ---
+  duration_ms: 5.707524
+  type: 'test'
+  ...
+# Subtest: failed status update rolls back the inserted message and permits safe retry
+ok 8 - failed status update rolls back the inserted message and permits safe retry
+  ---
+  duration_ms: 10.641155
+  type: 'test'
+  ...
+# Subtest: legacy insert cannot survive an unauthorized parent update
+ok 9 - legacy insert cannot survive an unauthorized parent update
+  ---
+  duration_ms: 5.013561
+  type: 'test'
+  ...
+# Subtest: staff reply insertion does not reopen a solved ticket
+ok 10 - staff reply insertion does not reopen a solved ticket
+  ---
+  duration_ms: 1.400627
+  type: 'test'
+  ...
+# Subtest: empty, oversized and missing-key requests cannot insert messages
+ok 11 - empty, oversized and missing-key requests cannot insert messages
+  ---
+  duration_ms: 5.083596
+  type: 'test'
+  ...
+# Subtest: an inaccessible existing message UUID never produces a forged success
+ok 12 - an inaccessible existing message UUID never produces a forged success
+  ---
+  duration_ms: 6.431012
+  type: 'test'
+  ...
+# Subtest: both functions preserve caller RLS and the trigger helper is not exposed
+ok 13 - both functions preserve caller RLS and the trigger helper is not exposed
+  ---
+  duration_ms: 4.65395
+  type: 'test'
+  ...
+# Subtest: reapplying the migration preserves data and leaves one insert trigger
+ok 14 - reapplying the migration preserves data and leaves one insert trigger
+  ---
+  duration_ms: 7.631978
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2405.425931

@@ -77,6 +77,7 @@ if not all(path.is_file() for path in sources):
     raise SystemExit('The actual production encoder sources are required.')
 fixtures = sorted((root / 'scripts/quality/android-story-export/src/androidTest').rglob('*'))
 fixtures = [p for p in fixtures if p.is_file()]
+fixtures.append(root / 'tests/native/assets/memory-capture-video.mp4')
 print(json.dumps({
     'expo': expo, 'nativeToolchain': {k: versions[k] for k in ('agp', 'kotlin', 'compileSdk', 'minSdk')},
     'productionSources': {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
@@ -204,7 +205,7 @@ device_receipt = evidence / 'device/receipt.json'
 if not device_receipt.is_file():
     raise SystemExit('The emulator did not produce its measured encoder receipt.')
 measured = json.loads(device_receipt.read_text())
-if measured.get('media3Version') != '1.8.1' or len(measured.get('cases', [])) < len(expected_tests):
+if measured.get('media3Version') != '1.11.1' or len(measured.get('cases', [])) < len(expected_tests):
     raise SystemExit('The emulator did not retain measurements for every encoder case.')
 memory_source = harness_source.with_name('MemoryMovieExportTest.kt')
 expected_memory = set(re.findall(r'@Test\s+fun\s+(\w+)\s*\(', memory_source.read_text()))
@@ -216,7 +217,7 @@ if not memory_receipt.is_file():
     raise SystemExit('The emulator did not produce its memory movie measurements.')
 memory_measured = json.loads(memory_receipt.read_text())
 memory_cases = memory_measured.get('cases', [])
-if memory_measured.get('media3Version') != '1.8.1' or len(memory_cases) != len(expected_memory) or {c.get('case') for c in memory_cases} != expected_memory or any(c.get('passed') is not True for c in memory_cases):
+if memory_measured.get('media3Version') != '1.11.1' or len(memory_cases) != len(expected_memory) or {c.get('case') for c in memory_cases} != expected_memory or any(c.get('passed') is not True for c in memory_cases):
     raise SystemExit('The retained memory measurements do not exactly cover the declared cases.')
 preflight = json.loads((evidence / 'preflight.json').read_text())
 for name, expected in preflight['acceptanceSources'].items():

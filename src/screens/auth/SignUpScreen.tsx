@@ -337,7 +337,7 @@ const s = themedSheet((t) => ({
   },
   asuSub: {
     fontSize: 11,
-    color: GRAY_500,
+    color: '#4B5563',
     lineHeight: 15,
   },
   primaryBtn: {
@@ -364,7 +364,7 @@ const s = themedSheet((t) => ({
   dividerTxt: {
     paddingHorizontal: 12,
     fontSize: 12,
-    color: GRAY_400,
+    color: '#6B7280',
   },
   footerTxt: {
     textAlign: 'center',
@@ -378,7 +378,7 @@ const s = themedSheet((t) => ({
   termsTxt: {
     textAlign: 'center',
     fontSize: 11,
-    color: GRAY_400,
+    color: '#6B7280',
     marginTop: 20,
     lineHeight: 16,
   },

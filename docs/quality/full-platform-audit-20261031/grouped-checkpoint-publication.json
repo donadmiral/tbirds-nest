@@ -1,0 +1,28 @@
+{
+  "recordedAtUtc": "2026-10-31T19:18:23.692984+00:00",
+  "repository": "donadmiral/tbirds-nest",
+  "branch": "codex/grouped-repairs-20261031",
+  "commit": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+  "tree": "cde37bb9b55c73d5f2afd45a9be4b76fc89b1170",
+  "parent": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "snapshotPaths": 623,
+  "changedEntriesAgainstAuditBase": 352,
+  "binaryBlobsCreatedAndVerified": 49,
+  "retainedBaselineArchive": "docs/quality/all-platform-audit-20261031/admin/audit-reproduction-evidence.zip",
+  "deletions": 0,
+  "readback": {
+    "branchHead": true,
+    "commitParent": true,
+    "exactLocalTreeMatch": true
+  },
+  "applicationPrHeadUnchanged": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "excludedInProgressIosRecoveryPaths": [
+    "scripts/quality/__pycache__/native-ui-audit-runner.cpython-312.pyc",
+    "scripts/quality/__pycache__/native-ui-audit-summary.cpython-312.pyc",
+    "scripts/quality/__pycache__/native-ui-emulator-diagnostics.cpython-312.pyc",
+    "scripts/quality/__pycache__/native-ui-emulator-graphics.cpython-312.pyc",
+    "scripts/quality/__pycache__/native-ui-ios-url-trace.cpython-312.pyc",
+    "scripts/quality/native-ui-ios-audit-recovery.py"
+  ],
+  "scope": "Frozen grouped application repair and evidence checkpoint. No app branch promotion, database deployment, signed build or TestFlight submission."
+}

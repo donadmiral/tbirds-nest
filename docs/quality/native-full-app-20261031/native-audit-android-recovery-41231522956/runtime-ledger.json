@@ -1,0 +1,3985 @@
+{
+  "kind": "complete-baseline-native-audit-runtime-ledger",
+  "sourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "sourceTree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+  "productionApplication": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "recoveryCommit": "23cf8777768451a74d24339b77f0fae2c41ba415",
+  "recoveryRunId": 41231522956,
+  "binaryProducerRunId": 41229206389,
+  "attempted": 85,
+  "passed": 48,
+  "failed": 37,
+  "perCaseTimeouts": 0,
+  "allControlsAccepted": false,
+  "classificationComplete": false,
+  "shards": [
+    {
+      "shard": "settings",
+      "applicationSourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+      "applicationSourceTree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+      "platform": "android",
+      "selectedGroups": [
+        "directories",
+        "settings",
+        "stories"
+      ],
+      "unselectedGroups": [
+        "auth",
+        "business",
+        "feed",
+        "jobs",
+        "market",
+        "memory",
+        "messages",
+        "navigation",
+        "profile",
+        "support"
+      ],
+      "attempted": 27,
+      "passed": 22,
+      "failed": 5,
+      "allControlsAccepted": false
+    },
+    {
+      "shard": "account",
+      "applicationSourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+      "applicationSourceTree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+      "platform": "android",
+      "selectedGroups": [
+        "auth",
+        "business",
+        "memory",
+        "profile",
+        "support"
+      ],
+      "unselectedGroups": [
+        "directories",
+        "feed",
+        "jobs",
+        "market",
+        "messages",
+        "navigation",
+        "settings",
+        "stories"
+      ],
+      "attempted": 27,
+      "passed": 10,
+      "failed": 17,
+      "allControlsAccepted": false
+    },
+    {
+      "shard": "social",
+      "applicationSourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+      "applicationSourceTree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+      "platform": "android",
+      "selectedGroups": [
+        "feed",
+        "jobs",
+        "market",
+        "messages",
+        "navigation"
+      ],
+      "unselectedGroups": [
+        "auth",
+        "business",
+        "directories",
+        "memory",
+        "profile",
+        "settings",
+        "stories",
+        "support"
+      ],
+      "attempted": 31,
+      "passed": 16,
+      "failed": 15,
+      "allControlsAccepted": false
+    }
+  ],
+  "cases": [
+    {
+      "shard": "settings",
+      "id": "settings-settings",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472867727,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2382
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 22531
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793472908208,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-settings",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-hiddenwords",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472908209,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2194
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 20450
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793472945205,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-hiddenwords",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-mutedwords",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472945206,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2193
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 25691
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793472981819,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-mutedwords",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-archive",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472981820,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2187
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 20469
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473018239,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-archive",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-youractivity",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473018239,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2197
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 20471
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473055443,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-youractivity",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-loginactivity",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473055443,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2204
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 27529
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473093247,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-loginactivity",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-blockedaccounts",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473093247,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2203
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 22190
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473130256,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-blockedaccounts",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-restrictedaccounts",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473130257,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2284
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 20430
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473167699,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-restrictedaccounts",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_restricted_accounts"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-savedposts",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473167699,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2199
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 20439
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473204963,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-savedposts",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-mutedstories",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473204964,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2287
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26053
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 21,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473242124,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-mutedstories",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-followrequests",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473242125,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2204
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 27516
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473279791,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-followrequests",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-terms",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473279792,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2097
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 24574
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473315442,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-terms",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-privacypolicy",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473315442,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2105
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 19245
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473352814,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-privacypolicy",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-helpsupport",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473352815,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2103
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 19266
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473390436,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-helpsupport",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-changeusername",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473390437,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2106
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 24295
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473427938,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-changeusername",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-accountstanding",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473427938,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2204
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 22213
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473465351,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-accountstanding",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-applyverification",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473465352,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2308
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26950
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 21,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473502825,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-applyverification",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-twofactor",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473502826,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2188
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 27248
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473539570,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-twofactor",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-monetization",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473539571,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2390
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26679
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473576871,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-monetization",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/creator_monetization_snapshot"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "stories-storycreationmenu",
+      "group": "stories",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473576872,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1307
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 15196
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 11,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473615082,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/stories-storycreationmenu",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "stories-storycomposer",
+      "group": "stories",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473615083,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1570
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 16094
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 14,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473668695,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/stories-storycomposer",
+      "failures": [
+        "Assertion is false: \"Next\" is visible"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "stories-storylayout",
+      "group": "stories",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473668697,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1301
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 9582
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 11,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473705672,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/stories-storylayout",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "stories-storyviewer",
+      "group": "stories",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473705674,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2337
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 25459
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473758524,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/stories-storyviewer",
+      "failures": [
+        "Assertion is false: \"A moment worth remembering.\" is visible"
+      ],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/report_client_error"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "directories-channels",
+      "group": "directories",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473758525,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1402
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 11025
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 12,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473795579,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/directories-channels",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-hidden-word-write",
+      "group": "settings",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473795580,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2556
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 27824
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 23,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473841225,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-hidden-word-write",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-muted-word-write",
+      "group": "settings",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473841227,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2555
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 22517
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 23,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473886825,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-muted-word-write",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "settings",
+      "id": "settings-appearance",
+      "group": "settings",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473886827,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2829
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 23987
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 27,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473946904,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/settings/native-audit-results/settings-appearance",
+      "failures": [
+        "Element not found: Text matching regex: (?s)^Appearance, (?:Follows your phone|Light|Dim|Lights out)$"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "profile-editprofile",
+      "group": "profile",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472860098,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2193
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 22217
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793472899758,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/profile-editprofile",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "profile-userprofile",
+      "group": "profile",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472899759,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1931
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 21964
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793472937497,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/profile-userprofile",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "GET",
+          "path": "/rest/v1/user_restrictions"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "profile-followlist",
+      "group": "profile",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472937497,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1390
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 16318
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 12,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793472976201,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/profile-followlist",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "profile-mynetwork",
+      "group": "profile",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472976202,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2910
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 28966
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473012452,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/profile-mynetwork",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_communities_page"
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/clubs"
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/club_members"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "support-contactsupport",
+      "group": "support",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473012453,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2147
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 27256
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 1,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473049684,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/support-contactsupport",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "support-ticket",
+      "group": "support",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473049685,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2183
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26927
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 2,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473084855,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/support-ticket",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "business-businessapply",
+      "group": "business",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473084856,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2383
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 23982
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473120790,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/business-businessapply",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "business-businessaccess",
+      "group": "business",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473120791,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2106
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 24557
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473157320,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/business-businessaccess",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "business-createbusiness",
+      "group": "business",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473157321,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2106
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26310
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473193877,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/business-createbusiness",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "business-businesses",
+      "group": "business",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473193878,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2438
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 21931
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473229629,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/business-businesses",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_my_businesses"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "memory-memoryalbum",
+      "group": "memory",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473229629,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2817
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 16016
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 15,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473265265,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/memory-memoryalbum",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "support-original-body",
+      "group": "support",
+      "kind": "error-or-content-contract",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473265266,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2461
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 29873
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 2,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473316943,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/support-original-body",
+      "failures": [
+        "Assertion is false: \"Original support question from the member.\" is visible"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "support-missing-ticket",
+      "group": "support",
+      "kind": "error-or-content-contract",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473316944,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2464
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 22793
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 2,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473368278,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/support-missing-ticket",
+      "failures": [
+        "Assertion is false: \"(?i).*(not found|unavailable|could not load).*\" is visible"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "support-ticket-read-error",
+      "group": "support",
+      "kind": "error-or-content-contract",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473368279,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2599
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 32271
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 5,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473420658,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/support-ticket-read-error",
+      "failures": [
+        "Assertion is false: \"(?i).*(could not load|try again|retry).*\" is visible"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "support-history-error",
+      "group": "support",
+      "kind": "error-or-content-contract",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473420660,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2594
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26348
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 5,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473472487,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/support-history-error",
+      "failures": [
+        "Assertion is false: \"(?i).*(could not load|try again|retry).*\" is visible"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "support-list-error",
+      "group": "support",
+      "kind": "error-contract",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473472488,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2541
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 30163
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 4,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473523741,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/support-list-error",
+      "failures": [
+        "Assertion is false: \"(?i).*(could not load|try again|retry).*\" is visible"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "support-fresh-ticket-body",
+      "group": "support",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473523742,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2595
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26963
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 24,
+        "auditRequestCount": 1,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473586387,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/support-fresh-ticket-body",
+      "failures": [
+        "Element not found: Text matching regex: What happened, and what you expected"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "support-reopen-error",
+      "group": "support",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473586388,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2644
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 23410
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 24,
+        "auditRequestCount": 2,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473647580,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/support-reopen-error",
+      "failures": [
+        "Element not found: Text matching regex: Send"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "support-reply-error",
+      "group": "support",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473647581,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2644
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 24294
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 24,
+        "auditRequestCount": 2,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473709395,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/support-reply-error",
+      "failures": [
+        "Element not found: Text matching regex: Send"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "memory-reader-controls",
+      "group": "memory",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473709396,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 3088
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 16338
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 18,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473758932,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/memory-reader-controls",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "memory-cover-settings",
+      "group": "memory",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473758933,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 5939
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 27814
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 30,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473836085,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/memory-cover-settings",
+      "failures": [
+        "Assertion is false: \"(?s)^.*book cover: AUDIT BOOK TITLE\\..*$\" is visible"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "memory-film-export-entry",
+      "group": "memory",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473836086,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 3179
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 16641
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473890065,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/memory-film-export-entry",
+      "failures": [
+        "Element not found: Text matching regex: Play continuous memory film with original music"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "memory-capture-session",
+      "group": "memory",
+      "kind": "same-session-memory-capture",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473890066,
+      "status": "failed",
+      "timeoutSeconds": 300,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 13083
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 78736
+        },
+        {
+          "directory": "memory-capture",
+          "collected": true
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 61,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": 1,
+      "finishedAtEpochMs": 1793473964455,
+      "runtimeClassification": "decoder-failure-pending-correlated-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/memory-capture-session",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "auth-empty-signin",
+      "group": "auth",
+      "kind": "signed-out-control",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473964456,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 463
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 4597
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 2,
+        "signedIn": false
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473978356,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/auth-empty-signin",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "auth-forgot-password",
+      "group": "auth",
+      "kind": "signed-out-control",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473978358,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 628
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 4599
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 5,
+        "signedIn": false
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793474010048,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/auth-forgot-password",
+      "failures": [
+        "Element not found: Text matching regex: Send code"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "auth-signup-entry",
+      "group": "auth",
+      "kind": "signed-out-control",
+      "attempts": 1,
+      "startedAtEpochMs": 1793474010049,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 573
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 4596
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 4,
+        "signedIn": false
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793474037885,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/auth-signup-entry",
+      "failures": [
+        "Element not found: Text matching regex: Create an account"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "account",
+      "id": "auth-business-entry",
+      "group": "auth",
+      "kind": "signed-out-control",
+      "attempts": 1,
+      "startedAtEpochMs": 1793474037886,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 573
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 4298
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 4,
+        "signedIn": false
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793474065773,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/account/native-audit-results/auth-business-entry",
+      "failures": [
+        "Element not found: Text matching regex: Business sign-in"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "navigation-feedmain",
+      "group": "navigation",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472860142,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 4870
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 37187
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 47,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793472900414,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/navigation-feedmain",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "navigation-marketmain",
+      "group": "navigation",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472900414,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2498
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 22820
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 23,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793472940907,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/navigation-marketmain",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "navigation-jobsmain",
+      "group": "navigation",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472940908,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2578
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 29603
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 24,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793472977395,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/navigation-jobsmain",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "navigation-conversations",
+      "group": "navigation",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793472977395,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2514
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 23702
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 23,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473013991,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/navigation-conversations",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "navigation-profilemain",
+      "group": "navigation",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473013991,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2987
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 31880
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 28,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473050950,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/navigation-profilemain",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "feed-search",
+      "group": "feed",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473050950,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2201
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 20454
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473086302,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/feed-search",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "feed-notifications",
+      "group": "feed",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473086303,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2273
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 21914
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473122411,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/feed-notifications",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_notifications_page"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "feed-articlecompose",
+      "group": "feed",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473122412,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1301
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 17260
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 11,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473158277,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/feed-articlecompose",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "feed-post",
+      "group": "feed",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473158283,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1712
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 17260
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473208898,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/feed-post",
+      "failures": [
+        "Assertion is false: \"Comments\" is visible"
+      ],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/can_view_post"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "feed-trendfeed",
+      "group": "feed",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473208898,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1731
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 13948
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473259087,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/feed-trendfeed",
+      "failures": [
+        "Assertion is false: \"Memories\" is visible"
+      ],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_posts_by_hashtag"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "market-listingdetail",
+      "group": "market",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473259088,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 3542
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 29591
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473310387,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/market-listingdetail",
+      "failures": [
+        "Assertion is false: \"Make offer\" is visible"
+      ],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_seller_rating"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/seller_review_page"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/report_client_error"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "market-createlisting",
+      "group": "market",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473310388,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2370
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 25488
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 22,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473361362,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/market-createlisting",
+      "failures": [
+        "Assertion is false: \"Title\" is visible"
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "market-marketinbox",
+      "group": "market",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473361363,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2285
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 20146
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473396915,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/market-marketinbox",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_conversations_by_context"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "jobs-jobdetail",
+      "group": "jobs",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473396916,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1752
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 21088
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 16,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473432382,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/jobs-jobdetail",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "jobs-savedjobs",
+      "group": "jobs",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473432383,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1388
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 16361
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 12,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473467710,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/jobs-savedjobs",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "jobs-myapplications",
+      "group": "jobs",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473467711,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1408
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 16075
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 12,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473503596,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/jobs-myapplications",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "jobs-jobsinbox",
+      "group": "jobs",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473503597,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2281
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 27527
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473539121,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/jobs-jobsinbox",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_conversations_by_context"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "messages-findpeople",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473539123,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2102
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 19276
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 19,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473574970,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/messages-findpeople",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "messages-creategroup",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473574971,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2193
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 20135
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473611041,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/messages-creategroup",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "messages-messagerequests",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473611042,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2275
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 20167
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473647551,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/messages-messagerequests",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_message_requests"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "messages-savedmessages",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473647552,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2251
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 25507
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473683748,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/messages-savedmessages",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "GET",
+          "path": "/rest/v1/saved_messages"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "messages-starredmessages",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473683750,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2257
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26355
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473720510,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/messages-starredmessages",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "GET",
+          "path": "/rest/v1/starred_messages"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "messages-calllog",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473720511,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2195
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 22192
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 20,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473755693,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/messages-calllog",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "messages-chat",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473755695,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2652
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26671
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473791045,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/messages-chat",
+      "failures": [],
+      "unhandledContracts": [
+        {
+          "method": "GET",
+          "path": "/rest/v1/starred_messages"
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/saved_messages"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "navigation-warm-tabs",
+      "group": "navigation",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473791046,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 17733
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 191673
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 175,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473874871,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/navigation-warm-tabs",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "feed-search-controls",
+      "group": "feed",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473874874,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 3456
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 29284
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473935383,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/feed-search-controls",
+      "failures": [
+        "Assertion is false: \"(?s).*Jordan Ellis.*\" is visible"
+      ],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/search_people"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/search_posts"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/search_jobs_fts"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/search_listings_fts"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/log_search_event"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "notifications-empty-controls",
+      "group": "feed",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473935385,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2639
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26664
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793473989578,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/notifications-empty-controls",
+      "failures": [
+        "Assertion is false: \"Nothing yet\" is visible"
+      ],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_notifications_page"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "market-offer-cancel",
+      "group": "market",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793473989579,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 3541
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 23982
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": false,
+        "issue": "unhandled-fixture-contract"
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793474040998,
+      "runtimeClassification": "fixture-contract-gap-pending-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/market-offer-cancel",
+      "failures": [
+        "Assertion is false: \"Make offer\" is visible"
+      ],
+      "unhandledContracts": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/get_seller_rating"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/seller_review_page"
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/report_client_error"
+        }
+      ],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "jobs-application-entry",
+      "group": "jobs",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793474041000,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1938
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 16917
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 18,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793474086522,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/jobs-application-entry",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "messages-recipient-search",
+      "group": "messages",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793474086523,
+      "status": "passed",
+      "timeoutSeconds": 180,
+      "exitCode": 0,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 2288
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26929
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": true,
+        "executedCases": 1
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 21,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793474129857,
+      "runtimeClassification": "passed-in-stated-case-scope",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/messages-recipient-search",
+      "failures": [],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    },
+    {
+      "shard": "social",
+      "id": "feed-article-draft",
+      "group": "feed",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793474129858,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": 1,
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 1656
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 13115
+        },
+        {
+          "directory": "memory-capture",
+          "collected": false
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "case-name-or-status-mismatch"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 15,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793474188467,
+      "runtimeClassification": "ui-failure-pending-AX-source-review",
+      "evidenceRoot": "/tmp/native-audit-android-recovery-41231522956/social/native-audit-results/feed-article-draft",
+      "failures": [
+        "Element not found: Text matching regex: Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images."
+      ],
+      "unhandledContracts": [],
+      "rejectedAuditContracts": []
+    }
+  ]
+}

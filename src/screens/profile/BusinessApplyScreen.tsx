@@ -1,4 +1,4 @@
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import KeyboardSafe from '../../components/KeyboardSafe';
 /**
  * BusinessApplyScreen - a company applies to exist on Platinum Circles.
@@ -18,6 +18,7 @@ type Application = { id: string; company_name: string; status: string; decision_
 type OwnerConfirmation = { applicationId: string; owner: string; version: number };
 
 export default function BusinessApplyScreen() {
+  const { t, isDark } = useTheme();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [openingBusiness, setOpeningBusiness] = useState<string | null>(null);
@@ -213,7 +214,7 @@ export default function BusinessApplyScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => { if (sessionHandoff.current) return; if (openingBusiness) cancelBusinessAccess(); navigation.goBack(); }} disabled={openingSession} accessibilityRole="button" accessibilityLabel="Back" style={s.backBtn} activeOpacity={0.7}>
           <Text style={s.backChev}>{'\u2039'}</Text><Text style={s.backLbl}>Back</Text>
@@ -227,21 +228,21 @@ export default function BusinessApplyScreen() {
         {!ready && <Text accessibilityLiveRegion="polite" style={s.lede}>Checking your current account…</Text>}
         {ready && !uid && !readError && <Text style={s.lede}>Sign in to your personal account before applying or opening a business.</Text>}
         <Text style={s.fieldLabel}>Company or business name</Text>
-        <TextInput value={companyName} onChangeText={setCompanyName} editable={!locked} accessibilityLabel="Company or business name" placeholder="Company or business name" placeholderTextColor="#9CA3AF" style={s.input} />
+        <TextInput value={companyName} onChangeText={setCompanyName} editable={!locked} accessibilityLabel="Company or business name" placeholder="Company or business name" placeholderTextColor={t.ink.muted} style={s.input} />
         <Text style={s.fieldLabel}>Industry (optional)</Text>
-        <TextInput value={category} onChangeText={setCategory} editable={!locked} accessibilityLabel="Industry" placeholder="For example, Fintech, Retail or Media" placeholderTextColor="#9CA3AF" style={s.input} />
+        <TextInput value={category} onChangeText={setCategory} editable={!locked} accessibilityLabel="Industry" placeholder="For example, Fintech, Retail or Media" placeholderTextColor={t.ink.muted} style={s.input} />
         <Text style={s.fieldLabel}>About your business</Text>
-        <TextInput value={description} onChangeText={setDescription} editable={!locked} accessibilityLabel="About your business" multiline placeholder="What the business does, who runs it, and why it belongs on Platinum Circles" placeholderTextColor="#9CA3AF" style={[s.input, { minHeight: 100, textAlignVertical: 'top' }]} />
+        <TextInput value={description} onChangeText={setDescription} editable={!locked} accessibilityLabel="About your business" multiline placeholder="What the business does, who runs it, and why it belongs on Platinum Circles" placeholderTextColor={t.ink.muted} style={[s.input, { minHeight: 100, textAlignVertical: 'top' }]} />
         <Text style={s.fieldLabel}>Business contact email</Text>
-        <TextInput value={email} onChangeText={setEmail} editable={!locked} accessibilityLabel="Business contact email" autoCapitalize="none" autoCorrect={false} keyboardType="email-address" placeholder="Business contact email" placeholderTextColor="#9CA3AF" style={s.input} />
+        <TextInput value={email} onChangeText={setEmail} editable={!locked} accessibilityLabel="Business contact email" autoCapitalize="none" autoCorrect={false} keyboardType="email-address" placeholder="Business contact email" placeholderTextColor={t.ink.muted} style={s.input} />
         <Text style={s.fieldLabel}>Business phone (optional)</Text>
-        <TextInput value={phone} onChangeText={setPhone} editable={!locked} accessibilityLabel="Business phone" keyboardType="phone-pad" placeholder="Business phone (optional)" placeholderTextColor="#9CA3AF" style={s.input} />
+        <TextInput value={phone} onChangeText={setPhone} editable={!locked} accessibilityLabel="Business phone" keyboardType="phone-pad" placeholder="Business phone (optional)" placeholderTextColor={t.ink.muted} style={s.input} />
         <Text style={s.fieldLabel}>Website (optional)</Text>
-        <TextInput value={website} onChangeText={setWebsite} editable={!locked} accessibilityLabel="Website" autoCapitalize="none" autoCorrect={false} placeholder="Website (optional)" placeholderTextColor="#9CA3AF" style={s.input} />
+        <TextInput value={website} onChangeText={setWebsite} editable={!locked} accessibilityLabel="Website" autoCapitalize="none" autoCorrect={false} placeholder="Website (optional)" placeholderTextColor={t.ink.muted} style={s.input} />
         <Text style={s.fieldLabel}>Registration or license details (optional)</Text>
-        <TextInput value={regInfo} onChangeText={setRegInfo} editable={!locked} accessibilityLabel="Registration or license details" placeholder="Registration or license details (optional)" placeholderTextColor="#9CA3AF" style={s.input} />
+        <TextInput value={regInfo} onChangeText={setRegInfo} editable={!locked} accessibilityLabel="Registration or license details" placeholder="Registration or license details (optional)" placeholderTextColor={t.ink.muted} style={s.input} />
         <Text style={s.fieldLabel}>Desired business handle</Text>
-        <TextInput value={handle} onChangeText={checkHandle} editable={!locked} accessibilityLabel="Desired business handle" maxLength={30} autoCapitalize="none" autoCorrect={false} placeholder="Desired @ for the business" placeholderTextColor="#9CA3AF" style={s.input} />
+        <TextInput value={handle} onChangeText={checkHandle} editable={!locked} accessibilityLabel="Desired business handle" maxLength={30} autoCapitalize="none" autoCorrect={false} placeholder="Desired @ for the business" placeholderTextColor={t.ink.muted} style={s.input} />
         {handleHint ? <Text style={[s.hint, handleState === 'free' ? { color: '#059669' } : handleState === 'checking' ? { color: 'rgba(11,30,61,0.5)' } : { color: '#FF3B30' }]}>{handleHint}</Text> : null}
         <TouchableOpacity style={[s.submit, locked && { opacity: 0.5 }]} onPress={submit} disabled={locked} accessibilityRole="button" accessibilityLabel="Send application" accessibilityState={{ disabled: locked, busy }} activeOpacity={0.85}>
           {busy ? <ActivityIndicator color="#FFFFFF" size={16} /> : <Text style={s.submitTxt}>Send application</Text>}
@@ -276,27 +277,27 @@ const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
-  backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
-  backLbl: { fontSize: 15, color: NAVY, fontWeight: '600' },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
-  lede: { fontSize: 13, lineHeight: 19, color: 'rgba(11,30,61,0.6)', marginBottom: 14, marginTop: 4 },
-  input: { borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: NAVY, marginBottom: 10, backgroundColor: t.surface.canvas },
+  backChev: { fontSize: 26, color: t.ink.primary, marginRight: 2, marginTop: -3 },
+  backLbl: { fontSize: 15, color: t.ink.primary, fontWeight: '600' },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: t.ink.primary },
+  lede: { fontSize: 13, lineHeight: 19, color: t.ink.muted, marginBottom: 14, marginTop: 4 },
+  input: { borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: t.ink.primary, marginBottom: 10, backgroundColor: t.surface.canvas },
   fieldLabel: { fontSize: 12, color: t.ink.primary, fontWeight: '600', marginBottom: 5 },
   secondary: { minHeight: 44, paddingHorizontal: 10, justifyContent: 'center', marginTop: 4 },
   hint: { fontSize: 12, fontWeight: '600', marginTop: -4, marginBottom: 10, marginLeft: 4 },
   submit: { backgroundColor: NAVY, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 4 },
-  submitTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '800' },
+  submitTxt: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
   histLabel: { fontSize: 12, fontWeight: '800', color: t.ink.muted, marginTop: 22, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   ticket: { borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.1)', borderRadius: 14, padding: 12, marginBottom: 10 },
-  ticketSubject: { flex: 1, fontSize: 13.5, fontWeight: '700', color: NAVY, marginRight: 8 },
+  ticketSubject: { flex: 1, fontSize: 13.5, fontWeight: '700', color: t.ink.primary, marginRight: 8 },
   pill: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
   pillOpen: { backgroundColor: 'rgba(180,83,9,0.1)' },
   pillDone: { backgroundColor: 'rgba(5,150,105,0.1)' },
   pillBad: { backgroundColor: 'rgba(220,38,38,0.1)' },
   pillTxt: { fontSize: 10.5, fontWeight: '800' },
-  pillTxtOpen: { color: '#D97706' },
-  pillTxtDone: { color: '#059669' },
-  pillTxtBad: { color: '#FF3B30' },
-  reply: { fontSize: 13, lineHeight: 18, color: 'rgba(11,30,61,0.75)', marginTop: 8, backgroundColor: 'rgba(11,30,61,0.04)', borderRadius: 10, padding: 10 },
-  when: { fontSize: 11, color: 'rgba(11,30,61,0.4)', marginTop: 8 },
+  pillTxtOpen: { color: t.ink.primary },
+  pillTxtDone: { color: t.ink.primary },
+  pillTxtBad: { color: t.ink.primary },
+  reply: { fontSize: 13, lineHeight: 18, color: t.ink.secondary, marginTop: 8, backgroundColor: t.surface.raised, borderRadius: 10, padding: 10 },
+  when: { fontSize: 11, color: t.ink.muted, marginTop: 8 },
 }));

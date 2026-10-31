@@ -22,9 +22,10 @@ android {
 }
 
 dependencies {
-  // Minimal 1.8.1 GL fix over Expo 54's 1.8.0. Media3's published dependency
-  // constraints align the complete runtime graph; CI verifies every component.
-  implementation 'androidx.media3:media3-transformer:1.8.1'
-  implementation 'androidx.media3:media3-effect:1.8.1'
-  implementation 'androidx.media3:media3-common:1.8.1'
+  // 1.11.1 preserves reordered B-frames at trim ends. Its published constraints
+  // align Expo playback too; the pinned Expo load-control plugin adapts the two
+  // changed interface signatures, and CI verifies the complete runtime graph.
+  implementation 'androidx.media3:media3-transformer:1.11.1'
+  implementation 'androidx.media3:media3-effect:1.11.1'
+  implementation 'androidx.media3:media3-common:1.11.1'
 }

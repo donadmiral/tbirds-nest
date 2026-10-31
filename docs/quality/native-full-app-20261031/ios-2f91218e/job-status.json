@@ -1,0 +1,208 @@
+{
+  "observedAt": "2026-10-31T19:05:00Z",
+  "run": 41225636296,
+  "jobs": [
+    {
+      "id": 124609086715,
+      "status": "completed",
+      "conclusion": "failure",
+      "startedAt": "2026-10-31T17:40:10Z",
+      "completedAt": "2026-10-31T18:01:54Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-31T17:40:11Z",
+          "completed_at": "2026-10-31T17:40:12Z"
+        },
+        {
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-31T17:40:12Z",
+          "completed_at": "2026-10-31T17:40:17Z"
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-31T17:40:17Z",
+          "completed_at": "2026-10-31T17:40:21Z"
+        },
+        {
+          "name": "Use Java 17 and emulator host support",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-31T17:40:21Z",
+          "completed_at": "2026-10-31T17:40:38Z"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-31T17:40:38Z",
+          "completed_at": "2026-10-31T17:41:01Z"
+        },
+        {
+          "name": "Run bash scripts/quality/install-native-ui-tools.sh",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-31T17:41:01Z",
+          "completed_at": "2026-10-31T17:41:03Z"
+        },
+        {
+          "name": "Run bash scripts/quality/test-android-app-ui.sh",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 7,
+          "started_at": "2026-10-31T17:41:03Z",
+          "completed_at": "2026-10-31T18:01:50Z"
+        },
+        {
+          "name": "Retain actual app UI evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-31T18:01:50Z",
+          "completed_at": "2026-10-31T18:01:52Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 15,
+          "started_at": "2026-10-31T18:01:52Z",
+          "completed_at": "2026-10-31T18:01:52Z"
+        },
+        {
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-10-31T18:01:52Z",
+          "completed_at": "2026-10-31T18:01:52Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-31T18:01:52Z",
+          "completed_at": "2026-10-31T18:01:53Z"
+        }
+      ]
+    },
+    {
+      "id": 124609086918,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "startedAt": "2026-10-31T17:40:11Z",
+      "completedAt": "2026-10-31T18:56:50Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-31T17:40:12Z",
+          "completed_at": "2026-10-31T17:40:14Z"
+        },
+        {
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-31T17:40:14Z",
+          "completed_at": "2026-10-31T17:40:23Z"
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-31T17:40:23Z",
+          "completed_at": "2026-10-31T17:40:26Z"
+        },
+        {
+          "name": "Install locked dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-31T17:40:26Z",
+          "completed_at": "2026-10-31T17:42:41Z"
+        },
+        {
+          "name": "Use Java 17 and the locked CocoaPods version",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-31T17:42:41Z",
+          "completed_at": "2026-10-31T17:42:45Z"
+        },
+        {
+          "name": "Ensure independent movie decoding is available",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-31T17:42:45Z",
+          "completed_at": "2026-10-31T17:43:08Z"
+        },
+        {
+          "name": "Run bash scripts/quality/install-native-ui-tools.sh",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-31T17:43:08Z",
+          "completed_at": "2026-10-31T17:43:19Z"
+        },
+        {
+          "name": "Run bash scripts/quality/test-ios-app-ui.sh",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 8,
+          "started_at": "2026-10-31T17:43:19Z",
+          "completed_at": "2026-10-31T18:55:26Z"
+        },
+        {
+          "name": "Retain actual app UI evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-31T18:55:26Z",
+          "completed_at": "2026-10-31T18:55:55Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 17,
+          "started_at": "2026-10-31T18:55:55Z",
+          "completed_at": "2026-10-31T18:55:55Z"
+        },
+        {
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-10-31T18:55:55Z",
+          "completed_at": "2026-10-31T18:55:59Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-31T18:55:59Z",
+          "completed_at": "2026-10-31T18:56:49Z"
+        }
+      ]
+    }
+  ]
+}

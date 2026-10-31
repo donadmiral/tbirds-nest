@@ -1,0 +1,32 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit reply status write failure is visible
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: support-reopen-error
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Audit support question"
+    timeout: 15000
+
+- tapOn: Write to reopen this ticket
+- inputText: Please reopen this synthetic ticket.
+- tapOn: Send
+- assertVisible: Reply not confirmed
+- tapOn: OK
+- assertVisible: Please reopen this synthetic ticket.
+- assertVisible: Send
+- assertVisible: Solved
+- takeScreenshot: support-reopen-error

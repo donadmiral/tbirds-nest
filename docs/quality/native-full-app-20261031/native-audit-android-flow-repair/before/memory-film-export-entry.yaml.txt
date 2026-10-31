@@ -1,0 +1,33 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit independent film and export entry
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: memory-film-export-entry
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Edit memory book"
+    timeout: 15000
+
+- tapOn: Play continuous memory film with original music
+- tapOn:
+    text: Pause memory film
+    waitToSettleTimeoutMs: 500
+- assertVisible: Play memory film
+- tapOn: Create memory movie
+- assertVisible: Your memory movie
+- tapOn: Close movie export
+- assertVisible: Play memory film
+- takeScreenshot: memory-film-export-entry

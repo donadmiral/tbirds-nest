@@ -1,0 +1,23 @@
+{
+  "kind": "baseline-android-environment-recovery",
+  "recoveryWorkflowCommit": "23cf8777768451a74d24339b77f0fae2c41ba415",
+  "recoveryWorkflowRef": "refs/heads/codex/native-audit-recovery-20261031",
+  "recoveryRunId": 41231522956,
+  "recoveryRunAttempt": 1,
+  "binaryProducerRunId": 41229206389,
+  "applicationAndTestCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "applicationAndTestTree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+  "binarySha256": "889c464c428978e9c90023f09ea6698bf7623ce6d1e76a43d9b7b3f65645e104",
+  "binaryManifestSha256": "ae84a22f6fdc9eab854bade8c23bb653cb6aa6463c38625be2b56e1973b80174",
+  "featureGroups": [
+    "settings",
+    "stories",
+    "directories"
+  ],
+  "environmentRepair": "Add the installed SDK platform-tools and emulator directories to PATH.",
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false,
+  "originalHelperRunnerAndFlowsUnchanged": true,
+  "caseHelperExpectedSourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc"
+}

@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: all 17 retained UI failures have valid fixture contracts and exact failed-command evidence
+ok 1 - all 17 retained UI failures have valid fixture contracts and exact failed-command evidence
+  ---
+  duration_ms: 14.763559
+  type: 'test'
+  ...
+# Subtest: text-story entry completes the actual initial editor before requiring the original Next control
+ok 2 - text-story entry completes the actual initial editor before requiring the original Next control
+  ---
+  duration_ms: 236.93971
+  type: 'test'
+  ...
+# Subtest: listing entry checks the real Photos step instead of a Details field that has not been entered
+ok 3 - listing entry checks the real Photos step instead of a Details field that has not been entered
+  ---
+  duration_ms: 21.121312
+  type: 'test'
+  ...
+# Subtest: Appearance matches complete actual grouped segments and verifies the selected Lights out state
+ok 4 - Appearance matches complete actual grouped segments and verifies the selected Lights out state
+  ---
+  duration_ms: 4.862324
+  type: 'test'
+  ...
+# Subtest: sign-up targets the full retained nested-text link and scrolls to the original Sign Up assertion
+ok 5 - sign-up targets the full retained nested-text link and scrolls to the original Sign Up assertion
+  ---
+  duration_ms: 1.811274
+  type: 'test'
+  ...
+# Subtest: password reset dismisses the observed autofocus keyboard and reaches Send code before empty-input validation
+ok 6 - password reset dismisses the observed autofocus keyboard and reaches Send code before empty-input validation
+  ---
+  duration_ms: 2.427723
+  type: 'test'
+  ...
+# Subtest: business entry scrolls the actual login footer instead of treating its absence above the fold as failure
+ok 7 - business entry scrolls the actual login footer instead of treating its absence above the fold as failure
+  ---
+  duration_ms: 1.689342
+  type: 'test'
+  ...
+# Subtest: fresh Support ticket dismisses the subject keyboard and scrolls to the unique editable body placeholder
+ok 8 - fresh Support ticket dismisses the subject keyboard and scrolls to the unique editable body placeholder
+  ---
+  duration_ms: 4.365947
+  type: 'test'
+  ...
+# Subtest: support-reopen-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+ok 9 - support-reopen-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+  ---
+  duration_ms: 2.401021
+  type: 'test'
+  ...
+# Subtest: support-reply-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+ok 10 - support-reply-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+  ---
+  duration_ms: 2.288121
+  type: 'test'
+  ...
+# Subtest: article draft dismisses the title keyboard, finds the actual body, then restores the original title assertion
+ok 11 - article draft dismisses the title keyboard, finds the actual body, then restores the original title assertion
+  ---
+  duration_ms: 4.032516
+  type: 'test'
+  ...
+# Subtest: film entry scrolls beyond the retained cover before the same play/pause/export/close journey
+ok 12 - film entry scrolls beyond the retained cover before the same play/pause/export/close journey
+  ---
+  duration_ms: 5.269056
+  type: 'test'
+  ...
+# Subtest: missing-ticket assertion matches the actual explicit unavailable state without accepting a spinner or a valid ticket
+ok 13 - missing-ticket assertion matches the actual explicit unavailable state without accepting a spinner or a valid ticket
+  ---
+  duration_ms: 1.545535
+  type: 'test'
+  ...
+# Subtest: Support list failure reaches the repaired notice below the form and retains the mandatory error assertion
+ok 14 - Support list failure reaches the repaired notice below the form and retains the mandatory error assertion
+  ---
+  duration_ms: 1.571984
+  type: 'test'
+  ...
+# Subtest: the repair preserves 85 case identities, fixture scenarios, setup, original postconditions and deadlines
+ok 15 - the repair preserves 85 case identities, fixture scenarios, setup, original postconditions and deadlines
+  ---
+  duration_ms: 17.236387
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 527.392528

@@ -23,9 +23,12 @@ name: Audit independent cover settings entry
 
 - tapOn: Edit memory book
 - assertVisible: Book settings
-- tapOn: Book title
-- eraseText
+- longPressOn: Book title
+- tapOn: 'Select [Aa]ll'
+- eraseText: 1
 - inputText: AUDIT BOOK TITLE
+- copyTextFrom: Book title
+- assertTrue: ${maestro.copiedText === "AUDIT BOOK TITLE"}
 - runFlow:
     when:
       platform: Android

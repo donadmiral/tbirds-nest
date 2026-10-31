@@ -1,0 +1,81 @@
+{
+  "status": "frozen-for-reviewed-publication",
+  "preparedAt": "2026-10-31 19:20:33 UTC",
+  "sourceFiles": [
+    {
+      "path": ".github/workflows/native-audit-ios-recovery.yml",
+      "bytes": 3309,
+      "sha256": "22de2db0bf3341ac98bf6a0dde5b6b3d70d9eadbfdc82e472af0093c3edfba26"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-audit-recovery.py",
+      "bytes": 30562,
+      "sha256": "0d8c7c591f9acbd41fc921728cee479d0543e1fefe09e3e404c649380f1bb5db"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-compatibility.py",
+      "bytes": 3048,
+      "sha256": "aac09dde4774aa6d1f1f875a7e37a73aa642260555aad73044a2ad582a94e380"
+    },
+    {
+      "path": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+      "bytes": 709,
+      "sha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82"
+    },
+    {
+      "path": "tests/quality/native-ios-audit-recovery.cjs",
+      "bytes": 15898,
+      "sha256": "970f0fa7f36e44bd754f637f9e76b198672acc0c43475f0d1667f8741af9d57f"
+    }
+  ],
+  "applicationAndOriginalTests": {
+    "commit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "tree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+    "producerRunId": 41229206389,
+    "artifactId": 13053723906,
+    "artifactZipBytes": 49137705,
+    "artifactZipSha256": "0d1bb1caaafed428b729d844ab35070a189f202ce54f938b476924a8c719c7be",
+    "appDigest": "61aa632c9499117c7d0f7cc7901e58eb6470d7aeffb6d6eb41aad87119f79b65",
+    "appRegularFiles": 269,
+    "appBytes": 124030322,
+    "sourceReceiptSha256": "35d710d00324f3a2eb815f38b87bf95b24b3225a1aaad2e7985083cf3cba11fe",
+    "rebuild": false,
+    "rebundle": false,
+    "resign": false
+  },
+  "scope": {
+    "originalCases": 85,
+    "shards": 3,
+    "perCaseBudgetsUnchanged": [
+      180,
+      300
+    ],
+    "separateRelatedPathDiagnosticBudgetSeconds": 600,
+    "separateDiagnosticCountedIn85": false,
+    "originalReaderReadinessTimeoutMs": 15000,
+    "normalRunnerIntegrationExcluded": true
+  },
+  "diagnostics": {
+    "periodicSnapshotSeconds": 5,
+    "maxFileBytes": 2097152,
+    "samplePairsPerShard": 1,
+    "sampleDurationSeconds": 3,
+    "sampleIntervalMilliseconds": 10,
+    "sampleWallBudgetSeconds": 8,
+    "processBinding": "Selected simulator bundle/executable, current UID, PID plus kernel start seconds/microseconds checked before and after sample. No environment, argv, core or heap collection.",
+    "limitations": "Diagnostic snapshots cannot satisfy final case receipts. First snapshots may predate case reset and retain explicit unknown/mismatched attribution; auth attribution remains unknown. Sampling adds overhead and no runtime macOS sample/compatibility acceptance is claimed from Linux tests."
+  },
+  "verification": {
+    "formalTestsPassed": 3,
+    "nestedPythonTestsWithinOneFormalCase": 17,
+    "lintExitCode": 0,
+    "independentReview": "docs/quality/native-full-app-20261031/native-ios-audit-recovery-independent-review.json",
+    "independentReviewSha256": "c9c6affbeb2dbacb8e24a21b65d92ec63f47eab7713f5c98a70425d54d78e8d3"
+  },
+  "primaryReferences": [
+    "https://developer.apple.com/tutorials/instruments/identifying-a-hang",
+    "https://developer.apple.com/documentation/apple-silicon/porting-your-macos-apps-to-apple-silicon",
+    "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/proc_info.h",
+    "https://github.com/apple-oss-distributions/xnu/blob/main/libsyscall/wrappers/libproc/libproc.h"
+  ]
+}

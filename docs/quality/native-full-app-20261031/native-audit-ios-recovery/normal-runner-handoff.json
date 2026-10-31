@@ -1,0 +1,37 @@
+{
+  "kind": "permanent-normal-audit-compatibility-handoff",
+  "status": "focused-checks-passed",
+  "sharedHelper": "scripts/quality/native-ui-ios-compatibility.py",
+  "sharedHelperSha256": "aac09dde4774aa6d1f1f875a7e37a73aa642260555aad73044a2ad582a94e380",
+  "recoveryFiveFilesChanged": false,
+  "changes": [
+    "Normal iOS runner passes actual app and producer toolchain to the shared host/runtime/Mach-O/signature check; Android validation is unchanged.",
+    "Audit source receipt now binds the shared compatibility helper as its fifth explicit input.",
+    "Disposable preparation regression copies and hashes that helper; actual normal-runner function is exercised with valid and wrong-architecture/missing-binary inputs."
+  ],
+  "validation": {
+    "firstCombinedRun": "16 passed,1 preparation assertion failed because the new test referenced an undefined hash helper; fixed to explicit node:crypto SHA-256.",
+    "focusedAffectedRerun": "2 passed,0 failed/skipped/cancelled",
+    "pythonAST": "passed",
+    "scopedESLint": "passed",
+    "macOSRuntimeGate": "pending actual reusable-app recovery"
+  },
+  "files": [
+    {
+      "path": "scripts/quality/native-ui-audit-runner.py",
+      "sha256": "0791f929ff61a63344352707044efa385e187603aeb0d4e1ee8a8cd0c8fe5eb2"
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui-audit.cjs",
+      "sha256": "8f41265e89e64fda0cdde5103f6ee1a0a05d7b5fec8b9edb48b6134fa5449c3a"
+    },
+    {
+      "path": "tests/quality/native-platform-audit-pack.cjs",
+      "sha256": "3fa9fcd9c41f8b14b18ad0e21bb65a5ae81a5c73e8245f26b33b179febf936c5"
+    },
+    {
+      "path": "tests/quality/native-ios-audit-compatibility.cjs",
+      "sha256": "64b392be02229a04ed5c9356a3573c776034842fbeb1955a4dea905c28fe0bc7"
+    }
+  ]
+}

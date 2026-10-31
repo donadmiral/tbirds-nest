@@ -1,0 +1,34 @@
+{
+  "sourceSha256": "b11b0e3f14984b3475ea6b30852ef24905b0218a741fd4d9ae05e0671b876553",
+  "events": [
+    {
+      "at": "2026-10-31T18:54:44.391Z",
+      "event": "openLink command RUNNING"
+    },
+    {
+      "at": "2026-10-31T18:54:44.618Z",
+      "event": "driver opening exact platinum-circles-qa://ui-fixture/memory URL; autoVerify false"
+    },
+    {
+      "at": "2026-10-31T18:55:13.260Z",
+      "event": "openLink command COMPLETED"
+    },
+    {
+      "at": "2026-10-31T18:55:13.266Z",
+      "event": "exact iOS Open-prompt conditional RUNNING; last retained Maestro line"
+    }
+  ],
+  "notObserved": [
+    "conditional completion",
+    "Native capture acceptance heading assertion",
+    "capture button/cancellation/retry/cleanup assertions",
+    "capture JUnit",
+    "saved-account readback result",
+    "movie file or decoder result"
+  ],
+  "limits": [
+    "Top-level Waiting stdout alone understates progress: the nested Maestro log records openLink.",
+    "Successful openLink command does not prove app URL delivery or route mount.",
+    "No structured fixture/auth export exists in this archive."
+  ]
+}

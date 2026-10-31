@@ -1,13 +1,15 @@
 {
   "schemaVersion": 1,
-  "updatedAtUtc": "2026-10-31T18:13:03.207780+00:00",
+  "updatedAtUtc": "2026-10-31T19:44:14.755301+00:00",
   "source": {
     "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
     "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
     "repository": "donadmiral/tbirds-nest",
-    "pullRequest": 3
+    "pullRequest": 3,
+    "role": "App/PR baseline; grouped product repairs are published separately as c20cc9e5 while corrected native acceptance is prepared.",
+    "repairCheckpoint": "c20cc9e55657291d7c7c964cd4a5f622d051e24f"
   },
-  "phase": "First web/admin discovery sealed; coordinated repair batch prepared; broad native execution remains pending",
+  "phase": "Combined application and browser regressions passed; Android encoder repair passed; corrected native audit candidate is being consolidated.",
   "retiredProgressCounter": "The former 5/6 count represented a narrow repair cycle and is not whole-product progress. It is no longer the current status measure.",
   "inventory": {
     "native": {
@@ -117,8 +119,8 @@
     },
     "native": {
       "run": 41225636296,
-      "status": "android-failed-ios-in-progress",
-      "limit": "Existing narrow navigation/memory journeys. Broader independent feature pack is in preparation.",
+      "status": "android-failed-ios-failed-with-job-cancellation",
+      "limit": "Narrow installed-native journeys. Android movie gap/title harness and iOS reader stall are recorded; neither full journey passed.",
       "androidEvidence": "../native-full-app-20261031/android-full-app-2f91218e-review.json"
     },
     "nativeCompilersAndEncoders": {
@@ -132,7 +134,7 @@
       "id": "SUP-002",
       "group": "member-support-list",
       "title": "Failed ticket reads are presented as an empty list",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "web",
       "severity": "medium",
       "source": "web/app/settings/support/page.tsx",
@@ -147,13 +149,22 @@
         "support/browser-audit.json",
         "support/SUP-002.png"
       ],
-      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
     },
     {
       "id": "SUP-003",
       "group": "member-ticket-state",
       "title": "A missing ticket never leaves Loading",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "web",
       "severity": "medium",
       "source": "web/app/settings/support/[id]/page.tsx",
@@ -168,13 +179,22 @@
         "support/browser-audit.json",
         "support/SUP-003.png"
       ],
-      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
     },
     {
       "id": "SUP-004",
       "group": "member-ticket-state",
       "title": "A rejected ticket read never leaves Loading",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "web",
       "severity": "medium",
       "source": "web/app/settings/support/[id]/page.tsx",
@@ -189,13 +209,22 @@
         "support/browser-audit.json",
         "support/SUP-004.png"
       ],
-      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
     },
     {
       "id": "SUP-005",
       "group": "member-message-history",
       "title": "Failed message history is presented as no replies",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "web",
       "severity": "medium",
       "source": "web/app/settings/support/[id]/page.tsx",
@@ -210,13 +239,22 @@
         "support/browser-audit.json",
         "support/SUP-005.png"
       ],
-      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
     },
     {
       "id": "SUP-012",
       "group": "member-support-write",
       "title": "Reply and ticket reopening can disagree without an error",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "web",
       "severity": "high",
       "source": "web/app/settings/support/[id]/page.tsx",
@@ -231,13 +269,23 @@
         "support/browser-audit.json",
         "support/SUP-012.png"
       ],
-      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      },
+      "deploymentNote": "New atomic SQL migration is locally tested but not applied to hosted QA; hosted activation remains blocked by prior unknown migration requests."
     },
     {
       "id": "SUP-013",
       "group": "member-support-write-rejection",
       "title": "Unexpected submission rejection leaves Sending locked",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "web",
       "severity": "medium",
       "source": "web/app/settings/support/page.tsx",
@@ -254,13 +302,22 @@
         "support/browser-audit.json",
         "support/SUP-013.png"
       ],
-      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
     },
     {
       "id": "SUP-014",
       "group": "member-support-write-rejection",
       "title": "Unexpected reply rejection leaves Send locked",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "web",
       "severity": "medium",
       "source": "web/app/settings/support/[id]/page.tsx",
@@ -277,12 +334,21 @@
         "support/browser-audit.json",
         "support/SUP-014.png"
       ],
-      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
     },
     {
       "id": "WEB-01",
       "severity": "P1",
-      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "title": "Failed privacy-word reads permit replacing existing filters",
       "routes": [
         "/settings/hidden-words",
@@ -301,12 +367,21 @@
         "web/app/settings/hidden-words/page.tsx",
         "web/app/settings/muted-words/page.tsx"
       ],
-      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      },
+      "additionalReceipt": {
+        "path": "web-word-preferences-write-repair/review.json",
+        "sha256": "92f04bd50f8e2fecce1a66e1b7ca4de05f58c0df3666f18f2972d4b6af13f8b2"
+      }
     },
     {
       "id": "WEB-02",
       "severity": "P2",
-      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "title": "Account standing reports a clean record after failed lookup",
       "routes": [
         "/settings/standing"
@@ -321,12 +396,17 @@
       "sourceFiles": [
         "web/app/settings/standing/page.tsx"
       ],
-      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
     },
     {
       "id": "WEB-03",
       "severity": "P2",
-      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "title": "Explore can remain Loading after one rejected feed read",
       "routes": [
         "/explore"
@@ -341,12 +421,17 @@
       "sourceFiles": [
         "web/app/explore/page.tsx"
       ],
-      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
     },
     {
       "id": "WEB-04",
       "severity": "P2",
-      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "title": "Topic reads confuse failure with an empty topic or never settle",
       "routes": [
         "/topic/[tag]"
@@ -362,13 +447,18 @@
       "sourceFiles": [
         "web/app/topic/[tag]/page.tsx"
       ],
-      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
     },
     {
       "id": "WEB-05",
       "severity": "P2",
-      "status": "CONFIRMED_FOR_BATCH_REPAIR",
-      "title": "Empty-query Search becomes blank when trending topics fail",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "title": "Search silently loses trending results after a failed read",
       "routes": [
         "/search"
       ],
@@ -382,12 +472,19 @@
       "sourceFiles": [
         "web/app/search/page.tsx"
       ],
-      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      },
+      "originalTitle": "Empty-query Search becomes blank when trending topics fail",
+      "clarification": "The original page kept its search input and back control. The fault was silent trending-read rejection, not a wholly blank route."
     },
     {
       "id": "WEB-06",
       "severity": "P2",
-      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "title": "Creation forms remain busy after rejected requests",
       "routes": [
         "/market/new",
@@ -408,12 +505,17 @@
         "web/app/market/new/page.tsx",
         "web/app/businesses/new/page.tsx"
       ],
-      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
     },
     {
       "id": "WEB-07",
       "severity": "P2",
-      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "title": "Promotion picker hides its content-load failure",
       "routes": [
         "/ads/new"
@@ -428,12 +530,17 @@
       "sourceFiles": [
         "web/app/ads/new/page.tsx"
       ],
-      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
     },
     {
       "id": "WEB-08",
       "severity": "P3",
-      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "title": "Auxiliary discovery and inbox reads reject without handlers",
       "routes": [
         "/market",
@@ -454,12 +561,17 @@
         "web/components/DiscoverSections.tsx",
         "web/app/market/new/page.tsx"
       ],
-      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
     },
     {
       "id": "WEB-09",
       "severity": "P2",
-      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "title": "Profile photo row intercepts the cover-change button center",
       "routes": [
         "/settings/profile"
@@ -475,13 +587,18 @@
         "web/app/settings/profile/profile.module.css",
         "web/app/settings/profile/page.tsx"
       ],
-      "limits": "Actual component and CSS at desktop/mobile widths, with synthetic profile data. The fixture does not include the full AppShell; intrinsic overlapping row geometry is retained. No forced clicks were used."
+      "limits": "Actual component and CSS at desktop/mobile widths, with synthetic profile data. The fixture does not include the full AppShell; intrinsic overlapping row geometry is retained. No forced clicks were used.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
     },
     {
       "id": "ADM-001",
       "group": "admin-metric-caps",
       "title": "Jobs treats a capped row window as platform-wide totals",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "admin",
       "severity": "medium",
       "source": [
@@ -503,13 +620,18 @@
       "proposedOwner": "hosted_backend (only after parent authorizes batch)",
       "limits": [
         "No hosted production/provider mutation or total-latency claim."
-      ]
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
     },
     {
       "id": "ADM-002",
       "group": "admin-metric-caps",
       "title": "Calls live and weekly summaries omit sessions outside newest400",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "admin",
       "severity": "medium",
       "source": [
@@ -531,13 +653,18 @@
       "proposedOwner": "hosted_backend (only after parent authorizes batch)",
       "limits": [
         "No hosted production/provider mutation or total-latency claim."
-      ]
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
     },
     {
       "id": "ADM-003",
       "group": "admin-metric-caps",
       "title": "Stories live count is capped at200",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "admin",
       "severity": "medium",
       "source": [
@@ -559,13 +686,18 @@
       "proposedOwner": "hosted_backend (only after parent authorizes batch)",
       "limits": [
         "No hosted production/provider mutation or total-latency claim."
-      ]
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
     },
     {
       "id": "ADM-004",
       "group": "admin-expiry-window",
       "title": "Expired story metric filters creation time instead of expiry window",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "admin",
       "severity": "medium",
       "source": [
@@ -587,13 +719,18 @@
       "proposedOwner": "hosted_backend (only after parent authorizes batch)",
       "limits": [
         "No hosted production/provider mutation or total-latency claim."
-      ]
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
     },
     {
       "id": "ADM-005",
       "group": "admin-review-backlog",
       "title": "Verification backlog silently stops at API row cap",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "admin",
       "severity": "medium",
       "source": [
@@ -615,13 +752,18 @@
       "proposedOwner": "hosted_backend (only after parent authorizes batch)",
       "limits": [
         "No hosted production/provider mutation or total-latency claim."
-      ]
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
     },
     {
       "id": "ADM-006",
       "group": "admin-review-fanout",
       "title": "Verification safety reads fan out once per pending applicant",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "admin",
       "severity": "medium",
       "source": [
@@ -643,13 +785,18 @@
       "proposedOwner": "hosted_backend (only after parent authorizes batch)",
       "limits": [
         "25 emitted calls reproduced. No real network latency/OOM or saturation was measured; this is demonstrated request amplification."
-      ]
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
     },
     {
       "id": "ADM-007",
       "group": "admin-support-layout",
       "title": "Support ownership selector overflows a phone viewport",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "admin",
       "severity": "medium",
       "source": [
@@ -673,13 +820,18 @@
       "proposedOwner": "hosted_backend (only after parent authorizes batch)",
       "limits": [
         "Actual page/CSS reproduced in a local Shell geometry adapter; full hosted Shell not authenticated."
-      ]
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
     },
     {
       "id": "NATIVE-THEME-001",
       "group": "native-theme-pairs",
       "title": "Actual text/style pairs are unreadable or too faint in active themes",
-      "status": "reproduced-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "ios-and-android-source",
       "evidence": [
         "native-theme/contrast-audit.json"
@@ -692,54 +844,217 @@
         "src/screens/profile/ApplyVerificationScreen.tsx",
         "src/screens/profile/BusinessInboxScreen.tsx",
         "src/screens/profile/CampaignsScreen.tsx"
-      ]
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "native-theme-repair/review.json",
+        "sha256": "0584c8aadbbcf5701c9ff4deaa2ae21c748bcf4b8af95e930b2f5daf0bca3911"
+      },
+      "additionalReceipt": {
+        "path": "native-media-chrome-repair/reviewed-acceptance.json",
+        "sha256": "98ffe53e45ee1b687701001b233e051f9dc6fe76b67a1a23f6650761515a3294"
+      },
+      "limit": "383 original repeated palette/site observations addressed by the45-file batch;11 dynamic-media observations have a separate source/composition repair.760 original skipped nodes are not accepted."
     },
     {
       "id": "NATIVE-ABOUT-001",
       "group": "native-version-metadata",
       "title": "About hardcodes version1.0.0/build100 while app configuration is1.1.0",
-      "status": "source-confirmed-unfixed",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "ios-and-android-source",
       "source": [
         "src/screens/profile/AboutScreen.tsx",
         "app.json"
       ],
-      "expected": "Use installed application metadata; do not guess remote build numbers."
+      "expected": "Use installed application metadata; do not guess remote build numbers.",
+      "baselineStatus": "source-confirmed-unfixed",
+      "repairReceipt": {
+        "path": "native-theme-repair/review.json",
+        "sha256": "0584c8aadbbcf5701c9ff4deaa2ae21c748bcf4b8af95e930b2f5daf0bca3911"
+      }
     },
     {
       "id": "NATIVE-TITLE-001",
       "group": "native-title-replacement",
       "title": "Saved title contains leftover letters after automated replacement",
-      "status": "reproduced-cause-under-review",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "android",
       "evidence": [
         "../native-full-app-20261031/android-full-app-2f91218e-review.json"
       ],
       "actual": "THE LONG WAY HOMEENTURES",
       "expected": "THE LONG WAY HOME",
-      "limit": "Must distinguish actual input/persistence failure from cursor-dependent Maestro erase; assertion stays strict."
+      "limit": "Must distinguish actual input/persistence failure from cursor-dependent Maestro erase; assertion stays strict.",
+      "baselineStatus": "reproduced-cause-under-review",
+      "repairReceipt": {
+        "path": "../native-full-app-20261031/native-memory-export-repair.json",
+        "sha256": "26357b68459abe80f60c6d040222bc4a62797df0aaf4a014327111be4c1cb014"
+      },
+      "classification": "Automation replacement/caret defect; semantic SelectAll fixes the harness while exact persisted title assertion remains. No product title-code change."
     },
     {
       "id": "NATIVE-MOVIE-001",
       "group": "native-movie-continuity",
       "title": "Video-to-text scene transition has a133.333ms frame gap",
-      "status": "reproduced-unfixed",
+      "status": "android-encoder-instrumentation-passed-full-installed-export-pending",
       "platform": "android",
       "expected": "Maximum gap below100ms",
       "evidence": [
         "../native-full-app-20261031/android-full-app-2f91218e-review.json"
-      ]
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../native-full-app-20261031/native-memory-export-repair.json",
+        "sha256": "26357b68459abe80f60c6d040222bc4a62797df0aaf4a014327111be4c1cb014"
+      }
     },
     {
       "id": "NATIVE-VERIFIER-001",
       "group": "native-video-checker",
       "title": "Coded geometry and mono downmix assumptions reject correctly displayed portrait/per-channel mix",
-      "status": "diagnostic-reproduction-requires-guarded-checker-fix",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
       "platform": "native-test-harness",
       "evidence": [
         "../native-full-app-20261031/android-full-app-2f91218e-review.json"
       ],
-      "limit": "Do not widen continuity or volume thresholds; validate display-matrix orientation and equivalent channel amplitudes."
+      "limit": "Do not widen continuity or volume thresholds; validate display-matrix orientation and equivalent channel amplitudes.",
+      "baselineStatus": "diagnostic-reproduction-requires-guarded-checker-fix",
+      "repairReceipt": {
+        "path": "../native-full-app-20261031/native-memory-export-repair.json",
+        "sha256": "26357b68459abe80f60c6d040222bc4a62797df0aaf4a014327111be4c1cb014"
+      },
+      "classification": "Measurement defect repaired without widening the100ms frame-continuity or0.07\u20130.13 per-channelRMS gates."
+    },
+    {
+      "id": "SUP-LIFECYCLE-001",
+      "group": "support-session-and-acknowledgement",
+      "title": "Stale reads, queued sends and obsolete session completions can affect the current Support screen",
+      "platform": "web-and-native",
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "SUP-DEADLINE-001",
+      "group": "support-local-preparation-and-cleanup",
+      "title": "Held hashing/storage preparation or accepted cleanup can keep Send busy indefinitely",
+      "platform": "web-and-native",
+      "repairReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "WEB-10",
+      "group": "word-preference-write-deadlines",
+      "title": "A held settings save or reconciliation can leave filters busy or accept stale-session work",
+      "platform": "web",
+      "repairReceipt": {
+        "path": "web-word-preferences-write-repair/review.json",
+        "sha256": "92f04bd50f8e2fecce1a66e1b7ca4de05f58c0df3666f18f2972d4b6af13f8b2"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "ADM-API-001",
+      "group": "diagnostics-input-contract",
+      "title": "Malformed diagnostics JSON is incorrectly reported as service failure",
+      "platform": "admin",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/endpoints/acceptance.json",
+        "sha256": "e10f1efb48ec6558e04529c8d8447566fda1b69df226a0a00dc8df132a7cdf03"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "ADM-API-002",
+      "group": "music-byte-range-contract",
+      "title": "Reversed and zero-suffix audio byte ranges reach Storage",
+      "platform": "admin",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/endpoints/acceptance.json",
+        "sha256": "e10f1efb48ec6558e04529c8d8447566fda1b69df226a0a00dc8df132a7cdf03"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "ADM-API-003",
+      "group": "music-transport-lifetime",
+      "title": "Storage header wait is unbounded and transport rejection escapes the audio route",
+      "platform": "admin",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/endpoints/acceptance.json",
+        "sha256": "e10f1efb48ec6558e04529c8d8447566fda1b69df226a0a00dc8df132a7cdf03"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "ADMIN-CUSTOM-001",
+      "group": "admin-confirmed-command-receipts",
+      "title": "Five custom actions report success without the required matching server receipt",
+      "platform": "admin",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/custom-actions/after/custom-admin-repair-acceptance.json",
+        "sha256": "05b65a46b9be3135eb7e2fee43f2edf81753366db5e2e7a80b92114fa9519d45"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "NAT-MEDIA-CONTRAST-01",
+      "group": "fullscreen-video-contrast",
+      "title": "Video labels and controls lack stable readable media backplates",
+      "platform": "native",
+      "repairReceipt": {
+        "path": "native-media-chrome-repair/reviewed-acceptance.json",
+        "sha256": "98ffe53e45ee1b687701001b233e051f9dc6fe76b67a1a23f6650761515a3294"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "NAT-MEDIA-CONTRAST-02",
+      "group": "story-footer-contrast",
+      "title": "Story footer and verified name colors can lose contrast over images",
+      "platform": "native",
+      "repairReceipt": {
+        "path": "native-media-chrome-repair/reviewed-acceptance.json",
+        "sha256": "98ffe53e45ee1b687701001b233e051f9dc6fe76b67a1a23f6650761515a3294"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "NATIVE-AUDIT-SETUP-001",
+      "group": "audit-consumer-tooling",
+      "title": "Android audit consumers fail before installation because adb is absent from PATH",
+      "platform": "android",
+      "classification": "Test infrastructure; original consumers executed0/85cases. Recovery uses the retained original binary and test source.",
+      "repairReceipt": {
+        "path": "../native-full-app-20261031/native-audit-2f91218e/android-baseline-consumer-setup-failure.json",
+        "sha256": "bb47ab547b2001ba184fb1032e27b43800dc110de10f3beb2512ed39fa267a57"
+      },
+      "status": "recovery-executed-all-85-cases-baseline-failures-classified",
+      "severity": "medium"
+    },
+    {
+      "id": "NATIVE-IOS-READER-001",
+      "group": "installed-ios-reader-stall",
+      "title": "iPhone memory reader stalls at initial spinner after main tabs and shelf succeed",
+      "platform": "ios",
+      "status": "reproduced-under-source-and-thread-diagnosis",
+      "evidence": "../native-full-app-20261031/ios-full-app-2f91218e-review.json",
+      "observation": "Navigation failed at Edit memory book; driver reports busy main run loop and mismatched animation observation. No retained crash stack or complete API/body export; exact cause remains unproven.",
+      "severity": "medium"
     }
   ],
   "otherFindingsAwaitingLaneReceipt": [],
@@ -747,17 +1062,17 @@
     {
       "id": "COV-NATIVE-INDEPENDENCE",
       "finding": "Only three native YAML flow files/two top-level invocations. Memory failure masks later settings and warm-navigation checks; no screen has all-controls installed acceptance.",
-      "action": "Prepare isolated per-feature journeys with independent outcomes and reuse the installed binary."
+      "action": "Independent85-case pack prepared with per-case process deadlines and continuing collection; baseline binary reused.59casesareentry-only,26cover selected controls/errors/capture; all-controls acceptance remains false."
     },
     {
       "id": "COV-ADMIN-PAGES",
       "finding": "Existing shared admin browser fixture renders one generic Desk across routes.",
-      "action": "Execute actual page-produced controls and actual server-action contracts; separate hosted authorization."
+      "action": "Actual31page renders,41meaningfulcontrols and fiveviewports executed; all50serverexports now have bounded executed contract coverage, fiveendpoints have29cases, and threeomittedcontrolfamilies have21browserchecks. Full hosted/provider and all-runtime-states acceptance remains separate."
     },
     {
       "id": "COV-WEB-DESTINATIONS",
       "finding": "Existing social/commerce/Studio fixtures cover selected pages and contain placeholder destinations.",
-      "action": "Audit actual omitted page modules, controls, read/write failures and exits."
+      "action": "Actual77clientpage modules received231read observations and1106control records; nineconfirmedfamilies plusheldword-savefollowup repaired. Fourteennon-client destinations and hosted/current-session flows remain explicitly unaccepted."
     }
   ],
   "blockers": [
@@ -802,9 +1117,139 @@
     "No live messages, payments, account resets, production changes or TestFlight submission are performed as synthetic tests."
   ],
   "batchOwners": {
-    "memberWeb": "navigation_performance; all9 non-Support families",
-    "admin": "hosted_backend; all7 findings",
-    "native": "native_acceptance; movie pipeline/checker/title cause plus broader audit pack",
-    "root": "Supportweb/native atomic writes and recoverable reads; native theme and actual version metadata; native build reuse workflow"
+    "memberWeb": "navigation_performance; nineoriginalfamilies plusword-savefollowup",
+    "admin": "hosted_backend; reporting pluscustomactionreceipts; rootAPIcontracts",
+    "native": "native_acceptance; media/runner and installed-evidence diagnosis; navigation_performance reader render diagnosis",
+    "root": "Support atomicSQL and integration; finalmediachrome; combinedgates and publication"
+  },
+  "localRepairReceipts": {
+    "support": {
+      "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+      "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+    },
+    "supportDeadline": {
+      "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+      "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+    },
+    "web": {
+      "path": "web-repair/review.json",
+      "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+    },
+    "webWrite": {
+      "path": "web-word-preferences-write-repair/review.json",
+      "sha256": "92f04bd50f8e2fecce1a66e1b7ca4de05f58c0df3666f18f2972d4b6af13f8b2"
+    },
+    "admin": {
+      "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+      "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+    },
+    "adminEndpoints": {
+      "path": "../all-platform-audit-20261031/admin/endpoints/acceptance.json",
+      "sha256": "e10f1efb48ec6558e04529c8d8447566fda1b69df226a0a00dc8df132a7cdf03"
+    },
+    "adminCustom": {
+      "path": "../all-platform-audit-20261031/admin/custom-actions/after/custom-admin-repair-acceptance.json",
+      "sha256": "05b65a46b9be3135eb7e2fee43f2edf81753366db5e2e7a80b92114fa9519d45"
+    },
+    "nativeTheme": {
+      "path": "native-theme-repair/review.json",
+      "sha256": "0584c8aadbbcf5701c9ff4deaa2ae21c748bcf4b8af95e930b2f5daf0bca3911"
+    },
+    "mediaChrome": {
+      "path": "native-media-chrome-repair/reviewed-acceptance.json",
+      "sha256": "98ffe53e45ee1b687701001b233e051f9dc6fe76b67a1a23f6650761515a3294"
+    },
+    "nativeMedia": {
+      "path": "../native-full-app-20261031/native-memory-export-repair.json",
+      "sha256": "26357b68459abe80f60c6d040222bc4a62797df0aaf4a014327111be4c1cb014"
+    },
+    "nativeAuditSetup": {
+      "path": "../native-full-app-20261031/native-audit-2f91218e/android-baseline-consumer-setup-failure.json",
+      "sha256": "bb47ab547b2001ba184fb1032e27b43800dc110de10f3beb2512ed39fa267a57"
+    }
+  },
+  "activeNativeAudit": {
+    "binaryAndTestSource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "applicationSource": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "baselineRun": 41229206389,
+    "androidRecoveryRun": 41231522956,
+    "androidRecoveryWorkflowSource": "23cf8777768451a74d24339b77f0fae2c41ba415",
+    "caseInventory": 85,
+    "entryOnlyCases": 59,
+    "controlErrorSignedOutCaptureCases": 26,
+    "allControlsAccepted": false,
+    "state": "Android three recovery consumers active; iPhone producer/consumers tracked separately. No completed native case count inferred from job execution."
+  },
+  "combinedLocalRegression": {
+    "receipt": "combined-regression/application-results.json",
+    "rootPassed": 2168,
+    "webPassed": 683,
+    "adminPassed": 284,
+    "backendPassed": 328,
+    "backendConditionalSkipped": 3,
+    "status": "Allfourapplicationgroupspassed;RPCmatrixandnewnativeharnessdiagnosticsseparate"
+  },
+  "combinedBrowserRegression": {
+    "receipt": "docs/quality/full-platform-audit-20261031/combined-browser/acceptance.json",
+    "passedGroups": 13,
+    "passedScenarios": 307,
+    "failedGroups": 0,
+    "scope": "Selected browser scenarios with controlled provider boundaries; no hosted acceptance."
+  },
+  "nativeAuditFindings": {
+    "androidBaseline": {
+      "run": 41231522956,
+      "attempted": 85,
+      "passed": 48,
+      "failed": 37,
+      "caseTimeouts": 0,
+      "runtimeLedger": "docs/quality/native-full-app-20261031/native-audit-android-recovery-41231522956/runtime-ledger.json",
+      "failurePartition": {
+        "uiPassedFixtureRejected": 12,
+        "uiAndFixtureFailed": 7,
+        "uiOnly": 17,
+        "decoderOnly": 1
+      },
+      "flowRepairReceipt": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair.json",
+      "fixtureRepairReceipt": "docs/quality/full-platform-audit-20261031/native-fixture-contract-repair/fixture-contract-repair.json",
+      "finalFixtureContracts": 26,
+      "fixtureShapeFollowup": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/response-shape-followup.json",
+      "socialFlowFollowup": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup.json",
+      "renderFailures": "Three exact TypeError render failures reproduced from incorrect fixture response shapes; SQL-correct null/page responses pass focused component checks. Native retest pending."
+    },
+    "iosOriginalRecovery": {
+      "run": 41233860694,
+      "attempted": 0,
+      "status": "failed-during-simulator-create-before-case-execution",
+      "causeLimit": "Original setup failure lacked process-exit/partial-output metadata; cold-start versus inherited-pipe contribution is not established.",
+      "correctionCommit": "c1bb0784ba031ac8dc4e14f5d0cdeeacadd024c5",
+      "correctedRun": 41234444953,
+      "correctedStatus": "running"
+    },
+    "androidEncoder": {
+      "run": 41233788259,
+      "sourceCommit": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+      "status": "passed",
+      "instrumentedCases": 40,
+      "memoryCases": 17,
+      "storyCases": 23,
+      "reorderedBFrameCase": {
+        "retainedVideoPageFrames": 45,
+        "reorderedTailFrames": 3,
+        "boundaryGapMicroseconds": 33334
+      },
+      "limit": "Standalone actual production encoders in Android emulator; complete app export and physical-device acceptance remain separate.",
+      "independentReview": "docs/quality/native-full-app-20261031/android-encoder-c20-independent-review.json"
+    },
+    "iosCompatibilityRecovery": {
+      "failedRun": 41234444953,
+      "attempted": 0,
+      "failedShards": 3,
+      "cause": "All three completed simulator boot, then recovery-only xcodebuild -version reads timed out at 5 seconds before app install.",
+      "correctionCommit": "0969400c77e05da3ce0f931c9b25e88b93315439",
+      "correctionScope": "Use the existing normal-runner 30-second metadata budget and retain each setup read; application assertions and case deadlines unchanged.",
+      "nextRun": 41235415260,
+      "nextRunStatus": "running"
+    }
   }
 }

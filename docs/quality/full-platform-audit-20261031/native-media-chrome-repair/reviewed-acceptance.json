@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T19:08:22.678204+00:00",
+  "state": "Final reviewed source-level readability evidence. Production source is unchanged from the accepted seven-case repair.",
+  "priorReceipt": {
+    "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/acceptance.json",
+    "sha256": "5552ebba9a0264ad49cf79126dc1ab610ff885116a09f7a00da14959bf750806"
+  },
+  "reviewCorrections": [
+    "Position fill and knob are compared with the actual unfilled track alpha composited above the bottom backplate; minimum5.633061:1 meets the unchanged3:1 non-text threshold.",
+    "Story touch opacity fades its image and footer together over the actual FeedScreen canvas. The underlying extra dark gradient is omitted conservatively. Light/dark/lightsOut name and views ratios match the independent reviewer calculations."
+  ],
+  "source": [
+    {
+      "path": "src/components/FullscreenVideo.tsx",
+      "bytes": 13337,
+      "sha256": "a284f3ce5ee0d131079103bdae0e736b38d141086d3cfea2cfb40f4e8471e19f"
+    },
+    {
+      "path": "src/components/TrendingStoriesRail.tsx",
+      "bytes": 6782,
+      "sha256": "9f284a336714c5a0e90344be89ffa294804c4823d489e36d374bdeb06cbcc62e"
+    },
+    {
+      "path": "src/components/TierName.tsx",
+      "bytes": 936,
+      "sha256": "d45ba55c67dc2eae4ababb09fb1f9f9b5e598d5faa12d3b1ca9c2916d9b85dd5"
+    },
+    {
+      "path": "tests/quality/native-media-chrome-contrast.cjs",
+      "bytes": 7595,
+      "sha256": "059e0f5b410aca4869908f2e6b76a994a9069ab12a848bf72a1e8ff604cac375"
+    },
+    {
+      "path": "tests/fullscreen-video-accessibility.test.cjs",
+      "bytes": 7713,
+      "sha256": "a06f2e49afac0276ec445d02960e252d81dd90667f893b8462613284c7f1a7ae"
+    }
+  ],
+  "inspectedUnchangedParent": {
+    "path": "src/screens/feed/FeedScreen.tsx",
+    "sha256": "63716b02d5d188293b1995a89fc4d3b08f26097bb7ad56aebf4728224f296f17",
+    "relationship": "TrendingStoriesRail is in the transparent list header and wrappers under SafeAreaView s.safe using t.surface.canvas."
+  },
+  "validation": {
+    "formalCases": 7,
+    "literal2fBefore": {
+      "pass": 0,
+      "fail": 7
+    },
+    "repairedAfter": {
+      "pass": 7,
+      "fail": 0
+    },
+    "pairs": 30,
+    "sampledMediaColors": 125,
+    "minimumRatio": 5.63306123287061,
+    "existingAccessibilityAndSelectors": {
+      "pass": 9,
+      "fail": 0,
+      "productionUnchanged": true
+    }
+  },
+  "limits": [
+    "Measurements evaluate actual source style factories and TierName output over 125 sampled RGB backgrounds including black and white, with the manually inspected actual touch opacity. They do not represent device pixel, font scaling, compositor or video-performance acceptance.",
+    "The original 424 candidate and 760 skipped-node records are preserved. No all-controls or all-visual-states claim.",
+    "Ratios are source-composited sampled bounds; no exact native pixel/rasterizer or every-video-frame measurement is claimed."
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/reviewed-before.tap",
+      "sha256": "7fd9eb69b2d338629d77588a8ecad8da22eec69dc514a8158e1cc1a927bf1336"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/reviewed-before.json",
+      "sha256": "456ebc41b518238f353eb536cd8b2831ab31cc3101ad1852ed9fe94063a2d45c"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/reviewed-after.tap",
+      "sha256": "c9009196e3635deb68c045756fb6bbb2d62f558286c2d39cf92b987117733bd4"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/reviewed-after.json",
+      "sha256": "1f087835876be7884781e462070f2069ac5a94afd29a663bde9479636986dc87"
+    }
+  ]
+}

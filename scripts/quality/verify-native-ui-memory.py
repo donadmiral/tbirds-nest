@@ -54,19 +54,62 @@ assert abs(expected_duration - 11.7) < .01, expected_duration
 def run(args):
     return subprocess.check_output(args, stderr=subprocess.PIPE)
 
+def display_size(video):
+    """Accept only a square-pixel, right-angle presentation transform."""
+    coded = (video['width'], video['height'])
+    assert all(type(value) is int and value > 0 for value in coded), coded
+    assert video.get('sample_aspect_ratio', '1:1') in ('1:1', 'N/A'), video
+    matrices = [item for item in video.get('side_data_list', [])
+        if item.get('side_data_type') == 'Display Matrix']
+    assert len(matrices) <= 1, 'Ambiguous video display transforms'
+    rotation = 0
+    if matrices:
+        matrix = matrices[0]
+        angle = matrix.get('rotation')
+        assert type(angle) in (int, float) and math.isfinite(angle) and angle % 90 == 0, matrix
+        rotation = int(angle) % 360
+        rows = [line.partition(':')[2].split() for line in matrix.get('displaymatrix', '').splitlines() if ':' in line]
+        assert len(rows) == 3 and all(len(row) == 3 for row in rows), matrix
+        values = tuple(int(value) for row in rows for value in row)
+        transforms = {
+            0: (65536, 0, 0, 0, 65536, 0, 0, 0, 1073741824),
+            90: (0, -65536, 0, 65536, 0, 0, 0, 0, 1073741824),
+            180: (-65536, 0, 0, 0, -65536, 0, 0, 0, 1073741824),
+            270: (0, 65536, 0, -65536, 0, 0, 0, 0, 1073741824),
+        }
+        assert values == transforms[rotation], 'Reject scaling, mirroring, shear or translation in the display matrix'
+    assert 'rotate' not in video.get('tags', {}), 'Require FFprobe to expose rotation as a verified display matrix'
+    return (coded[::-1] if rotation in (90, 270) else coded), rotation
+
+def verify_display_geometry(video, file):
+    presented, rotation = display_size(video)
+    assert presented == (720, 1280), (video, presented)
+    # No scale filter: the actual decoder must produce the promised portrait
+    # canvas after applying the container's standard presentation transform.
+    png = run(['ffmpeg', '-v', 'error', '-i', str(file), '-frames:v', '1',
+        '-c:v', 'png', '-f', 'image2pipe', '-'])
+    assert png[:8] == b'\x89PNG\r\n\x1a\n' and struct.unpack('>II', png[16:24]) == presented
+    return {'codedWidth': video['width'], 'codedHeight': video['height'],
+        'rotationDegrees': rotation, 'decodedWidth': presented[0], 'decodedHeight': presented[1]}
+
+def verify_cadence(times, expected_duration):
+    assert len(times) >= int(expected_duration * 27), 'The actual movie must contain a continuous frame sequence'
+    assert all(math.isfinite(time) for time in times) and all(b > a for a, b in zip(times, times[1:])), 'Video frame timestamps must advance'
+    assert max(b - a for a, b in zip(times, times[1:])) < .10, 'The actual movie has a frame gap of at least 100 ms'
+    assert times[-1] > expected_duration - .15
+
 probe = json.loads(run(['ffprobe', '-v', 'error', '-show_entries',
-    'format=duration:stream=codec_type,width,height,avg_frame_rate', '-of', 'json', str(movie)]))
+    'format=duration:stream=codec_type,width,height,avg_frame_rate,sample_aspect_ratio,channels:stream_tags=rotate:stream_side_data',
+    '-of', 'json', str(movie)]))
 video = next(stream for stream in probe['streams'] if stream['codec_type'] == 'video')
-assert (video['width'], video['height']) == (720, 1280)
+geometry = verify_display_geometry(video, movie)
 assert any(stream['codec_type'] == 'audio' for stream in probe['streams'])
 duration = float(probe['format']['duration'])
 assert abs(duration - expected_duration) < .20, (duration, expected_duration)
 frames = json.loads(run(['ffprobe', '-v', 'error', '-select_streams', 'v:0',
     '-show_entries', 'frame=best_effort_timestamp_time', '-of', 'json', str(movie)]))['frames']
 times = [float(frame['best_effort_timestamp_time']) for frame in frames]
-assert len(times) >= int(expected_duration * 27), 'The actual movie must contain a continuous frame sequence'
-assert max(b - a for a, b in zip(times, times[1:])) < .10
-assert times[-1] > expected_duration - .15
+verify_cadence(times, expected_duration)
 
 def pixels(file, time=None):
     args = ['ffmpeg', '-v', 'error']
@@ -90,6 +133,7 @@ def green_count(data):
         for index in range(0, len(data), 3))
 
 measurements = {'duration': duration, 'expectedDuration': expected_duration,
+    'geometry': geometry,
     'decodedFrames': len(times), 'maximumFrameGap': max(b - a for a, b in zip(times, times[1:])),
     'captures': len(captures), 'scenes': []}
 clock = 0
@@ -131,9 +175,10 @@ for scene in scenes:
     measurements['scenes'].append(entry)
     clock += scene['duration']
 
-def audio(start):
-    raw = run(['ffmpeg', '-v', 'error', '-i', str(movie), '-af',
-        f'aresample=48000,atrim=start_sample={round(start * 48000)}:end_sample={round(start * 48000) + 19200},asetpts=PTS-STARTPTS',
+def audio(file, start, channel=0):
+    assert type(channel) is int and channel in (0, 1), channel
+    raw = run(['ffmpeg', '-v', 'error', '-i', str(file), '-af',
+        f'pan=mono|c0=c{channel},aresample=48000,atrim=start_sample={round(start * 48000)}:end_sample={round(start * 48000) + 19200},asetpts=PTS-STARTPTS',
         '-vn', '-ac', '1', '-ar', '48000', '-f', 'f32le', '-'])
     assert len(raw) == 19200 * 4, 'Require a complete independently decoded audio window'
     values = array.array('f'); values.frombytes(raw)
@@ -142,11 +187,25 @@ def audio(start):
         math.sin(2 * math.pi * 1234 * index / 48000)) for index, value in enumerate(values))) / len(values)
     return {'rms': math.sqrt(sum(value * value for value in values) / len(values)), 'sourceTone': amplitude}
 
-before, during, after = audio(3), audio(5.9), audio(8)
-assert before['rms'] > .001 and after['rms'] > .001, 'The packaged original score must reach the actual movie'
-assert before['sourceTone'] < .004 and after['sourceTone'] < .004
-assert .07 < during['sourceTone'] < .13, ('Original video audio must retain its selected 50% mix', during)
-measurements['audio'] = {'beforeVideo': before, 'insideVideo': during, 'afterVideo': after}
+def verify_audio_mix(file, channels):
+    assert type(channels) is int and channels in (1, 2), 'Require independently measurable mono or stereo output'
+    source = audio(Path('tests/native/assets/memory-capture-video.mp4'), .8)
+    assert .18 < source['sourceTone'] < .22, 'The source fixture must retain its independently measured original tone'
+    output = []
+    for channel in range(channels):
+        before, during, after = audio(file, 3, channel), audio(file, 5.9, channel), audio(file, 8, channel)
+        assert before['rms'] > .001 and after['rms'] > .001, 'The packaged original score must reach every movie channel'
+        assert before['sourceTone'] < .004 and after['sourceTone'] < .004
+        # Compare corresponding channels. FFmpeg's default stereo-to-mono mix
+        # adds correlated channels with sqrt(1/2) gain and would inflate the
+        # measured amplitude despite a correct selected 50% source volume.
+        assert .07 < during['sourceTone'] < .13, ('Original video audio must retain its selected 50% mix', channel, during)
+        output.append({'channel': channel, 'beforeVideo': before, 'insideVideo': during, 'afterVideo': after,
+            'sourceToneRatio': during['sourceTone'] / source['sourceTone']})
+    return {'sourceVideo': source, 'outputChannels': output}
+
+audio_stream = next(stream for stream in probe['streams'] if stream['codec_type'] == 'audio')
+measurements['audio'] = verify_audio_mix(movie, audio_stream['channels'])
 measurements.update(passed=True, cancelledReaderClosed=True, cancelledAndCompletedTemporaryFilesRemoved=True,
     providerAcceptance=False, physicalDevice=False, photosLibraryWrite=False)
 (root / 'decoded.json').write_text(json.dumps(measurements, indent=2) + '\n')

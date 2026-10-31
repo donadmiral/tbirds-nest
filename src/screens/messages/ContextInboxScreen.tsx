@@ -1,4 +1,4 @@
-import { themedSheet, getTheme } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -62,6 +62,7 @@ function relTime(iso?: string | null) {
 }
 
 export default function ContextInboxScreen({ route, navigation }: any) {
+  const { t, isDark } = useTheme();
   const ctx: 'market' | 'jobs' = route?.params?.context === 'jobs' ? 'jobs' : 'market';
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
@@ -94,7 +95,7 @@ export default function ContextInboxScreen({ route, navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
@@ -214,7 +215,7 @@ const s = themedSheet((t) => ({
   rowBody: { flex: 1, justifyContent: 'center', gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.xs },
   name: { flex: 1, fontSize: typeSize.emphasis, fontWeight: fontWeight.semibold, color: t.ink.primary },
-  time: { fontSize: typeSize.micro, color: t.ink.faint },
+  time: { fontSize: typeSize.micro, color: t.ink.muted },
 
   subject: {
     flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',

@@ -23,6 +23,15 @@ name: Audit reply status write failure is visible
 
 - tapOn: Write to reopen this ticket
 - inputText: Please reopen this synthetic ticket.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - tapOn: Send
-- assertVisible: Could not send
+- assertVisible: Reply not confirmed
+- tapOn: OK
+- assertVisible: Please reopen this synthetic ticket.
+- assertVisible: Send
+- assertVisible: Solved
 - takeScreenshot: support-reopen-error

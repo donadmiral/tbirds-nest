@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T19:19:18.297181+00:00",
+  "status": "Prepared only; no branch, commit, push, PR or workflow run created.",
+  "candidateWorkflow": {
+    "path": "docs/quality/native-full-app-20261031/android-encoder-validation-preparation/android-encoder-validation.yml",
+    "sha256": "0dce02646b8d921033339d7cd54167be01c189d150d516f7b02b7d36d8ca96f0",
+    "bytes": 5272,
+    "publishAs": ".github/workflows/android-encoder-validation.yml",
+    "branch": "codex/android-encoder-validation-20261031",
+    "parentCommit": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+    "pinnedCheckoutCommit": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+    "pinnedCheckoutTree": "cde37bb9b55c73d5f2afd45a9be4b76fc89b1170",
+    "executionJobs": 1,
+    "runner": "ubuntu-24.04",
+    "timeoutMinutes": 50,
+    "permissions": {
+      "contents": "read"
+    },
+    "concurrency": "Separate pinned-android-encoder branch group; cancellation disabled.",
+    "trigger": "Push on the exact disposable branch only. No pull_request or workflow_dispatch dependency and no path filter/diff-size dependency."
+  },
+  "reuse": {
+    "sourceWorkflow": ".github/workflows/android-native-compile.yml",
+    "job": "android-story-export",
+    "preserved": "All eight existing job steps, pinned action versions, locked npm install, Java17/Node22, KVM setup, encoder script command, artifact behavior and50-minute deadline are semantically identical; checkout adds only the exact source ref. One new provenance step is inserted.",
+    "excluded": "android-compile job and full-native app/Expo build are not invoked."
+  },
+  "expectedAcceptance": {
+    "storyCases": 23,
+    "memoryCases": 17,
+    "total": 40,
+    "requiredNewCase": "reorderedBFramesSurviveTheTrimEndBeforeTheNextPage",
+    "newCaseAssertions": [
+      "Input is the exact captured reordered H.264 fixture; actual packet reordering and3 in-range tail B-frames are required.",
+      "45 video-page output frames and at most40,000us at the transition boundary.",
+      "Decoded late-page red/blue content and subsequent green page are checked."
+    ],
+    "unchangedRequirements": [
+      "Every declared test name must be present with no failed, errored or skipped testcase.",
+      "All existing audio, decoded-pixel, duration, cadence, lifecycle, size and cancellation assertions execute unchanged.",
+      "Resolved runtime graph and measured receipts require Media3 1.11.1.",
+      "The three production Kotlin encoder files are copied byte-for-byte into the standalone app; exact generated copies and test/asset hashes are verified after instrumentation.",
+      "Nonzero Gradle/instrumentation status remains failure even if partial files exist."
+    ]
+  },
+  "artifactPlan": {
+    "name": "android-story-audio-export",
+    "path": "android-story-export-logs/",
+    "alwaysUpload": true,
+    "retentionDays": 7,
+    "sourceProvenance": "workflow-provenance.json records verified checkout commit/tree, trigger commit, workflow commit/ref, run/attempt, all encoder build/test/fixture input hashes and23+17 count expectation.",
+    "unchangedReceiptCaveat": "receipt.json.commit continues to mean GITHUB_SHA: the workflow trigger commit. It must not be mistaken for the pinned source checkout; sidecar sourceCommit/sourceTree and input hashes provide that binding. No GitHub default environment variable is overwritten.",
+    "expectedEvidence": [
+      "workflow-provenance.json",
+      "preflight.json",
+      "media3-runtime.json",
+      "receipt.json (only on full success)",
+      "instrumentation-results/TEST-*.xml",
+      "device/receipt.json",
+      "device/memory-receipt.json",
+      "device/memory-b-frame-boundary.mp4 plus existing measured movies and normalized images",
+      "toolchain/emulator/build/logcat/Gradle diagnostics"
+    ]
+  },
+  "triggerIsolation": {
+    "existingWorkflows": "Inspected all local workflow push branch filters: ordinary gates push onlymaster; baseline/recovery gates use different exactcodex branches; browser/full-app are PR/dispatch only. No PR is to be opened for this validation branch.",
+    "pr3": "No PR3 app ref, merge ref, source or concurrency group is changed.",
+    "publicationSteps": [
+      "Root reviews this single workflow file and provenance caveat.",
+      "Create one test-only commit adding only.github/workflows/android-encoder-validation.yml on a dedicated non-PR branch based onc20cc9e55657291d7c7c964cd4a5f622d051e24f.",
+      "Push that branch once. Observe exactly this standalone encoder job; do not update the branch during the run.",
+      "At completion retain the artifact once, verify sourceCommit/sourceTree, test input hashes, resolved graph and exact23+17 observed JUnit names.",
+      "Report new instrumented results separately from the still-running broad baseline audits and from full-app/physical-device acceptance."
+    ]
+  },
+  "validation": {
+    "yamlParsed": true,
+    "onlyOneJob": true,
+    "originalEightStepsEquivalentExceptPinnedCheckout": true,
+    "inlinePythonCompiles": true,
+    "inputHashesMatchFrozenCheckpointSnapshotOrUnchangedParent": true,
+    "actualAndroidExecutionPerformed": false
+  },
+  "sourceInputs": {
+    "package.json": {
+      "sha256": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+      "bytes": 5301,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "package-lock.json": {
+      "sha256": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+      "bytes": 545630,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    ".github/workflows/android-native-compile.yml": {
+      "sha256": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+      "bytes": 4573,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "scripts/quality/test-android-story-audio.sh": {
+      "sha256": "fab3525d32329475e2e8e733f20d932729d90de664002b54ebb2c0cb0c79f9eb",
+      "bytes": 14522,
+      "frozenSource": "saved c20 checkpoint snapshot"
+    },
+    "scripts/quality/android-media-dependencies.init.gradle": {
+      "sha256": "90860a9da3b8db77843eadc04700fff2f5716b740f76bdbe46a0451eb498ad03",
+      "bytes": 2277,
+      "frozenSource": "saved c20 checkpoint snapshot"
+    },
+    "scripts/quality/android-story-export/build.gradle": {
+      "sha256": "42e5b2f4c85dcdf88fa922bdb7228053c526b6e9f7cc607b842d35ee6f965c06",
+      "bytes": 2259,
+      "frozenSource": "saved c20 checkpoint snapshot"
+    },
+    "scripts/quality/android-story-export/settings.gradle": {
+      "sha256": "c28f8c006ff219e6e7e8c9dc90d5d2eff36eb87b59f0dd7596ee7e1be61d695b",
+      "bytes": 280,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "tests/native/assets/memory-capture-video.mp4": {
+      "sha256": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2",
+      "bytes": 54300,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": {
+      "sha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+      "bytes": 111,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": {
+      "sha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+      "bytes": 209,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": {
+      "sha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+      "bytes": 140,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif": {
+      "sha256": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+      "bytes": 45,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt": {
+      "sha256": "9fe378b36f7edaeb3f8dd8f0527cb9dcee294b0d3cf05c1b4fe28dff7799f4bd",
+      "bytes": 34672,
+      "frozenSource": "saved c20 checkpoint snapshot"
+    },
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": {
+      "sha256": "c26c3ca6a5037772c19b43723445a25d4f0ef7c834f1608ff25d89faf4ac8e4b",
+      "bytes": 37228,
+      "frozenSource": "saved c20 checkpoint snapshot"
+    },
+    "scripts/quality/android-story-export/src/main/AndroidManifest.xml": {
+      "sha256": "a6c09b92672c80c279243f688eff43369a6d327305e40e9d6fc99edadf0d07be",
+      "bytes": 354,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "scripts/quality/android-story-export/src/main/java/expo/modules/boomerang/FixtureMediaProvider.kt": {
+      "sha256": "6b253b3cf247efdaee5e539361de5f4189d1fe0641def507c5b92cac79efb450",
+      "bytes": 4094,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": {
+      "sha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+      "bytes": 29054,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": {
+      "sha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+      "bytes": 13288,
+      "frozenSource": "unchanged literal2f parent blob"
+    },
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": {
+      "sha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+      "bytes": 24719,
+      "frozenSource": "unchanged literal2f parent blob"
+    }
+  },
+  "remainingLimits": [
+    "This proves actual production encoder behavior in a standalone Android instrumentation app only. It does not exercise the complete Expo app dependency graph/config-plugin integration, installed application UI, physical device, provider data or store release.",
+    "This does not replace or relabel the existing full-app133ms failure. Only fresh instrumented outputs can confirm the updated B-frame behavior.",
+    "Remote workflow source pinning/tree verification will execute in CI; the local c20 Git object is absent, so local prepared input binding used the root-verified saved checkpoint snapshot and unchanged2f parent blobs."
+  ],
+  "officialReferences": [
+    {
+      "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onpushbranches-tags-branches-ignore-tags-ignore",
+      "supports": "Exact push branch selection; no pull request needed."
+    },
+    {
+      "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#github-context",
+      "supports": "github.sha is the trigger commit; github.workflow_sha identifies the workflow file commit."
+    }
+  ]
+}

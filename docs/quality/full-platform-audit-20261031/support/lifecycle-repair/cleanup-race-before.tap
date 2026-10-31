@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: reply: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+not ok 1 - reply: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+  ---
+  duration_ms: 215.105978
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-lifecycle.cjs:151:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    A new deliberate send after acknowledgement needs its own identity
+    
+    1 !== 2
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 2
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-lifecycle.cjs:159:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: create: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+not ok 2 - create: slow acknowledgement storage cleanup cannot consume a later intentional identical request
+  ---
+  duration_ms: 96.053683
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-lifecycle.cjs:151:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    A new deliberate send after acknowledgement needs its own identity
+    
+    1 !== 2
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 2
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/member-support-lifecycle.cjs:159:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 498.199183

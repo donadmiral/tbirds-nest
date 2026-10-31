@@ -1,0 +1,459 @@
+{
+  "schema": 1,
+  "kind": "android-audit-ui-failure-classification",
+  "reviewedAt": "2026-10-31T19:30:23.999857+00:00",
+  "applicationSourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "applicationSourceTree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+  "productionApplication": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "recoveryRunId": 41231522956,
+  "immutableOriginalLedger": {
+    "file": "docs/quality/native-full-app-20261031/native-audit-android-recovery-41231522956/runtime-ledger.json",
+    "bytes": 110355,
+    "sha256": "caecb0f5a265a975adcd09fea315039c7df20f57c6a08f2395bfb2502944abda"
+  },
+  "originalRuntimeTotals": {
+    "attempted": 85,
+    "passed": 48,
+    "failed": 37
+  },
+  "classifiedUiFailures": 17,
+  "classificationTotals": {
+    "harnessFixedHere": 11,
+    "supportProductDefectsSeparatelyRepaired": 5,
+    "titleHarnessDefectSeparatelyRepaired": 1
+  },
+  "outsideThisReview": {
+    "unknownFixtureContractCases": 19,
+    "owner": "hosted_backend",
+    "decoderFailureCases": 1,
+    "decoderOwner": "native_acceptance"
+  },
+  "allControlsAccepted": false,
+  "cases": [
+    {
+      "id": "stories-storycomposer",
+      "shard": "settings",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-entry-stage",
+      "actual": "The text-mode route opens its sticker editor. Retained AX exposes Save text sticker/Done and Type here; Next is not yet available.",
+      "preparedChange": "Enter synthetic text, save the actual editor, then retain the original Next readiness check.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/stories-storycomposer.ax.json",
+          "sha256": "9f062d48a8d9dba483e4ae36ad88b4f35c9323793d635ba754b93048b34f471e",
+          "bytes": 61350
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/stories-storycomposer.png",
+          "sha256": "d76063c5612538758506b645557d48a143d3c8c067ff6fc22f2033ff542f735f",
+          "bytes": 23893
+        }
+      ]
+    },
+    {
+      "id": "settings-appearance",
+      "shard": "settings",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-grouped-label",
+      "actual": "Retained clickable label is icon, Appearance, Follows your phone, chevron; the original anchored regex omitted both icons.",
+      "preparedChange": "Match the complete Appearance/mode segments with optional private-use glyphs; also check the selected Lights out row.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/settings-appearance.ax.json",
+          "sha256": "3c2bc897a4445cc39270e560c1000f12088a82313f91f6744e27aec6af1713e1",
+          "bytes": 99300
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/settings-appearance.png",
+          "sha256": "22da07e021e9a3e3d9cce9c48a125215579be7b52ae546493a57bf085c686c2c",
+          "bytes": 32410
+        }
+      ]
+    },
+    {
+      "id": "support-original-body",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "product-content-defect-already-repaired",
+      "actual": "The known ticket header and reply composer render, but the original question is absent from the captured AX.",
+      "preparedChange": "No flow assertion change. Root Support product repair renders the stored original body; native acceptance remains pending.",
+      "flowChangedHere": false,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-original-body.ax.json",
+          "sha256": "ced7c71550aa46d5b1a08ec98d33472943b8077f5a0b09081b6173f194e0fb20",
+          "bytes": 73091
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-original-body.png",
+          "sha256": "6a54fb533d5ef89acba8b1427f718568c2098e0b4309e93d23676efffab4b6ba",
+          "bytes": 20662
+        }
+      ]
+    },
+    {
+      "id": "support-missing-ticket",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "product-unavailable-state-defect-already-repaired",
+      "actual": "The missing-ticket case shows a generic Ticket/Open composer without an unavailable notice.",
+      "preparedChange": "Root Support product repair supplies an explicit unavailable state. Align only the expected notice to its exact current wording; reject valid-ticket/spinner alternatives.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-missing-ticket.ax.json",
+          "sha256": "72c2075333424c3585809f2fed2d0884bc16d260d8979e06cfd5e40c49db8aa3",
+          "bytes": 73076
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-missing-ticket.png",
+          "sha256": "96ba9408e00dba3c5847ad44e5f06192b76550c97f9abeaf0a612417a617f57c",
+          "bytes": 18818
+        }
+      ]
+    },
+    {
+      "id": "support-ticket-read-error",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "product-error-state-defect-already-repaired",
+      "actual": "The injected ticket-read failure leaves generic Ticket/Open and composer, with no error or retry notice.",
+      "preparedChange": "No flow assertion change. Root Support product repair supplies an explicit failure/retry state; native acceptance remains pending.",
+      "flowChangedHere": false,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-ticket-read-error.ax.json",
+          "sha256": "24d191cd5df5ed4b54a8697cf0d7accf979730bd4ffa4680a89d0b8280cb8334",
+          "bytes": 73075
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-ticket-read-error.png",
+          "sha256": "30019dc8215597ea4fce94b60cc268b861ece69794eae9d33b597be7dc40abf9",
+          "bytes": 18964
+        }
+      ]
+    },
+    {
+      "id": "support-history-error",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "product-error-state-defect-already-repaired",
+      "actual": "The known ticket header renders but the injected history error has no visible error or retry notice.",
+      "preparedChange": "No flow assertion change. Root Support product repair preserves the original question and exposes failed history/retry; native acceptance remains pending.",
+      "flowChangedHere": false,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-history-error.ax.json",
+          "sha256": "7973ddd631f2c9a55ed49d47776d0a9b563ca9a3ab3b6a55fccceb63b1cdf03d",
+          "bytes": 73092
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-history-error.png",
+          "sha256": "85d2893d3720a26c7ec0219468a7d24533c6a80b1bb57aca64a076ae13391bbe",
+          "bytes": 20667
+        }
+      ]
+    },
+    {
+      "id": "support-list-error",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "product-error-state-defect-already-repaired",
+      "actual": "The injected list failure has no notice in the retained form. In the repaired product the notice is below Send; retained Send already reaches y=608 beside system navigation.",
+      "preparedChange": "Preserve the mandatory error check and scroll to the exact repaired notice below the form, then require Try again. This flow adjustment does not erase the original missing-error product defect.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-list-error.ax.json",
+          "sha256": "98cc488374b2d15de7c040bcbad241f56db4e3db14db38d92fc47c665c817dc0",
+          "bytes": 96664
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-list-error.png",
+          "sha256": "cc2e5de1655becda0ae82848abb5f8b7b83e887b9e50c9ecd05ba6f482a4f97b",
+          "bytes": 36625
+        }
+      ]
+    },
+    {
+      "id": "support-fresh-ticket-body",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-keyboard-occlusion",
+      "actual": "After subject entry the keyboard covers the body input. The full original placeholder identifies exactly one editable node in the retained same-form list-error hierarchy.",
+      "preparedChange": "Dismiss the Android keyboard and center the unique full body placeholder before typing; preserve sending and original-body readback assertions.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-fresh-ticket-body.ax.json",
+          "sha256": "9c5b8c10a2e7145c7ace521ce6cb0ba3506beb13d42f96e9fa13fb5c60bde854",
+          "bytes": 123445
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-fresh-ticket-body.png",
+          "sha256": "ce42bc7b727aa82f508c43b7328d258aeec60145637f15c63753f5a20ab36316",
+          "bytes": 37887
+        }
+      ]
+    },
+    {
+      "id": "support-reopen-error",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-keyboard-occlusion",
+      "actual": "Draft entry completes but the keyboard covers the fixed composer and Send. The intended failure branch was not reached.",
+      "preparedChange": "Dismiss the Android keyboard before Send; retain Reply not confirmed, draft, Send and Solved postconditions.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reopen-error.ax.json",
+          "sha256": "39328a0dccdd1083a68264ac8a85423da4295b7833161500ef75a61f31313924",
+          "bytes": 97988
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reopen-error.png",
+          "sha256": "01a61b93dffbf99936b13edd870e8ee7f18ce7a1056b693fdea27f1384d8e185",
+          "bytes": 23455
+        }
+      ]
+    },
+    {
+      "id": "support-reply-error",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-keyboard-occlusion",
+      "actual": "Draft entry completes but the keyboard covers the fixed composer and Send. The intended failure branch was not reached.",
+      "preparedChange": "Dismiss the Android keyboard before Send; retain Reply not confirmed, draft and Send postconditions.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reply-error.ax.json",
+          "sha256": "2bbfb9f02c71256fba66b1a0606fcd6c6c4fae4444ef8ce0ac2a830f33fc68df",
+          "bytes": 97985
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reply-error.png",
+          "sha256": "86170413a05b3e4d1d8b556377c9da92e9c92e108417c0081a62e5012bd3ed93",
+          "bytes": 23653
+        }
+      ]
+    },
+    {
+      "id": "memory-cover-settings",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-title-replacement-already-repaired",
+      "actual": "The actual cover and saved title are AUDIT BOOK TITLEENTURES, proving the old erase operation left a suffix.",
+      "preparedChange": "Already owned by the frozen Native media/title repair: Select All, replacement and exact value readback before Save. No edit here.",
+      "flowChangedHere": false,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-cover-settings.ax.json",
+          "sha256": "0686e92c3cacf96df33d5d9acae5b6601e00640a7a7ec3dcd89e2e4ab8e89301",
+          "bytes": 80122
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-cover-settings.png",
+          "sha256": "29431410058ea3ef74f70cecead31779b8bde007d8a29628728a26950d4bc220",
+          "bytes": 30313
+        }
+      ]
+    },
+    {
+      "id": "memory-film-export-entry",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-offscreen-target",
+      "actual": "The loaded cover occupies the retained viewport; the declared film action is below it and absent from AX.",
+      "preparedChange": "Center the same semantic film action before tapping; preserve the pause, play, export, close sequence and its parameters verbatim.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-film-export-entry.ax.json",
+          "sha256": "1625261f5a981ad8117a056f1fab7c265bb0ec07bbbc9414946bd083a3ee86d7",
+          "bytes": 80114
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-film-export-entry.png",
+          "sha256": "29f176a746b385861c6426f5268b71117c83aabb9d23e59e50cead53d1ed00f7",
+          "bytes": 29779
+        }
+      ]
+    },
+    {
+      "id": "auth-forgot-password",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-keyboard-occlusion",
+      "actual": "Email autofocus shows the Android keyboard; Send code is absent from the visible AX.",
+      "preparedChange": "Dismiss the observed Android keyboard, center the semantic Send code target, and retain empty-email validation.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-forgot-password.ax.json",
+          "sha256": "86d7255a9c4ce451169ac001f8c87b126d7255a32d9fee8a5156e8ba9fda8b92",
+          "bytes": 98076
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-forgot-password.png",
+          "sha256": "bedc543878be915b68c6d283b070d458c1ab8157d92c186b7e49e834a48fbe3a",
+          "bytes": 38992
+        }
+      ]
+    },
+    {
+      "id": "auth-signup-entry",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-grouped-label",
+      "actual": "Retained text and clickable label are New here? Create an account, not the nested substring.",
+      "preparedChange": "Use the literal complete label, center the link, and scroll to the original Sign Up assertion after entering the form.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-signup-entry.ax.json",
+          "sha256": "104c97e96f19c7101636ba6c3a5633fc428b4e77316671fcfd01e33b87deb334",
+          "bytes": 60566
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-signup-entry.png",
+          "sha256": "ca1cb3d62defbfd1d8db077c894c4e707d032bf911a9dedc7474abe15aab4418",
+          "bytes": 31842
+        }
+      ]
+    },
+    {
+      "id": "auth-business-entry",
+      "shard": "account",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-offscreen-target",
+      "actual": "The retained login viewport ends at the sign-up link; source places Business sign-in below it inside the same ScrollView.",
+      "preparedChange": "Scroll to Business sign-in before tapping; preserve Business handle and Personal access code checks, centering the latter.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-business-entry.ax.json",
+          "sha256": "c42b28fd0f12d6fd52105d9f6240e37de0c86d4cc056c610299ce89a23ae3954",
+          "bytes": 60566
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-business-entry.png",
+          "sha256": "02a22c9141c9ea036f74f2247466b8338a18dc95a7927601bd7d59cc711d1541",
+          "bytes": 31738
+        }
+      ]
+    },
+    {
+      "id": "market-createlisting",
+      "shard": "social",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-entry-stage",
+      "actual": "Retained screen is Photos, 1 of 4. Production initializes step zero; Title belongs to the unentered Details step.",
+      "preparedChange": "Require Photos, 1 of 4, the photo instruction and Next. Photo picking/later listing steps remain outside this entry case.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/market-createlisting.ax.json",
+          "sha256": "5b99d9ffb6f0742f0db0ea8aac11c9b7507c106e14212e895ea15450b03c6a74",
+          "bytes": 75856
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/market-createlisting.png",
+          "sha256": "7f7b142145a9a2cc409698d3418a582fcff809e0a737b8c55a2662be5d300d21",
+          "bytes": 19121
+        }
+      ]
+    },
+    {
+      "id": "feed-article-draft",
+      "shard": "social",
+      "observedStatus": "failed",
+      "fixtureContractPassed": true,
+      "classification": "harness-keyboard-offscreen-target",
+      "actual": "The typed title is visible but its keyboard hides the body input below the toolbar.",
+      "preparedChange": "Dismiss the Android keyboard, center the exact source placeholder, type the same body, then dismiss and scroll up for the original title assertion.",
+      "flowChangedHere": true,
+      "nativeRerunAfterRepair": "not-run",
+      "evidence": [
+        {
+          "kind": "SCREEN_HIERARCHY",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/feed-article-draft.ax.json",
+          "sha256": "127e857259263d35e11b05d081fc883794bfbf69a0bf00d9057fd5d8488c8bcb",
+          "bytes": 136565
+        },
+        {
+          "kind": "SCREENSHOT",
+          "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/feed-article-draft.png",
+          "sha256": "ade7197ab14f4c38703be335a386228353227f24fd63a65a53b3fd2b5c6edca5",
+          "bytes": 38160
+        }
+      ]
+    }
+  ]
+}

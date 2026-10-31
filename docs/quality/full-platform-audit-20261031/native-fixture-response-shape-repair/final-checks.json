@@ -1,0 +1,35 @@
+{
+  "sources": {
+    "tests/native/audit/backend-fixture.cjs": "e333cf1b87b081c0dd151a24d74697132d61b539cb3af3eef005fd7c17d7f9e0",
+    "tests/native/audit/read-contracts.cjs": "166b6413abe1a1075e48249127a5f956822b13486256be2ef37808e550ee73a8",
+    "tests/quality/native-audit-read-contracts.cjs": "c8ac1d12fb35d05e77d28de5b41c89f0f5fc78b8ef87aa3fe6f1030e8736cc6c",
+    "tests/quality/native-audit-response-shapes.cjs": "8fabb7641b45eb6d8ff9d7cc95ad9140283e67108112f0df2e999fb1948d994e"
+  },
+  "beforeAfterEqual": true,
+  "results": [
+    {
+      "name": "final-tests-against-22-contract-helper",
+      "exitCode": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 4,
+        "fail": 5,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "801234cd59217e102bf6972cdcc8bcf8923b8ec3c9227e798a3dfdcfa18b51b7"
+    },
+    {
+      "name": "final-contract-tests",
+      "exitCode": 0,
+      "counts": {
+        "tests": 61,
+        "pass": 61,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "82423881e91ada4e2686f422f5bd191135e4656a231a820ab9dfcc78f744aeef"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import '../../components/EmptyState';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -39,6 +39,7 @@ function relTime(d?: string | null) {
 }
 
 export default function SavedMessagesScreen({ navigation }: any) {
+  const { t, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
@@ -114,7 +115,7 @@ export default function SavedMessagesScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <Feather name="chevron-left" size={24} color="#000" />
@@ -149,16 +150,16 @@ const s = themedSheet((t) => ({
   safe:      { flex: 1, backgroundColor: t.surface.canvas },
   center:    { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },
-  title:     { fontSize: 17, fontWeight: '700', color: '#000' },
+  title:     { fontSize: 17, fontWeight: '700', color: t.ink.primary },
   backBtn:   { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   card:      { backgroundColor: '#F7F7F7', borderRadius: 16, padding: 16 },
   cardTop:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
   cardMeta:  { flex: 1 },
   cardConv:  { fontSize: 13, fontWeight: '700', color: '#111' },
-  cardDate:  { fontSize: 11, color: '#8E8E93', marginTop: 1 },
+  cardDate:  { fontSize: 11, color: '#63666E', marginTop: 1 },
   cardSender:{ fontSize: 12, color: '#6B7280', marginBottom: 4 },
   cardText:  { fontSize: 15, color: '#1F2937', lineHeight: 22 },
   empty:     { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, gap: 10, paddingHorizontal: 40 },
-  emptyTitle:{ fontSize: 18, fontWeight: '700', color: '#000' },
-  emptySub:  { fontSize: 14, color: '#8E8E93', textAlign: 'center', lineHeight: 20 },
+  emptyTitle:{ fontSize: 18, fontWeight: '700', color: t.ink.primary },
+  emptySub:  { fontSize: 14, color: t.ink.muted, textAlign: 'center', lineHeight: 20 },
 }));

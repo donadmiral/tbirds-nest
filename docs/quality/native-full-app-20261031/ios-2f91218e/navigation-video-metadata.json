@@ -1,0 +1,10 @@
+{
+  "source": "navigation.mp4",
+  "bytes": 17850470,
+  "sha256": "1a5476c41d61f79c00baaed2f675de331dda147a36a1c150c3233f863f3d372b",
+  "probeExitCode": 1,
+  "probeError": "[mov,mp4,m4a,3gp,3g2,mj2 @ 0x55d3bc4ae540] moov atom not found\nnavigation.mp4: Invalid data found when processing input",
+  "decoded": false,
+  "frameTimingAccepted": false,
+  "note": "The interrupted recording has no readable moov atom. No video-based timing or visual acceptance is claimed."
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T19:02:01.806557+00:00",
+  "reviewer": "root",
+  "result": "Accepted bounded-wait repair within the stated local scope.",
+  "ownerReceipt": {
+    "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/support-bounded-waits-repair.json",
+    "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+  },
+  "reviewed": [
+    "Full shared/memberSupport.ts helper and all14 new controlled component/SDK cases.",
+    "Caller lifetime is retired across digest, queue wait and storage awaits; late work cannot dispatch.",
+    "Underlying per-key operations stay serialized until actual settlement, including held setters and accepted cleanup.",
+    "Current-session acknowledgement updates UI once and starts ordered cleanup without retaining Send busy.",
+    "An identical later send remains safely queued and bounded; another payload is independent.",
+    "Session scope changes, exact UUID receipts and the atomic SQL boundary remain intact."
+  ],
+  "verifiedEvidenceFiles": 11,
+  "verifiedUnchangedDependencies": 10,
+  "scopeLimits": [
+    "Actual screens/wrappers/shared helper and installed SDK execute in a manual native hook/focus host with controlled Auth/storage/provider and virtual setTimeout. This is not an emulator or native-bridge scheduling proof.",
+    "The 32 browser cases use actual React/DOM/pages and synthetic Auth/provider/framework adapters. They preserve existing coverage; no deployed or provider acceptance is claimed.",
+    "The 15-second preparation budget is separate from the existing 12-second session lookup and 15-second write/readback deadlines; no single total 15-second latency claim. Confirmation cleanup has no UI wait, but its background storage operation can remain unresolved.",
+    "A stalled underlying storage operation intentionally continues to block only its own key. Later attempts fail visibly at their own preparation deadline; the queue is not released early because an uncancellable side effect could otherwise corrupt a newer identity.",
+    "Timeout/abort does not establish storage or server rollback. Stable UUID and exact database receipt validation remain required. No automatic write retry, SQL change, new migration invocation, provider write or branch/ref change occurred."
+  ]
+}

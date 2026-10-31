@@ -1,0 +1,101 @@
+{
+  "scope": "Actual native screens, shared helper, platform wrapper and installed SDK with the existing controlled host; only setTimeout is advanced virtually. No source edits or real provider traffic.",
+  "cases": [
+    {
+      "kind": "create",
+      "phase": "digest",
+      "entered": true,
+      "virtualMillisecondsAdvanced": 60000,
+      "busy": true,
+      "draft": "Retained deadline probe",
+      "writes": 0,
+      "committed": 0,
+      "alerts": 0,
+      "retryIdentities": 0
+    },
+    {
+      "kind": "create",
+      "phase": "storage:get",
+      "entered": true,
+      "virtualMillisecondsAdvanced": 60000,
+      "busy": true,
+      "draft": "Retained deadline probe",
+      "writes": 0,
+      "committed": 0,
+      "alerts": 0,
+      "retryIdentities": 0
+    },
+    {
+      "kind": "create",
+      "phase": "storage:set",
+      "entered": true,
+      "virtualMillisecondsAdvanced": 60000,
+      "busy": true,
+      "draft": "Retained deadline probe",
+      "writes": 0,
+      "committed": 0,
+      "alerts": 0,
+      "retryIdentities": 1
+    },
+    {
+      "kind": "create",
+      "phase": "accepted-cleanup",
+      "entered": true,
+      "virtualMillisecondsAdvanced": 60000,
+      "busy": true,
+      "draft": "",
+      "writes": 1,
+      "committed": 1,
+      "alerts": 0,
+      "retryIdentities": 1
+    },
+    {
+      "kind": "reply",
+      "phase": "digest",
+      "entered": true,
+      "virtualMillisecondsAdvanced": 60000,
+      "busy": true,
+      "draft": "Retained deadline probe",
+      "writes": 0,
+      "committed": 0,
+      "alerts": 0,
+      "retryIdentities": 0
+    },
+    {
+      "kind": "reply",
+      "phase": "storage:get",
+      "entered": true,
+      "virtualMillisecondsAdvanced": 60000,
+      "busy": true,
+      "draft": "Retained deadline probe",
+      "writes": 0,
+      "committed": 0,
+      "alerts": 0,
+      "retryIdentities": 0
+    },
+    {
+      "kind": "reply",
+      "phase": "storage:set",
+      "entered": true,
+      "virtualMillisecondsAdvanced": 60000,
+      "busy": true,
+      "draft": "Retained deadline probe",
+      "writes": 0,
+      "committed": 0,
+      "alerts": 0,
+      "retryIdentities": 1
+    },
+    {
+      "kind": "reply",
+      "phase": "accepted-cleanup",
+      "entered": true,
+      "virtualMillisecondsAdvanced": 60000,
+      "busy": true,
+      "draft": "",
+      "writes": 1,
+      "committed": 1,
+      "alerts": 0,
+      "retryIdentities": 1
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const root='/workspace/scratch/f9638ed3020b/platinum-circles';
+const original='/tmp/platinum-native-audit-baseline-checkpoint/tests/native/audit/backend-fixture.cjs';
+const originalManifest='/tmp/platinum-native-audit-baseline-checkpoint/tests/native/audit/manifest.json';
+const expected='0b1a186f02f1292638022e803008e34ffdd7beccb702a2a35a2e272c6cfe2ddd';
+const sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');assert.equal(sha(original),expected);
+const source=JSON.parse(fs.readFileSync('/tmp/native-audit-ios-binary-b568-41229206389/source.json','utf8'));
+for(const p of ['tests/native/backend-fixture.cjs','tests/native/memory-fixture.cjs','tests/native/capture-boundary-trace.cjs'])assert.equal(sha(path.join(root,p)),source.hashes[p],p);
+assert.equal(sha(originalManifest),source.audit.inputs['tests/native/audit/manifest.json']);
+const module_={exports:{}};
+vm.runInNewContext(fs.readFileSync(original,'utf8'),{module:module_,exports:module_.exports,require(name){
+ if(name==='../backend-fixture.cjs')return require(path.join(root,'tests/native/backend-fixture.cjs'));
+ if(name==='./manifest.json')return JSON.parse(fs.readFileSync(originalManifest,'utf8'));
+ throw Error('unexpected original adapter import '+name);
+},Response,Headers,URL,console},{filename:original});
+(async()=>{
+ const {createClient}=require(path.join(root,'node_modules/@supabase/supabase-js'));
+ const {OWNER,NAVIGATION_BOOK}=require(path.join(root,'tests/native/memory-fixture.cjs'));
+ const fixture=module_.exports.createFixture();
+ const sdk=createClient('https://uaulhuelcfkjwojtymmw.supabase.co','native-ui-synthetic-no-provider-key',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{fetch:fixture.fetch}});
+ const signed=await sdk.auth.signInWithPassword({email:'qa.alex@example.invalid',password:'FixtureOnly-2026!'});assert.equal(signed.error,null);
+ fixture.selectAuditCase('navigation-warm-tabs','baseline');
+ const [shelf,profile]=await Promise.all([
+  sdk.rpc('get_memory_albums',{p_owner:OWNER}),
+  sdk.from('profiles').select('full_name, username, avatar_url').eq('id',OWNER).maybeSingle(),
+ ]);
+ assert.equal(shelf.error,null);assert.equal(shelf.data.is_owner,true);assert.equal(shelf.data.books.length,1);assert.equal(shelf.data.books[0].id,NAVIGATION_BOOK);assert.equal(shelf.data.books[0].title,'THE SMALL ADVENTURES');assert.equal(shelf.data.books[0].audience,'only_me');assert.equal(shelf.data.books[0].count,2);
+ assert.equal(profile.error,null);assert.equal(profile.data.full_name,'Alex Rivera');
+ const book=await sdk.rpc('get_memory_book',{p_album:NAVIGATION_BOOK});assert.equal(book.error,null);assert.equal(book.data.is_owner,true);assert.equal(book.data.can_view,true);assert.equal(book.data.pages.length,2);assert.ok(book.data.pages.every(p=>p.media_type==='text'&&p.media_url===null&&p.stickers.length===0));
+ const reactions=await sdk.from('story_reactions').select('story_id').eq('user_id',OWNER).in('story_id',book.data.pages.map(p=>p.story_id));assert.equal(reactions.error,null);assert.deepEqual(reactions.data,[]);
+ const next=await sdk.rpc('get_memory_albums',{p_owner:OWNER});assert.equal(next.error,null);assert.equal(next.data.books[0].id,NAVIGATION_BOOK);
+ assert.deepEqual(fixture.receipt.unhandled,[]);assert.equal(fixture.receipt.audit.rejected.length,0);assert.equal(fixture.receipt.audit.requests.length,0);assert.equal(fixture.receipt.networkForwarded,false);
+ const successfulRequests=fixture.receipt.requests.map(x=>({method:x.method,path:x.path}));
+ const negative=await sdk.rpc('unimplemented_probe_contract');assert.equal(negative.status,501);assert.equal(fixture.receipt.unhandled.length,1);assert.equal(fixture.receipt.networkForwarded,false);
+ console.log(JSON.stringify({status:'PASS',scope:'Actual installed Supabase client, byte-identical original b568 audit adapter and unchanged built base fixture. Synthetic transport only; no native UI or provider acceptance.',binding:{source:source.commit,expectedHead:'b568bd7b75bd25ad919afd8eac8d52300a5c3fcc',adapter:{path:original,sha256:sha(original)},manifestSha256:sha(originalManifest),baseInputs:Object.fromEntries(['tests/native/backend-fixture.cjs','tests/native/memory-fixture.cjs','tests/native/capture-boundary-trace.cjs'].map(p=>[p,sha(path.join(root,p))]))},selectedCase:{id:'navigation-warm-tabs',scenario:'baseline'},results:{shelf:{owner:shelf.data.is_owner,books:1,title:shelf.data.books[0].title,private:shelf.data.books[0].audience==='only_me',count:2},profile:profile.data.full_name,reader:{authorized:book.data.is_owner&&book.data.can_view,pages:book.data.pages.length,textOnly:true},optionalReactions:reactions.data,nextShelf:true,unhandledBeforeNegative:0,unknownRpcStatus:negative.status,forwardedNetwork:false},successfulRequests,limits:['No new fixture success contract was added.','This proves original adapter fallback permits the existing shelf/book reads; it does not prove actual Profile/shelf controls or native callbacks succeed.','The proposed diagnostic repeats warm tabs three times before entering the shelf, so it is related-path reproduction, not the identical original single-cycle history.']},null,2));
+})().catch(e=>{console.error(e);process.exitCode=1});

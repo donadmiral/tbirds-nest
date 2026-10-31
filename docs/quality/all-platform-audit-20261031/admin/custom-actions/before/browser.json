@@ -1,0 +1,840 @@
+{
+  "checkedAt": "2026-10-31T18:55:31.003Z",
+  "runtime": "153.0.8010.12",
+  "counts": {
+    "checks": 21,
+    "passed": 20,
+    "failed": 1
+  },
+  "checks": [
+    {
+      "name": "Operations absent or unknown contract shows Retry and no staging controls",
+      "status": "passed",
+      "actionRecords": []
+    },
+    {
+      "name": "Operations cannot stage without an eligible provider",
+      "status": "passed",
+      "actionRecords": []
+    },
+    {
+      "name": "Operations eligible options, manifest disclosure and required-file validation use actual controls",
+      "status": "passed",
+      "actionRecords": []
+    },
+    {
+      "name": "Operations file submission reaches the actual action with its UUID and keeps catalogue playback off",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "stageMusicCatalogue",
+          "scenario": "ok",
+          "fields": [
+            [
+              "requestId",
+              "e308b748-62f1-426f-97f5-8c7e38b52e04"
+            ],
+            [
+              "providerId",
+              "awaiting"
+            ],
+            [
+              "manifest",
+              {
+                "name": "manifest.json",
+                "type": "application/json",
+                "content": "{\"version\":1,\"tracks\":[{\"id\":\"track-1\",\"revision\":\"v1\",\"title\":\"Synthetic track\",\"artist\":\"Synthetic artist\",\"durationSec\":20,\"assetRef\":\"asset-1\"}]}"
+              }
+            ]
+          ],
+          "value": null,
+          "redirect": "/music?result=staged",
+          "thrown": null,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/admin_stage_music_catalogue",
+              "request": "e308b748-62f1-426f-97f5-8c7e38b52e04",
+              "provider": "awaiting",
+              "tracks": 1,
+              "actor": "10000000-0000-4000-8000-000000000001"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Operations provider-error never claims a staged catalogue",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "stageMusicCatalogue",
+          "scenario": "provider-error",
+          "fields": [
+            [
+              "requestId",
+              "fa8afc28-422a-4903-8645-68e43eab5362"
+            ],
+            [
+              "providerId",
+              "awaiting"
+            ],
+            [
+              "manifest",
+              {
+                "name": "manifest.json",
+                "type": "application/json",
+                "content": "{\"version\":1,\"tracks\":[{\"id\":\"track-1\",\"revision\":\"v1\",\"title\":\"Synthetic track\",\"artist\":\"Synthetic artist\",\"durationSec\":20,\"assetRef\":\"asset-1\"}]}"
+              }
+            ]
+          ],
+          "value": null,
+          "redirect": "/music?result=catalogue-failed",
+          "thrown": null,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/admin_stage_music_catalogue",
+              "request": "fa8afc28-422a-4903-8645-68e43eab5362",
+              "provider": "awaiting",
+              "tracks": 1,
+              "actor": "10000000-0000-4000-8000-000000000001"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Operations unconfirmed never claims a staged catalogue",
+      "status": "failed",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '/music?result=staged'\n- '/music?result=catalogue-failed'\n                 ^\n",
+      "screenshot": "failure-6.png",
+      "actionRecords": [
+        {
+          "action": "stageMusicCatalogue",
+          "scenario": "unconfirmed",
+          "fields": [
+            [
+              "requestId",
+              "e8efc625-f4f6-4738-bf01-395a287e5e70"
+            ],
+            [
+              "providerId",
+              "awaiting"
+            ],
+            [
+              "manifest",
+              {
+                "name": "manifest.json",
+                "type": "application/json",
+                "content": "{\"version\":1,\"tracks\":[{\"id\":\"track-1\",\"revision\":\"v1\",\"title\":\"Synthetic track\",\"artist\":\"Synthetic artist\",\"durationSec\":20,\"assetRef\":\"asset-1\"}]}"
+              }
+            ]
+          ],
+          "value": null,
+          "redirect": "/music?result=staged",
+          "thrown": null,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/admin_stage_music_catalogue",
+              "request": "e8efc625-f4f6-4738-bf01-395a287e5e70",
+              "provider": "awaiting",
+              "tracks": 1,
+              "actor": "10000000-0000-4000-8000-000000000001"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Operations date form downloads the actual bounded CSV endpoint",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "GET music report",
+          "query": {
+            "start": "2026-10-01",
+            "end": "2026-10-31"
+          },
+          "status": 200,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/admin_music_usage_report"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Recovery request rejects invalid email through native form constraints",
+      "status": "passed",
+      "actionRecords": []
+    },
+    {
+      "name": "Recovery request success and SMTP error present identical non-enumerating feedback",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "requestPasswordReset",
+          "scenario": "ok",
+          "fields": [
+            [
+              "email",
+              "synthetic-staff@example.invalid"
+            ]
+          ],
+          "value": {
+            "success": true,
+            "message": "If an account uses that email in this environment, a reset link will arrive shortly. Open it in this same browser. Check your spam folder; requesting another link replaces the previous one."
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "POST",
+              "path": "/auth/v1/recover"
+            }
+          ],
+          "unhandled": []
+        },
+        {
+          "action": "requestPasswordReset",
+          "scenario": "provider-error",
+          "fields": [
+            [
+              "email",
+              "synthetic-staff@example.invalid"
+            ]
+          ],
+          "value": {
+            "success": true,
+            "message": "If an account uses that email in this environment, a reset link will arrive shortly. Open it in this same browser. Check your spam folder; requesting another link replaces the previous one."
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "POST",
+              "path": "/auth/v1/recover"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Recovery thrown transport preserves input, releases busy state and permits an explicit retry",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "requestPasswordReset",
+          "scenario": "ok",
+          "fields": [
+            [
+              "email",
+              "synthetic-staff@example.invalid"
+            ]
+          ],
+          "value": {
+            "success": true,
+            "message": "If an account uses that email in this environment, a reset link will arrive shortly. Open it in this same browser. Check your spam folder; requesting another link replaces the previous one."
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "POST",
+              "path": "/auth/v1/recover"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Recovery pending guard blocks duplicate submissions and disables every form field",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "requestPasswordReset",
+          "scenario": "ok",
+          "fields": [
+            [
+              "email",
+              "synthetic-staff@example.invalid"
+            ]
+          ],
+          "value": {
+            "success": true,
+            "message": "If an account uses that email in this environment, a reset link will arrive shortly. Open it in this same browser. Check your spam folder; requesting another link replaces the previous one."
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "POST",
+              "path": "/auth/v1/recover"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Recovery MFA validates six digits, sends selected existing factor, then refreshes on verified receipt",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "verifyRecoveryAuthenticator",
+          "scenario": "ok",
+          "fields": [
+            [
+              "factorId",
+              "40000000-0000-4000-8000-000000000004"
+            ],
+            [
+              "code",
+              "[synthetic input omitted]"
+            ]
+          ],
+          "value": {
+            "success": true
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/auth/v1/factors/40000000-0000-4000-8000-000000000004/challenge"
+            },
+            {
+              "method": "POST",
+              "path": "/auth/v1/factors/40000000-0000-4000-8000-000000000004/verify"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Recovery rejected MFA keeps its input and displays an actionable error",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "verifyRecoveryAuthenticator",
+          "scenario": "provider-error",
+          "fields": [
+            [
+              "factorId",
+              "50000000-0000-4000-8000-000000000005"
+            ],
+            [
+              "code",
+              "[synthetic input omitted]"
+            ]
+          ],
+          "value": {
+            "success": false,
+            "error": "The code was not accepted. Try the current code from your authenticator."
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/auth/v1/factors/50000000-0000-4000-8000-000000000005/challenge"
+            },
+            {
+              "method": "POST",
+              "path": "/auth/v1/factors/50000000-0000-4000-8000-000000000005/verify"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Recovery password mismatch keeps both values; confirmed retry clears the form",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "updateRecoveryPassword",
+          "scenario": "ok",
+          "fields": [
+            [
+              "password",
+              "[synthetic input omitted]"
+            ],
+            [
+              "confirmation",
+              "[synthetic input omitted]"
+            ]
+          ],
+          "value": {
+            "success": false,
+            "error": "The passwords do not match."
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            }
+          ],
+          "unhandled": []
+        },
+        {
+          "action": "updateRecoveryPassword",
+          "scenario": "ok",
+          "fields": [
+            [
+              "password",
+              "[synthetic input omitted]"
+            ],
+            [
+              "confirmation",
+              "[synthetic input omitted]"
+            ]
+          ],
+          "value": {
+            "success": true,
+            "message": "Password updated. Sign in with your new password and complete authenticator verification."
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "PUT",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/auth/v1/logout"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Recovery partial global sign-out displays its limitation rather than full completion",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "updateRecoveryPassword",
+          "scenario": "partial-revoke",
+          "fields": [
+            [
+              "password",
+              "[synthetic input omitted]"
+            ],
+            [
+              "confirmation",
+              "[synthetic input omitted]"
+            ]
+          ],
+          "value": {
+            "success": true,
+            "message": "Password updated. Existing-session sign-out could not be confirmed. Sign in with the new password and ask your administrator to review active sessions."
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            },
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "PUT",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/auth/v1/logout"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Dormant creator ReviewForm sends exact user/version/key but actual finance gate remains disabled",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "reviewCreator",
+          "scenario": "ok",
+          "fields": [
+            [
+              "user_id",
+              "40000000-0000-4000-8000-000000000004"
+            ],
+            [
+              "updated_at",
+              "2026-10-31T12:00:00.123456Z"
+            ],
+            [
+              "command_key",
+              "30000000-0000-4000-8000-000000000003"
+            ],
+            [
+              "status",
+              "rejected"
+            ],
+            [
+              "reason",
+              "Synthetic complete reason"
+            ]
+          ],
+          "value": {
+            "error": "Advanced financial reporting and creator reviews are unavailable in this release."
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "Dormant creator status transitions expose only the appropriate decisions",
+      "status": "passed",
+      "actionRecords": []
+    },
+    {
+      "name": "Dormant creator form requires reason and prevents editing during a held submission",
+      "status": "passed",
+      "actionRecords": [
+        {
+          "action": "reviewCreator",
+          "scenario": "ok",
+          "fields": [
+            [
+              "user_id",
+              "40000000-0000-4000-8000-000000000004"
+            ],
+            [
+              "updated_at",
+              "2026-10-31T12:00:00.123456Z"
+            ],
+            [
+              "command_key",
+              "30000000-0000-4000-8000-000000000003"
+            ],
+            [
+              "status",
+              "approved"
+            ],
+            [
+              "reason",
+              "Required reason"
+            ]
+          ],
+          "value": {
+            "error": "Advanced financial reporting and creator reviews are unavailable in this release."
+          },
+          "redirect": null,
+          "thrown": null,
+          "transport": [
+            {
+              "method": "GET",
+              "path": "/auth/v1/user"
+            },
+            {
+              "method": "POST",
+              "path": "/rest/v1/rpc/triniti_admin_session_check"
+            },
+            {
+              "method": "GET",
+              "path": "/rest/v1/admin_users"
+            }
+          ],
+          "unhandled": []
+        }
+      ]
+    },
+    {
+      "name": "operations controls fit a 360px phone without horizontal page overflow",
+      "status": "passed",
+      "actionRecords": []
+    },
+    {
+      "name": "recovery controls fit a 360px phone without horizontal page overflow",
+      "status": "passed",
+      "actionRecords": []
+    },
+    {
+      "name": "review controls fit a 360px phone without horizontal page overflow",
+      "status": "passed",
+      "actionRecords": []
+    }
+  ],
+  "pageErrors": [],
+  "limits": [
+    "Actual three React components and compiled admin CSS; synthetic Next navigation/cookie/cache/provider adapters.",
+    "Actual server exports execute through installed admin SDK on loopback only; no real account, password, provider, email, payment or licensing write.",
+    "Operations server-component UUID generation uses WebCrypto in this isolated client fixture; server action redirects are observed and not claimed as Next RSC navigation acceptance.",
+    "Creator ReviewForm is deliberately mounted in isolation to verify dormant control behavior. Current production parent does not render it while finance operations are disabled.",
+    "A minimum 40px height is measured; this is control geometry evidence, not a universal 44px target claim.",
+    "Existing recovery and erasure action suites supply additional source-matched coverage separately."
+  ]
+}

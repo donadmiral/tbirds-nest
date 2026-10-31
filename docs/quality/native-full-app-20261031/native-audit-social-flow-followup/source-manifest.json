@@ -1,0 +1,244 @@
+{
+  "schema": 1,
+  "kind": "native-audit-social-flow-followup-source-binding",
+  "followupChangedOrNewQaPaths": [
+    {
+      "file": "tests/native/audit/flows/feed-trendfeed.yaml",
+      "bytes": 593,
+      "sha256": "2bcf8a705d14cb599d44ad984eb780dc6cd73e965942dacbcb09999771c09f7a"
+    },
+    {
+      "file": "tests/native/audit/flows/notifications-empty-controls.yaml",
+      "bytes": 596,
+      "sha256": "b41c465a9ade3e4e1f2443581f0817fcd60ca99573cab9f01a633ab7038cced7"
+    },
+    {
+      "file": "tests/native/audit/manifest.json",
+      "bytes": 91086,
+      "sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d"
+    },
+    {
+      "file": "tests/quality/native-audit-flow-controls.cjs",
+      "bytes": 20533,
+      "sha256": "39a8d0a6e6544dd877b167bc11d2ed36b30b3745e213ebb8104e520656030cb4"
+    },
+    {
+      "file": "tests/quality/native-audit-social-entry-controls.cjs",
+      "bytes": 6378,
+      "sha256": "82048b5577ba48c8acd938f5124fdc5bd33f09ed2fb36778203800f1b22280d6"
+    }
+  ],
+  "combinedUiFlowCandidatePaths": [
+    {
+      "file": "tests/native/audit/flows/auth-business-entry.yaml",
+      "bytes": 439,
+      "sha256": "61a7082584754cf277ca6003238b314676d877b4ce033e9d64193f4b30c2a3e7"
+    },
+    {
+      "file": "tests/native/audit/flows/auth-forgot-password.yaml",
+      "bytes": 438,
+      "sha256": "d7af53774321f9e689f9a0ea8c172f4d27fcda5e70e1293bb36bb55cecb6edf2"
+    },
+    {
+      "file": "tests/native/audit/flows/auth-signup-entry.yaml",
+      "bytes": 434,
+      "sha256": "eab3e16eb47e25e581817da5c0f84c3ff0a1672aee1c8d1ff0372b67f6c80dc6"
+    },
+    {
+      "file": "tests/native/audit/flows/feed-article-draft.yaml",
+      "bytes": 1248,
+      "sha256": "87af3111e5d879c1a760e0469a831f438a213b96391c8ac6aadfde9fe86be540"
+    },
+    {
+      "file": "tests/native/audit/flows/feed-trendfeed.yaml",
+      "bytes": 593,
+      "sha256": "2bcf8a705d14cb599d44ad984eb780dc6cd73e965942dacbcb09999771c09f7a"
+    },
+    {
+      "file": "tests/native/audit/flows/market-createlisting.yaml",
+      "bytes": 592,
+      "sha256": "70e6b9d913973e9a4b1920301e82318e73feb2af2a88e93cf0f1f4d7f4111104"
+    },
+    {
+      "file": "tests/native/audit/flows/memory-film-export-entry.yaml",
+      "bytes": 930,
+      "sha256": "b01838bf4d5c4ef3b299ca30432f81a6f86e2bedcd907a33d70d23910664fef8"
+    },
+    {
+      "file": "tests/native/audit/flows/notifications-empty-controls.yaml",
+      "bytes": 596,
+      "sha256": "b41c465a9ade3e4e1f2443581f0817fcd60ca99573cab9f01a633ab7038cced7"
+    },
+    {
+      "file": "tests/native/audit/flows/settings-appearance.yaml",
+      "bytes": 861,
+      "sha256": "2e7b8201dd54909fce1c515a40cf5ad5219116bcb5e9f56b406649302cf4feeb"
+    },
+    {
+      "file": "tests/native/audit/flows/stories-storycomposer.yaml",
+      "bytes": 628,
+      "sha256": "4144e5aa8a9ba6d2e3de55aab474b9b15c2e9acb7a2aa9e0cce2fd3865be4d98"
+    },
+    {
+      "file": "tests/native/audit/flows/support-fresh-ticket-body.yaml",
+      "bytes": 1325,
+      "sha256": "3934612287b78de26666a266c26a5ca3af71711ec377fff99026752ead7e2733"
+    },
+    {
+      "file": "tests/native/audit/flows/support-list-error.yaml",
+      "bytes": 744,
+      "sha256": "eb342f56c94e62cf92c8ac689249b1181852e3e7920ae567d3de4817d4b9739d"
+    },
+    {
+      "file": "tests/native/audit/flows/support-missing-ticket.yaml",
+      "bytes": 531,
+      "sha256": "f3b4b323e431fa23687d828d55eb54669d05f3da2c72cf88ac9b9c8789e0d191"
+    },
+    {
+      "file": "tests/native/audit/flows/support-reopen-error.yaml",
+      "bytes": 850,
+      "sha256": "cc7c54e803ca4f8934555f8528eb24d65d7e01cd66af49ae0ada8853faccaaeb"
+    },
+    {
+      "file": "tests/native/audit/flows/support-reply-error.yaml",
+      "bytes": 808,
+      "sha256": "2db91d55d68238ca1eea6e4f536b00abe4ad04822abbff13d4158ee4f888f148"
+    },
+    {
+      "file": "tests/native/audit/manifest.json",
+      "bytes": 91086,
+      "sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d"
+    },
+    {
+      "file": "tests/quality/native-audit-flow-controls.cjs",
+      "bytes": 20533,
+      "sha256": "39a8d0a6e6544dd877b167bc11d2ed36b30b3745e213ebb8104e520656030cb4"
+    },
+    {
+      "file": "tests/quality/native-audit-social-entry-controls.cjs",
+      "bytes": 6378,
+      "sha256": "82048b5577ba48c8acd938f5124fdc5bd33f09ed2fb36778203800f1b22280d6"
+    }
+  ],
+  "priorThirteenYamlFilesUnchanged": [
+    {
+      "file": "tests/native/audit/flows/stories-storycomposer.yaml",
+      "bytes": 628,
+      "sha256": "4144e5aa8a9ba6d2e3de55aab474b9b15c2e9acb7a2aa9e0cce2fd3865be4d98"
+    },
+    {
+      "file": "tests/native/audit/flows/settings-appearance.yaml",
+      "bytes": 861,
+      "sha256": "2e7b8201dd54909fce1c515a40cf5ad5219116bcb5e9f56b406649302cf4feeb"
+    },
+    {
+      "file": "tests/native/audit/flows/market-createlisting.yaml",
+      "bytes": 592,
+      "sha256": "70e6b9d913973e9a4b1920301e82318e73feb2af2a88e93cf0f1f4d7f4111104"
+    },
+    {
+      "file": "tests/native/audit/flows/auth-forgot-password.yaml",
+      "bytes": 438,
+      "sha256": "d7af53774321f9e689f9a0ea8c172f4d27fcda5e70e1293bb36bb55cecb6edf2"
+    },
+    {
+      "file": "tests/native/audit/flows/auth-signup-entry.yaml",
+      "bytes": 434,
+      "sha256": "eab3e16eb47e25e581817da5c0f84c3ff0a1672aee1c8d1ff0372b67f6c80dc6"
+    },
+    {
+      "file": "tests/native/audit/flows/auth-business-entry.yaml",
+      "bytes": 439,
+      "sha256": "61a7082584754cf277ca6003238b314676d877b4ce033e9d64193f4b30c2a3e7"
+    },
+    {
+      "file": "tests/native/audit/flows/support-fresh-ticket-body.yaml",
+      "bytes": 1325,
+      "sha256": "3934612287b78de26666a266c26a5ca3af71711ec377fff99026752ead7e2733"
+    },
+    {
+      "file": "tests/native/audit/flows/support-reopen-error.yaml",
+      "bytes": 850,
+      "sha256": "cc7c54e803ca4f8934555f8528eb24d65d7e01cd66af49ae0ada8853faccaaeb"
+    },
+    {
+      "file": "tests/native/audit/flows/support-reply-error.yaml",
+      "bytes": 808,
+      "sha256": "2db91d55d68238ca1eea6e4f536b00abe4ad04822abbff13d4158ee4f888f148"
+    },
+    {
+      "file": "tests/native/audit/flows/memory-film-export-entry.yaml",
+      "bytes": 930,
+      "sha256": "b01838bf4d5c4ef3b299ca30432f81a6f86e2bedcd907a33d70d23910664fef8"
+    },
+    {
+      "file": "tests/native/audit/flows/feed-article-draft.yaml",
+      "bytes": 1248,
+      "sha256": "87af3111e5d879c1a760e0469a831f438a213b96391c8ac6aadfde9fe86be540"
+    },
+    {
+      "file": "tests/native/audit/flows/support-missing-ticket.yaml",
+      "bytes": 531,
+      "sha256": "f3b4b323e431fa23687d828d55eb54669d05f3da2c72cf88ac9b9c8789e0d191"
+    },
+    {
+      "file": "tests/native/audit/flows/support-list-error.yaml",
+      "bytes": 744,
+      "sha256": "eb342f56c94e62cf92c8ac689249b1181852e3e7920ae567d3de4817d4b9739d"
+    }
+  ],
+  "readOnlyApplicationInputs": [
+    {
+      "file": "src/screens/feed/TrendFeedScreen.tsx",
+      "bytes": 17955,
+      "sha256": "eec35b386c5434b549ef0b9a7d196d86b6e2aa72ca3884e24068eecd8b8b2831"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "bytes": 42029,
+      "sha256": "d1f68ed250eedcf1ee8a504a539d49f1420616c41c624fddd53d363fcd22ff33"
+    },
+    {
+      "file": "src/screens/feed/PostScreen.tsx",
+      "bytes": 30904,
+      "sha256": "73c6459a6028e7dc55e0662c69803572e7032c48c9653cee691d395c06247356"
+    },
+    {
+      "file": "src/screens/feed/SearchScreen.tsx",
+      "bytes": 29057,
+      "sha256": "0616cf3a77de1d5e191b22f8fd85a53690eadb2ea90eddb5c95f4fdd24af8cce"
+    }
+  ],
+  "flowCount": 85,
+  "caseIdsRoutesScenariosAndOuterBudgetsUnchanged": true,
+  "metadataDeltas": [
+    {
+      "id": "feed-trendfeed",
+      "field": "expected",
+      "before": "Memories",
+      "after": "#memories"
+    },
+    {
+      "id": "notifications-empty-controls",
+      "field": "name",
+      "before": "Audit empty notifications and mark read",
+      "after": "Audit empty notifications"
+    },
+    {
+      "id": "notifications-empty-controls",
+      "field": "coverage",
+      "after": "Empty activity state and absence of the unread-only Mark all read action. Positive Mark all read remains untested."
+    }
+  ],
+  "priorImmutableManifest": {
+    "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/source-manifest.json",
+    "bytes": 8312,
+    "sha256": "97fabb0ec4911281007770bf55afab766efd755a02d42bf41a60ec9c7f0c7cf1"
+  },
+  "supersededInputBindings": [
+    "tests/native/audit/manifest.json",
+    "tests/quality/native-audit-flow-controls.cjs"
+  ],
+  "productionApplicationEdits": false,
+  "fixtureOrLauncherEdits": false
+}

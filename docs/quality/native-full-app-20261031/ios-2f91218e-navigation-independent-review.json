@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-31T19:05:16.114924+00:00",
+  "scope": "Independent read-only visible navigation and capture command/driver boundary review. Native owns archive/full source/signing/phase/recording validation; Hosted owns auth/body/URL coverage. No source, assertion, timeout or provider changes.",
+  "verdict": "FAILED: all five main-page assertions and private shelf passed; initial reader readiness failed with an Unknown error/driver snapshot timeout and retained spinner screenshot. Capture reached openLink and began the iOS prompt conditional, then has no terminal testcase/JUnit. No movie acceptance.",
+  "binding": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "workflowRun": 41225636296,
+    "artifact": {
+      "id": 13053783225,
+      "bytes": 34443920,
+      "sha256": "17351e49dc00d31774572edc655dcbda64c3f7c149627a948bfd34248a352f67",
+      "verification": "Reused Native single checksum-verified extraction; no duplicate download."
+    },
+    "extraction": "/tmp/ios-full-app-2f91218e-41225636296",
+    "sourceManifestSha256": "69f5b9e24981e1614c8c210bffa5d25bd10b707e9dd94b46923955596a1c540e",
+    "focusedSourceComparisons": [
+      {
+        "path": "tests/native/flows/navigation.yaml",
+        "sha256": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "tests/native/flows/memory-navigation.yaml",
+        "sha256": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "tests/native/flows/memory-capture.yaml",
+        "sha256": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+        "sha256": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "src/hooks/useSoundtrackPlayer.ts",
+        "sha256": "5de27552f34d04a8cb5fdab7fcc9230840952030a860280d7022186298f417eb",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "src/hooks/useMemoryPlayback.ts",
+        "sha256": "bde72164e396cd7aae4e19b9ca30804076e9a800a7b8a9c897fd64f7dc2e0475",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "shared/memoryPlayback.ts",
+        "sha256": "c89b80997268894ba3309c347d7f2da4f74274c07534211eb52596eb69eebb57",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "src/services/contentMedia.ts",
+        "sha256": "2921ee6b1642e9bc9b9ad39789d5e941f3b42a09a3d1971df9d1a0b0c10ca2a1",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "shared/contentMedia.ts",
+        "sha256": "a744a17a33a5b0f93be5b84ec943f4a5a05c94059ddd128109077031a2667664",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "tests/native/entry.js",
+        "sha256": "826953456afbe130b718cc4c7a2cd8bfdfb584c88d0835291c7dad409d57528e",
+        "matchesLiteralHeadAndArtifact": true
+      }
+    ]
+  },
+  "navigation": {
+    "junit": {
+      "tests": 1,
+      "failures": 1,
+      "suiteSeconds": 703.571,
+      "testcaseSeconds": 703.086,
+      "status": "ERROR",
+      "failure": "Unknown error"
+    },
+    "recordedCommands": 43,
+    "statusCounts": {
+      "COMPLETED": 39,
+      "SKIPPED": 2,
+      "FAILED": 2
+    },
+    "countLimit": "39 completed and two skipped include setup/platform/aggregate commands; two failed records are one containing flow and one leaf, not two independent testcases.",
+    "passedContent": [
+      "Home fixture post and Latest/For You controls",
+      "Market Travel journal and Home return",
+      "Jobs Product designer/Desert Studio",
+      "Messages Jordan Ellis/exact preview",
+      "Profile Alex Rivera/Edit profile",
+      "centered shelf link, Private filter, exact two-memory book card"
+    ],
+    "lastCompletedLeaf": {
+      "sequenceNumber": 41,
+      "depth": 1,
+      "status": "COMPLETED",
+      "duration": 5055,
+      "kind": "tapOnElement",
+      "startUtc": "2026-10-31T18:43:47.012+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:43:52.067+00:00",
+      "selector": {
+        "textRegex": "THE SMALL ADVENTURES, 2 memories",
+        "optional": false
+      }
+    },
+    "firstFailedLeaf": {
+      "sequenceNumber": 42,
+      "depth": 1,
+      "status": "FAILED",
+      "duration": 84243,
+      "kind": "assertConditionCommand",
+      "startUtc": "2026-10-31T18:43:52.068+00:00",
+      "endFromMetadataUtc": "2026-10-31T18:45:16.311+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "Edit memory book",
+          "optional": false
+        }
+      },
+      "timeout": "15000",
+      "error": {}
+    },
+    "failureImage": "navigation-reader-failure.png: cream background, central ActivityIndicator, status bar and home indicator; no book header/cover/page controls.",
+    "visuallyInspected": [
+      "navigation-memory-shelf.png",
+      "navigation-reader-failure.png"
+    ],
+    "unreached": [
+      "Open book",
+      "Page 1/page turn",
+      "Film/playback/export entry",
+      "Book settings/cover editing",
+      "profile return/settings routes after memory flow"
+    ],
+    "driverError": "Unable to perform work on main run loop, process main thread busy for 30.0s",
+    "driverFailureHandlingUtc": "2026-10-31T18:48:20.650Z",
+    "selectorConclusion": "No AX JSON retained. The screenshot supports initial loading; no demonstrated Edit memory book selector mismatch."
+  },
+  "capture": {
+    "attempts": 1,
+    "exitCode": null,
+    "junitPresent": false,
+    "lastObserved": "Open URL command completed 18:55:13.260; exact iOS Open-prompt conditional running 18:55:13.266.",
+    "headingAssertionObserved": false,
+    "movieOrCaptureAcceptance": false
+  },
+  "sourceReviewBoundary": {
+    "observedBranch": "The loading branch returns SafeAreaView/View/ActivityIndicator before book cover, page-turn, Film or export components mount.",
+    "readinessDependencies": [
+      "initial auth session",
+      "required get_memory_book/get_memory_album response",
+      "required private-media hydration where applicable"
+    ],
+    "optionalReactions": "Detached from required book readiness in the exact source.",
+    "noCausalConclusion": "Missing structured traces and no app stack prevent assigning the spinner or main-run-loop failure to an auth wait, transport, effect loop, media component or native animation."
+  },
+  "linkedAuthReview": {
+    "path": "docs/quality/native-full-app-20261031/ios-2f91218e-auth-independent-review.json",
+    "sha256": "6c1c8e5a5433dabd7b9eb16c5ce1b82d6168467af662b346f1b05f27daadaf15"
+  },
+  "evidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-commands.json",
+      "archivePath": "maestro/navigation/2026-10-31_183513/Full native app navigation/commands.json",
+      "bytes": 71967,
+      "sha256": "7dfe4440a0dcf01355c2d035341487ac7eb88d72521c8f76e915365965861230"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-junit.xml",
+      "archivePath": "maestro-navigation.xml",
+      "bytes": 554,
+      "sha256": "567ea06e4b49c199800b28fbd16a26f866ff3ffbbb43314b74047da4d59c9357"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-maestro-log.txt",
+      "archivePath": "maestro/navigation/2026-10-31_183513/Full native app navigation/logs/maestro.log",
+      "bytes": 31178,
+      "sha256": "374718b274c3b9ea4fff1e17e627742f5f0c6fa256733ec7036f9f36ab925572"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-home.png",
+      "archivePath": "maestro/navigation/2026-10-31_183513/Full native app navigation/takeScreenshot/home.png",
+      "bytes": 353013,
+      "sha256": "c003b44e91738a6937dc66f5498422c38e8f8e6e362b6f6690b377e2bd02faa1"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-market.png",
+      "archivePath": "maestro/navigation/2026-10-31_183513/Full native app navigation/takeScreenshot/market.png",
+      "bytes": 197279,
+      "sha256": "75ff42c43becd7fc46d4125e4ca9b09cb43e7d1bbd906e470c486370a43ab862"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-jobs.png",
+      "archivePath": "maestro/navigation/2026-10-31_183513/Full native app navigation/takeScreenshot/jobs.png",
+      "bytes": 227429,
+      "sha256": "9383ddd02084a9153e57c07e80555d4ee068ea64d722ee614ae351e83a8da007"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-messages.png",
+      "archivePath": "maestro/navigation/2026-10-31_183513/Full native app navigation/takeScreenshot/messages.png",
+      "bytes": 187345,
+      "sha256": "eefb79e8fc6db6a62cb036bbbf81403303a189a1bed8f47cc64974491e068213"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-profile.png",
+      "archivePath": "maestro/navigation/2026-10-31_183513/Full native app navigation/takeScreenshot/profile.png",
+      "bytes": 352307,
+      "sha256": "6ea8529a1a4f0cae9390e25ac2fb520747d9229d79b0d6c0a4f75c562caf644f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-memory-shelf.png",
+      "archivePath": "maestro/navigation/2026-10-31_183513/Full native app navigation/takeScreenshot/memory-shelf.png",
+      "bytes": 312411,
+      "sha256": "946646910136eb1489b764bddbaea70b832917199e6e9389ad14d2d2ca16bded"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-reader-failure.png",
+      "archivePath": "maestro/navigation/2026-10-31_183513/Full native app navigation/screenshots/step-043-assertCondition-Edit_memory_book.png",
+      "bytes": 58564,
+      "sha256": "5460e9e53800e2cda942f6a621a0b4ee9881d4f1a32ff46efe518c45f86eae22"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/capture-maestro-log.txt",
+      "archivePath": "maestro/memory-capture/2026-10-31_185216/Actual native memory capture and encoding/logs/maestro.log",
+      "bytes": 1008,
+      "sha256": "b11b0e3f14984b3475ea6b30852ef24905b0218a741fd4d9ae05e0671b876553"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/capture-xctest-runner.log",
+      "archivePath": "maestro/memory-capture/2026-10-31_185216/xctest_runner_2026-10-31_185312.log",
+      "bytes": 9682,
+      "sha256": "b476c8b3a712becb889ffc41ec7694af127329ca82b375e5047c17760c01c4d2"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-timeline.json",
+      "bytes": 15498,
+      "sha256": "995da1956cc4e1659a0f1f15af836f0c5c79af716190708cbc90d2591e6e1db0"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/navigation-driver-boundary.json",
+      "bytes": 2323,
+      "sha256": "e5a2dbbe38be369c8811c298eb8b42c21c90483356a06645bfe55ae5fa58f33f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-2f91218e/capture-timeline.json",
+      "bytes": 1117,
+      "sha256": "f783bdd589b1b7e47a8a84826127fabcf9f263258f9743fbe48407ee8b169c0e"
+    }
+  ],
+  "limits": [
+    "This is retained simulator/QA-fixture evidence, not a production-provider journey.",
+    "No new replay/build/test was run for this review.",
+    "No account readback, numeric auth lock or response-body timing can be inferred from absent structured exports.",
+    "Native diagnostics and snapshot collection timestamps are not calibrated app response latency.",
+    "Current grouped repairs remain separate from the exact published 2f runtime outcome."
+  ]
+}

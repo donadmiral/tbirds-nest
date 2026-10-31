@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "observedAt": "2026-10-31T18:44:59Z",
+  "run": 41229206389,
+  "head": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "tree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+  "platform": "android",
+  "build": {
+    "job": 124619640933,
+    "status": "completed",
+    "conclusion": "success",
+    "completedAt": "2026-10-31T18:43:03Z"
+  },
+  "classification": "Audit consumer setup defect; not product runtime acceptance.",
+  "firstFailure": "The bare adb command is absent from the consumer PATH; timeout exits127 before the independent runner installs or launches the app.",
+  "scope": {
+    "caseAttempts": 0,
+    "blockedPlannedCases": 85,
+    "featureAcceptance": false,
+    "binaryInstallAndRunnerManifestVerificationReached": false,
+    "hostGraphicsIdentityPassed": true
+  },
+  "proposal": "The runner owner must expose the installed SDK platform-tools explicitly and exercise that setup contract. Reuse of a prior binary still requires its exact original source/configuration compatibility checks; no new execution or ref mutation is performed here.",
+  "evidence": [
+    {
+      "job": 124624304972,
+      "group": "settings",
+      "lines": [
+        {
+          "line": 768,
+          "text": "2026-10-31T18:43:29.0898571Z ##[group]Run bash scripts/quality/run-native-ui-audit-device.sh android \"$AUDIT_GROUPS\""
+        },
+        {
+          "line": 781,
+          "text": "2026-10-31T18:44:03.1842223Z Mesa LLVMpipe host renderer identity verified."
+        },
+        {
+          "line": 787,
+          "text": "2026-10-31T18:44:04.0070613Z timeout: failed to run command 'adb': No such file or directory"
+        },
+        {
+          "line": 789,
+          "text": "2026-10-31T18:44:05.0145796Z ##[error]Process completed with exit code 127."
+        },
+        {
+          "line": 824,
+          "text": "2026-10-31T18:44:05.8392386Z Artifact native-audit-android-settings-results.zip successfully finalized. Artifact ID 13053358193"
+        },
+        {
+          "line": 825,
+          "text": "2026-10-31T18:44:05.8394008Z Artifact native-audit-android-settings-results has been successfully uploaded! Final size is 3216 bytes. Artifact ID is 13053358193"
+        }
+      ]
+    },
+    {
+      "job": 124624304974,
+      "group": "social",
+      "lines": [
+        {
+          "line": 768,
+          "text": "2026-10-31T18:43:29.8211791Z ##[group]Run bash scripts/quality/run-native-ui-audit-device.sh android \"$AUDIT_GROUPS\""
+        },
+        {
+          "line": 781,
+          "text": "2026-10-31T18:43:57.7572223Z Mesa LLVMpipe host renderer identity verified."
+        },
+        {
+          "line": 787,
+          "text": "2026-10-31T18:43:58.9155859Z timeout: failed to run command 'adb': No such file or directory"
+        },
+        {
+          "line": 789,
+          "text": "2026-10-31T18:43:59.9237871Z ##[error]Process completed with exit code 127."
+        },
+        {
+          "line": 824,
+          "text": "2026-10-31T18:44:00.7558968Z Artifact native-audit-android-social-results.zip successfully finalized. Artifact ID 13053442668"
+        },
+        {
+          "line": 825,
+          "text": "2026-10-31T18:44:00.7560253Z Artifact native-audit-android-social-results has been successfully uploaded! Final size is 3219 bytes. Artifact ID is 13053442668"
+        }
+      ]
+    },
+    {
+      "job": 124624304977,
+      "group": "account",
+      "lines": [
+        {
+          "line": 768,
+          "text": "2026-10-31T18:43:39.9527810Z ##[group]Run bash scripts/quality/run-native-ui-audit-device.sh android \"$AUDIT_GROUPS\""
+        },
+        {
+          "line": 781,
+          "text": "2026-10-31T18:44:15.7227135Z Mesa LLVMpipe host renderer identity verified."
+        },
+        {
+          "line": 787,
+          "text": "2026-10-31T18:44:16.4252384Z timeout: failed to run command 'adb': No such file or directory"
+        },
+        {
+          "line": 789,
+          "text": "2026-10-31T18:44:16.4391301Z ##[error]Process completed with exit code 127."
+        },
+        {
+          "line": 824,
+          "text": "2026-10-31T18:44:17.6819277Z Artifact native-audit-android-account-results.zip successfully finalized. Artifact ID 13053522468"
+        },
+        {
+          "line": 825,
+          "text": "2026-10-31T18:44:17.6820337Z Artifact native-audit-android-account-results has been successfully uploaded! Final size is 3216 bytes. Artifact ID is 13053522468"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "No emulator crash or app failure is inferred from the missing executable.",
+    "No feature is marked passed from these setup-only jobs.",
+    "The iPhone build remains active at the observation boundary."
+  ]
+}

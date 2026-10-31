@@ -1,0 +1,275 @@
+{
+  "scope": "Actual source style factories, real TierName render and inspected opacity/background composition. Not native pixel, font-scale or device acceptance.",
+  "observations": [
+    {
+      "name": "light skip label",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 0.7,
+      "minimum": 4.5,
+      "worst": 5.63306123287061,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "light elapsed",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 4.5,
+      "worst": 15.084765929436326,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "light duration",
+      "color": "rgba(255,255,255,0.85)",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 4.5,
+      "worst": 11.26454098733733,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "light ripple",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.75)",
+      "opacity": 1,
+      "minimum": 4.5,
+      "worst": 10.408809649857735,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "light close",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 0.8,
+      "minimum": 3,
+      "worst": 7.8630995472214265,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "light play",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 0.7,
+      "minimum": 3,
+      "worst": 5.63306123287061,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "light position knob",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 3,
+      "worst": 15.084765929436326,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "light position fill",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 3,
+      "worst": 15.084765929436326,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "light story name",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.78)",
+      "opacity": 0.85,
+      "minimum": 4.5,
+      "worst": 7.347081356196632,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "light story views",
+      "color": "rgba(255,255,255,0.9)",
+      "background": "rgba(0,0,0,0.78)",
+      "opacity": 0.85,
+      "minimum": 4.5,
+      "worst": 6.33776087702042,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark skip label",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 0.7,
+      "minimum": 4.5,
+      "worst": 5.63306123287061,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark elapsed",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 4.5,
+      "worst": 15.084765929436326,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark duration",
+      "color": "rgba(255,255,255,0.85)",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 4.5,
+      "worst": 11.26454098733733,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark ripple",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.75)",
+      "opacity": 1,
+      "minimum": 4.5,
+      "worst": 10.408809649857735,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark close",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 0.8,
+      "minimum": 3,
+      "worst": 7.8630995472214265,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark play",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 0.7,
+      "minimum": 3,
+      "worst": 5.63306123287061,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark position knob",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 3,
+      "worst": 15.084765929436326,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark position fill",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 3,
+      "worst": 15.084765929436326,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark story name",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.78)",
+      "opacity": 0.85,
+      "minimum": 4.5,
+      "worst": 7.347081356196632,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "dark story views",
+      "color": "rgba(255,255,255,0.9)",
+      "background": "rgba(0,0,0,0.78)",
+      "opacity": 0.85,
+      "minimum": 4.5,
+      "worst": 6.33776087702042,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut skip label",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 0.7,
+      "minimum": 4.5,
+      "worst": 5.63306123287061,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut elapsed",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 4.5,
+      "worst": 15.084765929436326,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut duration",
+      "color": "rgba(255,255,255,0.85)",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 4.5,
+      "worst": 11.26454098733733,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut ripple",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.75)",
+      "opacity": 1,
+      "minimum": 4.5,
+      "worst": 10.408809649857735,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut close",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 0.8,
+      "minimum": 3,
+      "worst": 7.8630995472214265,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut play",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 0.7,
+      "minimum": 3,
+      "worst": 5.63306123287061,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut position knob",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 3,
+      "worst": 15.084765929436326,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut position fill",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.85)",
+      "opacity": 1,
+      "minimum": 3,
+      "worst": 15.084765929436326,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut story name",
+      "color": "#FFFFFF",
+      "background": "rgba(0,0,0,0.78)",
+      "opacity": 0.85,
+      "minimum": 4.5,
+      "worst": 7.347081356196632,
+      "sampledMediaPixels": 125
+    },
+    {
+      "name": "lightsOut story views",
+      "color": "rgba(255,255,255,0.9)",
+      "background": "rgba(0,0,0,0.78)",
+      "opacity": 0.85,
+      "minimum": 4.5,
+      "worst": 6.33776087702042,
+      "sampledMediaPixels": 125
+    }
+  ]
+}

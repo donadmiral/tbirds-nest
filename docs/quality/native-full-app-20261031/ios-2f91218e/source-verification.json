@@ -1,0 +1,20 @@
+{
+  "sourceCommit": "5333fddeaab859dfde2079266aafb07ffd94f329",
+  "sourceTree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+  "applicationHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "workflowRun": 41225636296,
+  "sourceManifestSha256": "69f5b9e24981e1614c8c210bffa5d25bd10b707e9dd94b46923955596a1c540e",
+  "canonicalManifest": "docs/quality/native-full-app-20261031/android-2f91218e/source.json",
+  "originalSources": 501,
+  "verification": "The iPhone manifest is byte-identical to the501-original manifest already verified against literal2f Git blobs for the Android artifact. All six retained iPhone overlay outputs and nine pinned dependency files were freshly hashed. Overlay originals outside the manifest were freshly compared to literal2f Git blobs; a null original requires the path to be absent from that tree.",
+  "retainedOverlayHashes": 6,
+  "dependencyHashes": 9,
+  "generatedSwiftObserver": {
+    "helperHashMatchesOriginalManifest": true,
+    "beforeAfterHashesMatch": true,
+    "actualPinnedTransformationReproducedExactly": true,
+    "forwardingPreserved": true,
+    "sourceProofSha256": "9e4f469a26a600d3fee4809588287904fd463821bc53f0f888920fec3c0d6ec5"
+  },
+  "passed": true
+}

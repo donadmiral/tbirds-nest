@@ -14,12 +14,13 @@ type Props = {
   userId?: string | null;
   tier?: string | null;
   numberOfLines?: number;
+  colorMode?: 'tier' | 'inherit';
 };
 
-export default function TierName({ text, baseStyle, userId, tier, numberOfLines = 1 }: Props) {
+export default function TierName({ text, baseStyle, userId, tier, numberOfLines = 1, colorMode = 'tier' }: Props) {
   const looked = useVerifiedTier(userId);
   const resolved = userId ? looked : tier;
-  const c = getTierColor(resolved);
+  const c = colorMode === 'inherit' ? null : getTierColor(resolved);
   return (
     <Text style={[baseStyle, c ? { color: c } : null]} numberOfLines={numberOfLines}>{text}</Text>
   );

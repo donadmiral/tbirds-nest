@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-31T19:20:11.016594+00:00",
+  "verdict": "ACCEPTED: no remaining source-review blocker. No native runtime or product acceptance claimed.",
+  "scope": "Five frozen QA workflow/helper/diagnostic/test files only; no production source, original85-case scenario, assertion or per-case deadline edits by reviewer.",
+  "baseline": {
+    "head": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "tree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+    "producerRun": 41229206389,
+    "artifact": 13053723906,
+    "artifactZipBytes": 49137705,
+    "artifactZipSha256": "0d1bb1caaafed428b729d844ab35070a189f202ce54f938b476924a8c719c7be",
+    "download": "Reused Native single verified extraction; no duplicate download.",
+    "binaryDigestIndependentlyRecomputed": "61aa632c9499117c7d0f7cc7901e58eb6470d7aeffb6d6eb41aad87119f79b65",
+    "regularFiles": 269,
+    "regularBytes": 124030322,
+    "archiveMembers": 370,
+    "archiveLinksOrSpecialFiles": 0,
+    "binaryManifestSha256": "d0fc6c68febe7dda2fe63b9ab89182f8e4bb59cb9ce35a5b655565b44c3239f6",
+    "sourceReceiptSha256": "35d710d00324f3a2eb815f38b87bf95b24b3225a1aaad2e7985083cf3cba11fe",
+    "originalAuditManifestSha256": "f0b37826ed8709e0772e5d9ea4d73d9e7ef48ab7d2894440608ab2e59848b1fe",
+    "originalFlowFilesComparedToBuild": 87,
+    "sourceSeparation": "Recovery checks out literal b568. Current working audit backend and three previously repaired audit flows differ from that build and are not substituted into the original85 cases."
+  },
+  "verification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-ios-audit-recovery.cjs",
+    "formalPassed": 3,
+    "formalFailed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "nestedPythonChecks": 17,
+    "durationMs": 484.475213,
+    "countLimit": "The17 nested Python checks execute inside one formal Node case; they are not added to the3 formal total. No full-suite rerun.",
+    "frozenSourcesUnchanged": true,
+    "additionalProbe": "Actual installed Supabase SDK through the byte-identical original b568 audit adapter and unchanged base fixture permits warm-tabs baseline\u2192profile/private shelf/authorized two-text-page book/reactions/next-shelf. Six successful synthetic requests; unknown RPC still501; no forwarded network."
+  },
+  "reviewFindings": [
+    {
+      "area": "Compatibility",
+      "result": "Supported Intel host uname, exact Xcode/SDK, actual Info.plist and lipo Mach-O, strict codesign verification, available expected runtime and Booted device replace unsupported guest uname. No guest tool assumption or architecture fallback."
+    },
+    {
+      "area": "Original outcomes",
+      "result": "Original runner/hash,85 scenario manifest and original checkout remain authoritative. Wrapping observations preserve original return values/exceptions and180/300-second case budgets. Original final JUnit/fixture/media verification stays mandatory."
+    },
+    {
+      "area": "Snapshots",
+      "result": "Resolve the current selected-device container per poll; read only two bounded regular JSON files with inode/size/mtime race checks. Preserve first/latest hashes/times separately, report failed new attempts, and do not attribute auth traces merely from a matching neighboring fixture. Early snapshots never replace final receipts."
+    },
+    {
+      "area": "Stall sampling",
+      "result": "Exact retained AUT log marker is supported by the2f artifact. Bounded carry handles split markers. At most one AUT/driver pair per shard; exact container/executable/current UID/PID/start-time checks,3-second sample at10ms,8-second child budget,2MiB cap, no sudo/core/env/argv/heap collection. Partial/changed-process samples are discarded."
+    },
+    {
+      "area": "Additional diagnostic",
+      "result": "Separate from85 counts and executed only before account shard. Existing three-cycle warm-tabs flow then exact initial shelf/book actions, unchanged15-second reader readiness assertion and600-second outer diagnostic budget. Failure does not stop original cases and still fails the combined job."
+    },
+    {
+      "area": "Pre-case tool review",
+      "result": "No additional demonstrated deterministic setup-command defect beyond known guest uname. Android adb PATH had already been repaired separately. Original app archive satisfies strict extraction constraints."
+    }
+  ],
+  "resolvedDuringReview": [
+    "A busy marker split across polls was missed; fixed with bounded carry and regression.",
+    "First snapshots lacked their own immutable time/hash/case metadata; fixed and covered with previous\u2192current container snapshots."
+  ],
+  "limits": [
+    "Mac host command outputs, Mach-O/signature query results and native sampling delivery are controlled in local helper tests; actual macOS recovery remains pending.",
+    "Real child-process timeout/output-limit behavior is exercised locally, but not the native XCTest stall.",
+    "Sampling adds bounded observation work and may briefly suspend sampled threads; original product deadlines are not relaxed.",
+    "The added diagnostic repeats warm tabs three times and is related-path reproduction, not the exact earlier single-cycle full journey.",
+    "No production reader edit, new fixture success contract, remote build, sign-in, deployment or ref mutation occurred in this review."
+  ],
+  "sources": [
+    {
+      "path": "scripts/quality/native-ui-ios-audit-recovery.py",
+      "bytes": 30562,
+      "sha256": "0d8c7c591f9acbd41fc921728cee479d0543e1fefe09e3e404c649380f1bb5db"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-compatibility.py",
+      "bytes": 3048,
+      "sha256": "aac09dde4774aa6d1f1f875a7e37a73aa642260555aad73044a2ad582a94e380"
+    },
+    {
+      "path": ".github/workflows/native-audit-ios-recovery.yml",
+      "bytes": 3309,
+      "sha256": "22de2db0bf3341ac98bf6a0dde5b6b3d70d9eadbfdc82e472af0093c3edfba26"
+    },
+    {
+      "path": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+      "bytes": 709,
+      "sha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82"
+    },
+    {
+      "path": "tests/quality/native-ios-audit-recovery.cjs",
+      "bytes": 15898,
+      "sha256": "970f0fa7f36e44bd754f637f9e76b198672acc0c43475f0d1667f8741af9d57f"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-audit-recovery-independent/focused.tap",
+      "bytes": 835,
+      "sha256": "69143b8a2bfc2e53a0b476b1ad963f086b61c456e3e302f247f88476df98023c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-audit-recovery-independent/baseline-memory-contract-probe.cjs.txt",
+      "bytes": 5397,
+      "sha256": "6b0971ce04d781f876a66dabcc6e4b7615b0bcbf2e168297676d6ce2358d358f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-audit-recovery-independent/baseline-memory-contract-probe.json",
+      "bytes": 2422,
+      "sha256": "1e2934028f386310523a07edc64af7d08b08881b3f2062b77bd838e884f79d70"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-audit-recovery-independent/original-b568-audit-backend.cjs.txt",
+      "bytes": 6956,
+      "sha256": "0b1a186f02f1292638022e803008e34ffdd7beccb702a2a35a2e272c6cfe2ddd"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-audit-recovery-independent/source-manifest.json",
+      "bytes": 973,
+      "sha256": "d8a5c385f2ebbb1589694007e42ec73b452891b5ef26072b17cda1c22634e657"
+    }
+  ]
+}

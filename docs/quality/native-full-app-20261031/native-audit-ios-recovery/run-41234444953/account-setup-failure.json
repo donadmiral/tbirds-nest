@@ -1,0 +1,47 @@
+{
+  "reviewedAt": "2026-10-31T19:37:13.696571+00:00",
+  "runId": 41234444953,
+  "jobId": 124635169318,
+  "shard": "account",
+  "recoverySourceCommit": "c1bb0784ba031ac8dc4e14f5d0cdeeacadd024c5",
+  "applicationSourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "status": "failed-before-install-and-cases",
+  "attemptedCases": 0,
+  "stage": "compatibility-xcode-version",
+  "failure": "xcodebuild -version timed out after 5 seconds in the recovery wrapper read_command. No compatibility mismatch was reported.",
+  "normalRunnerDifference": "The permanent normal runner supplies 30 seconds to this same read; shared compatibility checks are unchanged.",
+  "completedSetup": [
+    {
+      "stage": "create",
+      "exitCode": 0,
+      "elapsedSeconds": 42.69245042699998,
+      "leaderCompletedBeforePipeEOF": false
+    },
+    {
+      "stage": "boot",
+      "exitCode": 0,
+      "elapsedSeconds": 4.138860429999966,
+      "leaderCompletedBeforePipeEOF": false
+    },
+    {
+      "stage": "bootstatus",
+      "exitCode": 0,
+      "elapsedSeconds": 119.71957910699996,
+      "leaderCompletedBeforePipeEOF": true
+    }
+  ],
+  "artifact": {
+    "id": 13055137707,
+    "bytes": 10257,
+    "zipSha256": "71688e49fbb60bfc43583a6aa54f29eb75cbfe355505c2bc787e1f4e6b85219f",
+    "downloadedOnce": true,
+    "extraction": "/tmp/native-audit-ios-recovery-41234444953/account"
+  },
+  "retainedFiles": {
+    "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/account/setup-commands.json": "6362e9e8e0b3e6706772e47f324c964b747ac86ff4a3672c26bd10d50dc715af",
+    "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/account/recovery-provenance.json": "cf107b9c7e689159ad822ef61fc5ba5a55e3ce605d991783d55e92b09a60fe27",
+    "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/account/job-failure-projection.json": "f229f81aeedfafda8ffeb90a95c7c2970217306f20373150b1d98fbe9264df33"
+  },
+  "acceptanceLimit": "No app install, navigation, reader, account readback, capture or decoder result. Other shards were left running unchanged.",
+  "previousRunLimit": "The earlier 30-second create failure still lacks partial output; this run proves its actual create took 42.692 seconds, not that the earlier failure necessarily had the same timing."
+}

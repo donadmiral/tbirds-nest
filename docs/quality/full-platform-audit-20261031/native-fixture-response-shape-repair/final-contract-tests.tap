@@ -1,0 +1,376 @@
+TAP version 13
+# Subtest: actual get_my_businesses query uses its exact signed audit contract
+ok 1 - actual get_my_businesses query uses its exact signed audit contract
+  ---
+  duration_ms: 108.025809
+  type: 'test'
+  ...
+# Subtest: actual get_communities_page query uses its exact signed audit contract
+ok 2 - actual get_communities_page query uses its exact signed audit contract
+  ---
+  duration_ms: 5.058932
+  type: 'test'
+  ...
+# Subtest: actual clubs query uses its exact signed audit contract
+ok 3 - actual clubs query uses its exact signed audit contract
+  ---
+  duration_ms: 5.126083
+  type: 'test'
+  ...
+# Subtest: actual club_members query uses its exact signed audit contract
+ok 4 - actual club_members query uses its exact signed audit contract
+  ---
+  duration_ms: 2.77121
+  type: 'test'
+  ...
+# Subtest: actual user_restrictions query uses its exact signed audit contract
+ok 5 - actual user_restrictions query uses its exact signed audit contract
+  ---
+  duration_ms: 19.20912
+  type: 'test'
+  ...
+# Subtest: actual creator_monetization_snapshot query uses its exact signed audit contract
+ok 6 - actual creator_monetization_snapshot query uses its exact signed audit contract
+  ---
+  duration_ms: 27.496399
+  type: 'test'
+  ...
+# Subtest: actual get_restricted_accounts query uses its exact signed audit contract
+ok 7 - actual get_restricted_accounts query uses its exact signed audit contract
+  ---
+  duration_ms: 5.50996
+  type: 'test'
+  ...
+# Subtest: actual report_client_error query uses its exact signed audit contract
+ok 8 - actual report_client_error query uses its exact signed audit contract
+  ---
+  duration_ms: 3.330701
+  type: 'test'
+  ...
+# Subtest: actual get_notifications_page query uses its exact signed audit contract
+ok 9 - actual get_notifications_page query uses its exact signed audit contract
+  ---
+  duration_ms: 18.547976
+  type: 'test'
+  ...
+# Subtest: actual can_view_post query uses its exact signed audit contract
+ok 10 - actual can_view_post query uses its exact signed audit contract
+  ---
+  duration_ms: 15.772871
+  type: 'test'
+  ...
+# Subtest: actual search_people query uses its exact signed audit contract
+ok 11 - actual search_people query uses its exact signed audit contract
+  ---
+  duration_ms: 9.102625
+  type: 'test'
+  ...
+# Subtest: actual search_posts query uses its exact signed audit contract
+ok 12 - actual search_posts query uses its exact signed audit contract
+  ---
+  duration_ms: 12.99361
+  type: 'test'
+  ...
+# Subtest: actual search_jobs_fts query uses its exact signed audit contract
+ok 13 - actual search_jobs_fts query uses its exact signed audit contract
+  ---
+  duration_ms: 10.778236
+  type: 'test'
+  ...
+# Subtest: actual search_listings_fts query uses its exact signed audit contract
+ok 14 - actual search_listings_fts query uses its exact signed audit contract
+  ---
+  duration_ms: 8.514681
+  type: 'test'
+  ...
+# Subtest: actual log_search_event query uses its exact signed audit contract
+ok 15 - actual log_search_event query uses its exact signed audit contract
+  ---
+  duration_ms: 8.711326
+  type: 'test'
+  ...
+# Subtest: actual get_posts_by_hashtag query uses its exact signed audit contract
+ok 16 - actual get_posts_by_hashtag query uses its exact signed audit contract
+  ---
+  duration_ms: 4.580522
+  type: 'test'
+  ...
+# Subtest: actual get_conversations_by_context query uses its exact signed audit contract
+ok 17 - actual get_conversations_by_context query uses its exact signed audit contract
+  ---
+  duration_ms: 3.443011
+  type: 'test'
+  ...
+# Subtest: actual get_seller_rating query uses its exact signed audit contract
+ok 18 - actual get_seller_rating query uses its exact signed audit contract
+  ---
+  duration_ms: 2.23981
+  type: 'test'
+  ...
+# Subtest: actual seller_review_page query uses its exact signed audit contract
+ok 19 - actual seller_review_page query uses its exact signed audit contract
+  ---
+  duration_ms: 8.535111
+  type: 'test'
+  ...
+# Subtest: actual starred_messages query uses its exact signed audit contract
+ok 20 - actual starred_messages query uses its exact signed audit contract
+  ---
+  duration_ms: 48.030644
+  type: 'test'
+  ...
+# Subtest: actual saved_messages query uses its exact signed audit contract
+ok 21 - actual saved_messages query uses its exact signed audit contract
+  ---
+  duration_ms: 38.391091
+  type: 'test'
+  ...
+# Subtest: actual get_message_requests query uses its exact signed audit contract
+ok 22 - actual get_message_requests query uses its exact signed audit contract
+  ---
+  duration_ms: 2.959042
+  type: 'test'
+  ...
+# Subtest: get_my_businesses rejects extra RPC arguments or query fields instead of pretending success
+ok 23 - get_my_businesses rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 3.366595
+  type: 'test'
+  ...
+# Subtest: get_communities_page rejects extra RPC arguments or query fields instead of pretending success
+ok 24 - get_communities_page rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 1.92709
+  type: 'test'
+  ...
+# Subtest: clubs rejects extra RPC arguments or query fields instead of pretending success
+ok 25 - clubs rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 1.263411
+  type: 'test'
+  ...
+# Subtest: club_members rejects extra RPC arguments or query fields instead of pretending success
+ok 26 - club_members rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 1.361178
+  type: 'test'
+  ...
+# Subtest: user_restrictions rejects extra RPC arguments or query fields instead of pretending success
+ok 27 - user_restrictions rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 7.478111
+  type: 'test'
+  ...
+# Subtest: creator_monetization_snapshot rejects extra RPC arguments or query fields instead of pretending success
+ok 28 - creator_monetization_snapshot rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 1.650072
+  type: 'test'
+  ...
+# Subtest: get_restricted_accounts rejects extra RPC arguments or query fields instead of pretending success
+ok 29 - get_restricted_accounts rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 2.339329
+  type: 'test'
+  ...
+# Subtest: report_client_error rejects extra RPC arguments or query fields instead of pretending success
+ok 30 - report_client_error rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 1.605556
+  type: 'test'
+  ...
+# Subtest: get_notifications_page rejects extra RPC arguments or query fields instead of pretending success
+ok 31 - get_notifications_page rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 7.33105
+  type: 'test'
+  ...
+# Subtest: can_view_post rejects extra RPC arguments or query fields instead of pretending success
+ok 32 - can_view_post rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 5.569299
+  type: 'test'
+  ...
+# Subtest: search_people rejects extra RPC arguments or query fields instead of pretending success
+ok 33 - search_people rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 4.856958
+  type: 'test'
+  ...
+# Subtest: search_posts rejects extra RPC arguments or query fields instead of pretending success
+ok 34 - search_posts rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 5.136718
+  type: 'test'
+  ...
+# Subtest: search_jobs_fts rejects extra RPC arguments or query fields instead of pretending success
+ok 35 - search_jobs_fts rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 7.419111
+  type: 'test'
+  ...
+# Subtest: search_listings_fts rejects extra RPC arguments or query fields instead of pretending success
+ok 36 - search_listings_fts rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 5.312193
+  type: 'test'
+  ...
+# Subtest: log_search_event rejects extra RPC arguments or query fields instead of pretending success
+ok 37 - log_search_event rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 4.899582
+  type: 'test'
+  ...
+# Subtest: get_posts_by_hashtag rejects extra RPC arguments or query fields instead of pretending success
+ok 38 - get_posts_by_hashtag rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 4.109223
+  type: 'test'
+  ...
+# Subtest: get_conversations_by_context rejects extra RPC arguments or query fields instead of pretending success
+ok 39 - get_conversations_by_context rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 3.073885
+  type: 'test'
+  ...
+# Subtest: get_seller_rating rejects extra RPC arguments or query fields instead of pretending success
+ok 40 - get_seller_rating rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 2.030235
+  type: 'test'
+  ...
+# Subtest: seller_review_page rejects extra RPC arguments or query fields instead of pretending success
+ok 41 - seller_review_page rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 0.965513
+  type: 'test'
+  ...
+# Subtest: starred_messages rejects extra RPC arguments or query fields instead of pretending success
+ok 42 - starred_messages rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 39.826616
+  type: 'test'
+  ...
+# Subtest: saved_messages rejects extra RPC arguments or query fields instead of pretending success
+ok 43 - saved_messages rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 33.423187
+  type: 'test'
+  ...
+# Subtest: get_message_requests rejects extra RPC arguments or query fields instead of pretending success
+ok 44 - get_message_requests rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 3.71541
+  type: 'test'
+  ...
+# Subtest: actual network directory publishes all six independent sections without invented communities or clubs
+ok 45 - actual network directory publishes all six independent sections without invented communities or clubs
+  ---
+  duration_ms: 9.489327
+  type: 'test'
+  ...
+# Subtest: actual messages-savedmessages joined list and chat read contracts remain distinct
+ok 46 - actual messages-savedmessages joined list and chat read contracts remain distinct
+  ---
+  duration_ms: 2.9578
+  type: 'test'
+  ...
+# Subtest: actual messages-starredmessages joined list and chat read contracts remain distinct
+ok 47 - actual messages-starredmessages joined list and chat read contracts remain distinct
+  ---
+  duration_ms: 3.952227
+  type: 'test'
+  ...
+# Subtest: market context, empty notifications and second review case retain exact case ownership
+ok 48 - market context, empty notifications and second review case retain exact case ownership
+  ---
+  duration_ms: 13.139599
+  type: 'test'
+  ...
+# Subtest: unselected, wrong case, unauthenticated and A to B to A stale bearer calls cannot read audit data
+ok 49 - unselected, wrong case, unauthenticated and A to B to A stale bearer calls cannot read audit data
+  ---
+  duration_ms: 3.000554
+  type: 'test'
+  ...
+# Subtest: malformed JSON, duplicate filters, unexpected writes, unrelated paths and aborted work fail closed
+ok 50 - malformed JSON, duplicate filters, unexpected writes, unrelated paths and aborted work fail closed
+  ---
+  duration_ms: 2.540903
+  type: 'test'
+  ...
+# Subtest: diagnostic transport retains redacted error category instead of hiding the original runtime issue
+ok 51 - diagnostic transport retains redacted error category instead of hiding the original runtime issue
+  ---
+  duration_ms: 1.074186
+  type: 'test'
+  ...
+# Subtest: case-specific input domains reject different owners, context, page sizes and non-script search
+ok 52 - case-specific input domains reject different owners, context, page sizes and non-script search
+  ---
+  duration_ms: 2.850528
+  type: 'test'
+  ...
+# Subtest: actual Story service and viewer title accept the SQL null result for a story with no poll
+ok 53 - actual Story service and viewer title accept the SQL null result for a story with no poll
+  ---
+  duration_ms: 42.104633
+  type: 'test'
+  ...
+# Subtest: actual MarketOrderPanel renders the SQL empty page in market-listingdetail
+ok 54 - actual MarketOrderPanel renders the SQL empty page in market-listingdetail
+  ---
+  duration_ms: 71.839475
+  type: 'test'
+  ...
+# Subtest: actual MarketOrderPanel renders the SQL empty page in market-offer-cancel
+ok 55 - actual MarketOrderPanel renders the SQL empty page in market-offer-cancel
+  ---
+  duration_ms: 33.202634
+  type: 'test'
+  ...
+# Subtest: the original array fixture reproduces the exact retained StoryViewer and order-panel exceptions
+ok 56 - the original array fixture reproduces the exact retained StoryViewer and order-panel exceptions
+  ---
+  duration_ms: 60.74218
+  type: 'test'
+  ...
+# Subtest: new object/null reads keep exact case/argument guards and do not authorize commerce mutations
+ok 57 - new object/null reads keep exact case/argument guards and do not authorize commerce mutations
+  ---
+  duration_ms: 3.023218
+  type: 'test'
+  ...
+# Subtest: actual denied poll and order reads remain errors rather than empty successful state
+ok 58 - actual denied poll and order reads remain errors rather than empty successful state
+  ---
+  duration_ms: 31.982749
+  type: 'test'
+  ...
+# Subtest: actual newly reachable Post and Comments load callbacks complete every unconditional read without a hidden501
+ok 59 - actual newly reachable Post and Comments load callbacks complete every unconditional read without a hidden501
+  ---
+  duration_ms: 64.291349
+  type: 'test'
+  ...
+# Subtest: actual Search success callback finishes all verticals and analytics with the scripted peer and no hidden501
+ok 60 - actual Search success callback finishes all verticals and analytics with the scripted peer and no hidden501
+  ---
+  duration_ms: 28.771989
+  type: 'test'
+  ...
+# Subtest: comment permission and optional pin reads reject unrelated posts, fields, cases and pin writes
+ok 61 - comment permission and optional pin reads reject unrelated posts, fields, cases and pin writes
+  ---
+  duration_ms: 2.733764
+  type: 'test'
+  ...
+1..61
+# tests 61
+# suites 0
+# pass 61
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1093.834623

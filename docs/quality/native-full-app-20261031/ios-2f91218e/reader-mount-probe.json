@@ -1,0 +1,248 @@
+{
+  "scope": "Two scratch actual-screen/actual-playback/soundtrack/media-helper probes, controlled React hooks/native primitives/auth/book promises. Not native runtime validation or proof that the iPhone did not stall.",
+  "cases": [
+    {
+      "case": "reduce-motion callback resolved",
+      "initial": {
+        "renders": 3,
+        "authReads": 1,
+        "audioCreates": 0,
+        "soundtrackReads": 0,
+        "animationStarts": 1,
+        "animationStops": 1,
+        "animationValues": 1,
+        "intervalStarts": 1,
+        "intervalClears": 0,
+        "bookReads": 0,
+        "reactionReads": 0,
+        "activeIntervals": [
+          240000
+        ],
+        "authSubscriptions": 2,
+        "appSubscriptions": 4,
+        "loading": true
+      },
+      "authorizedPending": {
+        "renders": 5,
+        "authReads": 1,
+        "audioCreates": 0,
+        "soundtrackReads": 0,
+        "animationStarts": 1,
+        "animationStops": 3,
+        "animationValues": 2,
+        "intervalStarts": 2,
+        "intervalClears": 1,
+        "bookReads": 1,
+        "reactionReads": 0,
+        "activeIntervals": [
+          240000
+        ],
+        "authSubscriptions": 2,
+        "appSubscriptions": 4,
+        "loading": true
+      },
+      "loaded": {
+        "renders": 7,
+        "authReads": 1,
+        "audioCreates": 0,
+        "soundtrackReads": 0,
+        "animationStarts": 1,
+        "animationStops": 3,
+        "animationValues": 2,
+        "intervalStarts": 2,
+        "intervalClears": 1,
+        "bookReads": 1,
+        "reactionReads": 1,
+        "activeIntervals": [
+          240000
+        ],
+        "authSubscriptions": 2,
+        "appSubscriptions": 4,
+        "loading": false
+      },
+      "resumed": {
+        "renders": 9,
+        "authReads": 1,
+        "audioCreates": 0,
+        "soundtrackReads": 0,
+        "animationStarts": 1,
+        "animationStops": 3,
+        "animationValues": 2,
+        "intervalStarts": 2,
+        "intervalClears": 1,
+        "bookReads": 2,
+        "reactionReads": 1,
+        "activeIntervals": [
+          240000
+        ],
+        "authSubscriptions": 2,
+        "appSubscriptions": 4,
+        "loading": false
+      },
+      "disposed": {
+        "renders": 9,
+        "authReads": 1,
+        "audioCreates": 0,
+        "soundtrackReads": 0,
+        "animationStarts": 1,
+        "animationStops": 4,
+        "animationValues": 2,
+        "intervalStarts": 2,
+        "intervalClears": 2,
+        "bookReads": 2,
+        "reactionReads": 1,
+        "activeIntervals": [],
+        "authSubscriptions": 0,
+        "appSubscriptions": 0,
+        "loading": false
+      },
+      "status": "PASS"
+    },
+    {
+      "case": "reduce-motion callback held",
+      "initial": {
+        "renders": 3,
+        "authReads": 1,
+        "audioCreates": 0,
+        "soundtrackReads": 0,
+        "animationStarts": 1,
+        "animationStops": 1,
+        "animationValues": 1,
+        "intervalStarts": 1,
+        "intervalClears": 0,
+        "bookReads": 0,
+        "reactionReads": 0,
+        "activeIntervals": [
+          240000
+        ],
+        "authSubscriptions": 2,
+        "appSubscriptions": 4,
+        "loading": true
+      },
+      "authorizedPending": {
+        "renders": 5,
+        "authReads": 1,
+        "audioCreates": 0,
+        "soundtrackReads": 0,
+        "animationStarts": 1,
+        "animationStops": 3,
+        "animationValues": 2,
+        "intervalStarts": 2,
+        "intervalClears": 1,
+        "bookReads": 1,
+        "reactionReads": 0,
+        "activeIntervals": [
+          240000
+        ],
+        "authSubscriptions": 2,
+        "appSubscriptions": 4,
+        "loading": true
+      },
+      "loaded": {
+        "renders": 7,
+        "authReads": 1,
+        "audioCreates": 0,
+        "soundtrackReads": 0,
+        "animationStarts": 1,
+        "animationStops": 3,
+        "animationValues": 2,
+        "intervalStarts": 2,
+        "intervalClears": 1,
+        "bookReads": 1,
+        "reactionReads": 1,
+        "activeIntervals": [
+          240000
+        ],
+        "authSubscriptions": 2,
+        "appSubscriptions": 4,
+        "loading": false
+      },
+      "resumed": {
+        "renders": 9,
+        "authReads": 1,
+        "audioCreates": 0,
+        "soundtrackReads": 0,
+        "animationStarts": 1,
+        "animationStops": 3,
+        "animationValues": 2,
+        "intervalStarts": 2,
+        "intervalClears": 1,
+        "bookReads": 2,
+        "reactionReads": 1,
+        "activeIntervals": [
+          240000
+        ],
+        "authSubscriptions": 2,
+        "appSubscriptions": 4,
+        "loading": false
+      },
+      "disposed": {
+        "renders": 9,
+        "authReads": 1,
+        "audioCreates": 0,
+        "soundtrackReads": 0,
+        "animationStarts": 1,
+        "animationStops": 4,
+        "animationValues": 2,
+        "intervalStarts": 2,
+        "intervalClears": 2,
+        "bookReads": 2,
+        "reactionReads": 1,
+        "activeIntervals": [],
+        "authSubscriptions": 0,
+        "appSubscriptions": 0,
+        "loading": false
+      },
+      "status": "PASS"
+    }
+  ],
+  "source": [
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "sha256": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab"
+    },
+    {
+      "path": "src/hooks/useMemoryPlayback.ts",
+      "sha256": "bde72164e396cd7aae4e19b9ca30804076e9a800a7b8a9c897fd64f7dc2e0475"
+    },
+    {
+      "path": "shared/useMemoryPlayback.ts",
+      "sha256": "e8a05c471d8ee0ea88747e22b6ec601b10aade79599575c6e0165b2bd532ba7b"
+    },
+    {
+      "path": "shared/memoryPlayback.ts",
+      "sha256": "c89b80997268894ba3309c347d7f2da4f74274c07534211eb52596eb69eebb57"
+    },
+    {
+      "path": "src/hooks/useSoundtrackPlayer.ts",
+      "sha256": "5de27552f34d04a8cb5fdab7fcc9230840952030a860280d7022186298f417eb"
+    },
+    {
+      "path": "shared/useMemorySoundtrackSave.ts",
+      "sha256": "733387723d25b448dc93e05d3b4f42a4669573e222d137b18f0d8dbee0fa5817"
+    },
+    {
+      "path": "src/services/contentMedia.ts",
+      "sha256": "2921ee6b1642e9bc9b9ad39789d5e941f3b42a09a3d1971df9d1a0b0c10ca2a1"
+    },
+    {
+      "path": "shared/contentMedia.ts",
+      "sha256": "a744a17a33a5b0f93be5b84ec943f4a5a05c94059ddd128109077031a2667664"
+    },
+    {
+      "path": "tests/quality/native-memory-album-loading.cjs",
+      "sha256": "f07fd6ae9991d5ec798646874ce565cd0c08ca31a88129ef5d01b463bd2c3402"
+    },
+    {
+      "path": "tests/native/memory-fixture.cjs",
+      "sha256": "9368a168342678a62e4c5aee24bfa2cbeba8d6245c1ff2910fa1494e4724b7d7"
+    }
+  ],
+  "limits": [
+    "Navigation useIsFocused, CallContext, theme and safe-area contexts remain controlled.",
+    "Native Animated, AppState, AccessibilityInfo and Audio delivery are simulated; holding callbacks cannot emulate UIKit main-run-loop behavior.",
+    "Actual media hydrator executes on the real two-text-page navigation fixture; no private-media hydration calls are needed.",
+    "Only explicit active lifecycle event triggers a second required load in this probe.",
+    "Absent artifact body/auth traces prevent assigning the real native spinner to a required wait."
+  ]
+}

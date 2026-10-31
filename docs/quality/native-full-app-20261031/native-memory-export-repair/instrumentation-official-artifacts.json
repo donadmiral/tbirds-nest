@@ -1,0 +1,38 @@
+[
+  {
+    "group": "androidx.test",
+    "name": "runner",
+    "version": "1.6.2",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/test/runner/1.6.2/runner-1.6.2.aar",
+    "bytes": 284526,
+    "sha256": "d8eac6d9864f432b15962b2c2739a7b31685c87777364ac97323c9e4b2c94744",
+    "classesSha256": "34d09ad45b5b82c04b2e1ec3775b15125e99fbe26a7bbd5663020dce94a9ce9f"
+  },
+  {
+    "group": "androidx.test.ext",
+    "name": "junit",
+    "version": "1.2.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/test/ext/junit/1.2.1/junit-1.2.1.aar",
+    "bytes": 10323,
+    "sha256": "7b146a73c545b983430d2fae0081df67c76722c19a9abd2904e131696a8c5b20",
+    "classesSha256": "f755709bcf0faea407d55cc635a850b0ee6b8f7703b0e404d149c1c361e97863"
+  },
+  {
+    "group": "junit",
+    "name": "junit",
+    "version": "4.13.2",
+    "url": "https://repo.maven.apache.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+    "bytes": 384581,
+    "sha256": "8e495b634469d64fb8acfa3495a065cbacc8a0fff55ce1e31007be4c16dc57d3",
+    "classesSha256": "8e495b634469d64fb8acfa3495a065cbacc8a0fff55ce1e31007be4c16dc57d3"
+  },
+  {
+    "group": "androidx.test",
+    "name": "monitor",
+    "version": "1.7.2",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/test/monitor/1.7.2/monitor-1.7.2.aar",
+    "bytes": 102970,
+    "sha256": "868cc120d10d024b886fa157e1e1eaee0e6a8e5d55e7f765ef41d8fc0fea775b",
+    "classesSha256": "d10797c3b5386a352f1601bc100cb3872d3841eda06a6216c7a5502479119206"
+  }
+]

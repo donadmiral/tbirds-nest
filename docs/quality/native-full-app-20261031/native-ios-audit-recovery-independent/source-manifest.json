@@ -1,0 +1,30 @@
+{
+  "sources": [
+    {
+      "path": "scripts/quality/native-ui-ios-audit-recovery.py",
+      "bytes": 30562,
+      "sha256": "0d8c7c591f9acbd41fc921728cee479d0543e1fefe09e3e404c649380f1bb5db"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-compatibility.py",
+      "bytes": 3048,
+      "sha256": "aac09dde4774aa6d1f1f875a7e37a73aa642260555aad73044a2ad582a94e380"
+    },
+    {
+      "path": ".github/workflows/native-audit-ios-recovery.yml",
+      "bytes": 3309,
+      "sha256": "22de2db0bf3341ac98bf6a0dde5b6b3d70d9eadbfdc82e472af0093c3edfba26"
+    },
+    {
+      "path": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+      "bytes": 709,
+      "sha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82"
+    },
+    {
+      "path": "tests/quality/native-ios-audit-recovery.cjs",
+      "bytes": 15898,
+      "sha256": "970f0fa7f36e44bd754f637f9e76b198672acc0c43475f0d1667f8741af9d57f"
+    }
+  ],
+  "unchangedBeforeAfterFocusedRun": true
+}

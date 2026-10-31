@@ -3,7 +3,7 @@
  * the piece itself; read minutes computed from the words. Publishes
  * through the posts spine so the article card and reader just work.
  */
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, ActivityIndicator, Image, Modal } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -24,6 +24,7 @@ const DRAFT_PREFIX = 'pc:article-draft:';
 const NAVY = '#0B1E3D';
 
 export default function ArticleComposeScreen() {
+  const { t, isDark } = useTheme();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
@@ -243,7 +244,7 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={{ flex: 1 }}>
         <View style={s.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
@@ -395,11 +396,11 @@ const s = themedSheet((t) => ({
   galleryRemove: { position: 'absolute', top: 5, right: 5, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.65)', alignItems: 'center', justifyContent: 'center' },
   linkModalOverlay: { flex: 1, backgroundColor: 'rgba(11,30,61,0.4)', alignItems: 'center', justifyContent: 'center', padding: 24 },
   linkModalCard: { width: '100%', maxWidth: 360, backgroundColor: t.surface.canvas, borderRadius: 18, padding: 18 },
-  linkModalTitle: { fontSize: 16, fontWeight: '800', color: NAVY, marginBottom: 12 },
+  linkModalTitle: { fontSize: 16, fontWeight: '800', color: t.ink.primary, marginBottom: 12 },
   linkModalInput: { backgroundColor: '#F2F3F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14.5, color: NAVY, marginBottom: 10 },
   linkModalRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   linkModalCancel: { flex: 1, borderRadius: 12, paddingVertical: 11, alignItems: 'center', backgroundColor: '#F2F3F5' },
-  linkModalCancelTxt: { fontSize: 14, fontWeight: '700', color: 'rgba(11,30,61,0.6)' },
+  linkModalCancelTxt: { fontSize: 14, fontWeight: '700', color: '#4B5563' },
   linkModalConfirm: { flex: 1, borderRadius: 12, paddingVertical: 11, alignItems: 'center', backgroundColor: NAVY },
-  linkModalConfirmTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
+  linkModalConfirmTxt: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 }));

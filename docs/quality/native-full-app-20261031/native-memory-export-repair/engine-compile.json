@@ -1,0 +1,41 @@
+{
+  "command": [
+    "java",
+    "-Xmx1024m",
+    "-cp",
+    "/tmp/platinum-media3-api-review/kotlin/annotations.jar:/tmp/platinum-media3-api-review/kotlin/kotlin-compiler-embeddable.jar:/tmp/platinum-media3-api-review/kotlin/kotlin-daemon-embeddable.jar:/tmp/platinum-media3-api-review/kotlin/kotlin-reflect.jar:/tmp/platinum-media3-api-review/kotlin/kotlin-script-runtime.jar:/tmp/platinum-media3-api-review/kotlin/kotlin-stdlib.jar:/tmp/platinum-media3-api-review/kotlin/kotlinx-coroutines-core-jvm.jar:/tmp/platinum-media3-api-review/kotlin/trove4j.jar",
+    "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
+    "-no-stdlib",
+    "-no-reflect",
+    "-jvm-target",
+    "17",
+    "-classpath",
+    "/tmp/platinum-media3-api-review/media3-common/classes.jar:/tmp/platinum-media3-api-review/media3-database/classes.jar:/tmp/platinum-media3-api-review/media3-datasource/classes.jar:/tmp/platinum-media3-api-review/media3-datasource-okhttp/classes.jar:/tmp/platinum-media3-api-review/media3-decoder/classes.jar:/tmp/platinum-media3-api-review/media3-effect/classes.jar:/tmp/platinum-media3-api-review/media3-exoplayer/classes.jar:/tmp/platinum-media3-api-review/media3-exoplayer-dash/classes.jar:/tmp/platinum-media3-api-review/media3-exoplayer-hls/classes.jar:/tmp/platinum-media3-api-review/media3-exoplayer-smoothstreaming/classes.jar:/tmp/platinum-media3-api-review/media3-extractor/classes.jar:/tmp/platinum-media3-api-review/media3-session/classes.jar:/tmp/platinum-media3-api-review/media3-transformer/classes.jar:/tmp/platinum-media3-api-review/media3-ui/classes.jar:/tmp/platinum-media3-api-review/android.jar:/tmp/platinum-media3-api-review/annotation.jar:/tmp/platinum-media3-api-review/guava.jar:/tmp/platinum-media3-api-review/kotlin/kotlin-stdlib.jar",
+    "-d",
+    "/tmp/platinum-media3-api-review/engine-compiled",
+    "/workspace/scratch/f9638ed3020b/platinum-circles/modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+    "/workspace/scratch/f9638ed3020b/platinum-circles/modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+    "/workspace/scratch/f9638ed3020b/platinum-circles/modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 9.232,
+  "classCount": 32,
+  "sources": [
+    {
+      "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+      "sha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633"
+    },
+    {
+      "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+      "sha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab"
+    },
+    {
+      "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+      "sha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5"
+    }
+  ],
+  "compilerVersion": "2.1.20",
+  "compileSdk": 36,
+  "media3Version": "1.11.1",
+  "logSha256": "f891ee0c0b51f25ba06943e3ccbe000818f0519cd76abf309ea576cbe03f4ac9"
+}

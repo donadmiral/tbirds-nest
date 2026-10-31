@@ -8,6 +8,7 @@ import { Megaphone, Eye, UserPlus, MousePointerClick, MessageCircle, ShoppingBag
 import { createClient } from "@/lib/supabase/client";
 import { priceLabel, type Listing } from "@/lib/market";
 import { RelativeTime } from "@/components/RelativeTime";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Goal = { key: string; label: string; icon: React.ComponentType<{ size?: number; className?: string }> };
 const GOALS: Goal[] = [
@@ -49,6 +50,9 @@ export default function AdWizardPage() {
   const [me, setMe] = useState<{ id: string; full_name: string | null; avatar_url: string | null } | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [contentError, setContentError] = useState<string | null>(null);
+  const [contentAttempt, setContentAttempt] = useState(0);
+  const [contentLoading, setContentLoading] = useState(true);
 
   const publishing = useRef(false);
   const request = useRef<{ payload: string; key: string } | null>(null);
@@ -60,30 +64,33 @@ export default function AdWizardPage() {
     const version = loadVersion.current += 1;
     (async () => {
       try {
-        const { data: sess, error: sessionError } = await supabase.auth.getSession();
+        const { data: sess, error: sessionError } = await withTimeout(supabase.auth.getSession());
         if (sessionError) throw sessionError;
         const uid = sess.session?.user.id; if (!uid) { router.push('/login'); return; }
-        const [profile, postResult, listingResult, jobResult] = await Promise.all([
+        const [profile, postResult, listingResult, jobResult] = await withTimeout(Promise.all([
           supabase.from('profiles').select('id, full_name, avatar_url').eq('id', uid).maybeSingle(),
           supabase.from('posts').select('id, content, created_at').eq('user_id', uid).eq('audience', 'everyone').eq('is_exclusive', false).order('created_at', { ascending: false }).order('id').range(0, 20),
           supabase.from('marketplace_listings').select('*').eq('seller_id', uid).eq('status', 'available').order('created_at', { ascending: false }).order('id').range(0, 20),
           supabase.from('jobs').select('id, title, company, location').eq('posted_by', uid).order('created_at', { ascending: false }).order('id').range(0, 20),
-        ]);
+        ]));
         for (const result of [profile, postResult, listingResult, jobResult]) if (result.error) throw result.error;
         if (version !== loadVersion.current) return;
-        const { data: current } = await supabase.auth.getSession(); if (current.session?.user.id !== uid) throw new Error('Your account changed. Refresh to continue.');
+        const { data: current } = await withTimeout(supabase.auth.getSession()); if (current.session?.user.id !== uid) throw new Error('Your account changed. Refresh to continue.');
+        if (version !== loadVersion.current) return;
         setMe(profile.data); setPosts((postResult.data || []).slice(0,20)); setListings((listingResult.data || []).slice(0,20)); setJobs((jobResult.data || []).slice(0,20));
         offsets.current = { posts: Math.min(20, postResult.data?.length || 0), listings: Math.min(20, listingResult.data?.length || 0), jobs: Math.min(20, jobResult.data?.length || 0) };
         setHasMore({ posts: (postResult.data?.length || 0)>20, listings: (listingResult.data?.length || 0)>20, jobs: (jobResult.data?.length || 0)>20 });
         const wanted = new URLSearchParams(window.location.search).get('post');
         if (wanted && /^[0-9a-f-]{36}$/i.test(wanted)) {
-          const result = await supabase.from('posts').select('id, content, created_at').eq('user_id', uid).eq('id', wanted).eq('audience', 'everyone').eq('is_exclusive', false).maybeSingle();
+          const result = await withTimeout(supabase.from('posts').select('id, content, created_at').eq('user_id', uid).eq('id', wanted).eq('audience', 'everyone').eq('is_exclusive', false).maybeSingle());
           if (result.error) throw result.error; if (version === loadVersion.current && result.data) setPick({ kind: 'post', post: result.data });
         }
-      } catch (e: unknown) { if (version === loadVersion.current) setError(e instanceof Error ? e.message : 'Could not load content. Refresh and try again.'); }
+        if (version === loadVersion.current) setContentError(null);
+      } catch { if (version === loadVersion.current) setContentError('Could not load your content. Please try again.'); }
+      finally { if (version === loadVersion.current) setContentLoading(false); }
     })();
     return () => { loadVersion.current += 1; };
-  }, [supabase, router]);
+  }, [supabase, router, contentAttempt]);
 
   async function more(kind: 'posts' | 'listings' | 'jobs') {
     if (!me || pickerLock.current) return; pickerLock.current = true; setPickerBusy(true);
@@ -99,7 +106,7 @@ export default function AdWizardPage() {
       const page = (result.data || []).slice(0,20); const merge = <T extends { id: string }>(old: T[], next: T[]) => [...old, ...next.filter(row => !old.some(x => x.id === row.id))];
       if (kind === 'posts') setPosts(old => merge(old, page as MyPost[])); else if (kind === 'listings') setListings(old => merge(old, page as Listing[])); else setJobs(old => merge(old, page as MyJob[]));
       offsets.current[kind] += page.length; setHasMore(old => ({ ...old, [kind]: (result.data?.length || 0)>20 }));
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Could not load more content. Try again.'); }
+    } catch (e: unknown) { if (version === loadVersion.current) setContentError(e instanceof Error ? e.message : 'Could not load more content. Try again.'); }
     finally { pickerLock.current = false; setPickerBusy(false); }
   }
 
@@ -144,6 +151,7 @@ export default function AdWizardPage() {
         ))}
       </div>
       <h2 className="pb-4 text-[16px] font-semibold text-ink">{stepTitle}</h2>
+      {contentError ? <div role="alert" className="mb-4 text-sm text-danger"><p>{contentError}</p><button type="button" className="mt-2 underline" disabled={contentLoading} onClick={() => { setContentError(null); setContentLoading(true); setContentAttempt(value => value + 1); }}>Try again</button></div> : contentLoading ? <p role="status" className="mb-3 text-sm text-muted">Loading your content…</p> : null}
 
       {step === 1 ? (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

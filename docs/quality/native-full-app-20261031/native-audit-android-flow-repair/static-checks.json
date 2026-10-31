@@ -1,0 +1,22 @@
+{
+  "eslint": {
+    "exitCode": 0,
+    "command": "node_modules/.bin/eslint tests/quality/native-audit-flow-controls.cjs"
+  },
+  "nodeSyntax": {
+    "exitCode": 0,
+    "command": "node --check tests/quality/native-audit-flow-controls.cjs"
+  },
+  "yaml": {
+    "parsedCases": 85,
+    "uniqueCases": 85,
+    "allNamesAndAppIdsMatch": true,
+    "mandatoryAssertions": true,
+    "optionalOrCoordinateSelectors": false
+  },
+  "whitespace": {
+    "trackedGitDiffCheckExitCode": 0,
+    "all15OwnedFilesExplicitlyCheckedForCrAndTrailingWhitespace": true,
+    "newlineTerminated": true
+  }
+}

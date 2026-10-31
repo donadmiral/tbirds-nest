@@ -1,0 +1,816 @@
+{
+  "summary": {
+    "files": 45,
+    "beforeErrors": 0,
+    "beforeWarnings": 55,
+    "afterErrors": 0,
+    "afterWarnings": 55,
+    "newMessages": [],
+    "testMessages": []
+  },
+  "rows": [
+    {
+      "file": "src/components/AppLockGate.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/components/ChannelSettingsSheet.tsx",
+      "before": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has a missing dependency: 'current'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'scope.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'scope.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'loadRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'loadRequest.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'current'. Either include it or remove the dependency array."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has a missing dependency: 'current'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'scope.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'scope.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'loadRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'loadRequest.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'current'. Either include it or remove the dependency array."
+        }
+      ]
+    },
+    {
+      "file": "src/components/LinkAttachSheet.tsx",
+      "before": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'requestGeneration.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'requestGeneration.current' to a variable inside the effect, and use that variable in the cleanup function."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'requestGeneration.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'requestGeneration.current' to a variable inside the effect, and use that variable in the cleanup function."
+        }
+      ]
+    },
+    {
+      "file": "src/components/TrendingTopicsStrip.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/auth/LoginScreen.tsx",
+      "before": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'WHITE_08' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'fadeAnim', 'logoScale', and 'slideAnim'. Either include them or remove the dependency array."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'WHITE_08' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'fadeAnim', 'logoScale', and 'slideAnim'. Either include them or remove the dependency array."
+        }
+      ]
+    },
+    {
+      "file": "src/screens/auth/SetupProfileScreen.tsx",
+      "before": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'usernameRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'usernameRequest.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'username'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'usernameRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'usernameRequest.current' to a variable inside the effect, and use that variable in the cleanup function."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'usernameRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'usernameRequest.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'username'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'usernameRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'usernameRequest.current' to a variable inside the effect, and use that variable in the cleanup function."
+        }
+      ]
+    },
+    {
+      "file": "src/screens/auth/SignUpScreen.tsx",
+      "before": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'GRAY_100' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'INDIGO_700' is assigned a value but never used."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'GRAY_100' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'INDIGO_700' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/channels/ChannelScreen.tsx",
+      "before": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has a missing dependency: 'valid'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'scope.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'scope.current' to a variable inside the effect, and use that variable in the cleanup function."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has a missing dependency: 'valid'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'scope.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'scope.current' to a variable inside the effect, and use that variable in the cleanup function."
+        }
+      ]
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/feed/TrendFeedScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/feed/ArticleComposeScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/messages/CallLogScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/messages/MessageRequestsScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/messages/SavedMessagesScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/messages/StarredMessagesScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/BusinessApplyScreen.tsx",
+      "before": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'actionVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'actionVersion.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'readVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'readVersion.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'handleVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'handleVersion.current' to a variable inside the effect, and use that variable in the cleanup function."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'actionVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'actionVersion.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'readVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'readVersion.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'handleVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'handleVersion.current' to a variable inside the effect, and use that variable in the cleanup function."
+        }
+      ]
+    },
+    {
+      "file": "src/screens/profile/BusinessManageScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/BusinessesScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/CreateBusinessScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/FollowListScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/FollowRequestsScreen.tsx",
+      "before": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'data' is assigned a value but never used."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'data' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/jobs/ApplicantsScreen.tsx",
+      "before": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'NAVY' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'sheetGeneration.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'sheetGeneration.current' to a variable inside the effect, and use that variable in the cleanup function."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'NAVY' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'sheetGeneration.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'sheetGeneration.current' to a variable inside the effect, and use that variable in the cleanup function."
+        }
+      ]
+    },
+    {
+      "file": "src/screens/messages/ContextInboxScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/EditProfileScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/BusinessAccessScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/LoginActivityScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/MonetizationScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/MutedStoriesScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/components/CreatorCommercePanel.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/components/messages/CounterOfferDialog.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/components/BusinessTabs.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/components/ChatImageEditor.tsx",
+      "before": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'savedScale', 'savedTx', 'savedTy', 'scale', 'tx', and 'ty'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has missing dependencies: 'savedScale', 'savedTx', 'savedTy', 'scale', 'tx', and 'ty'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useMemo has missing dependencies: 'pan' and 'pinch'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has missing dependencies: 'savedScale', 'savedTx', 'savedTy', 'scale', 'tx', and 'ty'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has missing dependencies: 'scale.value', 'tx.value', and 'ty.value'. Either include them or remove the dependency array."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'savedScale', 'savedTx', 'savedTy', 'scale', 'tx', and 'ty'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has missing dependencies: 'savedScale', 'savedTx', 'savedTy', 'scale', 'tx', and 'ty'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useMemo has missing dependencies: 'pan' and 'pinch'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has missing dependencies: 'savedScale', 'savedTx', 'savedTy', 'scale', 'tx', and 'ty'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has missing dependencies: 'scale.value', 'tx.value', and 'ty.value'. Either include them or remove the dependency array."
+        }
+      ]
+    },
+    {
+      "file": "src/components/MediaRenderer.tsx",
+      "before": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'looksLikeUuid' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'mediaIds'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'setZoomIndex' is assigned a value but never used."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'looksLikeUuid' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'mediaIds'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'setZoomIndex' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "src/components/feed/DiscoverTile.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/components/PostCarousel.tsx",
+      "before": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'HEIGHT_RATIO' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has an unnecessary dependency: 'media'. Either exclude it or remove the dependency array."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'HEIGHT_RATIO' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has an unnecessary dependency: 'media'. Either exclude it or remove the dependency array."
+        }
+      ]
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "before": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'BUBBLE_OTHER' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'TEXT_PRIMARY' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'TEXT_SECONDARY' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'gifRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'gifRequest.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'onDims'. Either include it or remove the dependency array. If 'onDims' changes too often, find the parent component that defines it and wrap that definition in useCallback."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'otherUser'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'sending' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'dot1', 'dot2', 'dot3', and 'typingOpacity'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'toolbarH'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'sortDesc' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'loadGroupMembers'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'e' is defined but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'isGroup'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has missing dependencies: 'conversationId', 'isGroup', and 'mentionQuery'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has a missing dependency: 'navigation'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'funCamNav' and 'funCamRoute.params'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has an unnecessary dependency: 'currentUserId'. Either exclude it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'offersMap'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has a missing dependency: 'SENDER_COLORS'. Either include it or remove the dependency array."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'BUBBLE_OTHER' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'TEXT_PRIMARY' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'TEXT_SECONDARY' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "The ref value 'gifRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'gifRequest.current' to a variable inside the effect, and use that variable in the cleanup function."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'onDims'. Either include it or remove the dependency array. If 'onDims' changes too often, find the parent component that defines it and wrap that definition in useCallback."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'otherUser'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'sending' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'dot1', 'dot2', 'dot3', and 'typingOpacity'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'toolbarH'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'sortDesc' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'loadGroupMembers'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'e' is defined but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'isGroup'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has missing dependencies: 'conversationId', 'isGroup', and 'mentionQuery'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has a missing dependency: 'navigation'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'funCamNav' and 'funCamRoute.params'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has an unnecessary dependency: 'currentUserId'. Either exclude it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has a missing dependency: 'offersMap'. Either include it or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useCallback has a missing dependency: 'SENDER_COLORS'. Either include it or remove the dependency array."
+        }
+      ]
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "before": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'dailyReady' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'callerAvatar', 'callerName', 'groupCallName', 'isIncoming', 'isVideo', 'params?.callId', 'params?.conversationId', and 'startCall'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'clearCallState' and 'navigation'. Either include them or remove the dependency array."
+        }
+      ],
+      "after": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "message": "'dailyReady' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'callerAvatar', 'callerName', 'groupCallName', 'isIncoming', 'isVideo', 'params?.callId', 'params?.conversationId', and 'startCall'. Either include them or remove the dependency array."
+        },
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "message": "React Hook useEffect has missing dependencies: 'clearCallState' and 'navigation'. Either include them or remove the dependency array."
+        }
+      ]
+    },
+    {
+      "file": "src/screens/profile/AboutScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/ApplyVerificationScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/BusinessInboxScreen.tsx",
+      "before": [],
+      "after": []
+    },
+    {
+      "file": "src/screens/profile/CampaignsScreen.tsx",
+      "before": [],
+      "after": []
+    }
+  ]
+}

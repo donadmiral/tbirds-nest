@@ -5,7 +5,7 @@
  * for the business, regardless of which member is typing.
  */
 import { ListRowSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, StatusBar } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
@@ -13,8 +13,6 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 
-const NAVY = '#0B1E3D';
-const PLATINUM = '#C9BFB0';
 
 function relTime(d?: string | null) {
   if (!d) return '';
@@ -26,6 +24,8 @@ function relTime(d?: string | null) {
 }
 
 export default function BusinessInboxScreen() {
+  const { t, isDark } = useTheme();
+  const NAVY = t.ink.primary;
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const businessId: string = route.params?.businessId;
@@ -63,7 +63,7 @@ export default function BusinessInboxScreen() {
 
   return (
     <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={st.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="chevron-left" size={26} color={NAVY} />
@@ -81,7 +81,7 @@ export default function BusinessInboxScreen() {
         <View style={st.center}><Text style={st.errTxt}>{err}</Text></View>
       ) : rows.length === 0 ? (
         <View style={st.center}>
-          <Feather name="inbox" size={38} color="rgba(11,30,61,0.24)" />
+          <Feather name="inbox" size={38} color={t.ink.muted} />
           <Text style={st.emptyTitle}>No conversations yet</Text>
           <Text style={st.emptySub}>When customers message {businessName}, the whole team sees it here.</Text>
         </View>
@@ -90,12 +90,12 @@ export default function BusinessInboxScreen() {
           data={rows.filter((r: any) => tab === 'requests' ? r.is_request : !r.is_request)}
           ListHeaderComponent={
             <View style={{ flexDirection: 'row', paddingHorizontal: 2, paddingBottom: 8, gap: 8 }}>
-              {(['primary', 'requests'] as const).map(t => {
-                const n = rows.filter((r: any) => t === 'requests' ? r.is_request : !r.is_request).length;
-                const on = tab === t;
+              {(['primary', 'requests'] as const).map(tabKey => {
+                const n = rows.filter((r: any) => tabKey === 'requests' ? r.is_request : !r.is_request).length;
+                const on = tab === tabKey;
                 return (
-                  <TouchableOpacity key={t} onPress={() => setTab(t)} style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 16, backgroundColor: on ? '#0B1E3D' : '#F4F3F1' }}>
-                    <Text style={{ fontSize: 12.5, fontWeight: '800', color: on ? '#FFFFFF' : 'rgba(11,30,61,0.42)' }}>{t === 'primary' ? 'Primary' : 'Requests'}{n > 0 ? ' ' + n : ''}</Text>
+                  <TouchableOpacity key={tabKey} onPress={() => setTab(tabKey)} style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 16, backgroundColor: on ? t.ink.primary : t.surface.raised }}>
+                    <Text style={{ fontSize: 12.5, fontWeight: '800', color: on ? t.ink.inverse : t.ink.secondary }}>{tabKey === 'primary' ? 'Primary' : 'Requests'}{n > 0 ? ' ' + n : ''}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -134,23 +134,23 @@ export default function BusinessInboxScreen() {
 const st = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY, textAlign: 'center' },
-  headerSub: { fontSize: 11.5, color: 'rgba(11,30,61,0.5)', textAlign: 'center', marginTop: 1 },
-  sep: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(11,30,61,0.07)', marginLeft: 78 },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: t.ink.primary, textAlign: 'center' },
+  headerSub: { fontSize: 11.5, color: t.ink.muted, textAlign: 'center', marginTop: 1 },
+  sep: { height: StyleSheet.hairlineWidth, backgroundColor: t.surface.divider, marginLeft: 78 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12 },
   av: { width: 50, height: 50, borderRadius: 25 },
-  avFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  avTxt: { color: PLATINUM, fontSize: 18, fontWeight: '800' },
-  name: { flex: 1, fontSize: 15.5, fontWeight: '700', color: 'rgba(11,30,61,0.85)' },
-  time: { fontSize: 12, color: 'rgba(11,30,61,0.4)', marginLeft: 8 },
-  preview: { fontSize: 13.5, color: 'rgba(11,30,61,0.5)', marginTop: 2 },
-  previewUnread: { color: NAVY, fontWeight: '600' },
+  avFb: { backgroundColor: t.ink.primary, alignItems: 'center', justifyContent: 'center' },
+  avTxt: { color: t.ink.inverse, fontSize: 18, fontWeight: '800' },
+  name: { flex: 1, fontSize: 15.5, fontWeight: '700', color: t.ink.secondary },
+  time: { fontSize: 12, color: t.ink.muted, marginLeft: 8 },
+  preview: { fontSize: 13.5, color: t.ink.muted, marginTop: 2 },
+  previewUnread: { color: t.ink.primary, fontWeight: '600' },
   ctxChip: { alignSelf: 'flex-start', marginTop: 5, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: t.brand.tintBg },
-  ctxTxt: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.6, color: 'rgba(11,30,61,0.55)' },
-  unreadDot: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  ctxTxt: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.6, color: t.ink.muted },
+  unreadDot: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: t.ink.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
   unreadTxt: { color: t.ink.inverse, fontSize: 11, fontWeight: '800' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  errTxt: { fontSize: 14.5, fontWeight: '600', color: '#FF3B30', textAlign: 'center' },
-  emptyTitle: { fontSize: 16.5, fontWeight: '800', color: NAVY, marginTop: 12 },
-  emptySub: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', textAlign: 'center', marginTop: 4, lineHeight: 19 },
+  errTxt: { fontSize: 14.5, fontWeight: '600', color: t.ink.primary, textAlign: 'center' },
+  emptyTitle: { fontSize: 16.5, fontWeight: '800', color: t.ink.primary, marginTop: 12 },
+  emptySub: { fontSize: 13.5, color: t.ink.muted, textAlign: 'center', marginTop: 4, lineHeight: 19 },
 }));

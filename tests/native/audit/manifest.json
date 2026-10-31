@@ -391,7 +391,7 @@
           }
         ]
       },
-      "expected": "Memories",
+      "expected": "#memories",
       "flow": "flows/feed-trendfeed.yaml",
       "coverage": "Only the explicitly asserted entry and listed controls; no all-controls acceptance.",
       "fixtureScenario": "baseline"
@@ -477,7 +477,7 @@
           }
         ]
       },
-      "expected": "Title",
+      "expected": "Photos",
       "flow": "flows/market-createlisting.yaml",
       "coverage": "Only the explicitly asserted entry and listed controls; no all-controls acceptance.",
       "fixtureScenario": "baseline"
@@ -2381,7 +2381,7 @@
           }
         ]
       },
-      "expected": "(?i).*(not found|unavailable|could not load).*",
+      "expected": "This ticket is not available to this account.",
       "flow": "flows/support-missing-ticket.yaml",
       "coverage": "Only the explicitly asserted entry and listed controls; no all-controls acceptance.",
       "fixtureScenario": "missing-ticket"
@@ -2603,7 +2603,7 @@
     {
       "id": "notifications-empty-controls",
       "group": "feed",
-      "name": "Audit empty notifications and mark read",
+      "name": "Audit empty notifications",
       "kind": "control-journey",
       "role": "personal-member",
       "source": "src/screens/notifications/NotificationsScreen.tsx",
@@ -2639,7 +2639,7 @@
       },
       "expected": "Activity",
       "flow": "flows/notifications-empty-controls.yaml",
-      "coverage": "Only the explicitly asserted entry and listed controls; no all-controls acceptance.",
+      "coverage": "Empty activity state and absence of the unread-only Mark all read action. Positive Mark all read remains untested.",
       "fixtureScenario": "baseline"
     },
     {

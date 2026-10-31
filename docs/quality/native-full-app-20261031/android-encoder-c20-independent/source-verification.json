@@ -1,0 +1,178 @@
+{
+  "sourceCommit": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+  "sourceTree": "cde37bb9b55c73d5f2afd45a9be4b76fc89b1170",
+  "commitToTreeBinding": "docs/quality/full-platform-audit-20261031/grouped-checkpoint-publication.json",
+  "literalCommitObjectAvailable": false,
+  "literalTreeObjectAvailable": true,
+  "matchedInputs": 21,
+  "checks": [
+    {
+      "file": ".github/workflows/android-native-compile.yml",
+      "expectedSha256": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+      "literalTreeSha256": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+      "currentFrozenSha256": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+      "expectedSha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+      "literalTreeSha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+      "currentFrozenSha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+      "expectedSha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+      "literalTreeSha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+      "currentFrozenSha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+      "expectedSha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+      "literalTreeSha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+      "currentFrozenSha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "package-lock.json",
+      "expectedSha256": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+      "literalTreeSha256": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+      "currentFrozenSha256": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "package.json",
+      "expectedSha256": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+      "literalTreeSha256": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+      "currentFrozenSha256": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-media-dependencies.init.gradle",
+      "expectedSha256": "90860a9da3b8db77843eadc04700fff2f5716b740f76bdbe46a0451eb498ad03",
+      "literalTreeSha256": "90860a9da3b8db77843eadc04700fff2f5716b740f76bdbe46a0451eb498ad03",
+      "currentFrozenSha256": "90860a9da3b8db77843eadc04700fff2f5716b740f76bdbe46a0451eb498ad03",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/.gitignore",
+      "expectedSha256": "48beb236df7bcd0e416ba90634a2bce8c8660529b83a959043981276783fd79c",
+      "literalTreeSha256": "48beb236df7bcd0e416ba90634a2bce8c8660529b83a959043981276783fd79c",
+      "currentFrozenSha256": "48beb236df7bcd0e416ba90634a2bce8c8660529b83a959043981276783fd79c",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/build.gradle",
+      "expectedSha256": "42e5b2f4c85dcdf88fa922bdb7228053c526b6e9f7cc607b842d35ee6f965c06",
+      "literalTreeSha256": "42e5b2f4c85dcdf88fa922bdb7228053c526b6e9f7cc607b842d35ee6f965c06",
+      "currentFrozenSha256": "42e5b2f4c85dcdf88fa922bdb7228053c526b6e9f7cc607b842d35ee6f965c06",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/gradle.properties",
+      "expectedSha256": "d477c6ea499a0b0916442e37bca983ae0a6f22d4b8c22f1882be0e5cd34b7b4c",
+      "literalTreeSha256": "d477c6ea499a0b0916442e37bca983ae0a6f22d4b8c22f1882be0e5cd34b7b4c",
+      "currentFrozenSha256": "d477c6ea499a0b0916442e37bca983ae0a6f22d4b8c22f1882be0e5cd34b7b4c",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/settings.gradle",
+      "expectedSha256": "c28f8c006ff219e6e7e8c9dc90d5d2eff36eb87b59f0dd7596ee7e1be61d695b",
+      "literalTreeSha256": "c28f8c006ff219e6e7e8c9dc90d5d2eff36eb87b59f0dd7596ee7e1be61d695b",
+      "currentFrozenSha256": "c28f8c006ff219e6e7e8c9dc90d5d2eff36eb87b59f0dd7596ee7e1be61d695b",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif",
+      "expectedSha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+      "literalTreeSha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+      "currentFrozenSha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png",
+      "expectedSha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+      "literalTreeSha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+      "currentFrozenSha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp",
+      "expectedSha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+      "literalTreeSha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+      "currentFrozenSha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif",
+      "expectedSha256": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+      "literalTreeSha256": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+      "currentFrozenSha256": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt",
+      "expectedSha256": "9fe378b36f7edaeb3f8dd8f0527cb9dcee294b0d3cf05c1b4fe28dff7799f4bd",
+      "literalTreeSha256": "9fe378b36f7edaeb3f8dd8f0527cb9dcee294b0d3cf05c1b4fe28dff7799f4bd",
+      "currentFrozenSha256": "9fe378b36f7edaeb3f8dd8f0527cb9dcee294b0d3cf05c1b4fe28dff7799f4bd",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt",
+      "expectedSha256": "c26c3ca6a5037772c19b43723445a25d4f0ef7c834f1608ff25d89faf4ac8e4b",
+      "literalTreeSha256": "c26c3ca6a5037772c19b43723445a25d4f0ef7c834f1608ff25d89faf4ac8e4b",
+      "currentFrozenSha256": "c26c3ca6a5037772c19b43723445a25d4f0ef7c834f1608ff25d89faf4ac8e4b",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/src/main/AndroidManifest.xml",
+      "expectedSha256": "a6c09b92672c80c279243f688eff43369a6d327305e40e9d6fc99edadf0d07be",
+      "literalTreeSha256": "a6c09b92672c80c279243f688eff43369a6d327305e40e9d6fc99edadf0d07be",
+      "currentFrozenSha256": "a6c09b92672c80c279243f688eff43369a6d327305e40e9d6fc99edadf0d07be",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/android-story-export/src/main/java/expo/modules/boomerang/FixtureMediaProvider.kt",
+      "expectedSha256": "6b253b3cf247efdaee5e539361de5f4189d1fe0641def507c5b92cac79efb450",
+      "literalTreeSha256": "6b253b3cf247efdaee5e539361de5f4189d1fe0641def507c5b92cac79efb450",
+      "currentFrozenSha256": "6b253b3cf247efdaee5e539361de5f4189d1fe0641def507c5b92cac79efb450",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "scripts/quality/test-android-story-audio.sh",
+      "expectedSha256": "fab3525d32329475e2e8e733f20d932729d90de664002b54ebb2c0cb0c79f9eb",
+      "literalTreeSha256": "fab3525d32329475e2e8e733f20d932729d90de664002b54ebb2c0cb0c79f9eb",
+      "currentFrozenSha256": "fab3525d32329475e2e8e733f20d932729d90de664002b54ebb2c0cb0c79f9eb",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    },
+    {
+      "file": "tests/native/assets/memory-capture-video.mp4",
+      "expectedSha256": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2",
+      "literalTreeSha256": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2",
+      "currentFrozenSha256": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2",
+      "matchesLiteralTree": true,
+      "matchesCurrentFrozen": true
+    }
+  ]
+}

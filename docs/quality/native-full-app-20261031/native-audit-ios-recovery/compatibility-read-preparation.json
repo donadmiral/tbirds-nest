@@ -1,0 +1,41 @@
+{
+  "preparedAt": "2026-10-31T19:41:30.587006+00:00",
+  "scope": "Recovery-only metadata timeout alignment; no native rebuild or changed acceptance deadline.",
+  "before": {
+    "runId": 41234444953,
+    "source": "c1bb0784ba031ac8dc4e14f5d0cdeeacadd024c5",
+    "confirmedFailedCommand": [
+      "xcodebuild",
+      "-version"
+    ],
+    "confirmedTimeoutSeconds": 5,
+    "confirmedShards": [
+      "account",
+      "social"
+    ],
+    "appCasesAttemptedInThoseShards": 0
+  },
+  "sourceFiles": {
+    "scripts/quality/native-ui-ios-audit-recovery.py": "b813a675b8fa910f39b02c41a9dca9c611adf21f2a9857d7d9ed5b373b56a8c8",
+    "tests/quality/native-ios-audit-recovery.cjs": "229884136060b34c260a2b35d2707addf93eef51fcdd7bbbba8839afd485ea5f"
+  },
+  "change": "Pass the existing normal runner 30-second per-read budget through unchanged shared compatibility checks and retain each of seven named command boundaries in setup-commands.json.",
+  "checks": {
+    "formalPassed": 3,
+    "nestedPythonPassed": 21,
+    "failed": 0,
+    "skipped": 0,
+    "sameErrorObjectOnTimeout": true,
+    "boundedPartialOutputRetained": true,
+    "actualSharedCompatibilityFunctionExercised": true,
+    "nativeRuntimeExercised": false
+  },
+  "unchanged": [
+    "Original three-shard recovery workflow and branch trigger",
+    "Shared host/runtime/Mach-O/signature compatibility semantics",
+    "Original b568 signed app and all85 baseline cases",
+    "Original account diagnostic, reader assertion15s, case budgets180/300s, bootstatus300s",
+    "Normal audit runner compatibility budget already30s"
+  ],
+  "unusedAccountOnlyWorkflow": "Removed before freeze; no additional workflow or branch is part of this delta."
+}

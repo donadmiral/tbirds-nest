@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: the installed pinned Expo load control changes only the two Media3 interface signatures
+ok 1 - the installed pinned Expo load control changes only the two Media3 interface signatures
+  ---
+  duration_ms: 1.826397
+  type: 'test'
+  ...
+# Subtest: unknown distributions, unexpected changes and a changed version fail closed
+ok 2 - unknown distributions, unexpected changes and a changed version fail closed
+  ---
+  duration_ms: 2.179524
+  type: 'test'
+  ...
+# Subtest: the actual Android plugin applies idempotently to a disposable installed package and leaves iOS unregistered
+ok 3 - the actual Android plugin applies idempotently to a disposable installed package and leaves iOS unregistered
+  ---
+  duration_ms: 3.353453
+  type: 'test'
+  ...
+# Subtest: the app, production module, standalone instrumentation and graph verifier select the same reviewed dependency
+ok 4 - the app, production module, standalone instrumentation and graph verifier select the same reviewed dependency
+  ---
+  duration_ms: 1.299457
+  type: 'test'
+  ...
+# Subtest: the exact full-app B-frame video is packaged into instrumentation and retained by its source manifest
+ok 5 - the exact full-app B-frame video is packaged into instrumentation and retained by its source manifest
+  ---
+  duration_ms: 0.3047
+  type: 'test'
+  ...
+# Subtest: exact upstream clipping methods reproduce the real three-frame loss and preserve all in-range reordered frames after the fix
+ok 6 - exact upstream clipping methods reproduce the real three-frame loss and preserve all in-range reordered frames after the fix
+  ---
+  duration_ms: 921.525155
+  type: 'test'
+  ...
+# Subtest: actual decoder helpers reject distorted geometry, gaps and incorrect per-channel source volume
+ok 7 - actual decoder helpers reject distorted geometry, gaps and incorrect per-channel source volume
+  ---
+  duration_ms: 69.310711
+  type: 'test'
+  ...
+# Subtest: the actual controlled title input and save callback reproduce the observed suffix after a mid-string backspace edit
+ok 8 - the actual controlled title input and save callback reproduce the observed suffix after a mid-string backspace edit
+  ---
+  duration_ms: 89.108324
+  type: 'test'
+  ...
+# Subtest: the actual title state and creative save preserve an explicitly selected full replacement
+ok 9 - the actual title state and creative save preserve an explicitly selected full replacement
+  ---
+  duration_ms: 32.871508
+  type: 'test'
+  ...
+# Subtest: tests/native/flows/memory-navigation.yaml requires semantic Select All and an exact field-value readback before any save
+ok 10 - tests/native/flows/memory-navigation.yaml requires semantic Select All and an exact field-value readback before any save
+  ---
+  duration_ms: 11.805879
+  type: 'test'
+  ...
+# Subtest: tests/native/audit/flows/memory-cover-settings.yaml requires semantic Select All and an exact field-value readback before any save
+ok 11 - tests/native/audit/flows/memory-cover-settings.yaml requires semantic Select All and an exact field-value readback before any save
+  ---
+  duration_ms: 3.407623
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1373.677328

@@ -1,0 +1,8 @@
+18:54:44.113 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Define variables RUNNING
+18:54:44.282 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Define variables COMPLETED
+18:54:44.285 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Apply configuration RUNNING
+18:54:44.377 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Apply configuration COMPLETED
+18:54:44.391 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Open platinum-circles-qa://ui-fixture/memory RUNNING
+18:54:44.618 [ INFO] maestro.Maestro.openLink: Opening link platinum-circles-qa://ui-fixture/memory for app: app.platinumcircles.mobile.qa with autoVerify config as false
+18:55:13.260 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Open platinum-circles-qa://ui-fixture/memory COMPLETED
+18:55:13.266 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is IOS and "^Open in “Platinum QA”\?$" is visible RUNNING

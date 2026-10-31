@@ -1,0 +1,11 @@
+{
+  "source": "build.log",
+  "bytes": 18326356,
+  "sha256": "549c6c49e719ee9e2a417d83fe864c5850db2860aeab8c6837766b996bb6f36d",
+  "records": [
+    {
+      "line": 93421,
+      "text": "** BUILD SUCCEEDED **"
+    }
+  ]
+}

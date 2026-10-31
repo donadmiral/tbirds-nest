@@ -23,7 +23,25 @@ name: Audit article text draft controls
 
 - tapOn: Title
 - inputText: An audit article
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element: Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.
+    direction: DOWN
+    centerElement: true
 - tapOn: Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.
 - inputText: A synthetic article paragraph kept inside the audit.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element: An audit article
+    direction: UP
+    centerElement: true
 - assertVisible: An audit article
 - takeScreenshot: feed-article-draft

@@ -1,0 +1,483 @@
+{
+  "schemaVersion": 1,
+  "runtime": {
+    "runId": 41231522956,
+    "auditHead": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "productionHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "receiptFiles": 85,
+    "affectedCases": 19,
+    "uniqueContracts": 22,
+    "overallOriginalResultFromNativeOwner": {
+      "pass": 48,
+      "fail": 37,
+      "timeouts": 0
+    },
+    "allObservedUnknownRequestOwnersMatchSyntheticOwner": true
+  },
+  "contracts": [
+    {
+      "request": "POST /rest/v1/rpc/get_my_businesses",
+      "caller": "src/screens/profile/BusinessesScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/00000000000151_capture_functions.sql",
+        "definition": "get_my_businesses()"
+      },
+      "modeledContract": "No arguments; empty own-business memberships."
+    },
+    {
+      "request": "POST /rest/v1/rpc/get_communities_page",
+      "caller": "shared/networkDirectory.ts",
+      "sql": {
+        "path": "supabase/migrations/20261022211253_social_directory_history_quality.sql",
+        "definition": "get_communities_page(text,integer,integer,timestamptz)"
+      },
+      "modeledContract": "Null query, limit100, offset0, ISO snapshot; no communities."
+    },
+    {
+      "request": "GET /rest/v1/clubs",
+      "caller": "shared/networkDirectory.ts",
+      "sql": {
+        "path": "supabase/reference/live-schema-20261017.sql",
+        "definition": "clubs table / read policy"
+      },
+      "modeledContract": "Exact projected columns and name.asc; no clubs."
+    },
+    {
+      "request": "GET /rest/v1/club_members",
+      "caller": "shared/networkDirectory.ts",
+      "sql": {
+        "path": "supabase/reference/live-schema-20261017.sql",
+        "definition": "club_members table / policies"
+      },
+      "modeledContract": "club_id projection and current owner filter; no memberships."
+    },
+    {
+      "request": "GET /rest/v1/user_restrictions",
+      "caller": "src/screens/profile/UserProfileScreen.tsx",
+      "sql": {
+        "path": "supabase/reference/live-schema-20261017.sql",
+        "definition": "user_restrictions table / restrictor policy"
+      },
+      "modeledContract": "Exact owner restrictor and seeded peer target; no restriction, SDK maybeSingle returns null."
+    },
+    {
+      "request": "POST /rest/v1/rpc/creator_monetization_snapshot",
+      "caller": "shared/monetization/client.ts",
+      "sql": {
+        "path": "supabase/migrations/20261022173111_creator_monetization_foundation.sql",
+        "definition": "creator_finance.snapshot() / creator_monetization_snapshot()"
+      },
+      "modeledContract": "No arguments; actual domain parser accepts test environment, program/payout OFF, empty balances/history."
+    },
+    {
+      "request": "POST /rest/v1/rpc/get_restricted_accounts",
+      "caller": "src/screens/profile/RestrictedAccountsScreen.tsx",
+      "sql": {
+        "path": "supabase/reference/live-schema-20261017.sql",
+        "definition": "get_restricted_accounts()"
+      },
+      "modeledContract": "No arguments; no restricted accounts."
+    },
+    {
+      "request": "POST /rest/v1/rpc/report_client_error",
+      "caller": "src/services/analytics.ts",
+      "sql": {
+        "path": "supabase/migrations/20261023185734_redacted_client_diagnostics.sql",
+        "definition": "report_client_error(jsonb)"
+      },
+      "modeledContract": "Exact sanitized enum-only report; deduplicated/rate-bounded, safe fields retained for product-error triage."
+    },
+    {
+      "request": "POST /rest/v1/rpc/get_notifications_page",
+      "caller": "src/screens/notifications/NotificationsScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/20261022211253_social_directory_history_quality.sql",
+        "definition": "get_notifications_page(integer,integer,timestamptz)"
+      },
+      "modeledContract": "Limit60, offset0, ISO snapshot; empty current-owner activity."
+    },
+    {
+      "request": "POST /rest/v1/rpc/can_view_post",
+      "caller": "src/screens/feed/PostScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/00000000000151_capture_functions.sql",
+        "definition": "can_view_post(uuid)"
+      },
+      "modeledContract": "Known public synthetic post UUID only; true."
+    },
+    {
+      "request": "POST /rest/v1/rpc/search_people",
+      "caller": "src/screens/feed/SearchScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/00000000000151_capture_functions.sql",
+        "definition": "search_people(text,integer)"
+      },
+      "modeledContract": "Scripted qa_jordan query/prefixes, limit25; matching synthetic usernames, actual displayed Jordan Ellis."
+    },
+    {
+      "request": "POST /rest/v1/rpc/search_posts",
+      "caller": "src/screens/feed/SearchScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/00000000000151_capture_functions.sql",
+        "definition": "search_posts(text,text,timestamptz,uuid,integer)"
+      },
+      "modeledContract": "Scripted query/prefixes, top/latest, limit20; no matching seeded posts."
+    },
+    {
+      "request": "POST /rest/v1/rpc/search_jobs_fts",
+      "caller": "src/screens/feed/SearchScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/00000000000151_capture_functions.sql",
+        "definition": "search_jobs_fts(text,integer)"
+      },
+      "modeledContract": "Scripted query/prefixes and limit20; no matching seeded jobs."
+    },
+    {
+      "request": "POST /rest/v1/rpc/search_listings_fts",
+      "caller": "src/screens/feed/SearchScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/00000000000151_capture_functions.sql",
+        "definition": "search_listings_fts(text,integer)"
+      },
+      "modeledContract": "Scripted query/prefixes and limit20; no matching seeded listings."
+    },
+    {
+      "request": "POST /rest/v1/rpc/log_search_event",
+      "caller": "src/screens/feed/SearchScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/00000000000151_capture_functions.sql",
+        "definition": "log_search_event(text,text,text,uuid)"
+      },
+      "modeledContract": "Scripted query/prefixes and all vertical; returns SQL void/null, bounded safe query-length receipt only."
+    },
+    {
+      "request": "POST /rest/v1/rpc/get_posts_by_hashtag",
+      "caller": "src/screens/feed/TrendFeedScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/00000000000151_capture_functions.sql",
+        "definition": "get_posts_by_hashtag(text,integer,integer)"
+      },
+      "modeledContract": "Exact #memories, limit20, offset0; no seeded hashtag-bearing posts."
+    },
+    {
+      "request": "POST /rest/v1/rpc/get_conversations_by_context",
+      "caller": "src/screens/messages/ContextInboxScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/00000000000151_capture_functions.sql",
+        "definition": "get_conversations_by_context(text,boolean)"
+      },
+      "modeledContract": "Own jobs/market case context, groups false; seeded personal conversation excluded."
+    },
+    {
+      "request": "POST /rest/v1/rpc/get_seller_rating",
+      "caller": "src/components/market/SellerTrust.tsx",
+      "sql": {
+        "path": "supabase/migrations/20261029080548_marketplace_purchase_reviews.sql",
+        "definition": "get_seller_rating(uuid)"
+      },
+      "modeledContract": "Seeded seller only; SQL avg(null) and zero completed-purchase review counts."
+    },
+    {
+      "request": "POST /rest/v1/rpc/seller_review_page",
+      "caller": "shared/marketReviews.ts",
+      "sql": {
+        "path": "supabase/migrations/20261029080548_marketplace_purchase_reviews.sql",
+        "definition": "seller_review_page(uuid,uuid,timestamptz,uuid,integer)"
+      },
+      "modeledContract": "Seeded seller/listing, null cursor, limit20; no reviews or eligible completed orders, summary avg0."
+    },
+    {
+      "request": "GET /rest/v1/starred_messages",
+      "caller": "src/screens/messages/ChatScreen.tsx",
+      "sql": {
+        "path": "supabase/reference/live-schema-20261017.sql",
+        "definition": "starred_messages table / ownership policies"
+      },
+      "modeledContract": "Chat exact conversation/owner projection or exact joined starred-list read; no starred rows."
+    },
+    {
+      "request": "GET /rest/v1/saved_messages",
+      "caller": "src/screens/messages/ChatScreen.tsx",
+      "sql": {
+        "path": "supabase/reference/live-schema-20261017.sql",
+        "definition": "saved_messages table / ownership policies"
+      },
+      "modeledContract": "Chat own message IDs or exact joined saved-list read; no saved rows."
+    },
+    {
+      "request": "POST /rest/v1/rpc/get_message_requests",
+      "caller": "src/screens/messages/MessageRequestsScreen.tsx",
+      "sql": {
+        "path": "supabase/migrations/00000000000151_capture_functions.sql",
+        "definition": "get_message_requests()"
+      },
+      "modeledContract": "No arguments; no pending incoming requests."
+    }
+  ],
+  "cases": [
+    {
+      "case": "business-businesses",
+      "artifactRelativePath": "account/native-audit-results/business-businesses/native-ui-receipt.json",
+      "rawReceiptSha256": "40fd66207b21d5879355dea570fd2f6da99d1453ee899a9080f13aba8528309e",
+      "contracts": [
+        "POST /rest/v1/rpc/get_my_businesses"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "profile-mynetwork",
+      "artifactRelativePath": "account/native-audit-results/profile-mynetwork/native-ui-receipt.json",
+      "rawReceiptSha256": "7cd7ebfcfbf0a4629a5b948c68197c55f7b883666cf3b37e4d96dc5858924a93",
+      "contracts": [
+        "GET /rest/v1/club_members",
+        "GET /rest/v1/clubs",
+        "POST /rest/v1/rpc/get_communities_page"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "profile-userprofile",
+      "artifactRelativePath": "account/native-audit-results/profile-userprofile/native-ui-receipt.json",
+      "rawReceiptSha256": "b0b954806f0542b4afed2361404c9d32a9ca8727fac37367b6f5ffb2fc189b82",
+      "contracts": [
+        "GET /rest/v1/user_restrictions"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "settings-monetization",
+      "artifactRelativePath": "settings/native-audit-results/settings-monetization/native-ui-receipt.json",
+      "rawReceiptSha256": "3fbd81608d2d654e3e248ad4c39330cb264dcfc68309257070e69f4d87f8b6ed",
+      "contracts": [
+        "POST /rest/v1/rpc/creator_monetization_snapshot"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "settings-restrictedaccounts",
+      "artifactRelativePath": "settings/native-audit-results/settings-restrictedaccounts/native-ui-receipt.json",
+      "rawReceiptSha256": "30b6433b110e22da520e6d549c1c7f5e680abc3f07af497cb868602a03583289",
+      "contracts": [
+        "POST /rest/v1/rpc/get_restricted_accounts"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "stories-storyviewer",
+      "artifactRelativePath": "settings/native-audit-results/stories-storyviewer/native-ui-receipt.json",
+      "rawReceiptSha256": "20794f71fa2ff50d2f20353b1ba9ee0a5b0a1c30c839e4ad4490b594e22ec637",
+      "contracts": [
+        "POST /rest/v1/rpc/report_client_error"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": true
+    },
+    {
+      "case": "feed-notifications",
+      "artifactRelativePath": "social/native-audit-results/feed-notifications/native-ui-receipt.json",
+      "rawReceiptSha256": "7f0c61ebb1dd50d7f59b9a92e631c0da6eacc270d88b1afd1b2a0e62b387b345",
+      "contracts": [
+        "POST /rest/v1/rpc/get_notifications_page"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "feed-post",
+      "artifactRelativePath": "social/native-audit-results/feed-post/native-ui-receipt.json",
+      "rawReceiptSha256": "49831810a8a7a7c97d70e135289887b64d0364cfa26df5a601d4678c14ebf806",
+      "contracts": [
+        "POST /rest/v1/rpc/can_view_post"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "feed-search-controls",
+      "artifactRelativePath": "social/native-audit-results/feed-search-controls/native-ui-receipt.json",
+      "rawReceiptSha256": "9429588a32cd7ec3ffa57368d907e41cd2b62dc0a51d31022b6554bdc79c169a",
+      "contracts": [
+        "POST /rest/v1/rpc/log_search_event",
+        "POST /rest/v1/rpc/search_jobs_fts",
+        "POST /rest/v1/rpc/search_listings_fts",
+        "POST /rest/v1/rpc/search_people",
+        "POST /rest/v1/rpc/search_posts"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "feed-trendfeed",
+      "artifactRelativePath": "social/native-audit-results/feed-trendfeed/native-ui-receipt.json",
+      "rawReceiptSha256": "023b7f0ec8df50c12437567964b812ef037ee290cd465a5274e79946635dbb81",
+      "contracts": [
+        "POST /rest/v1/rpc/get_posts_by_hashtag"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "jobs-jobsinbox",
+      "artifactRelativePath": "social/native-audit-results/jobs-jobsinbox/native-ui-receipt.json",
+      "rawReceiptSha256": "817e6971309b9ae108cd3cf33a276c6f7b3678f8ec2a6ba52373e9e0d76e93db",
+      "contracts": [
+        "POST /rest/v1/rpc/get_conversations_by_context"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "market-listingdetail",
+      "artifactRelativePath": "social/native-audit-results/market-listingdetail/native-ui-receipt.json",
+      "rawReceiptSha256": "3c74ab6e86d082141a1cb4096f70469c8e2e63b4031db790fdfb7a88e4ba4e64",
+      "contracts": [
+        "POST /rest/v1/rpc/get_seller_rating",
+        "POST /rest/v1/rpc/report_client_error",
+        "POST /rest/v1/rpc/seller_review_page"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": true
+    },
+    {
+      "case": "market-marketinbox",
+      "artifactRelativePath": "social/native-audit-results/market-marketinbox/native-ui-receipt.json",
+      "rawReceiptSha256": "b679b8cfe973da297c58d31eddb65509593cd71d30fa348f738dda4613eef34c",
+      "contracts": [
+        "POST /rest/v1/rpc/get_conversations_by_context"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "market-offer-cancel",
+      "artifactRelativePath": "social/native-audit-results/market-offer-cancel/native-ui-receipt.json",
+      "rawReceiptSha256": "f7e74b6469234298a265bfbf6d941d8edf16387f66b0fb248bbcc1035b9ac1a4",
+      "contracts": [
+        "POST /rest/v1/rpc/get_seller_rating",
+        "POST /rest/v1/rpc/report_client_error",
+        "POST /rest/v1/rpc/seller_review_page"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": true
+    },
+    {
+      "case": "messages-chat",
+      "artifactRelativePath": "social/native-audit-results/messages-chat/native-ui-receipt.json",
+      "rawReceiptSha256": "3f7377bcf84c6658e3412b236483beb390cf9b63b5f46cfeb4af96205b3e4913",
+      "contracts": [
+        "GET /rest/v1/saved_messages",
+        "GET /rest/v1/starred_messages"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "messages-messagerequests",
+      "artifactRelativePath": "social/native-audit-results/messages-messagerequests/native-ui-receipt.json",
+      "rawReceiptSha256": "9d92f7f7865ed384d0f2ff8d0093f372360c4087cdb548948a939172b1e69cd0",
+      "contracts": [
+        "POST /rest/v1/rpc/get_message_requests"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "messages-savedmessages",
+      "artifactRelativePath": "social/native-audit-results/messages-savedmessages/native-ui-receipt.json",
+      "rawReceiptSha256": "c701c4f4abe017d02b32e2fb38ac50a12e4c4b88b4665d888a7d82a27a65081b",
+      "contracts": [
+        "GET /rest/v1/saved_messages"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "messages-starredmessages",
+      "artifactRelativePath": "social/native-audit-results/messages-starredmessages/native-ui-receipt.json",
+      "rawReceiptSha256": "8b66ea429931706a7b2b6d6060de946d6d37c1d6638099cfa89c5d749fc65af9",
+      "contracts": [
+        "GET /rest/v1/starred_messages"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    },
+    {
+      "case": "notifications-empty-controls",
+      "artifactRelativePath": "social/native-audit-results/notifications-empty-controls/native-ui-receipt.json",
+      "rawReceiptSha256": "c74a39e556d8b2429336bc3dc9cf9c538b5d2ee1bc59e8320053940664a34987",
+      "contracts": [
+        "POST /rest/v1/rpc/get_notifications_page"
+      ],
+      "observedOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "classification": "confirmed missing fixture contracts; runtime payload validity not retained",
+      "underlyingDiagnosticStillRequiresTriage": false
+    }
+  ],
+  "limits": [
+    "Original receipts retain method/path/current synthetic owner, not RPC bodies, query strings or bearer values. No actual-runtime payload/authorization proof is inferred.",
+    "All22 names have production callers and retained SQL definitions; no actual type/authorization misuse is established by these receipts.",
+    "The three diagnostic-reporting cases still require their underlying client errors to be classified; implementing diagnostic transport does not fix those errors.",
+    "Empty fixture state and scripted search results do not establish hosted RLS, SQL full-text ranking, nonempty pagination or production provider acceptance."
+  ]
+}

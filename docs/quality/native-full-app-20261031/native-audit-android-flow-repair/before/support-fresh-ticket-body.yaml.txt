@@ -1,0 +1,47 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit submitted ticket keeps original question
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: support-fresh-ticket-body
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Contact support"
+    timeout: 15000
+
+- tapOn: Other
+- tapOn: In a few words
+- inputText: Fresh audit ticket
+- tapOn: What happened, and what you expected
+- inputText: My original question must remain visible.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element: Send
+    direction: DOWN
+    centerElement: true
+- tapOn: Send
+- assertVisible: Sent
+- tapOn: OK
+- scrollUntilVisible:
+    element: '(?s).*Other: Fresh audit ticket.*'
+    direction: DOWN
+    centerElement: true
+- tapOn: '(?s).*Other: Fresh audit ticket.*'
+- assertVisible: My original question must remain visible.
+- takeScreenshot: support-fresh-ticket-body

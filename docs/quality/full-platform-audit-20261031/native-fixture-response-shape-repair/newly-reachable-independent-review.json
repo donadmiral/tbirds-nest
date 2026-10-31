@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "kind": "native-audit-newly-reachable-contract-independent-review",
+  "reviewedBy": "navigation_performance",
+  "reviewedAtUtc": "2026-10-31T19:43:35.525652+00:00",
+  "decision": "ACCEPTED_NO_SOURCE_CHANGE_REQUESTED",
+  "scope": "Only the two newly reachable can_comment and post_comment_pins contracts and the three final Post/Comments/Search callback/negative cases. The prior 52 read-contract,16 existing audit/Support and6 response-shape cases were not rerun by this reviewer.",
+  "frozenCandidate": [
+    {
+      "file": "tests/native/audit/read-contracts.cjs",
+      "bytes": 12172,
+      "sha256": "166b6413abe1a1075e48249127a5f956822b13486256be2ef37808e550ee73a8"
+    },
+    {
+      "file": "tests/quality/native-audit-response-shapes.cjs",
+      "bytes": 14442,
+      "sha256": "8fabb7641b45eb6d8ff9d7cc95ad9140283e67108112f0df2e999fb1948d994e"
+    }
+  ],
+  "beforeAfterFrozenHashesEqual": true,
+  "readOnlyInputs": [
+    {
+      "file": "tests/native/audit/backend-fixture.cjs",
+      "bytes": 12073,
+      "sha256": "e333cf1b87b081c0dd151a24d74697132d61b539cb3af3eef005fd7c17d7f9e0"
+    },
+    {
+      "file": "tests/native/backend-fixture.cjs",
+      "bytes": 25074,
+      "sha256": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d"
+    },
+    {
+      "file": "tests/native/audit/manifest.json",
+      "bytes": 91086,
+      "sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d"
+    },
+    {
+      "file": "src/screens/feed/PostScreen.tsx",
+      "bytes": 30904,
+      "sha256": "73c6459a6028e7dc55e0662c69803572e7032c48c9653cee691d395c06247356"
+    },
+    {
+      "file": "src/components/feed/CommentsPanel.tsx",
+      "bytes": 40055,
+      "sha256": "26e552ea52e6c3983d2587a45491036aeecbcc9ef9eba6d3d1d7fa015c228e7e"
+    },
+    {
+      "file": "src/screens/feed/SearchScreen.tsx",
+      "bytes": 29057,
+      "sha256": "0616cf3a77de1d5e191b22f8fd85a53690eadb2ea90eddb5c95f4fdd24af8cce"
+    },
+    {
+      "file": "shared/orderRequest.ts",
+      "bytes": 1002,
+      "sha256": "f9efea51b507e374611379929d6471c64d083acc04d358a1b365c0bf91d70a3d"
+    },
+    {
+      "file": "shared/contentMedia.ts",
+      "bytes": 11290,
+      "sha256": "a744a17a33a5b0f93be5b84ec943f4a5a05c94059ddd128109077031a2667664"
+    },
+    {
+      "file": "shared/commentHighlights.ts",
+      "bytes": 1739,
+      "sha256": "9c5344ed7e4a936b6f6a50f79153df2f423311329dd6087cddc5ddae01513f3b"
+    },
+    {
+      "file": "src/utils/profileRead.ts",
+      "bytes": 847,
+      "sha256": "47f46d4831d26d7de16b2f0b261e2e441b86f44a2deaf2ad2f4ea0ed4dd5f309"
+    },
+    {
+      "file": "supabase/migrations/20261029190200_comment_author_highlights.sql",
+      "bytes": 4091,
+      "sha256": "ff2e454ea3dcf6490f6050c477d80ea228c9952a95b90ba4344a1d9895c259cf"
+    },
+    {
+      "file": "node_modules/@supabase/supabase-js/package.json",
+      "bytes": 4509,
+      "sha256": "697dd1bfd66925a5b586c52e0324517979a6650c45bdba8e03014b197e87304e"
+    }
+  ],
+  "findings": [
+    {
+      "area": "can_comment",
+      "result": "Accepted",
+      "details": "Only the exact POST RPC body containing p_post_id for the seeded public post is accepted, in feed-post baseline only. Shared guards require the exact current issued synthetic bearer and owner, reject an aborted signal, query parameters, unsupported methods, extra arguments and unrelated posts. The result models this single permissive synthetic post, not general comment-policy authorization."
+    },
+    {
+      "area": "post_comment_pins",
+      "result": "Accepted",
+      "details": "Only GET with select=comment_id and the exact seeded post_id equality filter is accepted in feed-post baseline. Extra/wildcard projections, unrelated posts/cases, duplicate query keys, bodies and writes remain unsupported. Empty results flow through the real SDK maybeSingle handling; optional highlight completion was observed before the final unhandled check."
+    },
+    {
+      "area": "Post and Comments callbacks",
+      "result": "Accepted",
+      "details": "The test extracts the actual complete load callbacks from current production source, executes required and extra Post requests through the installed SDK and fixture, executes actual content-media and comment-highlight helpers, and observes the loaded post/author, loaded empty comments, permission=true and pinnedId=null. No fixture unhandled request or diagnostic remains. Controlled refs/setters replace the React/native host; no whole-screen rendering is claimed."
+    },
+    {
+      "area": "Search callback",
+      "result": "Accepted",
+      "details": "The actual runSearch callback executes block restrictions, all four vertical reads, actual profileRead/content-media helpers and log_search_event. It publishes Jordan Ellis plus empty post/job/market results, clears loading/errors, publishes the expected scope, records exactly one synthetic analytics event and leaves unhandled empty."
+    },
+    {
+      "area": "Negative requests",
+      "result": "Accepted",
+      "details": "The selected negative case rejects wrong post IDs, extra RPC arguments, wildcard pin fields, pin writes and cross-case requests with501. This preserves strict unknown-input reporting; it does not manufacture successful writes."
+    }
+  ],
+  "verification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap --test-name-pattern='actual newly reachable Post|actual Search success|comment permission' tests/quality/native-audit-response-shapes.cjs",
+    "exitCode": 0,
+    "actualSelectedCases": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "durationMs": 589.317697,
+    "otherCasesNotSelected": 6,
+    "installedSupabaseJsVersion": "2.103.0",
+    "output": {
+      "file": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/independent-newly-reachable.tap",
+      "bytes": 954,
+      "sha256": "a3c5f276a3f22870e2cc14bcb3b2c597d56d6347f044dc0b595f7dae777dec6f"
+    },
+    "ownerFinalChecks": {
+      "file": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/final-checks.json",
+      "bytes": 1129,
+      "sha256": "384e52e1284c5292c1f76ff744f0b3b239e9f6b1b78bbb20f721c2ea62735bc6"
+    }
+  },
+  "limits": [
+    "All HTTP requests terminate in the in-process audit fixture; no hosted API, provider write, SQL/RLS execution or real account was used.",
+    "Only the seeded plain public post with no comments, pin, link/article content and the scripted qa_jordan search are covered. Conditional branches for populated comments, reactions, media, links and articles are outside this new callback proof.",
+    "This is source/callback/SDK contract acceptance, not repaired native rendering, gesture, whole-screen lifecycle, complete85-case or physical-device acceptance.",
+    "The independent3-case count is not added to the owner61-case count; these three cases are a subset of that owner run.",
+    "No source, flow, assertion, timeout, schema, provider or ref was changed by this review."
+  ]
+}

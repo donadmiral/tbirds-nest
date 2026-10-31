@@ -1,0 +1,40 @@
+{
+  "observedAt": "2026-10-31T18:32:58.882Z",
+  "source": {
+    "src/screens/profile/TicketScreen.tsx": "0fa58fac8f0fa6cc6a31a6b441fc7c830a15f0e29965b87b365cc3c95ebee8bc",
+    "shared/memberSupport.ts": "96657586d7187cd8742af869b2d51a205ddc239c0b03837a2bfc8e3ebcb32d30",
+    "shared/readDeadline.ts": "a008566069ad8f0500028490fd718a508cc8934e23e85ec4953f3af857b9c95a"
+  },
+  "scope": "Actual TicketScreen callbacks with controlled hook/focus/native hosts; actual shared helper and installed Supabase client; synthetic in-memory provider, AsyncStorage-shaped store, digest gate. No provider calls or actual native scheduling acceptance.",
+  "results": [
+    {
+      "case": "Older same-visit history retry overwrites confirmed reply",
+      "confirmedVisibleBeforeRelease": true,
+      "visibleAfterOlderRead": false,
+      "databaseMessageCount": 1,
+      "finalText": " ‹ Back Ticket A Solved Your original message Original question 10/31/2026, 8:00:00 PM     Send"
+    },
+    {
+      "case": "Blur/refocus discards confirmation after shared helper removes retry identity",
+      "draftBeforeRetry": "Preserved draft after refocus",
+      "retainedRetryKeysBeforeRetry": 0,
+      "duplicateMessages": [
+        {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "body": "Preserved draft after refocus"
+        },
+        {
+          "id": "30000000-0000-4000-8000-000000000002",
+          "body": "Preserved draft after refocus"
+        }
+      ]
+    },
+    {
+      "case": "Undispatched unmounted write rebounds to later same-owner session",
+      "initialBearer": "session-A1",
+      "sentBearer": "Bearer session-A2",
+      "expectedUser": "10000000-0000-4000-8000-000000000001",
+      "messageInserted": true
+    }
+  ]
+}

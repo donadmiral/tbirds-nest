@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T18:56:13.196915+00:00",
+  "scope": "Completed additional discovery before client receipt validation changes; existing Support and admin reporting repair receipts unchanged. Synthetic actions only.",
+  "actionCases": {
+    "formal": 29,
+    "pass": 24,
+    "fail": 5,
+    "skip": 0,
+    "roleDenials": 56,
+    "roles": 11
+  },
+  "browserCases": {
+    "checks": 21,
+    "passed": 20,
+    "failed": 1
+  },
+  "defect": {
+    "id": "ADMIN-CUSTOM-001",
+    "severity": "medium",
+    "title": "Five custom actions claim success without a matching confirmed server receipt",
+    "affected": [
+      "moderateReview",
+      "saveMusicProvider",
+      "saveMusicLicenseDraft",
+      "revokeMusicSound",
+      "stageMusicCatalogue"
+    ],
+    "expected": "Honor exact SQL receipt shape/request identity/allowed outcome and keep licensing disabled; malformed or unconfirmed responses remain failures without revalidation/success redirect.",
+    "actual": "Null body triggers saved/staged or successful audited moderation despite absence of its required receipt. Formal cases also specify negative/wrong-key/wrong-request/impossible-count variants. Browser actual OperationsPanel file submission also redirects staged after null response.",
+    "cause": "Actions destructure only error from RPC and ignore data. SQL already returns the confirmation fields.",
+    "repair": "Validate returned data in the two client action files; no migration, permission, provider side effect or commercial feature change."
+  },
+  "harnessCorrectionsNotProductDefects": [
+    "Earlier draft fixtures used a non-JSON JWT header, so installed SDK setSession correctly rejected it. Corrected synthetic token format before the retained 29-case baseline.",
+    "Earlier browser selector required exact Provider text while the actual implicit label includes the selected option. Corrected to the semantic combobox with Provider name prefix before the retained 21-case baseline."
+  ],
+  "sourceAtBaseline": {
+    "admin-web/app/market/reviews/actions.ts": {
+      "sha256": "d3efc2e080bdb27571243c1e3afdded6f924efe15ca672abf06e5c4583f2a6b9",
+      "bytes": 1814
+    },
+    "admin-web/app/music/actions.ts": {
+      "sha256": "0ce4155d9c4d8888868e73887e1daee3fcdbc94233ff4ccd4103d00173d58804",
+      "bytes": 2476
+    },
+    "admin-web/app/music/OperationsPanel.tsx": {
+      "sha256": "511289ccca2d16436ec8883458dae73f37876d5cf8a63da783ee230023221998",
+      "bytes": 7164
+    },
+    "admin-web/app/reset-password/RecoveryForms.tsx": {
+      "sha256": "9fa0b35dc39764cf40dc9b02f9bedd0ac97ead7ae0f4f4bf50664f84041642c3",
+      "bytes": 3842
+    },
+    "admin-web/app/payments/creators/ReviewForm.tsx": {
+      "sha256": "1de5b7cd38ba14dfbd638ad0e573ba6fe80a687496f20a9764c8b4ae90e7014a",
+      "bytes": 1520
+    },
+    "admin-web/tests/custom-action-contracts.cjs": {
+      "sha256": "2267089c769efda52f977a41564be30d76a3e6223e135cbe680c1a08d5153b1a",
+      "bytes": 19803
+    },
+    "admin-web/tests/helpers/customActionFixture.cjs": {
+      "sha256": "995607da61e7948d66b4f7c9e6372a73913d9e244e5fecaf2574b6e18576328b",
+      "bytes": 6892
+    },
+    "admin-web/tests/browser/custom-controls-run.cjs": {
+      "sha256": "873c4805e07147a737676e2a6e119c1fa04219a9850c7cc4342384f80cbe6cc7",
+      "bytes": 22447
+    }
+  },
+  "sqlContractReferences": [
+    "supabase/migrations/20261029213000_admin_support_review_contracts.sql",
+    "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+    "supabase/migrations/20261030203619_music_catalogue_operations_and_cleanup.sql"
+  ],
+  "evidence": {
+    "browser.json": {
+      "sha256": "c433d9e98a463dab14f7b99adfd7ca29c6b471715de49eb25321ac7373dc0154",
+      "bytes": 24587
+    },
+    "unconfirmed-staging.png": {
+      "sha256": "2874ab1dd6fb5480324b874bd2f1eaf660ce7e50d81bd90e659b45749cc7cc9d",
+      "bytes": 162704
+    },
+    "actions.tap": {
+      "sha256": "c28c13bc4f178429dfb3212b460ecfa8de79ef5462963db4d83c5f719a49d1c4",
+      "bytes": 16070
+    },
+    "browser.log": {
+      "sha256": "e9d267b12cdf76fc9ca47d59f79636f0114bf14f866ca472b4d8cc24d003d4a8",
+      "bytes": 1810
+    },
+    "actions.json": {
+      "sha256": "0a253e9cebe5591557e17acc4bf3633bdaeb4b429a4f54ad4a35623379e811d7",
+      "bytes": 9203
+    }
+  }
+}

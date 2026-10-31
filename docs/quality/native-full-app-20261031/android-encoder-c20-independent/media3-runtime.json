@@ -1,0 +1,59 @@
+{
+    "project": ":",
+    "configuration": "debugRuntimeClasspath",
+    "expectedVersion": "1.11.1",
+    "aligned": true,
+    "components": [
+        {
+            "group": "androidx.media3",
+            "module": "media3-common",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-container",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-database",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-datasource",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-decoder",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-effect",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-exoplayer",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-extractor",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-muxer",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-transformer",
+            "version": "1.11.1"
+        }
+    ],
+    "scope": "Resolved runtime version alignment; separate from security or encoded-media acceptance."
+}

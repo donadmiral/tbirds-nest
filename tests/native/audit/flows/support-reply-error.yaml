@@ -23,8 +23,13 @@ name: Audit reply failure preserves retry
 
 - tapOn: Write a reply
 - inputText: Please retain this draft after failure.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - tapOn: Send
-- assertVisible: Could not send
+- assertVisible: Reply not confirmed
 - tapOn: OK
 - assertVisible: Please retain this draft after failure.
 - assertVisible: Send

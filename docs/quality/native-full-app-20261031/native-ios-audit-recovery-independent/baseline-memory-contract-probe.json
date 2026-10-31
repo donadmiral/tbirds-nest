@@ -1,0 +1,73 @@
+{
+  "status": "PASS",
+  "scope": "Actual installed Supabase client, byte-identical original b568 audit adapter and unchanged built base fixture. Synthetic transport only; no native UI or provider acceptance.",
+  "binding": {
+    "source": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "expectedHead": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "adapter": {
+      "path": "/tmp/platinum-native-audit-baseline-checkpoint/tests/native/audit/backend-fixture.cjs",
+      "sha256": "0b1a186f02f1292638022e803008e34ffdd7beccb702a2a35a2e272c6cfe2ddd"
+    },
+    "manifestSha256": "f0b37826ed8709e0772e5d9ea4d73d9e7ef48ab7d2894440608ab2e59848b1fe",
+    "baseInputs": {
+      "tests/native/backend-fixture.cjs": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d",
+      "tests/native/memory-fixture.cjs": "9368a168342678a62e4c5aee24bfa2cbeba8d6245c1ff2910fa1494e4724b7d7",
+      "tests/native/capture-boundary-trace.cjs": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb"
+    }
+  },
+  "selectedCase": {
+    "id": "navigation-warm-tabs",
+    "scenario": "baseline"
+  },
+  "results": {
+    "shelf": {
+      "owner": true,
+      "books": 1,
+      "title": "THE SMALL ADVENTURES",
+      "private": true,
+      "count": 2
+    },
+    "profile": "Alex Rivera",
+    "reader": {
+      "authorized": true,
+      "pages": 2,
+      "textOnly": true
+    },
+    "optionalReactions": [],
+    "nextShelf": true,
+    "unhandledBeforeNegative": 0,
+    "unknownRpcStatus": 501,
+    "forwardedNetwork": false
+  },
+  "successfulRequests": [
+    {
+      "method": "POST",
+      "path": "/auth/v1/token"
+    },
+    {
+      "method": "GET",
+      "path": "/rest/v1/profiles"
+    },
+    {
+      "method": "POST",
+      "path": "/rest/v1/rpc/get_memory_albums"
+    },
+    {
+      "method": "POST",
+      "path": "/rest/v1/rpc/get_memory_book"
+    },
+    {
+      "method": "GET",
+      "path": "/rest/v1/story_reactions"
+    },
+    {
+      "method": "POST",
+      "path": "/rest/v1/rpc/get_memory_albums"
+    }
+  ],
+  "limits": [
+    "No new fixture success contract was added.",
+    "This proves original adapter fallback permits the existing shelf/book reads; it does not prove actual Profile/shelf controls or native callbacks succeed.",
+    "The proposed diagnostic repeats warm tabs three times before entering the shelf, so it is related-path reproduction, not the identical original single-cycle history."
+  ]
+}

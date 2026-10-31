@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: actual fullscreen labels and controls retain contrast over bright/dark/colored media in light
+ok 1 - actual fullscreen labels and controls retain contrast over bright/dark/colored media in light
+  ---
+  duration_ms: 32.263603
+  type: 'test'
+  ...
+# Subtest: actual story labels have a bounded backdrop in light
+ok 2 - actual story labels have a bounded backdrop in light
+  ---
+  duration_ms: 13.96728
+  type: 'test'
+  ...
+# Subtest: actual fullscreen labels and controls retain contrast over bright/dark/colored media in dark
+ok 3 - actual fullscreen labels and controls retain contrast over bright/dark/colored media in dark
+  ---
+  duration_ms: 17.239348
+  type: 'test'
+  ...
+# Subtest: actual story labels have a bounded backdrop in dark
+ok 4 - actual story labels have a bounded backdrop in dark
+  ---
+  duration_ms: 12.980667
+  type: 'test'
+  ...
+# Subtest: actual fullscreen labels and controls retain contrast over bright/dark/colored media in lightsOut
+ok 5 - actual fullscreen labels and controls retain contrast over bright/dark/colored media in lightsOut
+  ---
+  duration_ms: 13.185494
+  type: 'test'
+  ...
+# Subtest: actual story labels have a bounded backdrop in lightsOut
+ok 6 - actual story labels have a bounded backdrop in lightsOut
+  ---
+  duration_ms: 9.401273
+  type: 'test'
+  ...
+# Subtest: actual TierName can inherit readable media text while retaining its normal verification colors elsewhere
+ok 7 - actual TierName can inherit readable media text while retaining its normal verification colors elsewhere
+  ---
+  duration_ms: 12.900215
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 350.729089

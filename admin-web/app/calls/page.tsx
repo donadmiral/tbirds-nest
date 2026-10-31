@@ -5,6 +5,8 @@ import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
+import RecordPages from '@/components/RecordPages';
+import { DESK_PAGE_SIZE, exactCount, formatCount, recordPage, type DeskSearch } from '@/lib/deskReporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +34,7 @@ function dur(s: number | null | undefined) {
   return (h ? h + ':' + String(m).padStart(2, '0') : String(m)) + ':' + String(sec).padStart(2, '0');
 }
 
-export default async function CallsPage() {
+export default async function CallsPage({ searchParams }: { searchParams: Promise<DeskSearch> }) {
   const admin = await requireDesk('/calls');
   const svc = serviceClient();
 
@@ -41,10 +43,18 @@ export default async function CallsPage() {
   const from14 = new Date(now - 14 * 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
 
-  const [callsRes, totalRes] = await Promise.all([
-    svc.from('call_sessions').select('*').order('created_at', { ascending: false }).limit(400),
+  const [totalRes, weekRes, previousRes, liveRes] = await Promise.all([
     svc.from('call_sessions').select('id', { count: 'exact', head: true }),
+    svc.from('call_sessions').select('id', { count: 'exact', head: true }).gte('created_at', from7),
+    svc.from('call_sessions').select('id', { count: 'exact', head: true }).gte('created_at', from14).lt('created_at', from7),
+    svc.from('call_sessions').select('id', { count: 'exact', head: true }).in('status', ['active', 'ongoing', 'ringing']),
   ]);
+  const failure = 'Call counts could not be loaded. Refresh before using this report.';
+  const total = exactCount(totalRes, failure), weekCount = exactCount(weekRes, failure);
+  const previousCount = exactCount(previousRes, failure), liveCount = exactCount(liveRes, failure);
+  const range = recordPage((await searchParams).page, total);
+  const callsRes = await svc.from('call_sessions').select('*').order('created_at', { ascending: false }).order('id', { ascending: false }).range(range.from, range.to);
+  if (callsRes.error || !Array.isArray(callsRes.data)) throw new Error('Calls could not be loaded.');
 
   const calls = (callsRes.data ?? []) as Record<string, unknown>[];
 
@@ -61,22 +71,14 @@ export default async function CallsPage() {
   const kindOf = (r: Record<string, unknown>) => r.is_group_call ? 'Group' : (r.is_video ? 'Video' : 'Voice');
   const statusOf = (r: Record<string, unknown>) => String(r.status || 'unknown').toLowerCase();
 
-  const week = calls.filter(r => String(r.created_at) >= from7);
-  const prevWeek = calls.filter(r => String(r.created_at) >= from14 && String(r.created_at) < from7);
-  const connectedWeek = week.filter(connectedOf);
-  const answerRate = week.length ? (connectedWeek.length / week.length) * 100 : 0;
-  const answerPrev = prevWeek.length ? (prevWeek.filter(connectedOf).length / prevWeek.length) * 100 : 0;
-  const talked = week.filter(r => durOf(r) > 0);
+  const connected = calls.filter(connectedOf);
+  const answerRate = calls.length ? (connected.length / calls.length) * 100 : 0;
+  const talked = calls.filter(r => durOf(r) > 0);
   const avgDur = talked.length ? Math.round(talked.reduce((a, r) => a + durOf(r), 0) / talked.length) : 0;
   const minutes = calls.reduce((a, r) => a + durOf(r), 0) / 60;
-  const live = calls.filter(r => ['active', 'ongoing', 'ringing'].includes(statusOf(r)));
-  const missed = calls.filter(r => ['missed', 'declined', 'failed'].includes(statusOf(r)));
 
   const pct = (a: number, b: number) => b > 0 ? { text: (a >= b ? '+' : '') + (((a - b) / b) * 100).toFixed(1) + '%', tone: (a >= b ? 'ok' : 'bad') as Tone } : { text: a > 0 ? 'new' : 'flat', tone: (a > 0 ? 'ok' : 'neutral') as Tone };
-  const weekDelta = pct(week.length, prevWeek.length);
-  const answerDelta = pct(answerRate, answerPrev);
-
-  const spark = days30.map(d => calls.filter(r => String(r.created_at).slice(0, 10) === d).length);
+  const weekDelta = pct(weekCount, previousCount);
   const dayRows = days30.map(d => ({
     day: d,
     connected: calls.filter(r => String(r.created_at).slice(0, 10) === d && connectedOf(r)).length,
@@ -107,11 +109,11 @@ export default async function CallsPage() {
   const talkMax = Math.max(1, ...topTalkers.map(t => t[1]));
 
   const cards = [
-    { label: 'Sessions on file', value: fmt(totalRes.count ?? calls.length), note: 'call_sessions, all time', icon: IC.phone, color: 'var(--c1)', spark },
-    { label: 'This week', value: fmt(week.length), delta: weekDelta.text, deltaTone: weekDelta.tone, note: 'against the week before', icon: IC.phone, color: 'var(--c2)', spark: spark.slice(-14) },
-    { label: 'Answer rate', value: answerRate.toFixed(1) + '%', delta: answerDelta.text, deltaTone: answerDelta.tone, note: 'connected against attempted, this week', icon: IC.check, color: 'var(--c6)' },
-    { label: 'Average talk time', value: dur(avgDur), note: fmt(Math.round(minutes)) + ' minutes on file', icon: IC.clock, color: 'var(--c3)' },
-    { label: 'Live right now', value: fmt(live.length), note: fmt(missed.length) + ' missed or declined on file', icon: IC.video, color: live.length ? 'var(--ok)' : 'var(--c5)' },
+    { label: 'Sessions on file', value: formatCount(total), note: 'all recorded sessions', icon: IC.phone, color: 'var(--c1)' },
+    { label: 'This week', value: formatCount(weekCount), delta: weekDelta.text, deltaTone: weekDelta.tone, note: 'all sessions, against the week before', icon: IC.phone, color: 'var(--c2)' },
+    { label: 'Answer rate on this page', value: calls.length ? answerRate.toFixed(1) + '%' : '-', note: 'connected against attempted on this page', icon: IC.check, color: 'var(--c6)' },
+    { label: 'Average talk time on this page', value: dur(avgDur), note: fmt(Math.round(minutes)) + ' minutes on this page', icon: IC.clock, color: 'var(--c3)' },
+    { label: 'Live right now', value: formatCount(liveCount), note: 'active, ongoing or ringing across all sessions', icon: IC.video, color: liveCount ? 'var(--ok)' : 'var(--c5)' },
   ];
 
   const rows: DeskRow[] = calls.map(r => {
@@ -178,7 +180,7 @@ export default async function CallsPage() {
   });
 
   const tabs = [
-    { key: 'all', label: 'All calls', count: rows.length },
+    { key: 'all', label: 'Calls on this page', count: rows.length },
     { key: 'live', label: 'Live', count: rows.filter(r => r.tabs.includes('live')).length },
     { key: 'connected', label: 'Connected', count: rows.filter(r => r.tabs.includes('connected')).length },
     { key: 'missed', label: 'Never connected', count: rows.filter(r => r.tabs.includes('missed')).length },
@@ -188,13 +190,15 @@ export default async function CallsPage() {
   ];
 
   return (
-    <Shell admin={admin} active="/calls" title="Calls" sub="Every session the calls system created, read straight from its own records. Nothing here is sampled or estimated.">
+    <Shell admin={admin} active="/calls" title="Calls" sub="Exact session totals and a paged view of the call history. Review each session and its recorded outcome.">
       <StatStrip cards={cards} />
+      <RecordPages path="/calls" range={range} loaded={rows.length} label="Sessions" />
+      <p className="text-sm text-[var(--txt-muted)]">The filters and charts below describe the sessions on this page.</p>
 
       <div className="mt-4" style={PANEL}>
         <div style={HEAD}>
           <div style={H_TITLE}>Call activity</div>
-          <div style={H_SUB}>Connected against never connected, last 30 days</div>
+          <div style={H_SUB}>Sessions on this page during the last 30 days</div>
         </div>
         <div style={{ padding: '18px 16px 14px' }}>
           <StackBars days={dayRows} height={150} series={[
@@ -207,6 +211,7 @@ export default async function CallsPage() {
       <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_336px]">
         <div>
           <Desk
+            key={range.page}
             tabs={tabs}
             columns={[{ label: 'From' }, { label: 'To' }, { label: 'Type' }, { label: 'Status' }, { label: 'Talked', align: 'right' }, { label: 'When', align: 'right' }]}
             grid="minmax(180px,1.6fr) minmax(150px,1.3fr) 100px 108px 90px 92px"
@@ -215,10 +220,10 @@ export default async function CallsPage() {
               { key: 'type', label: 'Type', options: ['Voice', 'Video', 'Group'] },
               { key: 'status', label: 'Status', options: Object.keys(statusCount).map(title) },
             ]}
-            searchHint="Search callers, receivers, call id"
+            searchHint="Filter this page by caller, receiver or call id"
             detailTitle="Call session"
             minWidth={900}
-            pageSize={12}
+            pageSize={DESK_PAGE_SIZE}
           />
         </div>
 
@@ -226,17 +231,17 @@ export default async function CallsPage() {
           <div style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>How people call</div>
-              <div style={H_SUB}>Voice, video and group across every session</div>
+              <div style={H_SUB}>Voice, video and group on this page</div>
             </div>
             <div style={{ padding: 16 }}>
-              {kindSlices.length === 0 ? <Empty note="No call session recorded yet." /> : <Donut slices={kindSlices} centerLabel="calls" size={148} />}
+              {kindSlices.length === 0 ? <Empty note="No call session on this page." /> : <Donut slices={kindSlices} centerLabel="calls" size={148} />}
             </div>
           </div>
 
           <div className="mt-4" style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>How calls end</div>
-              <div style={H_SUB}>call_sessions.status</div>
+              <div style={H_SUB}>Recorded status of sessions on this page</div>
             </div>
             <div style={{ padding: 16 }}>
               {statusSlices.length === 0 ? <Empty note="Nothing recorded yet." /> : <Donut slices={statusSlices} centerLabel="sessions" size={148} />}
@@ -246,10 +251,10 @@ export default async function CallsPage() {
           <div className="mt-4" style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>Who talks most</div>
-              <div style={H_SUB}>Total connected time as the caller</div>
+              <div style={H_SUB}>Connected time as the caller on this page</div>
             </div>
             <div style={{ padding: 16 }}>
-              {topTalkers.length === 0 ? <Empty note="No call has connected yet." /> : topTalkers.map(([id, secs]) => (
+              {topTalkers.length === 0 ? <Empty note="No connected call on this page." /> : topTalkers.map(([id, secs]) => (
                 <div key={id} style={{ marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, marginBottom: 5 }}>
                     <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nameOf(id)}</span>

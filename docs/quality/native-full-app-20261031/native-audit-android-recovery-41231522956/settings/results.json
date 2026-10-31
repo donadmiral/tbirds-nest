@@ -1,0 +1,1022 @@
+[
+  {
+    "id": "settings-settings",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793472867727,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2382
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 22531
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 22,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793472908208
+  },
+  {
+    "id": "settings-hiddenwords",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793472908209,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2194
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 20450
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793472945205
+  },
+  {
+    "id": "settings-mutedwords",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793472945206,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2193
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 25691
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793472981819
+  },
+  {
+    "id": "settings-archive",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793472981820,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2187
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 20469
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473018239
+  },
+  {
+    "id": "settings-youractivity",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473018239,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2197
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 20471
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473055443
+  },
+  {
+    "id": "settings-loginactivity",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473055443,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2204
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 27529
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473093247
+  },
+  {
+    "id": "settings-blockedaccounts",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473093247,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2203
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 22190
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473130256
+  },
+  {
+    "id": "settings-restrictedaccounts",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473130257,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2284
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 20430
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": false,
+      "issue": "unhandled-fixture-contract"
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473167699
+  },
+  {
+    "id": "settings-savedposts",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473167699,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2199
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 20439
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473204963
+  },
+  {
+    "id": "settings-mutedstories",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473204964,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2287
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 26053
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 21,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473242124
+  },
+  {
+    "id": "settings-followrequests",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473242125,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2204
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 27516
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473279791
+  },
+  {
+    "id": "settings-terms",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473279792,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2097
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 24574
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 19,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473315442
+  },
+  {
+    "id": "settings-privacypolicy",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473315442,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2105
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 19245
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 19,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473352814
+  },
+  {
+    "id": "settings-helpsupport",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473352815,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2103
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 19266
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 19,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473390436
+  },
+  {
+    "id": "settings-changeusername",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473390437,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2106
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 24295
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 19,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473427938
+  },
+  {
+    "id": "settings-accountstanding",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473427938,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2204
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 22213
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473465351
+  },
+  {
+    "id": "settings-applyverification",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473465352,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2308
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 26950
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 21,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473502825
+  },
+  {
+    "id": "settings-twofactor",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473502826,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2188
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 27248
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473539570
+  },
+  {
+    "id": "settings-monetization",
+    "group": "settings",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473539571,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2390
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 26679
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": false,
+      "issue": "unhandled-fixture-contract"
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473576871
+  },
+  {
+    "id": "stories-storycreationmenu",
+    "group": "stories",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473576872,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 1307
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 15196
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 11,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473615082
+  },
+  {
+    "id": "stories-storycomposer",
+    "group": "stories",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473615083,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 1570
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 16094
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 14,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473668695
+  },
+  {
+    "id": "stories-storylayout",
+    "group": "stories",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473668697,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 1301
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 9582
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 11,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473705672
+  },
+  {
+    "id": "stories-storyviewer",
+    "group": "stories",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473705674,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2337
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 25459
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": false,
+      "issue": "unhandled-fixture-contract"
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473758524
+  },
+  {
+    "id": "directories-channels",
+    "group": "directories",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473758525,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 1402
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 11025
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 12,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473795579
+  },
+  {
+    "id": "settings-hidden-word-write",
+    "group": "settings",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473795580,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2556
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 27824
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 23,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473841225
+  },
+  {
+    "id": "settings-muted-word-write",
+    "group": "settings",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473841227,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2555
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 22517
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 23,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473886825
+  },
+  {
+    "id": "settings-appearance",
+    "group": "settings",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793473886827,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2829
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 23987
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 27,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793473946904
+  }
+]

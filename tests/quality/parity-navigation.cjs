@@ -86,7 +86,7 @@ test('the expanded native carousel retains mixed attachment order and opens the 
   const palette = load('src/constants/tokens/dark.ts').dark;
   const hooks = { useState: initial => [typeof initial === 'function' ? initial() : initial, () => {}], useRef: value => ({ current: value }), useEffect() {}, useCallback: fn => fn };
   const Carousel = load('src/components/PostCarousel.tsx', {
-    react: hooks, '../theme/useTheme': { themedSheet: fn => fn(palette) },
+    react: hooks, '../theme/useTheme': { themedSheet: fn => fn(palette), useTheme: () => ({ t: palette, isDark: true }) },
     'react-native': { View: 'View', Text: 'Text', FlatList: 'FlatList', TouchableOpacity: 'Button', ActivityIndicator: 'Spinner', Animated: {}, StyleSheet: {} },
     'expo-image': {}, 'expo-video': {}, '../lib/videoEngine': {},
     './MediaRenderer': { useMediaTags: () => ({}) }, './stories/StoryFilters': {}, './stories/storyPanels': {},

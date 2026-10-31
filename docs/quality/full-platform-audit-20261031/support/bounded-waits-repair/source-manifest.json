@@ -1,0 +1,17 @@
+[
+  {
+    "path": "shared/memberSupport.ts",
+    "bytes": 15381,
+    "sha256": "79d57676a2e615bfc61f95698e8dbdf8c427d536559450abcbdbb94a4573114b"
+  },
+  {
+    "path": "tests/helpers/memberSupportHarness.cjs",
+    "bytes": 14383,
+    "sha256": "7fd06c23ff5c59fb257024ed0c21cd45a1a368a48c4c2aeedeffe4ef4faf65fa"
+  },
+  {
+    "path": "tests/quality/member-support-deadline.cjs",
+    "bytes": 4767,
+    "sha256": "0d03484991fc2f0cca475cf1f01ecd9e95cc4af12925c8bb423abe24dbad8ec9"
+  }
+]

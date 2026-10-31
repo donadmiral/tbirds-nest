@@ -1,0 +1,150 @@
+{
+  "reviewedAt": "2026-10-31T19:42:07.911788+00:00",
+  "runId": 41234444953,
+  "recoverySource": "c1bb0784ba031ac8dc4e14f5d0cdeeacadd024c5",
+  "applicationSource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "allShardsTerminal": true,
+  "attemptedCases": 0,
+  "requiredCases": 85,
+  "classification": "Recovery setup defect: all three stop in xcodebuild -version at the wrapper five-second budget after successful Simulator creation and boot. No application failure or compatibility mismatch is established.",
+  "shards": [
+    {
+      "shard": "account",
+      "jobId": 124635169318,
+      "completedAt": "2026-10-31T19:35:37Z",
+      "artifact": {
+        "id": 13055137707,
+        "bytes": 10257,
+        "sha256": "71688e49fbb60bfc43583a6aa54f29eb75cbfe355505c2bc787e1f4e6b85219f"
+      },
+      "stage": "compatibility-xcode-version",
+      "command": [
+        "xcodebuild",
+        "-version"
+      ],
+      "timeoutSeconds": 5,
+      "attemptedCases": 0,
+      "status": "failed-before-install",
+      "completedSetup": [
+        {
+          "stage": "create",
+          "exitCode": 0,
+          "elapsedSeconds": 42.69245042699998
+        },
+        {
+          "stage": "boot",
+          "exitCode": 0,
+          "elapsedSeconds": 4.138860429999966
+        },
+        {
+          "stage": "bootstatus",
+          "exitCode": 0,
+          "elapsedSeconds": 119.71957910699996
+        }
+      ],
+      "originalManifestHashes": {
+        "binary-manifest.json": "d0fc6c68febe7dda2fe63b9ab89182f8e4bb59cb9ce35a5b655565b44c3239f6",
+        "audit-manifest.json": "f0b37826ed8709e0772e5d9ea4d73d9e7ef48ab7d2894440608ab2e59848b1fe"
+      },
+      "retainedFiles": {
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/account/setup-commands.json": "6362e9e8e0b3e6706772e47f324c964b747ac86ff4a3672c26bd10d50dc715af",
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/account/recovery-provenance.json": "cf107b9c7e689159ad822ef61fc5ba5a55e3ce605d991783d55e92b09a60fe27",
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/account/job-failure-projection.json": "f229f81aeedfafda8ffeb90a95c7c2970217306f20373150b1d98fbe9264df33"
+      }
+    },
+    {
+      "shard": "social",
+      "jobId": 124635169620,
+      "completedAt": "2026-10-31T19:39:14Z",
+      "artifact": {
+        "id": 13054734673,
+        "bytes": 10245,
+        "sha256": "8ad05428661205df452846564ffdb4f99b984f293ef0fe6df103f7b85e5fdf9c"
+      },
+      "stage": "compatibility-xcode-version",
+      "command": [
+        "xcodebuild",
+        "-version"
+      ],
+      "timeoutSeconds": 5,
+      "attemptedCases": 0,
+      "status": "failed-before-install",
+      "completedSetup": [
+        {
+          "stage": "create",
+          "exitCode": 0,
+          "elapsedSeconds": 73.6887973390003
+        },
+        {
+          "stage": "boot",
+          "exitCode": 0,
+          "elapsedSeconds": 9.452378324000165
+        },
+        {
+          "stage": "bootstatus",
+          "exitCode": 0,
+          "elapsedSeconds": 196.5610410280001
+        }
+      ],
+      "originalManifestHashes": {
+        "binary-manifest.json": "d0fc6c68febe7dda2fe63b9ab89182f8e4bb59cb9ce35a5b655565b44c3239f6",
+        "audit-manifest.json": "f0b37826ed8709e0772e5d9ea4d73d9e7ef48ab7d2894440608ab2e59848b1fe"
+      },
+      "retainedFiles": {
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/social/setup-commands.json": "1221f98c1610e4e77df85856014aee66afa124ced277fe117d38c119164581d8",
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/social/recovery-provenance.json": "e75d32222ba2dfeb97c942e198d7370321cb308673527c2b62b48344db1a88c9",
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/social/job-failure-projection.json": "9bfb41b6415bada69f3d43521186a4db61342f346f8ef582d09a68c5f8b9cba5"
+      }
+    },
+    {
+      "shard": "settings",
+      "jobId": 124635169640,
+      "completedAt": "2026-10-31T19:41:31Z",
+      "artifact": {
+        "id": 13054399325,
+        "bytes": 10107,
+        "sha256": "050a15c6ac8290aa151921f9a6adaf1759af72fda9436b940996e0a1f49cef56"
+      },
+      "stage": "compatibility-xcode-version",
+      "command": [
+        "xcodebuild",
+        "-version"
+      ],
+      "timeoutSeconds": 5,
+      "attemptedCases": 0,
+      "status": "failed-before-install",
+      "completedSetup": [
+        {
+          "stage": "create",
+          "exitCode": 0,
+          "elapsedSeconds": 65.36601214699999
+        },
+        {
+          "stage": "boot",
+          "exitCode": 0,
+          "elapsedSeconds": 10.09527406999996
+        },
+        {
+          "stage": "bootstatus",
+          "exitCode": 0,
+          "elapsedSeconds": 278.25957390200006
+        }
+      ],
+      "originalManifestHashes": {
+        "binary-manifest.json": "d0fc6c68febe7dda2fe63b9ab89182f8e4bb59cb9ce35a5b655565b44c3239f6",
+        "audit-manifest.json": "f0b37826ed8709e0772e5d9ea4d73d9e7ef48ab7d2894440608ab2e59848b1fe"
+      },
+      "retainedFiles": {
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/settings/setup-commands.json": "1d2fc7045c5ef16fa002292632041b10d57837970d1745473350283463925be9",
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/settings/recovery-provenance.json": "ac71a99cd40f4eb7474d3adf50590a9c6b260ca9c0fe72e832e275c6cca82c15",
+        "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/settings/job-failure-projection.json": "bb5b48dd59cd745b3dab1cd6973f1c26ab2d1123cba8556c2571ad56cd7f4077"
+      }
+    }
+  ],
+  "correctedSourcePublishedSeparately": "0969400c77e05da3ce0f931c9b25e88b93315439",
+  "correctionScope": "Reuse original app and cases; align compatibility metadata reads with the existing normal 30-second budget and retain each read boundary. New runtime outcome pending.",
+  "limits": [
+    "The earlier 30-second create failure remains a separate prior observation without partial output.",
+    "No app install, navigation, auth/account readback, reader, capture or decoder acceptance from this run."
+  ]
+}

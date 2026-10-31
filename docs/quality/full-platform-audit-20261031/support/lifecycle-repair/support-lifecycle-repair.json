@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T18:48:11.893990+00:00",
+  "baseApplicationHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "state": "Local coordinated Support candidate; no publication or hosted activation in this receipt",
+  "beforeEvidence": {
+    "path": "docs/quality/full-platform-audit-20261031/support/independent-review/support-independent-review-before.json",
+    "sha256": "405a3b2ee5d5c7779f8a0391db296791fe899a0801bf614f7ae78d9a5689a41f",
+    "bytes": 7740
+  },
+  "changes": [
+    {
+      "finding": "SUP-REVIEW-001",
+      "result": "Each load owns a monotonically increasing read revision. Starting a mutation and accepting its confirmation retire older reads; current visit, route and unmount guards remain. Both create-list and reply-conversation overwrite cases pass."
+    },
+    {
+      "finding": "SUP-REVIEW-002",
+      "result": "A database receipt is separate from UI acknowledgement. Only a current exact-session/current-visit confirmation may synchronously acknowledge the draft and then remove the persisted retry UUID. Discarded/unmounted/blurred confirmations retain that identity. Later same-payload retry reuses it; a later intentional acknowledged send receives a new identity."
+    },
+    {
+      "finding": "SUP-REVIEW-003",
+      "result": "Both platform wrappers capture existing navigation-session scope and an access token before async hashing/storage. Recheck lifecycle/session after preparation and before query construction, pin Authorization, and abort on scope invalidation. Same-owner new login and A-to-B-to-A fail closed; same-session refresh remains valid. Already-issued server work may still complete after abort."
+    },
+    {
+      "finding": "SUP-REVIEW-004",
+      "result": "Two additional actual-component cases reproduced slow acknowledgement cleanup consuming a subsequent intentional identical create/reply. Per-store/per-key get-set/remove operations now serialize locally, retire their queue when settled, and retain canonical UUID validation. No private body is persisted."
+    }
+  ],
+  "validation": {
+    "nativeComponentAndSdk": {
+      "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/member-support-lifecycle.cjs",
+      "formalTests": 34,
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 2582.708111,
+      "actualSource": [
+        "TicketScreen",
+        "ContactSupportScreen",
+        "native memberSupportService wrapper",
+        "shared memberSupport",
+        "native navigationCache + shared navigationSessionIdentity",
+        "installed @supabase/supabase-js"
+      ],
+      "controlledHosts": [
+        "React hook/focus lifecycle host",
+        "native components and Alert",
+        "Auth session source",
+        "AsyncStorage-shaped Map",
+        "cryptography timing gates",
+        "synthetic HTTP provider"
+      ],
+      "cases": [
+        "older reads released after confirmed create/reply",
+        "discarded confirmation after blur/refocus",
+        "undispatched unmount",
+        "session ABA without intermediate React render",
+        "same-owner new login",
+        "normal refresh with pinned bearer",
+        "SDK internal auth wait crossing ABA or refresh",
+        "storage wait crossing blur",
+        "late server receipt after ignored abort",
+        "lost-response confirmation/replay",
+        "canonical retry UUID replacement",
+        "intentional later identical send",
+        "slow acknowledgement cleanup race",
+        "preserve newly edited draft",
+        "old finally cannot unlock a new submission",
+        "ticket-route identity change",
+        "replay after staff solve retains Solved"
+      ]
+    },
+    "browser": {
+      "command": "PLATINUM_CHROMIUM=/tmp/platinum-audit-browser/chrome-linux64/chrome PLATINUM_SUPPORT_OUTPUT=/tmp/platinum-support-lifecycle-browser PLATINUM_SUPPORT_ARTIFACTS=/tmp/platinum-support-lifecycle-evidence node web/tests/browser/support-run.cjs",
+      "cases": 32,
+      "passed": 32,
+      "failed": 0,
+      "pageErrors": 0,
+      "originalCasesPreserved": 22,
+      "newLifecycleCases": 10,
+      "runtime": "153.0.8010.12",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "scope": "Actual web Support/Ticket components and wrapper, actual React/DOM, shared helper and web navigation store. Auth/database and framework routing are explicit fixture adapters. Non-loopback browser requests are blocked. No deployed authorization/session acceptance claim.",
+      "execution": "Initial restricted local listener returned EPERM before cases. Same suite passed with approved subprocess-enabled execution; assertions unchanged."
+    },
+    "cleanupCounterfactual": {
+      "tests": 2,
+      "passed": 0,
+      "failed": 2,
+      "expected": "Two intentional identical sends after first UI acknowledgement",
+      "observedBefore": "Only one committed row for each create/reply variant",
+      "after": "Both corresponding final cases pass"
+    },
+    "typecheck": {
+      "native": {
+        "exitCode": 0
+      },
+      "web": {
+        "exitCode": 0
+      }
+    },
+    "scopedLint": {
+      "native": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0
+      },
+      "web": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0
+      }
+    },
+    "scopedWhitespace": {
+      "exitCode": 0
+    },
+    "databasePreviouslyIndependentlyExecuted": {
+      "tests": 14,
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "rerunForThisClientRepair": false,
+      "sourceUnchanged": true,
+      "receipt": "docs/quality/full-platform-audit-20261031/support/independent-review/support-independent-review-before.json"
+    }
+  },
+  "sourceHashesAtSeal": {
+    "shared/memberSupport.ts": {
+      "sha256": "43461159e4f1aefe37db596a73630ae6cf24a16f64dd273b6e80db5c9037c789",
+      "bytes": 13790
+    },
+    "src/services/memberSupportService.ts": {
+      "sha256": "11320c316e4bf14a5dc8ec4adb9ed4fca89c36f230c61cef7540c15f66b3fdec",
+      "bytes": 1377
+    },
+    "web/lib/memberSupport.ts": {
+      "sha256": "9149ee489122842c4f329863268b3787f4d544639334c95806648ba7d7724ad5",
+      "bytes": 1179
+    },
+    "src/screens/profile/ContactSupportScreen.tsx": {
+      "sha256": "0fee99f26b98c98ad8aeb84939c091b568b37553eb29c15cfdf2dff8130eef87",
+      "bytes": 13435
+    },
+    "src/screens/profile/TicketScreen.tsx": {
+      "sha256": "ad5c5166a9035e5828df4c7e0275a43cd9cc44a0b35882dbc742f435c55b5c0d",
+      "bytes": 10456
+    },
+    "web/app/settings/support/page.tsx": {
+      "sha256": "cf37434b1d72617f03586e576b2d691e69d4eeaa1c56200de6867dd9142e1551",
+      "bytes": 8867
+    },
+    "web/app/settings/support/[id]/page.tsx": {
+      "sha256": "43aa7f6979866b9e118c9b92a87ab795985ca35b752ab6c439559f34987e2249",
+      "bytes": 7696
+    },
+    "tests/helpers/memberSupportHarness.cjs": {
+      "sha256": "62bf00f32e9775de699da8ef4edbb12577dc30e515080d7365e1d3a6bc504330",
+      "bytes": 14352
+    },
+    "tests/quality/member-support-lifecycle.cjs": {
+      "sha256": "2afd2bd363a35e71e2a2bc084adb101bafd135a84b91b73dfe2517b9af761807",
+      "bytes": 11260
+    },
+    "web/tests/browser/support-backend.ts": {
+      "sha256": "71c7b5c112f26054868926bf28ccfc962717cb56794355393c1d8ecc5f7b9fa9",
+      "bytes": 9421
+    },
+    "web/tests/browser/support-fixture.tsx": {
+      "sha256": "864da37816cfa6e4b6fb23f2f79da9cb351f961433bd346fb5e2a5c29fbfdab5",
+      "bytes": 498
+    },
+    "web/tests/browser/support-run.cjs": {
+      "sha256": "7f3c5f8c4b788a2abe3a1dff4919c6aedfac48b5d9262682463c1c916fb5a7e8",
+      "bytes": 25432
+    }
+  },
+  "unchangedAtomicContract": {
+    "supabase/migrations/20261031181428_member_support_atomic_reply.sql": {
+      "sha256": "de99b019d678dfc51c5b8d6c8a7e533454f7965642bade94929c3fd5d040f7c1",
+      "bytes": 3982
+    },
+    "supabase/tests/member-support-atomic-db.test.cjs": {
+      "sha256": "b60d4ecfbd18b76d21a658840fdb513581ab5c06307ed439ea42aec1f495484d",
+      "bytes": 9685
+    }
+  },
+  "limits": [
+    "No hosted database migration or provider write was executed. Missing send_member_support_reply remains an explicit fail-closed unavailable reply state; no unsafe legacy client fallback.",
+    "Both original stage4 tool invocations still lack independently established terminal outcomes. This client work does not authorize a migration retry or resolve that separate rollout blocker.",
+    "Aborting or reaching a client deadline does not prove server rollback. Stable UUID and exact receipt/readback are required after ambiguous completion.",
+    "Per-key storage serialization is within one JavaScript client/store instance; it is not a cross-device duplicate-intent protocol. Server UUID idempotency still protects retries with the same request identity.",
+    "Native lifecycle coverage uses an actual-component/manual-hook host and installed SDK with controlled Auth; it is not an emulator, real Auth server, RLS integration or OS scheduling acceptance.",
+    "Browser framework routing/Auth/provider are controlled. The actual web session boundary and native root session key are existing integration dependencies; this run proves the wrapper and current UI fences, not a fresh signed-in deployment.",
+    "The member ticket list remains latest 10 and history remains subject to the provider row cap. Large-history pagination was not expanded or newly accepted here.",
+    "Native shared/UI source and browser source were frozen during their final respective runs. Receipt records their current source bytes; earlier before-review findings remain separate and immutable."
+  ],
+  "evidence": {
+    "SUP-023.png": {
+      "sha256": "cb8a51c7a438c07bcbfb7db04eb6702bf9ad5fcc29d8150242529475da73f070",
+      "bytes": 33698
+    },
+    "SUP-024.png": {
+      "sha256": "50e2abc9c1263060f4fdd112b0fa9a13830c2b1ff7c3616129978f2ece09d5b9",
+      "bytes": 39676
+    },
+    "SUP-028.png": {
+      "sha256": "17eca8d2ac912f0922c802ae1ab588af79aca71fa4dc6de4333e5592d55cb635",
+      "bytes": 32476
+    },
+    "SUP-032.png": {
+      "sha256": "58f093f136f778e795f3d900befcac4f4482794f3fea1278b511442bbf2f3a60",
+      "bytes": 39572
+    },
+    "browser-after.json": {
+      "sha256": "abc0b20facc508b91e4c22bf3a3fcecb1a8a5d1703c4634bba09b12cacb623f6",
+      "bytes": 68801
+    },
+    "browser-after.log": {
+      "sha256": "c81a9cff88ce3faeec93676332ed23e675da53ee44ed6477284f01d670a3711b",
+      "bytes": 2652
+    },
+    "cleanup-race-before.tap": {
+      "sha256": "8ba3490d49c948640e9a6319e3d5336a10c1d45ba65b55d36d1912e8e3ef5f01",
+      "bytes": 1916
+    },
+    "native-eslint.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "native-lifecycle-after.tap": {
+      "sha256": "dc3bc9413d2d860f646bb8a2b273436491ae502d5cc4296e7d4a1e96d775c5f1",
+      "bytes": 8089
+    },
+    "native-typescript.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "web-eslint.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "web-typescript.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  }
+}

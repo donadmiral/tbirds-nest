@@ -1,0 +1,957 @@
+TAP version 13
+# Subtest: actual get_my_businesses query uses its exact signed audit contract
+not ok 1 - actual get_my_businesses query uses its exact signed audit contract
+  ---
+  duration_ms: 118.743669
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/get_my_businesses"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/get_my_businesses'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/get_my_businesses'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: actual get_communities_page query uses its exact signed audit contract
+not ok 2 - actual get_communities_page query uses its exact signed audit contract
+  ---
+  duration_ms: 4.574982
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/get_communities_page"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/get_communities_page'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/get_communities_page'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual clubs query uses its exact signed audit contract
+not ok 3 - actual clubs query uses its exact signed audit contract
+  ---
+  duration_ms: 3.864233
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for GET /rest/v1/clubs"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for GET /rest/v1/clubs'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for GET /rest/v1/clubs'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual club_members query uses its exact signed audit contract
+not ok 4 - actual club_members query uses its exact signed audit contract
+  ---
+  duration_ms: 3.163979
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for GET /rest/v1/club_members"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for GET /rest/v1/club_members'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for GET /rest/v1/club_members'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual user_restrictions query uses its exact signed audit contract
+not ok 5 - actual user_restrictions query uses its exact signed audit contract
+  ---
+  duration_ms: 22.566948
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for GET /rest/v1/user_restrictions"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for GET /rest/v1/user_restrictions'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for GET /rest/v1/user_restrictions'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual creator_monetization_snapshot query uses its exact signed audit contract
+not ok 6 - actual creator_monetization_snapshot query uses its exact signed audit contract
+  ---
+  duration_ms: 3.359724
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/creator_monetization_snapshot"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/creator_monetization_snapshot'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/creator_monetization_snapshot'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual get_restricted_accounts query uses its exact signed audit contract
+not ok 7 - actual get_restricted_accounts query uses its exact signed audit contract
+  ---
+  duration_ms: 5.644251
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/get_restricted_accounts"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/get_restricted_accounts'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/get_restricted_accounts'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual report_client_error query uses its exact signed audit contract
+not ok 8 - actual report_client_error query uses its exact signed audit contract
+  ---
+  duration_ms: 2.974965
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/report_client_error"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/report_client_error'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/report_client_error'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual get_notifications_page query uses its exact signed audit contract
+not ok 9 - actual get_notifications_page query uses its exact signed audit contract
+  ---
+  duration_ms: 20.897587
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/get_notifications_page"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/get_notifications_page'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/get_notifications_page'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual can_view_post query uses its exact signed audit contract
+not ok 10 - actual can_view_post query uses its exact signed audit contract
+  ---
+  duration_ms: 14.282516
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/can_view_post"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/can_view_post'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/can_view_post'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual search_people query uses its exact signed audit contract
+not ok 11 - actual search_people query uses its exact signed audit contract
+  ---
+  duration_ms: 10.672626
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/search_people"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/search_people'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/search_people'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual search_posts query uses its exact signed audit contract
+not ok 12 - actual search_posts query uses its exact signed audit contract
+  ---
+  duration_ms: 9.00064
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/search_posts"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/search_posts'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/search_posts'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual search_jobs_fts query uses its exact signed audit contract
+not ok 13 - actual search_jobs_fts query uses its exact signed audit contract
+  ---
+  duration_ms: 11.540261
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/search_jobs_fts"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/search_jobs_fts'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/search_jobs_fts'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual search_listings_fts query uses its exact signed audit contract
+not ok 14 - actual search_listings_fts query uses its exact signed audit contract
+  ---
+  duration_ms: 9.068742
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/search_listings_fts"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/search_listings_fts'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/search_listings_fts'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual log_search_event query uses its exact signed audit contract
+not ok 15 - actual log_search_event query uses its exact signed audit contract
+  ---
+  duration_ms: 8.524053
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/log_search_event"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/log_search_event'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/log_search_event'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual get_posts_by_hashtag query uses its exact signed audit contract
+not ok 16 - actual get_posts_by_hashtag query uses its exact signed audit contract
+  ---
+  duration_ms: 4.779911
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/get_posts_by_hashtag"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/get_posts_by_hashtag'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/get_posts_by_hashtag'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual get_conversations_by_context query uses its exact signed audit contract
+not ok 17 - actual get_conversations_by_context query uses its exact signed audit contract
+  ---
+  duration_ms: 3.642109
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/get_conversations_by_context"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/get_conversations_by_context'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/get_conversations_by_context'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual get_seller_rating query uses its exact signed audit contract
+not ok 18 - actual get_seller_rating query uses its exact signed audit contract
+  ---
+  duration_ms: 2.260801
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/get_seller_rating"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/get_seller_rating'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/get_seller_rating'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual seller_review_page query uses its exact signed audit contract
+not ok 19 - actual seller_review_page query uses its exact signed audit contract
+  ---
+  duration_ms: 10.391532
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: 'No synthetic contract for POST /rest/v1/rpc/seller_review_page'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    request (eval at loadTs (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:23:3), <anonymous>:33:19)
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:109:18)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual starred_messages query uses its exact signed audit contract
+not ok 20 - actual starred_messages query uses its exact signed audit contract
+  ---
+  duration_ms: 54.324974
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for GET /rest/v1/starred_messages"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for GET /rest/v1/starred_messages'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for GET /rest/v1/starred_messages'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual saved_messages query uses its exact signed audit contract
+not ok 21 - actual saved_messages query uses its exact signed audit contract
+  ---
+  duration_ms: 39.021592
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for GET /rest/v1/saved_messages"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for GET /rest/v1/saved_messages'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for GET /rest/v1/saved_messages'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual get_message_requests query uses its exact signed audit contract
+not ok 22 - actual get_message_requests query uses its exact signed audit contract
+  ---
+  duration_ms: 3.803011
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:107:27'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"code":"NATIVE_UI_UNHANDLED","message":"No synthetic contract for POST /rest/v1/rpc/get_message_requests"}
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/get_message_requests'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/get_message_requests'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: get_my_businesses rejects extra RPC arguments or query fields instead of pretending success
+ok 23 - get_my_businesses rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 4.199007
+  type: 'test'
+  ...
+# Subtest: get_communities_page rejects extra RPC arguments or query fields instead of pretending success
+ok 24 - get_communities_page rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 1.5421
+  type: 'test'
+  ...
+# Subtest: clubs rejects extra RPC arguments or query fields instead of pretending success
+ok 25 - clubs rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 1.261058
+  type: 'test'
+  ...
+# Subtest: club_members rejects extra RPC arguments or query fields instead of pretending success
+ok 26 - club_members rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 5.566033
+  type: 'test'
+  ...
+# Subtest: user_restrictions rejects extra RPC arguments or query fields instead of pretending success
+ok 27 - user_restrictions rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 7.497309
+  type: 'test'
+  ...
+# Subtest: creator_monetization_snapshot rejects extra RPC arguments or query fields instead of pretending success
+ok 28 - creator_monetization_snapshot rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 1.796242
+  type: 'test'
+  ...
+# Subtest: get_restricted_accounts rejects extra RPC arguments or query fields instead of pretending success
+ok 29 - get_restricted_accounts rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 2.682305
+  type: 'test'
+  ...
+# Subtest: report_client_error rejects extra RPC arguments or query fields instead of pretending success
+ok 30 - report_client_error rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 1.530132
+  type: 'test'
+  ...
+# Subtest: get_notifications_page rejects extra RPC arguments or query fields instead of pretending success
+ok 31 - get_notifications_page rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 7.895658
+  type: 'test'
+  ...
+# Subtest: can_view_post rejects extra RPC arguments or query fields instead of pretending success
+ok 32 - can_view_post rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 5.081754
+  type: 'test'
+  ...
+# Subtest: search_people rejects extra RPC arguments or query fields instead of pretending success
+ok 33 - search_people rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 5.666895
+  type: 'test'
+  ...
+# Subtest: search_posts rejects extra RPC arguments or query fields instead of pretending success
+ok 34 - search_posts rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 5.227534
+  type: 'test'
+  ...
+# Subtest: search_jobs_fts rejects extra RPC arguments or query fields instead of pretending success
+ok 35 - search_jobs_fts rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 7.94398
+  type: 'test'
+  ...
+# Subtest: search_listings_fts rejects extra RPC arguments or query fields instead of pretending success
+ok 36 - search_listings_fts rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 4.523535
+  type: 'test'
+  ...
+# Subtest: log_search_event rejects extra RPC arguments or query fields instead of pretending success
+ok 37 - log_search_event rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 4.994534
+  type: 'test'
+  ...
+# Subtest: get_posts_by_hashtag rejects extra RPC arguments or query fields instead of pretending success
+ok 38 - get_posts_by_hashtag rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 3.570221
+  type: 'test'
+  ...
+# Subtest: get_conversations_by_context rejects extra RPC arguments or query fields instead of pretending success
+ok 39 - get_conversations_by_context rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 2.867764
+  type: 'test'
+  ...
+# Subtest: get_seller_rating rejects extra RPC arguments or query fields instead of pretending success
+ok 40 - get_seller_rating rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 1.606757
+  type: 'test'
+  ...
+# Subtest: seller_review_page rejects extra RPC arguments or query fields instead of pretending success
+ok 41 - seller_review_page rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 0.873043
+  type: 'test'
+  ...
+# Subtest: starred_messages rejects extra RPC arguments or query fields instead of pretending success
+ok 42 - starred_messages rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 35.95536
+  type: 'test'
+  ...
+# Subtest: saved_messages rejects extra RPC arguments or query fields instead of pretending success
+ok 43 - saved_messages rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 30.984051
+  type: 'test'
+  ...
+# Subtest: get_message_requests rejects extra RPC arguments or query fields instead of pretending success
+ok 44 - get_message_requests rejects extra RPC arguments or query fields instead of pretending success
+  ---
+  duration_ms: 2.951089
+  type: 'test'
+  ...
+# Subtest: actual network directory publishes all six independent sections without invented communities or clubs
+not ok 45 - actual network directory publishes all six independent sections without invented communities or clubs
+  ---
+  duration_ms: 12.467164
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:142:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + {
+    +   clubs: 'Clubs and membership details could not load. Please retry.',
+    +   communities: 'Communities could not load. Please retry.'
+    + }
+    - {}
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    communities: 'Communities could not load. Please retry.'
+    clubs: 'Clubs and membership details could not load. Please retry.'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:145:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual messages-savedmessages joined list and chat read contracts remain distinct
+not ok 46 - actual messages-savedmessages joined list and chat read contracts remain distinct
+  ---
+  duration_ms: 3.713757
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:153:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for GET /rest/v1/saved_messages'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for GET /rest/v1/saved_messages'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:156:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual messages-starredmessages joined list and chat read contracts remain distinct
+not ok 47 - actual messages-starredmessages joined list and chat read contracts remain distinct
+  ---
+  duration_ms: 9.974806
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:153:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for GET /rest/v1/starred_messages'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for GET /rest/v1/starred_messages'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:156:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: market context, empty notifications and second review case retain exact case ownership
+not ok 48 - market context, empty notifications and second review case retain exact case ownership
+  ---
+  duration_ms: 3.395848
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:162:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/get_conversations_by_context'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/get_conversations_by_context'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:170:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: unselected, wrong case, unauthenticated and A to B to A stale bearer calls cannot read audit data
+not ok 49 - unselected, wrong case, unauthenticated and A to B to A stale bearer calls cannot read audit data
+  ---
+  duration_ms: 1.58896
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:174:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    501 !== 403
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 403
+  actual: 501
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:187:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: malformed JSON, duplicate filters, unexpected writes, unrelated paths and aborted work fail closed
+not ok 50 - malformed JSON, duplicate filters, unexpected writes, unrelated paths and aborted work fail closed
+  ---
+  duration_ms: 0.643658
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:197:1'
+  failureType: 'testCodeFailure'
+  error: "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    JSON.parse (<anonymous>)
+    Object.fetchFixture [as fetch] (/workspace/scratch/f9638ed3020b/platinum-circles/tests/native/backend-fixture.cjs:225:68)
+    Object.fetch (/workspace/scratch/f9638ed3020b/platinum-circles/tests/native/audit/backend-fixture.cjs:33:33)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:200:31)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: diagnostic transport retains redacted error category instead of hiding the original runtime issue
+not ok 51 - diagnostic transport retains redacted error category instead of hiding the original runtime issue
+  ---
+  duration_ms: 1.407978
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:212:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   code: 'NATIVE_UI_UNHANDLED',
+    +   message: 'No synthetic contract for POST /rest/v1/rpc/report_client_error'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    code: 'NATIVE_UI_UNHANDLED'
+    message: 'No synthetic contract for POST /rest/v1/rpc/report_client_error'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-read-contracts.cjs:218:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: case-specific input domains reject different owners, context, page sizes and non-script search
+ok 52 - case-specific input domains reject different owners, context, page sizes and non-script search
+  ---
+  duration_ms: 2.57269
+  type: 'test'
+  ...
+1..52
+# tests 52
+# suites 0
+# pass 23
+# fail 29
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 753.517655

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ImagePlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { MARKET_CATEGORIES, MARKET_CONDITIONS } from "@/lib/market";
+import { withTimeout } from "@/lib/withTimeout";
 
 const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated";
 
@@ -16,7 +17,9 @@ export default function CreateListingPage() {
   const [supabase] = useState(createClient);
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const [marketOn, setMarketOn] = useState(true);
+  const [marketOn, setMarketOn] = useState<boolean | null>(null);
+  const [availabilityError, setAvailabilityError] = useState(false);
+  const [availabilityAttempt, setAvailabilityAttempt] = useState(0);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -31,13 +34,18 @@ export default function CreateListingPage() {
   const [shareToFeed, setShareToFeed] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submitting = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.from("feature_flags").select("key, enabled").eq("key", "market").maybeSingle();
-      if (data && data.enabled === false) setMarketOn(false);
-    })();
-  }, [supabase]);
+    let active = true;
+    void withTimeout(supabase.from("feature_flags").select("key, enabled").eq("key", "market").maybeSingle()).then(({ data, error }) => {
+      if (error) throw error;
+      if (active) { setMarketOn(data?.enabled !== false); setAvailabilityError(false); }
+    }).catch(() => { if (active) setAvailabilityError(true); });
+    return () => { active = false; };
+  }, [supabase, availabilityAttempt]);
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -53,14 +61,17 @@ export default function CreateListingPage() {
   const titleOk = title.trim().length >= 3;
 
   async function submit() {
-    if (pending) return;
+    if (submitting.current || !marketOn) return;
     if (!titleOk) { setError("Give it a title of at least 3 characters."); return; }
     if (!priceOk) { setError("Enter a price. Use 0 for free."); return; }
     if (photos.length === 0) { setError("Add at least one photo."); return; }
-    setPending(true);
+    submitting.current = true; setPending(true);
     setError(null);
-    const { data: sess } = await supabase.auth.getSession();
+    try {
+    const { data: sess, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
     const uid = sess.session?.user.id;
+    if (!mounted.current) return;
     if (!uid) { router.push("/login"); return; }
 
     const urls: string[] = [];
@@ -68,13 +79,15 @@ export default function CreateListingPage() {
       const ext = (p.file.name.split(".").pop() || "jpg").toLowerCase();
       const path = "listings/" + uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
       const bad = await checkUploadableBytes(p.file);
-      if (bad) { setError(bad); setPending(false); return; }
+      if (bad) throw new Error(bad);
+      if (!mounted.current) return;
       const { error: upErr } = await supabase.storage.from("market-media").upload(path, p.file, { contentType: p.file.type });
-      if (upErr) { setError("Photo upload failed: " + upErr.message); setPending(false); return; }
+      if (upErr) throw new Error("Photo upload failed: " + upErr.message);
       const { data: pub } = supabase.storage.from("market-media").getPublicUrl(path);
       urls.push(pub.publicUrl);
     }
 
+    if (!mounted.current) return;
     const { data: listing, error: insErr } = await supabase
       .from("marketplace_listings")
       .insert({
@@ -94,12 +107,10 @@ export default function CreateListingPage() {
       .select("*")
       .single();
     if (insErr || !listing) {
-      setError(insErr?.message || "Could not publish the listing.");
-      setPending(false);
-      return;
+      throw new Error(insErr?.message || "Could not publish the listing.");
     }
 
-    if (shareToFeed) {
+    if (shareToFeed && mounted.current) {
       try {
         const { data: newPost } = await supabase
           .from("posts")
@@ -126,9 +137,13 @@ export default function CreateListingPage() {
       } catch { /* share failures never block the listing */ }
     }
 
-    router.push("/market/" + listing.id);
+    if (mounted.current) router.push("/market/" + listing.id);
+    } catch (reason) {
+      if (mounted.current) setError(reason && typeof reason === "object" && "message" in reason ? String(reason.message) : "Could not publish the listing. Please try again.");
+    } finally { submitting.current = false; if (mounted.current) setPending(false); }
   }
 
+  if (marketOn === null) return <div className="px-1 py-10 text-sm text-muted">{availabilityError ? <div role="alert"><p>Market availability could not be checked. Please try again.</p><button type="button" className="mt-3 underline" onClick={() => { setAvailabilityError(false); setAvailabilityAttempt(value => value + 1); }}>Try again</button></div> : <p role="status">Checking Market availability…</p>}<Link href="/market" className="mt-4 block underline">Back to Market</Link></div>;
   if (!marketOn) {
     return (
       <div className="flex flex-col items-center gap-3 px-1 py-24 text-center">

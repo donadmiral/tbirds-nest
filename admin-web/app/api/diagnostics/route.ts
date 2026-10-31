@@ -22,11 +22,14 @@ export async function POST(request: Request) {
       body += decoder.decode(chunk.value, { stream: true });
     }
     body += decoder.decode();
-    const value = JSON.parse(body);
+    let value: unknown;
+    try { value = JSON.parse(body); }
+    catch { return new Response(null, { status: 400 }); }
     if (!value || typeof value !== 'object' || Array.isArray(value)) return new Response(null, { status: 400 });
+    const diagnostic = value as Record<string, unknown>;
     const admin = await getAdmin();
     if (!admin || !await canAccessOperations(admin)) return new Response(null, { status: 401 });
-    const payload = sanitizeDiagnostic({ name: value.category }, { ...value, platform: 'admin' });
+    const payload = sanitizeDiagnostic({ name: diagnostic.category }, { ...diagnostic, platform: 'admin' });
     const token = (await cookies()).get('pc_admin_token')?.value;
     // Forward the verified user's token: the database binds identity and rate limits itself.
     const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/report_client_error`, {

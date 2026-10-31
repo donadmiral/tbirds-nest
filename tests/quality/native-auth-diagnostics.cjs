@@ -226,7 +226,8 @@ test('disposable preparation retains diagnostic source, original auth hash and e
   const authPath = 'src/services/supabase.ts';
   const originalAuth = fs.readFileSync(path.join(root, authPath));
   const sha = value => crypto.createHash('sha256').update(value).digest('hex');
-  const required = ['App.tsx', 'index.js', 'app.config.js', 'package-lock.json', authPath, 'src/navigation/AppNavigator.tsx',
+  const required = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package-lock.json', authPath, 'src/navigation/AppNavigator.tsx',
+    'plugins/withMedia3Compatibility.js', 'modules/boomerang/android/build.gradle', 'scripts/quality/android-media-dependencies.init.gradle',
     'modules/boomerang/ios/BoomerangModule.swift', 'modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt',
     'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/entry.js',
     'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/verify-native-ui.cjs',

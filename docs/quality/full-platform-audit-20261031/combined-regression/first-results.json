@@ -1,0 +1,29 @@
+{
+  "recordedAtUtc": "2026-10-31T19:05:48.656757+00:00",
+  "sourceInputs": 2173,
+  "sourceUnchangedThroughAllFourSuites": true,
+  "root": {
+    "tests": 2168,
+    "passed": 2140,
+    "failed": 28,
+    "skipped": 0,
+    "causes": [
+      "27 cases lack useTheme in three pre-existing test module adapters.",
+      "One preservation test still expects the old title-erasure command after the separately reproduced Select All fix."
+    ]
+  },
+  "web": {
+    "passed": 683,
+    "failed": 0
+  },
+  "admin": {
+    "passed": 284,
+    "failed": 0
+  },
+  "backend": {
+    "passed": 328,
+    "failed": 0,
+    "conditionalSkipped": 3
+  },
+  "next": "Update these four test adapters/contracts together; retain all original behavioral assertions and rerun the complete root suite. No new production error was inferred from these adapter failures."
+}

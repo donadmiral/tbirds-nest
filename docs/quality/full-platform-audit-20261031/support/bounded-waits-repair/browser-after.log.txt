@@ -1,0 +1,33 @@
+PASSED SUP-001 Support list renders the returned owner ticket
+PASSED SUP-002 Failed ticket-list read shows a recoverable error, not an empty inbox
+PASSED SUP-003 Missing ticket resolves to a not-found/access state with an exit
+PASSED SUP-004 Failed ticket read exposes an error and retry
+PASSED SUP-005 Failed message read is reported separately from an empty conversation
+PASSED SUP-006 Signed-out support displays sign-in guidance without ticket reads
+PASSED SUP-007 New support request validates empty fields without writing
+PASSED SUP-008 Rejected request keeps the draft and releases Send
+PASSED SUP-009 Successful request makes one write and shows the returned ticket
+PASSED SUP-010 Returned ticket and message render with a working reply control
+PASSED SUP-011 Rejected reply preserves draft and releases Send
+PASSED SUP-012 An atomic reply failure preserves the draft and does not insert a partial message
+PASSED SUP-013 Unexpected rejected support submission does not leave Sending locked
+PASSED SUP-014 Unexpected rejected reply does not leave Send locked
+PASSED SUP-015 A confirmed reply uses one atomic request and renders its readback
+PASSED SUP-016 Lost reply response retries the same UUID without a duplicate
+PASSED SUP-017 Missing atomic contract preserves the draft without unsafe legacy writes
+PASSED SUP-018 List retry recovers the actual returned ticket
+PASSED SUP-019 Held list read reaches a bounded error and can recover
+PASSED SUP-020 Signed-out ticket does not query private conversation data
+PASSED SUP-021 Lost create response confirms the exact stored ticket without a duplicate
+PASSED SUP-022 Rapid repeated reply activation makes only one request
+PASSED SUP-023 Older history retry cannot erase a confirmed reply or restore a stale solved state
+PASSED SUP-024 Older list retry cannot erase the newly confirmed ticket
+PASSED SUP-025 reply: queued preparation is rejected across A to B to A
+PASSED SUP-026 reply: ordinary token refresh keeps the captured bearer and permits confirmation
+PASSED SUP-027 reply: leaving the actual page before hashing completes prevents dispatch
+PASSED SUP-028 reply: a discarded completion retains its UUID for a later same-payload submission
+PASSED SUP-029 create: queued preparation is rejected across A to B to A
+PASSED SUP-030 create: ordinary token refresh keeps the captured bearer and permits confirmation
+PASSED SUP-031 create: leaving the actual page before hashing completes prevents dispatch
+PASSED SUP-032 create: a discarded completion retains its UUID for a later same-payload submission
+{"passed":32,"failed":0,"total":32,"evidence":"/tmp/platinum-support-bounded-browser-evidence"}

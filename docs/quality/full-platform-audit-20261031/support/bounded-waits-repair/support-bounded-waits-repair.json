@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T19:00:10.028893+00:00",
+  "state": "Locally verified bounded-wait follow-up; no hosted mutation, SQL activation or new native acceptance.",
+  "historicalLifecycleReceipt": {
+    "path": "docs/quality/full-platform-audit-20261031/support/lifecycle-repair/support-lifecycle-repair.json",
+    "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957",
+    "originalNativeCases": 34,
+    "originalBrowserCases": 32,
+    "unchanged": true
+  },
+  "reproduction": {
+    "sourceBeforeSha256": "43461159e4f1aefe37db596a73630ae6cf24a16f64dd273b6e80db5c9037c789",
+    "eightActualComponentProbes": "Both create and reply remained busy after 60,000 virtual milliseconds at digest, getItem, setItem or accepted-receipt cleanup. Preparation had no write and retained the draft; accepted cleanup had one committed row and a cleared draft.",
+    "newFormalCasesBefore": 14,
+    "passedBefore": 0,
+    "failedBefore": 14
+  },
+  "repair": [
+    "The request-identity preparation phase has one 15,000 ms budget covering hashing, queue wait, getItem and setItem, plus immediate session-cancellation rejection. Every asynchronous boundary and acquired queue rechecks the caller\u2019s dispatch rights.",
+    "The deadline retires only the waiting caller. The underlying actual storage operation remains in the per-store/per-key queue until its own promise settles; an expired queued callback cannot later touch storage or dispatch. A pending set is not falsely treated as cancelled.",
+    "A current exact-session UI acknowledges a confirmed receipt synchronously as before. It starts ordered UUID cleanup without awaiting it, so local cleanup alone does not hold Send busy. No database receipt or visible draft is guessed.",
+    "A later intentional identical request waits behind real cleanup and has its own preparation deadline. After eventual cleanup settlement a deliberate retry creates a different UUID. Different payload keys remain independent and late cleanup preserves newer unsent draft text."
+  ],
+  "validation": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/member-support-deadline.cjs tests/quality/member-support-lifecycle.cjs",
+    "formalTests": 48,
+    "passed": 48,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "originalPreserved": 34,
+    "newDeadlineCases": 14,
+    "durationMs": 2667.971701,
+    "browserCases": 32,
+    "browserPassed": 32,
+    "browserFailed": 0,
+    "browserOriginalCasesPreserved": 32,
+    "browserCommand": "PLATINUM_CHROMIUM=/tmp/platinum-audit-browser/chrome-linux64/chrome PLATINUM_SUPPORT_OUTPUT=<bundle> PLATINUM_SUPPORT_ARTIFACTS=<evidence> node web/tests/browser/support-run.cjs",
+    "nativeTypeScriptExit": 0,
+    "webTypeScriptExit": 0,
+    "scopedLintExit": 0,
+    "scopedWhitespaceExit": 0,
+    "frozenSourceCount": 3,
+    "sourcesUnchangedAfterGates": true
+  },
+  "newCoverage": [
+    "Held digest/get/set each releases busy by the preparation deadline without a write",
+    "Late digest/get settlement remains retired; deliberate retry succeeds",
+    "Retry started behind a pending set preserves the same saved UUID and commits exactly once",
+    "Acknowledged cleanup held in getItem or removeItem never holds Send busy",
+    "An identical queued intent can time out without bypassing old cleanup or later dispatching",
+    "After actual cleanup settlement a new deliberate identical send commits with a new UUID",
+    "A different payload remains independent of another key\u2019s held cleanup",
+    "New unsent draft remains after late cleanup",
+    "A-to-B-to-A cancels a held hash before it settles, without an intermediate React render"
+  ],
+  "unchangedDependencies": [
+    {
+      "path": "src/services/memberSupportService.ts",
+      "sha256": "11320c316e4bf14a5dc8ec4adb9ed4fca89c36f230c61cef7540c15f66b3fdec"
+    },
+    {
+      "path": "web/lib/memberSupport.ts",
+      "sha256": "9149ee489122842c4f329863268b3787f4d544639334c95806648ba7d7724ad5"
+    },
+    {
+      "path": "src/screens/profile/ContactSupportScreen.tsx",
+      "sha256": "0fee99f26b98c98ad8aeb84939c091b568b37553eb29c15cfdf2dff8130eef87"
+    },
+    {
+      "path": "src/screens/profile/TicketScreen.tsx",
+      "sha256": "ad5c5166a9035e5828df4c7e0275a43cd9cc44a0b35882dbc742f435c55b5c0d"
+    },
+    {
+      "path": "web/app/settings/support/page.tsx",
+      "sha256": "cf37434b1d72617f03586e576b2d691e69d4eeaa1c56200de6867dd9142e1551"
+    },
+    {
+      "path": "web/app/settings/support/[id]/page.tsx",
+      "sha256": "43aa7f6979866b9e118c9b92a87ab795985ca35b752ab6c439559f34987e2249"
+    },
+    {
+      "path": "tests/quality/member-support-lifecycle.cjs",
+      "sha256": "2afd2bd363a35e71e2a2bc084adb101bafd135a84b91b73dfe2517b9af761807"
+    },
+    {
+      "path": "web/tests/browser/support-backend.ts",
+      "sha256": "71c7b5c112f26054868926bf28ccfc962717cb56794355393c1d8ecc5f7b9fa9"
+    },
+    {
+      "path": "web/tests/browser/support-fixture.tsx",
+      "sha256": "864da37816cfa6e4b6fb23f2f79da9cb351f961433bd346fb5e2a5c29fbfdab5"
+    },
+    {
+      "path": "web/tests/browser/support-run.cjs",
+      "sha256": "7f3c5f8c4b788a2abe3a1dff4919c6aedfac48b5d9262682463c1c916fb5a7e8"
+    }
+  ],
+  "atomicSql": {
+    "supabase/migrations/20261031181428_member_support_atomic_reply.sql": {
+      "sha256": "de99b019d678dfc51c5b8d6c8a7e533454f7965642bade94929c3fd5d040f7c1",
+      "bytes": 3982
+    },
+    "supabase/tests/member-support-atomic-db.test.cjs": {
+      "sha256": "b60d4ecfbd18b76d21a658840fdb513581ab5c06307ed439ea42aec1f495484d",
+      "bytes": 9685
+    }
+  },
+  "limits": [
+    "Actual screens/wrappers/shared helper and installed SDK execute in a manual native hook/focus host with controlled Auth/storage/provider and virtual setTimeout. This is not an emulator or native-bridge scheduling proof.",
+    "The 32 browser cases use actual React/DOM/pages and synthetic Auth/provider/framework adapters. They preserve existing coverage; no deployed or provider acceptance is claimed.",
+    "The 15-second preparation budget is separate from the existing 12-second session lookup and 15-second write/readback deadlines; no single total 15-second latency claim. Confirmation cleanup has no UI wait, but its background storage operation can remain unresolved.",
+    "A stalled underlying storage operation intentionally continues to block only its own key. Later attempts fail visibly at their own preparation deadline; the queue is not released early because an uncancellable side effect could otherwise corrupt a newer identity.",
+    "Timeout/abort does not establish storage or server rollback. Stable UUID and exact database receipt validation remain required. No automatic write retry, SQL change, new migration invocation, provider write or branch/ref change occurred."
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/before-shared-memberSupport.ts.txt",
+      "bytes": 13790,
+      "sha256": "43461159e4f1aefe37db596a73630ae6cf24a16f64dd273b6e80db5c9037c789"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/browser-after.json.gz",
+      "bytes": 3853,
+      "sha256": "fe3720ac23ae045e85a22a54de02f11fa3da45e28057202a6d387147543fa8dd"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/browser-after.log.txt",
+      "bytes": 2658,
+      "sha256": "b969533a74d2f43ef106e0196b2626341e44df6b8cb7316cef1b07ecc987811e"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/deadline-before.tap",
+      "bytes": 12506,
+      "sha256": "2087f0f9b093e45c12456df092fff3dce61691f23f411a1df6ac48730c66e575"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/eight-red-probes.cjs.txt",
+      "bytes": 1581,
+      "sha256": "4aefe29f9092a437c67b31df2a8c0ce233bd18f8685264d5664419667d43884f"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/eight-red-probes.json",
+      "bytes": 2437,
+      "sha256": "f1d0972c7265c11eb20ba96c8b657655f6040db6dcb169dc46a3f50e158c60c6"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/eslint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/lifecycle-deadline-after.tap",
+      "bytes": 11769,
+      "sha256": "ab3cb0eb0acd0546377ea4c1536f327711649c4f65610e957e15c2258a735ac4"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/native-typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/source-manifest.json",
+      "bytes": 482,
+      "sha256": "6ce067e9b7b7d3cdc0635255bbf2db799a20dd1a27f4d53284c52c38b4485cd0"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/web-typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -67,5 +67,5 @@ const s = themedSheet(t => ({
   group: { gap: 8, paddingVertical: 8 }, row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   touch: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 }, link: { color: t.ink.primary, textDecorationLine: 'underline' }, selected: { fontWeight: '800', textDecorationLine: 'underline' },
   input: { minHeight: 48, borderWidth: 1, borderColor: t.surface.hairline, borderRadius: 10, padding: 12, color: t.ink.primary },
-  button: { minHeight: 48, padding: 12, justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: t.brand.base }, buttonText: { color: t.ink.inverse, fontWeight: '700' }, error: { color: t.status.danger, fontSize: 14 },
+  button: { minHeight: 48, padding: 12, justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: t.brand.base }, buttonText: { color: t.ink.inverse, fontWeight: '700' }, error: { color: t.ink.primary, fontSize: 14 },
 }));

@@ -1,53 +1,40 @@
 "use client";
 // Muted words: comments on your posts containing any of these are hidden the
 // moment they're written. Same rows the phone edits.
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { X } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { useWordPreferences } from "@/lib/useWordPreferences";
 
 export default function MutedWordsPage() {
-  const [supabase] = useState(createClient);
-  const [uid, setUid] = useState<string | null>(null);
-  const [words, setWords] = useState<string[]>([]);
+  const { words, loading, loadError, error, ready, saving, retry, save } = useWordPreferences("muted_words");
   const [draft, setDraft] = useState("");
-  const [err, setErr] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      const id = auth.user?.id ?? null; setUid(id); if (!id) return;
-      const { data } = await supabase.from("profiles").select("muted_words").eq("id", id).maybeSingle();
-      setWords(((data as { muted_words?: string[] } | null)?.muted_words) || []);
-    })();
-  }, [supabase]);
-
-  const save = async (next: string[]) => {
-    if (!uid) return;
-    const { error } = await supabase.from("profiles").update({ muted_words: next }).eq("id", uid);
-    if (error) { setErr(error.message); return; }
-    setErr(null); setWords(next);
+  const add = async () => {
+    const submitted = draft, word = draft.trim().toLowerCase();
+    if (!ready || saving || !word) return;
+    if (words.includes(word) || await save([...words, word])) setDraft(current => current === submitted ? "" : current);
   };
-  const add = () => { const w = draft.trim().toLowerCase(); if (!w) return; if (!words.includes(w)) save([...words, w]); setDraft(""); };
 
   return (
     <div className="mx-auto max-w-[640px] px-4 py-6">
       <h1 className="mt-4 font-display text-[24px] font-bold text-ink">Muted words</h1>
       <p className="mt-1 text-[13.5px] text-ink/60">Posts that contain any of these words or phrases stay out of your feeds. Nobody is told.</p>
       <div className="mt-5 flex gap-2">
-        <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") add(); }} placeholder="Add a word or phrase" className="flex-1 rounded-xl border border-ink/12 bg-white px-3 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted focus:border-pearl" />
-        <button type="button" onClick={add} className="rounded-xl bg-ink px-4 text-[14px] font-bold text-white hover:opacity-90">Add</button>
+        <input disabled={!ready || saving} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void add(); }} placeholder="Add a word or phrase" aria-label="Add a muted word or phrase" className="flex-1 rounded-xl border border-ink/12 bg-white px-3 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted focus:border-pearl disabled:opacity-50" />
+        <button type="button" onClick={() => void add()} disabled={!ready || saving} className="rounded-xl bg-ink px-4 text-[14px] font-bold text-white hover:opacity-90 disabled:opacity-50">Add</button>
       </div>
-      {err ? <p className="mt-2 text-[13px] text-danger">{err}</p> : null}
+      {loading ? <p role="status" className="mt-3 text-sm text-muted">Loading word settings…</p> : null}
+      {loadError ? <div role="alert" className="mt-3 text-sm text-danger"><p>{loadError}</p><button type="button" onClick={() => void retry()} className="mt-2 underline">Try again</button></div> : null}
+      {error ? <p role="alert" className="mt-2 text-[13px] text-danger">{error}</p> : null}
       <ul className="mt-4 divide-y divide-ink/8">
         {words.map((w) => (
           <li key={w} className="flex items-center justify-between py-3">
             <span className="text-[15px] font-semibold text-ink">{w}</span>
-            <button type="button" onClick={() => save(words.filter((x) => x !== w))} className="rounded-full p-1 text-muted hover:bg-surface hover:text-ink" title="Remove"><X size={16} /></button>
+            <button type="button" disabled={!ready || saving} onClick={() => void save(words.filter((x) => x !== w))} className="rounded-full p-1 text-muted hover:bg-surface hover:text-ink disabled:opacity-50" title="Remove"><X size={16} /></button>
           </li>
         ))}
       </ul>
-      {words.length === 0 ? <p className="mt-3 text-[13.5px] text-muted">Nothing muted yet.</p> : null}
+      {ready && words.length === 0 ? <p className="mt-3 text-[13.5px] text-muted">Nothing muted yet.</p> : null}
     </div>
   );
 }

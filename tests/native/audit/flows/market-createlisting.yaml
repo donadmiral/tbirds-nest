@@ -18,6 +18,9 @@ name: Audit CreateListing
 - tapOn:
     id: native-audit-open-case
 - extendedWaitUntil:
-    visible: "Title"
+    visible: "Photos"
     timeout: 15000
+- assertVisible: 1 of 4
+- assertVisible: Add up to 10 photos. The first one is your cover.
+- assertVisible: Next
 - takeScreenshot: market-createlisting

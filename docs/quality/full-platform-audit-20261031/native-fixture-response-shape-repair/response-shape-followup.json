@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "observedBy": "hosted_backend",
+  "recordedAt": "2026-10-31T19:43:47.118652+00:00",
+  "status": "source-frozen; all seven observed UI-plus-fixture rows classified; targeted checks passed; native rerun pending",
+  "sourceBinding": {
+    "runtimeRunId": 41231522956,
+    "runtimeAuditCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "runtimeProductionCommit": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "groupedBase": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+    "frozenSources": {
+      "tests/native/audit/backend-fixture.cjs": "e333cf1b87b081c0dd151a24d74697132d61b539cb3af3eef005fd7c17d7f9e0",
+      "tests/native/audit/read-contracts.cjs": "166b6413abe1a1075e48249127a5f956822b13486256be2ef37808e550ee73a8",
+      "tests/quality/native-audit-read-contracts.cjs": "c8ac1d12fb35d05e77d28de5b41c89f0f5fc78b8ef87aa3fe6f1030e8736cc6c",
+      "tests/quality/native-audit-response-shapes.cjs": "8fabb7641b45eb6d8ff9d7cc95ad9140283e67108112f0df2e999fb1948d994e"
+    },
+    "changedInThisFollowup": [
+      "tests/native/audit/read-contracts.cjs",
+      "tests/quality/native-audit-response-shapes.cjs"
+    ],
+    "baseFixtureAndThreeAffectedProductionFilesRemainByteIdenticalToPublished2f": true,
+    "productionEdits": 0
+  },
+  "historicalFirst22ContractReceipt": {
+    "path": "docs/quality/full-platform-audit-20261031/native-fixture-contract-repair/fixture-contract-repair.json",
+    "sha256": "4c2f42e382b44aad8bcf558039bd4c27574cd3e4331692f804b66698ccf7cfca",
+    "preservedUnchanged": true
+  },
+  "finalContractCount": 26,
+  "additionalContracts": [
+    {
+      "request": "POST /rest/v1/rpc/get_story_poll",
+      "sql": "supabase/migrations/00000000000151_capture_functions.sql: public.get_story_poll(uuid)",
+      "result": "null when no visible poll; a present poll has options array"
+    },
+    {
+      "request": "POST /rest/v1/rpc/get_market_orders",
+      "sql": "supabase/migrations/20261022211223_marketplace_order_lifecycle.sql: public.get_market_orders",
+      "result": "{rows:[],has_more:false,next_cursor:null}"
+    },
+    {
+      "request": "POST /rest/v1/rpc/can_comment",
+      "sql": "supabase/reference/live-schema-20261017.sql: public.can_comment(uuid)",
+      "result": "true only for the exact seeded post whose default policy permits comments"
+    },
+    {
+      "request": "GET /rest/v1/post_comment_pins",
+      "sql": "supabase/migrations/20261029190200_comment_author_highlights.sql: table and visible-pin RLS",
+      "result": "Exact comment_id projection and seeded post filter; empty array, actual SDK maybeSingle yields null"
+    }
+  ],
+  "sevenRuntimeRows": [
+    {
+      "case": "stories-storyviewer",
+      "observed": "Root error boundary; TypeError cannot read find of undefined in StoryViewerScreen.",
+      "cause": "Existing base fixture returned[] for get_story_poll. SQL returns null for no poll; actual service passes[] through and the actual poll-voter title expression dereferences missing options.",
+      "correction": "Strict audit-only get_story_poll returns null for the exact seeded story and current case. Route parameters were already valid.",
+      "verification": "Actual Story service plus actual viewer render expression; retained exception reproduced with[]. Full native StoryViewer rerun remains required."
+    },
+    {
+      "case": "feed-post",
+      "observed": "Comments assertion failed while explicit Post read-error/retry state was shown.",
+      "cause": "Unknown can_view_post RPC blocked required loading. Successful Post then mounts CommentsPanel, whose can_comment and optional post_comment_pins reads were also absent.",
+      "correction": "Strict known-public-post visibility/permission booleans plus exact empty pin read.",
+      "verification": "Actual complete Post and Comments load callbacks, real content-media and comment-highlight helpers, installed SDK; required/optional callbacks finish with expected state and unhandled[]."
+    },
+    {
+      "case": "feed-trendfeed",
+      "observed": "Memories assertion failed; actual normalized header is #memories and RPC was unknown.",
+      "cause": "Missing hashtag-page fixture plus incorrect expected heading.",
+      "correction": "Strict empty hashtag page; Nav corrected header and requires the resolved empty title/description.",
+      "verification": "Existing actual-query SDK check plus separate source/AX flow regression. Native rerun pending."
+    },
+    {
+      "case": "market-listingdetail",
+      "observed": "Root error boundary; TypeError cannot read length of undefined in MarketOrderPanel.",
+      "cause": "Existing base fixture returned[] for get_market_orders; SQL returns{rows,has_more,next_cursor}. Actual panel setRows(page.rows) stored undefined. Seller rating/review page were also missing.",
+      "correction": "Exact empty order page plus already prepared seller-rating/review contracts.",
+      "verification": "Whole production MarketOrderPanel with controlled hook/native hosts and installed SDK; original[] reproduces exact length exception, corrected empty page renders No orders yet/Request order."
+    },
+    {
+      "case": "feed-search-controls",
+      "observed": "Jordan Ellis assertion failed while People error/retry was shown.",
+      "cause": "Missing four search RPCs and search-event transport. No additional selector mismatch found.",
+      "correction": "Existing strict scripted search contracts and bounded synthetic analytics receipt.",
+      "verification": "Actual complete Search callback publishes Jordan Ellis, empty other verticals, clear errors and analytics, with unhandled[]."
+    },
+    {
+      "case": "notifications-empty-controls",
+      "observed": "Nothing yet assertion failed with unknown-contract error.",
+      "cause": "Missing notification-page contract; the later Mark all read action was also inconsistent with an empty unread list.",
+      "correction": "Strict empty page; Nav asserts resolved empty state and absence of Mark all read.",
+      "verification": "Actual-query SDK check plus separate source/AX flow regression. Positive Mark all read behavior remains explicitly untested."
+    },
+    {
+      "case": "market-offer-cancel",
+      "observed": "Same MarketOrderPanel length exception before Make offer; offer entry/cancel never ran.",
+      "cause": "Same invalid order-page fixture and missing seller read contracts as listing detail.",
+      "correction": "Same strict order-page/seller contracts, scoped to this case as well.",
+      "verification": "Whole MarketOrderPanel in this exact case now renders empty-order state; actual offer entry/cancel remains native-rerun pending."
+    }
+  ],
+  "verification": {
+    "final9TestsAgainstHistorical22Helper": {
+      "name": "final-tests-against-22-contract-helper",
+      "exitCode": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 4,
+        "fail": 5,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "801234cd59217e102bf6972cdcc8bcf8923b8ec3c9227e798a3dfdcfa18b51b7"
+    },
+    "finalCandidateContracts": {
+      "name": "final-contract-tests",
+      "exitCode": 0,
+      "counts": {
+        "tests": 61,
+        "pass": 61,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "82423881e91ada4e2686f422f5bd191135e4656a231a820ab9dfcc78f744aeef"
+    },
+    "uniqueCaseBreakdown": {
+      "unchangedStrictContracts": 52,
+      "responseShapeAndSuccessfulBranchCases": 9
+    },
+    "existingAuditSupport16": "Already passed in prior68-case receipt and independently by root; unchanged Support branch was not rerun in this follow-up.",
+    "sourceHashesUnchangedDuringFinalRuns": true,
+    "scopedEslintExitCode": 0,
+    "nodeSyntaxAndTrailingWhitespaceChecksPassed": true,
+    "coverageLimits": "Whole MarketOrderPanel executes with controlled hook scheduler/native hosts. Story uses actual service and exact failing render expression. Post/Comments/Search use actual complete load callbacks and installed SDK. These do not replace native gestures/rendering, hosted SQL/RLS or production-provider acceptance.",
+    "counterfactualMethod": "Only read-contract helper module bytes were compiled from preserved22-contract source in a separate local process; no checkout mutation.",
+    "intermediateShellNote": "An earlier58-pass TAP run had shell-wrapper exit1 solely because the final rg found no failing test lines. Final61-case run captures the actual Node exit0 directly."
+  },
+  "parallelFlowReview": {
+    "path": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup.json",
+    "sha256": "ec4d0d542ef79cacacf4e47b32eaea72dec90e47ac8b06975a8ce098de7ce735",
+    "includesFourResidualRows": true,
+    "noDuplicateFunctionalCountClaim": true
+  },
+  "remainingLimits": [
+    "Original Android85-case result48pass/37fail remains unchanged until a new run.",
+    "No valid production SQL response was shown to cause these three render errors; fixes correct synthetic transport shapes. Defensive handling of arbitrary malformed server responses was not changed.",
+    "Original receipts did not retain request bodies/query strings; source-grounded installed-SDK executions supply modeled input validation, not retroactive runtime payload proof.",
+    "Legacy base get_my_sticker_response/get_story_sticker_summary shapes remain unvalidated for future engagement-sticker controls; current seeded story has none and no such requests were observed. They are not part of this acceptance.",
+    "No provider/database/credential/ref changes were performed; unrelated production and broad optional suites were not touched."
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/before-read-contracts.cjs.txt",
+      "sha256": "2015a47851048b4db78c43961460d1f82fd3594574c0d6bf934d14f2944db8fd",
+      "bytes": 11112
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/final-checks.json",
+      "sha256": "384e52e1284c5292c1f76ff744f0b3b239e9f6b1b78bbb20f721c2ea62735bc6",
+      "bytes": 1129
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/final-contract-tests.tap",
+      "sha256": "82423881e91ada4e2686f422f5bd191135e4656a231a820ab9dfcc78f744aeef",
+      "bytes": 14619
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/final-eslint.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/final-tests-against-22-contract-helper.tap",
+      "sha256": "801234cd59217e102bf6972cdcc8bcf8923b8ec3c9227e798a3dfdcfa18b51b7",
+      "bytes": 6381
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/independent-newly-reachable.tap",
+      "sha256": "a3c5f276a3f22870e2cc14bcb3b2c597d56d6347f044dc0b595f7dae777dec6f",
+      "bytes": 954
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/intermediate-checks.zip",
+      "sha256": "e90cf085eccf162974214da2efc423bb549dee4d315827d74469e0e03ff7f415",
+      "bytes": 6067
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/market-listingdetail-error-boundary.png",
+      "sha256": "8721cd5edc2f7c0b1c9e3576dd979a6998bb08eb092fe0938c489805848add1f",
+      "bytes": 13237
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/newly-reachable-independent-review.json",
+      "sha256": "7d2a2d794fff10d2d348bb319e89812dcee0e48b9c817b955a7f0630db1b8e74",
+      "bytes": 7083
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/retained-error-projection.json",
+      "sha256": "9ac1a49248ffb50f93236edcbf665965756f45c9b6f02afed481583bec72b460",
+      "bytes": 5824
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/native-fixture-response-shape-repair/stories-storyviewer-error-boundary.png",
+      "sha256": "9111afd707f7ed070cc0d71771ff4b1436e6b901f3cebda3bc5e1fc853ff5f48",
+      "bytes": 13340
+    }
+  ]
+}

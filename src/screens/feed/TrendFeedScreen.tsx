@@ -1,5 +1,5 @@
 import { ListRowSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   View,
@@ -97,6 +97,7 @@ async function readTrendPage(tag: string, offset: number, signal: AbortSignal, t
 }
 
 export default function TrendFeedScreen() {
+  const { t, isDark } = useTheme();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
@@ -192,7 +193,7 @@ export default function TrendFeedScreen() {
   if (!tag) {
     return (
       <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
         <View style={st.header}>
           <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back" onPress={() => navigation.goBack()} style={st.backBtn} activeOpacity={0.7}>
             <Feather name="chevron-left" size={24} color={NAVY} />
@@ -262,7 +263,7 @@ export default function TrendFeedScreen() {
 
   return (
     <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
 
       <View style={st.header}>
         <TouchableOpacity
@@ -362,11 +363,11 @@ const st = themedSheet((t) => ({
   headerTag: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#000000',
+    color: t.ink.primary,
   },
   headerSub: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: t.ink.muted,
     marginTop: 1,
   },
 
@@ -408,18 +409,18 @@ const st = themedSheet((t) => ({
   authorName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000000',
+    color: t.ink.primary,
   },
   authorSub: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: t.ink.muted,
     marginTop: 1,
   },
 
   content: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#1A1A1A',
+    color: t.ink.secondary,
     marginBottom: 10,
   },
 
@@ -434,7 +435,7 @@ const st = themedSheet((t) => ({
   },
   statTxt: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: t.ink.muted,
   },
 
   footer: {
@@ -445,12 +446,12 @@ const st = themedSheet((t) => ({
   emptyTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#000000',
+    color: t.ink.primary,
     marginTop: 8,
   },
   emptySub: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: t.ink.muted,
     textAlign: 'center',
   },
   retryBtn: {
@@ -461,7 +462,7 @@ const st = themedSheet((t) => ({
     paddingVertical: 10,
   },
   retryBtnTxt: {
-    color: t.ink.inverse,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },

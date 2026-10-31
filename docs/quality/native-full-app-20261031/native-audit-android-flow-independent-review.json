@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "reviewedAt": "2026-10-31T19:33:46.169021+00:00",
+  "status": "accepted for native rerun; no remaining source objection",
+  "ownerReceipt": {
+    "path": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair.json",
+    "sha256": "f74594ad16743c002f0d045653cdf487d6508b1aaeb0dfe82048ca1df69b0076"
+  },
+  "sourceManifest": {
+    "path": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/source-manifest.json",
+    "sha256": "97fabb0ec4911281007770bf55afab766efd755a02d42bf41a60ec9c7f0c7cf1",
+    "beforeAfterAll15HashesEqual": true
+  },
+  "independentExecution": {
+    "startedAt": "2026-10-31T19:33:45.650936+00:00",
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-audit-flow-controls.cjs",
+    "exitCode": 0,
+    "counts": {
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "evidence": {
+      "path": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/independent-review.tap",
+      "sha256": "5ca97dcf7f05da6ffe4925f2bd40a8bf10e55ff3819c0b82749831e7c0041313"
+    }
+  },
+  "reviewedBehavior": [
+    "13 YAMLs and only two manifest expected-label corrections;85 identities/routes/scenarios unchanged.",
+    "Exact retained grouped labels replace mistaken child-text expectations; Photos is the actual initial listing step.",
+    "Observed Android keyboard dismissal and semantic centered scrolling precede the same mandatory controls. No coordinates, optional acceptance or original assertion deadline increases.",
+    "Story editor completes actual save/close callbacks before Next; film actions remain unchanged after its added scroll.",
+    "Support reply/reopen failure, draft retention, missing-ticket and fresh-ticket body checks remain mandatory."
+  ],
+  "resolvedFinding": {
+    "finding": "Message alone matched both standalone field label and TextInput accessibility label.",
+    "resolution": "Restored the original full body placeholder after keyboard dismissal/scroll; strengthened regression proves one matching editable node in retained Support list AX and no Message-label match.",
+    "finalFlowSha256": "3934612287b78de26666a266c26a5ca3af71711ec377fff99026752ead7e2733",
+    "finalTestSha256": "ac19062dfb3b324162c8002fbc42ef456d67f572a09e906f12eac7d79bc3d896"
+  },
+  "limits": [
+    "This independent15-case execution repeats the owner suite; do not add it to unique coverage counts.",
+    "The local harness parses actual YAML, retained Android AX and production JSX; it projects matching/command semantics and runs extracted callbacks, not native gestures.",
+    "Scrolling, keyboard delivery and all changed journeys still require new Android/iPhone runtime acceptance.",
+    "Original85-case Android48pass/37fail evidence remains unchanged. The separate strict fixture batch and prepared Support fixes are not retroactive passes."
+  ],
+  "sourceEditsByReviewer": 0
+}

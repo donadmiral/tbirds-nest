@@ -18,6 +18,10 @@ name: Audit TrendFeed
 - tapOn:
     id: native-audit-open-case
 - extendedWaitUntil:
-    visible: "Memories"
+    visible: "#memories"
     timeout: 15000
+- extendedWaitUntil:
+    visible: "No posts found"
+    timeout: 15000
+- assertVisible: "No one has posted with #memories yet."
 - takeScreenshot: feed-trendfeed

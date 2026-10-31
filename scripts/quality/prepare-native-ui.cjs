@@ -17,7 +17,8 @@ function files(directory) {
     return item.isDirectory() ? files(file) : /\.(?:[cm]?[jt]sx?|swift|kt|ya?ml|sh|py|png|mp4)$/.test(file) ? [file] : [];
   });
 }
-const source = ['App.tsx', 'index.js', 'app.config.js', 'package-lock.json', ...files('src'), ...files('shared'),
+const source = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package-lock.json', ...files('src'), ...files('shared'),
+  'plugins/withMedia3Compatibility.js', 'modules/boomerang/android/build.gradle', 'scripts/quality/android-media-dependencies.init.gradle',
   ...files('modules/boomerang/ios'), ...files('modules/boomerang/android/src/main'), ...files('tests/native'),
   'modules/boomerang/memoryComposition.ts',
   'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/verify-native-ui.cjs',

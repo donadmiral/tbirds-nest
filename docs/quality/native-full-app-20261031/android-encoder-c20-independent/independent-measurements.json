@@ -1,0 +1,361 @@
+{
+  "schema": 1,
+  "sourceInput": {
+    "sha256": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2",
+    "packetCount": 90,
+    "actualDecodePresentationReordering": true
+  },
+  "encodedMovie": {
+    "file": "/tmp/android-encoder-c20-41233788259/device/memory-b-frame-boundary.mp4",
+    "bytes": 490092,
+    "sha256": "6037d7ea830fe2d17023ffafa207bb12dc44d389d9cc264cc97c1d55bfa61564"
+  },
+  "integerPacketTimes": {
+    "conversion": "Integer packet PTS \u00d7 exact rational time_base \u00d7 1,000,000, truncated to microseconds to match native MediaExtractor units. Decimal pts_time is separately rounded by ffprobe.",
+    "sourceTimeBase": "1/15360",
+    "outputTimeBase": "1/90000",
+    "sourceReorderedTailUs": [
+      1933333,
+      1900000,
+      1966666
+    ],
+    "videoPageFrames": 45,
+    "videoFrames": 105,
+    "lastVideoFrameUs": 2466666,
+    "firstNextPageFrameUs": 2500000,
+    "boundaryGapUs": 33334,
+    "maximumGapUs": 33334
+  },
+  "roundedDecimalFfprobeBoundaryUs": 33333,
+  "roundingNote": "ffprobe pts_time prints rounded decimal seconds. Exact packet PTS/time_base truncated to native microseconds yields33334 us, matching the retained MediaExtractor measurement; the rounded decimal projection yields33333 us.",
+  "decodedBoundaryPixels": {
+    "tool": "ffmpeg with default display-matrix autorotation, one decoded frame after each -ss timestamp, sampled with Pillow",
+    "frames": [
+      {
+        "requestedTimestampSeconds": 2.45,
+        "decodedSize": [
+          720,
+          1280
+        ],
+        "samples": [
+          {
+            "x": 180,
+            "y": 640,
+            "actual": [
+              250,
+              0,
+              0
+            ],
+            "expected": [
+              255,
+              0,
+              0
+            ],
+            "maximumChannelError": 5
+          },
+          {
+            "x": 540,
+            "y": 640,
+            "actual": [
+              0,
+              0,
+              252
+            ],
+            "expected": [
+              0,
+              0,
+              255
+            ],
+            "maximumChannelError": 3
+          }
+        ],
+        "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/android-encoder-c20-boundary-2-45.png",
+        "sha256": "393e41460da784db1fe58b6bdbd60789fc76cb0f2f4f8eaea9d24d04913cb48f"
+      },
+      {
+        "requestedTimestampSeconds": 2.6,
+        "decodedSize": [
+          720,
+          1280
+        ],
+        "samples": [
+          {
+            "x": 360,
+            "y": 640,
+            "actual": [
+              0,
+              253,
+              0
+            ],
+            "expected": [
+              0,
+              255,
+              0
+            ],
+            "maximumChannelError": 2
+          }
+        ],
+        "file": "docs/quality/native-full-app-20261031/android-encoder-c20-independent/android-encoder-c20-boundary-2-6.png",
+        "sha256": "2ea9fa7400aa0fead1c435ba734e560a310136a04a364e9ee902e1aef367b1ac"
+      }
+    ]
+  },
+  "normalizedImageChecks": {
+    "alpha": {
+      "size": [
+        1440,
+        2560
+      ],
+      "transparentPixel": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "opaqueGreenPixel": [
+        0,
+        255,
+        0,
+        255
+      ]
+    },
+    "exif": {
+      "size": [
+        300,
+        600
+      ],
+      "topPixel": [
+        254,
+        0,
+        0
+      ],
+      "bottomPixel": [
+        0,
+        0,
+        254
+      ]
+    }
+  },
+  "allRetainedMediaHashChecks": {
+    "movieFiles": 40,
+    "normalizedImages": 3,
+    "allMatched": true,
+    "files": [
+      {
+        "name": "canvas-and-timed-artwork.mp4",
+        "bytes": 405708,
+        "sha256": "c4b890d1aeeff4ed4a53541ab5f598fad65d391a87fd3c85b6a004c81590b625"
+      },
+      {
+        "name": "full-1080x1920-portrait.mp4",
+        "bytes": 447174,
+        "sha256": "e72823382f5273ade6c611dea7e97d2e6c7c1597952cc17ff6a0d918e5ac4cb0"
+      },
+      {
+        "name": "known-length-open-provider.mp4",
+        "bytes": 401284,
+        "sha256": "67c8621cc4ddbdadc1920d26c91b1cdbb2ecbc9c73bb7291c956ba613af94de4"
+      },
+      {
+        "name": "known-provider-source-original-330hz.mp4",
+        "bytes": 470374,
+        "sha256": "d165c7e4a864205508394cb0f59922970ca692947f130045e79c4f92cf208422"
+      },
+      {
+        "name": "matrix-alpha-bias.mp4",
+        "bytes": 403810,
+        "sha256": "82406f41bb73ceaa867cf6a3c080e99205f1a0c5f66df8292aff8c16e22a2129"
+      },
+      {
+        "name": "matrix-scale-translation.mp4",
+        "bytes": 404448,
+        "sha256": "7ccf1317281146d5c85d18068e5236fcac92a2cef99beb79c3349ddf762bc20f"
+      },
+      {
+        "name": "memory-b-frame-boundary.mp4",
+        "bytes": 490092,
+        "sha256": "6037d7ea830fe2d17023ffafa207bb12dc44d389d9cc264cc97c1d55bfa61564"
+      },
+      {
+        "name": "memory-cancel-retry.mp4",
+        "bytes": 419514,
+        "sha256": "b9bea959ca12bea4637f13366c786204014e8cd31ea196df514e62bb4ec7fb16"
+      },
+      {
+        "name": "memory-continuous-music.mp4",
+        "bytes": 544091,
+        "sha256": "1f3bb98ca56e2228bd04f1a5195db26003fc004f47fbe640ad1ce66d099beee3"
+      },
+      {
+        "name": "memory-independent-audio.mp4",
+        "bytes": 528483,
+        "sha256": "3f959493e2fb0ff3c43b8fca8501f78c73aae0936f14f01c368a62361d8319f4"
+      },
+      {
+        "name": "memory-local-effects.mp4",
+        "bytes": 741962,
+        "sha256": "0d9e7dc523737e080ee967526e57825808b1010ce541fae7b6549ba175964b17"
+      },
+      {
+        "name": "memory-muted-original.mp4",
+        "bytes": 512123,
+        "sha256": "0d59c72a9c76e2c96ae08aeeff673ee54f877c38b47c4f6990d57c0f0249680c"
+      },
+      {
+        "name": "memory-one-pass.mp4",
+        "bytes": 481382,
+        "sha256": "7e3dc888ffc0f4d88fcb4b3b5fbfab6d0072e7dc923346f8436d7ad15b2cf7e6"
+      },
+      {
+        "name": "memory-source-original-330hz.mp4",
+        "bytes": 470374,
+        "sha256": "6e5bb994a07782888298a64ddab26e30c2c7e8b9bd907dae68e9b8b157541609"
+      },
+      {
+        "name": "memory-zero-volume.mp4",
+        "bytes": 438977,
+        "sha256": "4098cc8195078a6dcfbb38f147078615f4bcb07239ee2188a6bd62674c1682c1"
+      },
+      {
+        "name": "mute-source-original-330hz.mp4",
+        "bytes": 470374,
+        "sha256": "52890c50fb46d427c57867bc13f9238f572a07c5e025b49b3b70d9e3cf60cec2"
+      },
+      {
+        "name": "muted-original.mp4",
+        "bytes": 435034,
+        "sha256": "3cad9f7b4163ba579db63a526de04226e8bd3868127ae35b17c2a9bc561e340c"
+      },
+      {
+        "name": "negative-y-orientation.mp4",
+        "bytes": 402578,
+        "sha256": "c4348f0e57713ffe99569c7140624fc2b52c0fe4d9b4f4b1224848179b8f2704"
+      },
+      {
+        "name": "one-pass-voiceover.mp4",
+        "bytes": 419847,
+        "sha256": "d534429990ce76a2cea4b2210eefd0d825eee185b31b681e55e106c048623ec3"
+      },
+      {
+        "name": "original-only-mix.mp4",
+        "bytes": 435034,
+        "sha256": "be1bebf0d093cd4349692330855883477f897b2f7a152af902b76fd8b6a79977"
+      },
+      {
+        "name": "original-only-source-original-330hz.mp4",
+        "bytes": 470374,
+        "sha256": "ae75b0a11c482fafc1496a0e0bac3c6cf46763f498e495cb3831d402bd7797b0"
+      },
+      {
+        "name": "positive-y-orientation.mp4",
+        "bytes": 402573,
+        "sha256": "00c8e90cfd1a03ce75a49343f937ac2e10162ee67669e0812631d3da65197bf5"
+      },
+      {
+        "name": "provider-source-original-330hz.mp4",
+        "bytes": 470374,
+        "sha256": "8af5ca8722a76385894670b0602aa6a39462f38b3b97e4696fd08a8cd1efc47b"
+      },
+      {
+        "name": "quarter-volume.mp4",
+        "bytes": 435031,
+        "sha256": "eac6ec0a65b10c22c65c3f5b3da36712a5a98437fe39aa2f2772aee403fc1d51"
+      },
+      {
+        "name": "readable-external-input.mp4",
+        "bytes": 401284,
+        "sha256": "83708feeb9dd65787f231a2933128eca9e05ab16bb0607dca7eed84f81effdfa"
+      },
+      {
+        "name": "retry-after-blocked-provider.mp4",
+        "bytes": 401283,
+        "sha256": "039a9a72a477a32d660553c5c4ac1453452832cf6d9b6c1fc0b74afa8a92be55"
+      },
+      {
+        "name": "retry-after-cancel.mp4",
+        "bytes": 401283,
+        "sha256": "d6bf6e2c22e0392fc10eb8d039297bca6788198ae0071bdf53efd392ddbf16fd"
+      },
+      {
+        "name": "seekable-provider-range.mp4",
+        "bytes": 401284,
+        "sha256": "67c8621cc4ddbdadc1920d26c91b1cdbb2ecbc9c73bb7291c956ba613af94de4"
+      },
+      {
+        "name": "selected-excerpt-loop.mp4",
+        "bytes": 452702,
+        "sha256": "1dd15b229781b37822b7627873b555e8d5fd976598abd5cdfb0e6bb3963ac097"
+      },
+      {
+        "name": "slow-mix-source-original-330hz.mp4",
+        "bytes": 470374,
+        "sha256": "0522474fa2ff5ea9486064e9be99a5cdb163315d920e5ef4029487ef0658e57d"
+      },
+      {
+        "name": "slow-video-fractional-soundtrack-loop.mp4",
+        "bytes": 475554,
+        "sha256": "e4fcbaf5420c977a60c1272349a1160259408d2b42b221cfd7997866221d996c"
+      },
+      {
+        "name": "source-original-330hz.mp4",
+        "bytes": 470374,
+        "sha256": "e4a124a33ff6badc76ff1eaf106995cfa33e9381036d01eb5f4cb10b2634a1ba"
+      },
+      {
+        "name": "source-with-short-audio.mp4",
+        "bytes": 419847,
+        "sha256": "9db6132d2ef1489cd8ae42685691885fa9e2059d315a135c997ca68a7e8676a7"
+      },
+      {
+        "name": "timed-video-source-original-330hz.mp4",
+        "bytes": 470374,
+        "sha256": "f319dd6e9455bd9807a1aea3cb22967cd576c871d548b7cd4213a943c7c37086"
+      },
+      {
+        "name": "trim-after-original-audio.mp4",
+        "bytes": 401284,
+        "sha256": "d1bbe91276de9ad6b73e31074095c3f5bf6e74e9ef54b1614b21bbc5f5231337"
+      },
+      {
+        "name": "trim-speed-original-mix.mp4",
+        "bytes": 417723,
+        "sha256": "b8641283252639c0b65c1df815b70abf6c9b11301003b3911698a7dd3fa05efc"
+      },
+      {
+        "name": "unknown-length-provider-input.mp4",
+        "bytes": 435034,
+        "sha256": "d1e378f95afbb756a9578f8dc1c4c7c3597bb3d62423e1e9cb1861aa31ecf0ed"
+      },
+      {
+        "name": "video-output-time-artwork.mp4",
+        "bytes": 419036,
+        "sha256": "86a1a4ea97e4ed36f420bde04c0836c6d0e706a80d6aeee96c09df2646c8463e"
+      },
+      {
+        "name": "voiceover-clipped-to-movie.mp4",
+        "bytes": 426812,
+        "sha256": "c0db7d99e8f802f5c358e41cb984d20bba06b67c4ed500029fd7226546fa0861"
+      },
+      {
+        "name": "zero-volume.mp4",
+        "bytes": 435031,
+        "sha256": "dd4757b081ee1eea1a23f3a2a467c6df0aa8715cac78d0694fec8cbd9c2cf128"
+      },
+      {
+        "name": "memory-normalized-alpha.png",
+        "bytes": 17279,
+        "sha256": "282066e44f262a6d990764476763db19f2cddeb618effe077881860427167af8"
+      },
+      {
+        "name": "memory-normalized-exif.png",
+        "bytes": 1784,
+        "sha256": "487df57ff2419538e13366be52c559c24c6b9174ec1e54e3192bb68c70688015"
+      },
+      {
+        "name": "memory-prepare-retry.png",
+        "bytes": 6359,
+        "sha256": "d2c62cd92a7a3687cccb18015c25f4f334fb3e49bbeb3bf1261fb32099237b0e"
+      }
+    ]
+  }
+}

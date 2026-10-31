@@ -17,9 +17,9 @@ function loadModule(file,modules){const exports={};vm.runInNewContext(ts.transpi
 function actions(){const calls=[];const state={error:null,denied:false};const exports=loadModule('app/music/actions.ts',{
  'next/navigation':{redirect:url=>{throw new Error('REDIRECT '+url);}},'next/cache':{revalidatePath:url=>calls.push({cache:url})},
  '@/lib/adminAuth':{requirePermission:async permission=>{calls.push({permission});if(state.denied)throw new Error('Forbidden');return{id:'verified-staff',sessionId:'verified-session'};}},
- '@/lib/supabaseAdmin':{serviceClient:()=>({rpc:async(name,args)=>{calls.push({name,args});return{error:state.error};}})},
+ '@/lib/supabaseAdmin':{serviceClient:()=>({rpc:async(name,args)=>{calls.push({name,args});return{data:{id:args.p_request,tracks:args.p_manifest.tracks.length,added:args.p_manifest.tracks.length,replayed:false,catalogEnabled:false},error:state.error};}})},
  });return{...exports,calls,state};}
-function form(content='{"version":1,"tracks":[]}'){const data=new FormData();data.set('manifest',new File([content],'manifest.json',{type:'application/json'}));data.set('providerId','provider');data.set('requestId','10000000-0000-4000-8000-000000000001');data.set('actor','untrusted-substitution');return data;}
+function form(content='{"version":1,"tracks":[{"id":"track-1","revision":"v1","title":"Synthetic track","artist":"Synthetic artist","durationSec":20,"assetRef":"asset-1"}]}'){const data=new FormData();data.set('manifest',new File([content],'manifest.json',{type:'application/json'}));data.set('providerId','provider');data.set('requestId','10000000-0000-4000-8000-000000000001');data.set('actor','untrusted-substitution');return data;}
 test('catalogue staging action binds writes to the current verified staff and session',async()=>{
  const a=actions();await assert.rejects(()=>a.stageMusicCatalogue(form()),/REDIRECT \/music\?result=staged/);
  const write=a.calls.find(c=>c.name==='admin_stage_music_catalogue');assert.equal(write.args.p_actor,'verified-staff');assert.equal(write.args.p_session,'verified-session');assert.equal(write.args.p_provider,'provider');assert.equal(a.calls[0].permission,'post_moderate');

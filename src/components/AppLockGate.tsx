@@ -2,15 +2,14 @@
  * AppLockGate - full-screen Face ID cover when the app lock is on.
  * Locks at cold launch and after more than a minute in the background.
  */
-import { themedSheet } from '../theme/useTheme';
+import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, AppState, Image } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useLockStore } from '../stores/lockStore';
 
-const NAVY = '#18294C';
-
 export default function AppLockGate() {
+  useTheme();
   const enabled = useLockStore(st => st.enabled);
   const locked = useLockStore(st => st.locked);
   const unlock = useLockStore(st => st.unlock);
@@ -57,9 +56,9 @@ export default function AppLockGate() {
 }
 
 const s = themedSheet((t) => ({
-  cover: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', zIndex: 9999, elevation: 9999 },
+  cover: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center', zIndex: 9999, elevation: 9999 },
   mark: { width: 96, height: 96, borderRadius: 22, marginBottom: 18 },
-  title: { color: t.ink.inverse, fontSize: 17, fontWeight: '700', marginBottom: 26 },
-  btn: { backgroundColor: t.surface.canvas, borderRadius: 14, paddingVertical: 13, paddingHorizontal: 30 },
-  btnTxt: { color: NAVY, fontSize: 15.5, fontWeight: '800' },
+  title: { color: t.ink.primary, fontSize: 17, fontWeight: '700', marginBottom: 26 },
+  btn: { backgroundColor: t.ink.primary, borderRadius: 14, paddingVertical: 13, paddingHorizontal: 30 },
+  btnTxt: { color: t.ink.inverse, fontSize: 15.5, fontWeight: '800' },
 }));

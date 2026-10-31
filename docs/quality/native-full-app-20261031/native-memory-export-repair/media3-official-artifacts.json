@@ -1,0 +1,114 @@
+[
+  {
+    "module": "media3-common",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-common/1.11.1/media3-common-1.11.1.aar",
+    "bytes": 644502,
+    "sha256": "50813cf219c7c93ed8a32a750891ca6d1280729ecf7a90c49567adacd67ef31b",
+    "classesSha256": "6ccfbd7e31867c81b4c213332000ebc8111daaee2ff780ca7c3b6c1d1e6c9f4d"
+  },
+  {
+    "module": "media3-exoplayer",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-exoplayer/1.11.1/media3-exoplayer-1.11.1.aar",
+    "bytes": 1703377,
+    "sha256": "588592baec110837c33ce0c82bb76464203e6b0621177bbe5d88779001a6f1ed",
+    "classesSha256": "64ac1eea82cc28d6340e5d91391d14d3b0f352304dbd857d9c0c7131d4a2087f"
+  },
+  {
+    "module": "media3-session",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-session/1.11.1/media3-session-1.11.1.aar",
+    "bytes": 954150,
+    "sha256": "bc7a495f10fb9964ffc76c50b3aea7e65af249d1b667af6713945a8dc181577e",
+    "classesSha256": "1550ffd8cc8b8637d85dc3d64e89676d9c0ae6d78bffb3c7404f7084218d935f"
+  },
+  {
+    "module": "media3-ui",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-ui/1.11.1/media3-ui-1.11.1.aar",
+    "bytes": 337017,
+    "sha256": "bbd94f6d0e504931235d87275c3c5bf4f0a48e0008d8d12efc79f96fc8a3011f",
+    "classesSha256": "fcd7ee52d148406a1cc4fe0cebff7b57de1a1e4404b84e35e94fc1e173f04b6a"
+  },
+  {
+    "module": "media3-transformer",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-transformer/1.11.1/media3-transformer-1.11.1.aar",
+    "bytes": 506251,
+    "sha256": "86cef51c2b7602a1bacd0c172e24fdd562b4601b616b56f3a39bb85ae1b46218",
+    "classesSha256": "dd78593024ac8a7e6e9a9c0c09b394bc0d600e8b74db48f9356d07bdac23f098"
+  },
+  {
+    "module": "media3-effect",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-effect/1.11.1/media3-effect-1.11.1.aar",
+    "bytes": 402882,
+    "sha256": "aacaf7d4cc410ee0e4fe731a1d1b156d22ce263a45bc6bf17a6dbd6f2182f0ab",
+    "classesSha256": "62469926bd8577dd5111d2f4e0aac8c1ae26cc5afb38dea873b12bebc233019c"
+  },
+  {
+    "module": "media3-decoder",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-decoder/1.11.1/media3-decoder-1.11.1.aar",
+    "bytes": 19422,
+    "sha256": "c3bcd704959026e0d644b0260f9e682a2e26e7357c2cf82d990bcb323f800d49",
+    "classesSha256": "284003cc12bf2999ea0c6014778a710ddef05427103f14682e0e7b769b35db2a"
+  },
+  {
+    "module": "media3-datasource",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-datasource/1.11.1/media3-datasource-1.11.1.aar",
+    "bytes": 168578,
+    "sha256": "490fd23c7562a6a1183d63bf854b291ae3a77dce5a151450aa1937148c80c60b",
+    "classesSha256": "b9c76f3740a48fc2e17ae7333f934396acc4bf713f25b5a2ccdf30e9125bd480"
+  },
+  {
+    "module": "media3-extractor",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-extractor/1.11.1/media3-extractor-1.11.1.aar",
+    "bytes": 823954,
+    "sha256": "6b2d58d23a0c53425249d8b7c945600019d61a8b404c8fb8cd9ca860c5738508",
+    "classesSha256": "dd8a3ed92d0c013316b1a0a05e236a5f988f61c07c621cd7c283163df3931b89"
+  },
+  {
+    "module": "media3-database",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-database/1.11.1/media3-database-1.11.1.aar",
+    "bytes": 7197,
+    "sha256": "520e6f814e42a7d428db187ac073b453c0fcba0f4f5f4edd1cf33fafd2cfb740",
+    "classesSha256": "d4b0509ee93605d4d43da2d458e78bbf728f865dbcd00aa2a726f4daf91d5da2"
+  },
+  {
+    "module": "media3-exoplayer-dash",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-exoplayer-dash/1.11.1/media3-exoplayer-dash-1.11.1.aar",
+    "bytes": 149760,
+    "sha256": "eda5ca5879d1016b2f6cb7a79fd8bef864017a3e62e8ece8c25b3a595373920c",
+    "classesSha256": "0cdf227579c283bdb8b16c66aba985c1839e4c5775e5d6ff031338393e381c65"
+  },
+  {
+    "module": "media3-exoplayer-hls",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-exoplayer-hls/1.11.1/media3-exoplayer-hls-1.11.1.aar",
+    "bytes": 263835,
+    "sha256": "bd7aeac8dc60b3ee926eddbe05e29f27dc53c81514cae3271b2edab693f34262",
+    "classesSha256": "ae8ff8ea41915c7d9646e82a5fd8304fef69f17a2fcf1f043d765966674259f0"
+  },
+  {
+    "module": "media3-exoplayer-smoothstreaming",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-exoplayer-smoothstreaming/1.11.1/media3-exoplayer-smoothstreaming-1.11.1.aar",
+    "bytes": 53680,
+    "sha256": "00e9716fed7b43d30024c32b79e08e12a5a73e66eb8b236eafd3d5c293fa44e9",
+    "classesSha256": "e912e72249222aa17bb4baf0d7f5505c8a1ae1311d1be182f3d3fb3967b83bad"
+  },
+  {
+    "module": "media3-datasource-okhttp",
+    "version": "1.11.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-datasource-okhttp/1.11.1/media3-datasource-okhttp-1.11.1.aar",
+    "bytes": 9814,
+    "sha256": "e34237025865cc24168fcc9653d52ce66ad92d2cfdd2068e751a919846b76908",
+    "classesSha256": "7ae9fb9119852ba5d35d9cbb59a19b42aaf79e1cc8e0ed8afb2fa632ff6e3a74"
+  }
+]

@@ -1,0 +1,138 @@
+[
+  {
+    "case": "stories-storyviewer",
+    "runtimeComponent": "StoryViewerScreen",
+    "error": {
+      "line": 1476,
+      "text": "10-31 19:09:00.409 E/ReactNativeJS( 8271): { [TypeError: Cannot read property 'find' of undefined]"
+    },
+    "componentStackFirstFrames": [
+      "StoryViewerScreen (address at index.android.bundle:1:4828598)",
+      "StaticContainer (address at index.android.bundle:1:1220173)",
+      "EnsureSingleNavigator (address at index.android.bundle:1:1176866)",
+      "SceneView (address at index.android.bundle:1:1218853)",
+      "RCTView (<anonymous>)",
+      "View (address at index.android.bundle:1:195700)"
+    ],
+    "errorBoundaryLabels": [
+      "Something went wrong",
+      "This screen could not load. Please try again.",
+      "Try loading this screen again",
+      "Try again"
+    ],
+    "requestOrder": [
+      "/rest/v1/rpc/get_user_stories",
+      "/rest/v1/rpc/get_my_story_reactions",
+      "/rest/v1/rpc/get_story_poll",
+      "/rest/v1/rpc/report_client_error",
+      "/rest/v1/rpc/mark_story_viewed"
+    ],
+    "rawEvidence": {
+      "log": {
+        "artifactRelativePath": "maestro/2026-10-31_190827/Audit StoryViewer/logs/device-logcat.txt",
+        "sha256": "8068823edf3e6692458999fb8de8b16698489431c8745c0b914d39c2bfcb362c"
+      },
+      "hierarchy": {
+        "artifactRelativePath": "maestro/2026-10-31_190827/Audit StoryViewer/screen-hierarchy/step-026-assertCondition-A_moment_worth_rememberi.json",
+        "sha256": "007321221f8231ce37b00781556d63ecae150aa8fcd853b8426aab96707c4bbe"
+      },
+      "screenshot": {
+        "artifactRelativePath": "maestro/2026-10-31_190827/Audit StoryViewer/screenshots/step-026-assertCondition-A_moment_worth_rememberi.png",
+        "sha256": "9111afd707f7ed070cc0d71771ff4b1436e6b901f3cebda3bc5e1fc853ff5f48"
+      },
+      "receiptSha256": "20794f71fa2ff50d2f20353b1ba9ee0a5b0a1c30c839e4ad4490b594e22ec637"
+    }
+  },
+  {
+    "case": "market-listingdetail",
+    "runtimeComponent": "MarketOrderPanel",
+    "error": {
+      "line": 1477,
+      "text": "10-31 19:01:32.848 E/ReactNativeJS( 5073): { [TypeError: Cannot read property 'length' of undefined]"
+    },
+    "componentStackFirstFrames": [
+      "MarketOrderPanel (address at index.android.bundle:1:3700849)",
+      "RCTView (<anonymous>)",
+      "View (address at index.android.bundle:1:195700)",
+      "RCTScrollView (<anonymous>)",
+      "ScrollView (address at index.android.bundle:1:673442)",
+      "ScrollView (address at index.android.bundle:1:680335)"
+    ],
+    "errorBoundaryLabels": [
+      "Something went wrong",
+      "This screen could not load. Please try again.",
+      "Try loading this screen again",
+      "Try again"
+    ],
+    "requestOrder": [
+      "/rest/v1/rpc/get_seller_rating",
+      "/rest/v1/rpc/get_market_orders",
+      "/rest/v1/rpc/seller_review_page",
+      "/rest/v1/rpc/report_client_error",
+      "/rest/v1/rpc/get_context_unread",
+      "/rest/v1/rpc/get_profile",
+      "/rest/v1/rpc/get_unread_counts"
+    ],
+    "rawEvidence": {
+      "log": {
+        "artifactRelativePath": "maestro/2026-10-31_190100/Audit ListingDetail/logs/device-logcat.txt",
+        "sha256": "4b145ee96850e99c36d94eb1d71162e1a69cc9752d967a51d691498abab4363f"
+      },
+      "hierarchy": {
+        "artifactRelativePath": "maestro/2026-10-31_190100/Audit ListingDetail/screen-hierarchy/step-026-assertCondition-Make_offer.json",
+        "sha256": "a6533585badf1a8c9a5023a5f9a692b7b89196e13461d24d6e7b0e0f3cc947e8"
+      },
+      "screenshot": {
+        "artifactRelativePath": "maestro/2026-10-31_190100/Audit ListingDetail/screenshots/step-026-assertCondition-Make_offer.png",
+        "sha256": "8721cd5edc2f7c0b1c9e3576dd979a6998bb08eb092fe0938c489805848add1f"
+      },
+      "receiptSha256": "3c74ab6e86d082141a1cb4096f70469c8e2e63b4031db790fdfb7a88e4ba4e64"
+    }
+  },
+  {
+    "case": "market-offer-cancel",
+    "runtimeComponent": "MarketOrderPanel",
+    "error": {
+      "line": 1548,
+      "text": "10-31 19:13:43.362 E/ReactNativeJS( 9631): { [TypeError: Cannot read property 'length' of undefined]"
+    },
+    "componentStackFirstFrames": [
+      "MarketOrderPanel (address at index.android.bundle:1:3700849)",
+      "RCTView (<anonymous>)",
+      "View (address at index.android.bundle:1:195700)",
+      "RCTScrollView (<anonymous>)",
+      "ScrollView (address at index.android.bundle:1:673442)",
+      "ScrollView (address at index.android.bundle:1:680335)"
+    ],
+    "errorBoundaryLabels": [
+      "Something went wrong",
+      "This screen could not load. Please try again.",
+      "Try loading this screen again",
+      "Try again"
+    ],
+    "requestOrder": [
+      "/rest/v1/rpc/get_context_unread",
+      "/rest/v1/rpc/get_seller_rating",
+      "/rest/v1/rpc/get_market_orders",
+      "/rest/v1/rpc/seller_review_page",
+      "/rest/v1/rpc/report_client_error",
+      "/rest/v1/rpc/get_profile",
+      "/rest/v1/rpc/get_unread_counts"
+    ],
+    "rawEvidence": {
+      "log": {
+        "artifactRelativePath": "maestro/2026-10-31_191310/Audit listing offer entry and cancel/logs/device-logcat.txt",
+        "sha256": "69406357ee3373d584d780d6201dc98113333333ff461747e6ed438ad7143ea4"
+      },
+      "hierarchy": {
+        "artifactRelativePath": "maestro/2026-10-31_191310/Audit listing offer entry and cancel/screen-hierarchy/step-026-assertCondition-Make_offer.json",
+        "sha256": "b1d7532d4e4e6da6b6da604aa21f1e44be43894f5e61de4257d2cc12a24bce95"
+      },
+      "screenshot": {
+        "artifactRelativePath": "maestro/2026-10-31_191310/Audit listing offer entry and cancel/screenshots/step-026-assertCondition-Make_offer.png",
+        "sha256": "a08868e4b4851bc1bade54cc670f848b965ba069310495f9feb6fe7aa7fcf193"
+      },
+      "receiptSha256": "f7e74b6469234298a265bfbf6d941d8edf16387f66b0fb248bbcc1035b9ac1a4"
+    }
+  }
+]

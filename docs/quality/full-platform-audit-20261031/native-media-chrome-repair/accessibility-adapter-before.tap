@@ -1,0 +1,144 @@
+TAP version 13
+# Subtest: native fullscreen controls expose clear action names and a seekable timeline
+not ok 1 - native fullscreen controls expose clear action names and a seekable timeline
+  ---
+  duration_ms: 4.49343
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:58:1'
+  failureType: 'testCodeFailure'
+  error: 'react_native_1.StyleSheet.create is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    evalmachine.<anonymous>:194:37
+    Script.runInContext (node:vm:149:12)
+    Script.runInNewContext (node:vm:154:17)
+    Object.runInNewContext (node:vm:310:38)
+    mount (/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:28:6)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:59:18)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.start (node:internal/test_runner/test:1262:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: native accessible seeking clamps to the recording boundaries
+not ok 2 - native accessible seeking clamps to the recording boundaries
+  ---
+  duration_ms: 1.134995
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:66:1'
+  failureType: 'testCodeFailure'
+  error: 'react_native_1.StyleSheet.create is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    evalmachine.<anonymous>:194:37
+    Script.runInContext (node:vm:149:12)
+    Script.runInNewContext (node:vm:154:17)
+    Object.runInNewContext (node:vm:310:38)
+    mount (/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:28:6)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:67:18)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+  ...
+# Subtest: screen reader users retain playback controls instead of losing focus to auto-hide
+not ok 3 - screen reader users retain playback controls instead of losing focus to auto-hide
+  ---
+  duration_ms: 1.103888
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:71:1'
+  failureType: 'testCodeFailure'
+  error: 'react_native_1.StyleSheet.create is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    evalmachine.<anonymous>:194:37
+    Script.runInContext (node:vm:149:12)
+    Script.runInNewContext (node:vm:154:17)
+    Object.runInNewContext (node:vm:310:38)
+    mount (/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:28:6)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:72:18)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+  ...
+# Subtest: late initial accessibility query cannot undo a newer screen-reader setting
+not ok 4 - late initial accessibility query cannot undo a newer screen-reader setting
+  ---
+  duration_ms: 1.401145
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:76:1'
+  failureType: 'testCodeFailure'
+  error: 'react_native_1.StyleSheet.create is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    evalmachine.<anonymous>:194:37
+    Script.runInContext (node:vm:149:12)
+    Script.runInNewContext (node:vm:154:17)
+    Object.runInNewContext (node:vm:310:38)
+    mount (/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:28:6)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:77:18)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+  ...
+# Subtest: closing the player clears timers and ignores an outstanding accessibility query
+not ok 5 - closing the player clears timers and ignores an outstanding accessibility query
+  ---
+  duration_ms: 1.343669
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:80:1'
+  failureType: 'testCodeFailure'
+  error: 'react_native_1.StyleSheet.create is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    evalmachine.<anonymous>:194:37
+    Script.runInContext (node:vm:149:12)
+    Script.runInNewContext (node:vm:154:17)
+    Object.runInNewContext (node:vm:310:38)
+    mount (/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:28:6)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/fullscreen-video-accessibility.test.cjs:81:18)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+  ...
+# Subtest: Market waits for the actual card label retained in the iPhone accessibility tree
+ok 6 - Market waits for the actual card label retained in the iPhone accessibility tree
+  ---
+  duration_ms: 81.347553
+  type: 'test'
+  ...
+# Subtest: Jobs requires the exact title alone or the actual grouped title and company
+ok 7 - Jobs requires the exact title alone or the actual grouped title and company
+  ---
+  duration_ms: 138.558263
+  type: 'test'
+  ...
+# Subtest: Messages preserves the exact peer and literal preview in grouped rows and repeated returns
+ok 8 - Messages preserves the exact peer and literal preview in grouped rows and repeated returns
+  ---
+  duration_ms: 96.163036
+  type: 'test'
+  ...
+# Subtest: Edit profile accepts its actual icon-plus-label group while standalone profile and settings checks remain exact
+ok 9 - Edit profile accepts its actual icon-plus-label group while standalone profile and settings checks remain exact
+  ---
+  duration_ms: 15.494174
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 4
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 816.045432

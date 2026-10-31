@@ -33,6 +33,11 @@ jobs:
       PLATINUM_COMMERCE_ARTIFACTS: /tmp/platinum-browser-evidence/commerce
       PLATINUM_STUDIO_UI_OUTPUT: /tmp/platinum-studio-browser
       PLATINUM_STUDIO_UI_ARTIFACTS: /tmp/platinum-browser-evidence/studio
+      PLATINUM_MEMBER_ARTIFACTS: /tmp/platinum-browser-evidence/member-resilience
+      PLATINUM_SUPPORT_ARTIFACTS: /tmp/platinum-browser-evidence/support
+      PLATINUM_REPORT_OUTPUT: /tmp/platinum-admin-reporting
+      PLATINUM_REPORT_ARTIFACTS: /tmp/platinum-browser-evidence/admin-reporting
+      PLATINUM_CUSTOM_UI_ARTIFACTS: /tmp/platinum-browser-evidence/admin-custom-controls
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         id: checkout
@@ -68,6 +73,20 @@ jobs:
       - name: Exercise public-web navigation, account changes and recovery
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/social-run.cjs
+      - name: Exercise member read failures, write recovery and actual upload controls
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node web/tests/browser/member-resilience-run.cjs
+      - name: Exercise Support drafts, retries and atomic reply confirmation
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node web/tests/browser/support-run.cjs
+      - name: Exercise complete admin counts, server pages and phone-width controls
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: |
+          node admin-web/tests/browser/reporting-compile.cjs
+          node admin-web/tests/browser/reporting-run.cjs
+      - name: Exercise admin custom actions and receipt-confirmed controls
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node admin-web/tests/browser/custom-controls-run.cjs
       - name: Exercise real Next cold-route navigation and held server responses
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/navigation-loading-next.cjs
@@ -115,5 +134,13 @@ jobs:
             /tmp/platinum-browser-evidence/commerce/*.json
             /tmp/platinum-browser-evidence/studio/*.png
             /tmp/platinum-browser-evidence/studio/*.json
+            /tmp/platinum-browser-evidence/member-resilience/*.png
+            /tmp/platinum-browser-evidence/member-resilience/*.json
+            /tmp/platinum-browser-evidence/support/*.png
+            /tmp/platinum-browser-evidence/support/*.json
+            /tmp/platinum-browser-evidence/admin-reporting/*.png
+            /tmp/platinum-browser-evidence/admin-reporting/*.json
+            /tmp/platinum-browser-evidence/admin-custom-controls/*.png
+            /tmp/platinum-browser-evidence/admin-custom-controls/*.json
           if-no-files-found: ignore
           retention-days: 7

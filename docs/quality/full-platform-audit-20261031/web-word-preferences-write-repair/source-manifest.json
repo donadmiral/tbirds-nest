@@ -1,0 +1,47 @@
+{
+  "sources": [
+    {
+      "path": "web/lib/useWordPreferences.ts",
+      "bytes": 7178,
+      "sha256": "c2b5c28308332c39d8e2e651258dd3a1556c93bd97a033b5ea25a60567cf82aa"
+    },
+    {
+      "path": "web/tests/browser/member-resilience-backend.ts",
+      "bytes": 8909,
+      "sha256": "ed15f5558778ccec01e3339fd667a2807271e058aa23ffdf7566c496d21bd63a"
+    },
+    {
+      "path": "web/tests/browser/member-resilience-run.cjs",
+      "bytes": 13632,
+      "sha256": "ee275c8859e01a20fc97feba4814f33cf015e8ba61f6b1cf632291fc96587a6a"
+    },
+    {
+      "path": "web/tests/browser/word-preferences-deadline-cases.cjs",
+      "bytes": 8412,
+      "sha256": "7b1855047777e6ec265fe7c5ddaa208a28dc1cd68e1319f715613632593c36ee"
+    }
+  ],
+  "baselineHookSha256": "dc980cf4a68583891199401e52d4a392ec45e6ffae245d3db4c1a336b2072e0c",
+  "dependencies": [
+    {
+      "path": "web/lib/navigationCache.ts",
+      "sha256": "64260f2f9c45c7ed8b8f78d15592e6601ce5f4aa1ba6d197d62ad2a0742d3295"
+    },
+    {
+      "path": "shared/navigationCache.ts",
+      "sha256": "3c96b45ecbc04af6c214423d83bca2564659906c1781acf1ab265df53e3969ba"
+    },
+    {
+      "path": "web/lib/withTimeout.ts",
+      "sha256": "7f5718c0a3e1351ff6dc3efb3177ec8d948fde0b7e846d50953cbcd77ce27d28"
+    },
+    {
+      "path": "web/app/settings/hidden-words/page.tsx",
+      "sha256": "3285d606349342df08f19cf38b9b2c082adaf5086a852ed78b2c1f845d6463db"
+    },
+    {
+      "path": "web/app/settings/muted-words/page.tsx",
+      "sha256": "a56cd66bd2cc99f5753ef1a67df81ee573c8ec3a7a2aad245a1561505270ce7f"
+    }
+  ]
+}

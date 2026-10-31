@@ -1,0 +1,134 @@
+TAP version 13
+# Subtest: actual Story service and viewer title accept the SQL null result for a story with no poll
+not ok 1 - actual Story service and viewer title accept the SQL null result for a story with no poll
+  ---
+  duration_ms: 241.04312
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:109:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'find')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    evalmachine.<anonymous>:1:15
+    Script.runInContext (node:vm:149:12)
+    Script.runInNewContext (node:vm:154:17)
+    Object.runInNewContext (node:vm:310:38)
+    pollVotersTitle (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:57:13)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:112:16)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: actual MarketOrderPanel renders the SQL empty page in market-listingdetail
+not ok 2 - actual MarketOrderPanel renders the SQL empty page in market-listingdetail
+  ---
+  duration_ms: 110.106795
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:118:67'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'length')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    MarketOrderPanel (eval at load (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:98:5), <anonymous>:199:37)
+    render (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:102:60)
+    Object.flush (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:104:126)
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:121:18)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual MarketOrderPanel renders the SQL empty page in market-offer-cancel
+not ok 3 - actual MarketOrderPanel renders the SQL empty page in market-offer-cancel
+  ---
+  duration_ms: 57.482345
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:118:67'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'length')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    MarketOrderPanel (eval at load (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:98:5), <anonymous>:199:37)
+    render (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:102:60)
+    Object.flush (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:104:126)
+    async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:121:18)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: the original array fixture reproduces the exact retained StoryViewer and order-panel exceptions
+ok 4 - the original array fixture reproduces the exact retained StoryViewer and order-panel exceptions
+  ---
+  duration_ms: 95.530485
+  type: 'test'
+  ...
+# Subtest: new object/null reads keep exact case/argument guards and do not authorize commerce mutations
+not ok 5 - new object/null reads keep exact case/argument guards and do not authorize commerce mutations
+  ---
+  duration_ms: 2.661815
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:136:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    200 !== 501
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 501
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:142:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual denied poll and order reads remain errors rather than empty successful state
+ok 6 - actual denied poll and order reads remain errors rather than empty successful state
+  ---
+  duration_ms: 50.054129
+  type: 'test'
+  ...
+# Subtest: actual newly reachable Post and Comments load callbacks complete every unconditional read without a hidden501
+not ok 7 - actual newly reachable Post and Comments load callbacks complete every unconditional read without a hidden501
+  ---
+  duration_ms: 80.159549
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:177:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-response-shapes.cjs:196:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual Search success callback finishes all verticals and analytics with the scripted peer and no hidden501
+ok 8 - actual Search success callback finishes all verticals and analytics with the scripted peer and no hidden501
+  ---
+  duration_ms: 38.704753
+  type: 'test'
+  ...
+# Subtest: comment permission and optional pin reads reject unrelated posts, fields, cases and pin writes
+ok 9 - comment permission and optional pin reads reject unrelated posts, fields, cases and pin writes
+  ---
+  duration_ms: 4.279539
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 4
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 891.905421

@@ -18,6 +18,14 @@ name: Audit support list error
 - tapOn:
     id: native-audit-open-case
 - extendedWaitUntil:
+    visible: "Contact support"
+    timeout: 15000
+- scrollUntilVisible:
+    element: Your messages could not be loaded. Please try again.
+    direction: DOWN
+    centerElement: true
+- extendedWaitUntil:
     visible: "(?i).*(could not load|try again|retry).*"
     timeout: 15000
+- assertVisible: Try again
 - takeScreenshot: support-list-error

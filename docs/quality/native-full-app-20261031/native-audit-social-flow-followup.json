@@ -1,0 +1,205 @@
+{
+  "schema": 1,
+  "kind": "native-audit-social-flow-followup",
+  "preparedAtUtc": "2026-10-31T19:41:45.456430+00:00",
+  "status": "LOCAL_FOCUSED_CHECKS_PASS_NATIVE_RERUN_PENDING",
+  "scope": "Two QA flow corrections and their metadata/regression bindings; no application, fixture, launcher, provider, schema or deadline change. The Trend loaded-empty assertion is an additional mandatory gate using the same 15000 ms wait value, not an increased existing deadline.",
+  "runtimeBaseline": {
+    "sourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "runId": 41231522956,
+    "originalOutcomes": "All four reviewed rows failed in the retained Android audit; no outcome has been relabeled as a native pass.",
+    "evidence": {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/failures.json",
+      "bytes": 2309,
+      "sha256": "18437fae350a3ebe6f981305f6233935ed06062b0f7e1ce54bb0dd0d4f2a1243"
+    }
+  },
+  "changes": [
+    {
+      "id": "feed-trendfeed",
+      "summary": "Correct normalized header and require the actual resolved empty-state title plus description."
+    },
+    {
+      "id": "notifications-empty-controls",
+      "summary": "Match the true empty activity contract; assert the unread-only action is absent and explicitly retain the positive-action coverage gap."
+    }
+  ],
+  "classification": {
+    "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/classified-ledger.json",
+    "bytes": 2377,
+    "sha256": "b8f8285aefa742b37bc217f8aca76b5cd27116b8a848818b5e84cae75894f492"
+  },
+  "verification": {
+    "baselineNewCases": {
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "durationMs": 500.79553,
+      "command": "env -u NODE_TEST_CONTEXT PLATINUM_SOCIAL_FLOW_BASELINE=1 node --test --test-isolation=none --test-reporter=tap tests/quality/native-audit-social-entry-controls.cjs",
+      "output": {
+        "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/before.tap",
+        "bytes": 2591,
+        "sha256": "5794b4269c9328f37a1735b497a6ca02ba85e6bf9ebc95ee716c0e9e9c8be8c9"
+      }
+    },
+    "finalCombinedCases": {
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "previousCases": 15,
+      "newCases": 2,
+      "durationMs": 598.782189,
+      "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-audit-flow-controls.cjs tests/quality/native-audit-social-entry-controls.cjs",
+      "output": {
+        "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/after.tap",
+        "bytes": 4871,
+        "sha256": "37d287ed45b8154bdda2f5b48fd4d4b0a03ef73d066ce4aa1c8e754e3912318f"
+      }
+    },
+    "static": {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/static-checks.json",
+      "bytes": 273,
+      "sha256": "986033f9d55626b4f929b525ef996bdeb2dc43ac5e526b1007c321681174b8d0"
+    },
+    "harness": "New tests execute actual production cleanTag, unread-count and conditional JSX expressions through TypeScript/VM controlled hosts. They check retained real Android hierarchy and mandatory current YAML contracts. They do not run native rendering, gestures, transport or the complete screen scheduler."
+  },
+  "sourceManifest": {
+    "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/source-manifest.json",
+    "bytes": 8603,
+    "sha256": "8ba2fc148c33bdbbb9464379c4151fb2d7aa1211c004a721c39da48b0c0e8777"
+  },
+  "historicalBindingsPreserved": {
+    "ownerReceipt": {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair.json",
+      "bytes": 18335,
+      "sha256": "f74594ad16743c002f0d045653cdf487d6508b1aaeb0dfe82048ca1df69b0076"
+    },
+    "independentReceipt": {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-independent-review.json",
+      "bytes": 3034,
+      "sha256": "8d334c77cc653262e2f42236d35203a9ccec6293031583649eee585d71cea6ba"
+    },
+    "note": "Historical accepted 15-path evidence is unchanged. This follow-up explicitly supersedes only its manifest and whole-manifest guard input hashes; all thirteen prior YAMLs remain byte-identical. The current combined UI-flow candidate has eighteen unique QA paths."
+  },
+  "limits": [
+    "Positive Mark all read was never executed in the failing audit and remains untested.",
+    "Feed Post and Search flows remain unchanged; fixture contracts belong to the separate strict-contract repair.",
+    "The retained native results are failing baseline observations, not repaired runtime acceptance.",
+    "StoryViewer route parameters already match the production caller shape; no route change was made. Its poll-shape and Market orders-shape crashes belong to the separate fixture owner.",
+    "No physical-device, hosted-provider, new full-native, iOS, or signed-release acceptance is established by these two local cases."
+  ],
+  "retainedEvidence": [
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/after.tap",
+      "bytes": 4871,
+      "sha256": "37d287ed45b8154bdda2f5b48fd4d4b0a03ef73d066ce4aa1c8e754e3912318f"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/before/feed-trendfeed.yaml.txt",
+      "bytes": 465,
+      "sha256": "a3a0d5c764ace92b42e919d8fe5d9189c4c12ccbdc43ec5a36473060c34a8918"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/before/manifest.json",
+      "bytes": 91068,
+      "sha256": "c2e69f24d5beaed8d5f7f250c42887063c1e4378b3a0b85f7c4c78b98aa73de4"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/before/native-audit-flow-controls.cjs.txt",
+      "bytes": 19977,
+      "sha256": "ac19062dfb3b324162c8002fbc42ef456d67f572a09e906f12eac7d79bc3d896"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/before/notifications-empty-controls.yaml.txt",
+      "bytes": 599,
+      "sha256": "0cfa986d6746e845925516897461e2e3ea52043e725696627a00874efe144de7"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/before.tap",
+      "bytes": 2591,
+      "sha256": "5794b4269c9328f37a1735b497a6ca02ba85e6bf9ebc95ee716c0e9e9c8be8c9"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/classified-ledger.json",
+      "bytes": 2377,
+      "sha256": "b8f8285aefa742b37bc217f8aca76b5cd27116b8a848818b5e84cae75894f492"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/failures.json",
+      "bytes": 2309,
+      "sha256": "18437fae350a3ebe6f981305f6233935ed06062b0f7e1ce54bb0dd0d4f2a1243"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/feed-post.ax.json",
+      "bytes": 47645,
+      "sha256": "39e15a51c001dd60d593ef2d89364ab4593803f0ed7569efb01d93bb6cd8820a"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/feed-post.commands.json",
+      "bytes": 26407,
+      "sha256": "6ea87c347476edeff5df5424fa220ea0e4b7b0c66688dc0577ddfef94ef4936d"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/feed-post.png",
+      "bytes": 9214,
+      "sha256": "12c52596f91d343b25417432ad077c4eb9ee6abcbcb63b5d15b8111d9a585207"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/feed-search-controls.ax.json",
+      "bytes": 117739,
+      "sha256": "e3efd31e5550a2e0c05a9db81a0570df810fcb92b10a78540bea423b93611171"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/feed-search-controls.commands.json",
+      "bytes": 28321,
+      "sha256": "b8738c08349f2dd5216ebddb2837615c1e68ec71d21360b3030d5c19d32492ec"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/feed-search-controls.png",
+      "bytes": 30814,
+      "sha256": "0c108d9a41b269573451af268e95b64f2d5d5b4d9dd7e7ae8ac44e9a15465790"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/feed-trendfeed.ax.json",
+      "bytes": 53360,
+      "sha256": "7cd86e0641625a358830883cbf2ca7530012a14af94b47a3be638ce303b8161a"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/feed-trendfeed.commands.json",
+      "bytes": 26435,
+      "sha256": "cf040666925aeb117572fa6c665c24f026a8e8d9a7dfe831fa784b339ca140e6"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/feed-trendfeed.png",
+      "bytes": 13432,
+      "sha256": "9ff6276146cc21ed716c7c6e4908565cf6e765822168806f1d92e64dd5503c4e"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/notifications-empty-controls.ax.json",
+      "bytes": 68357,
+      "sha256": "2d64375a1636cb4b8c4de6bc70314cff2cbb65dc5a635ed7ea5a7f00b7574cde"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/notifications-empty-controls.commands.json",
+      "bytes": 27167,
+      "sha256": "b1d38cbb0ad685fee876ca07de26d51e85a90117998cc78b79f3e7f6ff1d1e4d"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/observed/notifications-empty-controls.png",
+      "bytes": 23673,
+      "sha256": "bf950ac3facdf4e8daf5404ec9cea59c42c059e569f1d7d9a7c422f36fb6573d"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/source-manifest.json",
+      "bytes": 8603,
+      "sha256": "8ba2fc148c33bdbbb9464379c4151fb2d7aa1211c004a721c39da48b0c0e8777"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-social-flow-followup/static-checks.json",
+      "bytes": 273,
+      "sha256": "986033f9d55626b4f929b525ef996bdeb2dc43ac5e526b1007c321681174b8d0"
+    }
+  ]
+}

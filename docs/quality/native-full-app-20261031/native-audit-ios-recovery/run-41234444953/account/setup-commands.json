@@ -1,0 +1,52 @@
+{
+  "commands": [
+    {
+      "stage": "create",
+      "timeoutSeconds": 120,
+      "startedAtEpochMs": 1793475002872,
+      "status": "completed",
+      "stdoutBytes": 37,
+      "stdoutTail": "60927B5A-B843-432E-84F6-0B435DF8A39C\n",
+      "stdoutTruncated": false,
+      "stderrBytes": 0,
+      "stderrTail": "",
+      "stderrTruncated": false,
+      "exitCode": 0,
+      "elapsedSeconds": 42.69245042699998,
+      "leaderCompletedBeforePipeEOF": false,
+      "finishedAtEpochMs": 1793475045590
+    },
+    {
+      "stage": "boot",
+      "timeoutSeconds": 120,
+      "startedAtEpochMs": 1793475045591,
+      "status": "completed",
+      "stdoutBytes": 0,
+      "stdoutTail": "",
+      "stdoutTruncated": false,
+      "stderrBytes": 0,
+      "stderrTail": "",
+      "stderrTruncated": false,
+      "exitCode": 0,
+      "elapsedSeconds": 4.138860429999966,
+      "leaderCompletedBeforePipeEOF": false,
+      "finishedAtEpochMs": 1793475049737
+    },
+    {
+      "stage": "bootstatus",
+      "timeoutSeconds": 300,
+      "startedAtEpochMs": 1793475049784,
+      "status": "completed",
+      "stdoutBytes": 16531,
+      "stdoutTail": "eason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)\n\t\tMigration Elapsed:01:08 seconds\n\n[2026-10-31 19:32:14 +0000] Status=2, isTerminal=NO, Elapsed=01:21.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)\n\t\tMigration Elapsed:01:10 seconds\n\n[2026-10-31 19:32:14 +0000] Status=2, isTerminal=NO, Elapsed=01:23.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)\n\t\tMigration Elapsed:01:11 seconds\n\n[2026-10-31 19:32:14 +0000] Status=2, isTerminal=NO, Elapsed=01:24.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)\n\t\tMigration Elapsed:01:12 seconds\n\n[2026-10-31 19:32:14 +0000] Status=2, isTerminal=NO, Elapsed=01:26.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)\n\t\tMigration Elapsed:01:14 seconds\n\n[2026-10-31 19:32:16 +0000] Status=2, isTerminal=NO, Elapsed=01:28.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)\n\t\tMigration Elapsed:01:16 seconds\n\n[2026-10-31 19:32:16 +0000] Status=2, isTerminal=NO, Elapsed=01:28.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)\n\t\tMigration Elapsed:01:18 seconds\n\n[2026-10-31 19:32:16 +0000] Status=2, isTerminal=NO, Elapsed=01:29.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)\n\t\tMigration Elapsed:01:19 seconds\n\n[2026-10-31 19:32:18 +0000] Status=2, isTerminal=NO, Elapsed=01:30.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.addressbook.migrator (AddressBookLegacy.migrator)\n\t\tMigration Elapsed:01:20 seconds\n\n[2026-10-31 19:32:20 +0000] Status=2, isTerminal=NO, Elapsed=01:31.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)\n\t\tMigration Elapsed:01:21 seconds\n\n[2026-10-31 19:32:20 +0000] Status=2, isTerminal=NO, Elapsed=01:32.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.PreferencesMigrator (PreferencesMigrator.migrator)\n\t\tMigration Elapsed:01:22 seconds\n\n[2026-10-31 19:32:21 +0000] Status=2, isTerminal=NO, Elapsed=01:33.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.PreferencesMigrator (PreferencesMigrator.migrator)\n\t\tMigration Elapsed:01:23 seconds\n\n[2026-10-31 19:32:22 +0000] Status=2, isTerminal=NO, Elapsed=01:34.\n\tWaiting on Data Migration\n\t\tReason:Running plugin com.apple.PreferencesMigrator (PreferencesMigrator.migrator)\n\t\tMigration Elapsed:01:24 seconds\n\n[2026-10-31 19:32:23 +0000] Status=4, isTerminal=NO, Elapsed=01:35.\n\tWaiting on System App\n\n[2026-10-31 19:32:24 +0000] Status=4, isTerminal=NO, Elapsed=01:36.\n\tWaiting on System App\n\n[2026-10-31 19:32:25 +0000] Status=4, isTerminal=NO, Elapsed=01:37.\n\tWaiting on System App\n\n[2026-10-31 19:32:28 +0000] Status=4, isTerminal=NO, Elapsed=01:38.\n\tWaiting on System App\n\n[2026-10-31 19:32:28 +0000] Status=4, isTerminal=NO, Elapsed=01:39.\n\tWaiting on System App\n\n[2026-10-31 19:32:28 +0000] Status=4, isTerminal=NO, Elapsed=01:40.\n\tWaiting on System App\n\n[2026-10-31 19:32:29 +0000] Status=4, isTerminal=NO, Elapsed=01:41.\n\tWaiting on System App\n\n[2026-10-31 19:32:30 +0000] Status=4, isTerminal=NO, Elapsed=01:42.\n\tWaiting on System App\n\n[2026-10-31 19:32:30 +0000] Status=4, isTerminal=NO, Elapsed=01:43.\n\tWaiting on System App\n\n[2026-10-31 19:32:32 +0000] Status=4, isTerminal=NO, Elapsed=01:44.\n\tWaiting on System App\n\n[2026-10-31 19:32:38 +0000] Status=4, isTerminal=NO, Elapsed=01:45.\n\tWaiting on System App\n\n[2026-10-31 19:32:38 +0000] Status=4, isTerminal=NO, Elapsed=01:46.\n\tWaiting on System App\n\n[2026-10-31 19:32:38 +0000] Status=4, isTerminal=NO, Elapsed=01:48.\n\tWaiting on System App\n\n[2026-10-31 19:32:38 +0000] Status=4294967295, isTerminal=YES, Elapsed=01:49.\n\tFinished\n\n",
+      "stdoutTruncated": true,
+      "stderrBytes": 0,
+      "stderrTail": "",
+      "stderrTruncated": false,
+      "exitCode": 0,
+      "elapsedSeconds": 119.71957910699996,
+      "leaderCompletedBeforePipeEOF": true,
+      "finishedAtEpochMs": 1793475170578
+    }
+  ]
+}

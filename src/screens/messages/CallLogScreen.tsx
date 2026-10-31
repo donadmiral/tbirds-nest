@@ -1,5 +1,5 @@
 import { ListRowSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, StatusBar, RefreshControl } from 'react-native';
@@ -50,6 +50,7 @@ function avatarBg(id: string) {
 }
 
 export default function CallLogScreen() {
+  const { t, isDark } = useTheme();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
@@ -189,7 +190,7 @@ export default function CallLogScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
           <Feather name="chevron-left" size={24} color="#000" />
@@ -232,7 +233,7 @@ const s = themedSheet((t) => ({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 17, fontWeight: '700', color: '#000' },
+  title: { fontSize: 17, fontWeight: '700', color: t.ink.primary },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   sep: { height: StyleSheet.hairlineWidth, backgroundColor: '#F2F2F7', marginLeft: 76 },
   avatar: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
@@ -247,6 +248,6 @@ const s = themedSheet((t) => ({
   actions: { flexDirection: 'row', gap: 8 },
   callbackBtn: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#000' },
-  emptySub: { fontSize: 14, color: '#8E8E93' },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: t.ink.primary },
+  emptySub: { fontSize: 14, color: t.ink.muted },
 }));

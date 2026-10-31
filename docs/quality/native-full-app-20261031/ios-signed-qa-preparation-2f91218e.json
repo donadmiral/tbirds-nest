@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T17:43:34.158480+00:00",
+  "status": "CLEAN_PUBLISHED_SOURCE_AND_LOCAL_PROFILE_PREPARATION_ONLY",
+  "source": {
+    "repository": "donadmiral/tbirds-nest",
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "prMerge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "detachedWorktree": "/workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-2f91218e",
+    "creationCommand": "git worktree add --detach /workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-2f91218e 2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "detached": true,
+    "clean": true,
+    "trackedFileCount": 3162,
+    "nativeOriginalCount": 501,
+    "additionalConfigurationCount": 6,
+    "verifiedUniqueFiles": 507,
+    "allSelectedGitBlobAndModeChecksPass": true,
+    "integrityEvidence": {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-2f91218e/source-integrity.json",
+      "bytes": 181673,
+      "sha256": "31b670fe4dcc6a74cdae0f9c3453db1afd9cb549d032a1b1cf18b23ff0fca4d0"
+    },
+    "twoProductionComponents": {
+      "src/screens/profile/MemoryAlbumScreen.tsx": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab",
+      "src/components/memory/MemoryPageTurn.tsx": "ddf7a604b0a6ecdd1b75910ff393a76c0404bb66ce19c52f0e4597731a502881"
+    }
+  },
+  "configuration": {
+    "method": "Pinned cached public @expo/eas-json27.2.0 validates and resolves preview/production iOS/Android profiles. The exact tracked app.config.js executes in an isolated VM with selected committed public environment values. No CLI command, config plugin, native generation or provider request.",
+    "profiles": {
+      "schemaValidatedWithInstalledPublicEasJson": true,
+      "cli": {
+        "version": ">= 16.20.0",
+        "appVersionSource": "remote"
+      },
+      "profiles": [
+        {
+          "name": "preview",
+          "distribution": "internal",
+          "environment": "preview",
+          "channel": "qa-preview",
+          "credentialsSource": "remote",
+          "autoIncrement": true,
+          "iosSimulator": false,
+          "androidBuildType": "apk",
+          "committedEnvironmentNames": [
+            "EXPO_PUBLIC_APP_ENV",
+            "EXPO_PUBLIC_GIPHY_KEY",
+            "EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED",
+            "EXPO_PUBLIC_SUPABASE_ANON_KEY",
+            "EXPO_PUBLIC_SUPABASE_URL"
+          ],
+          "privateMediaSessionsEnabled": "false",
+          "matchingBackend": true,
+          "resolvedApp": {
+            "name": "Platinum QA",
+            "slug": "platinum-circles",
+            "owner": "donadmiral",
+            "scheme": "platinum-circles-qa",
+            "marketingVersion": "1.1.0",
+            "iosBundleIdentifier": "app.platinumcircles.mobile.qa",
+            "iosBuildNumber": "1",
+            "androidPackage": "app.platinumcircles.mobile.qa",
+            "androidVersionCode": 1,
+            "androidGoogleServicesFileConfigured": false,
+            "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+            "environment": "qa"
+          }
+        },
+        {
+          "name": "production",
+          "distribution": "store",
+          "environment": "production",
+          "channel": null,
+          "credentialsSource": "remote",
+          "autoIncrement": true,
+          "iosSimulator": null,
+          "androidBuildType": null,
+          "committedEnvironmentNames": [
+            "EXPO_PUBLIC_APP_ENV",
+            "EXPO_PUBLIC_GIPHY_KEY",
+            "EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED",
+            "EXPO_PUBLIC_SUPABASE_ANON_KEY",
+            "EXPO_PUBLIC_SUPABASE_URL"
+          ],
+          "privateMediaSessionsEnabled": "false",
+          "matchingBackend": true,
+          "resolvedApp": {
+            "name": "PlatinumCircles",
+            "slug": "platinum-circles",
+            "owner": "donadmiral",
+            "scheme": "platinum-circles",
+            "marketingVersion": "1.1.0",
+            "iosBundleIdentifier": "app.platinumcircles.mobile",
+            "iosBuildNumber": "1",
+            "androidPackage": "app.platinumcircles.mobile",
+            "androidVersionCode": 1,
+            "androidGoogleServicesFileConfigured": true,
+            "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+            "environment": "production"
+          }
+        }
+      ],
+      "submitProfileNames": [
+        "production"
+      ],
+      "productionSubmission": {
+        "ascAppId": "6764038613",
+        "appleTeamId": "6PHMSMFKSF",
+        "androidTrack": "internal",
+        "androidReleaseStatus": "completed"
+      }
+    },
+    "configurationUnchangedFromB5": true,
+    "remoteEnvironmentInspected": false,
+    "firebaseFileContentsInspected": false
+  },
+  "cli": {
+    "version": "27.2.0",
+    "publicPackageFilesCompared": 8,
+    "allMatchPriorReviewedBytes": true,
+    "provenance": {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-2f91218e/public-cli-provenance.json",
+      "bytes": 2778,
+      "sha256": "2464f9278d10e17e06710086e144769d48315e7151904b5a285b93729150f7ad"
+    },
+    "commandsInvoked": []
+  },
+  "authentication": {
+    "currentStatusRechecked": false,
+    "historicalObservation": "Prior f4 preparation observed the CLI signed out on2026-10-31; this is not a fresh session or credential check.",
+    "historicalReceipt": {
+      "path": "docs/quality/native-full-app-20261031/ios-signed-qa-preparation-f4c35f32.json",
+      "bytes": 12007,
+      "sha256": "ed189e78faddc27b49bb4f1a29876e7626dde779b1e207dcd301492797dcd6ac"
+    },
+    "loginInvoked": false,
+    "appleSignInRetried": false,
+    "credentialsInspectedOrChanged": false
+  },
+  "preparedBuild": {
+    "cwd": "/workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-2f91218e",
+    "command": "npm exec --offline --yes --cache /tmp/platinum-eas-cli-cache --package=eas-cli@27.2.0 -- eas build --platform ios --profile preview --non-interactive --freeze-credentials --no-wait --json",
+    "executed": false,
+    "autoSubmitRequested": false,
+    "credentialRefreshRequested": false
+  },
+  "gates": {
+    "currentFullNativeRun": 41225636296,
+    "nativeAcceptanceEstablished": false,
+    "productionMemoryMovieVersion": {
+      "ios": 0,
+      "android": 0
+    },
+    "commercialMusicCatalogEnabled": false,
+    "privateMediaSessionsEnabled": false,
+    "capabilityOrLicensingChanged": false
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-2f91218e/config-projection.cjs.txt",
+      "bytes": 3417,
+      "sha256": "3c037b64821b622ce97686419a7566e863641e8814ea234b54fe09b64e020123"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-2f91218e/config-projection.json",
+      "bytes": 2599,
+      "sha256": "edc54d5bcdb40cb0ae8f2c58855a5d4385bb9d34a35fb6f34093314133f37711"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-2f91218e/public-cli-provenance.json",
+      "bytes": 2778,
+      "sha256": "2464f9278d10e17e06710086e144769d48315e7151904b5a285b93729150f7ad"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-2f91218e/source-integrity.json",
+      "bytes": 181673,
+      "sha256": "31b670fe4dcc6a74cdae0f9c3453db1afd9cb549d032a1b1cf18b23ff0fca4d0"
+    }
+  ],
+  "limits": [
+    "This is local source and profile preparation only, not a signed build, Apple/TestFlight/App Store or native acceptance result.",
+    "Dependencies were not installed in the detached checkout. The cached public parser does not establish full Expo config-plugin, archive or remote-signing readiness.",
+    "The CLI signed-out observation is historical and was not rechecked. No login, Apple retry, remote environment/credential inspection, build, submission or account operation occurred.",
+    "The build reference is not executed; remote auto-increment, credential validity and device membership remain unverified.",
+    "Only documentation and a detached checkout were created; no source, main report or branch ref changed."
+  ]
+}

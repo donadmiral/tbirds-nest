@@ -93,5 +93,5 @@ const s = themedSheet((t) => ({
   name: { fontSize: 14.5, fontWeight: '700', color: t.ink.primary },
   when: { fontSize: 12, color: t.ink.muted, marginTop: 2 },
   btn: { marginHorizontal: 16, marginTop: 20, backgroundColor: t.status.dangerBg, borderRadius: 12, height: 48, alignItems: 'center', justifyContent: 'center' },
-  btnTxt: { color: t.status.danger, fontSize: 15, fontWeight: '800' },
+  btnTxt: { color: t.ink.primary, fontSize: 15, fontWeight: '800' },
 }));

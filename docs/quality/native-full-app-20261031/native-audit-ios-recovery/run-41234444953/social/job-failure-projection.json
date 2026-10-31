@@ -1,0 +1,77 @@
+{
+  "jobId": 124635169620,
+  "lines": [
+    {
+      "line": 513,
+      "text": "2026-10-31T19:36:54.9114780Z Traceback (most recent call last):"
+    },
+    {
+      "line": 514,
+      "text": "2026-10-31T19:36:55.8690390Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 636, in <module>"
+    },
+    {
+      "line": 515,
+      "text": "2026-10-31T19:36:57.3209180Z     sys.exit(main())"
+    },
+    {
+      "line": 516,
+      "text": "2026-10-31T19:36:57.3700780Z              ~~~~^^"
+    },
+    {
+      "line": 517,
+      "text": "2026-10-31T19:36:57.6906220Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 534, in main"
+    },
+    {
+      "line": 518,
+      "text": "2026-10-31T19:36:57.9848600Z     provenance['compatibilityVerification'] = verify_compatibility(app, manifest, device)"
+    },
+    {
+      "line": 519,
+      "text": "2026-10-31T19:36:58.3496600Z                                               ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 520,
+      "text": "2026-10-31T19:36:58.7371650Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 203, in verify_compatibility"
+    },
+    {
+      "line": 521,
+      "text": "2026-10-31T19:36:58.9547450Z     return compatibility_module.verify_compatibility(app, manifest, device, read, host_system)"
+    },
+    {
+      "line": 522,
+      "text": "2026-10-31T19:36:59.1295210Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 523,
+      "text": "2026-10-31T19:36:59.2518390Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-compatibility.py\", line 18, in verify_compatibility"
+    },
+    {
+      "line": 524,
+      "text": "2026-10-31T19:36:59.4537430Z     if read(['xcodebuild', '-version']) != manifest['toolchain']['xcode']:"
+    },
+    {
+      "line": 525,
+      "text": "2026-10-31T19:36:59.5540190Z        ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 526,
+      "text": "2026-10-31T19:37:00.2342060Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 137, in read_command"
+    },
+    {
+      "line": 527,
+      "text": "2026-10-31T19:37:00.6044120Z     result = bounded_command(args, timeout)"
+    },
+    {
+      "line": 528,
+      "text": "2026-10-31T19:37:00.8680770Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 105, in bounded_command"
+    },
+    {
+      "line": 529,
+      "text": "2026-10-31T19:37:01.1278590Z     raise error"
+    },
+    {
+      "line": 530,
+      "text": "2026-10-31T19:37:01.3712090Z subprocess.TimeoutExpired: Command '['xcodebuild', '-version']' timed out after 5 seconds"
+    }
+  ]
+}

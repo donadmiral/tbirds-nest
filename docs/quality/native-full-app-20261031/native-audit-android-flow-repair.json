@@ -1,0 +1,368 @@
+{
+  "schema": 2,
+  "kind": "native-audit-android-flow-repair",
+  "reviewedAt": "2026-10-31T19:33:28.514038+00:00",
+  "status": "prepared-and-locally-verified-native-rerun-pending",
+  "sourceBinding": {
+    "runtimeBinarySource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "runtimeProductionSource": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "recoveryRunId": 41231522956,
+    "sourceManifest": {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/source-manifest.json",
+      "bytes": 8312,
+      "sha256": "97fabb0ec4911281007770bf55afab766efd755a02d42bf41a60ec9c7f0c7cf1"
+    },
+    "changedQaPaths": 15,
+    "changedFlowFiles": 13,
+    "productionEdits": 0,
+    "fixtureBackendEdits": 0,
+    "providerWrites": 0
+  },
+  "classification": {
+    "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/classified-ledger.json",
+    "bytes": 21418,
+    "sha256": "475344e38200839b04ca8df8837368e74098e7266e6f201a7df020c6b445b981"
+  },
+  "regressions": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-audit-flow-controls.cjs",
+    "baselineCommandPrefix": "PLATINUM_AUDIT_FLOW_BASELINE=1",
+    "baselineScope": "The existing grouped working flows before this change, including the already prepared atomic Support postconditions. Runtime observations remain bound separately to literal b568.",
+    "before": {
+      "formalTests": 15,
+      "passed": 1,
+      "failed": 14,
+      "skipped": 0,
+      "artifact": {
+        "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/focused-before.tap",
+        "bytes": 175272,
+        "sha256": "89ef3bfa1da853a1b02b67001a71b8366447548cc8d00d2d594a83455ce04ebc"
+      },
+      "durationMs": 387.081363
+    },
+    "after": {
+      "formalTests": 15,
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 527.392528,
+      "artifact": {
+        "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/focused-after.tap",
+        "bytes": 4231,
+        "sha256": "262d5684e6dc27a72bbfed259134276cd3e2476317335d25d3a8c3505c67ec80"
+      }
+    },
+    "method": "Parse the actual YAML; check exact retained Android AX/keyboard/viewport observations and production JSX/initial-state contracts; execute the actual text-editor save/close callbacks under controlled hosts. Pinned Maestro matching/command semantics are projected, not native gestures."
+  },
+  "staticChecks": {
+    "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/static-checks.json",
+    "bytes": 583,
+    "sha256": "4307f1796d5f53ed967ac5fe9485e75f4064b6db648fdb63cbdea58feff00ccf"
+  },
+  "preserved": [
+    "All 85 case identities, registered routes, fixture scenarios and outer runner budgets.",
+    "Original mandatory postconditions and each original assertion timeout; two mistaken expected entry/state strings are corrected explicitly.",
+    "One sign-in/reset setup per case. No coordinate tap, optional acceptance, retry loop, deadline increase or successful synthetic backend fallback.",
+    "The film pause/export/close sequence remains byte-equivalent after the new required scroll.",
+    "The original 85-row runtime ledger, 48/37 result and all 17 failed UI observations remain unchanged."
+  ],
+  "relatedFrozenRepairs": [
+    {
+      "file": "docs/quality/full-platform-audit-20261031/support/bounded-waits-repair/support-bounded-waits-repair.json",
+      "bytes": 9384,
+      "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+    },
+    {
+      "file": "docs/quality/full-platform-audit-20261031/support/lifecycle-repair/support-lifecycle-repair.json",
+      "bytes": 11320,
+      "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-memory-export-repair.json",
+      "bytes": 11914,
+      "sha256": "26357b68459abe80f60c6d040222bc4a62797df0aaf4a014327111be4c1cb014"
+    }
+  ],
+  "limits": [
+    "No native rerun was performed for these corrected flows. Local source/AX command checks do not establish successful scrolling, keyboard delivery, iOS accessibility behavior or product acceptance.",
+    "The 48 passing baseline cases are selected entry/control journeys, not all controls across the application.",
+    "CreateListing now correctly checks its first Photos step; native photo picking and later listing submission are not newly covered.",
+    "Sign-up, recovery and business cases remain form/validation checks without external email, credentials, approval or provider success.",
+    "Five genuine Support product failures and one decoder failure remain failed historical observations; separately prepared repairs require new native validation.",
+    "The 19 unknown-contract cases are owned by the separate strict fixture audit and are not counted as repaired here."
+  ],
+  "evidence": [
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/auth-business-entry.yaml.txt",
+      "bytes": 243,
+      "sha256": "7578ac602c0baa297d656ec4df759c767a1bd2a5d00842246c89876b6e2b6371"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/auth-forgot-password.yaml.txt",
+      "bytes": 269,
+      "sha256": "41a412d5a0586347d9f309715e0d9ceb2f0b3ddcaaf9f53bac1917fb375bc72b"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/auth-signup-entry.yaml.txt",
+      "bytes": 224,
+      "sha256": "0ab986d1f0f779fb1120632346145d66eeebcf0dd7e4947ac8e62437bcdc816a"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/feed-article-draft.yaml.txt",
+      "bytes": 780,
+      "sha256": "677a03c37f8ac97a6ad2e14fdd7e45aecd16e4a35b986fd42f12e3ee04a20f9a"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/manifest.json",
+      "bytes": 91068,
+      "sha256": "f0b37826ed8709e0772e5d9ea4d73d9e7ef48ab7d2894440608ab2e59848b1fe"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/market-createlisting.yaml.txt",
+      "bytes": 478,
+      "sha256": "ce78d6fd7c7881221024c1b26fc0fc4ca1d4e482ed9f91a5137221f3d8cd15a3"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/memory-film-export-entry.yaml.txt",
+      "bytes": 803,
+      "sha256": "0e5920a9cb43098c4f57338b396d7d6117dce1e50a19e0ffbccf346b923c8ae1"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/settings-appearance.yaml.txt",
+      "bytes": 733,
+      "sha256": "f476993fdf0d0e524375354415e8f9f22e944a6f676251800bfb190fdee1f38a"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/stories-storycomposer.yaml.txt",
+      "bytes": 479,
+      "sha256": "e03cac7cceffe317c2c97fd8ed17b1e0cf7f41b416861fc074799e0bebb1f58e"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/support-fresh-ticket-body.yaml.txt",
+      "bytes": 1129,
+      "sha256": "cdca0337cfa9fddb2afe39bdd1e6e5973f12b2757cbefdbf1d11c7020db335bb"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/support-list-error.yaml.txt",
+      "bytes": 514,
+      "sha256": "3ae5da1659a740ea57331c608fbe8b5314f15bcba180285850185e4bd74477a5"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/support-missing-ticket.yaml.txt",
+      "bytes": 532,
+      "sha256": "c0399544b22a90c09267c5da5a92a1b05af7124fbd349bf6c00f98cc14f65e6d"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/support-reopen-error.yaml.txt",
+      "bytes": 770,
+      "sha256": "9c4a76ac4238f8b5c9a38075ed4d37c36288c60eee141e1590a374523394007f"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/support-reply-error.yaml.txt",
+      "bytes": 728,
+      "sha256": "06812596b0ee8bacc650d1d116e7396341e89f3f24c465565854e00dbd1effb7"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/classified-ledger.json",
+      "bytes": 21418,
+      "sha256": "475344e38200839b04ca8df8837368e74098e7266e6f201a7df020c6b445b981"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/focused-after.tap",
+      "bytes": 4231,
+      "sha256": "262d5684e6dc27a72bbfed259134276cd3e2476317335d25d3a8c3505c67ec80"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/focused-before.tap",
+      "bytes": 175272,
+      "sha256": "89ef3bfa1da853a1b02b67001a71b8366447548cc8d00d2d594a83455ce04ebc"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-business-entry.ax.json",
+      "bytes": 60566,
+      "sha256": "c42b28fd0f12d6fd52105d9f6240e37de0c86d4cc056c610299ce89a23ae3954"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-business-entry.png",
+      "bytes": 31738,
+      "sha256": "02a22c9141c9ea036f74f2247466b8338a18dc95a7927601bd7d59cc711d1541"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-forgot-password.ax.json",
+      "bytes": 98076,
+      "sha256": "86d7255a9c4ce451169ac001f8c87b126d7255a32d9fee8a5156e8ba9fda8b92"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-forgot-password.png",
+      "bytes": 38992,
+      "sha256": "bedc543878be915b68c6d283b070d458c1ab8157d92c186b7e49e834a48fbe3a"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-signup-entry.ax.json",
+      "bytes": 60566,
+      "sha256": "104c97e96f19c7101636ba6c3a5633fc428b4e77316671fcfd01e33b87deb334"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/auth-signup-entry.png",
+      "bytes": 31842,
+      "sha256": "ca1cb3d62defbfd1d8db077c894c4e707d032bf911a9dedc7474abe15aab4418"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/failures.json",
+      "bytes": 55595,
+      "sha256": "839e37f35ab47729827886533d7028d99e9cf474aae9846509255ac6c3322504"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/feed-article-draft.ax.json",
+      "bytes": 136565,
+      "sha256": "127e857259263d35e11b05d081fc883794bfbf69a0bf00d9057fd5d8488c8bcb"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/feed-article-draft.png",
+      "bytes": 38160,
+      "sha256": "ade7197ab14f4c38703be335a386228353227f24fd63a65a53b3fd2b5c6edca5"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/market-createlisting.ax.json",
+      "bytes": 75856,
+      "sha256": "5b99d9ffb6f0742f0db0ea8aac11c9b7507c106e14212e895ea15450b03c6a74"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/market-createlisting.png",
+      "bytes": 19121,
+      "sha256": "7f7b142145a9a2cc409698d3418a582fcff809e0a737b8c55a2662be5d300d21"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-cover-settings.ax.json",
+      "bytes": 80122,
+      "sha256": "0686e92c3cacf96df33d5d9acae5b6601e00640a7a7ec3dcd89e2e4ab8e89301"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-cover-settings.png",
+      "bytes": 30313,
+      "sha256": "29431410058ea3ef74f70cecead31779b8bde007d8a29628728a26950d4bc220"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-film-export-entry.ax.json",
+      "bytes": 80114,
+      "sha256": "1625261f5a981ad8117a056f1fab7c265bb0ec07bbbc9414946bd083a3ee86d7"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/memory-film-export-entry.png",
+      "bytes": 29779,
+      "sha256": "29f176a746b385861c6426f5268b71117c83aabb9d23e59e50cead53d1ed00f7"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/settings-appearance.ax.json",
+      "bytes": 99300,
+      "sha256": "3c2bc897a4445cc39270e560c1000f12088a82313f91f6744e27aec6af1713e1"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/settings-appearance.png",
+      "bytes": 32410,
+      "sha256": "22da07e021e9a3e3d9cce9c48a125215579be7b52ae546493a57bf085c686c2c"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/stories-storycomposer.ax.json",
+      "bytes": 61350,
+      "sha256": "9f062d48a8d9dba483e4ae36ad88b4f35c9323793d635ba754b93048b34f471e"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/stories-storycomposer.png",
+      "bytes": 23893,
+      "sha256": "d76063c5612538758506b645557d48a143d3c8c067ff6fc22f2033ff542f735f"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-fresh-ticket-body.ax.json",
+      "bytes": 123445,
+      "sha256": "9c5b8c10a2e7145c7ace521ce6cb0ba3506beb13d42f96e9fa13fb5c60bde854"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-fresh-ticket-body.png",
+      "bytes": 37887,
+      "sha256": "ce42bc7b727aa82f508c43b7328d258aeec60145637f15c63753f5a20ab36316"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-history-error.ax.json",
+      "bytes": 73092,
+      "sha256": "7973ddd631f2c9a55ed49d47776d0a9b563ca9a3ab3b6a55fccceb63b1cdf03d"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-history-error.png",
+      "bytes": 20667,
+      "sha256": "85d2893d3720a26c7ec0219468a7d24533c6a80b1bb57aca64a076ae13391bbe"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-list-error.ax.json",
+      "bytes": 96664,
+      "sha256": "98cc488374b2d15de7c040bcbad241f56db4e3db14db38d92fc47c665c817dc0"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-list-error.png",
+      "bytes": 36625,
+      "sha256": "cc2e5de1655becda0ae82848abb5f8b7b83e887b9e50c9ecd05ba6f482a4f97b"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-missing-ticket.ax.json",
+      "bytes": 73076,
+      "sha256": "72c2075333424c3585809f2fed2d0884bc16d260d8979e06cfd5e40c49db8aa3"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-missing-ticket.png",
+      "bytes": 18818,
+      "sha256": "96ba9408e00dba3c5847ad44e5f06192b76550c97f9abeaf0a612417a617f57c"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-original-body.ax.json",
+      "bytes": 73091,
+      "sha256": "ced7c71550aa46d5b1a08ec98d33472943b8077f5a0b09081b6173f194e0fb20"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-original-body.png",
+      "bytes": 20662,
+      "sha256": "6a54fb533d5ef89acba8b1427f718568c2098e0b4309e93d23676efffab4b6ba"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reopen-error.ax.json",
+      "bytes": 97988,
+      "sha256": "39328a0dccdd1083a68264ac8a85423da4295b7833161500ef75a61f31313924"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reopen-error.png",
+      "bytes": 23455,
+      "sha256": "01a61b93dffbf99936b13edd870e8ee7f18ce7a1056b693fdea27f1384d8e185"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reply-error.ax.json",
+      "bytes": 97985,
+      "sha256": "2bbfb9f02c71256fba66b1a0606fcd6c6c4fae4444ef8ce0ac2a830f33fc68df"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-reply-error.png",
+      "bytes": 23653,
+      "sha256": "86170413a05b3e4d1d8b556377c9da92e9c92e108417c0081a62e5012bd3ed93"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-ticket-read-error.ax.json",
+      "bytes": 73075,
+      "sha256": "24d191cd5df5ed4b54a8697cf0d7accf979730bd4ffa4680a89d0b8280cb8334"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/observed/support-ticket-read-error.png",
+      "bytes": 18964,
+      "sha256": "30019dc8215597ea4fce94b60cc268b861ece69794eae9d33b597be7dc40abf9"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/source-manifest.json",
+      "bytes": 8312,
+      "sha256": "97fabb0ec4911281007770bf55afab766efd755a02d42bf41a60ec9c7f0c7cf1"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/static-checks.json",
+      "bytes": 583,
+      "sha256": "4307f1796d5f53ed967ac5fe9485e75f4064b6db648fdb63cbdea58feff00ccf"
+    }
+  ],
+  "previousPreparedReceiptSha256": "90fd3b80e2cd1cdaafebf49da178e520180b9f6b7ef1329ac6fb166ccbe11747",
+  "independentReviewRefinement": "Keep the original unique editable body placeholder instead of the ambiguous short Message label; the same-form retained AX verifies exactly one android.widget.EditText match. No assertion/deadline/postcondition change."
+}

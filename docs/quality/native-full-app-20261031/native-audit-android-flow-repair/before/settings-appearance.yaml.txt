@@ -1,0 +1,34 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit appearance control
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: settings-appearance
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Settings"
+    timeout: 15000
+
+- tapOn: Search settings
+- inputText: Appearance
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn: '(?s)^Appearance, (?:Follows your phone|Light|Dim|Lights out)$'
+- tapOn: Lights out
+- assertVisible: Settings
+- takeScreenshot: settings-appearance

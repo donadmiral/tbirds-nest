@@ -1,0 +1,58 @@
+{
+  "sourceCommit": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "phase": "Completed supplemental discovery; before endpoint repair",
+  "formalCases": 28,
+  "passed": 25,
+  "failed": 3,
+  "source": [
+    {
+      "path": "admin-web/app/api/diagnostics/route.ts",
+      "sha256": "adb3077ac87c6b926e52a74045db2af217204ee3aacea4d71a3a0bf6a82e8e40",
+      "matchesBaseline2f": true
+    },
+    {
+      "path": "admin-web/app/api/moderation-media/route.ts",
+      "sha256": "3e49cca0d6a29bf81fbe61eeb2f0f6c992df7528c09c814c4e696c909d9497c2",
+      "matchesBaseline2f": true
+    },
+    {
+      "path": "admin-web/app/api/music/[id]/route.ts",
+      "sha256": "792092d62910241219fedd71087019243b0f53b84313394f1f7ff618c351ca53",
+      "matchesBaseline2f": true
+    },
+    {
+      "path": "admin-web/app/api/music/report/route.ts",
+      "sha256": "e8100524b380ff06ff5ecf5b6bf6605e775c982eed61ed222c29679bde9cc825",
+      "matchesBaseline2f": true
+    },
+    {
+      "path": "admin-web/app/reset-password/callback/route.ts",
+      "sha256": "050f691218403433afdc89ceeafc67e897c43950c750a158dc32bb1ea1ee137f",
+      "matchesBaseline2f": true
+    }
+  ],
+  "findings": [
+    {
+      "id": "ADM-API-001",
+      "route": "/api/diagnostics",
+      "observed": "Malformed JSON is reported as provider unavailable (503), rather than a client input error.",
+      "repair": "Handle JSON parse errors as 400 before authentication or reporting."
+    },
+    {
+      "id": "ADM-API-002",
+      "route": "/api/music/[id]",
+      "observed": "Reversed and zero-suffix byte ranges pass the local range guard and reach Storage.",
+      "repair": "Reuse the existing bounded range validator and reject invalid ranges before provider reads."
+    },
+    {
+      "id": "ADM-API-003",
+      "route": "/api/music/[id]",
+      "observed": "Storage transport rejection escapes the actual route export without its private unavailable response; header wait is not bounded by the route.",
+      "repair": "Bound the Storage header wait, preserve request cancellation, cancel unused bytes and return a private 503 for transport failure."
+    }
+  ],
+  "limits": [
+    "Synthetic provider transport. No hosted Next request, real email, password reset, private media or live mutation.",
+    "The three assertions are retained unchanged for final verification; no pass count includes nested examples as extra formal tests."
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T19:09:24.737318+00:00",
+  "reviewer": "hosted_backend",
+  "status": "Accepted on final frozen bytes; two measurement corrections resolved, no remaining production blocker found in this scope.",
+  "scope": "Independent review of root endpoint and native media-chrome batches. No source edits, provider calls, device run or broad regression rerun.",
+  "inputs": {
+    "docs/quality/all-platform-audit-20261031/admin/endpoints/acceptance.json": {
+      "bytes": 1868,
+      "sha256": "e10f1efb48ec6558e04529c8d8447566fda1b69df226a0a00dc8df132a7cdf03"
+    },
+    "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/reviewed-acceptance.json": {
+      "bytes": 3820,
+      "sha256": "98ffe53e45ee1b687701001b233e051f9dc6fe76b67a1a23f6650761515a3294"
+    },
+    "docs/quality/full-platform-audit-20261031/native-media-chrome-repair/acceptance.json": {
+      "bytes": 6233,
+      "sha256": "5552ebba9a0264ad49cf79126dc1ab610ff885116a09f7a00da14959bf750806"
+    }
+  },
+  "source": {
+    "admin-web/app/api/diagnostics/route.ts": {
+      "bytes": 2373,
+      "sha256": "8aed0b4ced221a0e29e3ad2b1e047a960db0ee415d3524ce49754f89372bb04a"
+    },
+    "admin-web/app/api/music/[id]/route.ts": {
+      "bytes": 2547,
+      "sha256": "788a769b8abe699f803959a05c48ae87d8ca9c2b9943c8886fcce3db0a4f5972"
+    },
+    "admin-web/tests/endpoint-contracts.cjs": {
+      "bytes": 17641,
+      "sha256": "d856bee938e91658b5519f09e47081a595f32bed5df64937adfdf06b06a3774b"
+    },
+    "admin-web/tests/helpers/endpointFixture.cjs": {
+      "bytes": 7344,
+      "sha256": "56601533fcce8e91988a5447e23aa029889ff3f70ddd2f3a797deb4b85d3c144"
+    },
+    "src/components/FullscreenVideo.tsx": {
+      "bytes": 13337,
+      "sha256": "a284f3ce5ee0d131079103bdae0e736b38d141086d3cfea2cfb40f4e8471e19f"
+    },
+    "src/components/TrendingStoriesRail.tsx": {
+      "bytes": 6782,
+      "sha256": "9f284a336714c5a0e90344be89ffa294804c4823d489e36d374bdeb06cbcc62e"
+    },
+    "src/components/TierName.tsx": {
+      "bytes": 936,
+      "sha256": "d45ba55c67dc2eae4ababb09fb1f9f9b5e598d5faa12d3b1ca9c2916d9b85dd5"
+    },
+    "tests/quality/native-media-chrome-contrast.cjs": {
+      "bytes": 7595,
+      "sha256": "059e0f5b410aca4869908f2e6b76a994a9069ab12a848bf72a1e8ff604cac375"
+    },
+    "tests/fullscreen-video-accessibility.test.cjs": {
+      "bytes": 7713,
+      "sha256": "a06f2e49afac0276ec445d02960e252d81dd90667f893b8462613284c7f1a7ae"
+    },
+    "src/screens/feed/FeedScreen.tsx": {
+      "bytes": 221846,
+      "sha256": "63716b02d5d188293b1995a89fc4d3b08f26097bb7ad56aebf4728224f296f17"
+    }
+  },
+  "sourceBinding": {
+    "finalReceiptSourceMismatches": 0,
+    "executedEndpointLoadedSources": 15,
+    "executedEndpointSourceMismatches": 0,
+    "mediaObservationsEqualOwnerReviewedAfter": true,
+    "unchangedFeedParentVerified": true,
+    "historicalMediaReceipt": "Preserved unchanged; revised test hash and corrected pair numbers are bound by reviewed-acceptance.json."
+  },
+  "independentExecution": {
+    "endpoints": {
+      "tests": 29,
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 2068.896499
+    },
+    "mediaContrast": {
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 350.729089
+    },
+    "counting": "These29+7 are independent repeats of the owner cases, not36 additional unique regressions. The complete284-case admin result was not rerun here.",
+    "commands": [
+      "PLATINUM_ENDPOINT_AUDIT_OUTPUT=/tmp/admin-endpoints-independent-review.json env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap admin-web/tests/endpoint-contracts.cjs",
+      "PLATINUM_MEDIA_CHROME_OUTPUT=/tmp/native-media-chrome-independent-review.json env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-media-chrome-contrast.cjs"
+    ]
+  },
+  "endpointConclusions": [
+    "Malformed JSON now returns400 before Auth; byte cap, same-origin/object validation and enum-only user-bearer forwarding remain.",
+    "Original-audio range validation rejects reversed, empty, multipart and unsafe ranges before Storage; no untrusted URL or redirect is followed.",
+    "Network exceptions and the configured20-second header deadline return private unavailable responses with no raw error. That timer bounds headers, not the entire response stream or surrounding RPCs.",
+    "Both exact-object RPCs retain actor/session inputs. Existing SQL rechecks current staff/session and Storage object version; replaced or missing objects do not release stale bytes.",
+    "The fixture executes real route/Auth/session/permission/recovery code and installed SDK with request-local cookies and strict synthetic transport. Actual permission throws/redirects are not relabeled as framework HTTP acceptance."
+  ],
+  "nativeConclusions": [
+    "FullscreenVideo changes media colors/backplates and their dimensions; playback, gesture, seek, mute, accessibility and timing handlers are unchanged.",
+    "TrendingStoriesRail adds a theme subscription and an independent dark footer; only this media context selects TierName inherited foreground. Default verification colors and shared tier lookup remain.",
+    "The existing player accessibility test change is only StyleSheet.create as an identity adapter; the original five behavioral assertions are unchanged. Their owner result is retained, not independently rerun here."
+  ],
+  "resolvedMeasurementFindings": [
+    {
+      "id": "REVIEW-MEDIA-MEASURE-01",
+      "issue": "Initial fill/knob ratios ignored the unfilled track layer above the bottom backplate.",
+      "resolution": "Final test composites actual track rgba over bottom before comparing the white fill/knob.",
+      "oldRatio": 15.084765929436326,
+      "correctedMinimum": 5.633061232870611,
+      "threshold": 3,
+      "result": "passes without production style changes"
+    },
+    {
+      "id": "REVIEW-MEDIA-MEASURE-02",
+      "issue": "Initial pressed story calculation faded the tile over its own media pixel instead of the parent canvas.",
+      "resolution": "Final test uses actual FeedScreen surface.canvas per theme; the extra dark gradient is conservatively omitted.",
+      "correctedNameAndViewMinima": {
+        "light": {
+          "name": 7.3931527433537285,
+          "views": 6.3747062965238905
+        },
+        "dark": {
+          "name": 9.252239974506812,
+          "views": 7.824780189409065
+        },
+        "lightsOut": {
+          "name": 9.36983759703018,
+          "views": 7.911417906640637
+        }
+      },
+      "threshold": 4.5,
+      "result": "all pass without production changes"
+    }
+  ],
+  "measurementSummary": {
+    "pairs": 30,
+    "sampledRgbMediaBackgroundsPerPair": 125,
+    "minimumRatio": 5.63306123287061,
+    "sourceCompositedNotDevicePixels": true
+  },
+  "limits": [
+    "No hosted Next, live provider, email, password, private-media or data mutation acceptance is claimed.",
+    "Header timeout test uses a controlled1ms timer while asserting the configured20,000ms deadline; it is not a20-second network benchmark.",
+    "Native measurements inspect actual style factories and TierName output. Font scaling, native rasterizer/compositor, video performance and every visual state remain outside this proof.",
+    "The earlier skipped-node/dynamic-media inventory and current iPhone failures are not converted into device acceptance by these local cases."
+  ],
+  "evidence": {
+    "endpoint-review.tap": {
+      "bytes": 6687,
+      "sha256": "ab27c7a47522e2fdf5eec87ff971114e936e51832e0cf84733fc17966e4b96bf"
+    },
+    "endpoint-review.json": {
+      "bytes": 6952,
+      "sha256": "09b2eb7069500608e6551af085810a8bd9737de3a10cc7d06ba5f3d35be1ef56"
+    },
+    "media-review.tap": {
+      "bytes": 1711,
+      "sha256": "9b26df9961ee544820b55fef21b46464818fa65acc175eb01000d7e4690ebd37"
+    },
+    "media-review.json": {
+      "bytes": 7382,
+      "sha256": "1f087835876be7884781e462070f2069ac5a94afd29a663bde9479636986dc87"
+    }
+  }
+}

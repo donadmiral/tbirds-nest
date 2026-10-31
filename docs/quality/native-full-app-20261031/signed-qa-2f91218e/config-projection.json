@@ -1,0 +1,84 @@
+{
+  "schemaValidatedWithInstalledPublicEasJson": true,
+  "cli": {
+    "version": ">= 16.20.0",
+    "appVersionSource": "remote"
+  },
+  "profiles": [
+    {
+      "name": "preview",
+      "distribution": "internal",
+      "environment": "preview",
+      "channel": "qa-preview",
+      "credentialsSource": "remote",
+      "autoIncrement": true,
+      "iosSimulator": false,
+      "androidBuildType": "apk",
+      "committedEnvironmentNames": [
+        "EXPO_PUBLIC_APP_ENV",
+        "EXPO_PUBLIC_GIPHY_KEY",
+        "EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY",
+        "EXPO_PUBLIC_SUPABASE_URL"
+      ],
+      "privateMediaSessionsEnabled": "false",
+      "matchingBackend": true,
+      "resolvedApp": {
+        "name": "Platinum QA",
+        "slug": "platinum-circles",
+        "owner": "donadmiral",
+        "scheme": "platinum-circles-qa",
+        "marketingVersion": "1.1.0",
+        "iosBundleIdentifier": "app.platinumcircles.mobile.qa",
+        "iosBuildNumber": "1",
+        "androidPackage": "app.platinumcircles.mobile.qa",
+        "androidVersionCode": 1,
+        "androidGoogleServicesFileConfigured": false,
+        "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+        "environment": "qa"
+      }
+    },
+    {
+      "name": "production",
+      "distribution": "store",
+      "environment": "production",
+      "channel": null,
+      "credentialsSource": "remote",
+      "autoIncrement": true,
+      "iosSimulator": null,
+      "androidBuildType": null,
+      "committedEnvironmentNames": [
+        "EXPO_PUBLIC_APP_ENV",
+        "EXPO_PUBLIC_GIPHY_KEY",
+        "EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY",
+        "EXPO_PUBLIC_SUPABASE_URL"
+      ],
+      "privateMediaSessionsEnabled": "false",
+      "matchingBackend": true,
+      "resolvedApp": {
+        "name": "PlatinumCircles",
+        "slug": "platinum-circles",
+        "owner": "donadmiral",
+        "scheme": "platinum-circles",
+        "marketingVersion": "1.1.0",
+        "iosBundleIdentifier": "app.platinumcircles.mobile",
+        "iosBuildNumber": "1",
+        "androidPackage": "app.platinumcircles.mobile",
+        "androidVersionCode": 1,
+        "androidGoogleServicesFileConfigured": true,
+        "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+        "environment": "production"
+      }
+    }
+  ],
+  "submitProfileNames": [
+    "production"
+  ],
+  "productionSubmission": {
+    "ascAppId": "6764038613",
+    "appleTeamId": "6PHMSMFKSF",
+    "androidTrack": "internal",
+    "androidReleaseStatus": "completed"
+  }
+}

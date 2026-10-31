@@ -1,0 +1,240 @@
+{
+  "kind": "ios-recovery-pre-case-setup-failure",
+  "runId": 41233860694,
+  "recoveryCommit": "b96b3e66adbe566b872894d40789d1e51dfc03f2",
+  "binaryAndOriginalCasesCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "binaryProducerRunId": 41229206389,
+  "affectedShards": [
+    "settings",
+    "social",
+    "account"
+  ],
+  "stage": "simctl create before boot/install/any Maestro case",
+  "observedError": "TimeoutExpired after30s for the exact iPhone16/iOS18.5 simctl create command",
+  "originalCasesAttempted": 0,
+  "originalCasesBlocked": 85,
+  "separateDiagnosticAttempted": false,
+  "partialStdoutRetained": false,
+  "partialStderrRetained": false,
+  "leaderExitStateRetained": false,
+  "actualFailureCauseLimit": "This run did not retain leader state or partial output, so a cold running service and a completed client with inherited open pipes cannot be distinguished from these logs.",
+  "separateControlledReproduction": {
+    "before": "A client printed a UUID and exited0; a descendant holding stdout/stderr caused the same wrapper to time out. The timeout omitted already-collected output.",
+    "afterCandidate": "Leader completion is checked and available pipes drained; real timeouts retain bounded stdout/stderr/leader state. Cold create/boot120s is separate from unchanged bootstatus300s/case180&300s/reader15s.",
+    "candidateHelperSha256": "622087510b50ee366a929c9683555f5e8fe0cadc135d5ada8cdcf5f481903b52",
+    "candidateTestSha256": "f52f27cf48664cf395ed4c32a4092c906b14fe38255d6a6231b58244a6ab75f5",
+    "candidateVerification": "3formal cases, including19nested Python checks, pass; scopedlint/AST pass."
+  },
+  "completedLogProjections": [
+    {
+      "jobId": 124633410044,
+      "providerLogCharacters": 42962,
+      "records": [
+        {
+          "line": 437,
+          "text": "2026-10-31T19:23:09.6816300Z Traceback (most recent call last):"
+        },
+        {
+          "line": 438,
+          "text": "2026-10-31T19:23:09.6824710Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 578, in <module>"
+        },
+        {
+          "line": 439,
+          "text": "2026-10-31T19:23:09.6837560Z     sys.exit(main())"
+        },
+        {
+          "line": 440,
+          "text": "2026-10-31T19:23:09.6838730Z              ~~~~^^"
+        },
+        {
+          "line": 441,
+          "text": "2026-10-31T19:23:09.6897940Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 472, in main"
+        },
+        {
+          "line": 442,
+          "text": "2026-10-31T19:23:09.6902160Z     device = read_command(['xcrun', 'simctl', 'create', 'Platinum retained audit ' + os.environ.get('GITHUB_RUN_ID', ''),"
+        },
+        {
+          "line": 443,
+          "text": "2026-10-31T19:23:09.6903870Z                            'com.apple.CoreSimulator.SimDeviceType.iPhone-16', RUNTIME], timeout=30)"
+        },
+        {
+          "line": 444,
+          "text": "2026-10-31T19:23:09.6905530Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 115, in read_command"
+        },
+        {
+          "line": 445,
+          "text": "2026-10-31T19:23:09.6906820Z     result = bounded_command(args, timeout)"
+        },
+        {
+          "line": 446,
+          "text": "2026-10-31T19:23:09.6908160Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 94, in bounded_command"
+        },
+        {
+          "line": 447,
+          "text": "2026-10-31T19:23:09.6909580Z     raise subprocess.TimeoutExpired(args, timeout)"
+        },
+        {
+          "line": 448,
+          "text": "2026-10-31T19:23:09.6912160Z subprocess.TimeoutExpired: Command '['xcrun', 'simctl', 'create', 'Platinum retained audit 41233860694', 'com.apple.CoreSimulator.SimDeviceType.iPhone-16', 'com.apple.CoreSimulator.SimRuntime.iOS-18-5']' timed out after 30 seconds"
+        },
+        {
+          "line": 449,
+          "text": "2026-10-31T19:23:09.7035670Z ##[error]Process completed with exit code 1."
+        },
+        {
+          "line": 450,
+          "text": "2026-10-31T19:23:09.7235190Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
+        },
+        {
+          "line": 451,
+          "text": "2026-10-31T19:23:09.7236090Z with:"
+        },
+        {
+          "line": 452,
+          "text": "2026-10-31T19:23:09.7236550Z   name: native-audit-ios-settings-recovery-results"
+        }
+      ]
+    },
+    {
+      "jobId": 124633410169,
+      "providerLogCharacters": 47240,
+      "records": [
+        {
+          "line": 506,
+          "text": "2026-10-31T19:23:33.7239160Z Traceback (most recent call last):"
+        },
+        {
+          "line": 507,
+          "text": "2026-10-31T19:23:33.7440650Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 578, in <module>"
+        },
+        {
+          "line": 508,
+          "text": "2026-10-31T19:23:33.7496960Z     sys.exit(main())"
+        },
+        {
+          "line": 509,
+          "text": "2026-10-31T19:23:33.7504190Z              ~~~~^^"
+        },
+        {
+          "line": 510,
+          "text": "2026-10-31T19:23:33.7506870Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 472, in main"
+        },
+        {
+          "line": 511,
+          "text": "2026-10-31T19:23:33.7532930Z     device = read_command(['xcrun', 'simctl', 'create', 'Platinum retained audit ' + os.environ.get('GITHUB_RUN_ID', ''),"
+        },
+        {
+          "line": 512,
+          "text": "2026-10-31T19:23:33.7558670Z                            'com.apple.CoreSimulator.SimDeviceType.iPhone-16', RUNTIME], timeout=30)"
+        },
+        {
+          "line": 513,
+          "text": "2026-10-31T19:23:33.7590990Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 115, in read_command"
+        },
+        {
+          "line": 514,
+          "text": "2026-10-31T19:23:33.7620130Z     result = bounded_command(args, timeout)"
+        },
+        {
+          "line": 515,
+          "text": "2026-10-31T19:23:33.7633980Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 94, in bounded_command"
+        },
+        {
+          "line": 516,
+          "text": "2026-10-31T19:23:33.7664560Z     raise subprocess.TimeoutExpired(args, timeout)"
+        },
+        {
+          "line": 517,
+          "text": "2026-10-31T19:23:33.7697200Z subprocess.TimeoutExpired: Command '['xcrun', 'simctl', 'create', 'Platinum retained audit 41233860694', 'com.apple.CoreSimulator.SimDeviceType.iPhone-16', 'com.apple.CoreSimulator.SimRuntime.iOS-18-5']' timed out after 30 seconds"
+        },
+        {
+          "line": 518,
+          "text": "2026-10-31T19:23:33.7733840Z ##[error]Process completed with exit code 1."
+        },
+        {
+          "line": 519,
+          "text": "2026-10-31T19:23:33.8168150Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
+        },
+        {
+          "line": 520,
+          "text": "2026-10-31T19:23:33.8170500Z with:"
+        },
+        {
+          "line": 521,
+          "text": "2026-10-31T19:23:33.8173200Z   name: native-audit-ios-social-recovery-results"
+        }
+      ]
+    },
+    {
+      "jobId": 124633410197,
+      "providerLogCharacters": 44950,
+      "records": [
+        {
+          "line": 469,
+          "text": "2026-10-31T19:22:50.2142060Z Traceback (most recent call last):"
+        },
+        {
+          "line": 470,
+          "text": "2026-10-31T19:22:50.2200420Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 578, in <module>"
+        },
+        {
+          "line": 471,
+          "text": "2026-10-31T19:22:50.2302720Z     sys.exit(main())"
+        },
+        {
+          "line": 472,
+          "text": "2026-10-31T19:22:50.2362500Z              ~~~~^^"
+        },
+        {
+          "line": 473,
+          "text": "2026-10-31T19:22:50.2366310Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 472, in main"
+        },
+        {
+          "line": 474,
+          "text": "2026-10-31T19:22:50.2371510Z     device = read_command(['xcrun', 'simctl', 'create', 'Platinum retained audit ' + os.environ.get('GITHUB_RUN_ID', ''),"
+        },
+        {
+          "line": 475,
+          "text": "2026-10-31T19:22:50.2377090Z                            'com.apple.CoreSimulator.SimDeviceType.iPhone-16', RUNTIME], timeout=30)"
+        },
+        {
+          "line": 476,
+          "text": "2026-10-31T19:22:50.2381280Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 115, in read_command"
+        },
+        {
+          "line": 477,
+          "text": "2026-10-31T19:22:50.2385800Z     result = bounded_command(args, timeout)"
+        },
+        {
+          "line": 478,
+          "text": "2026-10-31T19:22:50.2389540Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 94, in bounded_command"
+        },
+        {
+          "line": 479,
+          "text": "2026-10-31T19:22:50.2411330Z     raise subprocess.TimeoutExpired(args, timeout)"
+        },
+        {
+          "line": 480,
+          "text": "2026-10-31T19:22:50.2416860Z subprocess.TimeoutExpired: Command '['xcrun', 'simctl', 'create', 'Platinum retained audit 41233860694', 'com.apple.CoreSimulator.SimDeviceType.iPhone-16', 'com.apple.CoreSimulator.SimRuntime.iOS-18-5']' timed out after 30 seconds"
+        },
+        {
+          "line": 481,
+          "text": "2026-10-31T19:22:50.2454120Z ##[error]Process completed with exit code 1."
+        },
+        {
+          "line": 482,
+          "text": "2026-10-31T19:22:50.2714340Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
+        },
+        {
+          "line": 483,
+          "text": "2026-10-31T19:22:50.2715670Z with:"
+        },
+        {
+          "line": 484,
+          "text": "2026-10-31T19:22:50.2716280Z   name: native-audit-ios-account-recovery-results"
+        }
+      ]
+    }
+  ]
+}

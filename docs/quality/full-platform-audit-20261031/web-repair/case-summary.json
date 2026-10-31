@@ -1,0 +1,464 @@
+{
+  "before": [
+    {
+      "name": "hidden words initial resolved and successful add",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "hidden words initial rejected and successful add",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "hidden words mutation resolved preserves draft and retry",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "pageErrors": []
+    },
+    {
+      "name": "hidden words mutation rejected preserves draft and retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "muted words initial resolved and successful add",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "muted words initial rejected and successful add",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "muted words mutation resolved preserves draft and retry",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "pageErrors": []
+    },
+    {
+      "name": "muted words mutation rejected preserves draft and retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "standing resolved with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "standing rejected with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "Explore resolved with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "Explore rejected with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "topic resolved with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "topic rejected with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "Search topics resolved with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "Search topics rejected with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "featured channels resolved with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "featured channels rejected with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "Discover topics resolved with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "Discover topics rejected with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "Market availability resolved with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "Market availability rejected with retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "Market inbox count resolved and next-poll recovery",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Conversations could not be loaded."
+      ]
+    },
+    {
+      "name": "Market inbox count rejected and next-poll recovery",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "Listing storage:market-media rejected then successful submit",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "Listing table:marketplace_listings:insert rejected then successful submit",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "Business creation rejected then successful retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": [
+        "Controlled request rejection"
+      ]
+    },
+    {
+      "name": "Promotion picker resolved and content retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "Promotion picker rejected and content retry",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 2000ms exceeded.",
+      "pageErrors": []
+    },
+    {
+      "name": "Profile cover pointer path at 390",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Change cover center must not be intercepted by the photo row",
+      "pageErrors": []
+    },
+    {
+      "name": "Profile cover pointer path at 1440",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Change cover center must not be intercepted by the photo row",
+      "pageErrors": []
+    }
+  ],
+  "after": [
+    {
+      "name": "hidden words initial normal and successful add",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "hidden words initial resolved and successful add",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "hidden words initial rejected and successful add",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "hidden words mutation resolved preserves draft and retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "hidden words mutation rejected preserves draft and retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "muted words initial normal and successful add",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "muted words initial resolved and successful add",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "muted words initial rejected and successful add",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "muted words mutation resolved preserves draft and retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "muted words mutation rejected preserves draft and retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "standing normal with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "standing resolved with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "standing rejected with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Explore normal with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Explore resolved with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Explore rejected with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "topic normal with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "topic resolved with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "topic rejected with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Search topics normal with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Search topics resolved with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Search topics rejected with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "featured channels normal with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "featured channels resolved with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "featured channels rejected with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Discover topics normal with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Discover topics resolved with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Discover topics rejected with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Market availability normal with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Market availability resolved with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Market availability rejected with retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Market inbox count normal and next-poll recovery",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Market inbox count resolved and next-poll recovery",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Market inbox count rejected and next-poll recovery",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Listing storage:market-media normal then successful submit",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Listing storage:market-media resolved then successful submit",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Listing storage:market-media rejected then successful submit",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Listing table:marketplace_listings:insert normal then successful submit",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Listing table:marketplace_listings:insert resolved then successful submit",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Listing table:marketplace_listings:insert rejected then successful submit",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Business creation normal then successful retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Business creation resolved then successful retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Business creation rejected then successful retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Promotion picker normal and content retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Promotion picker resolved and content retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Promotion picker rejected and content retry",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Profile cover pointer path at 390",
+      "status": "PASS",
+      "pageErrors": []
+    },
+    {
+      "name": "Profile cover pointer path at 1440",
+      "status": "PASS",
+      "pageErrors": []
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 appId: app.platinumcircles.mobile.qa
-name: Audit empty notifications and mark read
+name: Audit empty notifications
 ---
 - runFlow: _signin.yaml
 - tapOn:
@@ -22,6 +22,6 @@ name: Audit empty notifications and mark read
     timeout: 15000
 
 - assertVisible: Nothing yet
-- tapOn: Mark all read
+- assertNotVisible: Mark all read
 - assertVisible: Nothing yet
 - takeScreenshot: notifications-empty-controls

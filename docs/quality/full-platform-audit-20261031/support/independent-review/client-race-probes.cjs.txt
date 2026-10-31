@@ -1,0 +1,69 @@
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const root='/workspace/scratch/f9638ed3020b/platinum-circles';
+const req=require('node:module').createRequire(root+'/package.json'),ts=req('typescript');
+const {createClient}=req('@supabase/supabase-js');
+const owner='10000000-0000-4000-8000-000000000001',tid='20000000-0000-4000-8000-000000000001';
+const sources={};
+function harness(){
+ const slots=[],effects=[],requests=[],storage=new Map(); let cursor=0,dirty=true,tree,focused=true,disposed=false,serial=0;
+ const state={bearer:'session-A1',ticket:{id:tid,user_id:owner,subject:'Ticket A',body:'Original question',status:'solved',created_at:'2026-10-31T12:00:00Z'},messages:[],historyError:false,holdHistory:false,holdRpc:false,holdDigest:false};
+ const response=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json'}});
+ const client=createClient('https://support-review.invalid','synthetic-key',{accessToken:async()=>state.bearer,global:{fetch:async(input,init={})=>{
+  const url=new URL(input);assert.equal(url.origin,'https://support-review.invalid');const body=init.body?JSON.parse(init.body):null;
+  requests.push({path:url.pathname,body,bearer:new Headers(init.headers).get('authorization')});
+  if(url.pathname.endsWith('/rpc/send_member_support_reply')){
+   if(state.holdRpc)await new Promise(resolve=>state.releaseRpc=resolve);
+   let m=state.messages.find(m=>m.id===body.p_request_id);const replayed=!!m;
+   if(!m){m={id:body.p_request_id,ticket_id:tid,sender:'member',sender_id:owner,body:body.p_body,created_at:'2026-10-31T18:00:00Z'};state.messages.push(m);state.ticket.status='open';}
+   return response({message_id:m.id,ticket_id:tid,sender_id:owner,body:m.body,created_at:m.created_at,ticket_status:state.ticket.status,replayed});
+  }
+  if(url.pathname.endsWith('/support_tickets')) return response([{...state.ticket}]);
+  if(url.pathname.endsWith('/support_messages')){
+   if(state.historyError)return response({code:'XXTEST',message:'History read failed'},400);
+   const messages=state.messages.map(m=>({...m}));
+   if(state.holdHistory){state.holdHistory=false;await new Promise(resolve=>state.releaseHistory=resolve);}
+   return response(messages);
+  }
+  throw Error('Unexpected request '+url.pathname);
+ }}});
+ const equal=(a,b)=>a&&b&&a.length===b.length&&a.every((x,i)=>Object.is(x,b[i]));
+ const hooks={useRef(v){const i=cursor++;return slots[i]||(slots[i]={current:v});},useState(v){const i=cursor++;if(!slots[i])slots[i]={value:typeof v==='function'?v():v};return[slots[i].value,n=>{const value=typeof n==='function'?n(slots[i].value):n;if(!Object.is(value,slots[i].value)){slots[i].value=value;dirty=true;}}];},useCallback(fn,deps){const i=cursor++;if(!slots[i]||!equal(slots[i].deps,deps))slots[i]={deps,value:fn};return slots[i].value;},useEffect(fn,deps){const i=cursor++,old=slots[i];if(!old||!equal(old.deps,deps)){slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}}};
+ const retryStore={getItem:async key=>storage.get(key)||null,setItem:async(key,v)=>storage.set(key,v),removeItem:async key=>storage.delete(key)};
+ const cryptography={id:()=>`30000000-0000-4000-8000-${String(++serial).padStart(12,'0')}`,digest:async value=>{if(state.holdDigest)await new Promise(resolve=>state.releaseDigest=resolve);return crypto.createHash('sha256').update(value).digest('hex');}};
+ const cache=new Map(),runtime={jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
+ const theme={ink:{primary:'#000',inverse:'#fff',muted:'#888'},surface:{canvas:'#fff',sunken:'#eee',raised:'#fff',hairline:'#aaa'},brand:{base:'#333'}};
+ function load(relative){const file=path.join(root,relative);if(cache.has(file))return cache.get(file).exports;const module={exports:{}};cache.set(file,module);const source=fs.readFileSync(file,'utf8');sources[relative]=crypto.createHash('sha256').update(source).digest('hex');
+  const local=name=>{
+   if(name==='react')return{...hooks,default:hooks};if(name==='react/jsx-runtime')return runtime;
+   if(name==='react-native')return{View:'View',Text:'Text',TouchableOpacity:'TouchableOpacity',ScrollView:'ScrollView',StatusBar:'StatusBar',TextInput:'TextInput',ActivityIndicator:'ActivityIndicator',KeyboardAvoidingView:'KeyboardAvoidingView',Platform:{OS:'ios'},Alert:{alert(){}}};
+   if(name==='@react-navigation/native')return{useNavigation:()=>({}),useRoute:()=>({params:{ticketId:tid}}),useFocusEffect:fn=>hooks.useEffect(()=>focused?fn():undefined,[fn,focused])};
+   if(name==='@react-navigation/bottom-tabs')return{useBottomTabBarHeight:()=>0};
+   if(name.endsWith('/SafeArea'))return{SafeAreaView:'SafeAreaView',useSafeAreaInsets:()=>({top:0,bottom:0})};
+   if(name.endsWith('/useTheme'))return{useTheme:()=>({t:theme,isDark:false}),themedSheet:fn=>fn(theme)};
+   if(name.endsWith('/authStore'))return{useAuthStore:()=>({profile:{id:owner}})};
+   if(name.endsWith('/supabase'))return{supabase:client};
+   if(name.endsWith('/settingsNavigation'))return{settingsBack(){}};
+   if(name.endsWith('/memberSupportService'))return{replyToMemberSupport:(a,b,c)=>load('shared/memberSupport.ts').sendSupportReply(client,retryStore,cryptography,a,b,c)};
+   if(name.endsWith('/memberSupport'))return load('shared/memberSupport.ts');
+   if(name==='./readDeadline')return load('shared/readDeadline.ts');
+   throw Error('Unexpected import '+name);
+  };
+  vm.runInNewContext(ts.transpileModule(source,{fileName:file,compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,{module,exports:module.exports,require:local,console,Date,Promise,Number,Map,Set,JSON,Error,AbortController,setTimeout,clearTimeout},{filename:relative});return module.exports;
+ }
+ const Component=load('src/screens/profile/TicketScreen.tsx').default;
+ const walk=n=>!n?[]:Array.isArray(n)?n.flatMap(walk):typeof n==='object'?[n,...walk(n.props?.children)]:[];
+ const words=n=>n==null?'':Array.isArray(n)?n.map(words).join(' '):typeof n==='object'?words(n.props?.children):String(n);
+ function render(){let n=0;while(dirty&&!disposed){assert.ok(++n<50);dirty=false;cursor=0;tree=Component();while(effects.length)effects.shift()();}}
+ async function settle(){for(let i=0;i<8;i++){render();await new Promise(setImmediate);}render();}
+ function input(value){walk(tree).find(n=>n.type==='TextInput').props.onChangeText(value);render();}
+ function send(){walk(tree).find(n=>n.props?.accessibilityLabel==='Send').props.onPress();}
+ function retry(){walk(tree).find(n=>n.type==='TouchableOpacity'&&words(n)==='Try again').props.onPress();}
+ return{state,requests,storage,settle,input,send,retry,focus(value){focused=value;dirty=true;render();},dispose(){disposed=true;for(const s of slots)s?.cleanup?.();},draft:()=>walk(tree).find(n=>n.type==='TextInput')?.props.value,words:()=>words(tree)};
+}
+(async()=>{
+ const results=[];
+ const race=harness();race.state.historyError=true;await race.settle();race.state.historyError=false;race.state.holdHistory=true;race.retry();await race.settle();race.input('Fresh confirmed reply');race.send();await race.settle();const fresh=race.words();assert.ok(fresh.includes('Fresh confirmed reply'));race.state.releaseHistory();await race.settle();assert.equal(race.words().includes('Fresh confirmed reply'),false);assert.equal(race.state.messages.length,1);results.push({case:'Older same-visit history retry overwrites confirmed reply',confirmedVisibleBeforeRelease:true,visibleAfterOlderRead:false,databaseMessageCount:race.state.messages.length,finalText:race.words()});race.dispose();
+ const retry=harness();await retry.settle();retry.state.holdRpc=true;retry.input('Preserved draft after refocus');retry.send();await retry.settle();retry.focus(false);retry.focus(true);await retry.settle();retry.state.releaseRpc();await retry.settle();assert.equal(retry.draft(),'Preserved draft after refocus');assert.equal(retry.storage.size,0);retry.state.holdRpc=false;retry.send();await retry.settle();assert.equal(retry.state.messages.length,2);results.push({case:'Blur/refocus discards confirmation after shared helper removes retry identity',draftBeforeRetry:'Preserved draft after refocus',retainedRetryKeysBeforeRetry:0,duplicateMessages:retry.state.messages.map(m=>({id:m.id,body:m.body}))});retry.dispose();
+ const aba=harness();await aba.settle();aba.state.holdDigest=true;aba.input('Old visit reply');aba.send();await aba.settle();assert.equal(aba.requests.filter(r=>r.path.includes('/rpc/')).length,0);aba.dispose();aba.state.bearer='session-B';aba.state.bearer='session-A2';aba.state.releaseDigest();await aba.settle();for(let i=0;i<5;i++)await new Promise(setImmediate);const request=aba.requests.find(r=>r.path.includes('/rpc/'));assert.equal(request.bearer,'Bearer session-A2');assert.equal(aba.state.messages.length,1);results.push({case:'Undispatched unmounted write rebounds to later same-owner session',initialBearer:'session-A1',sentBearer:request.bearer,expectedUser:request.body.p_expected_user,messageInserted:true});
+ const out={observedAt:new Date().toISOString(),source:sources,scope:'Actual TicketScreen callbacks with controlled hook/focus/native hosts; actual shared helper and installed Supabase client; synthetic in-memory provider, AsyncStorage-shaped store, digest gate. No provider calls or actual native scheduling acceptance.',results};fs.writeFileSync('/tmp/member-support-independent-probes.json',JSON.stringify(out,null,2)+'\n');console.log(JSON.stringify(out,null,2));
+})().catch(e=>{console.error(e);process.exitCode=1});

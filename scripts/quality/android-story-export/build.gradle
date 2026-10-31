@@ -23,6 +23,9 @@ android {
     main {
       java.srcDirs += layout.buildDirectory.dir('generated/production-renderer').get().asFile
     }
+    androidTest {
+      assets.srcDirs += layout.buildDirectory.dir('generated/memory-fixture-assets').get().asFile
+    }
   }
   testOptions { animationsDisabled true }
 }
@@ -36,11 +39,19 @@ tasks.register('copyProductionRenderer', Sync) {
   into layout.buildDirectory.dir('generated/production-renderer/expo/modules/boomerang')
 }
 tasks.named('preBuild').configure { dependsOn 'copyProductionRenderer' }
+// Use the exact reordered H.264 input from the full React Native capture flow.
+// Generated MediaCodec fixtures did not expose trim-end B-frame loss.
+tasks.register('copyMemoryCaptureFixture', Sync) {
+  from '../../../tests/native/assets'
+  include 'memory-capture-video.mp4'
+  into layout.buildDirectory.dir('generated/memory-fixture-assets')
+}
+tasks.named('preBuild').configure { dependsOn 'copyMemoryCaptureFixture' }
 
 dependencies {
-  implementation 'androidx.media3:media3-transformer:1.8.1'
-  implementation 'androidx.media3:media3-effect:1.8.1'
-  implementation 'androidx.media3:media3-common:1.8.1'
+  implementation 'androidx.media3:media3-transformer:1.11.1'
+  implementation 'androidx.media3:media3-effect:1.11.1'
+  implementation 'androidx.media3:media3-common:1.11.1'
   androidTestImplementation 'androidx.test:runner:1.6.2'
   androidTestImplementation 'androidx.test.ext:junit:1.2.1'
   androidTestImplementation 'junit:junit:4.13.2'

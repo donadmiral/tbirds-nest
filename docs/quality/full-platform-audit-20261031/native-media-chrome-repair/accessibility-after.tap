@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: native fullscreen controls expose clear action names and a seekable timeline
+ok 1 - native fullscreen controls expose clear action names and a seekable timeline
+  ---
+  duration_ms: 5.303018
+  type: 'test'
+  ...
+# Subtest: native accessible seeking clamps to the recording boundaries
+ok 2 - native accessible seeking clamps to the recording boundaries
+  ---
+  duration_ms: 1.532335
+  type: 'test'
+  ...
+# Subtest: screen reader users retain playback controls instead of losing focus to auto-hide
+ok 3 - screen reader users retain playback controls instead of losing focus to auto-hide
+  ---
+  duration_ms: 3.853276
+  type: 'test'
+  ...
+# Subtest: late initial accessibility query cannot undo a newer screen-reader setting
+ok 4 - late initial accessibility query cannot undo a newer screen-reader setting
+  ---
+  duration_ms: 2.593491
+  type: 'test'
+  ...
+# Subtest: closing the player clears timers and ignores an outstanding accessibility query
+ok 5 - closing the player clears timers and ignores an outstanding accessibility query
+  ---
+  duration_ms: 1.240196
+  type: 'test'
+  ...
+# Subtest: Market waits for the actual card label retained in the iPhone accessibility tree
+ok 6 - Market waits for the actual card label retained in the iPhone accessibility tree
+  ---
+  duration_ms: 59.56638
+  type: 'test'
+  ...
+# Subtest: Jobs requires the exact title alone or the actual grouped title and company
+ok 7 - Jobs requires the exact title alone or the actual grouped title and company
+  ---
+  duration_ms: 87.029704
+  type: 'test'
+  ...
+# Subtest: Messages preserves the exact peer and literal preview in grouped rows and repeated returns
+ok 8 - Messages preserves the exact peer and literal preview in grouped rows and repeated returns
+  ---
+  duration_ms: 67.867852
+  type: 'test'
+  ...
+# Subtest: Edit profile accepts its actual icon-plus-label group while standalone profile and settings checks remain exact
+ok 9 - Edit profile accepts its actual icon-plus-label group while standalone profile and settings checks remain exact
+  ---
+  duration_ms: 13.147676
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 620.364536

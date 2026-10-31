@@ -3,10 +3,13 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { requirePermission } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
+const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 async function command(action:string,payload:Record<string,unknown>) {
  const admin=await requirePermission('post_moderate');
- const {error}=await serviceClient().rpc('admin_music_command',{p_actor:admin.id,p_session:admin.sessionId,p_action:action,p_payload:payload});
- if(error)redirect('/music?result=failed');
+ const {data,error}=await serviceClient().rpc('admin_music_command',{p_actor:admin.id,p_session:admin.sessionId,p_action:action,p_payload:payload});
+ const validId=action==='provider.save'?data?.id===null:
+  typeof data?.id==='string'&&UUID.test(data.id)&&(action!=='sound.revoke'||data.id.toLowerCase()===String(payload.soundId).toLowerCase());
+ if(error||data?.ok!==true||data.catalogEnabled!==false||!validId)redirect('/music?result=failed');
  revalidatePath('/music');redirect('/music?result=saved');
 }
 export async function saveMusicProvider(form:FormData) {
@@ -25,10 +28,15 @@ export async function stageMusicCatalogue(form:FormData) {
  let manifest:unknown;
  try{manifest=JSON.parse(await file.text());}catch{redirect('/music?result=invalid-catalogue');}
  const requestId=String(form.get('requestId')||'');
- if(!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(requestId))redirect('/music?result=invalid-catalogue');
- const {error}=await serviceClient().rpc('admin_stage_music_catalogue',{
+ const tracks=manifest&&typeof manifest==='object'&&!Array.isArray(manifest)?(manifest as {tracks?:unknown}).tracks:null;
+ if(!UUID.test(requestId)||!Array.isArray(tracks)||tracks.length<1||tracks.length>100)redirect('/music?result=invalid-catalogue');
+ const {data,error}=await serviceClient().rpc('admin_stage_music_catalogue',{
   p_actor:admin.id,p_session:admin.sessionId,p_request:requestId,p_provider:String(form.get('providerId')||''),p_manifest:manifest,
  });
- if(error)redirect('/music?result=catalogue-failed');
+ const matched=typeof data?.id==='string'&&data.id.toLowerCase()===requestId.toLowerCase()
+  &&Number.isSafeInteger(data.tracks)&&data.tracks===tracks.length&&typeof data.replayed==='boolean'&&data.catalogEnabled===false;
+ const added=data?.added;
+ const validAdded=data?.replayed===true&&added===undefined||Number.isSafeInteger(added)&&added>=0&&added<=tracks.length;
+ if(error||!matched||!validAdded)redirect('/music?result=catalogue-failed');
  revalidatePath('/music');redirect('/music?result=staged');
 }

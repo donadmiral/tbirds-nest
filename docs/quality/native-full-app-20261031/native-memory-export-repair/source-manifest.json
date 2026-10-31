@@ -1,0 +1,96 @@
+{
+  "baseCommit": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "candidateCommit": "Assigned by the coordinated publication; these frozen file bytes define this repair batch.",
+  "files": [
+    {
+      "path": "app.json",
+      "bytes": 4028,
+      "sha256": "3831cec57e7b01d765e459da0db9a81e2beac4747a25aa7f726ca2d6bcfab4f5"
+    },
+    {
+      "path": "plugins/withMedia3Compatibility.js",
+      "bytes": 2577,
+      "sha256": "046bd47678f7ccdace0bd2fe8127bd4fd3c78a597af0ad8e92e775c99fa97488"
+    },
+    {
+      "path": "modules/boomerang/android/build.gradle",
+      "bytes": 944,
+      "sha256": "41a9669ced148051cd4c5a5409fb5617f83e3dd1542bc5b7ca077bfce5bd42d1"
+    },
+    {
+      "path": "scripts/quality/android-media-dependencies.init.gradle",
+      "bytes": 2277,
+      "sha256": "90860a9da3b8db77843eadc04700fff2f5716b740f76bdbe46a0451eb498ad03"
+    },
+    {
+      "path": "scripts/quality/android-story-export/build.gradle",
+      "bytes": 2259,
+      "sha256": "42e5b2f4c85dcdf88fa922bdb7228053c526b6e9f7cc607b842d35ee6f965c06"
+    },
+    {
+      "path": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt",
+      "bytes": 34672,
+      "sha256": "9fe378b36f7edaeb3f8dd8f0527cb9dcee294b0d3cf05c1b4fe28dff7799f4bd"
+    },
+    {
+      "path": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt",
+      "bytes": 37228,
+      "sha256": "c26c3ca6a5037772c19b43723445a25d4f0ef7c834f1608ff25d89faf4ac8e4b"
+    },
+    {
+      "path": "scripts/quality/test-android-story-audio.sh",
+      "bytes": 14522,
+      "sha256": "fab3525d32329475e2e8e733f20d932729d90de664002b54ebb2c0cb0c79f9eb"
+    },
+    {
+      "path": "scripts/quality/verify-native-ui-memory.py",
+      "bytes": 12406,
+      "sha256": "cd4f3f859a6293ca0aa8c0694924c14b24d03a3daaf94dc088ff14ceb2d82773"
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui.cjs",
+      "bytes": 7205,
+      "sha256": "1a5c31f580e2d9b0b50a5caee0a389107c6bb4c890f39d3539336a9a98ca89e1"
+    },
+    {
+      "path": "tests/quality/native-auth-diagnostics.cjs",
+      "bytes": 20207,
+      "sha256": "ba25e9419cf8fccaca2fb5d7bdf8095e28392d5540dc010f51bcf1b598933f48"
+    },
+    {
+      "path": "tests/native/flows/memory-navigation.yaml",
+      "bytes": 3891,
+      "sha256": "4ced394c981bca81c8cd29ff0d2945ea658f7061faf6576fef2a8c4974e14cbb"
+    },
+    {
+      "path": "tests/native/audit/flows/memory-cover-settings.yaml",
+      "bytes": 1012,
+      "sha256": "c441efc557a5a3adcfad5f5ebbaa2db92870ae93710c20fb59c29eefcf6dd409"
+    },
+    {
+      "path": "tests/fixtures/media3-bframe-clipping.json",
+      "bytes": 9932,
+      "sha256": "f56b55d4eff5b11a0884d3375f3c801e478d527d097aff92151fd89eb5a1102d"
+    },
+    {
+      "path": "tests/quality/native-media3-compatibility.cjs",
+      "bytes": 6828,
+      "sha256": "4410a08ed377b359e662b62fc56af602b18de2bf41e044229ea604eea8f5d52f"
+    },
+    {
+      "path": "tests/quality/native-memory-decoder-measurements.cjs",
+      "bytes": 6892,
+      "sha256": "43cb24dbf423b03965eb86ce1a30c14d3596ecae2e8c77ed1a6c1266144a6889"
+    },
+    {
+      "path": "tests/quality/native-memory-bframe-clipping.cjs",
+      "bytes": 6033,
+      "sha256": "3738ff30d5bc718a57a22cec39ea337d7f881abce87e89cc4fc52f6e1e1954d6"
+    },
+    {
+      "path": "tests/quality/native-memory-title-edit.cjs",
+      "bytes": 4995,
+      "sha256": "ea83a301390ba1477df04c4e2bd42d96c0d43938182d7a39070f795df57ab104"
+    }
+  ]
+}

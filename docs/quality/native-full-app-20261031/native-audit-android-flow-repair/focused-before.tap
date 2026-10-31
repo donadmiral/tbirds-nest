@@ -1,0 +1,5221 @@
+TAP version 13
+# Subtest: all 17 retained UI failures have valid fixture contracts and exact failed-command evidence
+ok 1 - all 17 retained UI failures have valid fixture contracts and exact failed-command evidence
+  ---
+  duration_ms: 12.821407
+  type: 'test'
+  ...
+# Subtest: text-story entry completes the actual initial editor before requiring the original Next control
+not ok 2 - text-story entry completes the actual initial editor before requiring the original Next control
+  ---
+  duration_ms: 8.248487
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:99:1'
+  failureType: 'testCodeFailure'
+  error: 'wait for actual text editor'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    indexOf (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:50:10)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:104:17)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: listing entry checks the real Photos step instead of a Details field that has not been entered
+not ok 3 - listing entry checks the real Photos step instead of a Details field that has not been entered
+  ---
+  duration_ms: 67.82806
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:125:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'Title' !== 'Photos'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'Photos'
+  actual: 'Title'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:134:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Appearance matches complete actual grouped segments and verifies the selected Lights out state
+not ok 4 - Appearance matches complete actual grouped segments and verifies the selected Lights out state
+  ---
+  duration_ms: 3.86236
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:140:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:144:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: sign-up targets the full retained nested-text link and scrolls to the original Sign Up assertion
+not ok 5 - sign-up targets the full retained nested-text link and scrolls to the original Sign Up assertion
+  ---
+  duration_ms: 0.965983
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:155:1'
+  failureType: 'testCodeFailure'
+  error: 'use complete visible sign-up link'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    indexOf (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:50:10)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:157:15)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: password reset dismisses the observed autofocus keyboard and reaches Send code before empty-input validation
+not ok 6 - password reset dismisses the observed autofocus keyboard and reaches Send code before empty-input validation
+  ---
+  duration_ms: 7.168793
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:168:1'
+  failureType: 'testCodeFailure'
+  error: 'dismiss the observed Android keyboard before the next target'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    hideBetween (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:64:10)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:173:3)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: business entry scrolls the actual login footer instead of treating its absence above the fold as failure
+not ok 7 - business entry scrolls the actual login footer instead of treating its absence above the fold as failure
+  ---
+  duration_ms: 1.541319
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:178:1'
+  failureType: 'testCodeFailure'
+  error: 'scroll to Business sign-in before its action'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    indexOf (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:50:10)
+    scrollBefore (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:53:14)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:183:3)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: fresh Support ticket dismisses the subject keyboard and scrolls to the unique editable body placeholder
+not ok 8 - fresh Support ticket dismisses the subject keyboard and scrolls to the unique editable body placeholder
+  ---
+  duration_ms: 5.999775
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:189:1'
+  failureType: 'testCodeFailure'
+  error: 'dismiss the observed Android keyboard before the next target'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    hideBetween (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:64:10)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:205:3)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: support-reopen-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+not ok 9 - support-reopen-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+  ---
+  duration_ms: 4.523314
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:213:3'
+  failureType: 'testCodeFailure'
+  error: 'dismiss the observed Android keyboard before the next target'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    hideBetween (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:64:10)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:218:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: support-reply-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+not ok 10 - support-reply-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+  ---
+  duration_ms: 1.911936
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:213:3'
+  failureType: 'testCodeFailure'
+  error: 'dismiss the observed Android keyboard before the next target'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    hideBetween (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:64:10)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:218:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: article draft dismisses the title keyboard, finds the actual body, then restores the original title assertion
+not ok 11 - article draft dismisses the title keyboard, finds the actual body, then restores the original title assertion
+  ---
+  duration_ms: 2.152538
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:226:1'
+  failureType: 'testCodeFailure'
+  error: 'dismiss the observed Android keyboard before the next target'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    hideBetween (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:64:10)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:233:3)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: film entry scrolls beyond the retained cover before the same play/pause/export/close journey
+not ok 12 - film entry scrolls beyond the retained cover before the same play/pause/export/close journey
+  ---
+  duration_ms: 2.398207
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:239:1'
+  failureType: 'testCodeFailure'
+  error: 'scroll to Play continuous memory film with original music before its action'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    indexOf (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:50:10)
+    scrollBefore (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:53:14)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:247:3)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: missing-ticket assertion matches the actual explicit unavailable state without accepting a spinner or a valid ticket
+not ok 13 - missing-ticket assertion matches the actual explicit unavailable state without accepting a spinner or a valid ticket
+  ---
+  duration_ms: 4.437505
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:252:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(matches(pattern, actual))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:257:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Support list failure reaches the repaired notice below the form and retains the mandatory error assertion
+not ok 14 - Support list failure reaches the repaired notice below the form and retains the mandatory error assertion
+  ---
+  duration_ms: 1.316941
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:265:1'
+  failureType: 'testCodeFailure'
+  error: 'scroll to Your messages could not be loaded. Please try again. before its action'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    indexOf (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:50:10)
+    scrollBefore (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:53:14)
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:274:3)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: the repair preserves 85 case identities, fixture scenarios, setup, original postconditions and deadlines
+not ok 15 - the repair preserves 85 case identities, fixture scenarios, setup, original postconditions and deadlines
+  ---
+  duration_ms: 13.439286
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:279:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        baseline: 'Production source is frozen. The audit launcher and transport additions are disposable QA overlays.',
+        baselineSourceCommit: '2f91218e71dbcaf94ea7b454a0e3562800bfe601',
+        binaryBinding: 'Build manifest binds the final frozen CI commit/tree and exact scenario manifest; baseline inventory remains2f.',
+        caseCount: 85,
+    ...
+            coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.',
+    +       expected: 'Title',
+    -       expected: 'Photos',
+            fixtureScenario: 'baseline',
+            flow: 'flows/market-createlisting.yaml',
+            group: 'market',
+            id: 'market-createlisting',
+            kind: 'entry-smoke',
+    ...
+            coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.',
+    +       expected: '(?i).*(not found|unavailable|could not load).*',
+    -       expected: 'This ticket is not available to this account.',
+            fixtureScenario: 'missing-ticket',
+            flow: 'flows/support-missing-ticket.yaml',
+            group: 'support',
+            id: 'support-missing-ticket',
+            kind: 'error-or-content-contract',
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    schemaVersion: 1
+    qaBundleId: 'app.platinumcircles.mobile.qa'
+    mode: 'independent-native-audit'
+    baseline: 'Production source is frozen. The audit launcher and transport additions are disposable QA overlays.'
+    caseCount: 85
+    groups:
+      0: 'navigation'
+      1: 'feed'
+      2: 'market'
+      3: 'jobs'
+      4: 'messages'
+      5: 'profile'
+      6: 'settings'
+      7: 'support'
+      8: 'business'
+      9: 'stories'
+      10: 'directories'
+      11: 'memory'
+      12: 'auth'
+    cases:
+      0:
+        id: 'navigation-feedmain'
+        group: 'navigation'
+        name: 'Audit FeedMain'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/FeedScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'FeedMain'
+          line: 158
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'FeedMain'
+                          params:
+        expected: 'A quiet morning in the desert. Small moments worth keeping.'
+        flow: 'flows/navigation-feedmain.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      1:
+        id: 'navigation-marketmain'
+        group: 'navigation'
+        name: 'Audit MarketMain'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/market/MarketScreen.tsx'
+        registration:
+          navigator: 'NetworkStack'
+          name: 'MarketMain'
+          line: 169
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Market'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MarketMain'
+                          params:
+        expected: 'View listing: Travel journal'
+        flow: 'flows/navigation-marketmain.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      2:
+        id: 'navigation-jobsmain'
+        group: 'navigation'
+        name: 'Audit JobsMain'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/jobs/JobsScreen.tsx'
+        registration:
+          navigator: 'JobsStack'
+          name: 'JobsMain'
+          line: 180
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Jobs'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'JobsMain'
+                          params:
+        expected: 'Jobs'
+        flow: 'flows/navigation-jobsmain.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      3:
+        id: 'navigation-conversations'
+        group: 'navigation'
+        name: 'Audit Conversations'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/ConversationsScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'Conversations'
+          line: 189
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Conversations'
+                          params:
+        expected: 'Messages'
+        flow: 'flows/navigation-conversations.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      4:
+        id: 'navigation-profilemain'
+        group: 'navigation'
+        name: 'Audit ProfileMain'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/ProfileScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ProfileMain'
+          line: 204
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ProfileMain'
+                          params:
+        expected: 'Alex Rivera'
+        flow: 'flows/navigation-profilemain.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      5:
+        id: 'feed-search'
+        group: 'feed'
+        name: 'Audit Search'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/SearchScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'Search'
+          line: 159
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Search'
+                          params:
+        expected: 'Search'
+        flow: 'flows/feed-search.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      6:
+        id: 'feed-notifications'
+        group: 'feed'
+        name: 'Audit Notifications'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/notifications/NotificationsScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'Notifications'
+          line: 160
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Notifications'
+                          params:
+        expected: 'Activity'
+        flow: 'flows/feed-notifications.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      7:
+        id: 'feed-articlecompose'
+        group: 'feed'
+        name: 'Audit ArticleCompose'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/ArticleComposeScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'ArticleCompose'
+          line: 638
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'ArticleCompose'
+              params:
+        expected: 'Article'
+        flow: 'flows/feed-articlecompose.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      8:
+        id: 'feed-post'
+        group: 'feed'
+        name: 'Audit Post'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/PostScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'Post'
+          line: 637
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Post'
+              params:
+                postId: '20000000-0000-4000-8000-000000000001'
+        expected: 'Comments'
+        flow: 'flows/feed-post.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      9:
+        id: 'feed-trendfeed'
+        group: 'feed'
+        name: 'Audit TrendFeed'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/TrendFeedScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'TrendFeed'
+          line: 639
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'TrendFeed'
+              params:
+                tag: 'Memories'
+        expected: 'Memories'
+        flow: 'flows/feed-trendfeed.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      10:
+        id: 'market-listingdetail'
+        group: 'market'
+        name: 'Audit ListingDetail'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/market/ListingDetailScreen.tsx'
+        registration:
+          navigator: 'NetworkStack'
+          name: 'ListingDetail'
+          line: 170
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Market'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ListingDetail'
+                          params:
+                            listingId: '70000000-0000-4000-8000-000000000001'
+        expected: 'Make offer'
+        flow: 'flows/market-listingdetail.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      11:
+        id: 'market-createlisting'
+        group: 'market'
+        name: 'Audit CreateListing'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/market/CreateListingScreen.tsx'
+        registration:
+          navigator: 'NetworkStack'
+          name: 'CreateListing'
+          line: 171
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Market'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'CreateListing'
+                          params:
+        expected: 'Photos'
+        flow: 'flows/market-createlisting.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      12:
+        id: 'market-marketinbox'
+        group: 'market'
+        name: 'Audit MarketInbox'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/ContextInboxScreen.tsx'
+        registration:
+          navigator: 'NetworkStack'
+          name: 'MarketInbox'
+          line: 172
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Market'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MarketInbox'
+                          params:
+                            context: 'market'
+        expected: 'Market messages'
+        flow: 'flows/market-marketinbox.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      13:
+        id: 'jobs-jobdetail'
+        group: 'jobs'
+        name: 'Audit JobDetail'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/jobs/JobDetailScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'JobDetail'
+          line: 646
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'JobDetail'
+              params:
+                jobId: '60000000-0000-4000-8000-000000000001'
+        expected: 'About the role'
+        flow: 'flows/jobs-jobdetail.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      14:
+        id: 'jobs-savedjobs'
+        group: 'jobs'
+        name: 'Audit SavedJobs'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/jobs/SavedJobsScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'SavedJobs'
+          line: 648
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'SavedJobs'
+              params:
+        expected: 'Saved jobs'
+        flow: 'flows/jobs-savedjobs.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      15:
+        id: 'jobs-myapplications'
+        group: 'jobs'
+        name: 'Audit MyApplications'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/jobs/MyApplicationsScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MyApplications'
+          line: 649
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'MyApplications'
+              params:
+        expected: 'My applications'
+        flow: 'flows/jobs-myapplications.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      16:
+        id: 'jobs-jobsinbox'
+        group: 'jobs'
+        name: 'Audit JobsInbox'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/ContextInboxScreen.tsx'
+        registration:
+          navigator: 'JobsStack'
+          name: 'JobsInbox'
+          line: 181
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Jobs'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'JobsInbox'
+                          params:
+                            context: 'jobs'
+        expected: 'Job messages'
+        flow: 'flows/jobs-jobsinbox.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      17:
+        id: 'messages-findpeople'
+        group: 'messages'
+        name: 'Audit FindPeople'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/NewMessageScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'FindPeople'
+          line: 191
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'FindPeople'
+                          params:
+        expected: 'New message'
+        flow: 'flows/messages-findpeople.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      18:
+        id: 'messages-creategroup'
+        group: 'messages'
+        name: 'Audit CreateGroup'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/CreateGroupScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'CreateGroup'
+          line: 190
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'CreateGroup'
+                          params:
+        expected: 'New group'
+        flow: 'flows/messages-creategroup.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      19:
+        id: 'messages-messagerequests'
+        group: 'messages'
+        name: 'Audit MessageRequests'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/MessageRequestsScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'MessageRequests'
+          line: 193
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MessageRequests'
+                          params:
+        expected: 'Message requests'
+        flow: 'flows/messages-messagerequests.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      20:
+        id: 'messages-savedmessages'
+        group: 'messages'
+        name: 'Audit SavedMessages'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/SavedMessagesScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'SavedMessages'
+          line: 194
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'SavedMessages'
+                          params:
+        expected: 'Saved Messages'
+        flow: 'flows/messages-savedmessages.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      21:
+        id: 'messages-starredmessages'
+        group: 'messages'
+        name: 'Audit StarredMessages'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/StarredMessagesScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'StarredMessages'
+          line: 195
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'StarredMessages'
+                          params:
+        expected: 'Starred'
+        flow: 'flows/messages-starredmessages.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      22:
+        id: 'messages-calllog'
+        group: 'messages'
+        name: 'Audit CallLog'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/CallLogScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'CallLog'
+          line: 196
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'CallLog'
+                          params:
+        expected: 'Calls'
+        flow: 'flows/messages-calllog.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      23:
+        id: 'messages-chat'
+        group: 'messages'
+        name: 'Audit Chat'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/ChatScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'Chat'
+          line: 641
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Chat'
+              params:
+                conversationId: '30000000-0000-4000-8000-000000000001'
+                userId: '10000000-0000-4000-8000-000000000002'
+                otherUser:
+                  id: '10000000-0000-4000-8000-000000000002'
+                  full_name: 'Jordan Ellis'
+                  username: 'qa_jordan'
+        expected: 'Ready for our next adventure\\?'
+        flow: 'flows/messages-chat.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      24:
+        id: 'profile-editprofile'
+        group: 'profile'
+        name: 'Audit EditProfile'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/EditProfileScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'EditProfile'
+          line: 220
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'EditProfile'
+                          params:
+        expected: 'Edit profile'
+        flow: 'flows/profile-editprofile.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      25:
+        id: 'profile-userprofile'
+        group: 'profile'
+        name: 'Audit UserProfile'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/UserProfileScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'UserProfile'
+          line: 640
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'UserProfile'
+              params:
+                userId: '10000000-0000-4000-8000-000000000002'
+        expected: 'Jordan Ellis'
+        flow: 'flows/profile-userprofile.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      26:
+        id: 'profile-followlist'
+        group: 'profile'
+        name: 'Audit FollowList'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/FollowListScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'FollowList'
+          line: 674
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'FollowList'
+              params:
+                userId: '10000000-0000-4000-8000-000000000001'
+                initial: 'followers'
+                isSelf: true
+                username: 'qa_alex'
+        expected: 'Followers'
+        flow: 'flows/profile-followlist.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      27:
+        id: 'profile-mynetwork'
+        group: 'profile'
+        name: 'Audit MyNetwork'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/network/NetworkScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'MyNetwork'
+          line: 232
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MyNetwork'
+                          params:
+        expected: 'Network'
+        flow: 'flows/profile-mynetwork.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      28:
+        id: 'settings-settings'
+        group: 'settings'
+        name: 'Audit Settings'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/SettingsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Settings'
+          line: 205
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Settings'
+                          params:
+        expected: 'Settings'
+        flow: 'flows/settings-settings.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      29:
+        id: 'settings-hiddenwords'
+        group: 'settings'
+        name: 'Audit HiddenWords'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/HiddenWordsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'HiddenWords'
+          line: 207
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'HiddenWords'
+                          params:
+        expected: 'Hidden words'
+        flow: 'flows/settings-hiddenwords.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      30:
+        id: 'settings-mutedwords'
+        group: 'settings'
+        name: 'Audit MutedWords'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/MutedWordsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'MutedWords'
+          line: 209
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MutedWords'
+                          params:
+        expected: 'Muted words'
+        flow: 'flows/settings-mutedwords.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      31:
+        id: 'settings-archive'
+        group: 'settings'
+        name: 'Audit Archive'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/ArchiveScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Archive'
+          line: 210
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Archive'
+                          params:
+        expected: 'Archive'
+        flow: 'flows/settings-archive.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      32:
+        id: 'settings-youractivity'
+        group: 'settings'
+        name: 'Audit YourActivity'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/YourActivityScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'YourActivity'
+          line: 211
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'YourActivity'
+                          params:
+        expected: 'Your activity'
+        flow: 'flows/settings-youractivity.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      33:
+        id: 'settings-loginactivity'
+        group: 'settings'
+        name: 'Audit LoginActivity'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/LoginActivityScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'LoginActivity'
+          line: 212
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'LoginActivity'
+                          params:
+        expected: 'Login activity'
+        flow: 'flows/settings-loginactivity.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      34:
+        id: 'settings-blockedaccounts'
+        group: 'settings'
+        name: 'Audit BlockedAccounts'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/BlockedAccountsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'BlockedAccounts'
+          line: 221
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'BlockedAccounts'
+                          params:
+        expected: 'Blocked accounts'
+        flow: 'flows/settings-blockedaccounts.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      35:
+        id: 'settings-restrictedaccounts'
+        group: 'settings'
+        name: 'Audit RestrictedAccounts'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/RestrictedAccountsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'RestrictedAccounts'
+          line: 222
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'RestrictedAccounts'
+                          params:
+        expected: 'Restricted accounts'
+        flow: 'flows/settings-restrictedaccounts.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      36:
+        id: 'settings-savedposts'
+        group: 'settings'
+        name: 'Audit SavedPosts'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/SavedPostsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'SavedPosts'
+          line: 226
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'SavedPosts'
+                          params:
+        expected: 'Saved Posts'
+        flow: 'flows/settings-savedposts.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      37:
+        id: 'settings-mutedstories'
+        group: 'settings'
+        name: 'Audit MutedStories'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/MutedStoriesScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'MutedStories'
+          line: 227
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MutedStories'
+                          params:
+        expected: 'Muted stories'
+        flow: 'flows/settings-mutedstories.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      38:
+        id: 'settings-followrequests'
+        group: 'settings'
+        name: 'Audit FollowRequests'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/FollowRequestsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'FollowRequests'
+          line: 231
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'FollowRequests'
+                          params:
+        expected: 'Follow requests'
+        flow: 'flows/settings-followrequests.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      39:
+        id: 'settings-terms'
+        group: 'settings'
+        name: 'Audit Terms'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/TermsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Terms'
+          line: 228
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Terms'
+                          params:
+        expected: 'Terms of Service'
+        flow: 'flows/settings-terms.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      40:
+        id: 'settings-privacypolicy'
+        group: 'settings'
+        name: 'Audit PrivacyPolicy'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/PrivacyPolicyScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'PrivacyPolicy'
+          line: 229
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'PrivacyPolicy'
+                          params:
+        expected: 'Privacy Policy'
+        flow: 'flows/settings-privacypolicy.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      41:
+        id: 'settings-helpsupport'
+        group: 'settings'
+        name: 'Audit HelpSupport'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/HelpSupportScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'HelpSupport'
+          line: 230
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'HelpSupport'
+                          params:
+        expected: 'Help & Support'
+        flow: 'flows/settings-helpsupport.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      42:
+        id: 'settings-changeusername'
+        group: 'settings'
+        name: 'Audit ChangeUsername'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/ChangeUsernameScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ChangeUsername'
+          line: 216
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ChangeUsername'
+                          params:
+        expected: 'Username'
+        flow: 'flows/settings-changeusername.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      43:
+        id: 'settings-accountstanding'
+        group: 'settings'
+        name: 'Audit AccountStanding'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/AccountStandingScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'AccountStanding'
+          line: 218
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'AccountStanding'
+                          params:
+        expected: 'Account standing'
+        flow: 'flows/settings-accountstanding.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      44:
+        id: 'settings-applyverification'
+        group: 'settings'
+        name: 'Audit ApplyVerification'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/ApplyVerificationScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ApplyVerification'
+          line: 206
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ApplyVerification'
+                          params:
+        expected: 'Verification'
+        flow: 'flows/settings-applyverification.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      45:
+        id: 'settings-twofactor'
+        group: 'settings'
+        name: 'Audit TwoFactor'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/TwoFactorScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'TwoFactor'
+          line: 208
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'TwoFactor'
+                          params:
+        expected: 'Two-factor authentication'
+        flow: 'flows/settings-twofactor.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      46:
+        id: 'settings-monetization'
+        group: 'settings'
+        name: 'Audit Monetization'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/MonetizationScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Monetization'
+          line: 219
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Monetization'
+                          params:
+        expected: 'Monetization'
+        flow: 'flows/settings-monetization.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      47:
+        id: 'support-contactsupport'
+        group: 'support'
+        name: 'Audit ContactSupport'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/ContactSupportScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ContactSupport'
+          line: 213
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ContactSupport'
+                          params:
+        expected: 'Contact support'
+        flow: 'flows/support-contactsupport.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      48:
+        id: 'support-ticket'
+        group: 'support'
+        name: 'Audit Ticket'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: 'Audit support question'
+        flow: 'flows/support-ticket.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      49:
+        id: 'business-businessapply'
+        group: 'business'
+        name: 'Audit BusinessApply'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/BusinessApplyScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'BusinessApply'
+          line: 215
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'BusinessApply'
+                          params:
+        expected: 'Business account'
+        flow: 'flows/business-businessapply.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      50:
+        id: 'business-businessaccess'
+        group: 'business'
+        name: 'Audit BusinessAccess'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/BusinessAccessScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'BusinessAccess'
+          line: 217
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'BusinessAccess'
+                          params:
+        expected: 'Business access'
+        flow: 'flows/business-businessaccess.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      51:
+        id: 'business-createbusiness'
+        group: 'business'
+        name: 'Audit CreateBusiness'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/CreateBusinessScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'CreateBusiness'
+          line: 223
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'CreateBusiness'
+                          params:
+        expected: 'New business'
+        flow: 'flows/business-createbusiness.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      52:
+        id: 'business-businesses'
+        group: 'business'
+        name: 'Audit Businesses'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/BusinessesScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Businesses'
+          line: 224
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Businesses'
+                          params:
+        expected: 'Businesses'
+        flow: 'flows/business-businesses.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      53:
+        id: 'stories-storycreationmenu'
+        group: 'stories'
+        name: 'Audit StoryCreationMenu'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/stories/StoryCreationMenuScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'StoryCreationMenu'
+          line: 656
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'StoryCreationMenu'
+              params:
+        expected: 'Create'
+        flow: 'flows/stories-storycreationmenu.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      54:
+        id: 'stories-storycomposer'
+        group: 'stories'
+        name: 'Audit StoryComposer'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/stories/StoryComposerScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'StoryComposer'
+          line: 657
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'StoryComposer'
+              params:
+                mode: 'text'
+        expected: 'Next'
+        flow: 'flows/stories-storycomposer.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      55:
+        id: 'stories-storylayout'
+        group: 'stories'
+        name: 'Audit StoryLayout'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/stories/StoryLayoutScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'StoryLayout'
+          line: 662
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'StoryLayout'
+              params:
+        expected: 'Layout'
+        flow: 'flows/stories-storylayout.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      56:
+        id: 'stories-storyviewer'
+        group: 'stories'
+        name: 'Audit StoryViewer'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/stories/StoryViewerScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'StoryViewer'
+          line: 670
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'StoryViewer'
+              params:
+                userIds:
+                  0: '10000000-0000-4000-8000-000000000002'
+                startUserId: '10000000-0000-4000-8000-000000000002'
+                startStoryId: '40000000-0000-4000-8000-000000000001'
+        expected: 'A moment worth remembering.'
+        flow: 'flows/stories-storyviewer.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      57:
+        id: 'directories-channels'
+        group: 'directories'
+        name: 'Audit Channels'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/channels/ChannelsScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'Channels'
+          line: 671
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Channels'
+              params:
+        expected: 'Channels'
+        flow: 'flows/directories-channels.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      58:
+        id: 'memory-memoryalbum'
+        group: 'memory'
+        name: 'Audit MemoryAlbum'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/MemoryAlbumScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MemoryAlbum'
+          line: 643
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'MemoryAlbum'
+              params:
+                ownerId: '10000000-0000-4000-8000-000000000001'
+                albumId: 'a0000000-0000-4000-8000-000000000002'
+        expected: 'Edit memory book'
+        flow: 'flows/memory-memoryalbum.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      59:
+        id: 'support-original-body'
+        group: 'support'
+        name: 'Audit support original-body'
+        kind: 'error-or-content-contract'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: 'Original support question from the member.'
+        flow: 'flows/support-original-body.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'fresh-ticket'
+      60:
+        id: 'support-missing-ticket'
+        group: 'support'
+        name: 'Audit support missing-ticket'
+        kind: 'error-or-content-contract'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: 'This ticket is not available to this account.'
+        flow: 'flows/support-missing-ticket.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'missing-ticket'
+      61:
+        id: 'support-ticket-read-error'
+        group: 'support'
+        name: 'Audit support ticket-read-error'
+        kind: 'error-or-content-contract'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: '(?i).*(could not load|try again|retry).*'
+        flow: 'flows/support-ticket-read-error.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'ticket-read-error'
+      62:
+        id: 'support-history-error'
+        group: 'support'
+        name: 'Audit support history-error'
+        kind: 'error-or-content-contract'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: '(?i).*(could not load|try again|retry).*'
+        flow: 'flows/support-history-error.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'history-error'
+      63:
+        id: 'support-list-error'
+        group: 'support'
+        name: 'Audit support list error'
+        kind: 'error-contract'
+        role: 'personal-member'
+        source: 'src/screens/profile/ContactSupportScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ContactSupport'
+          line: 213
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ContactSupport'
+                          params:
+        expected: '(?i).*(could not load|try again|retry).*'
+        flow: 'flows/support-list-error.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'list-error'
+      64:
+        id: 'navigation-warm-tabs'
+        group: 'navigation'
+        name: 'Audit repeated main tab controls'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/feed/FeedScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'FeedMain'
+          line: 158
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'FeedMain'
+                          params:
+        expected: 'A quiet morning in the desert. Small moments worth keeping.'
+        flow: 'flows/navigation-warm-tabs.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      65:
+        id: 'feed-search-controls'
+        group: 'feed'
+        name: 'Audit search entry and clear'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/feed/SearchScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'Search'
+          line: 159
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Search'
+                          params:
+        expected: 'Search'
+        flow: 'flows/feed-search-controls.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      66:
+        id: 'notifications-empty-controls'
+        group: 'feed'
+        name: 'Audit empty notifications and mark read'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/notifications/NotificationsScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'Notifications'
+          line: 160
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Notifications'
+                          params:
+        expected: 'Activity'
+        flow: 'flows/notifications-empty-controls.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      67:
+        id: 'market-offer-cancel'
+        group: 'market'
+        name: 'Audit listing offer entry and cancel'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/market/ListingDetailScreen.tsx'
+        registration:
+          navigator: 'NetworkStack'
+          name: 'ListingDetail'
+          line: 170
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Market'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ListingDetail'
+                          params:
+                            listingId: '70000000-0000-4000-8000-000000000001'
+        expected: 'Make offer'
+        flow: 'flows/market-offer-cancel.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      68:
+        id: 'jobs-application-entry'
+        group: 'jobs'
+        name: 'Audit job application entry'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/jobs/JobDetailScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'JobDetail'
+          line: 646
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'JobDetail'
+              params:
+                jobId: '60000000-0000-4000-8000-000000000001'
+        expected: 'About the role'
+        flow: 'flows/jobs-application-entry.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      69:
+        id: 'messages-recipient-search'
+        group: 'messages'
+        name: 'Audit direct message recipient search'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/messages/NewMessageScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'FindPeople'
+          line: 191
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'FindPeople'
+                          params:
+        expected: 'New message'
+        flow: 'flows/messages-recipient-search.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      70:
+        id: 'settings-hidden-word-write'
+        group: 'settings'
+        name: 'Audit add hidden word'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/HiddenWordsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'HiddenWords'
+          line: 207
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'HiddenWords'
+                          params:
+        expected: 'Hidden words'
+        flow: 'flows/settings-hidden-word-write.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      71:
+        id: 'settings-muted-word-write'
+        group: 'settings'
+        name: 'Audit add muted word'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/MutedWordsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'MutedWords'
+          line: 209
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MutedWords'
+                          params:
+        expected: 'Muted words'
+        flow: 'flows/settings-muted-word-write.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      72:
+        id: 'settings-appearance'
+        group: 'settings'
+        name: 'Audit appearance control'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/SettingsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Settings'
+          line: 205
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Settings'
+                          params:
+        expected: 'Settings'
+        flow: 'flows/settings-appearance.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      73:
+        id: 'feed-article-draft'
+        group: 'feed'
+        name: 'Audit article text draft controls'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/feed/ArticleComposeScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'ArticleCompose'
+          line: 638
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'ArticleCompose'
+              params:
+        expected: 'Article'
+        flow: 'flows/feed-article-draft.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      74:
+        id: 'support-fresh-ticket-body'
+        group: 'support'
+        name: 'Audit submitted ticket keeps original question'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/ContactSupportScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ContactSupport'
+          line: 213
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ContactSupport'
+                          params:
+        expected: 'Contact support'
+        flow: 'flows/support-fresh-ticket-body.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      75:
+        id: 'support-reopen-error'
+        group: 'support'
+        name: 'Audit reply status write failure is visible'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: 'Audit support question'
+        flow: 'flows/support-reopen-error.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'status-write-error'
+      76:
+        id: 'support-reply-error'
+        group: 'support'
+        name: 'Audit reply failure preserves retry'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: 'Audit support question'
+        flow: 'flows/support-reply-error.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'message-write-error'
+      77:
+        id: 'memory-reader-controls'
+        group: 'memory'
+        name: 'Audit book open and page controls'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/MemoryAlbumScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MemoryAlbum'
+          line: 643
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'MemoryAlbum'
+              params:
+                ownerId: '10000000-0000-4000-8000-000000000001'
+                albumId: 'a0000000-0000-4000-8000-000000000002'
+        expected: 'Edit memory book'
+        flow: 'flows/memory-reader-controls.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      78:
+        id: 'memory-cover-settings'
+        group: 'memory'
+        name: 'Audit independent cover settings entry'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/MemoryAlbumScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MemoryAlbum'
+          line: 643
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'MemoryAlbum'
+              params:
+                ownerId: '10000000-0000-4000-8000-000000000001'
+                albumId: 'a0000000-0000-4000-8000-000000000002'
+        expected: 'Edit memory book'
+        flow: 'flows/memory-cover-settings.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      79:
+        id: 'memory-film-export-entry'
+        group: 'memory'
+        name: 'Audit independent film and export entry'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/MemoryAlbumScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MemoryAlbum'
+          line: 643
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'MemoryAlbum'
+              params:
+                ownerId: '10000000-0000-4000-8000-000000000001'
+                albumId: 'a0000000-0000-4000-8000-000000000002'
+        expected: 'Edit memory book'
+        flow: 'flows/memory-film-export-entry.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      80:
+        id: 'memory-capture-session'
+        group: 'memory'
+        name: 'Audit real capture cancel and encode'
+        kind: 'same-session-memory-capture'
+        role: 'personal-member'
+        source: 'src/screens/profile/MemoryAlbumScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MemoryAlbum'
+          line: 643
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'NativeMemoryCaptureFixture'
+        expected: 'Native capture acceptance'
+        flow: 'flows/memory-capture-session.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      81:
+        id: 'auth-empty-signin'
+        name: 'Audit empty sign-in validation'
+        group: 'auth'
+        kind: 'signed-out-control'
+        role: 'signed-out'
+        source: 'src/screens/auth/LoginScreen.tsx'
+        registration:
+          name: 'Login'
+          navigator: 'RootStack'
+          line: 683
+        fixtureScenario: 'signed-out'
+        flow: 'flows/auth-empty-signin.yaml'
+        coverage: 'Signed-out controls only; no external email, recovery or business access success.'
+      82:
+        id: 'auth-forgot-password'
+        name: 'Audit password reset input validation'
+        group: 'auth'
+        kind: 'signed-out-control'
+        role: 'signed-out'
+        source: 'src/screens/auth/LoginScreen.tsx'
+        registration:
+          name: 'Login'
+          navigator: 'RootStack'
+          line: 683
+        fixtureScenario: 'signed-out'
+        flow: 'flows/auth-forgot-password.yaml'
+        coverage: 'Signed-out controls only; no external email, recovery or business access success.'
+      83:
+        id: 'auth-signup-entry'
+        name: 'Audit sign-up form entry'
+        group: 'auth'
+        kind: 'signed-out-control'
+        role: 'signed-out'
+        source: 'src/screens/auth/SignUpScreen.tsx'
+        registration:
+          name: 'SignUp'
+          navigator: 'RootStack'
+          line: 686
+        fixtureScenario: 'signed-out'
+        flow: 'flows/auth-signup-entry.yaml'
+        coverage: 'Signed-out controls only; no external email, recovery or business access success.'
+      84:
+        id: 'auth-business-entry'
+        name: 'Audit business sign-in form entry'
+        group: 'auth'
+        kind: 'signed-out-control'
+        role: 'signed-out'
+        source: 'src/screens/auth/BusinessSignInScreen.tsx'
+        registration:
+          name: 'BusinessSignIn'
+          navigator: 'RootStack'
+          line: 684
+        fixtureScenario: 'signed-out'
+        flow: 'flows/auth-business-entry.yaml'
+        coverage: 'Signed-out controls only; no external email, recovery or business access success.'
+    limits:
+      0: 'Entry smoke is not completion of every control or error state.'
+      1: 'Synthetic transport is not hosted RLS, provider, cross-device Realtime, or physical-device acceptance.'
+      2: 'Unknown synthetic contracts remain 501 and fail the corresponding audit case.'
+      3: 'Each case signs in afresh; this is not persistence acceptance. The separate memory capture journey must retain one session.'
+    baselineSourceCommit: '2f91218e71dbcaf94ea7b454a0e3562800bfe601'
+    binaryBinding: 'Build manifest binds the final frozen CI commit/tree and exact scenario manifest; baseline inventory remains2f.'
+  actual:
+    schemaVersion: 1
+    qaBundleId: 'app.platinumcircles.mobile.qa'
+    mode: 'independent-native-audit'
+    baseline: 'Production source is frozen. The audit launcher and transport additions are disposable QA overlays.'
+    caseCount: 85
+    groups:
+      0: 'navigation'
+      1: 'feed'
+      2: 'market'
+      3: 'jobs'
+      4: 'messages'
+      5: 'profile'
+      6: 'settings'
+      7: 'support'
+      8: 'business'
+      9: 'stories'
+      10: 'directories'
+      11: 'memory'
+      12: 'auth'
+    cases:
+      0:
+        id: 'navigation-feedmain'
+        group: 'navigation'
+        name: 'Audit FeedMain'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/FeedScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'FeedMain'
+          line: 158
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'FeedMain'
+                          params:
+        expected: 'A quiet morning in the desert. Small moments worth keeping.'
+        flow: 'flows/navigation-feedmain.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      1:
+        id: 'navigation-marketmain'
+        group: 'navigation'
+        name: 'Audit MarketMain'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/market/MarketScreen.tsx'
+        registration:
+          navigator: 'NetworkStack'
+          name: 'MarketMain'
+          line: 169
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Market'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MarketMain'
+                          params:
+        expected: 'View listing: Travel journal'
+        flow: 'flows/navigation-marketmain.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      2:
+        id: 'navigation-jobsmain'
+        group: 'navigation'
+        name: 'Audit JobsMain'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/jobs/JobsScreen.tsx'
+        registration:
+          navigator: 'JobsStack'
+          name: 'JobsMain'
+          line: 180
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Jobs'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'JobsMain'
+                          params:
+        expected: 'Jobs'
+        flow: 'flows/navigation-jobsmain.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      3:
+        id: 'navigation-conversations'
+        group: 'navigation'
+        name: 'Audit Conversations'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/ConversationsScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'Conversations'
+          line: 189
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Conversations'
+                          params:
+        expected: 'Messages'
+        flow: 'flows/navigation-conversations.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      4:
+        id: 'navigation-profilemain'
+        group: 'navigation'
+        name: 'Audit ProfileMain'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/ProfileScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ProfileMain'
+          line: 204
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ProfileMain'
+                          params:
+        expected: 'Alex Rivera'
+        flow: 'flows/navigation-profilemain.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      5:
+        id: 'feed-search'
+        group: 'feed'
+        name: 'Audit Search'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/SearchScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'Search'
+          line: 159
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Search'
+                          params:
+        expected: 'Search'
+        flow: 'flows/feed-search.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      6:
+        id: 'feed-notifications'
+        group: 'feed'
+        name: 'Audit Notifications'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/notifications/NotificationsScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'Notifications'
+          line: 160
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Notifications'
+                          params:
+        expected: 'Activity'
+        flow: 'flows/feed-notifications.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      7:
+        id: 'feed-articlecompose'
+        group: 'feed'
+        name: 'Audit ArticleCompose'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/ArticleComposeScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'ArticleCompose'
+          line: 638
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'ArticleCompose'
+              params:
+        expected: 'Article'
+        flow: 'flows/feed-articlecompose.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      8:
+        id: 'feed-post'
+        group: 'feed'
+        name: 'Audit Post'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/PostScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'Post'
+          line: 637
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Post'
+              params:
+                postId: '20000000-0000-4000-8000-000000000001'
+        expected: 'Comments'
+        flow: 'flows/feed-post.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      9:
+        id: 'feed-trendfeed'
+        group: 'feed'
+        name: 'Audit TrendFeed'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/TrendFeedScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'TrendFeed'
+          line: 639
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'TrendFeed'
+              params:
+                tag: 'Memories'
+        expected: 'Memories'
+        flow: 'flows/feed-trendfeed.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      10:
+        id: 'market-listingdetail'
+        group: 'market'
+        name: 'Audit ListingDetail'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/market/ListingDetailScreen.tsx'
+        registration:
+          navigator: 'NetworkStack'
+          name: 'ListingDetail'
+          line: 170
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Market'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ListingDetail'
+                          params:
+                            listingId: '70000000-0000-4000-8000-000000000001'
+        expected: 'Make offer'
+        flow: 'flows/market-listingdetail.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      11:
+        id: 'market-createlisting'
+        group: 'market'
+        name: 'Audit CreateListing'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/market/CreateListingScreen.tsx'
+        registration:
+          navigator: 'NetworkStack'
+          name: 'CreateListing'
+          line: 171
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Market'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'CreateListing'
+                          params:
+        expected: 'Title'
+        flow: 'flows/market-createlisting.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      12:
+        id: 'market-marketinbox'
+        group: 'market'
+        name: 'Audit MarketInbox'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/ContextInboxScreen.tsx'
+        registration:
+          navigator: 'NetworkStack'
+          name: 'MarketInbox'
+          line: 172
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Market'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MarketInbox'
+                          params:
+                            context: 'market'
+        expected: 'Market messages'
+        flow: 'flows/market-marketinbox.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      13:
+        id: 'jobs-jobdetail'
+        group: 'jobs'
+        name: 'Audit JobDetail'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/jobs/JobDetailScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'JobDetail'
+          line: 646
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'JobDetail'
+              params:
+                jobId: '60000000-0000-4000-8000-000000000001'
+        expected: 'About the role'
+        flow: 'flows/jobs-jobdetail.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      14:
+        id: 'jobs-savedjobs'
+        group: 'jobs'
+        name: 'Audit SavedJobs'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/jobs/SavedJobsScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'SavedJobs'
+          line: 648
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'SavedJobs'
+              params:
+        expected: 'Saved jobs'
+        flow: 'flows/jobs-savedjobs.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      15:
+        id: 'jobs-myapplications'
+        group: 'jobs'
+        name: 'Audit MyApplications'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/jobs/MyApplicationsScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MyApplications'
+          line: 649
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'MyApplications'
+              params:
+        expected: 'My applications'
+        flow: 'flows/jobs-myapplications.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      16:
+        id: 'jobs-jobsinbox'
+        group: 'jobs'
+        name: 'Audit JobsInbox'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/ContextInboxScreen.tsx'
+        registration:
+          navigator: 'JobsStack'
+          name: 'JobsInbox'
+          line: 181
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Jobs'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'JobsInbox'
+                          params:
+                            context: 'jobs'
+        expected: 'Job messages'
+        flow: 'flows/jobs-jobsinbox.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      17:
+        id: 'messages-findpeople'
+        group: 'messages'
+        name: 'Audit FindPeople'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/NewMessageScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'FindPeople'
+          line: 191
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'FindPeople'
+                          params:
+        expected: 'New message'
+        flow: 'flows/messages-findpeople.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      18:
+        id: 'messages-creategroup'
+        group: 'messages'
+        name: 'Audit CreateGroup'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/CreateGroupScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'CreateGroup'
+          line: 190
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'CreateGroup'
+                          params:
+        expected: 'New group'
+        flow: 'flows/messages-creategroup.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      19:
+        id: 'messages-messagerequests'
+        group: 'messages'
+        name: 'Audit MessageRequests'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/MessageRequestsScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'MessageRequests'
+          line: 193
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MessageRequests'
+                          params:
+        expected: 'Message requests'
+        flow: 'flows/messages-messagerequests.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      20:
+        id: 'messages-savedmessages'
+        group: 'messages'
+        name: 'Audit SavedMessages'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/SavedMessagesScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'SavedMessages'
+          line: 194
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'SavedMessages'
+                          params:
+        expected: 'Saved Messages'
+        flow: 'flows/messages-savedmessages.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      21:
+        id: 'messages-starredmessages'
+        group: 'messages'
+        name: 'Audit StarredMessages'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/StarredMessagesScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'StarredMessages'
+          line: 195
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'StarredMessages'
+                          params:
+        expected: 'Starred'
+        flow: 'flows/messages-starredmessages.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      22:
+        id: 'messages-calllog'
+        group: 'messages'
+        name: 'Audit CallLog'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/CallLogScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'CallLog'
+          line: 196
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'CallLog'
+                          params:
+        expected: 'Calls'
+        flow: 'flows/messages-calllog.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      23:
+        id: 'messages-chat'
+        group: 'messages'
+        name: 'Audit Chat'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/messages/ChatScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'Chat'
+          line: 641
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Chat'
+              params:
+                conversationId: '30000000-0000-4000-8000-000000000001'
+                userId: '10000000-0000-4000-8000-000000000002'
+                otherUser:
+                  id: '10000000-0000-4000-8000-000000000002'
+                  full_name: 'Jordan Ellis'
+                  username: 'qa_jordan'
+        expected: 'Ready for our next adventure\\?'
+        flow: 'flows/messages-chat.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      24:
+        id: 'profile-editprofile'
+        group: 'profile'
+        name: 'Audit EditProfile'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/EditProfileScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'EditProfile'
+          line: 220
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'EditProfile'
+                          params:
+        expected: 'Edit profile'
+        flow: 'flows/profile-editprofile.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      25:
+        id: 'profile-userprofile'
+        group: 'profile'
+        name: 'Audit UserProfile'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/UserProfileScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'UserProfile'
+          line: 640
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'UserProfile'
+              params:
+                userId: '10000000-0000-4000-8000-000000000002'
+        expected: 'Jordan Ellis'
+        flow: 'flows/profile-userprofile.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      26:
+        id: 'profile-followlist'
+        group: 'profile'
+        name: 'Audit FollowList'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/FollowListScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'FollowList'
+          line: 674
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'FollowList'
+              params:
+                userId: '10000000-0000-4000-8000-000000000001'
+                initial: 'followers'
+                isSelf: true
+                username: 'qa_alex'
+        expected: 'Followers'
+        flow: 'flows/profile-followlist.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      27:
+        id: 'profile-mynetwork'
+        group: 'profile'
+        name: 'Audit MyNetwork'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/network/NetworkScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'MyNetwork'
+          line: 232
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MyNetwork'
+                          params:
+        expected: 'Network'
+        flow: 'flows/profile-mynetwork.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      28:
+        id: 'settings-settings'
+        group: 'settings'
+        name: 'Audit Settings'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/SettingsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Settings'
+          line: 205
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Settings'
+                          params:
+        expected: 'Settings'
+        flow: 'flows/settings-settings.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      29:
+        id: 'settings-hiddenwords'
+        group: 'settings'
+        name: 'Audit HiddenWords'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/HiddenWordsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'HiddenWords'
+          line: 207
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'HiddenWords'
+                          params:
+        expected: 'Hidden words'
+        flow: 'flows/settings-hiddenwords.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      30:
+        id: 'settings-mutedwords'
+        group: 'settings'
+        name: 'Audit MutedWords'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/MutedWordsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'MutedWords'
+          line: 209
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MutedWords'
+                          params:
+        expected: 'Muted words'
+        flow: 'flows/settings-mutedwords.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      31:
+        id: 'settings-archive'
+        group: 'settings'
+        name: 'Audit Archive'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/ArchiveScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Archive'
+          line: 210
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Archive'
+                          params:
+        expected: 'Archive'
+        flow: 'flows/settings-archive.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      32:
+        id: 'settings-youractivity'
+        group: 'settings'
+        name: 'Audit YourActivity'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/YourActivityScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'YourActivity'
+          line: 211
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'YourActivity'
+                          params:
+        expected: 'Your activity'
+        flow: 'flows/settings-youractivity.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      33:
+        id: 'settings-loginactivity'
+        group: 'settings'
+        name: 'Audit LoginActivity'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/LoginActivityScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'LoginActivity'
+          line: 212
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'LoginActivity'
+                          params:
+        expected: 'Login activity'
+        flow: 'flows/settings-loginactivity.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      34:
+        id: 'settings-blockedaccounts'
+        group: 'settings'
+        name: 'Audit BlockedAccounts'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/BlockedAccountsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'BlockedAccounts'
+          line: 221
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'BlockedAccounts'
+                          params:
+        expected: 'Blocked accounts'
+        flow: 'flows/settings-blockedaccounts.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      35:
+        id: 'settings-restrictedaccounts'
+        group: 'settings'
+        name: 'Audit RestrictedAccounts'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/RestrictedAccountsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'RestrictedAccounts'
+          line: 222
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'RestrictedAccounts'
+                          params:
+        expected: 'Restricted accounts'
+        flow: 'flows/settings-restrictedaccounts.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      36:
+        id: 'settings-savedposts'
+        group: 'settings'
+        name: 'Audit SavedPosts'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/feed/SavedPostsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'SavedPosts'
+          line: 226
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'SavedPosts'
+                          params:
+        expected: 'Saved Posts'
+        flow: 'flows/settings-savedposts.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      37:
+        id: 'settings-mutedstories'
+        group: 'settings'
+        name: 'Audit MutedStories'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/MutedStoriesScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'MutedStories'
+          line: 227
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MutedStories'
+                          params:
+        expected: 'Muted stories'
+        flow: 'flows/settings-mutedstories.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      38:
+        id: 'settings-followrequests'
+        group: 'settings'
+        name: 'Audit FollowRequests'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/FollowRequestsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'FollowRequests'
+          line: 231
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'FollowRequests'
+                          params:
+        expected: 'Follow requests'
+        flow: 'flows/settings-followrequests.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      39:
+        id: 'settings-terms'
+        group: 'settings'
+        name: 'Audit Terms'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/TermsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Terms'
+          line: 228
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Terms'
+                          params:
+        expected: 'Terms of Service'
+        flow: 'flows/settings-terms.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      40:
+        id: 'settings-privacypolicy'
+        group: 'settings'
+        name: 'Audit PrivacyPolicy'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/PrivacyPolicyScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'PrivacyPolicy'
+          line: 229
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'PrivacyPolicy'
+                          params:
+        expected: 'Privacy Policy'
+        flow: 'flows/settings-privacypolicy.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      41:
+        id: 'settings-helpsupport'
+        group: 'settings'
+        name: 'Audit HelpSupport'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/HelpSupportScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'HelpSupport'
+          line: 230
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'HelpSupport'
+                          params:
+        expected: 'Help & Support'
+        flow: 'flows/settings-helpsupport.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      42:
+        id: 'settings-changeusername'
+        group: 'settings'
+        name: 'Audit ChangeUsername'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/ChangeUsernameScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ChangeUsername'
+          line: 216
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ChangeUsername'
+                          params:
+        expected: 'Username'
+        flow: 'flows/settings-changeusername.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      43:
+        id: 'settings-accountstanding'
+        group: 'settings'
+        name: 'Audit AccountStanding'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/AccountStandingScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'AccountStanding'
+          line: 218
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'AccountStanding'
+                          params:
+        expected: 'Account standing'
+        flow: 'flows/settings-accountstanding.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      44:
+        id: 'settings-applyverification'
+        group: 'settings'
+        name: 'Audit ApplyVerification'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/ApplyVerificationScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ApplyVerification'
+          line: 206
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ApplyVerification'
+                          params:
+        expected: 'Verification'
+        flow: 'flows/settings-applyverification.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      45:
+        id: 'settings-twofactor'
+        group: 'settings'
+        name: 'Audit TwoFactor'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/TwoFactorScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'TwoFactor'
+          line: 208
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'TwoFactor'
+                          params:
+        expected: 'Two-factor authentication'
+        flow: 'flows/settings-twofactor.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      46:
+        id: 'settings-monetization'
+        group: 'settings'
+        name: 'Audit Monetization'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/MonetizationScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Monetization'
+          line: 219
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Monetization'
+                          params:
+        expected: 'Monetization'
+        flow: 'flows/settings-monetization.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      47:
+        id: 'support-contactsupport'
+        group: 'support'
+        name: 'Audit ContactSupport'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/ContactSupportScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ContactSupport'
+          line: 213
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ContactSupport'
+                          params:
+        expected: 'Contact support'
+        flow: 'flows/support-contactsupport.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      48:
+        id: 'support-ticket'
+        group: 'support'
+        name: 'Audit Ticket'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: 'Audit support question'
+        flow: 'flows/support-ticket.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      49:
+        id: 'business-businessapply'
+        group: 'business'
+        name: 'Audit BusinessApply'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/BusinessApplyScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'BusinessApply'
+          line: 215
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'BusinessApply'
+                          params:
+        expected: 'Business account'
+        flow: 'flows/business-businessapply.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      50:
+        id: 'business-businessaccess'
+        group: 'business'
+        name: 'Audit BusinessAccess'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/BusinessAccessScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'BusinessAccess'
+          line: 217
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'BusinessAccess'
+                          params:
+        expected: 'Business access'
+        flow: 'flows/business-businessaccess.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      51:
+        id: 'business-createbusiness'
+        group: 'business'
+        name: 'Audit CreateBusiness'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/CreateBusinessScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'CreateBusiness'
+          line: 223
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'CreateBusiness'
+                          params:
+        expected: 'New business'
+        flow: 'flows/business-createbusiness.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      52:
+        id: 'business-businesses'
+        group: 'business'
+        name: 'Audit Businesses'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/BusinessesScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Businesses'
+          line: 224
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Businesses'
+                          params:
+        expected: 'Businesses'
+        flow: 'flows/business-businesses.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      53:
+        id: 'stories-storycreationmenu'
+        group: 'stories'
+        name: 'Audit StoryCreationMenu'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/stories/StoryCreationMenuScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'StoryCreationMenu'
+          line: 656
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'StoryCreationMenu'
+              params:
+        expected: 'Create'
+        flow: 'flows/stories-storycreationmenu.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      54:
+        id: 'stories-storycomposer'
+        group: 'stories'
+        name: 'Audit StoryComposer'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/stories/StoryComposerScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'StoryComposer'
+          line: 657
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'StoryComposer'
+              params:
+                mode: 'text'
+        expected: 'Next'
+        flow: 'flows/stories-storycomposer.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      55:
+        id: 'stories-storylayout'
+        group: 'stories'
+        name: 'Audit StoryLayout'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/stories/StoryLayoutScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'StoryLayout'
+          line: 662
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'StoryLayout'
+              params:
+        expected: 'Layout'
+        flow: 'flows/stories-storylayout.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      56:
+        id: 'stories-storyviewer'
+        group: 'stories'
+        name: 'Audit StoryViewer'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/stories/StoryViewerScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'StoryViewer'
+          line: 670
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'StoryViewer'
+              params:
+                userIds:
+                  0: '10000000-0000-4000-8000-000000000002'
+                startUserId: '10000000-0000-4000-8000-000000000002'
+                startStoryId: '40000000-0000-4000-8000-000000000001'
+        expected: 'A moment worth remembering.'
+        flow: 'flows/stories-storyviewer.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      57:
+        id: 'directories-channels'
+        group: 'directories'
+        name: 'Audit Channels'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/channels/ChannelsScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'Channels'
+          line: 671
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Channels'
+              params:
+        expected: 'Channels'
+        flow: 'flows/directories-channels.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      58:
+        id: 'memory-memoryalbum'
+        group: 'memory'
+        name: 'Audit MemoryAlbum'
+        kind: 'entry-smoke'
+        role: 'personal-member'
+        source: 'src/screens/profile/MemoryAlbumScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MemoryAlbum'
+          line: 643
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'MemoryAlbum'
+              params:
+                ownerId: '10000000-0000-4000-8000-000000000001'
+                albumId: 'a0000000-0000-4000-8000-000000000002'
+        expected: 'Edit memory book'
+        flow: 'flows/memory-memoryalbum.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      59:
+        id: 'support-original-body'
+        group: 'support'
+        name: 'Audit support original-body'
+        kind: 'error-or-content-contract'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: 'Original support question from the member.'
+        flow: 'flows/support-original-body.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'fresh-ticket'
+      60:
+        id: 'support-missing-ticket'
+        group: 'support'
+        name: 'Audit support missing-ticket'
+        kind: 'error-or-content-contract'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: '(?i).*(not found|unavailable|could not load).*'
+        flow: 'flows/support-missing-ticket.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'missing-ticket'
+      61:
+        id: 'support-ticket-read-error'
+        group: 'support'
+        name: 'Audit support ticket-read-error'
+        kind: 'error-or-content-contract'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: '(?i).*(could not load|try again|retry).*'
+        flow: 'flows/support-ticket-read-error.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'ticket-read-error'
+      62:
+        id: 'support-history-error'
+        group: 'support'
+        name: 'Audit support history-error'
+        kind: 'error-or-content-contract'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: '(?i).*(could not load|try again|retry).*'
+        flow: 'flows/support-history-error.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'history-error'
+      63:
+        id: 'support-list-error'
+        group: 'support'
+        name: 'Audit support list error'
+        kind: 'error-contract'
+        role: 'personal-member'
+        source: 'src/screens/profile/ContactSupportScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ContactSupport'
+          line: 213
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ContactSupport'
+                          params:
+        expected: '(?i).*(could not load|try again|retry).*'
+        flow: 'flows/support-list-error.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'list-error'
+      64:
+        id: 'navigation-warm-tabs'
+        group: 'navigation'
+        name: 'Audit repeated main tab controls'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/feed/FeedScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'FeedMain'
+          line: 158
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'FeedMain'
+                          params:
+        expected: 'A quiet morning in the desert. Small moments worth keeping.'
+        flow: 'flows/navigation-warm-tabs.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      65:
+        id: 'feed-search-controls'
+        group: 'feed'
+        name: 'Audit search entry and clear'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/feed/SearchScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'Search'
+          line: 159
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Search'
+                          params:
+        expected: 'Search'
+        flow: 'flows/feed-search-controls.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      66:
+        id: 'notifications-empty-controls'
+        group: 'feed'
+        name: 'Audit empty notifications and mark read'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/notifications/NotificationsScreen.tsx'
+        registration:
+          navigator: 'FeedStack'
+          name: 'Notifications'
+          line: 160
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Feed'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Notifications'
+                          params:
+        expected: 'Activity'
+        flow: 'flows/notifications-empty-controls.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      67:
+        id: 'market-offer-cancel'
+        group: 'market'
+        name: 'Audit listing offer entry and cancel'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/market/ListingDetailScreen.tsx'
+        registration:
+          navigator: 'NetworkStack'
+          name: 'ListingDetail'
+          line: 170
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Market'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ListingDetail'
+                          params:
+                            listingId: '70000000-0000-4000-8000-000000000001'
+        expected: 'Make offer'
+        flow: 'flows/market-offer-cancel.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      68:
+        id: 'jobs-application-entry'
+        group: 'jobs'
+        name: 'Audit job application entry'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/jobs/JobDetailScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'JobDetail'
+          line: 646
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'JobDetail'
+              params:
+                jobId: '60000000-0000-4000-8000-000000000001'
+        expected: 'About the role'
+        flow: 'flows/jobs-application-entry.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      69:
+        id: 'messages-recipient-search'
+        group: 'messages'
+        name: 'Audit direct message recipient search'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/messages/NewMessageScreen.tsx'
+        registration:
+          navigator: 'MsgStack'
+          name: 'FindPeople'
+          line: 191
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Messages'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'FindPeople'
+                          params:
+        expected: 'New message'
+        flow: 'flows/messages-recipient-search.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      70:
+        id: 'settings-hidden-word-write'
+        group: 'settings'
+        name: 'Audit add hidden word'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/HiddenWordsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'HiddenWords'
+          line: 207
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'HiddenWords'
+                          params:
+        expected: 'Hidden words'
+        flow: 'flows/settings-hidden-word-write.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      71:
+        id: 'settings-muted-word-write'
+        group: 'settings'
+        name: 'Audit add muted word'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/MutedWordsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'MutedWords'
+          line: 209
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'MutedWords'
+                          params:
+        expected: 'Muted words'
+        flow: 'flows/settings-muted-word-write.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      72:
+        id: 'settings-appearance'
+        group: 'settings'
+        name: 'Audit appearance control'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/SettingsScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Settings'
+          line: 205
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Settings'
+                          params:
+        expected: 'Settings'
+        flow: 'flows/settings-appearance.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      73:
+        id: 'feed-article-draft'
+        group: 'feed'
+        name: 'Audit article text draft controls'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/feed/ArticleComposeScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'ArticleCompose'
+          line: 638
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'ArticleCompose'
+              params:
+        expected: 'Article'
+        flow: 'flows/feed-article-draft.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      74:
+        id: 'support-fresh-ticket-body'
+        group: 'support'
+        name: 'Audit submitted ticket keeps original question'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/ContactSupportScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'ContactSupport'
+          line: 213
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'ContactSupport'
+                          params:
+        expected: 'Contact support'
+        flow: 'flows/support-fresh-ticket-body.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      75:
+        id: 'support-reopen-error'
+        group: 'support'
+        name: 'Audit reply status write failure is visible'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: 'Audit support question'
+        flow: 'flows/support-reopen-error.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'status-write-error'
+      76:
+        id: 'support-reply-error'
+        group: 'support'
+        name: 'Audit reply failure preserves retry'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/TicketScreen.tsx'
+        registration:
+          navigator: 'ProfStack'
+          name: 'Ticket'
+          line: 214
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'Main'
+              state:
+                index: 0
+                routes:
+                  0:
+                    name: 'Profile'
+                    state:
+                      index: 0
+                      routes:
+                        0:
+                          name: 'Ticket'
+                          params:
+                            ticketId: 'a0000000-0000-4000-8000-000000000001'
+        expected: 'Audit support question'
+        flow: 'flows/support-reply-error.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'message-write-error'
+      77:
+        id: 'memory-reader-controls'
+        group: 'memory'
+        name: 'Audit book open and page controls'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/MemoryAlbumScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MemoryAlbum'
+          line: 643
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'MemoryAlbum'
+              params:
+                ownerId: '10000000-0000-4000-8000-000000000001'
+                albumId: 'a0000000-0000-4000-8000-000000000002'
+        expected: 'Edit memory book'
+        flow: 'flows/memory-reader-controls.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      78:
+        id: 'memory-cover-settings'
+        group: 'memory'
+        name: 'Audit independent cover settings entry'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/MemoryAlbumScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MemoryAlbum'
+          line: 643
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'MemoryAlbum'
+              params:
+                ownerId: '10000000-0000-4000-8000-000000000001'
+                albumId: 'a0000000-0000-4000-8000-000000000002'
+        expected: 'Edit memory book'
+        flow: 'flows/memory-cover-settings.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      79:
+        id: 'memory-film-export-entry'
+        group: 'memory'
+        name: 'Audit independent film and export entry'
+        kind: 'control-journey'
+        role: 'personal-member'
+        source: 'src/screens/profile/MemoryAlbumScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MemoryAlbum'
+          line: 643
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'MemoryAlbum'
+              params:
+                ownerId: '10000000-0000-4000-8000-000000000001'
+                albumId: 'a0000000-0000-4000-8000-000000000002'
+        expected: 'Edit memory book'
+        flow: 'flows/memory-film-export-entry.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      80:
+        id: 'memory-capture-session'
+        group: 'memory'
+        name: 'Audit real capture cancel and encode'
+        kind: 'same-session-memory-capture'
+        role: 'personal-member'
+        source: 'src/screens/profile/MemoryAlbumScreen.tsx'
+        registration:
+          navigator: 'RootStack'
+          name: 'MemoryAlbum'
+          line: 643
+        state:
+          index: 0
+          routes:
+            0:
+              name: 'NativeMemoryCaptureFixture'
+        expected: 'Native capture acceptance'
+        flow: 'flows/memory-capture-session.yaml'
+        coverage: 'Only the explicitly asserted entry and listed controls; no all-controls acceptance.'
+        fixtureScenario: 'baseline'
+      81:
+        id: 'auth-empty-signin'
+        name: 'Audit empty sign-in validation'
+        group: 'auth'
+        kind: 'signed-out-control'
+        role: 'signed-out'
+        source: 'src/screens/auth/LoginScreen.tsx'
+        registration:
+          name: 'Login'
+          navigator: 'RootStack'
+          line: 683
+        fixtureScenario: 'signed-out'
+        flow: 'flows/auth-empty-signin.yaml'
+        coverage: 'Signed-out controls only; no external email, recovery or business access success.'
+      82:
+        id: 'auth-forgot-password'
+        name: 'Audit password reset input validation'
+        group: 'auth'
+        kind: 'signed-out-control'
+        role: 'signed-out'
+        source: 'src/screens/auth/LoginScreen.tsx'
+        registration:
+          name: 'Login'
+          navigator: 'RootStack'
+          line: 683
+        fixtureScenario: 'signed-out'
+        flow: 'flows/auth-forgot-password.yaml'
+        coverage: 'Signed-out controls only; no external email, recovery or business access success.'
+      83:
+        id: 'auth-signup-entry'
+        name: 'Audit sign-up form entry'
+        group: 'auth'
+        kind: 'signed-out-control'
+        role: 'signed-out'
+        source: 'src/screens/auth/SignUpScreen.tsx'
+        registration:
+          name: 'SignUp'
+          navigator: 'RootStack'
+          line: 686
+        fixtureScenario: 'signed-out'
+        flow: 'flows/auth-signup-entry.yaml'
+        coverage: 'Signed-out controls only; no external email, recovery or business access success.'
+      84:
+        id: 'auth-business-entry'
+        name: 'Audit business sign-in form entry'
+        group: 'auth'
+        kind: 'signed-out-control'
+        role: 'signed-out'
+        source: 'src/screens/auth/BusinessSignInScreen.tsx'
+        registration:
+          name: 'BusinessSignIn'
+          navigator: 'RootStack'
+          line: 684
+        fixtureScenario: 'signed-out'
+        flow: 'flows/auth-business-entry.yaml'
+        coverage: 'Signed-out controls only; no external email, recovery or business access success.'
+    limits:
+      0: 'Entry smoke is not completion of every control or error state.'
+      1: 'Synthetic transport is not hosted RLS, provider, cross-device Realtime, or physical-device acceptance.'
+      2: 'Unknown synthetic contracts remain 501 and fail the corresponding audit case.'
+      3: 'Each case signs in afresh; this is not persistence acceptance. The separate memory capture journey must retain one session.'
+    baselineSourceCommit: '2f91218e71dbcaf94ea7b454a0e3562800bfe601'
+    binaryBinding: 'Build manifest binds the final frozen CI commit/tree and exact scenario manifest; baseline inventory remains2f.'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-audit-flow-controls.cjs:283:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 1
+# fail 14
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 387.081363

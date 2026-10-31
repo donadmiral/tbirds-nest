@@ -1,0 +1,25 @@
+const fs=require('node:fs');
+const {mock}=require('node:test');
+const {memberSupportHarness}=require('/workspace/scratch/f9638ed3020b/platinum-circles/tests/helpers/memberSupportHarness.cjs');
+(async()=>{
+ const cases=[];
+ for(const kind of ['create','reply']) for(const phase of ['digest','storage:get','storage:set','accepted-cleanup']) {
+  mock.timers.enable({apis:['setTimeout']});
+  const h=memberSupportHarness(kind);
+  try {
+   await h.settle();
+   if(phase==='accepted-cleanup'){
+    h.hold('write');h.prepare('Retained deadline probe');h.send();await h.settle();
+    h.hold('storage:get');h.release('write');await h.settle();
+   }else{
+    h.hold(phase);h.prepare('Retained deadline probe');h.send();await h.settle();
+   }
+   const entered=h.entered(phase==='accepted-cleanup'?'storage:get':phase);
+   mock.timers.tick(60000);await h.settle();
+   cases.push({kind,phase,entered,virtualMillisecondsAdvanced:60000,busy:h.busy(),draft:h.draft(),writes:h.writes().length,committed:h.committed().length,alerts:h.alerts.length,retryIdentities:h.storage.size});
+   h.release(phase==='accepted-cleanup'?'storage:get':phase);await h.settle();
+  }finally{h.dispose();mock.timers.reset();}
+ }
+ fs.writeFileSync('/tmp/platinum-support-unbounded-probe.json',JSON.stringify({scope:'Actual native screens, shared helper, platform wrapper and installed SDK with the existing controlled host; only setTimeout is advanced virtually. No source edits or real provider traffic.',cases},null,2)+'\n');
+ console.log(JSON.stringify(cases));
+})().catch(e=>{console.error(e);process.exitCode=1;});

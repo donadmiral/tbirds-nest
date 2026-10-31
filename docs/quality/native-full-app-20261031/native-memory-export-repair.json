@@ -1,0 +1,234 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-31T18:43:01Z",
+  "status": "Locally verified coordinated repair; native app and encoder execution on this candidate remain required.",
+  "baseline": {
+    "commit": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "run": 41225636296,
+    "androidJob": 124609086715,
+    "artifactId": 13051109884,
+    "zipSha256": "561fc2c24092c98ce327763f87e1bc995b94ab0b82cdf9ca808b614958395eaa",
+    "ownerReceipt": "docs/quality/native-full-app-20261031/android-full-app-2f91218e-review.json",
+    "movieSha256": "244a190b8cec18d8f0aa7ba9e819e0060ce52383bf52dec6ac2127ce4867f971",
+    "gatePassed": false
+  },
+  "independentBroadAudit": {
+    "run": 41229206389,
+    "head": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+    "tree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+    "scope": "Immutable pre-repair build-once baseline; local repaired Support/title flows belong to the next coordinated candidate."
+  },
+  "videoGap": {
+    "observedMaximumSeconds": 0.13333299999999948,
+    "previousFrameSeconds": 6.966667,
+    "nextFrameSeconds": 7.1,
+    "pageBoundarySeconds": 7.1,
+    "sourceTrimSeconds": [
+      0.5,
+      2
+    ],
+    "inputSha256": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2",
+    "mechanism": "The exact 1.8.1 ClippingSampleStream readData method returns permanent EOS at the first out-of-range presentation timestamp in decode order. The real input then contains three still-in-range B-frame packets. Its method reproduction produces 42 rather than 45 in-range video frames.",
+    "droppedSourcePresentationUs": [
+      1900000,
+      1933333,
+      1966667
+    ],
+    "upstreamFix": "https://github.com/androidx/media/commit/9ed7a947790441898d6501370b0cf0b9dff396ef",
+    "clippingEnabled": "https://github.com/androidx/media/commit/63941270815a15186548e8d7b01adc1c02ccefe8",
+    "selectedVersion": "1.11.1",
+    "selectedCommit": "8c6678b657ede1e7883fc164ef73ed483c7796c3",
+    "actualPublishedAarEnablesClipping": true,
+    "methodRegression": {
+      "actualMethods": true,
+      "packetMetadataFromActualInput": true,
+      "clipRanges": 4,
+      "reorderBounds": [
+        2,
+        16
+      ],
+      "expectedFramesRetained": 45,
+      "scope": "Exact upstream methods execute with surrounding stream/format doubles; this does not execute an Android codec."
+    },
+    "newNativeRegression": {
+      "name": "reorderedBFramesSurviveTheTrimEndBeforeTheNextPage",
+      "input": "Exact full-app MP4 copied into instrumentation assets with its hash retained.",
+      "checks": [
+        "Source really contains reordered packets and the three in-range tail packets",
+        "45 encoded video-page frames",
+        "At most 40 ms at the video-to-next-page boundary",
+        "Decoded red/blue late video and green following page",
+        "All existing duration/audio/pixel/cadence/lifecycle gates remain"
+      ],
+      "compiled": true,
+      "executed": false
+    }
+  },
+  "dependencyCompatibility": {
+    "alignment": "Production module, standalone encoders and complete resolved application runtime must all use 1.11.1. Published Media3 constraints align Expo playback too. No Gradle force rule is added.",
+    "expoVideoVersion": "3.0.16",
+    "adaptation": "Android prebuild config plugin changes only getAllocator and shouldContinuePreloading interface signatures by adding PlayerId. The existing method bodies, allocator and decisions are byte-identical.",
+    "originalSha256": "edc43515ed73af65f4ec142684f7e95ee2b9f84475619df7fcfa28a0f0ff3ae1",
+    "adaptedSha256": "f628d5385071a6c2139cd17d9c7adf833dfd27e6eef52958101558b2849deb0d",
+    "guards": [
+      "Exact Expo package version",
+      "Exact original or already-adapted SHA-256",
+      "Each signature occurs exactly once",
+      "Exact resulting SHA-256",
+      "Android-only plugin registration",
+      "Idempotent already-adapted input"
+    ],
+    "localInstalledPackageUnchanged": true,
+    "javaCounterfactual": "The original Expo class fails against the actual 1.11.1 interface with three compile errors; the adapted class compiles.",
+    "nativeEngineCompile": {
+      "compiler": "Kotlin 2.1.20 / JDK 17",
+      "androidApi": 36,
+      "officialMedia3AarVersion": "1.11.1",
+      "productionEngineFiles": 3,
+      "emittedClasses": 32,
+      "exitCode": 0
+    },
+    "completeInstrumentationCompile": {
+      "productionEngineFiles": 3,
+      "instrumentationSuites": 2,
+      "realFixtureProvider": 1,
+      "emittedClasses": 46,
+      "exitCode": 0
+    },
+    "warnings": "Existing deprecated Media3 API usage remains and compiles; the Java-only probe emitted missing optional annotation metadata warnings.",
+    "limits": "These are real Java/Kotlin API compilations using official Android/Media3 artifacts. They do not replace Gradle dependency resolution, complete Expo application compilation, on-device playback or encoding acceptance."
+  },
+  "decoderCorrections": {
+    "orientation": "Validate square pixels, a single exact orthogonal right-angle display matrix, and an actual unscaled FFmpeg PNG decode of 720 by 1280. Reject ambiguity, unsupported angles, scaling, shear, mirroring, translation and mismatched decoded size.",
+    "sourceAudio": "Measure each output channel independently against the mono source fixture. Default stereo-to-mono normalization was inflating the correlated tone measurement.",
+    "unchangedThresholds": {
+      "maxFrameGapStrictlyLessThanSeconds": 0.1,
+      "minimumFramesPerSecond": 27,
+      "sourceToneOutputRangeExclusive": [
+        0.07,
+        0.13
+      ],
+      "scoreRmsMinimumExclusive": 0.001,
+      "toneLeakMaximumExclusive": 0.004
+    },
+    "negativeMeasurementCases": 16,
+    "baselineRecheck": "Geometry and both equivalent audio channels pass; the actual 133.333 ms gap still fails. The original failed movie is not relabeled as accepted.",
+    "measurements": "docs/quality/native-full-app-20261031/native-memory-export-repair/baseline-corrected-measurements.json"
+  },
+  "titleAutomation": {
+    "observedPersisted": "THE LONG WAY HOMEENTURES",
+    "intended": "THE LONG WAY HOME",
+    "sourceSemantics": "Actual controlled TextInput onChangeText state and creative save callback preserve exactly the supplied value. There is no onBlur formatter. Pinned Maestro eraseText sends deletion at the current selection without selecting the full field.",
+    "reproduction": "A controlled mid-string deletion reproduces the exact ENTURES suffix; the failed run did not retain its actual caret, so this is a source-supported harness correction rather than a measured caret-state claim.",
+    "repair": "Use documented semantic longPress/Select All, erase one selected range, enter the intended title, read actual field text via copyTextFrom and require exact equality before Save. Keep the persisted/reopened cover assertion.",
+    "primarySources": [
+      "https://docs.maestro.dev/reference/commands-available/erasetext",
+      "https://github.com/mobile-dev-inc/maestro/tree/c8c361be1cc89b2e742f185466a302a22778be6b"
+    ],
+    "productionTitleComponentChanged": false,
+    "formalTests": 4,
+    "runtimeSelectionAcceptance": "Required in the next audit/full-native run."
+  },
+  "validation": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-media3-compatibility.cjs tests/quality/native-memory-decoder-measurements.cjs tests/quality/native-memory-bframe-clipping.cjs tests/quality/native-memory-title-edit.cjs tests/quality/native-auth-diagnostics.cjs",
+    "formalPass": 26,
+    "formalFail": 0,
+    "skipped": 0,
+    "nestedPythonMeasurementCases": 16,
+    "newFormalCases": 11,
+    "existingDiagnosticProvenanceCases": 15,
+    "scopedLint": true,
+    "shellSyntax": true,
+    "pythonAst": true,
+    "scopedWhitespace": true,
+    "wholeWorktreeWhitespace": "Not claimed; root was notified of unrelated theme-lane CRLF diff findings."
+  },
+  "capabilities": {
+    "productionAndroidMemoryMovieVersion": 0,
+    "productionIosMemoryMovieVersion": 0,
+    "qaOverlayUnchanged": true,
+    "physicalDeviceAcceptance": false,
+    "providerAcceptance": false
+  },
+  "remainingGates": [
+    "Actual complete Android app Gradle graph and compilation with the pinned Expo adaptation",
+    "Actual native B-frame encode/decode regression and all existing encoder cases",
+    "Full UI retry movie decoder including unchanged frame-gap limit",
+    "Semantic title replacement and persisted cover readback on both OSes",
+    "All independent broad audit groups; failed/unvisited features stay unaccepted"
+  ],
+  "sourceManifest": {
+    "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/source-manifest.json",
+    "bytes": 3504,
+    "sha256": "e4bb6c21c2e33853f10454aa15b87103f452e63f35e108abb0bc04a467f9f762"
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/android-platform.json",
+      "bytes": 108,
+      "sha256": "b8ab8711d240b15264755162164bdf5bd3208112eca06a1e3eb44b89893c9ba3"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/baseline-corrected-measurements.json",
+      "bytes": 1651,
+      "sha256": "789bd651aab2be923d96040ec98fccd5c2c45809178950fcfa980b0fe42509dc"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/clipping-enablement-bytecode.txt",
+      "bytes": 441,
+      "sha256": "2d416a5eab3399d7ddb78dc3e49ca76cc917f2c2fe4592076d4afec74c9f516c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/engine-compile.json",
+      "bytes": 3107,
+      "sha256": "9d8ccdf3b507931294cab298b5ca8c68cd7d4d339034d306c00cbf7583882206"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/engine-compile.txt",
+      "bytes": 4130,
+      "sha256": "f891ee0c0b51f25ba06943e3ccbe000818f0519cd76abf309ea576cbe03f4ac9"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/expo-adapted-compile.txt",
+      "bytes": 2443,
+      "sha256": "d110039473bc88d59f5e38b29edcc7ff96dbf979a1968d393945088169bf9f02"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/expo-original-compile.txt",
+      "bytes": 3152,
+      "sha256": "7ec06ba56fa4dd9fbcd699173d8dbb72664820292f1af8d3e84ffbb6a80b76ad"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/focused-tests.tap",
+      "bytes": 6962,
+      "sha256": "82514ae6ad646a8a2aa8db37cdf6472cb5f21e6b3e7b8118e6d26dac3afdc0ca"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/instrumentation-compile.json",
+      "bytes": 4529,
+      "sha256": "d15dfc1c4c573c9e4d13e3ceb3094803e61a3da8ea5c82d64811f02635b6a7a3"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/instrumentation-compile.txt",
+      "bytes": 4130,
+      "sha256": "f891ee0c0b51f25ba06943e3ccbe000818f0519cd76abf309ea576cbe03f4ac9"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/instrumentation-official-artifacts.json",
+      "bytes": 1487,
+      "sha256": "ba00d5e2e336fecef03620eb3d307a565135ad312bef33be38ba0e9197bc322a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/local-compiler-dependencies.json",
+      "bytes": 2688,
+      "sha256": "9f196e0621f0971e979751049bb14f19db0c026c8a9e7fde7d7790529b5407da"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-export-repair/media3-official-artifacts.json",
+      "bytes": 5386,
+      "sha256": "6585b250b4b5ffcdb9949190bbe5d51dd7f39fe061027ce9bc89498387ea7edb"
+    }
+  ]
+}

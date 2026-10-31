@@ -28,7 +28,8 @@ name: Audit appearance control
       platform: Android
     commands:
       - hideKeyboard
-- tapOn: '(?s)^Appearance, (?:Follows your phone|Light|Dim|Lights out)$'
+- tapOn: '^(?:[\uE000-\uF8FF], )?Appearance, (?:Follows your phone|Light|Dim|Lights out)(?:, [\uE000-\uF8FF])?$'
 - tapOn: Lights out
 - assertVisible: Settings
+- assertVisible: '^(?:[\uE000-\uF8FF], )?Appearance, Lights out(?:, [\uE000-\uF8FF])?$'
 - takeScreenshot: settings-appearance

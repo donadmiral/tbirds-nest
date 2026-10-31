@@ -1,0 +1,459 @@
+{
+  "runtime": "153.0.8010.12",
+  "scope": "Actual member web components with synthetic Auth/database/storage/functions and Next routing adapters. No hosted/provider acceptance or real mutations.",
+  "cases": 64,
+  "passed": 64,
+  "failed": 0,
+  "pageErrors": 0,
+  "blockedExternalRequests": 0,
+  "results": [
+    {
+      "name": "hidden words initial normal and successful add",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "hidden words initial resolved and successful add",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 1
+    },
+    {
+      "name": "hidden words initial rejected and successful add",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 1
+    },
+    {
+      "name": "hidden words mutation resolved preserves draft and retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 2
+    },
+    {
+      "name": "hidden words mutation rejected preserves draft and retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 2
+    },
+    {
+      "name": "muted words initial normal and successful add",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "muted words initial resolved and successful add",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 1
+    },
+    {
+      "name": "muted words initial rejected and successful add",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 1
+    },
+    {
+      "name": "muted words mutation resolved preserves draft and retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 2
+    },
+    {
+      "name": "muted words mutation rejected preserves draft and retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 2
+    },
+    {
+      "name": "standing normal with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 0
+    },
+    {
+      "name": "standing resolved with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 0
+    },
+    {
+      "name": "standing rejected with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 0
+    },
+    {
+      "name": "Explore normal with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 3,
+      "writeCount": 0
+    },
+    {
+      "name": "Explore resolved with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 4,
+      "writeCount": 0
+    },
+    {
+      "name": "Explore rejected with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 4,
+      "writeCount": 0
+    },
+    {
+      "name": "topic normal with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 3,
+      "writeCount": 0
+    },
+    {
+      "name": "topic resolved with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 3,
+      "writeCount": 0
+    },
+    {
+      "name": "topic rejected with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 3,
+      "writeCount": 0
+    },
+    {
+      "name": "Search topics normal with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Search topics resolved with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Search topics rejected with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "featured channels normal with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "featured channels resolved with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "featured channels rejected with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Discover topics normal with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Discover topics resolved with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Discover topics rejected with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Market availability normal with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Market availability resolved with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Market availability rejected with retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Market inbox count normal and next-poll recovery",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Market inbox count resolved and next-poll recovery",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Market inbox count rejected and next-poll recovery",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Listing storage:market-media normal then successful submit",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Listing storage:market-media resolved then successful submit",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Listing storage:market-media rejected then successful submit",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Listing table:marketplace_listings:insert normal then successful submit",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Listing table:marketplace_listings:insert resolved then successful submit",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Listing table:marketplace_listings:insert rejected then successful submit",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Business creation normal then successful retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Business creation resolved then successful retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Business creation rejected then successful retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 0,
+      "writeCount": 0
+    },
+    {
+      "name": "Promotion picker normal and content retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 0
+    },
+    {
+      "name": "Promotion picker resolved and content retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 0
+    },
+    {
+      "name": "Promotion picker rejected and content retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 0
+    },
+    {
+      "name": "Profile cover pointer path at 390",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 0
+    },
+    {
+      "name": "Profile cover pointer path at 1440",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 0
+    },
+    {
+      "name": "Word write deadline: hidden held update aborts, reconciles, then permits a deliberate retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 2
+    },
+    {
+      "name": "Word write deadline: hidden committed update with lost acknowledgement is read back without replay",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: muted held update aborts, reconciles, then permits a deliberate retry",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 2
+    },
+    {
+      "name": "Word write deadline: muted committed update with lost acknowledgement is read back without replay",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: failed reconciliation resolved keeps editing unavailable until an explicit read succeeds",
+      "status": "PASS",
+      "error": null,
+      "readCount": 3,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: failed reconciliation rejected keeps editing unavailable until an explicit read succeeds",
+      "status": "PASS",
+      "error": null,
+      "readCount": 3,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: failed reconciliation held keeps editing unavailable until an explicit read succeeds",
+      "status": "PASS",
+      "error": null,
+      "readCount": 3,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: held pre-dispatch session lookup has its own deadline and sends no write",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: pre-dispatch unmount invalidates the queued intent",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 0
+    },
+    {
+      "name": "Word write deadline: pre-dispatch account invalidates the queued intent",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 0
+    },
+    {
+      "name": "Word write deadline: pre-dispatch ABA invalidates the queued intent",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 0
+    },
+    {
+      "name": "Word write deadline: pre-dispatch replacement invalidates the queued intent",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 0
+    },
+    {
+      "name": "Word write deadline: dispatched unmount aborts and ignores a late acknowledgement",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: dispatched ABA aborts and ignores a late acknowledgement",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: dispatched replacement aborts and ignores a late acknowledgement",
+      "status": "PASS",
+      "error": null,
+      "readCount": 1,
+      "writeCount": 1
+    },
+    {
+      "name": "Word write deadline: account ABA during reconciliation cannot republish the old list",
+      "status": "PASS",
+      "error": null,
+      "readCount": 2,
+      "writeCount": 1
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "typescript": {
+    "exitCode": 0,
+    "command": "./node_modules/.bin/tsc --noEmit --incremental false",
+    "log": {
+      "path": "docs/quality/full-platform-audit-20261031/native-theme-repair/typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "lint": {
+    "files": 45,
+    "beforeErrors": 0,
+    "beforeWarnings": 55,
+    "afterErrors": 0,
+    "afterWarnings": 55,
+    "newMessages": [],
+    "testMessages": []
+  },
+  "whitespace": {
+    "exitCode": 0,
+    "scope": "All47 frozen source/test/data paths"
+  },
+  "frozenInputsBeforeAfter": {
+    "count": 47,
+    "unchanged": true
+  },
+  "lineEndings": {
+    "reason": "Existing files contained mixed CRLF/LF. Only these four touched files were normalized to LF so new lines pass git diff --check. No action semantics changed.",
+    "files": [
+      {
+        "path": "src/screens/messages/CallLogScreen.tsx",
+        "baselineCRLF": 250,
+        "baselineNewlines": 251
+      },
+      {
+        "path": "src/screens/messages/ContextInboxScreen.tsx",
+        "baselineCRLF": 234,
+        "baselineNewlines": 236
+      },
+      {
+        "path": "src/screens/messages/MessageRequestsScreen.tsx",
+        "baselineCRLF": 309,
+        "baselineNewlines": 311
+      },
+      {
+        "path": "src/screens/messages/StarredMessagesScreen.tsx",
+        "baselineCRLF": 263,
+        "baselineNewlines": 275
+      }
+    ]
+  }
+}

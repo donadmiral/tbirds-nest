@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const { createHash } = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const YAML = require('yaml');
 const { StackRouter, TabRouter } = require('@react-navigation/routers');
@@ -71,13 +72,66 @@ for (const [id, mode, table, field] of [
   assert(result.error); assert.equal(result.status, 503); assert.equal(result.data, null);
 });
 
-test('successful reply and failed reopen remain separate SDK outcomes', async () => {
+test('actual RPC rolls back both reply and reopen when the status write fails', async () => {
   const { sdk, fixture } = await signed('support-reopen-error', 'status-write-error');
-  const reply = await sdk.from('support_messages').insert({ ticket_id: TICKET, sender: 'member', sender_id: owner, body: 'Synthetic reply' });
-  const update = await sdk.from('support_tickets').update({ status: 'open', updated_at: '2026-10-31T00:00:00Z' }).eq('id', TICKET);
-  assert.equal(reply.error, null); assert(update.error); assert.equal(update.status, 503);
+  const reply = await sdk.rpc('send_member_support_reply', { p_expected_user: owner, p_ticket_id: TICKET,
+    p_request_id: 'b0000000-0000-4000-8000-000000000001', p_body: 'Synthetic reply' });
+  assert(reply.error); assert.equal(reply.status, 503);
+  const ticket = await sdk.from('support_tickets').select('*').eq('id', TICKET).maybeSingle();
+  const history = await sdk.from('support_messages').select('*').eq('ticket_id', TICKET);
+  assert.equal(ticket.data.status, 'solved'); assert.deepEqual(history.data, []);
+  assert.deepEqual(fixture.receipt.audit.mutations, []);
+  assert.deepEqual(fixture.receipt.audit.state.messageIds, []);
+});
+
+test('actual RPC returns one exact replayable receipt and rejects a reused key with different content', async () => {
+  const { sdk, fixture } = await signed('support-ticket', 'baseline');
+  const input = { p_expected_user: owner, p_ticket_id: TICKET, p_request_id: 'b0000000-0000-4000-8000-000000000002', p_body: '  Synthetic reply  ' };
+  const first = await sdk.rpc('send_member_support_reply', input);
+  const replay = await sdk.rpc('send_member_support_reply', input);
+  assert.equal(first.error, null); assert.equal(first.data.replayed, false);
+  assert.equal(first.data.body, 'Synthetic reply'); assert.equal(first.data.ticket_status, 'open');
+  assert.deepEqual(replay.data, { ...first.data, replayed: true });
   assert.equal(fixture.receipt.audit.mutations.length, 1);
-  assert.equal(fixture.receipt.audit.mutations[0].table, 'support_messages');
+  assert.deepEqual(fixture.receipt.audit.state.messageIds, [input.p_request_id]);
+  const conflict = await sdk.rpc('send_member_support_reply', { ...input, p_body: 'Different message' });
+  assert.equal(conflict.error.code, '22023'); assert.equal(conflict.error.message, 'SUPPORT_REQUEST_CONFLICT');
+  assert.equal(fixture.receipt.audit.mutations.length, 1);
+});
+
+test('actual SDK creates and reads back a ticket by the supplied UUID without inventing history', async () => {
+  const { sdk, fixture } = await signed('support-fresh-ticket-body', 'baseline');
+  const input = { id: 'c0000000-0000-4000-8000-000000000001', user_id: owner, kind: 'support', subject: 'Fresh audit ticket', body: 'Original fresh question' };
+  const created = await sdk.from('support_tickets').insert(input).select('*').single();
+  assert.equal(created.error, null); assert.equal(created.data.id, input.id); assert.equal(created.data.body, input.body);
+  const again = await sdk.from('support_tickets').insert(input).select('*').single();
+  assert.equal(again.error.code, '23505');
+  const readback = await sdk.from('support_tickets').select('*').eq('id', input.id).eq('user_id', owner).maybeSingle();
+  assert.deepEqual(readback.data, created.data);
+  const list = await sdk.from('support_tickets').select('*').eq('user_id', owner).order('created_at', { ascending: false }).limit(10);
+  assert.equal(list.data.length, 2); assert.equal(list.data[0].id, input.id);
+  assert.deepEqual((await sdk.from('support_messages').select('*').eq('ticket_id', input.id)).data, []);
+  assert.equal(fixture.receipt.audit.mutations.length, 1);
+});
+
+test('actual RPC rejects wrong owner, missing ticket, malformed identifiers and unsupported arguments', async () => {
+  const { sdk, fixture } = await signed('support-ticket', 'baseline');
+  const input = { p_expected_user: owner, p_ticket_id: TICKET, p_request_id: 'b0000000-0000-4000-8000-000000000003', p_body: 'Synthetic reply' };
+  assert.equal((await sdk.rpc('send_member_support_reply', { ...input, p_expected_user: '10000000-0000-4000-8000-000000000002' })).error.message, 'SUPPORT_ACCOUNT_CHANGED');
+  assert.equal((await sdk.rpc('send_member_support_reply', { ...input, p_ticket_id: 'a0000000-0000-4000-8000-000000000099' })).error.message, 'SUPPORT_TICKET_UNAVAILABLE');
+  assert.equal((await sdk.rpc('send_member_support_reply', { ...input, p_request_id: '------------------------------------' })).error.code, '22023');
+  assert.equal((await sdk.rpc('send_member_support_reply', { ...input, p_body: '  ' })).error.code, '22023');
+  assert.equal((await sdk.rpc('send_member_support_reply', { ...input, unexpected: true })).status, 501);
+  assert.deepEqual(fixture.receipt.audit.mutations, []);
+});
+
+test('legacy direct reply insertion also rolls back under the actual trigger failure contract', async () => {
+  const { sdk, fixture } = await signed('support-reopen-error', 'status-write-error');
+  const reply = await sdk.from('support_messages').insert({ ticket_id: TICKET, sender: 'member', sender_id: owner, body: 'Legacy reply' });
+  assert.equal(reply.status, 503);
+  assert.deepEqual(fixture.receipt.audit.state.messageIds, []);
+  assert.equal(fixture.receipt.audit.state.tickets[0].status, 'solved');
+  assert.deepEqual(fixture.receipt.audit.mutations, []);
 });
 
 test('missing ticket remains null and no positive fallback record is created', async () => {
@@ -165,7 +219,7 @@ unittest.main()
 test('disposable preparation retains exact anchors and rejects a second overlay before native build', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pc-audit-prepare-'));
   try {
-    for (const file of ['scripts/quality/prepare-native-ui-audit.cjs', 'scripts/quality/native-ui-audit-runner.py', 'scripts/quality/native-ui-audit-binary.py', 'tests/native/audit/manifest.json', 'tests/native/entry.js', 'src/navigation/AppNavigator.tsx']) {
+    for (const file of ['scripts/quality/prepare-native-ui-audit.cjs', 'scripts/quality/native-ui-audit-runner.py', 'scripts/quality/native-ui-audit-binary.py', 'scripts/quality/native-ui-ios-compatibility.py', 'tests/native/audit/manifest.json', 'tests/native/entry.js', 'src/navigation/AppNavigator.tsx']) {
       fs.mkdirSync(path.dirname(path.join(directory, file)), { recursive: true }); fs.copyFileSync(file, path.join(directory, file));
     }
     fs.mkdirSync(path.join(directory, 'native-ui-logs/overlays'), { recursive: true });
@@ -173,7 +227,8 @@ test('disposable preparation retains exact anchors and rejects a second overlay 
     const env = { ...process.env, CI: 'true', EXPO_PUBLIC_APP_ENV: 'qa', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'native-ui-synthetic-no-provider-key', GITHUB_SHA: 'a'.repeat(40) };
     const run = () => spawnSync(process.execPath, ['scripts/quality/prepare-native-ui-audit.cjs'], { cwd: directory, env, encoding: 'utf8' });
     assert.equal(run().status, 0); const source = JSON.parse(fs.readFileSync(path.join(directory, 'native-ui-logs/source.json')));
-    assert.equal(source.audit.overlays.length, 3); assert.equal(Object.keys(source.audit.inputs).length, 4);
+    assert.equal(source.audit.overlays.length, 3); assert.equal(Object.keys(source.audit.inputs).length, 5);
+    assert.equal(source.audit.inputs['scripts/quality/native-ui-ios-compatibility.py'], createHash('sha256').update(fs.readFileSync(path.join(directory, 'scripts/quality/native-ui-ios-compatibility.py'))).digest('hex'));
     assert.equal(source.audit.applicationSourceCommit, 'a'.repeat(40)); assert.notEqual(run().status, 0);
     const entry = fs.readFileSync(path.join(directory, 'tests/native/entry.js'), 'utf8');
     assert(entry.indexOf("require('@daily-co/react-native-daily-js')") < entry.indexOf("require('../../App')"));

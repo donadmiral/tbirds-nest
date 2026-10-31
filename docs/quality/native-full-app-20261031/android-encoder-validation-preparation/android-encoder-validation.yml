@@ -1,0 +1,100 @@
+name: Pinned Android encoder validation
+
+on:
+  push:
+    branches: ['codex/android-encoder-validation-20261031']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pinned-android-encoder-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  android-story-export:
+    name: Verify encoded story audio and memory movies on Android Emulator
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - name: Read source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          ref: c20cc9e55657291d7c7c964cd4a5f622d051e24f
+      - name: Bind the pinned encoder source and workflow provenance
+        env:
+          ENCODER_SOURCE_COMMIT: c20cc9e55657291d7c7c964cd4a5f622d051e24f
+          ENCODER_SOURCE_TREE: cde37bb9b55c73d5f2afd45a9be4b76fc89b1170
+          ENCODER_WORKFLOW_SHA: ${{ github.workflow_sha }}
+          ENCODER_WORKFLOW_REF: ${{ github.workflow_ref }}
+        run: |
+          python3 - <<'PYPROOF'
+          from pathlib import Path
+          import hashlib, json, os, re, subprocess
+          git = lambda *args: subprocess.check_output(['git', *args], text=True).strip()
+          source = git('rev-parse', 'HEAD')
+          tree = git('rev-parse', 'HEAD^{tree}')
+          if source != os.environ['ENCODER_SOURCE_COMMIT'] or tree != os.environ['ENCODER_SOURCE_TREE']:
+              raise SystemExit('The checkout does not match the reviewed encoder checkpoint.')
+          selected = ['package.json', 'package-lock.json', '.github/workflows/android-native-compile.yml',
+                      'scripts/quality/test-android-story-audio.sh', 'scripts/quality/android-media-dependencies.init.gradle',
+                      'scripts/quality/android-story-export', 'tests/native/assets/memory-capture-video.mp4',
+                      'modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt',
+                      'modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt',
+                      'modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt']
+          names = subprocess.check_output(['git', 'ls-files', '-z', '--', *selected]).decode().split('\0')
+          inputs = {name: hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in names if name}
+          suites = Path('scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang')
+          counts = {name: len(re.findall(r'@Test\s+fun\s+(\w+)\s*\(', (suites / (name + '.kt')).read_text()))
+                    for name in ('StoryAudioExportTest', 'MemoryMovieExportTest')}
+          if counts != {'StoryAudioExportTest': 23, 'MemoryMovieExportTest': 17}:
+              raise SystemExit('The reviewed 23 + 17 instrumentation cases are required.')
+          evidence = Path('android-story-export-logs')
+          evidence.mkdir(exist_ok=True)
+          (evidence / 'workflow-provenance.json').write_text(json.dumps({
+              'schemaVersion': 1, 'sourceCommit': source, 'sourceTree': tree,
+              'triggerCommit': os.environ['GITHUB_SHA'],
+              'workflowCommit': os.environ['ENCODER_WORKFLOW_SHA'], 'workflowRef': os.environ['ENCODER_WORKFLOW_REF'],
+              'workflowRun': os.environ['GITHUB_RUN_ID'], 'runAttempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'instrumentationCaseCounts': counts, 'inputSha256': inputs,
+              'encoderReceiptCommitMeaning': 'The unchanged script receipt.commit is GITHUB_SHA (trigger commit). Source identity is the separately checked sourceCommit/sourceTree here.',
+              'scope': 'Pinned production encoder sources in the existing standalone instrumentation app; no full Expo app or release build.'
+          }, indent=2) + '\n')
+          PYPROOF
+      - name: Set Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Use the runner's Java 17 toolchain
+        run: |
+          test -n "$JAVA_HOME_17_X64"
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-fund
+      - name: Install the emulator host audio library
+        # The emulator binary links libpulse even when its audio output is disabled.
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0
+      - name: Allow this disposable runner to use KVM
+        run: |
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - name: Exercise the actual story and memory encoders in an isolated emulator
+        run: bash scripts/quality/test-android-story-audio.sh
+      - name: Keep encoded media and instrumentation diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-story-audio-export
+          path: android-story-export-logs/
+          if-no-files-found: ignore
+          retention-days: 7
+

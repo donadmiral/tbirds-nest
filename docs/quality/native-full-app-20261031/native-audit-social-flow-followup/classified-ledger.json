@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "sourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "recoveryRunId": 41231522956,
+  "rows": [
+    {
+      "id": "feed-post",
+      "observed": "Comments readiness failed; retained hierarchy instead shows a load error and Retry.",
+      "fixtureIssue": "Original audit fixture did not implement can_view_post.",
+      "uiFollowup": "No additional selector/setup defect established. The valid production branch renders Comments; flow unchanged.",
+      "remaining": "The now-reachable CommentsPanel also calls can_comment; the strict fixture owner is handling that contract. No repaired native pass is claimed."
+    },
+    {
+      "id": "feed-trendfeed",
+      "observed": "Memories readiness failed although the retained hierarchy contains #memories and a topic-read error.",
+      "fixtureIssue": "Original audit fixture did not implement get_posts_by_hashtag.",
+      "uiFollowup": "Use the actual normalized #memories header, then require the resolved No posts found result and its exact description. A fixture error cannot pass this new result check.",
+      "remaining": "The empty result reflects the strict synthetic fixture, not a hosted provider acceptance."
+    },
+    {
+      "id": "feed-search-controls",
+      "observed": "Jordan Ellis readiness failed; hierarchy contains the search controls and people-read error with Retry.",
+      "fixtureIssue": "Original fixture lacked search_people, search_posts, search_jobs_fts, search_listings_fts and log_search_event.",
+      "uiFollowup": "No additional UI selector/setup defect established. Actual renderPerson uses the full name; the repaired strict fixture supplies Jordan Ellis for the query. Flow unchanged.",
+      "remaining": "Actual repaired native search/control acceptance is pending."
+    },
+    {
+      "id": "notifications-empty-controls",
+      "observed": "Nothing yet failed on an activity-read error. The later Mark all read tap was never reached.",
+      "fixtureIssue": "Original audit fixture lacked get_notifications_page.",
+      "uiFollowup": "For the valid empty fixture, require Nothing yet and assert the unread-only Mark all read control is absent. Rename coverage to empty activity only.",
+      "remaining": "Positive Mark all read behavior remains untested; no positive action acceptance is claimed."
+    }
+  ],
+  "originalObservedOutcomesUnchanged": true
+}

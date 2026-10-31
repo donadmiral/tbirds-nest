@@ -18,6 +18,6 @@ name: Audit support missing-ticket
 - tapOn:
     id: native-audit-open-case
 - extendedWaitUntil:
-    visible: "(?i).*(not found|unavailable|could not load).*"
+    visible: "This ticket is not available to this account."
     timeout: 15000
 - takeScreenshot: support-missing-ticket

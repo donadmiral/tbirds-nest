@@ -1,0 +1,81 @@
+{
+  "sourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "recoveryRunId": 41231522956,
+  "cases": [
+    {
+      "id": "feed-post",
+      "failure": "Assertion is false: \"Comments\" is visible",
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Comments",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "timestamp": 1793473192203,
+      "duration": 15309,
+      "originalCommandsSha256": "6ea87c347476edeff5df5424fa220ea0e4b7b0c66688dc0577ddfef94ef4936d"
+    },
+    {
+      "id": "feed-trendfeed",
+      "failure": "Assertion is false: \"Memories\" is visible",
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Memories",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "timestamp": 1793473242629,
+      "duration": 15143,
+      "originalCommandsSha256": "cf040666925aeb117572fa6c665c24f026a8e8d9a7dfe831fa784b339ca140e6"
+    },
+    {
+      "id": "feed-search-controls",
+      "failure": "Assertion is false: \"(?s).*Jordan Ellis.*\" is visible",
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "(?s).*Jordan Ellis.*",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "timestamp": 1793473918814,
+      "duration": 15225,
+      "originalCommandsSha256": "b8738c08349f2dd5216ebddb2837615c1e68ec71d21360b3030d5c19d32492ec"
+    },
+    {
+      "id": "notifications-empty-controls",
+      "failure": "Assertion is false: \"Nothing yet\" is visible",
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Nothing yet",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "timestamp": 1793473971004,
+      "duration": 17169,
+      "originalCommandsSha256": "b1d38cbb0ad685fee876ca07de26d51e85a90117998cc78b79f3e7f6ff1d1e4d"
+    }
+  ]
+}

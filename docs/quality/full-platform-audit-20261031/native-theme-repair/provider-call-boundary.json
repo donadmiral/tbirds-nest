@@ -1,0 +1,320 @@
+{
+  "scope": "Lexical AST comparison of Supabase, LocalAuthentication and navigation/nav calls in the45 production files. Not a whole-program behavior proof.",
+  "rows": [
+    {
+      "file": "src/components/AppLockGate.tsx",
+      "calls": 1,
+      "equal": true,
+      "beforeSha256": "0a3bb124b6c40bf60e2d34d3f2789e2f1ed55f252924d14f27a005d1e84406c1",
+      "afterSha256": "0a3bb124b6c40bf60e2d34d3f2789e2f1ed55f252924d14f27a005d1e84406c1"
+    },
+    {
+      "file": "src/components/BusinessTabs.tsx",
+      "calls": 6,
+      "equal": true,
+      "beforeSha256": "05cfcd2f0208b67f770383caf7fa47bf8be20a93cfe0da049ca55474f5bdf1e6",
+      "afterSha256": "05cfcd2f0208b67f770383caf7fa47bf8be20a93cfe0da049ca55474f5bdf1e6"
+    },
+    {
+      "file": "src/components/ChannelSettingsSheet.tsx",
+      "calls": 8,
+      "equal": true,
+      "beforeSha256": "cc569f595c06975aa9cd9adc0c22537b8f0898fec5fcfcf55c92f92abed398ef",
+      "afterSha256": "cc569f595c06975aa9cd9adc0c22537b8f0898fec5fcfcf55c92f92abed398ef"
+    },
+    {
+      "file": "src/components/ChatImageEditor.tsx",
+      "calls": 0,
+      "equal": true,
+      "beforeSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "afterSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "file": "src/components/CreatorCommercePanel.tsx",
+      "calls": 0,
+      "equal": true,
+      "beforeSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "afterSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "file": "src/components/LinkAttachSheet.tsx",
+      "calls": 0,
+      "equal": true,
+      "beforeSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "afterSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "file": "src/components/MediaRenderer.tsx",
+      "calls": 4,
+      "equal": true,
+      "beforeSha256": "ea20a226fb3f11ed6c9f879ac639a93b71072bd1426603c5a17a238b46917981",
+      "afterSha256": "ea20a226fb3f11ed6c9f879ac639a93b71072bd1426603c5a17a238b46917981"
+    },
+    {
+      "file": "src/components/PostCarousel.tsx",
+      "calls": 5,
+      "equal": true,
+      "beforeSha256": "9c1a9f70bedfbd71d889304cb2c109b4266946c0f56ea3f6eb95a4dda67e65fb",
+      "afterSha256": "9c1a9f70bedfbd71d889304cb2c109b4266946c0f56ea3f6eb95a4dda67e65fb"
+    },
+    {
+      "file": "src/components/TrendingTopicsStrip.tsx",
+      "calls": 3,
+      "equal": true,
+      "beforeSha256": "ef76088db1ffe25e92159f616e3554bdbb05ea94b5e01e5ea14a46cf1a144899",
+      "afterSha256": "ef76088db1ffe25e92159f616e3554bdbb05ea94b5e01e5ea14a46cf1a144899"
+    },
+    {
+      "file": "src/components/feed/DiscoverTile.tsx",
+      "calls": 0,
+      "equal": true,
+      "beforeSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "afterSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "file": "src/components/messages/CounterOfferDialog.tsx",
+      "calls": 6,
+      "equal": true,
+      "beforeSha256": "cf6d98b7ee1c2752f1577812ff69e1485b181d858688d8bfe4438cecd1e5f6b7",
+      "afterSha256": "cf6d98b7ee1c2752f1577812ff69e1485b181d858688d8bfe4438cecd1e5f6b7"
+    },
+    {
+      "file": "src/screens/auth/LoginScreen.tsx",
+      "calls": 1,
+      "equal": true,
+      "beforeSha256": "b1c80a8fa2fdaa2d58e5b1c8ef29aa4835d6c32749aaf411775a3e3f5bfb59a0",
+      "afterSha256": "b1c80a8fa2fdaa2d58e5b1c8ef29aa4835d6c32749aaf411775a3e3f5bfb59a0"
+    },
+    {
+      "file": "src/screens/auth/SetupProfileScreen.tsx",
+      "calls": 1,
+      "equal": true,
+      "beforeSha256": "9ccc66e1b737c4548fcb0a532f49011997c5fa16345dcd68595569975689316d",
+      "afterSha256": "9ccc66e1b737c4548fcb0a532f49011997c5fa16345dcd68595569975689316d"
+    },
+    {
+      "file": "src/screens/auth/SignUpScreen.tsx",
+      "calls": 2,
+      "equal": true,
+      "beforeSha256": "ac769c32ac53c31633af04a996f2e9eefc036cc331d3d9db0b60c2b5f22fdaeb",
+      "afterSha256": "ac769c32ac53c31633af04a996f2e9eefc036cc331d3d9db0b60c2b5f22fdaeb"
+    },
+    {
+      "file": "src/screens/channels/ChannelScreen.tsx",
+      "calls": 17,
+      "equal": true,
+      "beforeSha256": "c8390285e519aebbe5c4686da097511c61fd0452db2e51ba83883d116481ebd4",
+      "afterSha256": "c8390285e519aebbe5c4686da097511c61fd0452db2e51ba83883d116481ebd4"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "calls": 9,
+      "equal": true,
+      "beforeSha256": "64bec3fd77f4e9af946b56490057bc8a33d238624eae28e188dbde42884b9f14",
+      "afterSha256": "64bec3fd77f4e9af946b56490057bc8a33d238624eae28e188dbde42884b9f14"
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "calls": 55,
+      "equal": true,
+      "beforeSha256": "514d1661b4df6f98649d3b5985266207ffc7412821986af7caed7ddce812f690",
+      "afterSha256": "514d1661b4df6f98649d3b5985266207ffc7412821986af7caed7ddce812f690"
+    },
+    {
+      "file": "src/screens/feed/ArticleComposeScreen.tsx",
+      "calls": 6,
+      "equal": true,
+      "beforeSha256": "f6bdc4076122367194defe32cb960d0ee466ff8b7db96ab847013ce0cd12b4c0",
+      "afterSha256": "f6bdc4076122367194defe32cb960d0ee466ff8b7db96ab847013ce0cd12b4c0"
+    },
+    {
+      "file": "src/screens/feed/TrendFeedScreen.tsx",
+      "calls": 12,
+      "equal": true,
+      "beforeSha256": "03b03f3a0bd89c0d6c9a6db6353535d57ae51660172bc88eb1ba93648455602d",
+      "afterSha256": "03b03f3a0bd89c0d6c9a6db6353535d57ae51660172bc88eb1ba93648455602d"
+    },
+    {
+      "file": "src/screens/jobs/ApplicantsScreen.tsx",
+      "calls": 8,
+      "equal": true,
+      "beforeSha256": "44768ee11e2c28945bb46a3ba83e1ac29c745d3bc47f499e25c1632031f0c8b6",
+      "afterSha256": "44768ee11e2c28945bb46a3ba83e1ac29c745d3bc47f499e25c1632031f0c8b6"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "calls": 3,
+      "equal": true,
+      "beforeSha256": "b043d13b0a5de0cc339a61a77768d6a7438a49fd4c3b0f066ab4cabd7b3f19c0",
+      "afterSha256": "b043d13b0a5de0cc339a61a77768d6a7438a49fd4c3b0f066ab4cabd7b3f19c0"
+    },
+    {
+      "file": "src/screens/messages/CallLogScreen.tsx",
+      "calls": 2,
+      "equal": true,
+      "beforeSha256": "6b88b226fab0d5aeb62e9fbddc506af417b6040a89bb8c04852b529a0c74a03b",
+      "afterSha256": "6b88b226fab0d5aeb62e9fbddc506af417b6040a89bb8c04852b529a0c74a03b"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "calls": 17,
+      "equal": true,
+      "beforeSha256": "1f63fdc50d75f3141dc555ead1665cd67d0bfb011587a672b9345f6865a36d0d",
+      "afterSha256": "1f63fdc50d75f3141dc555ead1665cd67d0bfb011587a672b9345f6865a36d0d"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "calls": 272,
+      "equal": true,
+      "beforeSha256": "37f1cbc48b68949e08f883cfbc6666200acac181ef8df6feff67508df3a3febd",
+      "afterSha256": "37f1cbc48b68949e08f883cfbc6666200acac181ef8df6feff67508df3a3febd"
+    },
+    {
+      "file": "src/screens/messages/ContextInboxScreen.tsx",
+      "calls": 3,
+      "equal": true,
+      "beforeSha256": "f969c5fa8161df34e65b4875d874b9885f1e0635d2b65011c50c05af860aba1f",
+      "afterSha256": "f969c5fa8161df34e65b4875d874b9885f1e0635d2b65011c50c05af860aba1f"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "calls": 21,
+      "equal": true,
+      "beforeSha256": "3e3b19553b043f41811910eeb32e41aefdea683ba093c5fcd754f0817ab5d5e2",
+      "afterSha256": "3e3b19553b043f41811910eeb32e41aefdea683ba093c5fcd754f0817ab5d5e2"
+    },
+    {
+      "file": "src/screens/messages/MessageRequestsScreen.tsx",
+      "calls": 5,
+      "equal": true,
+      "beforeSha256": "aea04a9d4ea52ce7bebc9217367fbd1eca77ed1d561c0d4679ff870751fc662e",
+      "afterSha256": "aea04a9d4ea52ce7bebc9217367fbd1eca77ed1d561c0d4679ff870751fc662e"
+    },
+    {
+      "file": "src/screens/messages/SavedMessagesScreen.tsx",
+      "calls": 5,
+      "equal": true,
+      "beforeSha256": "b279212166e89e5bf6ffbc3215f6446f902439055a3ce83099d16afcf27e9493",
+      "afterSha256": "b279212166e89e5bf6ffbc3215f6446f902439055a3ce83099d16afcf27e9493"
+    },
+    {
+      "file": "src/screens/messages/StarredMessagesScreen.tsx",
+      "calls": 6,
+      "equal": true,
+      "beforeSha256": "6cd79ae65400c8bc9bb97548e0b53e427b6d99af533ae5ecd2332f486a5dd8b8",
+      "afterSha256": "6cd79ae65400c8bc9bb97548e0b53e427b6d99af533ae5ecd2332f486a5dd8b8"
+    },
+    {
+      "file": "src/screens/profile/AboutScreen.tsx",
+      "calls": 1,
+      "equal": true,
+      "beforeSha256": "84a6c9ddc8ab35657e0e28bf5526b98dda87463dd964fd60b3553bcc4c134c5b",
+      "afterSha256": "84a6c9ddc8ab35657e0e28bf5526b98dda87463dd964fd60b3553bcc4c134c5b"
+    },
+    {
+      "file": "src/screens/profile/ApplyVerificationScreen.tsx",
+      "calls": 12,
+      "equal": true,
+      "beforeSha256": "ae168753fb6c19c40b5762470bab2b687bfa94b0132499d6049c5b1719db3284",
+      "afterSha256": "ae168753fb6c19c40b5762470bab2b687bfa94b0132499d6049c5b1719db3284"
+    },
+    {
+      "file": "src/screens/profile/BusinessAccessScreen.tsx",
+      "calls": 10,
+      "equal": true,
+      "beforeSha256": "89bc84d3ace34d04b2521cc99995fd9d73ff032d75beba113e521816c8460c19",
+      "afterSha256": "89bc84d3ace34d04b2521cc99995fd9d73ff032d75beba113e521816c8460c19"
+    },
+    {
+      "file": "src/screens/profile/BusinessApplyScreen.tsx",
+      "calls": 11,
+      "equal": true,
+      "beforeSha256": "32664e51f0662e3ff7ec84e8c71076e8ce0fdb990aae814940c27e0e36caf347",
+      "afterSha256": "32664e51f0662e3ff7ec84e8c71076e8ce0fdb990aae814940c27e0e36caf347"
+    },
+    {
+      "file": "src/screens/profile/BusinessInboxScreen.tsx",
+      "calls": 3,
+      "equal": true,
+      "beforeSha256": "a10cb1985bdf959c31c4dc990b516f04514d2fe99b72fde1c372c2af4c959b7c",
+      "afterSha256": "a10cb1985bdf959c31c4dc990b516f04514d2fe99b72fde1c372c2af4c959b7c"
+    },
+    {
+      "file": "src/screens/profile/BusinessManageScreen.tsx",
+      "calls": 15,
+      "equal": true,
+      "beforeSha256": "b95fc99a8f4afe08b2ad1e6547a5bb78b33bdd9af3b36884cc04ec85cc67ee3b",
+      "afterSha256": "b95fc99a8f4afe08b2ad1e6547a5bb78b33bdd9af3b36884cc04ec85cc67ee3b"
+    },
+    {
+      "file": "src/screens/profile/BusinessesScreen.tsx",
+      "calls": 5,
+      "equal": true,
+      "beforeSha256": "07920f3267b09e3a8cf9ec8ab558af5c83ec7f15e862700450f1a3424d1244b1",
+      "afterSha256": "07920f3267b09e3a8cf9ec8ab558af5c83ec7f15e862700450f1a3424d1244b1"
+    },
+    {
+      "file": "src/screens/profile/CampaignsScreen.tsx",
+      "calls": 18,
+      "equal": true,
+      "beforeSha256": "9afeab5b8677bf76b1151c28d995a1f6873acd3fa541717d67750f260c5d900e",
+      "afterSha256": "9afeab5b8677bf76b1151c28d995a1f6873acd3fa541717d67750f260c5d900e"
+    },
+    {
+      "file": "src/screens/profile/CreateBusinessScreen.tsx",
+      "calls": 4,
+      "equal": true,
+      "beforeSha256": "d2adb73b4e00203e32867c0fff16fde0bb1af50568e365f1cf56debd5eeb5b1f",
+      "afterSha256": "d2adb73b4e00203e32867c0fff16fde0bb1af50568e365f1cf56debd5eeb5b1f"
+    },
+    {
+      "file": "src/screens/profile/EditProfileScreen.tsx",
+      "calls": 11,
+      "equal": true,
+      "beforeSha256": "f309e3a1d1bfcd13b502207ca7a8fbbf48156f53a7622337a06abb25804a907a",
+      "afterSha256": "f309e3a1d1bfcd13b502207ca7a8fbbf48156f53a7622337a06abb25804a907a"
+    },
+    {
+      "file": "src/screens/profile/FollowListScreen.tsx",
+      "calls": 27,
+      "equal": true,
+      "beforeSha256": "ce181f09e0a7e8e705c30e76bbd2f72e2029607d54616ac3d3850296c7d46603",
+      "afterSha256": "ce181f09e0a7e8e705c30e76bbd2f72e2029607d54616ac3d3850296c7d46603"
+    },
+    {
+      "file": "src/screens/profile/FollowRequestsScreen.tsx",
+      "calls": 2,
+      "equal": true,
+      "beforeSha256": "dd27995e71ed3869e063fdbf2e57eb41abbe9527fac2064ac82b035365af3861",
+      "afterSha256": "dd27995e71ed3869e063fdbf2e57eb41abbe9527fac2064ac82b035365af3861"
+    },
+    {
+      "file": "src/screens/profile/LoginActivityScreen.tsx",
+      "calls": 9,
+      "equal": true,
+      "beforeSha256": "e8a309705135788b374acb502d615eb32a0939e1ce42453ddada41ae0e0c018e",
+      "afterSha256": "e8a309705135788b374acb502d615eb32a0939e1ce42453ddada41ae0e0c018e"
+    },
+    {
+      "file": "src/screens/profile/MonetizationScreen.tsx",
+      "calls": 2,
+      "equal": true,
+      "beforeSha256": "b8d388660388154b1155f7cdd153adcefe594d0d8fa4c8cc5777451dd678c5fb",
+      "afterSha256": "b8d388660388154b1155f7cdd153adcefe594d0d8fa4c8cc5777451dd678c5fb"
+    },
+    {
+      "file": "src/screens/profile/MutedStoriesScreen.tsx",
+      "calls": 6,
+      "equal": true,
+      "beforeSha256": "2036ff4d3d11af8d01d4a21150444323ab995e0522ece6d733005cb6f785dc66",
+      "afterSha256": "2036ff4d3d11af8d01d4a21150444323ab995e0522ece6d733005cb6f785dc66"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "calls": 45,
+      "equal": true,
+      "beforeSha256": "6127d714e5dacff7338d34ad7b559341c103fb61bdb8084b6d2ebd2172084421",
+      "afterSha256": "6127d714e5dacff7338d34ad7b559341c103fb61bdb8084b6d2ebd2172084421"
+    }
+  ]
+}

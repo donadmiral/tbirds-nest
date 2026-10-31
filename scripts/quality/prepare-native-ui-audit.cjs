@@ -28,7 +28,7 @@ exact('src/navigation/AppNavigator.tsx', '<RootStack.Screen name="Main" componen
 receipt.audit = { mode: 'direct-route-entry-and-independent-journeys', applicationSourceCommit: process.env.GITHUB_SHA,
   manifestSha256: hash(fs.readFileSync('tests/native/audit/manifest.json')), overlays,
   inputs: Object.fromEntries(['scripts/quality/prepare-native-ui-audit.cjs', 'scripts/quality/native-ui-audit-runner.py',
-    'scripts/quality/native-ui-audit-binary.py', 'tests/native/audit/manifest.json'].map(file => [file, hash(fs.readFileSync(file))])),
+    'scripts/quality/native-ui-audit-binary.py', 'scripts/quality/native-ui-ios-compatibility.py', 'tests/native/audit/manifest.json'].map(file => [file, hash(fs.readFileSync(file))])),
   limits: manifest.limits };
 fs.writeFileSync('native-ui-logs/source.json', JSON.stringify(receipt, null, 2) + '\n');
 console.log('Prepared independent QA audit entry without changing production providers or hosted transports.');

@@ -1,0 +1,27 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit empty notifications and mark read
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: notifications-empty-controls
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "Activity"
+    timeout: 15000
+
+- assertVisible: Nothing yet
+- tapOn: Mark all read
+- assertVisible: Nothing yet
+- takeScreenshot: notifications-empty-controls

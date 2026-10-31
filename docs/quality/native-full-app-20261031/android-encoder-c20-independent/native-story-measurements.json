@@ -1,0 +1,172 @@
+{
+  "sdk": 35,
+  "model": "Android SDK built for x86_64",
+  "abis": [
+    "x86_64"
+  ],
+  "renderer": "Actual production StoryVideoComposition.kt and StoryVideoEffects.kt",
+  "media3Version": "1.11.1",
+  "cases": [
+    {
+      "duration": 0.967,
+      "silentTrim": true,
+      "case": "no-overlap original audio",
+      "passed": true
+    },
+    {
+      "left": -226304,
+      "right": -8352385,
+      "case": "matrix alpha and fifth-column bias",
+      "passed": true
+    },
+    {
+      "duration": 1.003,
+      "videoFrames": 30,
+      "original330Hz": 0.08541920069853207,
+      "soundtrack440Hz": 0.04918462955351883,
+      "case": "trim speed and independent mix",
+      "passed": true
+    },
+    {
+      "attempts": 4,
+      "rejectedAndCleaned": 0,
+      "completedBeforeCancellation": 4,
+      "case": "completion cancellation race",
+      "passed": true
+    },
+    {
+      "firstRms": 0.14107784488070832,
+      "tailRms": 0,
+      "case": "one-pass voiceover",
+      "passed": true
+    },
+    {
+      "rejected": 5,
+      "case": "bounded local inputs and no overwrite",
+      "passed": true
+    },
+    {
+      "inputPreserved": true,
+      "partialRemoved": true,
+      "case": "background cancellation",
+      "passed": true
+    },
+    {
+      "quarterAmplitude": 0.04976484357924205,
+      "zeroRms": 0,
+      "case": "soundtrack gain",
+      "passed": true
+    },
+    {
+      "background": -262400,
+      "left": -16711427,
+      "right": -196608,
+      "case": "color matrix and geometry",
+      "passed": true
+    },
+    {
+      "amplitudes440Hz": [
+        0.19943120314323948,
+        0.1996107773581505,
+        0.19962139731718798
+      ],
+      "duration": 2.987,
+      "case": "selected excerpt and repeated loops",
+      "passed": true
+    },
+    {
+      "amplitude330Hz": 0.07945671724555181,
+      "case": "original-only audio",
+      "passed": true
+    },
+    {
+      "original330Hz": 7.928795553016691E-7,
+      "soundtrack440Hz": 0.09972189661023495,
+      "case": "original mute",
+      "passed": true
+    },
+    {
+      "unknownLengthProvider": true,
+      "externalSourcePreserved": true,
+      "temporaryFilesRemoved": true,
+      "case": "bounded source staging",
+      "passed": true
+    },
+    {
+      "peakTemporaryBytes": 536870912,
+      "providerWrittenBytes": 537001984,
+      "limitBytes": 536870912,
+      "case": "unknown-size byte ceiling",
+      "passed": true
+    },
+    {
+      "positiveTop": -196608,
+      "positiveBottom": -16711427,
+      "negativeTop": -196608,
+      "case": "vertical orientation and signed y translation",
+      "passed": true
+    },
+    {
+      "before": -262400,
+      "during": -16711936,
+      "after": -196864,
+      "case": "background framing and timed layers",
+      "passed": true
+    },
+    {
+      "partialRemoved": true,
+      "singleJobEnforced": true,
+      "retryDuration": 0.967,
+      "case": "real cancellation cleanup and retry",
+      "passed": true
+    },
+    {
+      "width": 1080,
+      "height": 1920,
+      "amplitude440Hz": 0.19951176807717869,
+      "case": "full portrait encode",
+      "passed": true
+    },
+    {
+      "succeededWithoutEof": true,
+      "earlyEndRejected": true,
+      "seekableOffsetAccepted": true,
+      "streamedOffsetRejectedMilliseconds": 1,
+      "temporaryFilesRemoved": true,
+      "case": "declared-length provider boundary",
+      "passed": true
+    },
+    {
+      "duration": 1.493,
+      "case": "voiceover cannot extend video",
+      "passed": true
+    },
+    {
+      "milliseconds": 21,
+      "providerStillOpen": true,
+      "temporaryFilesRemoved": true,
+      "retryPassed": true,
+      "case": "blocked provider cancellation",
+      "passed": true
+    },
+    {
+      "before": -16777216,
+      "during": -16711936,
+      "after": -16777216,
+      "case": "output-time artwork after trim and speed",
+      "passed": true
+    },
+    {
+      "duration": 4.395,
+      "videoFrames": 65,
+      "first440Hz": 0.0997341646923411,
+      "selected880Hz": 0.09996211483115354,
+      "repeated440Hz": 0.09972379091428707,
+      "finalPartial440Hz": 0.09950011394934566,
+      "finalTail880Hz": 0.09981922513662508,
+      "case": "slowed video and final partial soundtrack loop",
+      "passed": true
+    }
+  ],
+  "physicalDeviceAcceptance": false
+}

@@ -1,0 +1,429 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T19:01:51.408208+00:00",
+  "reviewer": "hosted_backend",
+  "publishedBaseline": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "candidate": "local coordinated repair, not published or deployed"
+  },
+  "finding": {
+    "id": "ADMIN-CUSTOM-001",
+    "severity": "medium",
+    "status": "fixed locally and meaningfully verified",
+    "title": "Five custom actions previously claimed success without their required server receipt",
+    "affected": [
+      "moderateReview",
+      "saveMusicProvider",
+      "saveMusicLicenseDraft",
+      "revokeMusicSound",
+      "stageMusicCatalogue"
+    ],
+    "baseline": {
+      "path": "docs/quality/all-platform-audit-20261031/admin/custom-actions/before/custom-actions-before.json",
+      "sha256": "57e0df20003aeb05e88583f3e96430d0789b517f9cb958624818b3fbfc34b642",
+      "bytes": 4314,
+      "formal": 29,
+      "pass": 24,
+      "fail": 5,
+      "browser": 21,
+      "browserPass": 20,
+      "browserFail": 1
+    },
+    "cause": "The actions used only RPC error and ignored data. Existing SQL already supplies a success/request/count receipt.",
+    "repair": "Validate confirmed outcomes and matching request or target identity before revalidation or success feedback; reject null, negative, contradictory, wrong-request and impossible-count results. Matching staging replay without added remains accepted per the existing SQL contract.",
+    "productionScope": [
+      "admin-web/app/market/reviews/actions.ts",
+      "admin-web/app/music/actions.ts"
+    ]
+  },
+  "verification": {
+    "formal": {
+      "tests": 83,
+      "pass": 83,
+      "fail": 0,
+      "cancelled": 0,
+      "skip": 0,
+      "newCases": 30,
+      "existingReusedCases": 53,
+      "durationMs": 12066.35964,
+      "files": {
+        "custom-action-contracts.cjs": 30,
+        "music-operations.cjs": 6,
+        "recovery-flow.cjs": 9,
+        "erasure-review.cjs": 9,
+        "command-contracts.cjs": 16,
+        "missing-capabilities.cjs": 13
+      },
+      "roleDenialsIncludedInNewCase": 56,
+      "roles": 11,
+      "counting": "Role subexecutions are inside one of the 30 formal cases; they are not added to 83. Browser controls are a separate 21-case group. Existing cases overlap prior evidence and are not additional unique product functions.",
+      "command": "PLATINUM_CUSTOM_ACTION_OUTPUT=/tmp/admin-custom-actions-final.json env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap admin-web/tests/custom-action-contracts.cjs admin-web/tests/music-operations.cjs admin-web/tests/recovery-flow.cjs admin-web/tests/erasure-review.cjs admin-web/tests/command-contracts.cjs admin-web/tests/missing-capabilities.cjs"
+    },
+    "browser": {
+      "checks": 21,
+      "pass": 21,
+      "fail": 0,
+      "uncaughtPageErrors": 0,
+      "runtime": "153.0.8010.12",
+      "checkedAt": "2026-10-31T18:58:56.746Z",
+      "viewports": [
+        {
+          "width": 390,
+          "height": 844
+        },
+        {
+          "width": 360,
+          "height": 844
+        }
+      ],
+      "command": "PLATINUM_CHROMIUM=/tmp/platinum-audit-browser/chrome-linux64/chrome PLATINUM_CUSTOM_UI_ARTIFACTS=/tmp/platinum-admin-custom-controls-after node admin-web/tests/browser/custom-controls-run.cjs",
+      "minimumMeasuredControlHeightPx": 40,
+      "note": "All three real components and compiled admin CSS. Real server exports use installed SDK with strict synthetic transport; isolated action redirects and links use Next adapters. No universal 44px claim."
+    },
+    "static": {
+      "adminTypescriptExit": 0,
+      "scopedEslintExit": 0,
+      "finalRunnerEslintExit": 0,
+      "trackedScopedWhitespaceExit": 0,
+      "note": "Final link-activation assertions were added after the full scoped lint; the final runner alone was linted again. Admin TypeScript completed on the frozen production source."
+    }
+  },
+  "customExportCoverage": {
+    "total": 17,
+    "actions": [
+      {
+        "export": "signIn",
+        "source": "admin-web/lib/actions.ts",
+        "executedCoverage": "new actual-SDK action cases: verified session, credential/outage errors, inactive/revoked/unknown role"
+      },
+      {
+        "export": "signOut",
+        "source": "admin-web/lib/actions.ts",
+        "executedCoverage": "new actual-SDK action cases: confirmed/absent session and uncertain revocation"
+      },
+      {
+        "export": "enrollAuthenticator",
+        "source": "admin-web/app/security/actions.ts",
+        "executedCoverage": "new actual-SDK action cases: own unverified cleanup, existing verified factor and unauthorized session"
+      },
+      {
+        "export": "verifyAuthenticator",
+        "source": "admin-web/app/security/actions.ts",
+        "executedCoverage": "new actual-SDK action cases: validation, challenge/verify receipt, rejected/unauthorized session"
+      },
+      {
+        "export": "inviteStaff",
+        "source": "admin-web/lib/actions.ts",
+        "executedCoverage": "new actual wrapper and installed-SDK completed-reservation path; existing command/provision suite covers creation/reservation/finalization with controlled provider adapter"
+      },
+      {
+        "export": "approveBusinessApplication",
+        "source": "admin-web/lib/actions.ts",
+        "executedCoverage": "new actual wrapper and installed-SDK completed-reservation path; existing command/provision suite covers creation/reservation/finalization with controlled provider adapter"
+      },
+      {
+        "export": "saveMusicProvider",
+        "source": "admin-web/app/music/actions.ts",
+        "executedCoverage": "new real auth/permission/SDK action success, returned error and receipt/identity validation; unauthorized roles"
+      },
+      {
+        "export": "saveMusicLicenseDraft",
+        "source": "admin-web/app/music/actions.ts",
+        "executedCoverage": "new real auth/permission/SDK action success, returned error and receipt/identity validation; unauthorized roles"
+      },
+      {
+        "export": "revokeMusicSound",
+        "source": "admin-web/app/music/actions.ts",
+        "executedCoverage": "new real auth/permission/SDK action success, returned error and receipt/identity validation; unauthorized roles"
+      },
+      {
+        "export": "stageMusicCatalogue",
+        "source": "admin-web/app/music/actions.ts",
+        "executedCoverage": "new action receipt/replay/count cases, existing file/report cases and actual OperationsPanel submission/download/error/disabled controls"
+      },
+      {
+        "export": "moderateReview",
+        "source": "admin-web/app/market/reviews/actions.ts",
+        "executedCoverage": "new actor/session/version/key, validation, unconfirmed/wrong-key result, unavailable/error and unauthorized-role cases"
+      },
+      {
+        "export": "updateSupportTriage",
+        "source": "admin-web/lib/supportTriageActions.ts",
+        "executedCoverage": "new exact receipt, stale/assignee/wrong-key/duplicate input and unauthorized-role cases; existing capability cases"
+      },
+      {
+        "export": "reviewCreator",
+        "source": "admin-web/app/payments/creators/actions.ts",
+        "executedCoverage": "real disabled-finance branch and unauthorized role; actual dormant ReviewForm controls in isolation; no claim of enabled production review or payment acceptance"
+      },
+      {
+        "export": "reviewErasure",
+        "source": "admin-web/app/users/deletions/actions.ts",
+        "executedCoverage": "existing nine real-action receipt/retention/version/unavailable/resume cases plus new installed-SDK unauthorized roles"
+      },
+      {
+        "export": "requestPasswordReset",
+        "source": "admin-web/app/reset-password/actions.ts",
+        "executedCoverage": "existing actual-SDK PKCE/non-enumeration/origin/session cases plus actual RecoveryForms browser error/pending/retry controls"
+      },
+      {
+        "export": "verifyRecoveryAuthenticator",
+        "source": "admin-web/app/reset-password/actions.ts",
+        "executedCoverage": "existing actual-SDK own verified MFA/deadline/session cases plus actual RecoveryForms browser chosen factor/code/rejection controls"
+      },
+      {
+        "export": "updateRecoveryPassword",
+        "source": "admin-web/app/reset-password/actions.ts",
+        "executedCoverage": "existing actual-SDK update/global revocation/no replay/partial completion cases plus actual RecoveryForms mismatch/retry/partial-error controls"
+      }
+    ],
+    "remainingLiveProviderAcceptance": "Protected signed-in deployed tests remain blocked by unavailable QA credential handoff; no credential guessing/reset, email, real account mutation, payment, deletion or catalogue activation occurred."
+  },
+  "componentControlCoverage": {
+    "componentFamilies": 3,
+    "semanticControlDefinitions": 20,
+    "note": "A manual count of these three families only, not the full admin action-binding inventory or all runtime states. Every listed control was exercised or explicitly verified disabled in the appropriate current state.",
+    "OperationsPanel": [
+      "provider select",
+      "manifest file",
+      "stage submit",
+      "start date",
+      "end date",
+      "CSV submit",
+      "manifest disclosure",
+      "unavailable Retry link"
+    ],
+    "RecoveryForms": [
+      "email",
+      "request submit",
+      "existing factor select",
+      "six-digit code",
+      "MFA submit",
+      "password",
+      "confirmation",
+      "password submit",
+      "sign-in link"
+    ],
+    "ReviewForm": [
+      "decision select",
+      "reason",
+      "review submit"
+    ],
+    "limits": [
+      "Actual three React components and compiled admin CSS; synthetic Next navigation/cookie/cache/provider adapters.",
+      "Actual server exports execute through installed admin SDK on loopback only; no real account, password, provider, email, payment or licensing write.",
+      "Operations server-component UUID generation uses WebCrypto in this isolated client fixture; server action redirects are observed and not claimed as Next RSC navigation acceptance.",
+      "Creator ReviewForm is deliberately mounted in isolation to verify dormant control behavior. Current production parent does not render it while finance operations are disabled.",
+      "A minimum 40px height is measured; this is control geometry evidence, not a universal 44px target claim.",
+      "Existing recovery and erasure action suites supply additional source-matched coverage separately."
+    ]
+  },
+  "sourceBinding": {
+    "changedFiles": {
+      "admin-web/app/market/reviews/actions.ts": {
+        "sha256": "e454e36daf72af8f829360399189cd1cac85a5b74df394f8a6e3566ce7653037",
+        "bytes": 1964
+      },
+      "admin-web/app/music/actions.ts": {
+        "sha256": "5482dd70b5ddacf5bdf1d4862fad0efe49ebbc1cd9b7d1ccd6bc61f53ff1a261",
+        "bytes": 3330
+      },
+      "admin-web/tests/music-operations.cjs": {
+        "sha256": "c5455882db13f7770a1917bd8ab748aa5f75953a333615a9490c79b74626ff65",
+        "bytes": 5769
+      },
+      "admin-web/tests/custom-action-contracts.cjs": {
+        "sha256": "fc22bcf8e1b1f2908c5a6979c032219256019bd28f02350357dc56a035b85962",
+        "bytes": 20666
+      },
+      "admin-web/tests/helpers/customActionFixture.cjs": {
+        "sha256": "995607da61e7948d66b4f7c9e6372a73913d9e244e5fecaf2574b6e18576328b",
+        "bytes": 6892
+      },
+      "admin-web/tests/browser/custom-controls-actions.ts": {
+        "sha256": "a0b63bdb86bb2915aba4d683b80a579727333e275ad8d8c8ce907b8bfae50e16",
+        "bytes": 1620
+      },
+      "admin-web/tests/browser/custom-controls-crypto.ts": {
+        "sha256": "9fbd3e45207beaba877c7707e5adb37182f002a045f67e949d03182c8d0190b1",
+        "bytes": 53
+      },
+      "admin-web/tests/browser/custom-controls-fixture.tsx": {
+        "sha256": "eba9bb9a007ab27d34ca7c2184467709d1be352afe59d7b7ec3f83f0cae354c7",
+        "bytes": 1986
+      },
+      "admin-web/tests/browser/custom-controls-compile.cjs": {
+        "sha256": "6516c17552ac3258ab61bfdbd82e4bc30e53aacdb2268bf8cdda7cd79b1f7802",
+        "bytes": 1626
+      },
+      "admin-web/tests/browser/custom-controls-run.cjs": {
+        "sha256": "4b18d7c945b68b5780f78d080c6dc249c40785857bc21c996dffa98d6b143d84",
+        "bytes": 22719
+      }
+    },
+    "actualActionLoadedSources": [
+      {
+        "path": "shared/monetization/availability.ts",
+        "sha256": "908e79172d4092338decbee3c2a221881d97167503a983c9d988c36bbdaa55ab"
+      },
+      {
+        "path": "admin-web/app/market/reviews/actions.ts",
+        "sha256": "e454e36daf72af8f829360399189cd1cac85a5b74df394f8a6e3566ce7653037"
+      },
+      {
+        "path": "admin-web/app/music/actions.ts",
+        "sha256": "5482dd70b5ddacf5bdf1d4862fad0efe49ebbc1cd9b7d1ccd6bc61f53ff1a261"
+      },
+      {
+        "path": "admin-web/app/payments/creators/actions.ts",
+        "sha256": "db72044d3ed8115f7f92f4f969f476c6197ddd56ef0b18a7ffde80156b8cd368"
+      },
+      {
+        "path": "admin-web/app/security/actions.ts",
+        "sha256": "f2374929079ff4a09bb2ffccffb5d2b7389c3ed2e196de4246080c108daf2838"
+      },
+      {
+        "path": "admin-web/app/users/deletions/actions.ts",
+        "sha256": "d395c8b3b5dfb3144b5c651414d2aa6808f50e0273e9835f852188fcf1488d54"
+      },
+      {
+        "path": "admin-web/lib/actions.ts",
+        "sha256": "a06f152a07863cfedd85e2566ff31feec6380715b6f0a422f7c415f5de3c48a7"
+      },
+      {
+        "path": "admin-web/lib/adminAssurance.ts",
+        "sha256": "662f2d7de2ef5d69c1aea2e4182b58e0c8a9c13816032f111991aa6a26af51dd"
+      },
+      {
+        "path": "admin-web/lib/adminAuth.ts",
+        "sha256": "880ddc94ca29e3bc5e5e81769814e9d472ff510150f0727cc2db716515a09e2c"
+      },
+      {
+        "path": "admin-web/lib/adminCommand.ts",
+        "sha256": "48dedbe9254313056566e00cfbf1352f9fd6ff06ac26a58fc19e46a1311c7490"
+      },
+      {
+        "path": "admin-web/lib/adminErasureReview.ts",
+        "sha256": "8290902a4e412ea33282020029373e8d3b0967afbcb8734f8b8bbfe68c0f9b84"
+      },
+      {
+        "path": "admin-web/lib/adminProvision.ts",
+        "sha256": "7da08365aea46ddbd39a1a669395494e49a0dc09a5a48c91a194f736cad6ffdc"
+      },
+      {
+        "path": "admin-web/lib/adminRpcAvailability.ts",
+        "sha256": "1b4b8d9f1c5fb2e2a0c4360d5184e874b2d4a1672fd165dd6d4c86657c48d7b7"
+      },
+      {
+        "path": "admin-web/lib/adminSession.ts",
+        "sha256": "b12b954cd53001e3115f4f79e8070548b1dbdf9b5b708c7a3c0c7a2e78d0be58"
+      },
+      {
+        "path": "admin-web/lib/permissions.ts",
+        "sha256": "a5cdc75677d7309a228d00e0d9ba10ce35cebb74c60bb2a9028eec8168e987b6"
+      },
+      {
+        "path": "admin-web/lib/supabaseAdmin.ts",
+        "sha256": "9d41752035d2b20a9797d7c9be66a6903b1ca624b0746dbf9874509b5dc6142b"
+      },
+      {
+        "path": "admin-web/lib/supportTriageActions.ts",
+        "sha256": "bca6a3b01b8c9c331221644c2c686ca2fa5cf1d3064a4769580a30fb54ed292b"
+      }
+    ],
+    "unchangedActualComponents": {
+      "admin-web/app/music/OperationsPanel.tsx": {
+        "sha256": "511289ccca2d16436ec8883458dae73f37876d5cf8a63da783ee230023221998",
+        "bytes": 7164
+      },
+      "admin-web/app/reset-password/RecoveryForms.tsx": {
+        "sha256": "9fa0b35dc39764cf40dc9b02f9bedd0ac97ead7ae0f4f4bf50664f84041642c3",
+        "bytes": 3842
+      },
+      "admin-web/app/payments/creators/ReviewForm.tsx": {
+        "sha256": "1de5b7cd38ba14dfbd638ad0e573ba6fe80a687496f20a9764c8b4ae90e7014a",
+        "bytes": 1520
+      }
+    },
+    "sqlContracts": {
+      "supabase/migrations/20261029213000_admin_support_review_contracts.sql": {
+        "sha256": "db5e56166965decc7b9dd873c28b40cfa322e07e909297da03d8a6c10f0dd759",
+        "bytes": 12708
+      },
+      "supabase/migrations/20261030153811_original_music_library_and_delivery.sql": {
+        "sha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11",
+        "bytes": 67268
+      },
+      "supabase/migrations/20261030203619_music_catalogue_operations_and_cleanup.sql": {
+        "sha256": "36500836cd925af7aade1a6bff7d85e547fab9c00c5306fb0130cbca9ce7d0bd",
+        "bytes": 30019
+      }
+    },
+    "note": "Loaded action source hashes in the executed JSON were checked against final bytes. Browser source is bound at final freeze; no unrecorded before/after execution hash guard is claimed."
+  },
+  "ciHandoff": {
+    "runner": "node admin-web/tests/browser/custom-controls-run.cjs",
+    "compile": "Runner calls compile(output) from custom-controls-compile.cjs automatically; no separate CLI compile step.",
+    "artifactEnv": "PLATINUM_CUSTOM_UI_ARTIFACTS",
+    "compiledOutputEnv": "PLATINUM_CUSTOM_UI_OUTPUT (optional)",
+    "browserEnv": "PLATINUM_CHROMIUM (optional if Playwright Chromium is installed)",
+    "artifactFiles": [
+      "custom-controls-browser.json",
+      "operations-360.png",
+      "recovery-360.png",
+      "review-360.png"
+    ],
+    "status": "Local acceptance only; parent owns registering the new browser gate. No fresh CI result for this candidate is claimed."
+  },
+  "preservedBoundaries": [
+    "No SQL contract or RLS/permission change.",
+    "Existing request identity and actor/session checks retained.",
+    "Music catalogue/licensing activation remains false.",
+    "Provider side effects remain behind their original action/auth boundaries; all tests synthetic.",
+    "No hosted migration, stage4 retry, provider write, source ref move or publish."
+  ],
+  "evidence": {
+    "actions.tap": {
+      "sha256": "515b83b8734cba638538821b286b00ec1f3194e7e67bb690ec5738426d55ec34",
+      "bytes": 21165
+    },
+    "actions.json": {
+      "sha256": "11b8a6318b2735f29a24c2285e45cabbbfc020b9a0f760f3041e62ed5d954cdd",
+      "bytes": 8751
+    },
+    "browser.json": {
+      "sha256": "bc811883fe4e384e82c9898cf992033676a431f66ef1b7ec685ccd4b29a90f0c",
+      "bytes": 24397
+    },
+    "browser.log": {
+      "sha256": "0b787a92e9ff45716d7d511b0bf56791ea39fb482e9c94038c7680f2b6a20790",
+      "bytes": 1810
+    },
+    "typescript.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "eslint.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "runner-final-eslint.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "operations-360.png": {
+      "sha256": "fa72714630929def0ea3855982bf83aba31993e63cb0ffedb616cc0a5f5ee918",
+      "bytes": 163472
+    },
+    "recovery-360.png": {
+      "sha256": "9f7581a202be4a8c302a347fb256f3623349c0260d582002ef3e14641fbc04c3",
+      "bytes": 12508
+    },
+    "review-360.png": {
+      "sha256": "62946575fbda31b2f1da33bcc183ed6b5742a3b7a21bce8b31ce69f0758a08d0",
+      "bytes": 15219
+    }
+  }
+}

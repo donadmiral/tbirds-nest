@@ -1,0 +1,4 @@
+      32: invokespecial #114                // Method androidx/media3/exoplayer/source/DefaultMediaSourceFactory."<init>":(Landroid/content/Context;Landroidx/media3/extractor/ExtractorsFactory;)V
+      35: iconst_1
+      36: invokevirtual #117                // Method androidx/media3/exoplayer/source/DefaultMediaSourceFactory.setEnableClippingInMediaPeriod:(Z)Landroidx/media3/exoplayer/source/DefaultMediaSourceFactory;
+      39: areturn

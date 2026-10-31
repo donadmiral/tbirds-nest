@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "kind": "native-audit-ui-flow-repair-source-binding",
+  "changedOrNewQaPaths": [
+    {
+      "file": "tests/native/audit/flows/stories-storycomposer.yaml",
+      "bytes": 628,
+      "sha256": "4144e5aa8a9ba6d2e3de55aab474b9b15c2e9acb7a2aa9e0cce2fd3865be4d98"
+    },
+    {
+      "file": "tests/native/audit/flows/settings-appearance.yaml",
+      "bytes": 861,
+      "sha256": "2e7b8201dd54909fce1c515a40cf5ad5219116bcb5e9f56b406649302cf4feeb"
+    },
+    {
+      "file": "tests/native/audit/flows/market-createlisting.yaml",
+      "bytes": 592,
+      "sha256": "70e6b9d913973e9a4b1920301e82318e73feb2af2a88e93cf0f1f4d7f4111104"
+    },
+    {
+      "file": "tests/native/audit/flows/auth-forgot-password.yaml",
+      "bytes": 438,
+      "sha256": "d7af53774321f9e689f9a0ea8c172f4d27fcda5e70e1293bb36bb55cecb6edf2"
+    },
+    {
+      "file": "tests/native/audit/flows/auth-signup-entry.yaml",
+      "bytes": 434,
+      "sha256": "eab3e16eb47e25e581817da5c0f84c3ff0a1672aee1c8d1ff0372b67f6c80dc6"
+    },
+    {
+      "file": "tests/native/audit/flows/auth-business-entry.yaml",
+      "bytes": 439,
+      "sha256": "61a7082584754cf277ca6003238b314676d877b4ce033e9d64193f4b30c2a3e7"
+    },
+    {
+      "file": "tests/native/audit/flows/support-fresh-ticket-body.yaml",
+      "bytes": 1325,
+      "sha256": "3934612287b78de26666a266c26a5ca3af71711ec377fff99026752ead7e2733"
+    },
+    {
+      "file": "tests/native/audit/flows/support-reopen-error.yaml",
+      "bytes": 850,
+      "sha256": "cc7c54e803ca4f8934555f8528eb24d65d7e01cd66af49ae0ada8853faccaaeb"
+    },
+    {
+      "file": "tests/native/audit/flows/support-reply-error.yaml",
+      "bytes": 808,
+      "sha256": "2db91d55d68238ca1eea6e4f536b00abe4ad04822abbff13d4158ee4f888f148"
+    },
+    {
+      "file": "tests/native/audit/flows/memory-film-export-entry.yaml",
+      "bytes": 930,
+      "sha256": "b01838bf4d5c4ef3b299ca30432f81a6f86e2bedcd907a33d70d23910664fef8"
+    },
+    {
+      "file": "tests/native/audit/flows/feed-article-draft.yaml",
+      "bytes": 1248,
+      "sha256": "87af3111e5d879c1a760e0469a831f438a213b96391c8ac6aadfde9fe86be540"
+    },
+    {
+      "file": "tests/native/audit/flows/support-missing-ticket.yaml",
+      "bytes": 531,
+      "sha256": "f3b4b323e431fa23687d828d55eb54669d05f3da2c72cf88ac9b9c8789e0d191"
+    },
+    {
+      "file": "tests/native/audit/flows/support-list-error.yaml",
+      "bytes": 744,
+      "sha256": "eb342f56c94e62cf92c8ac689249b1181852e3e7920ae567d3de4817d4b9739d"
+    },
+    {
+      "file": "tests/native/audit/manifest.json",
+      "bytes": 91068,
+      "sha256": "c2e69f24d5beaed8d5f7f250c42887063c1e4378b3a0b85f7c4c78b98aa73de4"
+    },
+    {
+      "file": "tests/quality/native-audit-flow-controls.cjs",
+      "bytes": 19977,
+      "sha256": "ac19062dfb3b324162c8002fbc42ef456d67f572a09e906f12eac7d79bc3d896"
+    }
+  ],
+  "readOnlyApplicationInputs": [
+    {
+      "file": "src/screens/stories/StoryComposerScreen.tsx",
+      "bytes": 196363,
+      "sha256": "35c2237cd27d5867b9c6a16cbbbf29f7883275782c3eaf9f5b179bf955888da1"
+    },
+    {
+      "file": "src/components/stories/StoryTextEditorToolbar.tsx",
+      "bytes": 3684,
+      "sha256": "43a30f361905a04a0dee5f1e3d6cd07ff49e89ebd4846c9fc3f5e8366fbd4bb5"
+    },
+    {
+      "file": "src/screens/market/CreateListingScreen.tsx",
+      "bytes": 19670,
+      "sha256": "f0a0ca89693f1774d741acd6775e7d6bffb54f91dc06c4ccd2b19549a92778ff"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "bytes": 60203,
+      "sha256": "b61b93c80b9072ff10c6fab114ae6a63a248ea85376616a1d2db9ae9a2fb608d"
+    },
+    {
+      "file": "src/screens/auth/LoginScreen.tsx",
+      "bytes": 21533,
+      "sha256": "3a7d3f79bd6d6335f70ae77b677b8565bf8d495382a9e0685a60448eab3cbab9"
+    },
+    {
+      "file": "src/screens/auth/SignUpScreen.tsx",
+      "bytes": 11312,
+      "sha256": "da26ee2c118b1f1923e1d5b4a78ddffddc8c0f9681856a0647b0d634ebc92973"
+    },
+    {
+      "file": "src/screens/auth/BusinessSignInScreen.tsx",
+      "bytes": 10405,
+      "sha256": "03920d66cdcf22b33b82cc94b6d9b3a4eefacd9f6ccc0c4d8edebf3670b3767f"
+    },
+    {
+      "file": "src/screens/profile/ContactSupportScreen.tsx",
+      "bytes": 13435,
+      "sha256": "0fee99f26b98c98ad8aeb84939c091b568b37553eb29c15cfdf2dff8130eef87"
+    },
+    {
+      "file": "src/screens/profile/TicketScreen.tsx",
+      "bytes": 10456,
+      "sha256": "ad5c5166a9035e5828df4c7e0275a43cd9cc44a0b35882dbc742f435c55b5c0d"
+    },
+    {
+      "file": "src/screens/feed/ArticleComposeScreen.tsx",
+      "bytes": 22181,
+      "sha256": "a3f184001af804c58d885114d5ffb84fa063982695551f260290e215e9d41783"
+    },
+    {
+      "file": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "bytes": 67855,
+      "sha256": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab"
+    }
+  ],
+  "baselineFlows": [
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/auth-business-entry.yaml.txt",
+      "bytes": 243,
+      "sha256": "7578ac602c0baa297d656ec4df759c767a1bd2a5d00842246c89876b6e2b6371"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/auth-forgot-password.yaml.txt",
+      "bytes": 269,
+      "sha256": "41a412d5a0586347d9f309715e0d9ceb2f0b3ddcaaf9f53bac1917fb375bc72b"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/auth-signup-entry.yaml.txt",
+      "bytes": 224,
+      "sha256": "0ab986d1f0f779fb1120632346145d66eeebcf0dd7e4947ac8e62437bcdc816a"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/feed-article-draft.yaml.txt",
+      "bytes": 780,
+      "sha256": "677a03c37f8ac97a6ad2e14fdd7e45aecd16e4a35b986fd42f12e3ee04a20f9a"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/manifest.json",
+      "bytes": 91068,
+      "sha256": "f0b37826ed8709e0772e5d9ea4d73d9e7ef48ab7d2894440608ab2e59848b1fe"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/market-createlisting.yaml.txt",
+      "bytes": 478,
+      "sha256": "ce78d6fd7c7881221024c1b26fc0fc4ca1d4e482ed9f91a5137221f3d8cd15a3"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/memory-film-export-entry.yaml.txt",
+      "bytes": 803,
+      "sha256": "0e5920a9cb43098c4f57338b396d7d6117dce1e50a19e0ffbccf346b923c8ae1"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/settings-appearance.yaml.txt",
+      "bytes": 733,
+      "sha256": "f476993fdf0d0e524375354415e8f9f22e944a6f676251800bfb190fdee1f38a"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/stories-storycomposer.yaml.txt",
+      "bytes": 479,
+      "sha256": "e03cac7cceffe317c2c97fd8ed17b1e0cf7f41b416861fc074799e0bebb1f58e"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/support-fresh-ticket-body.yaml.txt",
+      "bytes": 1129,
+      "sha256": "cdca0337cfa9fddb2afe39bdd1e6e5973f12b2757cbefdbf1d11c7020db335bb"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/support-list-error.yaml.txt",
+      "bytes": 514,
+      "sha256": "3ae5da1659a740ea57331c608fbe8b5314f15bcba180285850185e4bd74477a5"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/support-missing-ticket.yaml.txt",
+      "bytes": 532,
+      "sha256": "c0399544b22a90c09267c5da5a92a1b05af7124fbd349bf6c00f98cc14f65e6d"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/support-reopen-error.yaml.txt",
+      "bytes": 770,
+      "sha256": "9c4a76ac4238f8b5c9a38075ed4d37c36288c60eee141e1590a374523394007f"
+    },
+    {
+      "file": "docs/quality/native-full-app-20261031/native-audit-android-flow-repair/before/support-reply-error.yaml.txt",
+      "bytes": 728,
+      "sha256": "06812596b0ee8bacc650d1d116e7396341e89f3f24c465565854e00dbd1effb7"
+    }
+  ],
+  "flowCount": 85,
+  "caseIdentityAndScenariosChanged": false,
+  "productionApplicationEdits": false
+}

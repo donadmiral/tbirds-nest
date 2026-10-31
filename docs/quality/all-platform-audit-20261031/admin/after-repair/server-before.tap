@@ -1,0 +1,512 @@
+TAP version 13
+# Subtest: Jobs counts all 10,030 roles exactly, including more than the API row cap
+not ok 1 - Jobs counts all 10,030 roles exactly, including more than the API row cap
+  ---
+  duration_ms: 281.290822
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:12:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '300' !== '10,030'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '10,030'
+  actual: '300'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:15:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: Jobs second and last pages reach older roles with a deterministic tie order
+not ok 2 - Jobs second and last pages reach older roles with a deterministic tie order
+  ---
+  duration_ms: 32.755099
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:24:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'created_at.desc'
+    - 'created_at.desc,id.desc'
+                      ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'created_at.desc,id.desc'
+  actual: 'created_at.desc'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:27:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Jobs server search finds older titles and counts/continues every filtered result
+not ok 3 - Jobs server search finds older titles and counts/continues every filtered result
+  ---
+  duration_ms: 23.177252
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:38:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    300 !== 6
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 6
+  actual: 300
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:41:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Jobs search escapes wildcard/regex/operator punctuation as literal title text
+not ok 4 - Jobs search escapes wildcard/regex/operator punctuation as literal title text
+  ---
+  duration_ms: 22.556259
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:52:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    300 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 300
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:57:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Jobs empty literal search, bounded input, and malformed page never invent results
+not ok 5 - Jobs empty literal search, bounded input, and malformed page never invent results
+  ---
+  duration_ms: 8.107515
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:65:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    30 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 30
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:67:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Jobs page aggregates and filters explicitly describe only its bounded roles
+not ok 6 - Jobs page aggregates and filters explicitly describe only its bounded roles
+  ---
+  duration_ms: 7.405198
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:75:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== '25'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '25'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:77:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Calls totals/weekly/live counts include sessions beyond the old 400-row slice
+not ok 7 - Calls totals/weekly/live counts include sessions beyond the old 400-row slice
+  ---
+  duration_ms: 72.031993
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:84:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '400' !== '1,401'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1,401'
+  actual: '400'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:88:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Calls rates, durations and charts name their page scope
+not ok 8 - Calls rates, durations and charts name their page scope
+  ---
+  duration_ms: 13.38956
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:96:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - '100.0%'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '100.0%'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:98:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Stories live and retained totals count beyond the API cap; second page stays bounded
+not ok 9 - Stories live and retained totals count beyond the API cap; second page stays bounded
+  ---
+  duration_ms: 124.772899
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:105:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '200' !== '1,201'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1,201'
+  actual: '200'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:108:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Stories expired-24h count uses expiry (lower exclusive, now inclusive), not creation date
+not ok 10 - Stories expired-24h count uses expiry (lower exclusive, now inclusive), not creation date
+  ---
+  duration_ms: 12.920369
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:116:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== '2'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:119:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Verification pending count is exact beyond 1,000; only one 25-applicant page gets safety reads
+not ok 11 - Verification pending count is exact beyond 1,000; only one 25-applicant page gets safety reads
+  ---
+  duration_ms: 201.220279
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:126:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '1,000' !== '1,001'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1,001'
+  actual: '1,000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:129:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Verification safety reads execute at most four concurrently and preserve real counts
+not ok 12 - Verification safety reads execute at most four concurrently and preserve real counts
+  ---
+  duration_ms: 20.837452
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:139:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    30 !== 4
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: 30
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:149:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Verification missing safety counts fail before showing review actions
+ok 13 - Verification missing safety counts fail before showing review actions
+  ---
+  duration_ms: 8.650823
+  type: 'test'
+  ...
+# Subtest: Verification provider failure stops scheduling additional safety reads
+not ok 14 - Verification provider failure stops scheduling additional safety reads
+  ---
+  duration_ms: 10.026642
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:161:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    25 !== 4
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: 25
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:169:75)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Verification truncated referral evidence fails rather than understating vouches
+not ok 15 - Verification truncated referral evidence fails rather than understating vouches
+  ---
+  duration_ms: 11.280738
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:175:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'rendered'
+    - 'threw'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'threw'
+  actual: 'rendered'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:178:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Verification decision median is explicitly the latest 60 while all statuses remain exact
+not ok 16 - Verification decision median is explicitly the latest 60 while all statuses remain exact
+  ---
+  duration_ms: 14.225017
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:182:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'note')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:188:71)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: jobs: missing count is unavailable, not zero or a page-length total
+not ok 17 - jobs: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 5.577049
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:193:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'rendered'
+    - 'threw'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'threw'
+  actual: 'rendered'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:195:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: jobs: failed bounded row read never renders a partial report
+ok 18 - jobs: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 4.069071
+  type: 'test'
+  ...
+# Subtest: jobs: unauthenticated visitor cannot issue report reads
+ok 19 - jobs: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 2.829536
+  type: 'test'
+  ...
+# Subtest: calls: missing count is unavailable, not zero or a page-length total
+not ok 20 - calls: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 4.250624
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:193:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'rendered'
+    - 'threw'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'threw'
+  actual: 'rendered'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:195:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: calls: failed bounded row read never renders a partial report
+ok 21 - calls: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 3.86881
+  type: 'test'
+  ...
+# Subtest: calls: unauthenticated visitor cannot issue report reads
+ok 22 - calls: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 2.596486
+  type: 'test'
+  ...
+# Subtest: stories: missing count is unavailable, not zero or a page-length total
+not ok 23 - stories: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 9.566139
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:193:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'rendered'
+    - 'threw'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'threw'
+  actual: 'rendered'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:195:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: stories: failed bounded row read never renders a partial report
+ok 24 - stories: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 9.143564
+  type: 'test'
+  ...
+# Subtest: stories: unauthenticated visitor cannot issue report reads
+ok 25 - stories: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 7.587402
+  type: 'test'
+  ...
+# Subtest: queue: missing count is unavailable, not zero or a page-length total
+not ok 26 - queue: missing count is unavailable, not zero or a page-length total
+  ---
+  duration_ms: 7.202183
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:193:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'rendered'
+    - 'threw'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'threw'
+  actual: 'rendered'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:195:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: queue: failed bounded row read never renders a partial report
+ok 27 - queue: failed bounded row read never renders a partial report
+  ---
+  duration_ms: 6.439917
+  type: 'test'
+  ...
+# Subtest: queue: unauthenticated visitor cannot issue report reads
+ok 28 - queue: unauthenticated visitor cannot issue report reads
+  ---
+  duration_ms: 5.535897
+  type: 'test'
+  ...
+# Subtest: Page/query identity changes reset Desk selection rather than retaining an old form
+not ok 29 - Page/query identity changes reset Desk selection rather than retaining an old form
+  ---
+  duration_ms: 30.431023
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:207:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/admin-web/tests/desk-reporting.cjs:212:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Exact-count helper rejects malformed/nonfinite/negative provider metadata
+ok 30 - Exact-count helper rejects malformed/nonfinite/negative provider metadata
+  ---
+  duration_ms: 7.982707
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 10
+# fail 20
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1199.659427

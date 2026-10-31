@@ -57,7 +57,16 @@ elif [[ "$platform" == android ]]; then
   android_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
   sdk_manager="$android_sdk/cmdline-tools/latest/bin/sdkmanager"
   avd_manager="$android_sdk/cmdline-tools/latest/bin/avdmanager"
+  if [[ -z "$android_sdk" || ! -x "$sdk_manager" || ! -x "$avd_manager" ]]; then
+    printf '%s\n' 'The independent Android audit requires an installed Android SDK command-line toolchain.' >&2
+    exit 2
+  fi
   "$sdk_manager" --install platform-tools emulator 'system-images;android-35;default;x86_64' > native-ui-logs/sdk-install.log 2>&1
+  # SDK platform tools are not guaranteed to be on PATH in a separate consumer.
+  export PATH="$android_sdk/platform-tools:$android_sdk/emulator:$PATH"
+  test -x "$android_sdk/platform-tools/adb"
+  test "$(command -v adb)" = "$android_sdk/platform-tools/adb"
+  adb version > native-ui-logs/android-platform-tools.log 2>&1
   export ANDROID_AVD_HOME="$work_dir/avd"
   export ANDROID_SERIAL=emulator-5556
   device="$ANDROID_SERIAL"

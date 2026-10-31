@@ -761,7 +761,7 @@ const s = themedSheet((t) => ({
   divider: { height: HAIR, backgroundColor: t.surface.divider, marginLeft: 46 },
 
   versionChip: { fontSize: typeSize.caption, color: t.ink.muted, backgroundColor: t.surface.raised, paddingHorizontal: 8, paddingVertical: 4, borderRadius: radius.sm },
-  footerTxt: { textAlign: 'center', fontSize: typeSize.caption, color: t.ink.faint, marginBottom: space.xs },
+  footerTxt: { textAlign: 'center', fontSize: typeSize.caption, color: t.ink.muted, marginBottom: space.xs },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   badge: { minWidth: 22, height: 22, borderRadius: 11, backgroundColor: t.status.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   badgeTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.heavy, color: t.ink.inverse },
@@ -799,7 +799,7 @@ const s = themedSheet((t) => ({
 
   deleteWarning: { alignItems: 'center', backgroundColor: t.status.dangerBg, borderRadius: radius.md, padding: space.lg, marginBottom: space.lg, gap: space.xs },
   deleteWarningTitle: { fontSize: typeSize.heading, fontWeight: fontWeight.heavy, color: t.status.danger },
-  deleteWarningTxt: { fontSize: typeSize.body, color: t.status.danger, textAlign: 'center', lineHeight: 20 },
+  deleteWarningTxt: { fontSize: typeSize.body, color: t.ink.primary, textAlign: 'center', lineHeight: 20 },
   deleteInput: { backgroundColor: t.surface.raised, borderRadius: radius.md, borderWidth: HAIR, borderColor: t.surface.hairline, paddingHorizontal: space.sm, paddingVertical: 13, fontSize: typeSize.subhead, color: t.ink.primary, textAlign: 'center', letterSpacing: 2, marginBottom: space.md },
   deleteBtn: { backgroundColor: t.status.danger, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center' },
   deleteBtnOff: { opacity: 0.35 },

@@ -1,0 +1,32 @@
+{"name":"hidden words initial resolved and successful add","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"hidden words initial rejected and successful add","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"hidden words mutation resolved preserves draft and retry","status":"FAIL","error":"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:"}
+{"name":"hidden words mutation rejected preserves draft and retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"muted words initial resolved and successful add","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"muted words initial rejected and successful add","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"muted words mutation resolved preserves draft and retry","status":"FAIL","error":"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:"}
+{"name":"muted words mutation rejected preserves draft and retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"standing resolved with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"standing rejected with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Explore resolved with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Explore rejected with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"topic resolved with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"topic rejected with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Search topics resolved with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Search topics rejected with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"featured channels resolved with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"featured channels rejected with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Discover topics resolved with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Discover topics rejected with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Market availability resolved with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Market availability rejected with retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Market inbox count resolved and next-poll recovery","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Market inbox count rejected and next-poll recovery","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Listing storage:market-media rejected then successful submit","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Listing table:marketplace_listings:insert rejected then successful submit","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Business creation rejected then successful retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Promotion picker resolved and content retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Promotion picker rejected and content retry","status":"FAIL","error":"TimeoutError: locator.waitFor: Timeout 2000ms exceeded."}
+{"name":"Profile cover pointer path at 390","status":"FAIL","error":"AssertionError [ERR_ASSERTION]: Change cover center must not be intercepted by the photo row"}
+{"name":"Profile cover pointer path at 1440","status":"FAIL","error":"AssertionError [ERR_ASSERTION]: Change cover center must not be intercepted by the photo row"}
+{"cases":31,"passed":0,"failed":31,"output":"/tmp/platinum-member-resilience-baseline-final"}

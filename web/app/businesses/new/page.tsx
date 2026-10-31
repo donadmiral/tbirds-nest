@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Briefcase, Check, X } from "lucide-react";
@@ -20,6 +20,9 @@ export default function NewBusinessPage() {
   const avail: Avail = !normalizedUsername ? "idle" : !/^[a-z0-9_]{3,30}$/.test(normalizedUsername) ? "invalid" : availability?.username === normalizedUsername ? availability.value : "checking";
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submitting = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   useEffect(() => {
     const u = normalizedUsername;
@@ -36,21 +39,24 @@ export default function NewBusinessPage() {
   const canCreate = name.trim().length >= 2 && avail === "free" && !!category && !creating;
 
   const create = async () => {
-    if (!canCreate) return;
+    if (!canCreate || submitting.current) return;
+    submitting.current = true;
     setCreating(true);
     setError(null);
+    try {
     const { data, error } = await supabase.functions.invoke("create-business", {
       body: { name: name.trim(), username: username.trim().toLowerCase(), category },
     });
-    setCreating(false);
     if (error) {
       let reason = error.message;
       try { const ctx = (error as { context?: { json?: () => Promise<{ error?: string }> } }).context; if (ctx?.json) { const parsed = await ctx.json(); if (parsed?.error) reason = parsed.error; } } catch { /* keep original */ }
-      setError(reason);
-      return;
+      throw new Error(reason);
     }
     const biz = (data as { business?: { username?: string; name?: string } } | null)?.business;
-    router.push(biz?.username ? "/" + biz.username : "/businesses");
+    if (mounted.current) router.push(biz?.username ? "/" + biz.username : "/businesses");
+    } catch (reason) {
+      if (mounted.current) setError(reason && typeof reason === "object" && "message" in reason ? String(reason.message) : "Could not create the business. Please try again.");
+    } finally { submitting.current = false; if (mounted.current) setCreating(false); }
   };
 
   const hint = avail === "checking" ? ["Checking...", "text-muted"] : avail === "free" ? ["Available", "text-success"] : avail === "taken" ? ["Already taken", "text-danger"] : avail === "invalid" ? ["3 to 30 characters. Lowercase letters, numbers, underscores.", "text-muted"] : ["This becomes the business @handle.", "text-muted"];
