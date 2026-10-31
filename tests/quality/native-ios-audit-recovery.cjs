@@ -10,7 +10,7 @@ const helper = path.join(root, 'scripts/quality/native-ui-ios-audit-recovery.py'
 
 test('actual recovery helper bounds reads/processes and preserves the original gate outcomes', () => {
   const code = String.raw`
-import ctypes, importlib.util, json, os, plistlib, signal, subprocess, sys, tarfile, tempfile, time, unittest
+import ast, ctypes, importlib.util, json, os, plistlib, signal, subprocess, sys, tarfile, tempfile, time, types, unittest
 from pathlib import Path
 from unittest import mock
 spec=importlib.util.spec_from_file_location('recovery',sys.argv[1]); m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -41,8 +41,11 @@ class RecoveryTests(unittest.TestCase):
   def execute(args,timeout,**kwargs):
    budgets.append(timeout);result=subprocess.CompletedProcess(args,0,read(args).encode(),b'');result.elapsed_seconds=6 if args[0]=='xcodebuild' else .01;result.leader_completed_before_pipe_eof=False;return result
   with mock.patch.object(m,'bounded_command',side_effect=execute):
-   proof=m.verify_setup_compatibility(app,self.manifest(),'selected',records,output,host_system='Darwin')
-  self.assertTrue(proof['codeSignatureVerified']);self.assertEqual(budgets,[30]*7)
+   proof=m.verify_setup_immutable(app,self.manifest(),records,output,host_system='Darwin')
+   self.assertTrue(proof['codeSignatureVerified']);self.assertEqual(budgets,[30]*5)
+   self.assertFalse(any('simctl' in row for row in calls))
+   runtime=m.verify_setup_booted_runtime(app,self.manifest(),'selected',records,output)
+  self.assertEqual(runtime['selectedDevice'],'selected');self.assertEqual(budgets,[30]*7)
   retained=json.loads(output.read_text())['commands'];self.assertEqual(len(retained),7)
   self.assertEqual(retained[1]['stage'],'compatibility-xcode-version');self.assertEqual(retained[1]['elapsedSeconds'],6)
   self.assertTrue(all(row['status']=='completed' and row['exitCode']==0 for row in retained))
@@ -54,9 +57,41 @@ class RecoveryTests(unittest.TestCase):
    if args[0]=='xcodebuild':raise failure
    result=subprocess.CompletedProcess(args,0,b'x86_64',b'');result.elapsed_seconds=.01;result.leader_completed_before_pipe_eof=False;return result
   with mock.patch.object(m,'bounded_command',side_effect=execute):
-   with self.assertRaises(subprocess.TimeoutExpired) as caught:m.verify_setup_compatibility(app,self.manifest(),'selected',records,output,host_system='Darwin')
+   with self.assertRaises(subprocess.TimeoutExpired) as caught:m.verify_setup_immutable(app,self.manifest(),records,output,host_system='Darwin')
   self.assertIs(caught.exception,failure);retained=json.loads(output.read_text())['commands'];self.assertEqual(len(retained),2)
   self.assertEqual(retained[-1]['stage'],'compatibility-xcode-version');self.assertEqual(retained[-1]['status'],'timed-out');self.assertEqual(retained[-1]['stdoutTail'],'Xcode startup');self.assertEqual(retained[-1]['stderrTail'],'partial warning')
+ def test_actual_setup_statements_check_host_before_boot_and_live_device_afterward(self):
+  app=self.app();read,_=self.reader(app);commands=[]
+  def execute(args,timeout,**kwargs):
+   commands.append((args,timeout))
+   if args[:3]==['xcrun','simctl','create']:data=b'selected'
+   elif args[:3] in [['xcrun','simctl','boot'],['xcrun','simctl','bootstatus'],['xcrun','simctl','install']]:data=b''
+   else:data=read(args).encode()
+   result=subprocess.CompletedProcess(args,0,data,b'');result.elapsed_seconds=.01;result.leader_completed_before_pipe_eof=False;return result
+  main=next(node for node in ast.parse(Path(sys.argv[1]).read_text()).body if isinstance(node,ast.FunctionDef) and node.name=='main')
+  setup=next(node for node in main.body if isinstance(node,ast.Try) and any(isinstance(child,ast.Call) and isinstance(child.func,ast.Name) and child.func.id=='verify_setup_immutable' for child in ast.walk(node)))
+  stop=next(index for index,node in enumerate(setup.body) if isinstance(node,ast.With))
+  code=compile(ast.Module(body=setup.body[:stop],type_ignores=[]),str(sys.argv[1]),'exec')
+  def run(digest):
+   output=self.root/('good' if digest==m.BINARY_SHA else 'changed');output.mkdir()
+   ns={**m.__dict__,'app':app,'manifest':self.manifest(),'setup_records':[],'output':output,'provenance':{},'runner':types.SimpleNamespace(binary_digest=lambda _:digest)}
+   with mock.patch.object(m,'bounded_command',side_effect=execute),mock.patch.object(m.compatibility_module.platform,'system',return_value='Darwin'):exec(code,ns)
+   return ns
+  result=run(m.BINARY_SHA)
+  self.assertEqual(len(commands),11)
+  self.assertEqual(commands[0][0],['/usr/bin/uname','-m'])
+  self.assertEqual(commands[1][0],['xcodebuild','-version'])
+  self.assertEqual(commands[2][0],['xcrun','--sdk','iphonesimulator','--show-sdk-version'])
+  self.assertEqual(commands[5][0][:3],['xcrun','simctl','create'])
+  self.assertEqual(commands[7][0][:3],['xcrun','simctl','bootstatus'])
+  self.assertEqual([row[0][3] for row in commands[8:10]],['runtimes','devices'])
+  self.assertEqual(commands[-1][0][:3],['xcrun','simctl','install'])
+  self.assertEqual([row[1] for row in commands],[30]*5+[120,120,300]+[30,30,120])
+  self.assertTrue(result['provenance']['immutableCompatibilityVerification']['codeSignatureVerified'])
+  self.assertEqual(result['provenance']['bootedRuntimeVerification']['selectedDevice'],'selected')
+  commands.clear()
+  with self.assertRaisesRegex(ValueError,'app bytes changed'):run('0'*64)
+  self.assertFalse(any(row[0][:3]==['xcrun','simctl','install'] for row in commands))
  def test_incompatible_host_binary_toolchain_and_runtime_fail_closed(self):
   app=self.app()
   changes=[{('/usr/bin/uname','-m'):'arm64'},{('xcodebuild','-version'):'Xcode 17'},
@@ -222,7 +257,7 @@ unittest.main(argv=['recovery-tests'],verbosity=2)
 `;
   const result = spawnSync('python3', ['-c', code, helper], { encoding: 'utf8', timeout: 30000 });
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stderr, /Ran 21 tests/);
+  assert.match(result.stderr, /Ran 22 tests/);
 });
 
 test('recovery workflow consumes the exact existing app and separates helper provenance', () => {
@@ -233,7 +268,13 @@ test('recovery workflow consumes the exact existing app and separates helper pro
   const job = workflow.jobs['recover-ios'];
   assert.equal(job['runs-on'], 'macos-15-intel');
   assert.equal(job.strategy['fail-fast'], false);
-  assert.equal(job.strategy.matrix.include.length, 3);
+  assert.deepEqual(job.strategy.matrix.include, [{ shard: 'memory', groups: 'memory' }]);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'tests/native/audit/manifest.json'), 'utf8'));
+  assert.deepEqual(manifest.cases.filter(item => item.group === 'memory').map(item => item.id), [
+    'memory-memoryalbum', 'memory-reader-controls', 'memory-cover-settings',
+    'memory-film-export-entry', 'memory-capture-session',
+  ]);
+  assert.equal(manifest.cases.filter(item => item.group !== 'memory').length, 80);
   const baseline = job.steps.find(step => step.with?.path === 'baseline');
   assert.equal(baseline.with.ref, 'b568bd7b75bd25ad919afd8eac8d52300a5c3fcc');
   const download = job.steps.find(step => step.with?.name === 'native-audit-ios-binary');

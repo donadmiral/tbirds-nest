@@ -203,7 +203,7 @@ def verify_compatibility(app, manifest, device, read=read_command, host_system=N
     return compatibility_module.verify_compatibility(app, manifest, device, read, host_system)
 
 
-def verify_setup_compatibility(app, manifest, device, records, output, host_system=None):
+def setup_compatibility_reader(app, records, output):
     """Use the normal runner's 30s metadata-read budget and retain each boundary."""
     stages = {
         ('/usr/bin/uname', '-m'): 'host-architecture',
@@ -221,7 +221,17 @@ def verify_setup_compatibility(app, manifest, device, records, output, host_syst
         if stage is None:
             raise ValueError('Unexpected compatibility metadata command')
         return setup_read(args, 'compatibility-' + stage, 30, records, output)
-    return verify_compatibility(app, manifest, device, read=read, host_system=host_system)
+    return read
+
+
+def verify_setup_immutable(app, manifest, records, output, host_system=None):
+    return compatibility_module.verify_immutable_compatibility(
+        app, manifest, setup_compatibility_reader(app, records, output), host_system)
+
+
+def verify_setup_booted_runtime(app, manifest, device, records, output):
+    return compatibility_module.verify_booted_runtime(
+        manifest, device, setup_compatibility_reader(app, records, output))
 
 
 def stable_json_bytes(path):
@@ -547,15 +557,23 @@ def main():
     result = 1
     setup_records = []
     try:
+        provenance['immutableCompatibilityVerification'] = verify_setup_immutable(
+            app, manifest, setup_records, output / 'setup-commands.json')
+        atomic_json(output / 'recovery-provenance.json', provenance)
         device = setup_read(['xcrun', 'simctl', 'create', 'Platinum retained audit ' + os.environ.get('GITHUB_RUN_ID', ''),
                              'com.apple.CoreSimulator.SimDeviceType.iPhone-16', RUNTIME], 'create', 120,
                             setup_records, output / 'setup-commands.json')
         setup_read(['xcrun', 'simctl', 'boot', device], 'boot', 120, setup_records, output / 'setup-commands.json')
         setup_read(['xcrun', 'simctl', 'bootstatus', device, '-b'], 'bootstatus', 300, setup_records, output / 'setup-commands.json')
-        provenance['compatibilityVerification'] = verify_setup_compatibility(
+        provenance['bootedRuntimeVerification'] = verify_setup_booted_runtime(
             app, manifest, device, setup_records, output / 'setup-commands.json')
+        provenance['compatibilityVerification'] = {
+            **provenance['immutableCompatibilityVerification'], **provenance['bootedRuntimeVerification'],
+            'scope': 'Actual host/toolchain/app verified before Simulator creation; live selected runtime/device verified after boot. App launch remains required.'}
         provenance['device'] = device
         atomic_json(output / 'recovery-provenance.json', provenance)
+        if runner.binary_digest(app) != BINARY_SHA:
+            raise ValueError('Verified app bytes changed before installation')
         read_command(['xcrun', 'simctl', 'install', device, str(app)], timeout=120)
         with (logs / 'app.log').open('wb') as log_file:
             log_process = subprocess.Popen(['xcrun', 'simctl', 'spawn', device, 'log', 'stream', '--style', 'compact', '--level', 'info',

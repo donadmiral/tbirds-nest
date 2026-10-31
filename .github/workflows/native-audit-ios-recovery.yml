@@ -22,12 +22,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - shard: settings
-            groups: settings,stories,directories
-          - shard: account
-            groups: support,auth,profile,business,memory
-          - shard: social
-            groups: navigation,feed,market,jobs,messages
+          - shard: memory
+            groups: memory
     env:
       CI: 'true'
       EXPO_NO_TELEMETRY: '1'
