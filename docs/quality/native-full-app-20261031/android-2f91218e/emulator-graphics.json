@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "phase": "emulator",
+  "passed": true,
+  "requested": {
+    "glesMode": "host",
+    "hostSoftwareDriver": "llvmpipe",
+    "guestVulkan": false
+  },
+  "inputs": [
+    {
+      "path": "native-ui-logs/host-graphics.log",
+      "bytes": 1772,
+      "sha256": "083d1baad9b4cf6aaedbf54121d13034d41b5b25cb6fe736874b4a874f1e9858",
+      "scope": "prefix present at open",
+      "sizeAfterRead": 1772
+    },
+    {
+      "path": "native-ui-logs/emulator.log",
+      "bytes": 30125,
+      "sha256": "0b405ba61eabafb0ecc0dcbcd898fe6612da3abba9a9568b4e311ba29fee7c56",
+      "scope": "prefix present at open",
+      "sizeAfterRead": 30125
+    }
+  ],
+  "limits": [
+    "Renderer identity only; this does not establish UI, movie, physical-device or Vulkan acceptance."
+  ],
+  "host": {
+    "vendor": "Mesa",
+    "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)"
+  },
+  "emulator": {
+    "vendor": "Google (Mesa)",
+    "renderer": "Android Emulator OpenGL ES Translator (llvmpipe (LLVM 20.1.2, 256 bits))",
+    "version": "OpenGL ES 3.0 (4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4)",
+    "selectedGlesMode": "host",
+    "selectedVulkanMode": "host"
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "reviewedAt": "2026-10-31T18:12:09.527834+00:00",
+  "scope": "Confirmed non-Support member-web failures from first discovery pass. No production fixes applied. Severity is repair priority, not a vulnerability score.",
+  "issues": [
+    {
+      "id": "WEB-01",
+      "severity": "P1",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Failed privacy-word reads permit replacing existing filters",
+      "routes": [
+        "/settings/hidden-words",
+        "/settings/muted-words"
+      ],
+      "expected": "Unknown initial settings must not be treated as an empty confirmed list; adding a word must preserve existing filters.",
+      "actual": "Both resolved read errors and rejected reads leave an empty editable list. Add sends a profiles update with only [\"newword\"] and renders that one word. The simulated stored baseline contains \"existing\".",
+      "reproduction": "Load with profiles read failing, enter newword, click Add; inspect the exact update array.",
+      "evidenceCases": [
+        "hidden-words-read-resolved",
+        "hidden-words-read-rejected",
+        "muted-words-read-resolved",
+        "muted-words-read-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/settings/hidden-words/page.tsx",
+        "web/app/settings/muted-words/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-02",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Account standing reports a clean record after failed lookup",
+      "routes": [
+        "/settings/standing"
+      ],
+      "expected": "Failed or unavailable strike data should remain unknown with a recovery action.",
+      "actual": "Resolved member_strikes error renders “Good standing. No strikes on this account.” Rejection emits an uncaught error and leaves Loading.",
+      "reproduction": "Return an error or reject the member_strikes read while identity succeeds.",
+      "evidenceCases": [
+        "standing-resolved",
+        "standing-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/settings/standing/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-03",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Explore can remain Loading after one rejected feed read",
+      "routes": [
+        "/explore"
+      ],
+      "expected": "A failed section should expose recovery and settle the page loading state.",
+      "actual": "A rejected get_feed inside Promise.all produces an uncaught rejection; loaded never becomes true. Resolved errors silently omit failed content.",
+      "reproduction": "Keep authentication/trending normal and reject only get_feed.",
+      "evidenceCases": [
+        "explore-resolved",
+        "explore-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/explore/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-04",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Topic reads confuse failure with an empty topic or never settle",
+      "routes": [
+        "/topic/[tag]"
+      ],
+      "expected": "A failed topic read should be distinguished from an empty successful response.",
+      "actual": "With the correct Promise params, a returned posts error renders “No posts with this topic yet.” A rejection leaves Loading and is uncaught.",
+      "reproduction": "Open #CoastalStories with posts read error/rejection.",
+      "evidenceCases": [
+        "topic-resolved",
+        "topic-rejected",
+        "topic-normal"
+      ],
+      "sourceFiles": [
+        "web/app/topic/[tag]/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-05",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Empty-query Search becomes blank when trending topics fail",
+      "routes": [
+        "/search"
+      ],
+      "expected": "Unavailable discovery content should provide a meaningful state or recovery action.",
+      "actual": "The page main content is empty when get_trending_topics errors; rejected requests are uncaught. Existing real AppShell is outside this fixture, so this is not a claim that the full hosted app loses its navigation.",
+      "reproduction": "Open Search with no query and fail only get_trending_topics.",
+      "evidenceCases": [
+        "search-trending-resolved",
+        "search-trending-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/search/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-06",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Creation forms remain busy after rejected requests",
+      "routes": [
+        "/market/new",
+        "/businesses/new"
+      ],
+      "expected": "Unexpected failures should release the submit lock, retain input and show an error.",
+      "actual": "A rejected listing upload or insert leaves Publishing disabled. A rejected create-business invocation leaves Creating disabled. Standard returned-error paths correctly restore the buttons.",
+      "reproduction": "Fill a valid synthetic form; reject the indicated upload/insert/function request; compare with returned-error controls.",
+      "evidenceCases": [
+        "market-create-storage-rejected",
+        "market-create-table-rejected",
+        "business-create-rejected",
+        "market-create-storage-resolved",
+        "market-create-table-resolved",
+        "business-create-resolved"
+      ],
+      "sourceFiles": [
+        "web/app/market/new/page.tsx",
+        "web/app/businesses/new/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-07",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Promotion picker hides its content-load failure",
+      "routes": [
+        "/ads/new"
+      ],
+      "expected": "A failed existing-content read should be visible in the picker with recovery.",
+      "actual": "The catch records an error, but it is rendered only in step4. At step2 the user sees format/new-text choices and no existing posts or failure explanation.",
+      "reproduction": "Fail the posts read, choose Get more views, click Continue.",
+      "evidenceCases": [
+        "ads-picker-resolved",
+        "ads-picker-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/ads/new/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-08",
+      "severity": "P3",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Auxiliary discovery and inbox reads reject without handlers",
+      "routes": [
+        "/market",
+        "/discover",
+        "/market/new"
+      ],
+      "expected": "Ancillary failures must be handled without uncaught rejections and without claiming a known badge/list state.",
+      "actual": "MarketUnreadDot lets loadConversations reject; FeaturedChannels/ExploreTopics reject unhandled; the new-listing feature-flag read also rejects unhandled. Main Market and Discover error/retry paths remain functional.",
+      "reproduction": "Fail conversations/get_channels/get_trending_topics/feature_flags independently or inspect the route rejected-mode record.",
+      "evidenceCases": [
+        "market-conversations-resolved",
+        "market-conversations-rejected",
+        "route:/discover:rejected",
+        "route:/market/new:rejected"
+      ],
+      "sourceFiles": [
+        "web/components/MarketUnreadDot.tsx",
+        "web/components/DiscoverSections.tsx",
+        "web/app/market/new/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-09",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Profile photo row intercepts the cover-change button center",
+      "routes": [
+        "/settings/profile"
+      ],
+      "expected": "Visible cover controls should receive normal pointer input.",
+      "actual": "At1440px and390px, elementFromPoint at the Change cover button center returns the overlapping photoRow. A normal click times out on pointer interception. Source has bottom15px cover controls and a later positioned photoRow with margin-top:-35px.",
+      "reproduction": "Open the actual Profile editor and click Change cover at its center; inspect hit target and geometry.",
+      "evidenceCases": [
+        "profile-cover-1440",
+        "profile-cover-390"
+      ],
+      "sourceFiles": [
+        "web/app/settings/profile/profile.module.css",
+        "web/app/settings/profile/page.tsx"
+      ],
+      "limits": "Actual component and CSS at desktop/mobile widths, with synthetic profile data. The fixture does not include the full AppShell; intrinsic overlapping row geometry is retained. No forced clicks were used."
+    }
+  ],
+  "additionalAccessibilityObservation": {
+    "route": "/login",
+    "status": "REVIEW_REQUIRED",
+    "observation": "Actual deployed signed-out AX exposes two unnamed text fields; DOM controls rely on placeholders and have no aria-label. Signup AX likewise has unnamed inputs.",
+    "evidence": "live/public-audit.json",
+    "boundary": "Keep separate from the nine behavior families until exact accessible-name behavior across supported screen readers is checked."
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "phase": "collect",
+  "runId": "41225636296",
+  "emulatorPid": 7090,
+  "launchUnixNs": "1793469441815533247",
+  "status": "unavailable",
+  "limits": {
+    "seconds": 2.0,
+    "inputBytes": 65536,
+    "stdoutBytes": 131072,
+    "stderrBytes": 4096,
+    "records": 4,
+    "messageBytes": 32768
+  },
+  "limitsOfInterpretation": [
+    "Diagnostic only; original required flow, evidence and decoder status remains authoritative.",
+    "Saved journal identity/time fields do not contain a process-start-ticks equality proof.",
+    "No matching record may mean unavailable permissions, an unsupported handler, in-flight processing or no saved summary.",
+    "No core, environment, command line, process memory or mapped-library contents are read or retained."
+  ],
+  "gateExitCode": 1,
+  "processAtCollection": "not-present",
+  "identity": {
+    "pid": 7090,
+    "uid": 1001,
+    "executable": "/usr/local/lib/android/sdk/emulator/qemu/linux-x86_64/qemu-system-x86_64-headless",
+    "executableDevice": 2049,
+    "executableInode": 2373033,
+    "startTicks": "105235",
+    "clockTicksPerSecond": 100,
+    "sdkRoot": "/usr/local/lib/android/sdk"
+  },
+  "bootId": "4d5b1b3f0dc4400da99c56d24eab460f",
+  "snapshotUnixNs": "1793469480763735443",
+  "queryUntilUnixNs": "1793469709425251031",
+  "query": [
+    "/usr/bin/sudo",
+    "-n",
+    "--",
+    "/usr/bin/timeout",
+    "--signal=TERM",
+    "--kill-after=0.2s",
+    "1.5s",
+    "/usr/bin/journalctl",
+    "--no-pager",
+    "--quiet",
+    "--all",
+    "--output=json",
+    "--output-fields=MESSAGE_ID,COREDUMP_PID,COREDUMP_UID,COREDUMP_EXE,COREDUMP_SIGNAL,COREDUMP_SIGNAL_NAME,COREDUMP_TIMESTAMP,MESSAGE,_BOOT_ID,__REALTIME_TIMESTAMP,__MONOTONIC_TIMESTAMP",
+    "--lines=4",
+    "--boot=4d5b1b3f0dc4400da99c56d24eab460f",
+    "--since=@1793469441",
+    "--until=@1793469710",
+    "MESSAGE_ID=fc2e22bc6ee647b6b90729ab34a250b1",
+    "COREDUMP_PID=7090",
+    "COREDUMP_UID=1001",
+    "COREDUMP_EXE=/usr/local/lib/android/sdk/emulator/qemu/linux-x86_64/qemu-system-x86_64-headless"
+  ],
+  "queryResult": {
+    "returnCode": 0,
+    "timedOut": false,
+    "stdoutLimitHit": false,
+    "stderrLimitHit": false,
+    "stdoutBytes": 0,
+    "stderrBytes": 0
+  },
+  "records": [],
+  "rejectedRecords": 0,
+  "recordLimitPossiblyReached": false,
+  "reason": "no-matching-saved-crash-record",
+  "elapsedMs": 15.256
+}

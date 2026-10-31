@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="emulator-5556" tests="1" failures="1" time="168.688" timestamp="2026-10-31T17:58:09">
+    <testcase id="Full native app navigation" name="Full native app navigation" classname="Full native app navigation" file="tests/native/flows/navigation.yaml" time="168.645" timestamp="2026-10-31T17:58:09" status="ERROR">
+      <failure>Assertion is false: "Postcard book cover: THE LONG WAY HOME. A book from this week. Roads worth remembering. DESERT DAYS" is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,423 @@
+{
+  "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "archives": [
+    {
+      "path": "route-sweep/results.json.gz",
+      "sha256": "9825c5d93c7e77688064313e7137ed59082d15316a3085b3ee303f1d7ba8e721",
+      "bytes": 38961,
+      "uncompressedBytes": 845859,
+      "uncompressedSha256": "f49df237e805548662c7640d7498a0bbde827a5ca20f9775de1dd33c05db8760",
+      "scratchOriginal": "/tmp/platinum-web-audit-2f/raw-complete/route-sweep/results.json",
+      "compression": "gzip level9,mtime0"
+    },
+    {
+      "path": "control-audit/results.json.gz",
+      "sha256": "971d3499929f56ea66220fee3cb87625eafd5c428cd901ac13712dc3de9c2d7f",
+      "bytes": 805797,
+      "uncompressedBytes": 18267845,
+      "uncompressedSha256": "42eae02b25a9d61127b0e0b77f26d9a4cff70d2b3fe1bd71daf0f93e06ae3f8e",
+      "scratchOriginal": "/tmp/platinum-web-audit-2f/raw-complete/control-audit/results.json",
+      "compression": "gzip level9,mtime0"
+    },
+    {
+      "path": "focused/results.json.gz",
+      "sha256": "ee52fa9af037b5b4feeea5787a73ea1a64b6e38c748a258cc1d8de7b9d007293",
+      "bytes": 22413,
+      "uncompressedBytes": 658609,
+      "uncompressedSha256": "72c72cdfd5426cb3c2687d47fe61e5c044e4ea9044b3261a9a6351cecc889b5f",
+      "scratchOriginal": "/tmp/platinum-web-audit-2f/raw-complete/focused/results.json",
+      "compression": "gzip level9,mtime0"
+    },
+    {
+      "path": "studio-actions/results.json.gz",
+      "sha256": "1301b3d893cb084ddebf269057eab9112530cbeac69308ac0111db7cfb675b58",
+      "bytes": 8434,
+      "uncompressedBytes": 151632,
+      "uncompressedSha256": "ba4644fe588b1864ce5210e38470a98e83a8a66750be797c20cca3c4368e2a96",
+      "scratchOriginal": "/tmp/platinum-web-audit-2f/raw-complete/studio-actions/results.json",
+      "compression": "gzip level9,mtime0"
+    },
+    {
+      "path": "profile-cover-hit-test/results.json.gz",
+      "sha256": "a165406b84c22ad79814c6efcba3e523dd6396f54a8fadca7e03e5c058461db6",
+      "bytes": 2115,
+      "uncompressedBytes": 23534,
+      "uncompressedSha256": "a91567cac75518b502b7571a12aaa663ef6a51c2c18527a55166b2a790bded9c",
+      "scratchOriginal": "/tmp/platinum-web-audit-2f/raw-complete/profile-cover-hit-test/results.json",
+      "compression": "gzip level9,mtime0"
+    },
+    {
+      "path": "route-action-inventory.json.gz",
+      "sha256": "3c4ac59b9d490a9a060973521e33ba52f9e6331f2ad782b10f3d1586d9ae63cd",
+      "bytes": 59846,
+      "uncompressedBytes": 853626,
+      "uncompressedSha256": "ca31952d6ce67e460957909f10c89aee88afadb9f76d6a2e32418b57662684af",
+      "scratchOriginal": "/tmp/platinum-web-audit-2f/raw-complete/route-action-inventory.json",
+      "compression": "gzip level9,mtime0"
+    }
+  ],
+  "omittedScreenshots": [
+    {
+      "path": "route-sweep/_topic__tag_-normal.png",
+      "sha256": "e80e4e240f7566ae11f460fc94f90e1b4eb23f1b6b21e3c3e2821df85f8ca9a8",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/route-sweep/_topic__tag_-normal.png"
+    },
+    {
+      "path": "control-audit/error-0325.png",
+      "sha256": "e80e4e240f7566ae11f460fc94f90e1b4eb23f1b6b21e3c3e2821df85f8ca9a8",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/control-audit/error-0325.png"
+    },
+    {
+      "path": "control-audit/error-0089.png",
+      "sha256": "e80e4e240f7566ae11f460fc94f90e1b4eb23f1b6b21e3c3e2821df85f8ca9a8",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/control-audit/error-0089.png"
+    },
+    {
+      "path": "control-audit/error-0128.png",
+      "sha256": "e80e4e240f7566ae11f460fc94f90e1b4eb23f1b6b21e3c3e2821df85f8ca9a8",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/control-audit/error-0128.png"
+    },
+    {
+      "path": "focused/_studio_commerce-resolved.png",
+      "sha256": "a31416183631b5115e9847d3422f8ee769a9f6632b576ca3f54550f573993534",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_commerce-resolved.png"
+    },
+    {
+      "path": "focused/market-create-table-resolved.png",
+      "sha256": "a13d12f1669e017a343d43c021e92c905bcd5ba9fe06a9691a4c6dfe9e5457f5",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/market-create-table-resolved.png"
+    },
+    {
+      "path": "focused/_studio_earnings-resolved.png",
+      "sha256": "24ce85f2d09ede76bf2b6bbd02dd31dbb604286e0288f0c3a4b3439510ceadf6",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_earnings-resolved.png"
+    },
+    {
+      "path": "focused/_studio_commerce-loaded.png",
+      "sha256": "9243b3ef6ab93c2e8a01135f1b8a0ee546bbf6a4a01d42067f49da28d4fb912c",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_commerce-loaded.png"
+    },
+    {
+      "path": "focused/market-create-storage-resolved.png",
+      "sha256": "9ca4fb27af212f1cc24bbb555938b986f8ea612dfd606e5fb76936d392938fb8",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/market-create-storage-resolved.png"
+    },
+    {
+      "path": "focused/_studio_settings-rejected.png",
+      "sha256": "d404e61cba75dfeb5a329a86e85ea7bedd039c5759b20759e71a5607d14417e9",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_settings-rejected.png"
+    },
+    {
+      "path": "focused/_studio_content-rejected.png",
+      "sha256": "08879859712a9ddb7724f5a2abfdbdc5e5dd81b3f1260489ac191f090908ba31",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_content-rejected.png"
+    },
+    {
+      "path": "focused/muted-words-read-rejected.png",
+      "sha256": "1e41d78146e305d7b9e9fbd62995de2785e149847de087504368eff25517dc25",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/muted-words-read-rejected.png"
+    },
+    {
+      "path": "focused/_studio_settings_organization-resolved.png",
+      "sha256": "657d692e05d0a3736e4d7d989b4815a26bbaee0d5e0850c90ba67f1afc5137b7",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_settings_organization-resolved.png"
+    },
+    {
+      "path": "focused/_studio_audience-resolved.png",
+      "sha256": "91f7e0706727ad702e328047e8d93afed3ef79f2cc536a028739e4b8aa6e48f1",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_audience-resolved.png"
+    },
+    {
+      "path": "focused/_studio_insights-resolved.png",
+      "sha256": "23826f710daac0060418cb8b46b165c61602f34945b18c985bb2dded0e0862d8",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_insights-resolved.png"
+    },
+    {
+      "path": "focused/search-trending-rejected.png",
+      "sha256": "6aa2d423a232c3b73bb19c53464ab43f7e50db15de7392137eeae1f99646d5b8",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/search-trending-rejected.png"
+    },
+    {
+      "path": "focused/_studio_recruiter-resolved.png",
+      "sha256": "9b5f7677b967639b44fb03843e76f1457ecd6b236e7d63f86cce6ffbfaa7130b",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_recruiter-resolved.png"
+    },
+    {
+      "path": "focused/_studio_newsroom-resolved.png",
+      "sha256": "8bb20efa90a597b0b46f95035817fe16258136539e0ff483c2fd97cce38b884f",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_newsroom-resolved.png"
+    },
+    {
+      "path": "focused/_studio_content-resolved.png",
+      "sha256": "08879859712a9ddb7724f5a2abfdbdc5e5dd81b3f1260489ac191f090908ba31",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_content-resolved.png"
+    },
+    {
+      "path": "focused/_studio_inbox-resolved.png",
+      "sha256": "fa095280beec8b0882ebbdeadf30c80ad8df60292e9bef0b38eac1212218ac01",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_inbox-resolved.png"
+    },
+    {
+      "path": "focused/_studio_inbox-loaded.png",
+      "sha256": "4dfb9c2359c67a8ef088fc8a684a3d51dc51d34b02b905dccf9f8b85b6aca5ec",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_inbox-loaded.png"
+    },
+    {
+      "path": "focused/_studio_partnerships-resolved.png",
+      "sha256": "c820d5bb9ccf5fbd40270e90f30e098d7b0d423eea17da07607ee3e32ddae83c",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_partnerships-resolved.png"
+    },
+    {
+      "path": "focused/_studio_inbox-rejected.png",
+      "sha256": "fa095280beec8b0882ebbdeadf30c80ad8df60292e9bef0b38eac1212218ac01",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_inbox-rejected.png"
+    },
+    {
+      "path": "focused/_studio_ads-resolved.png",
+      "sha256": "048b9655eb16fd6e845dee9bb49bb73194c3a0deac1fdca9bb0b8597e10d1310",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_ads-resolved.png"
+    },
+    {
+      "path": "focused/ads-picker-rejected.png",
+      "sha256": "c12c6cd8284e6ce4c3a4145c11ba4dc64a3b71a04e6df7ac1ef60d9fe7754ff9",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/ads-picker-rejected.png"
+    },
+    {
+      "path": "focused/_studio_reviews-loaded.png",
+      "sha256": "8806c739a1316dbd03dd8f205c61d9d43a6d92c821062342deb4e260b937a8c6",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_reviews-loaded.png"
+    },
+    {
+      "path": "focused/_studio-resolved.png",
+      "sha256": "d99e11045fe1cea26cce5234ceccf1d7e110e3ab4887176dd12e6562d68baa49",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio-resolved.png"
+    },
+    {
+      "path": "focused/_studio_settings-resolved.png",
+      "sha256": "5d570cbfe70554374cafc107f0a85650f4897f718d8e918df2696f3cf54c93c9",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_settings-resolved.png"
+    },
+    {
+      "path": "focused/_studio_planner-rejected.png",
+      "sha256": "559f6eecaae327b06d40fdbd9bae2b2c2b625963b798aa85baa8d0584834d55a",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_planner-rejected.png"
+    },
+    {
+      "path": "focused/_studio_partnerships-rejected.png",
+      "sha256": "9caad92e3cfa88d8d0fecdf16fd9ccd48f1b79c2958f6bd5bc6b22c9506a7f54",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_partnerships-rejected.png"
+    },
+    {
+      "path": "focused/business-create-resolved.png",
+      "sha256": "de384b78e45c8ea7275159752e6fb537adc913841294cc79f1799e301507ecdd",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/business-create-resolved.png"
+    },
+    {
+      "path": "focused/_studio_ads-rejected.png",
+      "sha256": "048b9655eb16fd6e845dee9bb49bb73194c3a0deac1fdca9bb0b8597e10d1310",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_ads-rejected.png"
+    },
+    {
+      "path": "focused/market-create-table-rejected.png",
+      "sha256": "52a1b3d7d77999375b60507fc1e93562e8aef3679e3bda18794bded5adb61b92",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/market-create-table-rejected.png"
+    },
+    {
+      "path": "focused/_studio_audience-loaded.png",
+      "sha256": "fed5389dcd704f645bc0ff38a8199ebb8024294423e6964b95c45e2b0cf32cc1",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_audience-loaded.png"
+    },
+    {
+      "path": "focused/_studio_commerce-rejected.png",
+      "sha256": "a31416183631b5115e9847d3422f8ee769a9f6632b576ca3f54550f573993534",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_commerce-rejected.png"
+    },
+    {
+      "path": "focused/_studio-rejected.png",
+      "sha256": "d99e11045fe1cea26cce5234ceccf1d7e110e3ab4887176dd12e6562d68baa49",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio-rejected.png"
+    },
+    {
+      "path": "focused/market-conversations-rejected.png",
+      "sha256": "18f8126e572bc4f91713380630092ba86e9f409bc82b5772688dc7f8a168395d",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/market-conversations-rejected.png"
+    },
+    {
+      "path": "focused/_studio_planner-resolved.png",
+      "sha256": "559f6eecaae327b06d40fdbd9bae2b2c2b625963b798aa85baa8d0584834d55a",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_planner-resolved.png"
+    },
+    {
+      "path": "focused/_studio_settings_organization-rejected.png",
+      "sha256": "8170d220e9b3b58e6db1c2b44804aa9d31dafc8be918841baad3235d1412de2e",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_settings_organization-rejected.png"
+    },
+    {
+      "path": "focused/explore-resolved.png",
+      "sha256": "1283e21215e95dcbeb123b0875058e30f41e3671b3ceb44279aadbc39a32629b",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/explore-resolved.png"
+    },
+    {
+      "path": "focused/hidden-words-read-rejected.png",
+      "sha256": "12b734019cc0e858b9a8c4a903a9e385fa4c42b4343f9c023a08fa495b2fad7b",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/hidden-words-read-rejected.png"
+    },
+    {
+      "path": "focused/_studio_recruiter-loaded.png",
+      "sha256": "4c4d30690c0054312055d73c2a59c7de3a950d0712c6b2fdd39db394d7236d34",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_recruiter-loaded.png"
+    },
+    {
+      "path": "focused/_studio_audience-rejected.png",
+      "sha256": "91f7e0706727ad702e328047e8d93afed3ef79f2cc536a028739e4b8aa6e48f1",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_audience-rejected.png"
+    },
+    {
+      "path": "focused/_studio_reviews-rejected.png",
+      "sha256": "2c3c1c991823925b28f24e25f42e93444ddc9b050f8ac33d9221dd1e578a722b",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_reviews-rejected.png"
+    },
+    {
+      "path": "focused/_studio_reviews-resolved.png",
+      "sha256": "2c3c1c991823925b28f24e25f42e93444ddc9b050f8ac33d9221dd1e578a722b",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_reviews-resolved.png"
+    },
+    {
+      "path": "focused/_studio_newsroom-rejected.png",
+      "sha256": "e3d5b3d73e1f53a016fd655193d3eeb9b19eeb9897b999fe5bbebe0abc0db25e",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_newsroom-rejected.png"
+    },
+    {
+      "path": "focused/topic-normal.png",
+      "sha256": "7b62fcb6b1edece2f64f4be16050e5e01e06ff5479befadcb4f021cb206729bc",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/topic-normal.png"
+    },
+    {
+      "path": "focused/_studio_insights-rejected.png",
+      "sha256": "23826f710daac0060418cb8b46b165c61602f34945b18c985bb2dded0e0862d8",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_insights-rejected.png"
+    },
+    {
+      "path": "focused/_studio_recruiter-rejected.png",
+      "sha256": "9b5f7677b967639b44fb03843e76f1457ecd6b236e7d63f86cce6ffbfaa7130b",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_recruiter-rejected.png"
+    },
+    {
+      "path": "focused/_studio_earnings-rejected.png",
+      "sha256": "9f8315fe0981f867fbfae303493087b9644e6dbfab21491c7aad3f48286d7467",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/focused/_studio_earnings-rejected.png"
+    },
+    {
+      "path": "studio-actions/reviews-reply-rejected.png",
+      "sha256": "2700a2628f5000a1d86ca4322251def22a12365d422fc81617cfbe34c3f8de1f",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/studio-actions/reviews-reply-rejected.png"
+    },
+    {
+      "path": "studio-actions/inbox-done-resolved.png",
+      "sha256": "4dfb9c2359c67a8ef088fc8a684a3d51dc51d34b02b905dccf9f8b85b6aca5ec",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/studio-actions/inbox-done-resolved.png"
+    },
+    {
+      "path": "studio-actions/commerce-delivery-resolved.png",
+      "sha256": "9243b3ef6ab93c2e8a01135f1b8a0ee546bbf6a4a01d42067f49da28d4fb912c",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/studio-actions/commerce-delivery-resolved.png"
+    },
+    {
+      "path": "studio-actions/audience-label-resolved.png",
+      "sha256": "fed5389dcd704f645bc0ff38a8199ebb8024294423e6964b95c45e2b0cf32cc1",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/studio-actions/audience-label-resolved.png"
+    },
+    {
+      "path": "studio-actions/reviews-reply-resolved.png",
+      "sha256": "2700a2628f5000a1d86ca4322251def22a12365d422fc81617cfbe34c3f8de1f",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/studio-actions/reviews-reply-resolved.png"
+    },
+    {
+      "path": "studio-actions/commerce-delivery-rejected.png",
+      "sha256": "9243b3ef6ab93c2e8a01135f1b8a0ee546bbf6a4a01d42067f49da28d4fb912c",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/studio-actions/commerce-delivery-rejected.png"
+    },
+    {
+      "path": "studio-actions/inbox-done-rejected.png",
+      "sha256": "4dfb9c2359c67a8ef088fc8a684a3d51dc51d34b02b905dccf9f8b85b6aca5ec",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/studio-actions/inbox-done-rejected.png"
+    },
+    {
+      "path": "studio-actions/recruiter-note-resolved.png",
+      "sha256": "1112a5c55b3dbee1ccaa4d3cd1c42d6f14aff9a5ba62cdb0b407df472f1bc210",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/studio-actions/recruiter-note-resolved.png"
+    },
+    {
+      "path": "studio-actions/audience-label-rejected.png",
+      "sha256": "fed5389dcd704f645bc0ff38a8199ebb8024294423e6964b95c45e2b0cf32cc1",
+      "reason": "Redundant passing/fixture-only/alternate screenshot; full DOM/control/request observation remains in deterministic raw archive.",
+      "scratchCopy": "/tmp/platinum-web-audit-2f/raw-complete/screenshots/studio-actions/audience-label-rejected.png"
+    }
+  ],
+  "reproductionNotes": [
+    "The completed 231 route observations used the initial networkidle readiness protocol. The retained sweep-run script is the later resumable DOM-ready variant and was not used to regenerate the already-completed231 rows.",
+    "The control audit preserved130 completed rows, then continued with DOM readiness. Owned-process interruption produced recorded browser-closed failures; they are retained but excluded as product failures.",
+    "The two-second control timeouts are exploration limits, not latency acceptance thresholds. The profile-cover pointer interception was separately reproduced at1440px and390px with exact hit geometry.",
+    "Topic’s missing Promise params was a scratch harness defect, corrected only in the focused bundle. Its original render failures are excluded from product findings.",
+    "Beforeunload dismissal during harness reset prevented several Profile control probes; those are coverage gaps, not app navigation failures.",
+    "Studio disclosure exits occasionally matched an outside Edit control under a modal; those click timeouts are harness-only. Existing CI tests separately cover dialog flows."
+  ]
+}

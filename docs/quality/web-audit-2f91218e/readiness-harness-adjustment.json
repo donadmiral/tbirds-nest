@@ -1,0 +1,22 @@
+{
+  "reason": "The231-case route sweep finished before the proposed readiness adjustment, so it is not rerun. Stop only the remaining owned scratch control driver and resume incomplete control keys using DOM/mounted-page readiness; completed rows remain unchanged. Existing networkidle timeouts are harness limitations, not app failures.",
+  "retained": [
+    {
+      "audit": "route-sweep",
+      "completedRowsRetained": 231,
+      "sha256": "f49df237e805548662c7640d7498a0bbde827a5ca20f9775de1dd33c05db8760"
+    },
+    {
+      "audit": "control-audit",
+      "completedRowsRetained": 130,
+      "sha256": "371c010500ba5e571db4d417d8ac1e27a849f5a72d4aa3fb834c71e4520cc0ad"
+    }
+  ],
+  "stoppedOwnedScratchDrivers": [
+    {
+      "pid": 41644,
+      "command": "node /tmp/platinum-web-audit-2f/actions.cjs",
+      "signal": "TERM"
+    }
+  ]
+}

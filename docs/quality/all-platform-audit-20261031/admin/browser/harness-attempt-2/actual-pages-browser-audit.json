@@ -1,0 +1,3815 @@
+{
+  "sourceHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "runtime": "153.0.8010.12",
+  "scope": "Actual frozen server pages and server helpers execute using installed Supabase2.111 with synthetic fetch; actual Desk/UsersDesk/CommandForm/Viz components render their returned props. The Shell and Next router/server-action wire are explicit local adapters. No provider writes or full Next framework/auth integration.",
+  "counts": {
+    "checks": 69,
+    "passed": 65,
+    "failed": 4,
+    "renderedRoutes": 31
+  },
+  "checks": [
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/ads",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/analytics",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/audit",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer search reaches empty state and Clear filters restores records",
+      "route": "/audit",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer selects its fixture record and opens the correct detail",
+      "route": "/audit",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Area facet applies and clears",
+      "route": "/audit",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Target facet applies and clears",
+      "route": "/audit",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/businesses",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/calls",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer search reaches empty state and Clear filters restores records",
+      "route": "/calls",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer selects its fixture record and opens the correct detail",
+      "route": "/calls",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Type facet applies and clears",
+      "route": "/calls",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Status facet applies and clears",
+      "route": "/calls",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/content/20000000-0000-4000-8000-000000000002",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/content",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer search reaches empty state and Clear filters restores records",
+      "route": "/content",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer selects its fixture record and opens the correct detail",
+      "route": "/content",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Type facet applies and clears",
+      "route": "/content",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Status facet applies and clears",
+      "route": "/content",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/dashboard",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/jobs",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer search reaches empty state and Clear filters restores records",
+      "route": "/jobs",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer selects its fixture record and opens the correct detail",
+      "route": "/jobs",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Type facet applies and clears",
+      "route": "/jobs",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Location facet applies and clears",
+      "route": "/jobs",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/market/orders/20000000-0000-4000-8000-000000000002",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/market/orders",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/market",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer search reaches empty state and Clear filters restores records",
+      "route": "/market",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer selects its fixture record and opens the correct detail",
+      "route": "/market",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Status facet applies and clears",
+      "route": "/market",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Category facet applies and clears",
+      "route": "/market",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/market/reviews",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/music",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/organizations",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/p/20000000-0000-4000-8000-000000000002",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/payments/creators",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/payments",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer search reaches empty state and Clear filters restores records",
+      "route": "/payments",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/present",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/queue",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer search reaches empty state and Clear filters restores records",
+      "route": "/queue",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer selects its fixture record and opens the correct detail",
+      "route": "/queue",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Tier facet applies and clears",
+      "route": "/queue",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/reports",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/reset-password",
+      "status": "failed",
+      "error": "TimeoutError: page.waitForFunction: Timeout 6000ms exceeded."
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/reset-password/request",
+      "status": "failed",
+      "error": "TimeoutError: page.waitForFunction: Timeout 6000ms exceeded."
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/staff",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer search reaches empty state and Clear filters restores records",
+      "route": "/staff",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer selects its fixture record and opens the correct detail",
+      "route": "/staff",
+      "status": "failed",
+      "error": "Error: locator.click: Error: strict mode violation: getByRole('row', { name: 'staff-audit@example.invalid', exact: true }) resolved to 2 elements:\n    1) <div role=\"row\" tabindex=\"0\" class=\"pc-desk-row\" aria-selected=\"true\" aria-label=\"staff-audit@example.invalid\">…</div> aka getByText('Sstaff-audit@example.invalidthis is youSuper AdminActive112m ago11/1/')\n    2) <div role=\"row\" tabindex=\"0\" class=\"pc-desk-row\" aria-selected=\"false\" aria-label=\"staff-audit@example.invalid\">…</div> aka getByText('Sstaff-audit@example.invalidSupport AgentSupport AgentActive012m ago11/1/')\n\nCall log:\n\u001b[2m  - waiting for getByRole('row', { name: 'staff-audit@example.invalid', exact: true })\u001b[22m\n"
+    },
+    {
+      "name": "Actual Desk Role facet applies and clears",
+      "route": "/staff",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Status facet applies and clears",
+      "route": "/staff",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/stories",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer search reaches empty state and Clear filters restores records",
+      "route": "/stories",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer selects its fixture record and opens the correct detail",
+      "route": "/stories",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Type facet applies and clears",
+      "route": "/stories",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk State facet applies and clears",
+      "route": "/stories",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/support/20000000-0000-4000-8000-000000000002",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/support",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer search reaches empty state and Clear filters restores records",
+      "route": "/support",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk consumer selects its fixture record and opens the correct detail",
+      "route": "/support",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Desk Status facet applies and clears",
+      "route": "/support",
+      "status": "failed",
+      "error": "Error: locator.selectOption: Error: strict mode violation: getByRole('combobox', { name: 'Status', exact: true }) resolved to 2 elements:\n    1) <select name=\"status\" class=\"ml-2 rounded-lg border px-3 py-2\">…</select> aka getByLabel('StatusOpenPendingSolvedAppealsAll tickets')\n    2) <select aria-label=\"Status\">…</select> aka getByLabel('Status', { exact: true })\n\nCall log:\n\u001b[2m  - waiting for getByRole('combobox', { name: 'Status', exact: true })\u001b[22m\n"
+    },
+    {
+      "name": "Actual Desk Kind facet applies and clears",
+      "route": "/support",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/system",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/users/20000000-0000-4000-8000-000000000002",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/users/deletions",
+      "status": "passed"
+    },
+    {
+      "name": "Actual server page renders its populated fixture output",
+      "route": "/users",
+      "status": "passed"
+    },
+    {
+      "name": "Verification consumer sends selected application and required review basis to actual server action",
+      "route": "/queue",
+      "status": "passed"
+    },
+    {
+      "name": "Support reply shows unconfirmed receipt failure, keeps draft and reuses its command key",
+      "route": "/support/20000000-0000-4000-8000-000000000002?auditAction=unconfirmed",
+      "status": "passed"
+    }
+  ],
+  "routeCoverage": [
+    {
+      "route": "/ads",
+      "file": "admin-web/app/ads/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "Approve",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Reason for rejection",
+          "name": "reason",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Reject",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/analytics",
+      "file": "admin-web/app/analytics/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "A public synthetic post@avery.audit2 likes0 comments0 shares",
+          "label": null,
+          "name": null,
+          "href": "/content/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Second synthetic post@blake.audit2 likes0 comments0 shares",
+          "label": null,
+          "name": null,
+          "href": "/content/20000000-0000-4000-8000-000000000005",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/audit",
+      "file": "admin-web/app/audit/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Actions on file to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add In the last 30 days to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Today to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Heavy actions to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Staff involved to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "All actions1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Heavy",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Routine1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Fixture1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Search actions, reasons, targets, staff",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Area: AllFixture",
+          "label": "Area",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Target: AllPost",
+          "label": "Target",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Share or export this table",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "When",
+          "label": "Sort When ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "10142550",
+          "label": "Rows per page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Back",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "Next",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Previous record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Next record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Close details",
+          "name": null,
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/businesses",
+      "file": "admin-web/app/businesses/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "Refresh",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Approve and create @audit.business",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "reason",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Decline",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/calls",
+      "file": "admin-web/app/calls/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Sessions on file to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add This week to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Answer rate to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Average talk time to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Live right now to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "All calls2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Live1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Connected1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Never connected1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Video1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Voice1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Group",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Search callers, receivers, call id",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Type: AllVoiceVideoGroup",
+          "label": "Type",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Status: AllEndedRinging",
+          "label": "Status",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Share or export this table",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "From",
+          "label": "Sort From ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "10122550",
+          "label": "Rows per page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Back",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "Next",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Previous record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Next record",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Close details",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open caller",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open receiver",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000005",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/content/20000000-0000-4000-8000-000000000002",
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "",
+          "label": null,
+          "name": null,
+          "href": "/content",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open author",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open reports desk",
+          "label": null,
+          "name": null,
+          "href": "/reports",
+          "disabled": false
+        },
+        {
+          "tag": "summary",
+          "text": "Moderation action",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/content",
+      "file": "admin-web/app/content/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Posts on the platform to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Posted this week to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Carrying open reports to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add With media to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Engagement on file to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "All posts2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Reported",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Trending",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "With media",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Video",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Text only2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Search captions, authors, media",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Type: AllPhotoVideoGalleryText",
+          "label": "Type",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Status: AllPublishedReportedTrending",
+          "label": "Status",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Share or export this table",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "A public synthetic postAvery Audit · @avery.audit · 1h agoSelected",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Second synthetic postBlake Audit · @blake.audit · 1h agoReview content",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "10122550",
+          "label": "Rows per page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Back",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "Next",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Previous record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Next record",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Close details",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Remove this post everywhere",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open post",
+          "label": null,
+          "name": null,
+          "href": "/content/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open author",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/dashboard",
+      "file": "admin-web/app/dashboard/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Total members2flatsignups this week against last",
+          "label": null,
+          "name": null,
+          "href": "/users",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Active now0seen during the last 5 minutes",
+          "label": null,
+          "name": null,
+          "href": "/users",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open reports0flatopened this week against last",
+          "label": null,
+          "name": null,
+          "href": "/reports",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Pending verifications2newapplied this week against last",
+          "label": null,
+          "name": null,
+          "href": "/queue",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Full analytics",
+          "label": null,
+          "name": null,
+          "href": "/analytics",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Verification applicationssubmitted and under review2",
+          "label": null,
+          "name": null,
+          "href": "/queue",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Support ticketsopen conversations1",
+          "label": null,
+          "name": null,
+          "href": "/support",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Business applicationsawaiting review1",
+          "label": null,
+          "name": null,
+          "href": "/businesses",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "All members",
+          "label": null,
+          "name": null,
+          "href": "/users",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "AAvery Audit@avery.audit · Austin1h ago",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "BBlake Audit@blake.audit · Austin1h ago",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000005",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "All posts",
+          "label": null,
+          "name": null,
+          "href": "/content",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "A public synthetic post@avery.audit2",
+          "label": null,
+          "name": null,
+          "href": "/content/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Second synthetic post@blake.audit2",
+          "label": null,
+          "name": null,
+          "href": "/content/20000000-0000-4000-8000-000000000005",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Audit log",
+          "label": null,
+          "name": null,
+          "href": "/audit",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Announcements and flags",
+          "label": null,
+          "name": null,
+          "href": "/system",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Staff and roles",
+          "label": null,
+          "name": null,
+          "href": "/staff",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Audit log",
+          "label": null,
+          "name": null,
+          "href": "/audit",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Controls",
+          "label": null,
+          "name": null,
+          "href": "/system",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Avery Audit applied for Green · community1h ago",
+          "label": null,
+          "name": null,
+          "href": "/queue",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Blake Audit applied for Green · community1h ago",
+          "label": null,
+          "name": null,
+          "href": "/queue",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Manage in Controls",
+          "label": null,
+          "name": null,
+          "href": "/system",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/jobs",
+      "file": "admin-web/app/jobs/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Roles on the platform to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Posted this week to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Posted in 30 days to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Hiring companies to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Remote or hybrid to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "All roles2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "This week2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Full time1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Other types1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Older",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Search roles, companies, locations",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Type: AllFull TimeContract",
+          "label": "Type",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Location: AllRemoteLondon",
+          "label": "Location",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Share or export this table",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Role",
+          "label": "Sort Role ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "102550",
+          "label": "Rows per page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Back",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "Next",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Previous record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Next record",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Close details",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open poster",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/market/orders/20000000-0000-4000-8000-000000000002",
+      "file": "admin-web/app/market/orders/[id]/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "All orders",
+          "label": null,
+          "name": null,
+          "href": "/market/orders",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Buyer",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Seller",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000005",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Listings desk",
+          "label": null,
+          "name": null,
+          "href": "/market",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/market/orders",
+      "file": "admin-web/app/market/orders/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Listings",
+          "label": null,
+          "name": null,
+          "href": "/market",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Refresh orders",
+          "label": null,
+          "name": null,
+          "href": "/market/orders?status=any",
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "All statusesAwaiting seller confirmationAwaiting paymentPayment confirmedReady for collection or dis",
+          "label": null,
+          "name": "status",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Apply",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Travel notebook × 1",
+          "label": null,
+          "name": null,
+          "href": "/market/orders/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Avery Audit",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Blake Audit",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000005",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/market",
+      "file": "admin-web/app/market/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Review reported seller ratings",
+          "label": null,
+          "name": null,
+          "href": "/market/reviews",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Investigate orders, returns and disputes",
+          "label": null,
+          "name": null,
+          "href": "/market/orders",
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Listings on file to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Listed this week to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Available listings to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Marked sold to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Carrying reports to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "All listings2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Available2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Sold",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Reported",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "No photo2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Search listings, sellers, categories",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Status: AllActive",
+          "label": "Status",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Category: AllHome",
+          "label": "Category",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Share or export this table",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Listing",
+          "label": "Sort Listing ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "10122550",
+          "label": "Rows per page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Back",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "Next",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Previous record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Next record",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Close details",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Remove this listing",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open seller",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/market/reviews",
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Reports desk",
+          "label": null,
+          "name": null,
+          "href": "/reports",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open reports",
+          "label": null,
+          "name": null,
+          "href": "/market/reviews",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "All reports / restore reviews",
+          "label": null,
+          "name": null,
+          "href": "/market/reviews?status=all",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/music",
+      "file": "admin-web/app/music/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Back to Content",
+          "label": null,
+          "name": null,
+          "href": "/content",
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "id",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "name",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "contact",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "textarea",
+          "text": "",
+          "label": null,
+          "name": "notes",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Save provider",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Choose a provider",
+          "label": null,
+          "name": "providerId",
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "reference",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "licensor",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "territories",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "uses",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "uses",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "uses",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "uses",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "exportAllowed",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "startsAt",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "endsAt",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "evidence",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Save rights draft",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        }
+      ],
+      "uncoveredFamilies": [
+        "OperationsPanel"
+      ]
+    },
+    {
+      "route": "/organizations",
+      "file": "admin-web/app/organizations/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "q",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Search",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Show archived",
+          "label": null,
+          "name": null,
+          "href": "/organizations?show=archived",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Profile",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Archive",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "New owner username for Synthetic organization",
+          "name": "username",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Transfer ownership",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/p/20000000-0000-4000-8000-000000000002",
+      "file": "admin-web/app/p/[id]/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Open in the app",
+          "label": null,
+          "name": null,
+          "href": "platinum-circles://post/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/payments/creators",
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Back to payments",
+          "label": null,
+          "name": null,
+          "href": "/payments",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Refresh records",
+          "label": null,
+          "name": null,
+          "href": "/payments/creators",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/payments",
+      "file": "admin-web/app/payments/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Completed volume, 7 days to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Completed, 7 days to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Failed, 7 days to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Success rate to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Average transfer to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Creator finance and reviews",
+          "label": null,
+          "name": null,
+          "href": "/payments/creators",
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "q",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "allcompletedfailedin flightpendingprocessingrefundedcancelledmarketplacedirect",
+          "label": null,
+          "name": "status",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Search",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Creator finance",
+          "label": null,
+          "name": null,
+          "href": "/payments/creators",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Newest",
+          "label": null,
+          "name": null,
+          "href": "/payments?status=all",
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "This page",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Completed",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Failed",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "In flight",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Other outcomes",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Marketplace",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Filter this page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Status: All",
+          "label": "Status",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Share or export this table",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Amount",
+          "label": "Sort Amount ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "102550",
+          "label": "Rows per page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Back",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "Next",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/present",
+      "file": "admin-web/app/present/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Back to the dashboard",
+          "label": null,
+          "name": null,
+          "href": "/dashboard",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/queue",
+      "file": "admin-web/app/queue/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add All requests to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Pending review to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Approved to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Rejected to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Median decision to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Pending review2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "People2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Businesses",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Vouched",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Carrying strikes",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Decided",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Search by name, username or category",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Tier: AllGreen seal",
+          "label": "Tier",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Share or export this table",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Account",
+          "label": "Sort Account ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Tier",
+          "label": "Sort Tier ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Category",
+          "label": "Sort Category ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Vouches",
+          "label": "Sort Vouches ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Strikes",
+          "label": "Sort Strikes ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "10122550",
+          "label": "Rows per page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Back",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "Next",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Previous record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Next record",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Close details",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "textarea",
+          "text": "",
+          "label": null,
+          "name": "reason",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Approve and grant the seal",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "textarea",
+          "text": "",
+          "label": null,
+          "name": "reason",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Reject request",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open profile",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/reports",
+      "file": "admin-web/app/reports/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Seller review reports",
+          "label": null,
+          "name": null,
+          "href": "/market/reviews",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/reset-password",
+      "file": "admin-web/app/reset-password/page.tsx",
+      "visibleControls": [],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/reset-password/request",
+      "file": "admin-web/app/reset-password/request/page.tsx",
+      "visibleControls": [],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/staff",
+      "file": "admin-web/app/staff/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Staff on the desk to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Active to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Administrators to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Reviewers to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Deactivated to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Staff email",
+          "name": "email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Temporary password, at least 12 characters",
+          "name": "password",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Super AdminPlatform AdminTrust SafetySupport AgentOps EngineerMarket ReviewerJobs ReviewerVerificati",
+          "label": "Staff role",
+          "name": "role",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Create staff account",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "All staff2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Active2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Administrators1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Specialists1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Deactivated",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Search staff by email or role",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Role: AllSuper AdminPlatform AdminTrust SafetySupport AgentOps EngineerMarket ReviewerJobs ReviewerV",
+          "label": "Role",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Status: AllActiveDeactivated",
+          "label": "Status",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Share or export this table",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Staff member",
+          "label": "Sort Staff member ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "10122550",
+          "label": "Rows per page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Back",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "Next",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Previous record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Next record",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Close details",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "super adminplatform admintrust safetysupport agentops engineermarket reviewerjobs reviewerverificati",
+          "label": null,
+          "name": "role",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Save role",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Their audit trail",
+          "label": null,
+          "name": null,
+          "href": "/audit?actor=10000000-0000-4000-8000-000000000001",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/stories",
+      "file": "admin-web/app/stories/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Stories on file to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Live right now to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Expired in 24 hours to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Views recorded to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add People posting to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "All stories2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Live2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Expired",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Video",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Photo",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Text2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Shared posts",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Search captions and authors",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Type: AllPhotoVideoTextShared post",
+          "label": "Type",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "State: AllLiveExpired",
+          "label": "State",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Share or export this table",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Text storyAvery Audit · posted 1h agoSelected",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Text storyBlake Audit · posted 1h agoReview content",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "10122550",
+          "label": "Rows per page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Back",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "Next",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Previous record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Next record",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Close details",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Remove this story now",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open author",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/support/20000000-0000-4000-8000-000000000002",
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "← All tickets",
+          "label": null,
+          "name": null,
+          "href": "/support",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Avery Audit",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Unassigned10000000-0000-4000-8000-000000000001 (super_admin)Avery Audit (support_agent)",
+          "label": null,
+          "name": "assigned_to",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "urgenthighnormallow",
+          "label": null,
+          "name": "priority",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "generalaccountpaymentssafetymarketplace",
+          "label": null,
+          "name": "queue",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "StandardEscalated",
+          "label": null,
+          "name": "escalated",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "reason",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Save assignment",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "textarea",
+          "text": "",
+          "label": "Reply to the member",
+          "name": "body",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Send reply",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Mark solved",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/support",
+      "file": "admin-web/app/support/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Open, member waiting to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Pending on the member to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Solved to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Suspension appeals to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Add Tickets on file to the presentation",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "q",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "OpenPendingSolvedAppealsAll tickets",
+          "label": null,
+          "name": "status",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Apply",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "This page1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Search within this page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Status: Allopen",
+          "label": "Status",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Kind: AllSupport",
+          "label": "Kind",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Share or export this table",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Status",
+          "label": "Sort Status ascending",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "102550",
+          "label": "Rows per page",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Back",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "Next",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Previous record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Next record",
+          "name": null,
+          "href": null,
+          "disabled": true
+        },
+        {
+          "tag": "button",
+          "text": "",
+          "label": "Close details",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open conversation",
+          "label": null,
+          "name": null,
+          "href": "/support/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Open member",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/system",
+      "file": "admin-web/app/system/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "button",
+          "text": "Refresh",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Switch on",
+          "label": "Enable fixture_feature",
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "title",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "textarea",
+          "text": "",
+          "label": null,
+          "name": "body",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Publish to the platform",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Retire",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "word",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Block",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "×",
+          "label": "Remove blocked phrase fixture-phrase",
+          "name": null,
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/users/20000000-0000-4000-8000-000000000002",
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "overview",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002?tab=overview",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "strikes",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002?tab=strikes",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "posts",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002?tab=posts",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "listings",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002?tab=listings",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "jobs",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002?tab=jobs",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "reports",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002?tab=reports",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "support",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002?tab=support",
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "audit",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002?tab=audit",
+          "disabled": false
+        },
+        {
+          "tag": "select",
+          "text": "Warn - recorded strike onlyRestrict - no posting or listingSuspend - account hiddenBan - permanent i",
+          "label": null,
+          "name": "level",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "days",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": null,
+          "name": "reason",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Issue",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Revoke badge",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/users/deletions",
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Back to users",
+          "label": null,
+          "name": null,
+          "href": "/users",
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    },
+    {
+      "route": "/users",
+      "file": "admin-web/app/users/page.tsx",
+      "visibleControls": [
+        {
+          "tag": "a",
+          "text": "Deletion requests",
+          "label": null,
+          "name": null,
+          "href": "/users/deletions",
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Search all members",
+          "name": "q",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Search",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "All members 2",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Verified 1",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Restricted 0",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Suspended 0",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Appeals 0",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "@avery.audit",
+          "label": null,
+          "name": null,
+          "href": "/users/20000000-0000-4000-8000-000000000002",
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Issue strike",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Revoke badge",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "summary",
+          "text": "Request account deletion",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "label": "Suspension reason",
+          "name": "reason",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Suspend account",
+          "label": null,
+          "name": null,
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "uncoveredFamilies": []
+    }
+  ],
+  "actions": [
+    {
+      "action": "approveApplication",
+      "scenario": "confirmed",
+      "role": "super_admin",
+      "fields": [
+        [
+          "id",
+          "20000000-0000-4000-8000-000000000002"
+        ],
+        [
+          "reason",
+          "Synthetic review of identity, evidence and account eligibility."
+        ],
+        [
+          "command_key",
+          "2615da05-7683-4cdd-bb49-478ee343ee2b"
+        ]
+      ],
+      "value": {
+        "success": true,
+        "command_key": "2615da05-7683-4cdd-bb49-478ee343ee2b"
+      },
+      "error": null,
+      "redirect": null,
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/auth/v1/user",
+          "query": {},
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/triniti_admin_session_check",
+          "query": {},
+          "body": {
+            "p_user_id": "10000000-0000-4000-8000-000000000001",
+            "p_session_id": "30000000-0000-4000-8000-000000000003"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/admin_users",
+          "query": {
+            "select": "role,active",
+            "user_id": "eq.10000000-0000-4000-8000-000000000001"
+          },
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/triniti_platinum_admin_command",
+          "query": {},
+          "body": {
+            "p_actor_id": "10000000-0000-4000-8000-000000000001",
+            "p_session_id": "30000000-0000-4000-8000-000000000003",
+            "p_key": "2615da05-7683-4cdd-bb49-478ee343ee2b",
+            "p_operation": "approveApplication",
+            "p_payload": {
+              "id": "20000000-0000-4000-8000-000000000002",
+              "reason": "Synthetic review of identity, evidence and account eligibility."
+            }
+          }
+        }
+      ],
+      "revalidated": [
+        [
+          "/queue"
+        ],
+        [
+          "/dashboard"
+        ]
+      ]
+    },
+    {
+      "action": "sendTicketReply",
+      "scenario": "unconfirmed",
+      "role": "super_admin",
+      "fields": [
+        [
+          "tid",
+          "20000000-0000-4000-8000-000000000002"
+        ],
+        [
+          "body",
+          "Synthetic reply that must survive an unconfirmed receipt."
+        ],
+        [
+          "command_key",
+          "1ec0fc99-7f5b-4268-9d32-7a2bf4b13a4e"
+        ]
+      ],
+      "value": {
+        "success": false,
+        "error": "The change was not confirmed. Keep the same details and retry."
+      },
+      "error": null,
+      "redirect": null,
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/auth/v1/user",
+          "query": {},
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/triniti_admin_session_check",
+          "query": {},
+          "body": {
+            "p_user_id": "10000000-0000-4000-8000-000000000001",
+            "p_session_id": "30000000-0000-4000-8000-000000000003"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/admin_users",
+          "query": {
+            "select": "role,active",
+            "user_id": "eq.10000000-0000-4000-8000-000000000001"
+          },
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/triniti_platinum_admin_command",
+          "query": {},
+          "body": {
+            "p_actor_id": "10000000-0000-4000-8000-000000000001",
+            "p_session_id": "30000000-0000-4000-8000-000000000003",
+            "p_key": "1ec0fc99-7f5b-4268-9d32-7a2bf4b13a4e",
+            "p_operation": "sendTicketReply",
+            "p_payload": {
+              "tid": "20000000-0000-4000-8000-000000000002",
+              "body": "Synthetic reply that must survive an unconfirmed receipt."
+            }
+          }
+        }
+      ],
+      "revalidated": []
+    },
+    {
+      "action": "sendTicketReply",
+      "scenario": "unconfirmed",
+      "role": "super_admin",
+      "fields": [
+        [
+          "tid",
+          "20000000-0000-4000-8000-000000000002"
+        ],
+        [
+          "body",
+          "Synthetic reply that must survive an unconfirmed receipt."
+        ],
+        [
+          "command_key",
+          "1ec0fc99-7f5b-4268-9d32-7a2bf4b13a4e"
+        ]
+      ],
+      "value": {
+        "success": false,
+        "error": "The change was not confirmed. Keep the same details and retry."
+      },
+      "error": null,
+      "redirect": null,
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/auth/v1/user",
+          "query": {},
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/triniti_admin_session_check",
+          "query": {},
+          "body": {
+            "p_user_id": "10000000-0000-4000-8000-000000000001",
+            "p_session_id": "30000000-0000-4000-8000-000000000003"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/admin_users",
+          "query": {
+            "select": "role,active",
+            "user_id": "eq.10000000-0000-4000-8000-000000000001"
+          },
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/triniti_platinum_admin_command",
+          "query": {},
+          "body": {
+            "p_actor_id": "10000000-0000-4000-8000-000000000001",
+            "p_session_id": "30000000-0000-4000-8000-000000000003",
+            "p_key": "1ec0fc99-7f5b-4268-9d32-7a2bf4b13a4e",
+            "p_operation": "sendTicketReply",
+            "p_payload": {
+              "tid": "20000000-0000-4000-8000-000000000002",
+              "body": "Synthetic reply that must survive an unconfirmed receipt."
+            }
+          }
+        }
+      ],
+      "revalidated": []
+    }
+  ],
+  "browserErrors": [
+    {
+      "route": "/reset-password",
+      "error": "process is not defined"
+    },
+    {
+      "route": "/reset-password/request",
+      "error": "process is not defined"
+    }
+  ],
+  "limits": [
+    "Operation successful receipt is a controlled RPC reply; database mutation correctness remains a separate SQL/CI contract.",
+    "No authenticated hosted route was accepted by this fixture.",
+    "OperationsPanel/RecoveryForms/ReviewForm are explicitly uncovered component families where present.",
+    "No per-action denominator is inferred from a route render or a generic shared-component check."
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T17:43:14.495440+00:00",
+  "application": {
+    "repository": "donadmiral/tbirds-nest",
+    "pullRequest": 3,
+    "branch": "codex/app-quality-20261029",
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "base": "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "previousHead": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "mergeVerifiedAtUtc": "2026-10-31T17:40:07Z"
+  },
+  "publication": {
+    "method": "Expected-head, non-forced fast-forward",
+    "expectedHeadMatched": true,
+    "refUpdateSucceeded": true,
+    "mergeTreeMatchesReviewedTree": true,
+    "previousNativeRunWasTerminal": true
+  },
+  "verification": {
+    "commit": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "parent": "5e6a789eec5e6fc332a5e23548ba3d106809ce3b",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "readBackFiles": 31,
+    "verifiedBytes": 523073,
+    "localFilesUnchanged": true,
+    "localReportLinksVerified": 170,
+    "applicationHeadUnchanged": true,
+    "nativeOriginalHashesVerified": 501,
+    "followupSourcePathsVerified": 15,
+    "uniqueSourcePathsVerified": 507,
+    "allSourceFilesUnchanged": true,
+    "finalCombinedGate": "docs/quality/native-full-app-20261031/native-final-combined-static-provenance-gate.json",
+    "finalCombinedGateSHA256": "8b3147487b023bbcb7cf474421dec60f4c05bd0bf34d388074480203534bf1ce",
+    "selectedInputsStable": 1541,
+    "disjointFocusedCasesPassed": 219,
+    "independentRerunsNotAdded": true,
+    "localMetadata": {
+      "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "stagedChangesBefore": 0,
+      "stagedChangesAfter": 0,
+      "workingPathsPreserved": 3163,
+      "sourceFilesPreserved": 15,
+      "workingFilesUnchanged": true
+    }
+  },
+  "nativeExpectation": {
+    "path": "docs/quality/native-full-app-20261031/native-final-combined-source-provenance-manifest.json",
+    "sha256": "1e97a79e983beeafad5fcb792c67879e53dbc2063c7173154a9aa570f5bfe0a4",
+    "originalSources": 501,
+    "overlays": 6,
+    "dependencyFiles": 9
+  },
+  "newRuns": [
+    {
+      "id": 41225636296,
+      "name": "Full native application UI",
+      "status": "in_progress",
+      "conclusion": null
+    },
+    {
+      "id": 41225636352,
+      "name": "Type and quality gates",
+      "status": "in_progress",
+      "conclusion": null
+    },
+    {
+      "id": 41225636301,
+      "name": "Browser interaction and video gates",
+      "status": "in_progress",
+      "conclusion": null
+    },
+    {
+      "id": 41225636330,
+      "name": "Android native compile",
+      "status": "in_progress",
+      "conclusion": null
+    },
+    {
+      "id": 41225636295,
+      "name": "iOS native compile",
+      "status": "in_progress",
+      "conclusion": null
+    }
+  ],
+  "priorFullNativeRun": {
+    "id": 41218724056,
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "jobs": [
+      {
+        "id": 124588620179,
+        "platform": "Android",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      {
+        "id": 124588620373,
+        "platform": "iOS",
+        "status": "completed",
+        "conclusion": "failure"
+      }
+    ]
+  },
+  "progress": {
+    "superseded": true,
+    "reason": "User requested a whole-product audit and concrete passed/failed/blocked/untested coverage instead of the prior six-milestone counter.",
+    "currentPhase": "Audit frozen candidate across Android, iOS, member web, commerce/Studio and admin before coordinated repairs."
+  },
+  "limits": [
+    "All five fresh workflows are in progress at this observation; prior supporting passes do not establish current-source completion.",
+    "Guest Vulkan is excluded from the new Android GLES host-renderer isolation. The actual selected renderer and generated Swift boundary observer require fresh runtime evidence.",
+    "This publication is not a merge, production promotion, signed-device build, TestFlight submission or complete native acceptance.",
+    "Native flow commands, required assertions, deadlines, encoders and production movie capability are unchanged."
+  ]
+}

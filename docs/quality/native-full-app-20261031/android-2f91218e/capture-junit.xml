@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="emulator-5556" tests="1" failures="0" time="40.285" timestamp="2026-10-31T18:01:06">
+    <testcase id="Actual native memory capture and encoding" name="Actual native memory capture and encoding" classname="Actual native memory capture and encoding" file="tests/native/flows/memory-capture.yaml" time="40.266" timestamp="2026-10-31T18:01:06" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

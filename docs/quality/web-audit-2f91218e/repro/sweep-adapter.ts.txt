@@ -1,0 +1,11 @@
+import * as social from "/workspace/scratch/f9638ed3020b/platinum-circles/web/tests/browser/social-backend.ts";
+import * as commerce from "/workspace/scratch/f9638ed3020b/platinum-circles/web/tests/browser/commerce-backend.ts";
+import * as studio from "/workspace/scratch/f9638ed3020b/platinum-circles/web/tests/browser/studio-backend.ts";
+export * from "/workspace/scratch/f9638ed3020b/platinum-circles/web/tests/browser/social-backend.ts";
+const mode=new URLSearchParams(location.search).get('__audit_fault')||'normal';
+const ops:any[]=[];(window as any).__auditOps=ops;
+const fail=()=>({data:null,error:{message:'AUDIT_CONTROLLED_READ_FAILURE',code:'AUDIT_FAILURE'}});
+const shouldFault=()=>mode==='resolved'||mode==='rejected';
+function value(){if(mode==='rejected')throw new Error('AUDIT_CONTROLLED_TRANSPORT_REJECTION');return fail()}
+function query(target:any,table:string):any{let proxy:any;proxy=new Proxy(target,{get(obj,key){if(key==='then')return (yes:any,no:any)=>{ops.push({kind:'table',name:table,fault:shouldFault()&&table!=='profiles'});return Promise.resolve().then(()=>shouldFault()&&table!=='profiles'?value():obj).then(yes,no)};const item=obj[key];if(typeof item!=='function')return item;return (...args:any[])=>{const result=item.apply(obj,args);if(result===obj)return proxy;if(result&&typeof result.then==='function'&&['single','maybeSingle'].includes(String(key))){ops.push({kind:'table',name:table,fault:shouldFault()&&table!=='profiles'});return shouldFault()&&table!=='profiles'?Promise.resolve().then(value):result}return result}}});return proxy}
+export function createClient(){const provider=location.pathname.startsWith('/studio')?studio:location.pathname.startsWith('/jobs')||location.pathname.startsWith('/market')?commerce:social;const client:any=provider.createClient();return new Proxy(client,{get(obj,key){if(key==='from')return (table:string)=>query(obj.from(table),table);if(key==='rpc')return (name:string,args:any)=>{ops.push({kind:'rpc',name,fault:shouldFault()});if(!shouldFault())return obj.rpc(name,args);let p:any=Promise.resolve().then(value);p.abortSignal=()=>p;p.setHeader=()=>p;return p};return obj[key]}})}

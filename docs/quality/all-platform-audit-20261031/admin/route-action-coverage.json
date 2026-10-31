@@ -1,0 +1,937 @@
+{
+  "sourceHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "routes": [
+    {
+      "route": "/ads",
+      "file": "admin-web/app/ads/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 3,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/analytics",
+      "file": "admin-web/app/analytics/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 2,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/audit",
+      "file": "admin-web/app/audit/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 20,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/businesses",
+      "file": "admin-web/app/businesses/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 4,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/calls",
+      "file": "admin-web/app/calls/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 25,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/content/[id]",
+      "file": "admin-web/app/content/[id]/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 4,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/content",
+      "file": "admin-web/app/content/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 26,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/dashboard",
+      "file": "admin-web/app/dashboard/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 22,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/jobs",
+      "file": "admin-web/app/jobs/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 22,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/market/orders/[id]",
+      "file": "admin-web/app/market/orders/[id]/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 4,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/market/orders",
+      "file": "admin-web/app/market/orders/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 7,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/market",
+      "file": "admin-web/app/market/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 25,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/market/reviews",
+      "file": "admin-web/app/market/reviews/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 3,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/music",
+      "file": "admin-web/app/music/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 19,
+      "uncoveredFamilies": [
+        "OperationsPanel"
+      ],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/organizations",
+      "file": "admin-web/app/organizations/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 7,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/p/[id]",
+      "file": "admin-web/app/p/[id]/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 1,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/",
+      "file": "admin-web/app/page.tsx",
+      "populatedOutcome": "redirect",
+      "redirect": "/dashboard",
+      "roleScenarioCount": 11,
+      "browserRendered": false,
+      "visibleControlCount": 0,
+      "uncoveredFamilies": [],
+      "controlEvidence": null,
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/payments/creators",
+      "file": "admin-web/app/payments/creators/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 2,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/payments",
+      "file": "admin-web/app/payments/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 24,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/present",
+      "file": "admin-web/app/present/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 1,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/queue",
+      "file": "admin-web/app/queue/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 30,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/reports",
+      "file": "admin-web/app/reports/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 1,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/reset-password",
+      "file": "admin-web/app/reset-password/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 2,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/reset-password/request",
+      "file": "admin-web/app/reset-password/request/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 1,
+      "uncoveredFamilies": [
+        "RecoveryForms"
+      ],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/security",
+      "file": "admin-web/app/security/page.tsx",
+      "populatedOutcome": "redirect",
+      "redirect": "/dashboard",
+      "roleScenarioCount": 11,
+      "browserRendered": false,
+      "visibleControlCount": 0,
+      "uncoveredFamilies": [],
+      "controlEvidence": null,
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/signin",
+      "file": "admin-web/app/signin/page.tsx",
+      "populatedOutcome": "redirect",
+      "redirect": "/",
+      "roleScenarioCount": 11,
+      "browserRendered": false,
+      "visibleControlCount": 0,
+      "uncoveredFamilies": [],
+      "controlEvidence": null,
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/staff",
+      "file": "admin-web/app/staff/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 28,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/stories",
+      "file": "admin-web/app/stories/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 26,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/support/[tid]",
+      "file": "admin-web/app/support/[tid]/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 11,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/support",
+      "file": "admin-web/app/support/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 22,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/system",
+      "file": "admin-web/app/system/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 9,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/users/[uid]",
+      "file": "admin-web/app/users/[uid]/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 13,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/users/deletions",
+      "file": "admin-web/app/users/deletions/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 1,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    },
+    {
+      "route": "/users",
+      "file": "admin-web/app/users/page.tsx",
+      "populatedOutcome": "rendered",
+      "redirect": null,
+      "roleScenarioCount": 11,
+      "browserRendered": true,
+      "visibleControlCount": 14,
+      "uncoveredFamilies": [],
+      "controlEvidence": "browser/actual-pages-browser-audit.json",
+      "hostedProtectedStatus": "blocked-no-current-staff-session",
+      "limit": "Rendered output is not blanket control acceptance. /p/[id] has its existing public privacy contract; root/signin/security redirects are expected under this policy fixture."
+    }
+  ],
+  "serverActions": [
+    {
+      "name": "moderateReview",
+      "file": "admin-web/app/market/reviews/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/missing-capabilities.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "saveMusicProvider",
+      "file": "admin-web/app/music/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/music-operations.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "saveMusicLicenseDraft",
+      "file": "admin-web/app/music/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/music-operations.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "revokeMusicSound",
+      "file": "admin-web/app/music/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/music-operations.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "stageMusicCatalogue",
+      "file": "admin-web/app/music/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/music-operations.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "reviewCreator",
+      "file": "admin-web/app/payments/creators/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/creator-finance-report.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "requestPasswordReset",
+      "file": "admin-web/app/reset-password/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/recovery-flow.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "verifyRecoveryAuthenticator",
+      "file": "admin-web/app/reset-password/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/recovery-flow.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "updateRecoveryPassword",
+      "file": "admin-web/app/reset-password/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/recovery-flow.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "enrollAuthenticator",
+      "file": "admin-web/app/security/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/admin-assurance.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "verifyAuthenticator",
+      "file": "admin-web/app/security/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/admin-assurance.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "reviewErasure",
+      "file": "admin-web/app/users/deletions/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/erasure-review.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "signIn",
+      "file": "admin-web/lib/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/admin-assurance.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "signOut",
+      "file": "admin-web/lib/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/navigation-workflows.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "approveApplication",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "rejectApplication",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "suspendUser",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "restoreUser",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "revokeVerification",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "dismissReport",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "removeReportedPost",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "removeReportedListing",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "resolveUserReport",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "adminRemovePost",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "adminRemoveListing",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "resolveTicket",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "approveCampaign",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "rejectCampaign",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "adminEndCampaign",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "inviteStaff",
+      "file": "admin-web/lib/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/command-contracts.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "setStaffRole",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "deactivateStaff",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "issueStrike",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "liftRestriction",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "adminRemoveStory",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "toggleFlag",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "publishAnnouncement",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "retireAnnouncement",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "addBlockedWord",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "removeBlockedWord",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "approveBusinessApplication",
+      "file": "admin-web/lib/actions.ts",
+      "status": "custom-contract-runtime-not-expanded-in-this-pass",
+      "newScenarioCount": 0,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/command-contracts.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "rejectBusinessApplication",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "sendTicketReply",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "setTicketStatus",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "archiveOrganization",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "restoreOrganization",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "adminTransferOwnership",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "adminDeleteAccount",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "adminRemoveComment",
+      "file": "admin-web/lib/actions.ts",
+      "status": "role-and-confirmed-receipt-fixture-tested",
+      "newScenarioCount": 17,
+      "relatedExistingTestFiles": [],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    },
+    {
+      "name": "updateSupportTriage",
+      "file": "admin-web/lib/supportTriageActions.ts",
+      "status": "conflict-ui-and-missing-capability-fixture-tested",
+      "newScenarioCount": 1,
+      "relatedExistingTestFiles": [
+        "admin-web/tests/missing-capabilities.cjs"
+      ],
+      "limit": "Related existing tests may cover a helper or neighboring branch, not this entire exported action. Provider mutation and hosted session acceptance are not established."
+    }
+  ],
+  "endpoints": [
+    {
+      "route": "/api/diagnostics",
+      "file": "admin-web/app/api/diagnostics/route.ts",
+      "status": "not-independently-reexecuted-in-this-pass",
+      "relatedExistingTests": [
+        "admin-web/tests/music-operations.cjs"
+      ]
+    },
+    {
+      "route": "/api/moderation-media",
+      "file": "admin-web/app/api/moderation-media/route.ts",
+      "status": "not-independently-reexecuted-in-this-pass",
+      "relatedExistingTests": [
+        "admin-web/tests/music-operations.cjs"
+      ]
+    },
+    {
+      "route": "/api/music/[id]",
+      "file": "admin-web/app/api/music/[id]/route.ts",
+      "status": "not-independently-reexecuted-in-this-pass",
+      "relatedExistingTests": [
+        "admin-web/tests/music-operations.cjs"
+      ]
+    },
+    {
+      "route": "/api/music/report",
+      "file": "admin-web/app/api/music/report/route.ts",
+      "status": "not-independently-reexecuted-in-this-pass",
+      "relatedExistingTests": [
+        "admin-web/tests/music-operations.cjs"
+      ]
+    },
+    {
+      "route": "/reset-password/callback",
+      "file": "admin-web/app/reset-password/callback/route.ts",
+      "status": "not-independently-reexecuted-in-this-pass",
+      "relatedExistingTests": [
+        "admin-web/tests/music-operations.cjs"
+      ]
+    }
+  ],
+  "remainingCustomActionCount": 17,
+  "customActionsWithNewUIErrorCheck": 1,
+  "customActionsWithoutNewFullRuntimeContract": 16,
+  "limits": [
+    "RecoveryForms, OperationsPanel and ReviewForm are explicit browser adapters/uncovered families, not accepted pages.",
+    "Reports page rendered its empty state; populated ReportsDesk actions were not exercised by this new browser pass.",
+    "Sign-in/out, MFA enrollment, recovery-email/password changes, staff/business provisioning, music-provider/catalogue writes, finance and erasure side effects remain without hosted execution."
+  ]
+}

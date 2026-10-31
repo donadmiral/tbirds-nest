@@ -1,0 +1,9 @@
+{
+  "sourceMonoTone": 0.19987302957612677,
+  "outputLeftTone": 0.09817178313832625,
+  "outputRightTone": 0.09817135042790866,
+  "leftGainRatio": 0.4911707364746528,
+  "rightGainRatio": 0.4911685715481567,
+  "method": "Same1234Hz Fourier amplitude over0.4s at48kHz; explicit pan=mono|c0=cN avoids FFmpeg default stereo-to-mono summation. Source window0.8s, output5.9s.",
+  "limit": "Fixture audio only; no provider or physical speaker acceptance."
+}

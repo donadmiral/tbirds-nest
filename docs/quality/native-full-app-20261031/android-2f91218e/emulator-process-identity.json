@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "phase": "snapshot",
+  "runId": "41225636296",
+  "emulatorPid": 7090,
+  "launchUnixNs": "1793469441815533247",
+  "status": "available",
+  "limits": {
+    "seconds": 1.0,
+    "inputBytes": 65536,
+    "stdoutBytes": 131072,
+    "stderrBytes": 4096,
+    "records": 4,
+    "messageBytes": 32768
+  },
+  "limitsOfInterpretation": [
+    "Diagnostic only; original required flow, evidence and decoder status remains authoritative.",
+    "Saved journal identity/time fields do not contain a process-start-ticks equality proof.",
+    "No matching record may mean unavailable permissions, an unsupported handler, in-flight processing or no saved summary.",
+    "No core, environment, command line, process memory or mapped-library contents are read or retained."
+  ],
+  "identity": {
+    "pid": 7090,
+    "uid": 1001,
+    "executable": "/usr/local/lib/android/sdk/emulator/qemu/linux-x86_64/qemu-system-x86_64-headless",
+    "executableDevice": 2049,
+    "executableInode": 2373033,
+    "startTicks": "105235",
+    "clockTicksPerSecond": 100,
+    "sdkRoot": "/usr/local/lib/android/sdk"
+  },
+  "bootId": "4d5b1b3f0dc4400da99c56d24eab460f",
+  "snapshotUnixNs": "1793469480763735443",
+  "elapsedMs": 1.059
+}

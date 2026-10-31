@@ -1,0 +1,177 @@
+[
+  {
+    "at": "2026-10-31T17:47:55.136Z",
+    "action": "Open member Home while signed out",
+    "url": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/login",
+    "outcome": "Redirected to actual Login; Sign in disabled with empty fields",
+    "ax": "Browser tab: 3, Title: \"Platinum Circles\", URL: \"https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/login\".\n0 AXWebArea Platinum Circles, URL: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/login\n\t1 container\n\t\t2 image Platinum Circles\n\t\t3 text field (settable)\n\t\t4 text field (settable)\n\t\t5 link Description: Forgot password, Value: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/forgot-password\n\t\t6 button (disabled) Sign in\n\t\t7 text New here? \n\t\t8 link Description: Create an account, Value: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/signup\n\t\t9 link Description: Business sign-in, Value: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/business-login\n\t\t10 link Description: Check an account deletion request, Value: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/account-deletion\n\nThe focused UI element is 0 AXWebArea Platinum Circles, URL: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/login",
+    "controls": [
+      {
+        "disabled": false,
+        "href": null,
+        "label": null,
+        "placeholder": "Username or email",
+        "required": false,
+        "tag": "input",
+        "text": "",
+        "type": null
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": null,
+        "placeholder": "Password",
+        "required": false,
+        "tag": "input",
+        "text": "",
+        "type": "password"
+      },
+      {
+        "disabled": false,
+        "href": "/forgot-password",
+        "label": null,
+        "placeholder": null,
+        "required": false,
+        "tag": "a",
+        "text": "Forgot password",
+        "type": null
+      },
+      {
+        "disabled": true,
+        "href": null,
+        "label": null,
+        "placeholder": null,
+        "required": false,
+        "tag": "button",
+        "text": "Sign in",
+        "type": "submit"
+      },
+      {
+        "disabled": false,
+        "href": "/signup",
+        "label": null,
+        "placeholder": null,
+        "required": false,
+        "tag": "a",
+        "text": "Create an account",
+        "type": null
+      },
+      {
+        "disabled": false,
+        "href": "/business-login",
+        "label": null,
+        "placeholder": null,
+        "required": false,
+        "tag": "a",
+        "text": "Business sign-in",
+        "type": null
+      },
+      {
+        "disabled": false,
+        "href": "/account-deletion",
+        "label": null,
+        "placeholder": null,
+        "required": false,
+        "tag": "a",
+        "text": "Check an account deletion request",
+        "type": null
+      }
+    ],
+    "logs": [
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:45:04.216Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      },
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:45:05.091Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      }
+    ]
+  },
+  {
+    "at": "2026-10-31T17:48:17.927Z",
+    "action": "Forgot password link",
+    "url": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/forgot-password",
+    "outcome": "Actual recovery page rendered; Send reset link disabled when empty",
+    "ax": "Browser tab: 3, Title: \"Platinum Circles\", URL: \"https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/forgot-password\".\n0 AXWebArea Platinum Circles, URL: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/forgot-password\n\t1 container\n\t\t2 heading Reset your password, Value: 1\n\t\t\t3 text Reset your password\n\t\t4 container\n\t\t\t5 text Enter the email address for your account. Email address\n\t\t\t6 text field (settable) Email address\n\t\t\t7 button (disabled) Send reset link\n\t\t8 link Description: Back to sign in, Value: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/login\n\nThe focused UI element is 0 AXWebArea Platinum Circles, URL: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/forgot-password"
+  },
+  {
+    "at": "2026-10-31T17:48:22.485Z",
+    "action": "Submit malformed recovery email",
+    "url": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/forgot-password",
+    "outcome": "Native browser email validation rejects malformed input",
+    "validation": {
+      "type": "email",
+      "typeMismatch": true,
+      "valid": false,
+      "validationMessage": ""
+    },
+    "ax": "Browser tab: 3, Title: \"Platinum Circles\", URL: \"https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/forgot-password\".\n0 AXWebArea Platinum Circles, URL: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/forgot-password\n\t9 container Please include an '@' in the email address. 'not-an-email' is missing an '@'. \n\t1 container\n\t\t2 heading Reset your password, Value: 1\n\t\t\t3 text Reset your password\n\t\t4 container\n\t\t\t5 text Enter the email address for your account. Email address\n\t\t\t6 text field (settable) Email address, Value: <redacted>\n\t\t\t7 button Send reset link\n\t\t8 link Description: Back to sign in, Value: platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/login\n\nThe focused UI element is 6 text field (settable) Email address, Value: <redacted>",
+    "logs": [
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:45:04.216Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      },
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:45:05.091Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      },
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:47:56.213Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      },
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:47:56.291Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      },
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:48:17.975Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      },
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:48:17.987Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      },
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:48:22.418Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      },
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:48:22.427Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      },
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:48:22.428Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      },
+      {
+        "level": "error",
+        "message": "Error sending browser metadata to extension: Object",
+        "timestamp": "2026-10-31T17:48:22.428Z",
+        "url": "chrome-extension://kcdongibgcplmaagnmgpjhpjgmmaaaaa/content-script.bundle.js"
+      }
+    ]
+  }
+]

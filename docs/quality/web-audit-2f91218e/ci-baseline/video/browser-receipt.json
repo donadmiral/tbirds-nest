@@ -1,0 +1,375 @@
+{
+  "browser": "153.0.8010.12",
+  "cases": [
+    {
+      "mode": "graded_audio",
+      "bytes": 39267,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.0707,
+      "encodedVideoEnd": 0.937,
+      "trimmedFirstPixel": [
+        125,
+        0,
+        0
+      ],
+      "hasAudio": true,
+      "audioRms": 0.04886459432635681,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        126
+      ],
+      "tagBefore": [
+        1,
+        255,
+        0
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        1,
+        127,
+        126
+      ],
+      "webGLDisabled": false,
+      "webGLRequests": 0
+    },
+    {
+      "mode": "muted",
+      "bytes": 23313,
+      "mime": "video/webm;codecs=vp9",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.077399,
+      "encodedVideoEnd": 0.979,
+      "trimmedFirstPixel": [
+        125,
+        0,
+        0
+      ],
+      "hasAudio": false,
+      "audioRms": null,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        126
+      ],
+      "tagBefore": [
+        1,
+        255,
+        0
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        1,
+        127,
+        126
+      ],
+      "webGLDisabled": false,
+      "webGLRequests": 0
+    },
+    {
+      "mode": "added_audio",
+      "bytes": 39097,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.057099,
+      "encodedVideoEnd": 0.924,
+      "trimmedFirstPixel": [
+        125,
+        0,
+        0
+      ],
+      "hasAudio": true,
+      "audioRms": 0.09934700481593581,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        126
+      ],
+      "tagBefore": [
+        1,
+        255,
+        0
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        1,
+        127,
+        126
+      ],
+      "webGLDisabled": false,
+      "webGLRequests": 0
+    },
+    {
+      "mode": "added_only",
+      "bytes": 39097,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.046799,
+      "encodedVideoEnd": 0.912,
+      "trimmedFirstPixel": [
+        125,
+        0,
+        0
+      ],
+      "hasAudio": true,
+      "audioRms": 0.08638099597472702,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        126
+      ],
+      "tagBefore": [
+        1,
+        255,
+        0
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        1,
+        127,
+        126
+      ],
+      "webGLDisabled": false,
+      "webGLRequests": 0
+    },
+    {
+      "mode": "bad_added_audio",
+      "rejected": true
+    },
+    {
+      "mode": "delayed_start",
+      "bytes": 38465,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.0534,
+      "encodedVideoEnd": 0.922,
+      "trimmedFirstPixel": [
+        125,
+        0,
+        0
+      ],
+      "hasAudio": true,
+      "audioRms": 0.048715493935610386,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        126
+      ],
+      "tagBefore": [
+        1,
+        255,
+        0
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        1,
+        127,
+        126
+      ],
+      "webGLDisabled": false,
+      "webGLRequests": 0
+    },
+    {
+      "mode": "oversized_final_chunk",
+      "rejected": true
+    },
+    {
+      "mode": "cancelled",
+      "cancelled": true
+    },
+    {
+      "mode": "unadjusted_no_webgl",
+      "bytes": 49313,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.0238,
+      "encodedVideoEnd": 1.002,
+      "trimmedFirstPixel": [
+        252,
+        0,
+        2
+      ],
+      "hasAudio": true,
+      "audioRms": 0.049408392718019174,
+      "red": [
+        254,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        252
+      ],
+      "tagBefore": [
+        0,
+        255,
+        0
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        0,
+        127,
+        126
+      ],
+      "webGLDisabled": true,
+      "webGLRequests": 0
+    },
+    {
+      "mode": "framed_no_webgl",
+      "bytes": 47781,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.0256,
+      "encodedVideoEnd": 1.004,
+      "trimmedFirstPixel": [
+        254,
+        0,
+        2
+      ],
+      "hasAudio": true,
+      "audioRms": 0.049408392718019174,
+      "red": [
+        254,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        250
+      ],
+      "tagBefore": [
+        0,
+        255,
+        0
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        0,
+        127,
+        126
+      ],
+      "webGLDisabled": true,
+      "webGLRequests": 0
+    },
+    {
+      "mode": "cover_no_webgl",
+      "bytes": 50590,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.013599,
+      "encodedVideoEnd": 0.975,
+      "trimmedFirstPixel": [
+        255,
+        0,
+        3
+      ],
+      "hasAudio": true,
+      "audioRms": 0.04941998994454703,
+      "red": [
+        254,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        1,
+        252
+      ],
+      "tagBefore": [
+        0,
+        254,
+        0
+      ],
+      "tagAfter": [
+        254,
+        0,
+        0
+      ],
+      "gradedImageSticker": [
+        0,
+        127,
+        128
+      ],
+      "webGLDisabled": true,
+      "webGLRequests": 0
+    },
+    {
+      "mode": "graded_no_webgl",
+      "rejected": true,
+      "noSilentGradeLoss": true,
+      "failedBeforeCapture": true
+    }
+  ]
+}

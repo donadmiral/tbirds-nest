@@ -1,0 +1,267 @@
+{
+  "sourceHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "fixtureInputs": {
+    "jobs": {
+      "total": 350,
+      "createdWithin7Days": 350
+    },
+    "calls": {
+      "total": 500,
+      "createdWithin7Days": 500,
+      "activeOutsideNewest400": 1
+    }
+  },
+  "scope": "Actual frozen page modules, installed Supabase2.111 SDK and serviceClient throwOnError wrapper; synthetic HTTP responses only.",
+  "scenarios": [
+    {
+      "file": "admin-web/app/jobs/page.tsx",
+      "scenario": "successful-capped-read",
+      "outcome": "rendered",
+      "cards": [
+        {
+          "label": "Roles on the platform",
+          "value": "300",
+          "note": "every row in jobs"
+        },
+        {
+          "label": "Posted this week",
+          "value": "350",
+          "note": "against the week before"
+        },
+        {
+          "label": "Posted in 30 days",
+          "value": "350",
+          "note": "jobs.created_at"
+        },
+        {
+          "label": "Hiring companies",
+          "value": "300",
+          "note": "distinct company names"
+        },
+        {
+          "label": "Remote or hybrid",
+          "value": "300",
+          "note": "location mentions remote"
+        }
+      ],
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/auth/v1/user",
+          "query": {},
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/triniti_admin_session_check",
+          "query": {},
+          "body": {
+            "p_user_id": "10000000-0000-4000-8000-000000000001",
+            "p_session_id": "30000000-0000-4000-8000-000000000003"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/admin_users",
+          "query": {
+            "select": "role,active",
+            "user_id": "eq.10000000-0000-4000-8000-000000000001"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/jobs",
+          "query": {
+            "select": "*",
+            "order": "created_at.desc",
+            "limit": "300"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/jobs",
+          "query": {
+            "select": "created_at",
+            "created_at": "gte.2026-10-01T17:50:00.000Z",
+            "limit": "3000"
+          },
+          "body": null
+        }
+      ],
+      "loaded": [
+        "admin-web/app/jobs/page.tsx",
+        "admin-web/lib/adminAuth.ts",
+        "admin-web/lib/supabaseAdmin.ts",
+        "admin-web/lib/adminAssurance.ts",
+        "admin-web/lib/permissions.ts",
+        "admin-web/lib/fmt.ts"
+      ],
+      "rows": [
+        {
+          "count": 300,
+          "firstId": "job-0",
+          "lastId": "job-299",
+          "tabs": [
+            {
+              "key": "all",
+              "label": "All roles",
+              "count": 300
+            },
+            {
+              "key": "new",
+              "label": "This week",
+              "count": 300
+            },
+            {
+              "key": "full",
+              "label": "Full time",
+              "count": 300
+            },
+            {
+              "key": "other",
+              "label": "Other types",
+              "count": 0
+            },
+            {
+              "key": "older",
+              "label": "Older",
+              "count": 0
+            }
+          ],
+          "searchHint": "Search roles, companies, locations"
+        }
+      ]
+    },
+    {
+      "file": "admin-web/app/calls/page.tsx",
+      "scenario": "successful-capped-read",
+      "outcome": "rendered",
+      "cards": [
+        {
+          "label": "Sessions on file",
+          "value": "500",
+          "note": "call_sessions, all time"
+        },
+        {
+          "label": "This week",
+          "value": "400",
+          "note": "against the week before"
+        },
+        {
+          "label": "Answer rate",
+          "value": "100.0%",
+          "note": "connected against attempted, this week"
+        },
+        {
+          "label": "Average talk time",
+          "value": "1:00",
+          "note": "400 minutes on file"
+        },
+        {
+          "label": "Live right now",
+          "value": "0",
+          "note": "0 missed or declined on file"
+        }
+      ],
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/auth/v1/user",
+          "query": {},
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/triniti_admin_session_check",
+          "query": {},
+          "body": {
+            "p_user_id": "10000000-0000-4000-8000-000000000001",
+            "p_session_id": "30000000-0000-4000-8000-000000000003"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/admin_users",
+          "query": {
+            "select": "role,active",
+            "user_id": "eq.10000000-0000-4000-8000-000000000001"
+          },
+          "body": null
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/call_sessions",
+          "query": {
+            "select": "*",
+            "order": "created_at.desc",
+            "limit": "400"
+          },
+          "body": null
+        },
+        {
+          "method": "HEAD",
+          "path": "/rest/v1/call_sessions",
+          "query": {
+            "select": "id"
+          },
+          "body": null
+        }
+      ],
+      "loaded": [
+        "admin-web/app/calls/page.tsx",
+        "admin-web/lib/adminAuth.ts",
+        "admin-web/lib/supabaseAdmin.ts",
+        "admin-web/lib/adminAssurance.ts",
+        "admin-web/lib/permissions.ts",
+        "admin-web/lib/fmt.ts"
+      ],
+      "rows": [
+        {
+          "count": 400,
+          "firstId": "call-0",
+          "lastId": "call-399",
+          "tabs": [
+            {
+              "key": "all",
+              "label": "All calls",
+              "count": 400
+            },
+            {
+              "key": "live",
+              "label": "Live",
+              "count": 0
+            },
+            {
+              "key": "connected",
+              "label": "Connected",
+              "count": 400
+            },
+            {
+              "key": "missed",
+              "label": "Never connected",
+              "count": 0
+            },
+            {
+              "key": "video",
+              "label": "Video",
+              "count": 0
+            },
+            {
+              "key": "voice",
+              "label": "Voice",
+              "count": 400
+            },
+            {
+              "key": "group",
+              "label": "Group",
+              "count": 0
+            }
+          ],
+          "searchHint": "Search callers, receivers, call id"
+        }
+      ]
+    }
+  ]
+}

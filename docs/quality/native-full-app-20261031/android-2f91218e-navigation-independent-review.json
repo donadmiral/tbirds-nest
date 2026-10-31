@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T18:07:03.276440+00:00",
+  "scope": "Independent retained Android visual/control-flow review; no rerun or source change. Native owner separately verifies source, decoder and whole-job gates.",
+  "source": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "tree": "f5a48a383b73ec8d7ac6b775885fba6179a9d8ce",
+    "sourceVerification": "Native owner reports501 originals,6 overlays,9 dependencies; this review does not repeat global verification."
+  },
+  "artifact": {
+    "runId": 41225636296,
+    "jobId": 124609086715,
+    "artifactId": 13051109884,
+    "bytes": 9162115,
+    "sha256": "561fc2c24092c98ce327763f87e1bc995b94ab0b82cdf9ca808b614958395eaa",
+    "extraction": "/tmp/android-full-app-2f91218e-41225636296"
+  },
+  "navigation": {
+    "outcome": "FAIL",
+    "junitTests": 1,
+    "junitFailures": 1,
+    "reached": [
+      "Home",
+      "Market and return Home",
+      "Jobs",
+      "Messages",
+      "Profile",
+      "Memory shelf",
+      "Authorized reader open and page controls",
+      "Film and close",
+      "Movie export entry and close",
+      "Book settings",
+      "Title, color, inscription, writing style, postmark, mood, design controls",
+      "Save memory book and settings dismissal"
+    ],
+    "firstFailedLeafSequence": 94,
+    "firstFailedStartedAt": "2026-10-31T18:00:40.866000+00:00",
+    "firstFailedDurationMs": 16566,
+    "expectedCoverLabel": "Postcard book cover: THE LONG WAY HOME. A book from this week. Roads worth remembering. DESERT DAYS",
+    "actualCoverLabel": "Postcard book cover: THE LONG WAY HOMEENTURES. A book from this week. Roads worth remembering. DESERT DAYS",
+    "confirmedFinding": "The replacement title retains ENTURES. The final card is visible with the correct edited inscription/postmark and Postcard design; a missing cover or delayed settings dismissal does not explain this assertion.",
+    "boundary": "The commands mark tap/eraseText/inputText completed, but no intermediate title-field hierarchy or selection state is retained. This establishes a replacement mismatch, not whether Maestro cursor/erasure semantics or production input behavior caused it. No assertion/deadline change proposed by this review.",
+    "notReached": "Any later Settings/account/navigation commands after the failed final cover assertion."
+  },
+  "capture": {
+    "outcome": "SUCCESS_UI_FLOW",
+    "junitTests": 1,
+    "junitFailures": 0,
+    "junitStatus": "SUCCESS",
+    "mandatoryAssertions": "Capture heading, saved-account readback, cancellation timing, first cleanup, complete movie ready, final cleanup all completed. iOS-only Open prompt branch was correctly skipped on Android.",
+    "movieFileExists": true,
+    "boundary": "Movie decode, pixel/audio correctness, cancellation ownership and full verifier are separately owned by Native; a Save movie to Photos control being visible does not establish an actual Photos save."
+  },
+  "evidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/capture-captured-memory-cleanup.png",
+      "bytes": 18958,
+      "sha256": "82d5787d6df1a8253b39e2e8b3c302a66ec2566ee6d8c56aeca348788146f2a9"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/capture-captured-memory-ready.png",
+      "bytes": 30534,
+      "sha256": "1aeddca18d1866687fda822a5e62a7dc40a5045588a3d0f52a5195f7ddffb99f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/capture-commands.json",
+      "bytes": 15640,
+      "sha256": "d9e128931befd90ca7c50a0f90f37b088e483fb451e279b5f7cf234e1e2bd208"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/capture-junit.xml",
+      "bytes": 480,
+      "sha256": "cdf60099ec781623a67146b7634e058270ef6c434199bf2d774311424cda1642"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-commands.json",
+      "bytes": 108097,
+      "sha256": "6caf8eec55c02b3200f765403a8b7410d2aecde4cc311a3bc0bef81114524759"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-failure-ax.json",
+      "bytes": 105350,
+      "sha256": "ab5cf8ce2e6a7db6b09566d0d41412d2d32a151313d1633cf4e4b779d6d746ab"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-failure.png",
+      "bytes": 46848,
+      "sha256": "e40714f29d674fdfbe91c915d95cab76a720da1dab61fd5c50407ce177c0114a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-home.png",
+      "bytes": 50961,
+      "sha256": "1931c20ea6d7d5533eb56e87f59aa6b2418b381b6d7969a6a1646222b1801c81"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-jobs.png",
+      "bytes": 43511,
+      "sha256": "1b16d446f699658ccd8a3d75ed1999da9bc1116a51ce13757a62b5cca7e0379d"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-junit.xml",
+      "bytes": 604,
+      "sha256": "c43ab940d94e28fe53e7edf83fe5c0e60ff4121763b15571c843c654c5832538"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-market.png",
+      "bytes": 32844,
+      "sha256": "31e83da048c4773b51d56354ba5e0f1b76265725a786f6c7742edf4898fd657c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-memory-export-entry.png",
+      "bytes": 31091,
+      "sha256": "13695a0e34a2323a6413b2210ec34f9c78153465acde4922d54fc3083a577664"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-memory-film.png",
+      "bytes": 24153,
+      "sha256": "8e38a83fa8f3c122e1f2d44acdb41d64b48da415ba4c0f432de19cecf6897cec"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-memory-reader.png",
+      "bytes": 22909,
+      "sha256": "be39c3b3fce896eb23f93a8bcd56d6c4e13f0c9d903a080f1b475be4ad701e28"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-memory-shelf.png",
+      "bytes": 23242,
+      "sha256": "f4dab4b386f73eb144bea2adfd94fd6d4e36299c441e2e49f8b584a783a5a717"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-messages.png",
+      "bytes": 33260,
+      "sha256": "b24a605ac98030a69038d18734874da048cd239f5e605a015fdc1662573feccf"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/navigation-profile.png",
+      "bytes": 41407,
+      "sha256": "07f64842bdf47a62569ec4b234a317f86bf8c3c840d57570712192404ce467f3"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-2f91218e/visual-command-timeline.json",
+      "bytes": 80534,
+      "sha256": "39bc9f08994aa0b95c9a93b51f2a944f9ae253e7a8d13f8ec1078fb91a8dc020"
+    }
+  ],
+  "limits": [
+    "Synthetic signed QA data and native simulator runtime; no production provider or physical-device acceptance.",
+    "Current navigation flow still fails and cannot be counted as whole-app acceptance.",
+    "The exact retained screenshots establish only reached screens and states, not every possible control or account state."
+  ]
+}

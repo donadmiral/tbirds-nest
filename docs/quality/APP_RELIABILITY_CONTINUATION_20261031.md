@@ -5,9 +5,47 @@ native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
-## Prepared combined repair candidate (v8)
+## Current work: whole-platform audit before coordinated repairs
 
-The next candidate is reviewed and frozen across **15 source/test paths**.
+The user requested a complete cross-platform interaction sweep and grouped
+repairs. The previous **5/6 repair-cycle counter is retired**; historical
+counters below do not represent current whole-product completion.
+
+The candidate remains frozen at `2f91218e`. The shared
+[audit ledger](full-platform-audit-20261031/audit-ledger.json) records reproduced
+failures, executed cases, missing coverage and blocked environments. The source
+inventory covers 89 unique native route names, 93 member-web page routes and
+34 admin page routes. Its 4,694 static interaction bindings are not a count of
+unique controls or successful clicks.
+
+The first additional actual-page browser group completed 14 Support/Ticket
+scenarios: seven pass and seven fail. Failed list/history reads are silent,
+missing or unreadable tickets can remain on Loading, a member reply can succeed
+while its ticket-status update fails unnoticed, and unexpected rejected writes
+can leave Send locked. Screenshots and synthetic request traces are retained.
+The related native and admin contracts are being checked before choosing the
+repair batch. Native, member web/commerce/Studio and admin audits run in parallel;
+independent scenarios continue after another fails.
+
+Fresh current-source regression and existing browser/media workflows pass,
+and all three standalone native encoder jobs pass. These results establish
+only their recorded scope. Both full installed-native jobs remain active.
+Protected hosted member/admin checks currently reach sign-in; local actual-page
+execution continues with synthetic transport. TestFlight remains on hold.
+
+## Current published combined repair candidate: 2f91218e (v8)
+
+The reviewed candidate is now published as app/PR head
+[`2f91218e71dbcaf94ea7b454a0e3562800bfe601`](https://github.com/donadmiral/tbirds-nest/commit/2f91218e71dbcaf94ea7b454a0e3562800bfe601).
+Its PR merge is `5333fddeaab859dfde2079266aafb07ffd94f329`; both have verified
+tree `f5a48a383b73ec8d7ac6b775885fba6179a9d8ce`. Publication used a non-forced,
+expected-head update after both previous full-native jobs were terminal.
+The final checkpoint's 31 files and 523,073 bytes were read back, along with
+all 501 original native hashes and all 15 changed source/test paths (507 unique
+paths in the union). All working source remained unchanged. Local Git metadata
+now points to this candidate; all 3,163 working paths were preserved.
+
+The source is reviewed and frozen across **15 source/test paths**.
 Two production components change: authorized reader entry is immediate, and
 page-turn settlement cannot wait indefinitely for a native animation callback.
 The remaining paths implement the reviewed Android Mesa/host diagnostics,
@@ -30,10 +68,22 @@ host-renderer isolation intentionally excludes guest Vulkan. Actual renderer
 selection, generated Swift compilation/log delivery and both complete installed
 journeys remain pending. Repair-cycle progress remains **5 of 6 milestones**.
 
+All five fresh workflows are active. Previous supporting passes are retained
+below as historical baselines; they do not establish completion of this source.
+
+| Gate | Fresh current-source run | Initial status |
+| --- | --- | --- |
+| Type and quality | [41225636352](https://github.com/donadmiral/tbirds-nest/actions/runs/41225636352) | In progress |
+| Browser interaction and media | [41225636301](https://github.com/donadmiral/tbirds-nest/actions/runs/41225636301) | In progress |
+| iOS compilation and encoders | [41225636295](https://github.com/donadmiral/tbirds-nest/actions/runs/41225636295) | In progress |
+| Android compilation and encoders | [41225636330](https://github.com/donadmiral/tbirds-nest/actions/runs/41225636330) | In progress |
+| Complete installed native apps | [41225636296](https://github.com/donadmiral/tbirds-nest/actions/runs/41225636296) | Both jobs active |
+
+[Verified publication](live-app-20261031/publication-2f91218e.json) ·
 [Final combined static and provenance gate](native-full-app-20261031/native-final-combined-static-provenance-gate.json) ·
 [Final expected native source manifest](native-full-app-20261031/native-final-combined-source-provenance-manifest.json)
 
-## Current published repair candidate: b5c9c82b (v7)
+## Previous repair candidate: b5c9c82b (v7)
 
 Repair-cycle progress: **5 of 6 milestones complete**. The remaining milestone
 is complete installed-app acceptance on iPhone Simulator and Android Emulator.

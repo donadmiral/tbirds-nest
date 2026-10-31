@@ -1,0 +1,810 @@
+{
+  "schemaVersion": 1,
+  "updatedAtUtc": "2026-10-31T18:13:03.207780+00:00",
+  "source": {
+    "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
+    "repository": "donadmiral/tbirds-nest",
+    "pullRequest": 3
+  },
+  "phase": "First web/admin discovery sealed; coordinated repair batch prepared; broad native execution remains pending",
+  "retiredProgressCounter": "The former 5/6 count represented a narrow repair cycle and is not whole-product progress. It is no longer the current status measure.",
+  "inventory": {
+    "native": {
+      "screenRegistrations": 93,
+      "distinctRouteNames": 89,
+      "jsxFiles": 242,
+      "staticBindings": 2328
+    },
+    "web": {
+      "pageRoutes": 93,
+      "jsxFiles": 265,
+      "staticBindings": 2083
+    },
+    "admin": {
+      "pageRoutes": 34,
+      "jsxFiles": 75,
+      "staticBindings": 283,
+      "endpoints": 5,
+      "exportedServerActions": 50,
+      "staffRoles": 11
+    },
+    "limit": "Source bindings include delegated callbacks and conditional controls. They are not unique visible buttons or completed runtime checks."
+  },
+  "executedAuditGroups": [
+    {
+      "group": "Actual member Support and Ticket page components",
+      "evidence": "support/browser-audit.json",
+      "passed": 7,
+      "failed": 7,
+      "total": 14,
+      "scope": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+    },
+    {
+      "group": "Non-Support member web",
+      "evidence": "../web-audit-2f91218e/audit-summary.json",
+      "actualClientPages": 77,
+      "routeReadObservations": 231,
+      "initialControlRecords": 1106,
+      "initialControlCounts": {
+        "DESTINATION_OUTSIDE_THIS_PAGE_HARNESS": 152,
+        "ACTIVATED_OUTCOME_RECORDED": 868,
+        "DISABLED_IN_INITIAL_STATE_NOT_ACTIVATED": 18,
+        "EXTERNAL_OR_NON_ROUTE_LINK_NOT_ACTIVATED": 9,
+        "RUNTIME_ERROR_OBSERVED": 3,
+        "INTERACTION_FAILED": 54,
+        "CONTROL_CHANGED_BEFORE_ACTIVATION": 1,
+        "PAGE_RENDER_FAILED": 1
+      },
+      "focusedPageAndReadCases": 58,
+      "focusedStudioMutationCases": 10,
+      "profileCoverHitCases": 2,
+      "confirmedIssueFamilies": 9,
+      "staticRouteTotal": 93,
+      "rootOwnedSupportRoutes": 2,
+      "nonClientRoutesNotDirectlyExecuted": 14,
+      "currentDeployedSession": "Signed out; public login/recovery/signup navigation only."
+    },
+    {
+      "group": "Actual admin page and command modules",
+      "evidence": "../all-platform-audit-20261031/admin/admin-ledger.json",
+      "actualPageBrowser": {
+        "total": 77,
+        "passed": 76,
+        "failed": 1,
+        "pageRenderChecks": 31,
+        "meaningfulControlChecks": 41,
+        "controlChecksPassed": 41,
+        "viewportChecks": 5,
+        "viewportChecksPassed": 4,
+        "runtimeConsoleErrors": 0,
+        "actualActionSubmissions": 4,
+        "uniqueActionNames": 3,
+        "evidence": "browser/actual-pages-browser-audit.json"
+      },
+      "standardActionBoundaryScenarios": {
+        "total": 561,
+        "passed": 561,
+        "failed": 0,
+        "uniqueActions": 33,
+        "perAction": "13 identity/role states plus four unavailable/error/unconfirmed-receipt states",
+        "limit": "Actual verified Auth/session/role/action modules with synthetic RPC. Positive receipt is not SQL execution or domain-valid payload acceptance."
+      }
+    }
+  ],
+  "baselineSuites": {
+    "quality": {
+      "run": 41225636352,
+      "status": "passed",
+      "root": 1973,
+      "web": 683,
+      "admin": 195,
+      "edgeTls": 2,
+      "backendNode": {
+        "passed": 314,
+        "conditionalSkipped": 3
+      },
+      "rpc": {
+        "passed": 883,
+        "conditionalSkipped": 3
+      },
+      "limit": "Application cases and complementary fixture branches, not all-controls acceptance. The 33 internal auth checks are inside one root wrapper and are not added."
+    },
+    "browser": {
+      "run": 41225636301,
+      "status": "passed",
+      "limit": "Existing selected UI/media fixtures; generic or placeholder destinations do not establish actual-page acceptance."
+    },
+    "native": {
+      "run": 41225636296,
+      "status": "android-failed-ios-in-progress",
+      "limit": "Existing narrow navigation/memory journeys. Broader independent feature pack is in preparation.",
+      "androidEvidence": "../native-full-app-20261031/android-full-app-2f91218e-review.json"
+    },
+    "nativeCompilersAndEncoders": {
+      "status": "passed",
+      "requiredEncoderCases": 58,
+      "evidence": "../native-full-app-20261031/native-supporting-2f91218e-status.json"
+    }
+  },
+  "issues": [
+    {
+      "id": "SUP-002",
+      "group": "member-support-list",
+      "title": "Failed ticket reads are presented as an empty list",
+      "status": "reproduced-unfixed",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/page.tsx",
+      "reproduction": {
+        "route": "/settings/support",
+        "scenario": "list-error",
+        "expected": "Failed ticket-list read shows a recoverable error, not an empty inbox",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSend to operations",
+        "runtimeErrors": []
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-002.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+    },
+    {
+      "id": "SUP-003",
+      "group": "member-ticket-state",
+      "title": "A missing ticket never leaves Loading",
+      "status": "reproduced-unfixed",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/[id]/page.tsx",
+      "reproduction": {
+        "route": "/settings/support/ticket-a",
+        "scenario": "missing-ticket",
+        "expected": "Missing ticket resolves to a not-found/access state with an exit",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nLoading",
+        "runtimeErrors": []
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-003.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+    },
+    {
+      "id": "SUP-004",
+      "group": "member-ticket-state",
+      "title": "A rejected ticket read never leaves Loading",
+      "status": "reproduced-unfixed",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/[id]/page.tsx",
+      "reproduction": {
+        "route": "/settings/support/ticket-a",
+        "scenario": "ticket-error",
+        "expected": "Failed ticket read exposes an error and retry",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nLoading",
+        "runtimeErrors": []
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-004.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+    },
+    {
+      "id": "SUP-005",
+      "group": "member-message-history",
+      "title": "Failed message history is presented as no replies",
+      "status": "reproduced-unfixed",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/[id]/page.tsx",
+      "reproduction": {
+        "route": "/settings/support/ticket-a",
+        "scenario": "messages-error",
+        "expected": "Failed message read is reported separately from an empty conversation",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nSend",
+        "runtimeErrors": []
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-005.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+    },
+    {
+      "id": "SUP-012",
+      "group": "member-support-write",
+      "title": "Reply and ticket reopening can disagree without an error",
+      "status": "reproduced-unfixed",
+      "platform": "web",
+      "severity": "high",
+      "source": "web/app/settings/support/[id]/page.tsx",
+      "reproduction": {
+        "route": "/settings/support/ticket-a",
+        "scenario": "status-error",
+        "expected": "A successful reply followed by a rejected status update is not reported as full success",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nTicket A\nSolved\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles \u00b7 10/31/2026, 8:01:00 PM\n\nPlease reopen my ticket\n\nYou \u00b7 10/31/2026, 8:02:00 PM\n\nSend",
+        "runtimeErrors": []
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-012.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+    },
+    {
+      "id": "SUP-013",
+      "group": "member-support-write-rejection",
+      "title": "Unexpected submission rejection leaves Sending locked",
+      "status": "reproduced-unfixed",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/page.tsx",
+      "reproduction": {
+        "route": "/settings/support",
+        "scenario": "write-throw",
+        "expected": "Unexpected rejected support submission does not leave Sending locked",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSending\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "runtimeErrors": [
+          "Injected transport rejection"
+        ]
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-013.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+    },
+    {
+      "id": "SUP-014",
+      "group": "member-support-write-rejection",
+      "title": "Unexpected reply rejection leaves Send locked",
+      "status": "reproduced-unfixed",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/[id]/page.tsx",
+      "reproduction": {
+        "route": "/settings/support/ticket-a",
+        "scenario": "write-throw",
+        "expected": "Unexpected rejected reply does not leave Send locked",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles \u00b7 10/31/2026, 8:01:00 PM\n\nSend",
+        "runtimeErrors": [
+          "Injected transport rejection"
+        ]
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-014.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim."
+    },
+    {
+      "id": "WEB-01",
+      "severity": "P1",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Failed privacy-word reads permit replacing existing filters",
+      "routes": [
+        "/settings/hidden-words",
+        "/settings/muted-words"
+      ],
+      "expected": "Unknown initial settings must not be treated as an empty confirmed list; adding a word must preserve existing filters.",
+      "actual": "Both resolved read errors and rejected reads leave an empty editable list. Add sends a profiles update with only [\"newword\"] and renders that one word. The simulated stored baseline contains \"existing\".",
+      "reproduction": "Load with profiles read failing, enter newword, click Add; inspect the exact update array.",
+      "evidenceCases": [
+        "hidden-words-read-resolved",
+        "hidden-words-read-rejected",
+        "muted-words-read-resolved",
+        "muted-words-read-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/settings/hidden-words/page.tsx",
+        "web/app/settings/muted-words/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-02",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Account standing reports a clean record after failed lookup",
+      "routes": [
+        "/settings/standing"
+      ],
+      "expected": "Failed or unavailable strike data should remain unknown with a recovery action.",
+      "actual": "Resolved member_strikes error renders \u201cGood standing. No strikes on this account.\u201d Rejection emits an uncaught error and leaves Loading.",
+      "reproduction": "Return an error or reject the member_strikes read while identity succeeds.",
+      "evidenceCases": [
+        "standing-resolved",
+        "standing-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/settings/standing/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-03",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Explore can remain Loading after one rejected feed read",
+      "routes": [
+        "/explore"
+      ],
+      "expected": "A failed section should expose recovery and settle the page loading state.",
+      "actual": "A rejected get_feed inside Promise.all produces an uncaught rejection; loaded never becomes true. Resolved errors silently omit failed content.",
+      "reproduction": "Keep authentication/trending normal and reject only get_feed.",
+      "evidenceCases": [
+        "explore-resolved",
+        "explore-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/explore/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-04",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Topic reads confuse failure with an empty topic or never settle",
+      "routes": [
+        "/topic/[tag]"
+      ],
+      "expected": "A failed topic read should be distinguished from an empty successful response.",
+      "actual": "With the correct Promise params, a returned posts error renders \u201cNo posts with this topic yet.\u201d A rejection leaves Loading and is uncaught.",
+      "reproduction": "Open #CoastalStories with posts read error/rejection.",
+      "evidenceCases": [
+        "topic-resolved",
+        "topic-rejected",
+        "topic-normal"
+      ],
+      "sourceFiles": [
+        "web/app/topic/[tag]/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-05",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Empty-query Search becomes blank when trending topics fail",
+      "routes": [
+        "/search"
+      ],
+      "expected": "Unavailable discovery content should provide a meaningful state or recovery action.",
+      "actual": "The page main content is empty when get_trending_topics errors; rejected requests are uncaught. Existing real AppShell is outside this fixture, so this is not a claim that the full hosted app loses its navigation.",
+      "reproduction": "Open Search with no query and fail only get_trending_topics.",
+      "evidenceCases": [
+        "search-trending-resolved",
+        "search-trending-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/search/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-06",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Creation forms remain busy after rejected requests",
+      "routes": [
+        "/market/new",
+        "/businesses/new"
+      ],
+      "expected": "Unexpected failures should release the submit lock, retain input and show an error.",
+      "actual": "A rejected listing upload or insert leaves Publishing disabled. A rejected create-business invocation leaves Creating disabled. Standard returned-error paths correctly restore the buttons.",
+      "reproduction": "Fill a valid synthetic form; reject the indicated upload/insert/function request; compare with returned-error controls.",
+      "evidenceCases": [
+        "market-create-storage-rejected",
+        "market-create-table-rejected",
+        "business-create-rejected",
+        "market-create-storage-resolved",
+        "market-create-table-resolved",
+        "business-create-resolved"
+      ],
+      "sourceFiles": [
+        "web/app/market/new/page.tsx",
+        "web/app/businesses/new/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-07",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Promotion picker hides its content-load failure",
+      "routes": [
+        "/ads/new"
+      ],
+      "expected": "A failed existing-content read should be visible in the picker with recovery.",
+      "actual": "The catch records an error, but it is rendered only in step4. At step2 the user sees format/new-text choices and no existing posts or failure explanation.",
+      "reproduction": "Fail the posts read, choose Get more views, click Continue.",
+      "evidenceCases": [
+        "ads-picker-resolved",
+        "ads-picker-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/ads/new/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-08",
+      "severity": "P3",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Auxiliary discovery and inbox reads reject without handlers",
+      "routes": [
+        "/market",
+        "/discover",
+        "/market/new"
+      ],
+      "expected": "Ancillary failures must be handled without uncaught rejections and without claiming a known badge/list state.",
+      "actual": "MarketUnreadDot lets loadConversations reject; FeaturedChannels/ExploreTopics reject unhandled; the new-listing feature-flag read also rejects unhandled. Main Market and Discover error/retry paths remain functional.",
+      "reproduction": "Fail conversations/get_channels/get_trending_topics/feature_flags independently or inspect the route rejected-mode record.",
+      "evidenceCases": [
+        "market-conversations-resolved",
+        "market-conversations-rejected",
+        "route:/discover:rejected",
+        "route:/market/new:rejected"
+      ],
+      "sourceFiles": [
+        "web/components/MarketUnreadDot.tsx",
+        "web/components/DiscoverSections.tsx",
+        "web/app/market/new/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed."
+    },
+    {
+      "id": "WEB-09",
+      "severity": "P2",
+      "status": "CONFIRMED_FOR_BATCH_REPAIR",
+      "title": "Profile photo row intercepts the cover-change button center",
+      "routes": [
+        "/settings/profile"
+      ],
+      "expected": "Visible cover controls should receive normal pointer input.",
+      "actual": "At1440px and390px, elementFromPoint at the Change cover button center returns the overlapping photoRow. A normal click times out on pointer interception. Source has bottom15px cover controls and a later positioned photoRow with margin-top:-35px.",
+      "reproduction": "Open the actual Profile editor and click Change cover at its center; inspect hit target and geometry.",
+      "evidenceCases": [
+        "profile-cover-1440",
+        "profile-cover-390"
+      ],
+      "sourceFiles": [
+        "web/app/settings/profile/profile.module.css",
+        "web/app/settings/profile/page.tsx"
+      ],
+      "limits": "Actual component and CSS at desktop/mobile widths, with synthetic profile data. The fixture does not include the full AppShell; intrinsic overlapping row geometry is retained. No forced clicks were used."
+    },
+    {
+      "id": "ADM-001",
+      "group": "admin-metric-caps",
+      "title": "Jobs treats a capped row window as platform-wide totals",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/jobs/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "350 recent jobs; list limit300; separate recent-date query limit3000, subject to API max_rows1000",
+        "expected": "Global totals count all qualifying rows; records outside a view remain reachable through bounded server paging/search.",
+        "actual": "Roles on the platform300/every row in jobs while Posted this week350. Company/location/type aggregates and local search use only newest300; time-series read has a second row cap."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "capped-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Exact HEAD counts for all/7day/previous7day/30day; bounded server pagination with deterministic order and search. Label distribution/unique-company/remote metrics as the displayed/recent window unless supplied by a bounded aggregate contract. Never fetch all rows unbounded.",
+      "proposedRegressions": [
+        "More than300 and more thanAPImax rows; exact global counts independent of page; next page/search reaches older row; query errors remain errors; scoped chart labels."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ]
+    },
+    {
+      "id": "ADM-002",
+      "group": "admin-metric-caps",
+      "title": "Calls live and weekly summaries omit sessions outside newest400",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/calls/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "500 recent sessions with one still-active session outside newest400",
+        "expected": "Live/weekly totals include every matching call; row-window statistics have explicit scope.",
+        "actual": "Sessions on file500, This week400, Live right now0,400 minutes on file."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "capped-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Separate exact filtered HEAD counts for live/current/previous periods; preserve all-time count. Label duration/answer-rate/status/type series as bounded row-window metrics until a server aggregate is available; bounded history paging.",
+      "proposedRegressions": [
+        "Active call older than row window; >400 calls in week; distinct global and sample labels; provider errors; bounded history access."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ]
+    },
+    {
+      "id": "ADM-003",
+      "group": "admin-metric-caps",
+      "title": "Stories live count is capped at200",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/stories/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "250 live stories",
+        "expected": "Live total250 independent of the bounded review window.",
+        "actual": "Stories on file250; Live right now200; review rows200."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Exact filtered HEAD live count; bounded story paging; explicitly scope views/posters/type/day charts to displayed/recent rows.",
+      "proposedRegressions": [
+        "250 live plus expired mix; boundary expiry; older review row reachable; exact total and scoped charts do not disagree."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ]
+    },
+    {
+      "id": "ADM-004",
+      "group": "admin-expiry-window",
+      "title": "Expired story metric filters creation time instead of expiry window",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/stories/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "250 stories created30hours ago and expired6hours ago (normal24hour lifetime)",
+        "expected": "A clearly labeled expired-last24hours metric counts250, or an explicitly different defined window.",
+        "actual": "Expired in24hours0 because query applies expires_at<now AND created_at>now-24h."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Define label as Expired in last24hours and use expires_at>=now-24h AND expires_at<now with exact HEAD count. If product wants future expiry, label Expiring in next24hours and query that window instead.",
+      "proposedRegressions": [
+        "Normal24hour lifetime; exact lower/upper expiry boundaries; unrelated creation dates; null expiry excluded."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ]
+    },
+    {
+      "id": "ADM-005",
+      "group": "admin-review-backlog",
+      "title": "Verification backlog silently stops at API row cap",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/queue/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "1001 pending applications, APImax_rows1000",
+        "expected": "Pending total1001 and bounded paged access to all submissions.",
+        "actual": "All requests1001 but Pending review1000; only oldest1000 supplied to client Desk. Median label also omits that only latest60 decisions feed it."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Exact status-filtered HEAD pending count plus deterministic bounded server pages; batch related reads only for page IDs. Label tier mix as page/sample and median as latest60decisions unless aggregated. Do not solve by increasing/removing the provider cap.",
+      "proposedRegressions": [
+        "Backlog beyond1000; second page accessibility; count independent of page; stable ties; latest60median scope; permission/error handling."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ]
+    },
+    {
+      "id": "ADM-006",
+      "group": "admin-review-fanout",
+      "title": "Verification safety reads fan out once per pending applicant",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/queue/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "25 distinct pending applicants",
+        "expected": "Request work remains bounded by a small page and a controlled concurrency or aggregate contract.",
+        "actual": "Actual SDK emits25 separate member_strikes HEAD requests in an eager Promise.all; up to1000 applicant reads are possible under current cap."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Page first; bound concurrency and preserve exact safety counts. A future authorized batched aggregate RPC can reduce round trips, but no unbounded all-strikes fetch and no migration activation in this audit.",
+      "proposedRegressions": [
+        "Bound emitted request count/concurrency to page; exact large strike count; denied/error count stops action; no missing-as-zero fallback."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "25 emitted calls reproduced. No real network latency/OOM or saturation was measured; this is demonstrated request amplification."
+      ]
+    },
+    {
+      "id": "ADM-007",
+      "group": "admin-support-layout",
+      "title": "Support ownership selector overflows a phone viewport",
+      "status": "reproduced-unfixed",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/support/[tid]/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "390px viewport; a staff identity has no social profile and falls back to UUID plus role",
+        "expected": "Assignment controls stay within viewport without discarding valid staff options.",
+        "actual": "With actual Workspace padding16/minWidth0, select width508px and document width545px. Temporary max-width/min-width constraint yields document390px."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "browser/support-overflow-projection.json",
+        "browser/support-390-actual-workspace-geometry.png",
+        "browser/support-390-constraint-probe.png"
+      ],
+      "proposedBoundedFix": "Constrain owner label/select to available width (min-w-0/max-w-full and appropriate width) while keeping full option values and accessible names.",
+      "proposedRegressions": [
+        "390px and360px; long names/UUID fallback; options still selectable; desktop unaffected."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "Actual page/CSS reproduced in a local Shell geometry adapter; full hosted Shell not authenticated."
+      ]
+    },
+    {
+      "id": "NATIVE-THEME-001",
+      "group": "native-theme-pairs",
+      "title": "Actual text/style pairs are unreadable or too faint in active themes",
+      "status": "reproduced-unfixed",
+      "platform": "ios-and-android-source",
+      "evidence": [
+        "native-theme/contrast-audit.json"
+      ],
+      "scope": "63 evaluated production palette/style pairs across six screens:12 pass and51 fail. Static style evaluation, not installed pixel acceptance. The larger ancestry sweep is candidate discovery only.",
+      "source": [
+        "src/screens/profile/ContactSupportScreen.tsx",
+        "src/screens/profile/TicketScreen.tsx",
+        "src/screens/profile/AboutScreen.tsx",
+        "src/screens/profile/ApplyVerificationScreen.tsx",
+        "src/screens/profile/BusinessInboxScreen.tsx",
+        "src/screens/profile/CampaignsScreen.tsx"
+      ]
+    },
+    {
+      "id": "NATIVE-ABOUT-001",
+      "group": "native-version-metadata",
+      "title": "About hardcodes version1.0.0/build100 while app configuration is1.1.0",
+      "status": "source-confirmed-unfixed",
+      "platform": "ios-and-android-source",
+      "source": [
+        "src/screens/profile/AboutScreen.tsx",
+        "app.json"
+      ],
+      "expected": "Use installed application metadata; do not guess remote build numbers."
+    },
+    {
+      "id": "NATIVE-TITLE-001",
+      "group": "native-title-replacement",
+      "title": "Saved title contains leftover letters after automated replacement",
+      "status": "reproduced-cause-under-review",
+      "platform": "android",
+      "evidence": [
+        "../native-full-app-20261031/android-full-app-2f91218e-review.json"
+      ],
+      "actual": "THE LONG WAY HOMEENTURES",
+      "expected": "THE LONG WAY HOME",
+      "limit": "Must distinguish actual input/persistence failure from cursor-dependent Maestro erase; assertion stays strict."
+    },
+    {
+      "id": "NATIVE-MOVIE-001",
+      "group": "native-movie-continuity",
+      "title": "Video-to-text scene transition has a133.333ms frame gap",
+      "status": "reproduced-unfixed",
+      "platform": "android",
+      "expected": "Maximum gap below100ms",
+      "evidence": [
+        "../native-full-app-20261031/android-full-app-2f91218e-review.json"
+      ]
+    },
+    {
+      "id": "NATIVE-VERIFIER-001",
+      "group": "native-video-checker",
+      "title": "Coded geometry and mono downmix assumptions reject correctly displayed portrait/per-channel mix",
+      "status": "diagnostic-reproduction-requires-guarded-checker-fix",
+      "platform": "native-test-harness",
+      "evidence": [
+        "../native-full-app-20261031/android-full-app-2f91218e-review.json"
+      ],
+      "limit": "Do not widen continuity or volume thresholds; validate display-matrix orientation and equivalent channel amplitudes."
+    }
+  ],
+  "otherFindingsAwaitingLaneReceipt": [],
+  "coverageGaps": [
+    {
+      "id": "COV-NATIVE-INDEPENDENCE",
+      "finding": "Only three native YAML flow files/two top-level invocations. Memory failure masks later settings and warm-navigation checks; no screen has all-controls installed acceptance.",
+      "action": "Prepare isolated per-feature journeys with independent outcomes and reuse the installed binary."
+    },
+    {
+      "id": "COV-ADMIN-PAGES",
+      "finding": "Existing shared admin browser fixture renders one generic Desk across routes.",
+      "action": "Execute actual page-produced controls and actual server-action contracts; separate hosted authorization."
+    },
+    {
+      "id": "COV-WEB-DESTINATIONS",
+      "finding": "Existing social/commerce/Studio fixtures cover selected pages and contain placeholder destinations.",
+      "action": "Audit actual omitted page modules, controls, read/write failures and exits."
+    }
+  ],
+  "blockers": [
+    {
+      "id": "ACCESS-WEB",
+      "status": "blocked",
+      "reason": "Current available hosted member tab redirects to sign-in. Prior passwords were not retained; no current authenticated pass inferred."
+    },
+    {
+      "id": "ACCESS-ADMIN",
+      "status": "blocked",
+      "reason": "Current hosted admin tab redirects to sign-in. Secure browser credential handoff requires the user; no password reset or guessing."
+    },
+    {
+      "id": "BACKEND-STAGE4",
+      "status": "blocked",
+      "reason": "Two earlier authorized QA migration requests have no known terminal outcome or confirmed cancellation. No duplicate mutation or alternate DDL route."
+    },
+    {
+      "id": "SIGNED-DEVICE",
+      "status": "blocked",
+      "reason": "Current-source local preview configuration prepared. No authenticated Expo CLI session/new signed device build, and physical-device acceptance has not occurred. Prior Apple sign-in is not retried."
+    }
+  ],
+  "nativeHistoricalFailuresAwaitingCurrentRetest": [
+    {
+      "platform": "Android",
+      "previousHead": "b5c9c82b",
+      "failure": "Emulator host SIGSEGV at first memory scroll; not established as an app crash."
+    },
+    {
+      "platform": "iOS",
+      "previousHead": "b5c9c82b",
+      "failure": "Page opening and capture-heading assertions failed; eventual real saved-account readback passed, no captured movie."
+    }
+  ],
+  "rules": [
+    "Product code stays frozen during the initial sweep. Test-only audit harnesses can be prepared independently.",
+    "Continue unrelated tests after a failure and keep all outcomes.",
+    "Record blocked and untested actions explicitly.",
+    "Group verified causes for repair; do not invent defects from incomplete fixture contracts.",
+    "No live messages, payments, account resets, production changes or TestFlight submission are performed as synthetic tests."
+  ],
+  "batchOwners": {
+    "memberWeb": "navigation_performance; all9 non-Support families",
+    "admin": "hosted_backend; all7 findings",
+    "native": "native_acceptance; movie pipeline/checker/title cause plus broader audit pack",
+    "root": "Supportweb/native atomic writes and recoverable reads; native theme and actual version metadata; native build reuse workflow"
+  }
+}
