@@ -1,0 +1,125 @@
+name: Recover baseline Android audit without rebuilding
+
+on:
+  push:
+    branches: ['codex/native-audit-recovery-20261031']
+    paths: ['.github/workflows/native-audit-android-recovery.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: native-audit-android-recovery-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CI: 'true'
+  EXPO_NO_TELEMETRY: '1'
+  EXPO_PUBLIC_APP_ENV: qa
+  EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+  MAESTRO_CLI_NO_ANALYTICS: 'true'
+
+jobs:
+  android-cases:
+    name: Recover Android baseline group ${{ matrix.shard }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: settings
+            groups: settings,stories,directories
+          - shard: account
+            groups: support,auth,profile,business,memory
+          - shard: social
+            groups: navigation,feed,market,jobs,messages
+    env:
+      AUDIT_GROUPS: ${{ matrix.groups }}
+    steps:
+      - name: Check out the exact source of the retained binary and tests
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: b568bd7b75bd25ad919afd8eac8d52300a5c3fcc
+          persist-credentials: false
+      - name: Download the already-built baseline APK
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: native-audit-android-binary
+          path: native-audit-binary
+          run-id: 41229206389
+          github-token: ${{ github.token }}
+      - name: Record distinct recovery and application provenance
+        shell: bash
+        run: |
+          mkdir -p native-ui-logs
+          python3 - <<'PY'
+          import hashlib, json, os, re, subprocess
+          from pathlib import Path
+          source = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          tree = subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip()
+          assert source == 'b568bd7b75bd25ad919afd8eac8d52300a5c3fcc'
+          assert tree == '24c1a151d852ced19f2198980412922ec4c7a4ed'
+          recovery_commit = os.environ['GITHUB_SHA']
+          assert re.fullmatch('[0-9a-f]{40}', recovery_commit)
+          manifest_file = Path('native-audit-binary/binary-manifest.json')
+          manifest = json.loads(manifest_file.read_text())
+          assert manifest['applicationSourceCommit'] == source
+          assert manifest['applicationSourceTree'] == tree
+          assert manifest['platform'] == 'android'
+          binary = Path('native-audit-binary/app-release.apk')
+          def digest(path):
+              value = hashlib.sha256()
+              with path.open('rb') as stream:
+                  for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                      value.update(chunk)
+              return value.hexdigest()
+          binary_hash = digest(binary)
+          assert manifest['binarySha256'] == binary_hash
+          value = {
+              'kind': 'baseline-android-environment-recovery',
+              'recoveryWorkflowCommit': recovery_commit,
+              'recoveryWorkflowRef': os.environ['GITHUB_REF'],
+              'recoveryRunId': int(os.environ['GITHUB_RUN_ID']),
+              'recoveryRunAttempt': int(os.environ['GITHUB_RUN_ATTEMPT']),
+              'binaryProducerRunId': 41229206389,
+              'applicationAndTestCommit': source,
+              'applicationAndTestTree': tree,
+              'binarySha256': binary_hash,
+              'binaryManifestSha256': digest(manifest_file),
+              'featureGroups': os.environ['AUDIT_GROUPS'].split(','),
+              'environmentRepair': 'Add the installed SDK platform-tools and emulator directories to PATH.',
+              'rebuild': False, 'rebundle': False, 'resign': False,
+              'originalHelperRunnerAndFlowsUnchanged': True,
+              'caseHelperExpectedSourceCommit': source,
+          }
+          Path('native-ui-logs/recovery-provenance.json').write_text(json.dumps(value, indent=2) + '\n')
+          PY
+      - name: Prepare device tools and expose the installed SDK executables
+        shell: bash
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          test -d "${ANDROID_HOME:?The runner must provide its Android SDK}"
+          printf '%s\n' "$ANDROID_HOME/platform-tools" "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0 ffmpeg xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run the unchanged baseline cases against the retained APK
+        # The workflow commit is recorded above. Only this process receives the
+        # exact original application/test commit expected by the binary guard.
+        run: GITHUB_SHA=b568bd7b75bd25ad919afd8eac8d52300a5c3fcc bash scripts/quality/run-native-ui-audit-device.sh android "$AUDIT_GROUPS"
+      - name: Retain every case and the separate recovery provenance
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-audit-android-${{ matrix.shard }}-recovery-results
+          path: |
+            native-audit-results/
+            native-ui-logs/
+          if-no-files-found: warn
+          retention-days: 7
