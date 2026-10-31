@@ -1,0 +1,8 @@
+{
+  "artifactMember": "app.log",
+  "bytes": 1413943,
+  "sha256": "b219a3e99c9c44b72d8dda6bc7a0a8c30f9f25f67ef4a3e7576931b8eb29e60c",
+  "totalLines": 9902,
+  "matchingLines": [],
+  "limit": "A zero-match scan is not proof that every possible runtime error or UI defect is absent."
+}

@@ -1,0 +1,124 @@
+{
+  "id": 124567097560,
+  "run_id": 41211437305,
+  "workflow_name": "Full native application UI",
+  "head_branch": "codex/app-quality-20261029",
+  "run_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41211437305",
+  "run_attempt": 1,
+  "node_id": "CR_kwDOTl6pT88AAAAdAMcQ2A",
+  "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+  "url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124567097560",
+  "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41211437305/job/124567097560",
+  "status": "completed",
+  "conclusion": "failure",
+  "created_at": "2026-10-31T14:43:18Z",
+  "started_at": "2026-10-31T14:43:25Z",
+  "completed_at": "2026-10-31T15:34:36Z",
+  "name": "Tap through the full iPhone Simulator app",
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1,
+      "started_at": "2026-10-31T14:43:26Z",
+      "completed_at": "2026-10-31T14:43:31Z"
+    },
+    {
+      "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2,
+      "started_at": "2026-10-31T14:43:31Z",
+      "completed_at": "2026-10-31T14:43:38Z"
+    },
+    {
+      "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3,
+      "started_at": "2026-10-31T14:43:38Z",
+      "completed_at": "2026-10-31T14:43:44Z"
+    },
+    {
+      "name": "Install locked dependencies",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4,
+      "started_at": "2026-10-31T14:43:44Z",
+      "completed_at": "2026-10-31T14:45:22Z"
+    },
+    {
+      "name": "Use Java 17 and the locked CocoaPods version",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5,
+      "started_at": "2026-10-31T14:45:22Z",
+      "completed_at": "2026-10-31T14:45:24Z"
+    },
+    {
+      "name": "Ensure independent movie decoding is available",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 6,
+      "started_at": "2026-10-31T14:45:24Z",
+      "completed_at": "2026-10-31T14:45:38Z"
+    },
+    {
+      "name": "Run bash scripts/quality/install-native-ui-tools.sh",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 7,
+      "started_at": "2026-10-31T14:45:38Z",
+      "completed_at": "2026-10-31T14:45:43Z"
+    },
+    {
+      "name": "Run bash scripts/quality/test-ios-app-ui.sh",
+      "status": "completed",
+      "conclusion": "failure",
+      "number": 8,
+      "started_at": "2026-10-31T14:45:43Z",
+      "completed_at": "2026-10-31T15:34:20Z"
+    },
+    {
+      "name": "Retain actual app UI evidence",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 9,
+      "started_at": "2026-10-31T15:34:20Z",
+      "completed_at": "2026-10-31T15:34:28Z"
+    },
+    {
+      "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 17,
+      "started_at": "2026-10-31T15:34:28Z",
+      "completed_at": "2026-10-31T15:34:28Z"
+    },
+    {
+      "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 18,
+      "started_at": "2026-10-31T15:34:28Z",
+      "completed_at": "2026-10-31T15:34:29Z"
+    },
+    {
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 19,
+      "started_at": "2026-10-31T15:34:29Z",
+      "completed_at": "2026-10-31T15:34:34Z"
+    }
+  ],
+  "check_run_url": "https://api.github.com/repos/donadmiral/tbirds-nest/check-runs/124567097560",
+  "labels": [
+    "macos-15-intel"
+  ],
+  "runner_id": 1000003241,
+  "runner_name": "GitHub Actions 1000003241",
+  "runner_group_id": 0,
+  "runner_group_name": "GitHub Actions"
+}

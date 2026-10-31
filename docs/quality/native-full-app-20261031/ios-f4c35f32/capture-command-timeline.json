@@ -1,0 +1,42 @@
+[
+  {
+    "commandType": "defineVariablesCommand",
+    "sequenceNumber": 0,
+    "status": "COMPLETED",
+    "startedUTC": "2026-10-31T15:32:11.290000+00:00",
+    "durationMs": 71,
+    "error": null
+  },
+  {
+    "commandType": "applyConfigurationCommand",
+    "sequenceNumber": 1,
+    "status": "COMPLETED",
+    "startedUTC": "2026-10-31T15:32:11.367000+00:00",
+    "durationMs": 6,
+    "error": null
+  },
+  {
+    "commandType": "openLinkCommand",
+    "sequenceNumber": 2,
+    "status": "COMPLETED",
+    "startedUTC": "2026-10-31T15:32:11.383000+00:00",
+    "durationMs": 16145,
+    "error": null
+  },
+  {
+    "commandType": "runFlowCommand",
+    "sequenceNumber": 3,
+    "status": "SKIPPED",
+    "startedUTC": "2026-10-31T15:32:27.529000+00:00",
+    "durationMs": 7801,
+    "error": null
+  },
+  {
+    "commandType": "assertConditionCommand",
+    "sequenceNumber": 4,
+    "status": "FAILED",
+    "startedUTC": "2026-10-31T15:32:35.330000+00:00",
+    "durationMs": 24140,
+    "error": "Assertion is false: \"Native capture acceptance\" is visible"
+  }
+]

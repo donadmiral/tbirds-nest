@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "rawSnapshotSha256": "a204c4efe57c68ba5fee6f11531cc7f1ef035c4f653813c76b19a469e2d3aec2",
+  "header": {
+    "schemaVersion": 1,
+    "mode": "synthetic-native-auth-timing",
+    "atMs": 490400.256,
+    "wallClockOriginMs": 1793460351307,
+    "timerApiIdentityCount": 2,
+    "timerApiIdentityLimitReached": false,
+    "totalOperations": 419,
+    "droppedEvents": 178,
+    "droppedTracking": 0
+  },
+  "wallClockOriginUtc": "2026-10-31T15:25:51.307000+00:00",
+  "snapshotUtc": "2026-10-31T15:34:01.707256+00:00",
+  "firstEventUtc": "2026-10-31T15:25:51.307025+00:00",
+  "lastEventUtc": "2026-10-31T15:34:01.458314+00:00",
+  "observedUniqueOperations": 363,
+  "phaseCounts": [
+    {
+      "kind": "lock",
+      "phase": "requested",
+      "count": 156
+    },
+    {
+      "kind": "lock",
+      "phase": "acquired",
+      "count": 152
+    },
+    {
+      "kind": "storage",
+      "phase": "started",
+      "count": 206
+    },
+    {
+      "kind": "storage",
+      "phase": "settled",
+      "count": 206
+    },
+    {
+      "kind": "lock",
+      "phase": "released",
+      "count": 152
+    },
+    {
+      "kind": "lock",
+      "phase": "settled",
+      "count": 152
+    }
+  ],
+  "retention": {
+    "sourcePolicy": "Keep the first512 and latest512 events at1024 capacity; remove middle entries.",
+    "droppedMiddleEvents": 178,
+    "firstSegmentLastEvent": {
+      "index": 511,
+      "operationId": 191,
+      "atMs": 135832.418,
+      "utc": "2026-10-31T15:28:07.139418+00:00"
+    },
+    "lastSegmentFirstEvent": {
+      "index": 512,
+      "operationId": 247,
+      "atMs": 173228.203,
+      "utc": "2026-10-31T15:28:44.535203+00:00"
+    },
+    "boundaryIntervalMs": 37395.785
+  },
+  "maxRetainedWaitMs": 1131.7849999999999,
+  "maxRetainedHoldMs": 456.0630000000019,
+  "maxRetainedStorageMs": 218.53600000000006,
+  "retainedRejectedEvents": 0,
+  "activeLocks": [],
+  "waitingLocks": [],
+  "activeStorage": [],
+  "observedTimerDescriptors": [
+    {
+      "clearTimeout": {
+        "id": 2,
+        "kind": "function"
+      },
+      "setTimeout": {
+        "id": 1,
+        "kind": "function"
+      }
+    }
+  ],
+  "windows": [
+    {
+      "fromUtc": "2026-10-31T15:28:43+00:00",
+      "toUtc": "2026-10-31T15:29:20+00:00",
+      "eventCount": 52,
+      "uniqueObservedOperations": 18,
+      "firstObservedEventUtc": "2026-10-31T15:28:44.535203+00:00",
+      "lastObservedEventUtc": "2026-10-31T15:28:45.651484+00:00",
+      "maxRetainedWaitMs": 13.60099999999511,
+      "maxRetainedHoldMs": 15.26600000000326,
+      "maxRetainedStorageMs": 8.622000000003027,
+      "rejectedEvents": 0
+    },
+    {
+      "fromUtc": "2026-10-31T15:32:00+00:00",
+      "toUtc": "2026-10-31T15:34:02+00:00",
+      "eventCount": 258,
+      "uniqueObservedOperations": 86,
+      "firstObservedEventUtc": "2026-10-31T15:32:02.172696+00:00",
+      "lastObservedEventUtc": "2026-10-31T15:34:01.458314+00:00",
+      "maxRetainedWaitMs": 3.7669999999925494,
+      "maxRetainedHoldMs": 78.74699999997392,
+      "maxRetainedStorageMs": 78.44500000000698,
+      "rejectedEvents": 0
+    }
+  ],
+  "retainedTailQuietInterval": {
+    "afterLastSettledUtc": "2026-10-31T15:28:45.651484+00:00",
+    "nextRequestedUtc": "2026-10-31T15:30:16.869101+00:00",
+    "milliseconds": 91217.617,
+    "interpretation": "No wrapped lock/storage event is recorded in this retained-tail interval. This is distinct from the earlier dropped middle and is not proof that the JS event loop stopped."
+  },
+  "limits": [
+    "Wall times are derived from the diagnostic Date.now anchor plus monotonic offsets; external clock calibration was not performed.",
+    "Maxima and rejection counts apply only to retained events.178 middle events were dropped;56 operation IDs are wholly absent from the retained363 of419.",
+    "Empty final active/waiting/storage arrays describe snapshot state, not every preceding instant.",
+    "Timer identity count2 and descriptors1/2 establish observed descriptor stability, not all timer lifecycle behavior.",
+    "The observer adds microtasks/file writes; these timings are not an uninstrumented production benchmark."
+  ]
+}

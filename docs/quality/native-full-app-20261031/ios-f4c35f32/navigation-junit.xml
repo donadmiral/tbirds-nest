@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum full app UI 41211437305 - iOS 18.5 - AFD192DC-F4CE-4DE8-9F3F-8E53007105B7" tests="1" failures="1" time="276.708" timestamp="2026-10-31T15:24:57">
+    <testcase id="Full native app navigation" name="Full native app navigation" classname="Full native app navigation" file="tests/native/flows/navigation.yaml" time="276.47" timestamp="2026-10-31T15:24:57" status="ERROR">
+      <failure>Assertion is false: "Edit memory book" is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

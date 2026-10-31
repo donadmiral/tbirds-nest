@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "recordedAtUtc": "2026-10-31 15:43:41 UTC",
+  "conclusion": "The current iPhone artifact retains auth activity through the capture-attempt window, with observed stable timer identities and no matching acquisition warning. It does not establish saved-account readback or explain the reader/capture UI failures.",
+  "source": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "merge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "runId": 41211437305,
+    "jobId": 124567097560,
+    "jobConclusion": "failure",
+    "jobCompletedAt": "2026-10-31T15:34:36Z",
+    "canonicalManifest": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-source.json",
+    "manifestSha256": "13d9a02ebc361cbd6626cabaaa25bd18f691550fc68fcd7b0b216ccb4651f1a6",
+    "manifestByteIdenticalToCanonical": true,
+    "nativeOwnerVerification": {
+      "originalSources": 496,
+      "overlays": 6,
+      "dependencyFiles": 9,
+      "matched": true
+    },
+    "relevantOriginalSourceSha256": {
+      "tests/native/auth-diagnostics.cjs": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7",
+      "tests/native/account-readback.cjs": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19",
+      "tests/native/MemoryCaptureFixtureScreen.tsx": "2733bae6355e06851454cab5e73e7579bff585b23de5aa2b8259acae7f68de2d",
+      "tests/native/backend-fixture.cjs": "854cbd355bc8e02736997027fce630e22e298a62a3e1bcfb372d0648f0cf2eb9",
+      "src/stores/accountsStore.ts": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71",
+      "src/services/supabase.ts": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+      "src/navigation/AppNavigator.tsx": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70"
+    }
+  },
+  "artifact": {
+    "id": 13048655033,
+    "name": "ios-full-app-ui",
+    "bytes": 27550762,
+    "sha256": "616971794433088fcd6b8e05923eb86426e4008136caae6afad04e885bdfd6de",
+    "verifiedBy": "native_acceptance",
+    "sharedExtraction": "/tmp/ios-full-app-f4c35f32-41211437305",
+    "downloadedByThisReviewer": false
+  },
+  "authTiming": {
+    "mode": "synthetic-native-auth-timing",
+    "wallClockOriginUtc": "2026-10-31T15:25:51.307000+00:00",
+    "snapshotUtc": "2026-10-31T15:34:01.707256+00:00",
+    "lastEventUtc": "2026-10-31T15:34:01.458314+00:00",
+    "totalOperations": 419,
+    "retainedEvents": 1024,
+    "observedUniqueOperationIds": 363,
+    "droppedEvents": 178,
+    "droppedTracking": 0,
+    "retention": {
+      "sourcePolicy": "Keep the first512 and latest512 events at1024 capacity; remove middle entries.",
+      "droppedMiddleEvents": 178,
+      "firstSegmentLastEvent": {
+        "index": 511,
+        "operationId": 191,
+        "atMs": 135832.418,
+        "utc": "2026-10-31T15:28:07.139418+00:00"
+      },
+      "lastSegmentFirstEvent": {
+        "index": 512,
+        "operationId": 247,
+        "atMs": 173228.203,
+        "utc": "2026-10-31T15:28:44.535203+00:00"
+      },
+      "boundaryIntervalMs": 37395.785
+    },
+    "maxRetainedWaitMs": 1131.7849999999999,
+    "maxRetainedHoldMs": 456.0630000000019,
+    "maxRetainedStorageMs": 218.53600000000006,
+    "retainedRejectedEvents": 0,
+    "finalActiveLocks": 0,
+    "finalWaitingLocks": 0,
+    "finalActiveStorage": 0,
+    "timerApiIdentityCount": 2,
+    "timerApiIdentityLimitReached": false,
+    "observedTimerDescriptors": [
+      {
+        "clearTimeout": {
+          "id": 2,
+          "kind": "function"
+        },
+        "setTimeout": {
+          "id": 1,
+          "kind": "function"
+        }
+      }
+    ],
+    "windows": [
+      {
+        "fromUtc": "2026-10-31T15:28:43+00:00",
+        "toUtc": "2026-10-31T15:29:20+00:00",
+        "eventCount": 52,
+        "uniqueObservedOperations": 18,
+        "firstObservedEventUtc": "2026-10-31T15:28:44.535203+00:00",
+        "lastObservedEventUtc": "2026-10-31T15:28:45.651484+00:00",
+        "maxRetainedWaitMs": 13.60099999999511,
+        "maxRetainedHoldMs": 15.26600000000326,
+        "maxRetainedStorageMs": 8.622000000003027,
+        "rejectedEvents": 0
+      },
+      {
+        "fromUtc": "2026-10-31T15:32:00+00:00",
+        "toUtc": "2026-10-31T15:34:02+00:00",
+        "eventCount": 258,
+        "uniqueObservedOperations": 86,
+        "firstObservedEventUtc": "2026-10-31T15:32:02.172696+00:00",
+        "lastObservedEventUtc": "2026-10-31T15:34:01.458314+00:00",
+        "maxRetainedWaitMs": 3.7669999999925494,
+        "maxRetainedHoldMs": 78.74699999997392,
+        "maxRetainedStorageMs": 78.44500000000698,
+        "rejectedEvents": 0
+      }
+    ],
+    "retainedTailQuietInterval": {
+      "afterLastSettledUtc": "2026-10-31T15:28:45.651484+00:00",
+      "nextRequestedUtc": "2026-10-31T15:30:16.869101+00:00",
+      "milliseconds": 91217.617,
+      "interpretation": "No wrapped lock/storage event is recorded in this retained-tail interval. This is distinct from the earlier dropped middle and is not proof that the JS event loop stopped."
+    },
+    "limits": [
+      "Wall times are derived from the diagnostic Date.now anchor plus monotonic offsets; external clock calibration was not performed.",
+      "Maxima and rejection counts apply only to retained events.178 middle events were dropped;56 operation IDs are wholly absent from the retained363 of419.",
+      "Empty final active/waiting/storage arrays describe snapshot state, not every preceding instant.",
+      "Timer identity count2 and descriptors1/2 establish observed descriptor stability, not all timer lifecycle behavior.",
+      "The observer adds microtasks/file writes; these timings are not an uninstrumented production benchmark."
+    ]
+  },
+  "fixtureSnapshot": {
+    "requests": 278,
+    "networkForwarded": false,
+    "unhandled": 0,
+    "mutations": 3,
+    "media": 0,
+    "selectedCounts": [
+      {
+        "method": "GET",
+        "path": "/rest/v1/conversation_typing",
+        "count": 76
+      },
+      {
+        "method": "GET",
+        "path": "/auth/v1/health",
+        "count": 75
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/profiles",
+        "count": 19
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_profile",
+        "count": 2
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_memory_albums",
+        "count": 2
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_memory_book",
+        "count": 2
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/story_reactions",
+        "count": 2
+      }
+    ],
+    "bookReadRecords": 2,
+    "selectedRequestIndices": [
+      {
+        "index": 41,
+        "path": "/rest/v1/rpc/get_profile"
+      },
+      {
+        "index": 135,
+        "path": "/rest/v1/rpc/get_profile"
+      },
+      {
+        "index": 137,
+        "path": "/rest/v1/rpc/get_profile_insights"
+      },
+      {
+        "index": 138,
+        "path": "/rest/v1/rpc/get_memory_albums"
+      },
+      {
+        "index": 142,
+        "path": "/rest/v1/rpc/get_profile_reach_28d"
+      },
+      {
+        "index": 158,
+        "path": "/rest/v1/rpc/get_memory_book"
+      },
+      {
+        "index": 159,
+        "path": "/rest/v1/story_reactions"
+      },
+      {
+        "index": 160,
+        "path": "/rest/v1/rpc/get_memory_albums"
+      },
+      {
+        "index": 236,
+        "path": "/rest/v1/rpc/get_memory_book"
+      },
+      {
+        "index": 237,
+        "path": "/rest/v1/story_reactions"
+      }
+    ],
+    "interpretation": "This retained cumulative fixture snapshot has two profile RPCs, two shelf RPCs and two book RPCs. It does not reproduce the earlier high-count profile feedback pattern in the observed snapshot. Request times and response-consumption times are not recorded.",
+    "limits": [
+      "The fixture snapshot has no recorded wall timestamp or request-completion timestamps. Counts/order describe this retained snapshot and cannot identify exactly which caller was awaiting which response at a UI timestamp.",
+      "Book-read records show fixture handler execution, not independently measured client response consumption or completed media hydration.",
+      "No completed account-readback result is present. This alone cannot prove the capture effect never entered, because it records only after readSavedAccount/init settles."
+    ]
+  },
+  "accountReadback": {
+    "records": [],
+    "completedReadbackObserved": false,
+    "acceptanceEstablished": false,
+    "indexWriteLogCount": 2,
+    "initCompletionLogCount": 0,
+    "accountFailureLogCount": 0,
+    "keychainErrorLogCount": 0,
+    "sourceBoundary": "MemoryCaptureFixtureScreen invokes readSavedAccount from its mount effect. The helper awaits the actual accountsStore.init/SecureStore reread, then records a result; rejected completion is also recorded. An empty result array does not by itself prove that the effect never entered.",
+    "meaning": "Two index-write logs were observed, but no subsequent completed account reread or capture-route saved-account assertion is established."
+  },
+  "applicationLog": {
+    "sha256": "b219a3e99c9c44b72d8dda6bc7a0a8c30f9f25f67ef4a3e7576931b8eb29e60c",
+    "bytes": 1413943,
+    "lines": 9902,
+    "patternCounts": {
+      "acquisitionWarning": 0,
+      "authClientError": 0,
+      "keychainError": 0,
+      "accountIndex": 2,
+      "accountInit": 0,
+      "accountFailure": 0,
+      "maximumRenderDepth": 0
+    },
+    "accountLines": [
+      {
+        "line": 5222,
+        "text": "2026-10-31 15:26:20.828 I  PlatinumQA[83985:39e6a] [com.facebook.react.log:javascript] '[accounts] index', 1"
+      },
+      {
+        "line": 5253,
+        "text": "2026-10-31 15:26:21.271 I  PlatinumQA[83985:39e6a] [com.facebook.react.log:javascript] '[accounts] index', 1"
+      }
+    ],
+    "limits": [
+      "Absence of a matching warning is limited to this retained application log.",
+      "Successful index-write logs are not evidence of a subsequent SecureStore reread or successful capture-route account assertion."
+    ]
+  },
+  "navigationAndCaptureCorrelation": {
+    "reportedByOtherReviewers": {
+      "navigation": "The current flow reaches the Private shelf, taps the two-memory card at15:28:43.345, and fails Edit memory book while the post-error hierarchy shows loading.",
+      "capture": "The second required flow's openLink command completes at15:32:27 and its Native capture acceptance title check fails; its retained hierarchy remains the book cover."
+    },
+    "independentTimingFinding": "The first dropped-event boundary overlaps the book tap, so full timing at the exact tap is unavailable. The retained tail contains52 events at15:28:44.535–15:28:45.651, then no wrapped lock/storage events until15:30:16.869. During15:32–15:34,258 retained events from86 operations continue with maximum wait3.767ms, hold78.747ms and storage78.445ms.",
+    "interpretation": "The current snapshot did not stop before Profile/capture as the previous6878 iPhone snapshot did. These auth/fixture records cannot locate a pending book/media/reaction/UI operation or establish the cause of the failed route assertions.",
+    "uiAndDecoderOwnership": "Navigation reviewer and native owner retain command, hierarchy, signing and capture/decoder findings separately."
+  },
+  "snapshotFiles": {
+    "canonicalRawFilesRetained": true,
+    "missingFinalNamedFiles": [
+      "native-ui-auth-diagnostics-final.json",
+      "native-ui-receipt-final.json"
+    ],
+    "note": "The iOS artifact has one nonempty auth snapshot and one nonempty fixture receipt; no -final copies are present. Existing files were retained byte-for-byte."
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/auth-account-log-projection.json",
+      "bytes": 1520,
+      "sha256": "81e003b50d4ab509d6c0b5a60a2d981fb1de3ca5d14caefb47fb90db4bc9bffc"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/auth-timing-projection.json",
+      "bytes": 4116,
+      "sha256": "d9bb9d70ff38e4a11917fab90add2c7af7e947a0722733d6ce3ecb87a4d72776"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/fixture-account-projection.json",
+      "bytes": 7587,
+      "sha256": "ecbd2bbd192112243edb2afa0680e49fc00d79ab11f04721411af5b929b64006"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/native-ui-auth-diagnostics.json",
+      "bytes": 197299,
+      "sha256": "a204c4efe57c68ba5fee6f11531cc7f1ef035c4f653813c76b19a469e2d3aec2"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/native-ui-receipt.json",
+      "bytes": 28193,
+      "sha256": "72c05a5b3f913c9618d25c6d3d24a7762420cce4e53a952a8f6d11f44873b7ac"
+    }
+  ],
+  "limits": [
+    "No physical-device or signed-release acceptance follows from this Simulator QA artifact.",
+    "No success for SecureStore reload, capture, movie export or the complete native journey is claimed.",
+    "The optional-reaction loading defect now being reviewed separately is a source-level finding, not a proven cause of this f4 failure.",
+    "Production auth deadlines, locks, logging, app source and capability gates were not changed by this review."
+  ],
+  "actions": {
+    "duplicateDownload": false,
+    "providerOrAppleCalls": false,
+    "sourceEdits": false,
+    "testRuns": false,
+    "refChange": false
+  }
+}

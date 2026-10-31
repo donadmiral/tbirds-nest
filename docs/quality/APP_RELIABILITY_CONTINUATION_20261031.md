@@ -44,10 +44,15 @@ saved-account-readback or capture-cleanup acceptance. The separate required
 capture invocation was attempted and reported that the emulator was not
 connected; no capture or movie resulted. The failure gates remain intact.
 
-At the native owner's **15:13:43 UTC** observation, the current iPhone job was
-still executing its full-app script. Complete installed-app acceptance and
-milestone 6 remain open. The earlier `6878c384` Android and iPhone failures are
-retained below under their own source identity.
+The current iPhone job also finished with **failed acceptance at 15:34:36 UTC**.
+Native compilation and simulator signing passed. Main-page navigation through
+Profile, centered memory-shelf entry and the exact book-card assertion passed.
+After that card was tapped, the required reader assertion failed on a real
+loading spinner. The separate capture heading also failed to appear; its
+failure screenshot shows the later-loaded book cover. Both required Maestro
+invocations produced testcases. Complete installed-app acceptance and milestone
+6 remain open. The earlier `6878c384` failures remain under their own source
+identity below.
 
 ### Fresh supporting verification on published f4c35f32
 
@@ -61,7 +66,7 @@ retained below under their own source identity.
 | Browser media and layouts | 12 story, 25 memory, five music and five cover-editor cases passed; 288 layouts had no measured overflow or overlap; CI reported 18 encoded outputs |
 | Standalone native encoders | **58 passed**: 39 Android, eight iOS story and 11 iOS memory cases |
 | Standalone unsigned native compiler jobs | Android and iOS passed in **721 and 872 seconds** respectively |
-| Complete installed native apps | Android failed after confirmed emulator-process SIGSEGV; iPhone remained active at 15:13:43 UTC; milestone 6 remains open |
+| Complete installed native apps | Android failed after confirmed emulator-process SIGSEGV; iPhone failed reader-readiness and capture-entry assertions; milestone 6 remains open |
 
 The root CI total includes one file-level wrapper for the standalone auth
 program. It therefore reports **1,771 cases**, while the unchanged final local
@@ -109,7 +114,71 @@ backend section.
 [Current hosted postflight](live-app-20261031/backend-stage3-postflight-f4c35f32.json) ·
 [Current Android full-app result](native-full-app-20261031/android-full-app-f4c35f32-review.json) ·
 [Current Android navigation evidence](native-full-app-20261031/android-f4c35f32-navigation-independent-review.json) ·
-[Current emulator host-loss investigation](native-full-app-20261031/android-full-app-f4c35f32-emulator-disappearance.json)
+[Current emulator host-loss investigation](native-full-app-20261031/android-full-app-f4c35f32-emulator-disappearance.json) ·
+[Current iPhone full-app result](native-full-app-20261031/ios-full-app-f4c35f32-review.json) ·
+[Current iPhone navigation evidence](native-full-app-20261031/ios-f4c35f32-navigation-independent-review.json) ·
+[Current iPhone auth coverage](native-full-app-20261031/ios-f4c35f32-auth-independent-review.json)
+
+### What the current iPhone run established
+
+The current iPhone archive was downloaded once and checksum-verified. All 496
+original source hashes, six retained overlays and nine installed dependency
+hashes match `f4c35f32` and its tested merge. Its source manifest is byte-identical
+to the current Android manifest. Embedded simulator entitlements and host
+signature verification passed; this does not establish a signed-device build.
+
+The centered shelf control, Private selection and exact two-memory book card
+passed. The card tap targeted its actual bounds. The subsequent failure
+hierarchy contains an activity spinner and no Edit memory book control; its
+screenshot confirms the reader loading branch. The source still awaits auth,
+the authorized book, media hydration and an optional reaction query before
+clearing initial loading. The retained request counts have no per-request
+completion timing, so they do not identify the unfinished stage. No selector,
+keyboard, settings-modal or deadline correction is established by this result.
+
+The capture invocation started its driver and produced a testcase. Its URL
+command completed, the exact iOS handoff-prompt conditional was skipped, and
+the mandatory capture heading failed. The saved hierarchy and image show the
+loaded book cover with its real reader controls. There is no retained direct
+JavaScript URL-received, action-produced or capture-mount event. A successful
+Maestro URL command alone cannot establish those boundaries. No completed
+saved-account reread or movie capture is recorded; that absence does not prove
+whether the capture effect briefly began. The source and exact assertions are
+preserved, and the cause of the missed capture entry remains unresolved.
+
+The auth snapshot extends through **15:34:01.707 UTC**, after both flow attempts.
+It reports 419 operations, 1,024 retained events, 178 dropped middle events and
+zero tracking drops. Final active locks, waiters and storage operations are
+empty. The retained capture interval has 258 events covering 86 operations,
+with observed maximum lock wait/hold times of 3.767/78.747 ms and no matching
+acquisition warning. These bounded observations do not prove the maximum over
+dropped events or identify the reader/capture cause. Cumulative profile,
+shelf, book and reaction reads are two each; the earlier profile request-storm
+pattern is absent from these counts.
+
+### Saved Android runner follow-up
+
+The reviewed follow-up is saved separately at
+[`f4ee61a3`](https://github.com/donadmiral/tbirds-nest/commit/f4ee61a3d3e991e5a8c442e36f2c9ef53a8bcf1b),
+with all 20 source/evidence files read back and verified. It has not been
+published to the app/PR branch or exercised in a new emulator run. The sole
+launch-argument change selects documented `swiftshader` instead of adaptive
+`software`. Guest Vulkan, the API 35 image, memory allocation, workflow,
+both flows, decoder gates and deadlines remain intact. This is an empirical
+renderer-isolation step; no faulting component or crash cure is established.
+
+The follow-up also retains version/help output and bounded current-run
+Crashpad evidence on a best-effort basis. Diagnostics cannot replace the
+required acceptance result. Its current-user/version store is not a unique
+per-PID namespace, and the recorded cleanup-entry status is not the final
+workflow verdict under signal cancellation. These limits are explicit in the
+receipts. The five changed runner, helper, provenance and test files passed
+52 focused cases: 37 collector/shell cases and 15 existing auth/source-manifest
+cases. An independent review repeated the 37 cases and separately checked two
+real SIGTERM probes. No additional full root suite or emulator pass is claimed.
+
+[Runner follow-up and focused evidence](native-full-app-20261031/android-emulator-renderer-isolation-repair.json) ·
+[Independent runner review](native-full-app-20261031/android-emulator-renderer-isolation-independent-review.json)
 
 ### What the Android baseline established
 
@@ -188,7 +257,7 @@ hashes as historical provenance. Recovery is not a new installed-app test.
 [Independent navigation and recording review](native-full-app-20261031/ios-6878c384-navigation-independent-review.json) ·
 [Independent auth coverage review](native-full-app-20261031/ios-6878c384-auth-independent-review.json)
 
-### Four published repairs awaiting installed-app acceptance
+### Four published repairs and their acceptance limits
 
 | Repair | Resulting behavior and retained boundaries |
 | --- | --- |

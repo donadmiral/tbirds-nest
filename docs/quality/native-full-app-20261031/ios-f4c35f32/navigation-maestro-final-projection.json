@@ -1,0 +1,292 @@
+{
+  "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/logs/maestro.log",
+  "sourceSha256": "56674f31cee579bf4d93b1944beba500120a6eb011b84db97f3d425590b6a938",
+  "sourceBytes": 29519,
+  "selection": "Exact lines from Profile tap through the failed nested navigation flow; original line numbers are one-based.",
+  "lines": [
+    {
+      "line": 136,
+      "text": "15:28:12.335 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on id: main-tab-profile RUNNING"
+    },
+    {
+      "line": 137,
+      "text": "15:28:13.000 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=Profile, title=, value=, text=, hintText=, resource-id=main-tab-profile, bounds=[304,744][376,808], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=304, y=744, width=72, height=64))"
+    },
+    {
+      "line": 138,
+      "text": "15:28:13.326 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)"
+    },
+    {
+      "line": 139,
+      "text": "15:28:13.327 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (340, 776) using hierarchy based logic for wait"
+    },
+    {
+      "line": 140,
+      "text": "15:28:13.328 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array"
+    },
+    {
+      "line": 141,
+      "text": "15:28:13.328 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 142,
+      "text": "15:28:15.181 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed."
+    },
+    {
+      "line": 143,
+      "text": "15:28:15.182 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: main-tab-profile COMPLETED"
+    },
+    {
+      "line": 144,
+      "text": "15:28:15.182 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"Alex Rivera\" is visible RUNNING"
+    },
+    {
+      "line": 145,
+      "text": "15:28:22.493 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"Alex Rivera\" is visible COMPLETED"
+    },
+    {
+      "line": 146,
+      "text": "15:28:22.495 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"(?s)^(?:.*?, )?Edit profile$\" is visible RUNNING"
+    },
+    {
+      "line": 147,
+      "text": "15:28:23.832 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"(?s)^(?:.*?, )?Edit profile$\" is visible COMPLETED"
+    },
+    {
+      "line": 148,
+      "text": "15:28:23.833 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Take screenshot profile RUNNING"
+    },
+    {
+      "line": 149,
+      "text": "15:28:23.834 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot"
+    },
+    {
+      "line": 150,
+      "text": "15:28:23.835 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 151,
+      "text": "15:28:24.128 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Take screenshot profile COMPLETED"
+    },
+    {
+      "line": 152,
+      "text": "15:28:24.136 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run memory-navigation.yaml RUNNING"
+    },
+    {
+      "line": 153,
+      "text": "15:28:24.138 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Apply configuration RUNNING"
+    },
+    {
+      "line": 154,
+      "text": "15:28:24.139 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Apply configuration COMPLETED"
+    },
+    {
+      "line": 155,
+      "text": "15:28:24.142 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Scrolling DOWN until \"View all memory books\" is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled RUNNING"
+    },
+    {
+      "line": 156,
+      "text": "15:28:25.546 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Scrolling try count: 0, DeviceWidth: 393, DeviceWidth: 852"
+    },
+    {
+      "line": 157,
+      "text": "15:28:25.546 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Element bounds: Bounds(x=330, y=644, width=47, height=44)"
+    },
+    {
+      "line": 158,
+      "text": "15:28:25.549 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Visibility Percent: 1.0"
+    },
+    {
+      "line": 159,
+      "text": "15:28:25.621 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Command centerElement: ScrollUntilVisibleCommand(selector=ElementSelector(textRegex=View all memory books, idRegex=null, size=null, below=null, above=null, leftOf=null, rightOf=null, containsChild=null, containsDescendants=null, traits=null, index=null, enabled=null, optional=false, selected=null, checked=null, focused=null, childOf=null, css=null), direction=DOWN, scrollDuration=601, visibilityPercentage=100, timeout=20000, waitToSettleTimeoutMs=null, centerElement=true, originalSpeedValue=40, label=null, optional=false).centerElement"
+    },
+    {
+      "line": 160,
+      "text": "15:28:25.621 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: visibilityPercentageNormalized: 1.0"
+    },
+    {
+      "line": 161,
+      "text": "15:28:25.673 [ INFO] maestro.Maestro.swipeFromCenter: Swiping UP from center"
+    },
+    {
+      "line": 162,
+      "text": "15:28:30.062 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Scrolling try count: 1, DeviceWidth: 393, DeviceWidth: 852"
+    },
+    {
+      "line": 163,
+      "text": "15:28:30.062 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Element bounds: Bounds(x=330, y=180, width=47, height=44)"
+    },
+    {
+      "line": 164,
+      "text": "15:28:30.062 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Visibility Percent: 1.0"
+    },
+    {
+      "line": 165,
+      "text": "15:28:30.062 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Command centerElement: ScrollUntilVisibleCommand(selector=ElementSelector(textRegex=View all memory books, idRegex=null, size=null, below=null, above=null, leftOf=null, rightOf=null, containsChild=null, containsDescendants=null, traits=null, index=null, enabled=null, optional=false, selected=null, checked=null, focused=null, childOf=null, css=null), direction=DOWN, scrollDuration=601, visibilityPercentage=100, timeout=20000, waitToSettleTimeoutMs=null, centerElement=true, originalSpeedValue=40, label=null, optional=false).centerElement"
+    },
+    {
+      "line": 166,
+      "text": "15:28:30.062 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: visibilityPercentageNormalized: 1.0"
+    },
+    {
+      "line": 167,
+      "text": "15:28:30.063 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Scrolling DOWN until \"View all memory books\" is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled COMPLETED"
+    },
+    {
+      "line": 168,
+      "text": "15:28:30.063 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on \"View all memory books\" RUNNING"
+    },
+    {
+      "line": 169,
+      "text": "15:28:30.991 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=View all memory books, title=, value=, text=, hintText=, resource-id=, bounds=[330,180][377,224], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=330, y=180, width=47, height=44))"
+    },
+    {
+      "line": 170,
+      "text": "15:28:31.474 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via stabilised hierarchy (null settle after a scroll)"
+    },
+    {
+      "line": 171,
+      "text": "15:28:32.281 [ INFO] maestro.Maestro.refreshElementUntilStable-Hkttul8: Element is still moving (null -> Bounds(x=330, y=180, width=47, height=44)). Waiting for its position to settle."
+    },
+    {
+      "line": 172,
+      "text": "15:28:33.401 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (353, 202) using hierarchy based logic for wait"
+    },
+    {
+      "line": 173,
+      "text": "15:28:33.402 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array"
+    },
+    {
+      "line": 174,
+      "text": "15:28:33.402 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 175,
+      "text": "15:28:35.654 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed."
+    },
+    {
+      "line": 176,
+      "text": "15:28:35.654 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on \"View all memory books\" COMPLETED"
+    },
+    {
+      "line": 177,
+      "text": "15:28:35.655 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on \"Private\" RUNNING"
+    },
+    {
+      "line": 178,
+      "text": "15:28:36.765 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=Private, title=, value=, text=, hintText=, resource-id=, bounds=[256,174][375,213], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=256, y=174, width=119, height=39))"
+    },
+    {
+      "line": 179,
+      "text": "15:28:37.400 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)"
+    },
+    {
+      "line": 180,
+      "text": "15:28:37.401 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (315, 193) using hierarchy based logic for wait"
+    },
+    {
+      "line": 181,
+      "text": "15:28:37.402 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array"
+    },
+    {
+      "line": 182,
+      "text": "15:28:37.402 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 183,
+      "text": "15:28:40.135 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed."
+    },
+    {
+      "line": 184,
+      "text": "15:28:40.136 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on \"Private\" COMPLETED"
+    },
+    {
+      "line": 185,
+      "text": "15:28:40.137 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"THE SMALL ADVENTURES, 2 memories\" is visible RUNNING"
+    },
+    {
+      "line": 186,
+      "text": "15:28:41.216 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"THE SMALL ADVENTURES, 2 memories\" is visible COMPLETED"
+    },
+    {
+      "line": 187,
+      "text": "15:28:41.217 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Take screenshot memory-shelf RUNNING"
+    },
+    {
+      "line": 188,
+      "text": "15:28:41.218 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot"
+    },
+    {
+      "line": 189,
+      "text": "15:28:41.219 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 190,
+      "text": "15:28:41.437 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Take screenshot memory-shelf COMPLETED"
+    },
+    {
+      "line": 191,
+      "text": "15:28:41.438 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on \"THE SMALL ADVENTURES, 2 memories\" RUNNING"
+    },
+    {
+      "line": 192,
+      "text": "15:28:42.817 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=THE SMALL ADVENTURES, 2 memories, title=, value=, text=, hintText=, resource-id=, bounds=[16,233][188,506], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=16, y=233, width=172, height=273))"
+    },
+    {
+      "line": 193,
+      "text": "15:28:43.344 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)"
+    },
+    {
+      "line": 194,
+      "text": "15:28:43.345 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (102, 369) using hierarchy based logic for wait"
+    },
+    {
+      "line": 195,
+      "text": "15:28:43.346 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array"
+    },
+    {
+      "line": 196,
+      "text": "15:28:43.346 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 197,
+      "text": "15:28:47.306 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed."
+    },
+    {
+      "line": 198,
+      "text": "15:28:47.307 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on \"THE SMALL ADVENTURES, 2 memories\" COMPLETED"
+    },
+    {
+      "line": 199,
+      "text": "15:28:47.308 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"Edit memory book\" is visible RUNNING"
+    },
+    {
+      "line": 200,
+      "text": "15:29:16.645 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot"
+    },
+    {
+      "line": 201,
+      "text": "15:29:16.647 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 202,
+      "text": "15:29:17.177 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"Edit memory book\" is visible FAILED"
+    },
+    {
+      "line": 203,
+      "text": "15:29:17.181 [ERROR] maestro.orchestra.Orchestra.executeCommands: [Command execution] CommandFailed: Assertion is false: \"Edit memory book\" is visible"
+    },
+    {
+      "line": 204,
+      "text": "15:29:17.226 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot"
+    },
+    {
+      "line": 205,
+      "text": "15:29:17.227 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 206,
+      "text": "15:29:17.494 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run memory-navigation.yaml FAILED"
+    }
+  ]
+}
