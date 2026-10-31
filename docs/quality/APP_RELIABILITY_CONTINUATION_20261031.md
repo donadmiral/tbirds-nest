@@ -1,11 +1,69 @@
 # App reliability and performance continuation
 
+## Focused repairs and interruption recovery, 31 October 2026
+
+The user's subsequent individual repair requests authorize source/test work. New application builds and deployments remain held for user review. The previous stop checkpoint below is historical.
+
+Current focused source is preserved on `codex/reader-recoverability-20261031` at `a65f2b0b089308857085d7183ec176aad9e57372`. The source contains the verified poll transport correction, bounded required reader waits and identity lifecycle recovery. The reader source passes 61 focused local cases; the poll passes 3. Lint and native TypeScript pass. The original iPhone main-thread stall has not yet been established as cured by these local changes.
+
+A workspace interruption restored an older snapshot. The four exact tested reader files were recovered. Missing native Appearance/offer controls, theme persistence, web offer controls, admin Lights out and the Save test flow were freshly restored and tested. Their final combined 36-case check passes; its four title cases overlap the 61 reader group. The surviving Android media source preparation passes 22 fresh checks. This is new restoration evidence, not an assertion that the lost historical receipts were recovered. The later Android interface-dispatch proof and separate Save audit-receipt gate remain missing.
+
+One test-only iPhone run, `41253722308`, is in progress. It uses the verified existing d46 Simulator app, without compiling, rebundling, signing or deploying a new app. Acceptance requires the warm-tab reader diagnostic and unchanged original reader-controls case. That retained package does not contain the new local source fixes. Setup success is not reader acceptance.
+
+The last complete Android result remains 79/85. No whole-app button percentage or 5 million daily user capacity result is claimed. Current structured checkpoint: `full-platform-audit-20261031/restoration-checkpoint/current-task-status.json`.
+
+
+## User review handoff — 31 October 2026
+
+**Work is paused at the user's request. Do not start another build, deployment, release, migration, retry, or audit expansion without a new instruction. The app is not fully accepted; every page and button has not been tested.**
+
+The last complete Android audit executed all 85 declared cases: **79 passed, six failed, none missing, no case timeouts**. This is 100% of the declared case pack and a 92.9% pass rate, not whole-app coverage. Of those cases, 59 check route entry and 26 exercise selected controls or flows. All 48 earlier passing cases still pass; 31 earlier failures now pass.
+
+The current iPhone suite has **zero verified case results** at handoff. Earlier tests reached five main tabs and the private shelf but stalled when opening the memory reader. The current compilation completed and its already-launched CI consumers began at the last observed status. No new run has been requested after the stop instruction.
+
+Web exercised **79 of 93 inventoried page modules (84.9%)**, including two Support pages, with **237 selected browser checks passed**. Admin rendered **31 of 34 inventoried page modules (91.2%)**, with **70 selected browser checks passed**. These are local controlled-browser checks, not every role, button, state, or current hosted session. Whole-app button coverage has no valid measured denominator.
+
+### The six remaining Android cases
+
+| Case | Finding | Handoff status |
+|---|---|---|
+| Story viewer | Synthetic data used the wrong story fields, leaving the real caption/background empty. | Local fixture correction verified; device retest pending. |
+| Post poll | Strict synthetic transport rejected the real get_poll read. | Local fixture correction verified; device retest pending. |
+| Memory capture | Precompiled Expo video code bypassed the source patch and crashed against Media3's new LoadControl interface. | Local source/configuration and APK-check repair prepared; rebuilt APK/device verification pending. |
+| Appearance | Android's native alert drops the fourth and later actions, including Lights out. | Unresolved. Broad unfinished menu work saved separately as an unapplied draft. |
+| Memory cover Save | The title replacement read back correctly; the test driver's hideKeyboard sent Back and closed the modal before Save. | Diagnosed test-flow defect; correction/retest pending. |
+| Offer cancellation | No explicit Cancel control in the offer modal; keyboard-state layout also needs correction. | Diagnosed product defect; correction pending. |
+
+The two fixture changes passed 25 focused/compatibility checks, including five new checks that failed before the correction. They do not change the recorded 79/85 installed-app result. The iPhone setup correction passed two formal tests containing 11 controlled Python cases but has not been run on a real Simulator after correction. It does not resolve the reader stall.
+
+### Application work already implemented and locally tested
+
+- Support: explicit read/not-found failures, bounded preparation/writes, session/lifecycle guards, draft retention, confirmed acknowledgments, and an atomic reply/reopen operation. The new database operation is locally tested and is **not applied** to hosted QA.
+- Member web: privacy filters protected after failed reads, honest account-standing/search/topic errors, recoverable creation forms, corrected profile-cover hit target, and bounded settings writes.
+- Admin: uncapped totals, correct expiry windows, paging, bounded verification lookups, phone-width ownership controls, honest server receipts, and diagnostics/audio endpoint validation and timeouts.
+- Native presentation: theme contrast, readable media controls and actual application version/build display.
+- Android movie encoder: the clipped B-frame transition repair passed the standalone actual encoder's 40 cases. The current installed app's playback crash is a separate unresolved acceptance gate.
+
+The last consolidated application suites passed: root 2,168; web 683; admin 284; backend 328 with three conditional skips; RPC 883 with three conditional skips. Later focused fixes are identified separately and are not represented as a fresh full-suite pass.
+
+### Existing CI and release state
+
+[Existing audit run](https://github.com/donadmiral/tbirds-nest/actions/runs/41235679679) was already launched before the stop instruction. At the last observation, iPhone compilation succeeded and its three test consumers had started. Cancellation could not be performed: the connected GitHub tools expose no cancel-run operation, and no authenticated CLI or web session is available. The owner can use **Cancel workflow** on that run page. No new CI run, TestFlight submission or production deployment is being initiated.
+
+The app PR head remains unchanged. The verified grouped source is retained at `d46c50f09164c75c7fe8cdba0c3470c272b1ab4e`; newer focused patches are local pending user review. Current installed/hosted versions must not be described as containing all these changes.
+
+Complete structured accounting, including the original 39 issue records and the six current native outcomes: `full-platform-audit-20261031/user-review-handoff.json`.
+
+**Earlier chronological checkpoints below are superseded by this handoff wherever they describe active work or planned builds.**
+
+---
+
 This report records the continuation of the app-wide reliability, navigation and
 native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
-## Current work: grouped cross-platform repairs and installed-device diagnosis
+## Current work: published repair candidate and parallel device acceptance
 
 The previous **5/6 counter is retired**. It described a narrow repair cycle,
 not whole-product completion. The user requested a broad error inventory,
@@ -16,12 +74,26 @@ remaining installed or hosted acceptance. These records include product,
 measurement and test-infrastructure defects; they are not 39 separate product
 features or a completion percentage.
 
-The published application baseline remains `2f91218e`. A coordinated working
-copy contains the repaired Support flows, nine member-web issue families,
-held settings-save recovery, seven admin reporting/layout findings, three API
+The consolidated repair candidate is published as
+[`d46c50f0`](https://github.com/donadmiral/tbirds-nest/commit/d46c50f09164c75c7fe8cdba0c3470c272b1ab4e),
+with verified tree `b9816fb408382a5e4ae4277111128e458b1d524f`.
+It contains the repaired Support flows, nine member-web issue families, held
+settings-save recovery, seven admin reporting/layout findings, three API
 contract findings, five custom-action receipt failures, native theme/version
 repairs, media readability fixes and the diagnosed Android movie dependency
-repair. The combined local application regression passed. The repair checkpoint is published as `c20cc9e5`; the app/PR head remains `2f91218e` until the native findings are consolidated.
+repair. The combined local application and browser regressions passed on the
+grouped product repair source, `c20cc9e5`; the subsequent native fixture and
+runner corrections do not change that product source. The app/PR head remains
+`2f91218e` while the candidate's native findings are collected, avoiding another
+app-head-triggered build cycle.
+
+The [current native audit](https://github.com/donadmiral/tbirds-nest/actions/runs/41235679679)
+builds one source-bound binary for each platform. Each binary feeds three
+parallel feature groups, with 85 independent cases per platform. The Android
+producer has passed and its three feature jobs have started; the iPhone producer
+is still building. No current-candidate native case passes are inferred from
+build or job status. The Android archive, APK digest, 598 prepared source hashes
+and nine installed dependency hashes have been verified against the candidate.
 
 ### Progress by verified scope
 
@@ -32,10 +104,34 @@ repair. The combined local application regression passed. The repair checkpoint 
 | Admin reporting and commands |Complete admin suite284/284;12/12 reporting browser and21/21 custom-control browser cases | Locally verified; current hosted session is signed out |
 | Native theme and media labels |111/111 theme cases plus7/7 media contrast cases; existing9 player/selector cases preserved | Source/render/color evidence; device visual acceptance pending |
 | Android movie |40/40 actual encoder instrumentation cases passed on the repair checkpoint; the B-frame case retains45 video-page frames with a33.334ms boundary gap | Standalone emulator evidence passed; complete installed-app export still pending |
-| Android broad audit |85/85 baseline cases executed:48passed,37failed,0case timeouts | All failures assigned to fixture, interaction, existing Support or media repairs; corrected candidate device run pending |
-| iPhone installed app |Original main tabs and private shelf passed; reader stall remains unresolved. First no-rebuild recovery attempt failed in simulator setup, before all85cases | Reviewed setup/process correction published as `c1bb0784`; existing binary reused for the next run |
+| Android broad audit |85/85 baseline cases executed:48passed,37failed,0case timeouts | All failures classified and grouped corrections published; `d46c50f0` build passed and its three retest jobs are running |
+| iPhone broad audit |Original main tabs and private shelf passed; reader stall remains unresolved | `d46c50f0` build is running before all85cases; separate retained-binary investigation targets the unresolved reader path |
 | Combined regression |Phone/root2,168/2,168; web683/683; admin284/284; database328passed plus3conditional skips; RPC883passed plus3conditional skips |Passed. Four test adapters/contracts were repaired together without changing product assertions. |
 | Complete browser regression |307/307 scenarios across all13workflow groups, including actual exports; no process timeouts |Passed on the grouped repair source with synthetic provider boundaries; hosted acceptance separate |
+
+All four available workers have distinct current ownership: Android audit,
+iPhone audit, the retained iPhone binary's reader/setup investigation, and
+integration/publication. Current builds are preserved. A runner-only correction
+uses the existing exact binary with separately verified helper provenance and
+does not trigger another app compile.
+
+The iPhone recovery attempts have not reached application testing. The
+first stopped during simulator creation; the second completed boot but exposed
+a recovery-only five-second Xcode metadata deadline; the third passed the
+Xcode read within the normal 30-second budget but timed out reading SDK metadata
+after boot. Those outcomes are retained as setup failures, not app failures or
+case passes. The
+[memory-only recovery](https://github.com/donadmiral/tbirds-nest/actions/runs/41236355546),
+source `39913314`, passed all immutable toolchain/bundle checks before simulator
+boot, including the SDK read in 4.57 seconds. Simulator creation took 114.26
+seconds and boot readiness took another 155.35 seconds. The first postboot
+runtime-list query then timed out at its unchanged 30-second deadline. The app
+was never installed: the separate warm-tab-to-reader diagnostic and all five
+selected memory cases remained unattempted. The other 80 old-source cases were
+excluded because the new candidate owns the full audit. A small setup-only
+probe is being prepared to retain CPU, memory and owned-process evidence before
+another application test attempt. No new app defect or reader cure is inferred
+from the setup failure.
 
 The native audit contains 59 entry-only cases and 26 selected control, error,
 signed-out and capture cases. The source inventory contains 89 distinct native
@@ -52,10 +148,13 @@ an application, network or automation root cause. The next native diagnostic
 must retain request traces and thread evidence rather than assume a cause.
 
 Hosted QA migration advancement remains held because two earlier authorized
-requests have no proven terminal outcome. Available member/admin sessions are
-signed out. Apple sign-in is not retried, no new signed-device acceptance is
-claimed, and TestFlight remains on hold. These are separate from the completed
-local repairs and ongoing simulator/emulator audit.
+requests have no proven terminal outcome. The latest read-only check at
+19:48 UTC still shows the stage-three catalog and history unchanged, with no
+matching active statement; this does not prove that either earlier request is
+cancelled. Available member/admin sessions are signed out. Apple sign-in is not
+retried, no new signed-device acceptance is claimed, and TestFlight remains on
+hold. These are separate from the completed local repairs and ongoing
+simulator/emulator audit.
 
 ## Published baseline: 2f91218e (v8)
 

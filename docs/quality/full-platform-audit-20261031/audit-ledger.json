@@ -1,15 +1,18 @@
 {
   "schemaVersion": 1,
-  "updatedAtUtc": "2026-10-31T19:44:14.755301+00:00",
+  "updatedAtUtc": "2026-10-31T23:54:59.133045+00:00",
   "source": {
     "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
     "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
     "repository": "donadmiral/tbirds-nest",
     "pullRequest": 3,
-    "role": "App/PR baseline; grouped product repairs are published separately as c20cc9e5 while corrected native acceptance is prepared.",
-    "repairCheckpoint": "c20cc9e55657291d7c7c964cd4a5f622d051e24f"
+    "role": "App/PR baseline retained while the consolidated d46c50f0 candidate completes native acceptance; no duplicate app-head build cycle.",
+    "repairCheckpoint": "c20cc9e55657291d7c7c964cd4a5f622d051e24f",
+    "nativeCandidate": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "nativeCandidateTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+    "candidatePublicationReceipt": "../live-app-20261031/native-candidate-d46c50f0-publication.json"
   },
-  "phase": "Combined application and browser regressions passed; Android encoder repair passed; corrected native audit candidate is being consolidated.",
+  "phase": "focused-local-repairs-preserved-one-retained-iphone-reader-run-in-progress",
   "retiredProgressCounter": "The former 5/6 count represented a narrow repair cycle and is not whole-product progress. It is no longer the current status measure.",
   "inventory": {
     "native": {
@@ -1122,6 +1125,13 @@
     "native": "native_acceptance; media/runner and installed-evidence diagnosis; navigation_performance reader render diagnosis",
     "root": "Support atomicSQL and integration; finalmediachrome; combinedgates and publication"
   },
+  "activeWorkers": {
+    "concurrencyLimit": 4,
+    "root": "Integration, exact GitHub checkpoints and final result accounting",
+    "hosted_backend": "Observe single retained-app iPhone reader run41253722308",
+    "navigation_performance": "Web/admin restoration frozen and preserved",
+    "native_acceptance": "Native controls and reader verification frozen and preserved"
+  },
   "localRepairReceipts": {
     "support": {
       "path": "support/lifecycle-repair/support-lifecycle-repair.json",
@@ -1169,16 +1179,42 @@
     }
   },
   "activeNativeAudit": {
-    "binaryAndTestSource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
-    "applicationSource": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
-    "baselineRun": 41229206389,
-    "androidRecoveryRun": 41231522956,
-    "androidRecoveryWorkflowSource": "23cf8777768451a74d24339b77f0fae2c41ba415",
-    "caseInventory": 85,
-    "entryOnlyCases": 59,
-    "controlErrorSignedOutCaptureCases": 26,
+    "binaryAndTestSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "sourceTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+    "run": 41235679679,
+    "androidProducerJob": 124638843088,
+    "iosProducerJob": 124638843259,
+    "caseInventoryPerPlatform": 85,
+    "entryOnlyCasesPerPlatform": 59,
+    "controlErrorSignedOutCaptureCasesPerPlatform": 26,
+    "shardsPerPlatform": 3,
     "allControlsAccepted": false,
-    "state": "Android three recovery consumers active; iPhone producer/consumers tracked separately. No completed native case count inferred from job execution."
+    "state": "Android producer passed and all three feature jobs started; iPhone producer is building. No current-candidate native case pass count is inferred from job status.",
+    "reusePolicy": "Preserve active builds. Runner-only corrections reuse the exact artifact with separately verified helper provenance; no app rebuild, rebundle or re-sign.",
+    "previousBaseline": {
+      "binaryAndTestSource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+      "applicationSource": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+      "producerRun": 41229206389,
+      "androidRecoveryRun": 41231522956,
+      "androidRecoveryWorkflowSource": "23cf8777768451a74d24339b77f0fae2c41ba415",
+      "androidAttempted": 85,
+      "androidPassed": 48,
+      "androidFailed": 37
+    },
+    "androidProducerStatus": "passed",
+    "androidCaseJobs": {
+      "settings": 124642900256,
+      "account": 124642900287,
+      "social": 124642900311
+    },
+    "androidArtifact": {
+      "id": 13055287858,
+      "bytes": 63626500,
+      "zipSha256": "7117b34750fea6a71760a5e0bb587e9750b6988b4687a689523655de8ec7d4a3",
+      "apkSha256": "9897c6328030bde3bf2bdbf4553012f5431362d4f7a0e53960821301daa14298",
+      "originalSourceHashesVerified": 598,
+      "dependencyHashesVerified": 9
+    }
   },
   "combinedLocalRegression": {
     "receipt": "combined-regression/application-results.json",
@@ -1187,7 +1223,10 @@
     "adminPassed": 284,
     "backendPassed": 328,
     "backendConditionalSkipped": 3,
-    "status": "Allfourapplicationgroupspassed;RPCmatrixandnewnativeharnessdiagnosticsseparate"
+    "rpcPassed": 883,
+    "rpcConditionalSkipped": 3,
+    "rpcReceipt": "combined-regression/rpc-results.json",
+    "status": "All four application groups and the RPC matrix passed; new native harness diagnostics are recorded separately."
   },
   "combinedBrowserRegression": {
     "receipt": "docs/quality/full-platform-audit-20261031/combined-browser/acceptance.json",
@@ -1224,7 +1263,7 @@
       "causeLimit": "Original setup failure lacked process-exit/partial-output metadata; cold-start versus inherited-pipe contribution is not established.",
       "correctionCommit": "c1bb0784ba031ac8dc4e14f5d0cdeeacadd024c5",
       "correctedRun": 41234444953,
-      "correctedStatus": "running"
+      "correctedStatus": "failed before app installation: all three simulators booted, then recovery-only five-second Xcode metadata reads timed out"
     },
     "androidEncoder": {
       "run": 41233788259,
@@ -1249,7 +1288,131 @@
       "correctionCommit": "0969400c77e05da3ce0f931c9b25e88b93315439",
       "correctionScope": "Use the existing normal-runner 30-second metadata budget and retain each setup read; application assertions and case deadlines unchanged.",
       "nextRun": 41235415260,
-      "nextRunStatus": "running"
+      "nextRunStatus": "failed before app installation: all three Xcode reads passed within 30 seconds, then SDK metadata reads timed out after simulator boot",
+      "setupFailureReceipt": "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41235415260/setup-failure.json"
+    },
+    "iosMemoryOnlyPrebootRecovery": {
+      "sourceCommit": "39913314f866c6446e5a8bbfdd86f4e35cb27ed1",
+      "sourceTree": "8a1fd51e93829475ea4463f22981fbb3e3599c48",
+      "run": 41236355546,
+      "job": 124640857650,
+      "binarySource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+      "binaryArtifact": 13053723906,
+      "appDigestSha256": "61aa632c9499117c7d0f7cc7901e58eb6470d7aeffb6d6eb41aad87119f79b65",
+      "selectedOriginalCases": 5,
+      "excludedOldSourceCases": 80,
+      "separateDiagnostic": "Warm tabs to Profile shelf to memory reader, before the five unchanged original memory cases; never counted in the original 85-case audit.",
+      "orderingCorrection": "Immutable host, Xcode, SDK, bundle, Mach-O and signature checks precede simulator boot; available runtime and exact booted-device checks follow it, and exact app bytes are rechecked before install.",
+      "status": "failed before app installation; zero selected cases or reader diagnostics attempted",
+      "limit": "The ordering proved the immutable toolchain/app checks pass before boot. It did not establish healthy postboot Simulator responsiveness or any reader outcome; CPU/memory/thread diagnosis is now required before another rerun.",
+      "selectionReceipt": "docs/quality/native-full-app-20261031/native-audit-ios-recovery/memory-only-selection.json",
+      "independentReview": "docs/quality/native-full-app-20261031/native-ios-preboot-compatibility-independent-review.json",
+      "immutablePrebootChecks": "passed: host, Xcode, SDK, bundle metadata, Mach-O and signature",
+      "setupSeconds": {
+        "sdk": 4.569122829999969,
+        "create": 114.25945186199999,
+        "boot": 8.569663203999994,
+        "bootstatus": 155.35020378599995,
+        "runtimeListTimeout": 30.026544703000013
+      },
+      "failedCommand": [
+        "xcrun",
+        "simctl",
+        "list",
+        "runtimes",
+        "--json"
+      ],
+      "researchReceipt": "docs/quality/native-full-app-20261031/ios-simulator-host-diagnostic-research.json"
     }
+  },
+  "latestHostedReadOnlyCheck": {
+    "metadataObservedAtUtc": "2026-10-31T19:48:12.783527Z",
+    "catalogObservedAtUtc": "2026-10-31T19:48:20.046786Z",
+    "project": "uaulhuelcfkjwojtymmw",
+    "catalogFingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "stage": 3,
+    "historyEntries": 3,
+    "matchingActiveStatements": 0,
+    "receipt": "../live-app-20261031/backend-stage3-postflight-d46c50f0.json",
+    "interpretation": "Catalog and history remain unchanged. A quiet database does not establish terminal outcomes or cancellation of either earlier migration request; no retry or alternate DDL route is authorized by this observation."
+  },
+  "userReviewHandoff": {
+    "path": "user-review-handoff.json",
+    "recordedAt": "2026-10-31T20:35:43.664683+00:00",
+    "wholeAppComplete": false,
+    "everyPageAndButtonTested": false,
+    "newBuildsOrDeploymentsAuthorized": false,
+    "android": {
+      "attempted": 85,
+      "passed": 79,
+      "failed": 6
+    },
+    "iosCurrentVerifiedCaseResults": 0
+  },
+  "latestFocusedRepair": {
+    "recordedAt": "2026-10-31T23:58:27.505809+00:00",
+    "task": "Post poll fixture and iPhone memory reader; restore earlier authorized fixes lost during workspace interruption",
+    "sourceBranch": "codex/reader-recoverability-20261031",
+    "sourceCommit": "a65f2b0b089308857085d7183ec176aad9e57372",
+    "sourceUrl": "https://github.com/donadmiral/tbirds-nest/commit/a65f2b0b089308857085d7183ec176aad9e57372",
+    "poll": {
+      "status": "LOCAL_FIX_VERIFIED_DEVICE_RETEST_PENDING",
+      "passed": 3,
+      "failed": 0,
+      "receipt": "poll-transport-repair/acceptance.json"
+    },
+    "reader": {
+      "status": "LOCAL_RECOVERABILITY_FIX_VERIFIED_NATIVE_STALL_NOT_YET_RESOLVED",
+      "freshLocalPassed": 61,
+      "freshLocalFailed": 0,
+      "receipt": "iphone-reader-stall-investigation/review.json",
+      "staticChecks": {
+        "scopedESLint": 0,
+        "nativeTypeScript": 0,
+        "saveAndOpenSettingsCallbacksUnchanged": true
+      },
+      "actualNativeRun": {
+        "run": 41253722308,
+        "job": 124692367750,
+        "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41253722308",
+        "status": "in_progress",
+        "consumerCommit": "cd36cf4ea182de90e4097caff6072e00a76785fd",
+        "retainedAppSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+        "thisRepairIncludedInRetainedApp": false,
+        "originalCasesSelected": [
+          "memory-reader-controls"
+        ],
+        "separateDiagnostic": "diagnostic-warm-tabs-reader",
+        "caseResultsVerified": 0
+      }
+    },
+    "restoration": {
+      "event": "Workspace interruption restored an approximately20:35 snapshot. Later files were missing.",
+      "currentReaderRecoveredExactly": true,
+      "earlierControlFixesRestoredWithNewEvidence": true,
+      "sourceCheckpointConfirmedOnGitHub": true,
+      "restorationVerification": "restoration-checkpoint/verification.json",
+      "combinedFocusedPasses": 36,
+      "countingNote": "The four existing title cases overlap the61-case reader group. Do not add repeated runs to unique coverage.",
+      "nativeControls": "native-sheet-restoration/review.json",
+      "webOfferAndAdminAppearance": "web-offer-admin-appearance-restoration/review.json",
+      "saveFlow": "memory-book-save-test-repair/fresh-flow-restoration.json",
+      "androidMedia": "android-media-abi-repair/restored-preparation.json",
+      "remainingLostProof": [
+        "Later12-path Android ABI interface-dispatch proof is not recovered; the earlier9-path source preparation survives and22fresh checks pass.",
+        "The separately reviewed memory-cover audit persistence-receipt gate is not recovered; corrected flow and7fresh checks are preserved."
+      ],
+      "finalTypeScript": {
+        "native": "restoration-checkpoint/native-typecheck.json",
+        "webAndAdmin": "restoration-checkpoint/web-admin-typescript-review.json",
+        "allExitCodes": 0
+      }
+    },
+    "wholeAppComplete": false,
+    "everyPageAndButtonTested": false,
+    "newAppBuild": false,
+    "deployment": false,
+    "fiveMillionDailyUserCapacityTested": false,
+    "noRealProviderDataWritten": true
   }
 }

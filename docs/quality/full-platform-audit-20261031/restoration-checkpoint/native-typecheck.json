@@ -1,0 +1,14 @@
+{
+  "recordedAt": "2026-10-31T23:57:28.211254+00:00",
+  "command": [
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--pretty",
+    "false"
+  ],
+  "exitCode": 0,
+  "outputBytes": 0,
+  "reviewSourceCommit": "a65f2b0b089308857085d7183ec176aad9e57372",
+  "source": "Final restored workspace after allnative edits; no source modifications by this check."
+}

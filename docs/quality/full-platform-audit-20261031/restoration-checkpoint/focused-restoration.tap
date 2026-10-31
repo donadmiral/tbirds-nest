@@ -1,0 +1,226 @@
+TAP version 13
+# Subtest: actual control selects all four modes and writes the existing persistence cookie
+ok 1 - actual control selects all four modes and writes the existing persistence cookie
+  ---
+  duration_ms: 67.6206
+  type: 'test'
+  ...
+# Subtest: actual server layout restores Lights out cookie and rejects unknown values
+ok 2 - actual server layout restores Lights out cookie and rejects unknown values
+  ---
+  duration_ms: 17.986432
+  type: 'test'
+  ...
+# Subtest: Lights out inherits both dark token sets and has explicit black workspace surfaces
+ok 3 - Lights out inherits both dark token sets and has explicit black workspace surfaces
+  ---
+  duration_ms: 0.582989
+  type: 'test'
+  ...
+# Subtest: retained d46 failure entered the exact title then lost Save after Android hideKeyboard without a save request
+ok 4 - retained d46 failure entered the exact title then lost Save after Android hideKeyboard without a save request
+  ---
+  duration_ms: 0.748228
+  type: 'test'
+  ...
+# Subtest: actual Paper tint is a harmless text child inside the handled-taps settings ScrollView
+ok 5 - actual Paper tint is a harmless text child inside the handled-taps settings ScrollView
+  ---
+  duration_ms: 4.808415
+  type: 'test'
+  ...
+# Subtest: installed RN handled-tap responder blurs the input without invoking the actual modal Back dismissal
+ok 6 - installed RN handled-tap responder blurs the input without invoking the actual modal Back dismissal
+  ---
+  duration_ms: 48.219716
+  type: 'test'
+  ...
+# Subtest: audit Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 7 - audit Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 10.55257
+  type: 'test'
+  ...
+# Subtest: audit iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 8 - audit iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 2.400848
+  type: 'test'
+  ...
+# Subtest: full Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 9 - full Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 6.261695
+  type: 'test'
+  ...
+# Subtest: full iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 10 - full iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 4.706031
+  type: 'test'
+  ...
+# Subtest: the actual controlled title input and save callback reproduce the observed suffix after a mid-string backspace edit
+ok 11 - the actual controlled title input and save callback reproduce the observed suffix after a mid-string backspace edit
+  ---
+  duration_ms: 45.236572
+  type: 'test'
+  ...
+# Subtest: the actual title state and creative save preserve an explicitly selected full replacement
+ok 12 - the actual title state and creative save preserve an explicitly selected full replacement
+  ---
+  duration_ms: 32.32667
+  type: 'test'
+  ...
+# Subtest: tests/native/flows/memory-navigation.yaml requires semantic Select All and an exact field-value readback before any save
+ok 13 - tests/native/flows/memory-navigation.yaml requires semantic Select All and an exact field-value readback before any save
+  ---
+  duration_ms: 5.42914
+  type: 'test'
+  ...
+# Subtest: tests/native/audit/flows/memory-cover-settings.yaml requires semantic Select All and an exact field-value readback before any save
+ok 14 - tests/native/audit/flows/memory-cover-settings.yaml requires semantic Select All and an exact field-value readback before any save
+  ---
+  duration_ms: 2.433367
+  type: 'test'
+  ...
+# Subtest: android Appearance exposes all choices/current state and all non-mutating dismissals
+ok 15 - android Appearance exposes all choices/current state and all non-mutating dismissals
+  ---
+  duration_ms: 13.834566
+  type: 'test'
+  ...
+# Subtest: ios Appearance exposes all choices/current state and all non-mutating dismissals
+ok 16 - ios Appearance exposes all choices/current state and all non-mutating dismissals
+  ---
+  duration_ms: 7.570798
+  type: 'test'
+  ...
+# Subtest: android offer cancel clears draft without sending and retains keyboard-safe controls
+ok 17 - android offer cancel clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 19.281563
+  type: 'test'
+  ...
+# Subtest: android offer backdrop clears draft without sending and retains keyboard-safe controls
+ok 18 - android offer backdrop clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 21.252653
+  type: 'test'
+  ...
+# Subtest: android offer back clears draft without sending and retains keyboard-safe controls
+ok 19 - android offer back clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 16.520853
+  type: 'test'
+  ...
+# Subtest: android offer escape clears draft without sending and retains keyboard-safe controls
+ok 20 - android offer escape clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 13.135823
+  type: 'test'
+  ...
+# Subtest: ios offer cancel clears draft without sending and retains keyboard-safe controls
+ok 21 - ios offer cancel clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 12.533465
+  type: 'test'
+  ...
+# Subtest: ios offer backdrop clears draft without sending and retains keyboard-safe controls
+ok 22 - ios offer backdrop clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 12.001834
+  type: 'test'
+  ...
+# Subtest: ios offer back clears draft without sending and retains keyboard-safe controls
+ok 23 - ios offer back clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 12.220414
+  type: 'test'
+  ...
+# Subtest: ios offer escape clears draft without sending and retains keyboard-safe controls
+ok 24 - ios offer escape clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 12.254565
+  type: 'test'
+  ...
+# Subtest: offer send is single-flight; busy dismissals/edits are guarded and failure preserves draft
+ok 25 - offer send is single-flight; busy dismissals/edits are guarded and failure preserves draft
+  ---
+  duration_ms: 15.563641
+  type: 'test'
+  ...
+# Subtest: old offer callbacks cannot affect reopened draft; invalid input never dispatches
+ok 26 - old offer callbacks cannot affect reopened draft; invalid input never dispatches
+  ---
+  duration_ms: 10.905943
+  type: 'test'
+  ...
+# Subtest: late offer success after unmount cannot navigate or write state
+ok 27 - late offer success after unmount cannot navigate or write state
+  ---
+  duration_ms: 11.151323
+  type: 'test'
+  ...
+# Subtest: theme rapid choices coalesce behind one active write and older hydration cannot replace latest choice
+ok 28 - theme rapid choices coalesce behind one active write and older hydration cannot replace latest choice
+  ---
+  duration_ms: 17.151995
+  type: 'test'
+  ...
+# Subtest: theme persistence rejection cannot strand a newer pending choice
+ok 29 - theme persistence rejection cannot strand a newer pending choice
+  ---
+  duration_ms: 6.090607
+  type: 'test'
+  ...
+# Subtest: Settings Appearance search includes every mode while preserving existing contrast edits
+ok 30 - Settings Appearance search includes every mode while preserving existing contrast edits
+  ---
+  duration_ms: 15.64934
+  type: 'test'
+  ...
+# Subtest: explicit Cancel at compose preserves draft without RPC
+ok 31 - explicit Cancel at compose preserves draft without RPC
+  ---
+  duration_ms: 115.039424
+  type: 'test'
+  ...
+# Subtest: explicit Cancel at review preserves draft without RPC
+ok 32 - explicit Cancel at review preserves draft without RPC
+  ---
+  duration_ms: 43.876823
+  type: 'test'
+  ...
+# Subtest: busy submission blocks Cancel/close and duplicate dispatch, then confirms once
+ok 33 - busy submission blocks Cancel/close and duplicate dispatch, then confirms once
+  ---
+  duration_ms: 36.781522
+  type: 'test'
+  ...
+# Subtest: failed submission preserves review and allows Cancel/reopen with original draft
+ok 34 - failed submission preserves review and allows Cancel/reopen with original draft
+  ---
+  duration_ms: 30.253936
+  type: 'test'
+  ...
+# Subtest: visual viewport updates height/offset and cleans both listeners and inline properties
+ok 35 - visual viewport updates height/offset and cleans both listeners and inline properties
+  ---
+  duration_ms: 11.213025
+  type: 'test'
+  ...
+# Subtest: ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy
+ok 36 - ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy
+  ---
+  duration_ms: 7.743557
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1235.331874

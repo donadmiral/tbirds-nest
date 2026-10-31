@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-10-31T23:51:39.220413+00:00",
+  "command": [
+    "env",
+    "-u",
+    "NODE_TEST_CONTEXT",
+    "node",
+    "--test",
+    "--test-isolation=none",
+    "--test-reporter=tap",
+    "tests/quality/native-sheet-restoration.cjs",
+    "tests/quality/native-memory-book-save-flow.cjs",
+    "tests/quality/native-memory-title-edit.cjs",
+    "web/tests/offer-cancel-restoration.cjs",
+    "admin-web/tests/theme-lights-out-restoration.cjs"
+  ],
+  "passed": 36,
+  "failed": 0,
+  "skipped": 0,
+  "tap": "focused-restoration.tap",
+  "scope": "Final restored native controls, store, Save test, existing title test, web offer and admin theme actual-component checks. No device or browser geometry claim."
+}

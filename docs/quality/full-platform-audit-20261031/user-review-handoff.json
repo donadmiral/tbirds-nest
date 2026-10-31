@@ -1,0 +1,1123 @@
+{
+  "recordedAt": "2026-10-31T23:54:59.133045+00:00",
+  "userInstruction": "Stop new work/builds/deployments; user must personally review and test before any further build or release.",
+  "wholeAppComplete": false,
+  "everyPageAndButtonTested": false,
+  "newBuildsOrDeploymentsAuthorized": false,
+  "agentsStoppedStartingWork": false,
+  "coverage": {
+    "android": {
+      "plannedCases": 85,
+      "executed": 85,
+      "passed": 79,
+      "failed": 6,
+      "executionPercent": 100,
+      "passPercent": 92.9,
+      "entryOnlyCases": 59,
+      "selectedControlCases": 26,
+      "wholeAppPageOrButtonPercent": null
+    },
+    "ios": {
+      "plannedCases": 85,
+      "currentSuiteResultsVerified": 0,
+      "wholeAppPageOrButtonPercent": null,
+      "earlierEvidence": "Five main tabs and private memory shelf exercised; reader stalled; full journey not accepted."
+    },
+    "web": {
+      "inventoriedPageModules": 93,
+      "pageModulesExercised": 79,
+      "pageModulePercent": 84.9,
+      "selectedBrowserChecksPassed": 237,
+      "selectedBrowserChecksTotal": 237,
+      "everyButtonPercent": null,
+      "boundary": "Controlled local browser tests; hosted current authenticated acceptance pending."
+    },
+    "admin": {
+      "inventoriedPageModules": 34,
+      "pageModulesRendered": 31,
+      "pageModulePercent": 91.2,
+      "selectedBrowserChecksPassed": 70,
+      "selectedBrowserChecksTotal": 70,
+      "everyButtonPercent": null,
+      "boundary": "Controlled local browser tests; hosted current authenticated acceptance pending."
+    }
+  },
+  "currentAndroidIssues": [
+    {
+      "id": "stories-storyviewer",
+      "kind": "test fixture",
+      "finding": "The seeded story used non-schema fields, so the real viewer received no caption/background.",
+      "status": "Local correction complete; device retest pending.",
+      "evidence": "native-audit-d46-content-contract-repair/acceptance.json"
+    },
+    {
+      "id": "feed-post",
+      "kind": "test fixture",
+      "finding": "The strict synthetic transport rejected the real post poll read.",
+      "status": "Local correction reverified with3actual PollCard/transport cases; device retest pending.",
+      "evidence": "poll-transport-repair/acceptance.json"
+    },
+    {
+      "id": "memory-capture-session",
+      "kind": "application native dependency",
+      "finding": "The APK used the precompiled Expo video module; its LoadControl ABI did not match Media3 1.11.1 and the app crashed.",
+      "status": "Earlier9-path source/packaged-ABI preparation survives and22fresh checks pass. Positive rebuilt APK/device verification pending.",
+      "evidence": "android-media-abi-repair/restored-preparation.json"
+    },
+    {
+      "id": "settings-appearance",
+      "kind": "application control",
+      "finding": "Android Alert retained only the first three actions; Lights out and Cancel were omitted.",
+      "status": "Native four-choice sheet and admin Lights out restored and locally tested; member-web Lights out survives. Installed/hosted acceptance pending.",
+      "evidence": "native-sheet-restoration/review.json"
+    },
+    {
+      "id": "memory-cover-settings",
+      "kind": "test driver",
+      "finding": "Exact title replacement passed; hideKeyboard sent Back and closed the settings modal before Save.",
+      "status": "Test flow restored without modal-time Back;7fresh checks pass. Actual corrected device save/persistence run pending.",
+      "evidence": "memory-book-save-test-repair/fresh-flow-restoration.json"
+    },
+    {
+      "id": "market-offer-cancel",
+      "kind": "application control/layout",
+      "finding": "The offer modal has no explicit Cancel control; keyboard-state evidence also shows a sheet visibility issue.",
+      "status": "Native and web explicit Cancel/keyboard handling restored and locally tested; physical keyboard/device/browser geometry pending.",
+      "evidence": "web-offer-admin-appearance-restoration/review.json"
+    }
+  ],
+  "previousIssueLedger": [
+    {
+      "id": "SUP-002",
+      "group": "member-support-list",
+      "title": "Failed ticket reads are presented as an empty list",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/page.tsx",
+      "reproduction": {
+        "route": "/settings/support",
+        "scenario": "list-error",
+        "expected": "Failed ticket-list read shows a recoverable error, not an empty inbox",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSend to operations",
+        "runtimeErrors": []
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-002.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
+    },
+    {
+      "id": "SUP-003",
+      "group": "member-ticket-state",
+      "title": "A missing ticket never leaves Loading",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/[id]/page.tsx",
+      "reproduction": {
+        "route": "/settings/support/ticket-a",
+        "scenario": "missing-ticket",
+        "expected": "Missing ticket resolves to a not-found/access state with an exit",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nLoading",
+        "runtimeErrors": []
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-003.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
+    },
+    {
+      "id": "SUP-004",
+      "group": "member-ticket-state",
+      "title": "A rejected ticket read never leaves Loading",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/[id]/page.tsx",
+      "reproduction": {
+        "route": "/settings/support/ticket-a",
+        "scenario": "ticket-error",
+        "expected": "Failed ticket read exposes an error and retry",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nLoading",
+        "runtimeErrors": []
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-004.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
+    },
+    {
+      "id": "SUP-005",
+      "group": "member-message-history",
+      "title": "Failed message history is presented as no replies",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/[id]/page.tsx",
+      "reproduction": {
+        "route": "/settings/support/ticket-a",
+        "scenario": "messages-error",
+        "expected": "Failed message read is reported separately from an empty conversation",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nSend",
+        "runtimeErrors": []
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-005.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
+    },
+    {
+      "id": "SUP-012",
+      "group": "member-support-write",
+      "title": "Reply and ticket reopening can disagree without an error",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "web",
+      "severity": "high",
+      "source": "web/app/settings/support/[id]/page.tsx",
+      "reproduction": {
+        "route": "/settings/support/ticket-a",
+        "scenario": "status-error",
+        "expected": "A successful reply followed by a rejected status update is not reported as full success",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nTicket A\nSolved\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles \u00b7 10/31/2026, 8:01:00 PM\n\nPlease reopen my ticket\n\nYou \u00b7 10/31/2026, 8:02:00 PM\n\nSend",
+        "runtimeErrors": []
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-012.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      },
+      "deploymentNote": "New atomic SQL migration is locally tested but not applied to hosted QA; hosted activation remains blocked by prior unknown migration requests."
+    },
+    {
+      "id": "SUP-013",
+      "group": "member-support-write-rejection",
+      "title": "Unexpected submission rejection leaves Sending locked",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/page.tsx",
+      "reproduction": {
+        "route": "/settings/support",
+        "scenario": "write-throw",
+        "expected": "Unexpected rejected support submission does not leave Sending locked",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nSupport\n\nWrite to the Platinum Circles operations team. A person reads every message and the reply appears here.\n\nSending\n\nYOUR MESSAGES\n\nTicket A\nWith the team\n10/31/2026, 8:00:00 PM",
+        "runtimeErrors": [
+          "Injected transport rejection"
+        ]
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-013.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
+    },
+    {
+      "id": "SUP-014",
+      "group": "member-support-write-rejection",
+      "title": "Unexpected reply rejection leaves Send locked",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "web",
+      "severity": "medium",
+      "source": "web/app/settings/support/[id]/page.tsx",
+      "reproduction": {
+        "route": "/settings/support/ticket-a",
+        "scenario": "write-throw",
+        "expected": "Unexpected rejected reply does not leave Send locked",
+        "actual": "Actual member support pages \u00b7 synthetic transport\n\nTicket A\nOpen\n\nPrivate support question\n\n10/31/2026, 8:00:00 PM\n\nExisting staff reply\n\nPlatinum Circles \u00b7 10/31/2026, 8:01:00 PM\n\nSend",
+        "runtimeErrors": [
+          "Injected transport rejection"
+        ]
+      },
+      "evidence": [
+        "support/browser-audit.json",
+        "support/SUP-014.png"
+      ],
+      "environment": "Actual member support page components in Chromium at 390x844 with a synthetic Auth/database adapter. No hosted request, real message or framework route lifecycle claim.",
+      "baselineStatus": "reproduced-unfixed",
+      "additionalReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      }
+    },
+    {
+      "id": "WEB-01",
+      "severity": "P1",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "title": "Failed privacy-word reads permit replacing existing filters",
+      "routes": [
+        "/settings/hidden-words",
+        "/settings/muted-words"
+      ],
+      "expected": "Unknown initial settings must not be treated as an empty confirmed list; adding a word must preserve existing filters.",
+      "actual": "Both resolved read errors and rejected reads leave an empty editable list. Add sends a profiles update with only [\"newword\"] and renders that one word. The simulated stored baseline contains \"existing\".",
+      "reproduction": "Load with profiles read failing, enter newword, click Add; inspect the exact update array.",
+      "evidenceCases": [
+        "hidden-words-read-resolved",
+        "hidden-words-read-rejected",
+        "muted-words-read-resolved",
+        "muted-words-read-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/settings/hidden-words/page.tsx",
+        "web/app/settings/muted-words/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      },
+      "additionalReceipt": {
+        "path": "web-word-preferences-write-repair/review.json",
+        "sha256": "92f04bd50f8e2fecce1a66e1b7ca4de05f58c0df3666f18f2972d4b6af13f8b2"
+      }
+    },
+    {
+      "id": "WEB-02",
+      "severity": "P2",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "title": "Account standing reports a clean record after failed lookup",
+      "routes": [
+        "/settings/standing"
+      ],
+      "expected": "Failed or unavailable strike data should remain unknown with a recovery action.",
+      "actual": "Resolved member_strikes error renders \u201cGood standing. No strikes on this account.\u201d Rejection emits an uncaught error and leaves Loading.",
+      "reproduction": "Return an error or reject the member_strikes read while identity succeeds.",
+      "evidenceCases": [
+        "standing-resolved",
+        "standing-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/settings/standing/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
+    },
+    {
+      "id": "WEB-03",
+      "severity": "P2",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "title": "Explore can remain Loading after one rejected feed read",
+      "routes": [
+        "/explore"
+      ],
+      "expected": "A failed section should expose recovery and settle the page loading state.",
+      "actual": "A rejected get_feed inside Promise.all produces an uncaught rejection; loaded never becomes true. Resolved errors silently omit failed content.",
+      "reproduction": "Keep authentication/trending normal and reject only get_feed.",
+      "evidenceCases": [
+        "explore-resolved",
+        "explore-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/explore/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
+    },
+    {
+      "id": "WEB-04",
+      "severity": "P2",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "title": "Topic reads confuse failure with an empty topic or never settle",
+      "routes": [
+        "/topic/[tag]"
+      ],
+      "expected": "A failed topic read should be distinguished from an empty successful response.",
+      "actual": "With the correct Promise params, a returned posts error renders \u201cNo posts with this topic yet.\u201d A rejection leaves Loading and is uncaught.",
+      "reproduction": "Open #CoastalStories with posts read error/rejection.",
+      "evidenceCases": [
+        "topic-resolved",
+        "topic-rejected",
+        "topic-normal"
+      ],
+      "sourceFiles": [
+        "web/app/topic/[tag]/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
+    },
+    {
+      "id": "WEB-05",
+      "severity": "P2",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "title": "Search silently loses trending results after a failed read",
+      "routes": [
+        "/search"
+      ],
+      "expected": "Unavailable discovery content should provide a meaningful state or recovery action.",
+      "actual": "The page main content is empty when get_trending_topics errors; rejected requests are uncaught. Existing real AppShell is outside this fixture, so this is not a claim that the full hosted app loses its navigation.",
+      "reproduction": "Open Search with no query and fail only get_trending_topics.",
+      "evidenceCases": [
+        "search-trending-resolved",
+        "search-trending-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/search/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      },
+      "originalTitle": "Empty-query Search becomes blank when trending topics fail",
+      "clarification": "The original page kept its search input and back control. The fault was silent trending-read rejection, not a wholly blank route."
+    },
+    {
+      "id": "WEB-06",
+      "severity": "P2",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "title": "Creation forms remain busy after rejected requests",
+      "routes": [
+        "/market/new",
+        "/businesses/new"
+      ],
+      "expected": "Unexpected failures should release the submit lock, retain input and show an error.",
+      "actual": "A rejected listing upload or insert leaves Publishing disabled. A rejected create-business invocation leaves Creating disabled. Standard returned-error paths correctly restore the buttons.",
+      "reproduction": "Fill a valid synthetic form; reject the indicated upload/insert/function request; compare with returned-error controls.",
+      "evidenceCases": [
+        "market-create-storage-rejected",
+        "market-create-table-rejected",
+        "business-create-rejected",
+        "market-create-storage-resolved",
+        "market-create-table-resolved",
+        "business-create-resolved"
+      ],
+      "sourceFiles": [
+        "web/app/market/new/page.tsx",
+        "web/app/businesses/new/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
+    },
+    {
+      "id": "WEB-07",
+      "severity": "P2",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "title": "Promotion picker hides its content-load failure",
+      "routes": [
+        "/ads/new"
+      ],
+      "expected": "A failed existing-content read should be visible in the picker with recovery.",
+      "actual": "The catch records an error, but it is rendered only in step4. At step2 the user sees format/new-text choices and no existing posts or failure explanation.",
+      "reproduction": "Fail the posts read, choose Get more views, click Continue.",
+      "evidenceCases": [
+        "ads-picker-resolved",
+        "ads-picker-rejected"
+      ],
+      "sourceFiles": [
+        "web/app/ads/new/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
+    },
+    {
+      "id": "WEB-08",
+      "severity": "P3",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "title": "Auxiliary discovery and inbox reads reject without handlers",
+      "routes": [
+        "/market",
+        "/discover",
+        "/market/new"
+      ],
+      "expected": "Ancillary failures must be handled without uncaught rejections and without claiming a known badge/list state.",
+      "actual": "MarketUnreadDot lets loadConversations reject; FeaturedChannels/ExploreTopics reject unhandled; the new-listing feature-flag read also rejects unhandled. Main Market and Discover error/retry paths remain functional.",
+      "reproduction": "Fail conversations/get_channels/get_trending_topics/feature_flags independently or inspect the route rejected-mode record.",
+      "evidenceCases": [
+        "market-conversations-resolved",
+        "market-conversations-rejected",
+        "route:/discover:rejected",
+        "route:/market/new:rejected"
+      ],
+      "sourceFiles": [
+        "web/components/MarketUnreadDot.tsx",
+        "web/components/DiscoverSections.tsx",
+        "web/app/market/new/page.tsx"
+      ],
+      "limits": "Actual frozen components in Chromium with controlled synthetic responses; no real provider writes or hosted reproduction claimed.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
+    },
+    {
+      "id": "WEB-09",
+      "severity": "P2",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "title": "Profile photo row intercepts the cover-change button center",
+      "routes": [
+        "/settings/profile"
+      ],
+      "expected": "Visible cover controls should receive normal pointer input.",
+      "actual": "At1440px and390px, elementFromPoint at the Change cover button center returns the overlapping photoRow. A normal click times out on pointer interception. Source has bottom15px cover controls and a later positioned photoRow with margin-top:-35px.",
+      "reproduction": "Open the actual Profile editor and click Change cover at its center; inspect hit target and geometry.",
+      "evidenceCases": [
+        "profile-cover-1440",
+        "profile-cover-390"
+      ],
+      "sourceFiles": [
+        "web/app/settings/profile/profile.module.css",
+        "web/app/settings/profile/page.tsx"
+      ],
+      "limits": "Actual component and CSS at desktop/mobile widths, with synthetic profile data. The fixture does not include the full AppShell; intrinsic overlapping row geometry is retained. No forced clicks were used.",
+      "baselineStatus": "CONFIRMED_FOR_BATCH_REPAIR",
+      "repairReceipt": {
+        "path": "web-repair/review.json",
+        "sha256": "3234c449a816c73cb2d251e00f24ab9148e4c772a0068ee7db21e78ba62ec2c2"
+      }
+    },
+    {
+      "id": "ADM-001",
+      "group": "admin-metric-caps",
+      "title": "Jobs treats a capped row window as platform-wide totals",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/jobs/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "350 recent jobs; list limit300; separate recent-date query limit3000, subject to API max_rows1000",
+        "expected": "Global totals count all qualifying rows; records outside a view remain reachable through bounded server paging/search.",
+        "actual": "Roles on the platform300/every row in jobs while Posted this week350. Company/location/type aggregates and local search use only newest300; time-series read has a second row cap."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "capped-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Exact HEAD counts for all/7day/previous7day/30day; bounded server pagination with deterministic order and search. Label distribution/unique-company/remote metrics as the displayed/recent window unless supplied by a bounded aggregate contract. Never fetch all rows unbounded.",
+      "proposedRegressions": [
+        "More than300 and more thanAPImax rows; exact global counts independent of page; next page/search reaches older row; query errors remain errors; scoped chart labels."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
+    },
+    {
+      "id": "ADM-002",
+      "group": "admin-metric-caps",
+      "title": "Calls live and weekly summaries omit sessions outside newest400",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/calls/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "500 recent sessions with one still-active session outside newest400",
+        "expected": "Live/weekly totals include every matching call; row-window statistics have explicit scope.",
+        "actual": "Sessions on file500, This week400, Live right now0,400 minutes on file."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "capped-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Separate exact filtered HEAD counts for live/current/previous periods; preserve all-time count. Label duration/answer-rate/status/type series as bounded row-window metrics until a server aggregate is available; bounded history paging.",
+      "proposedRegressions": [
+        "Active call older than row window; >400 calls in week; distinct global and sample labels; provider errors; bounded history access."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
+    },
+    {
+      "id": "ADM-003",
+      "group": "admin-metric-caps",
+      "title": "Stories live count is capped at200",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/stories/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "250 live stories",
+        "expected": "Live total250 independent of the bounded review window.",
+        "actual": "Stories on file250; Live right now200; review rows200."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Exact filtered HEAD live count; bounded story paging; explicitly scope views/posters/type/day charts to displayed/recent rows.",
+      "proposedRegressions": [
+        "250 live plus expired mix; boundary expiry; older review row reachable; exact total and scoped charts do not disagree."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
+    },
+    {
+      "id": "ADM-004",
+      "group": "admin-expiry-window",
+      "title": "Expired story metric filters creation time instead of expiry window",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/stories/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "250 stories created30hours ago and expired6hours ago (normal24hour lifetime)",
+        "expected": "A clearly labeled expired-last24hours metric counts250, or an explicitly different defined window.",
+        "actual": "Expired in24hours0 because query applies expires_at<now AND created_at>now-24h."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Define label as Expired in last24hours and use expires_at>=now-24h AND expires_at<now with exact HEAD count. If product wants future expiry, label Expiring in next24hours and query that window instead.",
+      "proposedRegressions": [
+        "Normal24hour lifetime; exact lower/upper expiry boundaries; unrelated creation dates; null expiry excluded."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
+    },
+    {
+      "id": "ADM-005",
+      "group": "admin-review-backlog",
+      "title": "Verification backlog silently stops at API row cap",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/queue/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "1001 pending applications, APImax_rows1000",
+        "expected": "Pending total1001 and bounded paged access to all submissions.",
+        "actual": "All requests1001 but Pending review1000; only oldest1000 supplied to client Desk. Median label also omits that only latest60 decisions feed it."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Exact status-filtered HEAD pending count plus deterministic bounded server pages; batch related reads only for page IDs. Label tier mix as page/sample and median as latest60decisions unless aggregated. Do not solve by increasing/removing the provider cap.",
+      "proposedRegressions": [
+        "Backlog beyond1000; second page accessibility; count independent of page; stable ties; latest60median scope; permission/error handling."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "No hosted production/provider mutation or total-latency claim."
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
+    },
+    {
+      "id": "ADM-006",
+      "group": "admin-review-fanout",
+      "title": "Verification safety reads fan out once per pending applicant",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/queue/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "25 distinct pending applicants",
+        "expected": "Request work remains bounded by a small page and a controlled concurrency or aggregate contract.",
+        "actual": "Actual SDK emits25 separate member_strikes HEAD requests in an eager Promise.all; up to1000 applicant reads are possible under current cap."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "extra-metrics-projection.json"
+      ],
+      "proposedBoundedFix": "Page first; bound concurrency and preserve exact safety counts. A future authorized batched aggregate RPC can reduce round trips, but no unbounded all-strikes fetch and no migration activation in this audit.",
+      "proposedRegressions": [
+        "Bound emitted request count/concurrency to page; exact large strike count; denied/error count stops action; no missing-as-zero fallback."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "25 emitted calls reproduced. No real network latency/OOM or saturation was measured; this is demonstrated request amplification."
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
+    },
+    {
+      "id": "ADM-007",
+      "group": "admin-support-layout",
+      "title": "Support ownership selector overflows a phone viewport",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "admin",
+      "severity": "medium",
+      "source": [
+        "admin-web/app/support/[tid]/page.tsx"
+      ],
+      "reproduction": {
+        "scenario": "390px viewport; a staff identity has no social profile and falls back to UUID plus role",
+        "expected": "Assignment controls stay within viewport without discarding valid staff options.",
+        "actual": "With actual Workspace padding16/minWidth0, select width508px and document width545px. Temporary max-width/min-width constraint yields document390px."
+      },
+      "environment": "Actual frozen admin modules and installed SDK with synthetic transport; browser cases use actual returned page props/client components with explicit Next/Shell adapters.",
+      "evidence": [
+        "browser/support-overflow-projection.json",
+        "browser/support-390-actual-workspace-geometry.png",
+        "browser/support-390-constraint-probe.png"
+      ],
+      "proposedBoundedFix": "Constrain owner label/select to available width (min-w-0/max-w-full and appropriate width) while keeping full option values and accessible names.",
+      "proposedRegressions": [
+        "390px and360px; long names/UUID fallback; options still selectable; desktop unaffected."
+      ],
+      "proposedOwner": "hosted_backend (only after parent authorizes batch)",
+      "limits": [
+        "Actual page/CSS reproduced in a local Shell geometry adapter; full hosted Shell not authenticated."
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/after-repair/admin-repair-acceptance.json",
+        "sha256": "893be3a46477e1eb2041fe1334a748311f9245e59313f8441e8bb979c26f9533"
+      }
+    },
+    {
+      "id": "NATIVE-THEME-001",
+      "group": "native-theme-pairs",
+      "title": "Actual text/style pairs are unreadable or too faint in active themes",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "ios-and-android-source",
+      "evidence": [
+        "native-theme/contrast-audit.json"
+      ],
+      "scope": "63 evaluated production palette/style pairs across six screens:12 pass and51 fail. Static style evaluation, not installed pixel acceptance. The larger ancestry sweep is candidate discovery only.",
+      "source": [
+        "src/screens/profile/ContactSupportScreen.tsx",
+        "src/screens/profile/TicketScreen.tsx",
+        "src/screens/profile/AboutScreen.tsx",
+        "src/screens/profile/ApplyVerificationScreen.tsx",
+        "src/screens/profile/BusinessInboxScreen.tsx",
+        "src/screens/profile/CampaignsScreen.tsx"
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "native-theme-repair/review.json",
+        "sha256": "0584c8aadbbcf5701c9ff4deaa2ae21c748bcf4b8af95e930b2f5daf0bca3911"
+      },
+      "additionalReceipt": {
+        "path": "native-media-chrome-repair/reviewed-acceptance.json",
+        "sha256": "98ffe53e45ee1b687701001b233e051f9dc6fe76b67a1a23f6650761515a3294"
+      },
+      "limit": "383 original repeated palette/site observations addressed by the45-file batch;11 dynamic-media observations have a separate source/composition repair.760 original skipped nodes are not accepted."
+    },
+    {
+      "id": "NATIVE-ABOUT-001",
+      "group": "native-version-metadata",
+      "title": "About hardcodes version1.0.0/build100 while app configuration is1.1.0",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "ios-and-android-source",
+      "source": [
+        "src/screens/profile/AboutScreen.tsx",
+        "app.json"
+      ],
+      "expected": "Use installed application metadata; do not guess remote build numbers.",
+      "baselineStatus": "source-confirmed-unfixed",
+      "repairReceipt": {
+        "path": "native-theme-repair/review.json",
+        "sha256": "0584c8aadbbcf5701c9ff4deaa2ae21c748bcf4b8af95e930b2f5daf0bca3911"
+      }
+    },
+    {
+      "id": "NATIVE-TITLE-001",
+      "group": "native-title-replacement",
+      "title": "Saved title contains leftover letters after automated replacement",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "android",
+      "evidence": [
+        "../native-full-app-20261031/android-full-app-2f91218e-review.json"
+      ],
+      "actual": "THE LONG WAY HOMEENTURES",
+      "expected": "THE LONG WAY HOME",
+      "limit": "Must distinguish actual input/persistence failure from cursor-dependent Maestro erase; assertion stays strict.",
+      "baselineStatus": "reproduced-cause-under-review",
+      "repairReceipt": {
+        "path": "../native-full-app-20261031/native-memory-export-repair.json",
+        "sha256": "26357b68459abe80f60c6d040222bc4a62797df0aaf4a014327111be4c1cb014"
+      },
+      "classification": "Automation replacement/caret defect; semantic SelectAll fixes the harness while exact persisted title assertion remains. No product title-code change."
+    },
+    {
+      "id": "NATIVE-MOVIE-001",
+      "group": "native-movie-continuity",
+      "title": "Video-to-text scene transition has a133.333ms frame gap",
+      "status": "android-encoder-instrumentation-passed-full-installed-export-pending",
+      "platform": "android",
+      "expected": "Maximum gap below100ms",
+      "evidence": [
+        "../native-full-app-20261031/android-full-app-2f91218e-review.json"
+      ],
+      "baselineStatus": "reproduced-unfixed",
+      "repairReceipt": {
+        "path": "../native-full-app-20261031/native-memory-export-repair.json",
+        "sha256": "26357b68459abe80f60c6d040222bc4a62797df0aaf4a014327111be4c1cb014"
+      }
+    },
+    {
+      "id": "NATIVE-VERIFIER-001",
+      "group": "native-video-checker",
+      "title": "Coded geometry and mono downmix assumptions reject correctly displayed portrait/per-channel mix",
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "platform": "native-test-harness",
+      "evidence": [
+        "../native-full-app-20261031/android-full-app-2f91218e-review.json"
+      ],
+      "limit": "Do not widen continuity or volume thresholds; validate display-matrix orientation and equivalent channel amplitudes.",
+      "baselineStatus": "diagnostic-reproduction-requires-guarded-checker-fix",
+      "repairReceipt": {
+        "path": "../native-full-app-20261031/native-memory-export-repair.json",
+        "sha256": "26357b68459abe80f60c6d040222bc4a62797df0aaf4a014327111be4c1cb014"
+      },
+      "classification": "Measurement defect repaired without widening the100ms frame-continuity or0.07\u20130.13 per-channelRMS gates."
+    },
+    {
+      "id": "SUP-LIFECYCLE-001",
+      "group": "support-session-and-acknowledgement",
+      "title": "Stale reads, queued sends and obsolete session completions can affect the current Support screen",
+      "platform": "web-and-native",
+      "repairReceipt": {
+        "path": "support/lifecycle-repair/support-lifecycle-repair.json",
+        "sha256": "dba9d3dc04f5856418956a5fb3c8f50a2b69eb352bb9adbf691d0c2c77a75957"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "SUP-DEADLINE-001",
+      "group": "support-local-preparation-and-cleanup",
+      "title": "Held hashing/storage preparation or accepted cleanup can keep Send busy indefinitely",
+      "platform": "web-and-native",
+      "repairReceipt": {
+        "path": "support/bounded-waits-repair/support-bounded-waits-repair.json",
+        "sha256": "68e4c85df010b5923e62f981b326c6770711bf415a3751fc26e1c87d81b89a1f"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "WEB-10",
+      "group": "word-preference-write-deadlines",
+      "title": "A held settings save or reconciliation can leave filters busy or accept stale-session work",
+      "platform": "web",
+      "repairReceipt": {
+        "path": "web-word-preferences-write-repair/review.json",
+        "sha256": "92f04bd50f8e2fecce1a66e1b7ca4de05f58c0df3666f18f2972d4b6af13f8b2"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "ADM-API-001",
+      "group": "diagnostics-input-contract",
+      "title": "Malformed diagnostics JSON is incorrectly reported as service failure",
+      "platform": "admin",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/endpoints/acceptance.json",
+        "sha256": "e10f1efb48ec6558e04529c8d8447566fda1b69df226a0a00dc8df132a7cdf03"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "ADM-API-002",
+      "group": "music-byte-range-contract",
+      "title": "Reversed and zero-suffix audio byte ranges reach Storage",
+      "platform": "admin",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/endpoints/acceptance.json",
+        "sha256": "e10f1efb48ec6558e04529c8d8447566fda1b69df226a0a00dc8df132a7cdf03"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "ADM-API-003",
+      "group": "music-transport-lifetime",
+      "title": "Storage header wait is unbounded and transport rejection escapes the audio route",
+      "platform": "admin",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/endpoints/acceptance.json",
+        "sha256": "e10f1efb48ec6558e04529c8d8447566fda1b69df226a0a00dc8df132a7cdf03"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "ADMIN-CUSTOM-001",
+      "group": "admin-confirmed-command-receipts",
+      "title": "Five custom actions report success without the required matching server receipt",
+      "platform": "admin",
+      "repairReceipt": {
+        "path": "../all-platform-audit-20261031/admin/custom-actions/after/custom-admin-repair-acceptance.json",
+        "sha256": "05b65a46b9be3135eb7e2fee43f2edf81753366db5e2e7a80b92114fa9519d45"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "NAT-MEDIA-CONTRAST-01",
+      "group": "fullscreen-video-contrast",
+      "title": "Video labels and controls lack stable readable media backplates",
+      "platform": "native",
+      "repairReceipt": {
+        "path": "native-media-chrome-repair/reviewed-acceptance.json",
+        "sha256": "98ffe53e45ee1b687701001b233e051f9dc6fe76b67a1a23f6650761515a3294"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "NAT-MEDIA-CONTRAST-02",
+      "group": "story-footer-contrast",
+      "title": "Story footer and verified name colors can lose contrast over images",
+      "platform": "native",
+      "repairReceipt": {
+        "path": "native-media-chrome-repair/reviewed-acceptance.json",
+        "sha256": "98ffe53e45ee1b687701001b233e051f9dc6fe76b67a1a23f6650761515a3294"
+      },
+      "status": "combined-local-regression-passed-installed-or-hosted-acceptance-pending",
+      "severity": "medium"
+    },
+    {
+      "id": "NATIVE-AUDIT-SETUP-001",
+      "group": "audit-consumer-tooling",
+      "title": "Android audit consumers fail before installation because adb is absent from PATH",
+      "platform": "android",
+      "classification": "Test infrastructure; original consumers executed0/85cases. Recovery uses the retained original binary and test source.",
+      "repairReceipt": {
+        "path": "../native-full-app-20261031/native-audit-2f91218e/android-baseline-consumer-setup-failure.json",
+        "sha256": "bb47ab547b2001ba184fb1032e27b43800dc110de10f3beb2512ed39fa267a57"
+      },
+      "status": "recovery-executed-all-85-cases-baseline-failures-classified",
+      "severity": "medium"
+    },
+    {
+      "id": "NATIVE-IOS-READER-001",
+      "group": "installed-ios-reader-stall",
+      "title": "iPhone memory reader stalls at initial spinner after main tabs and shelf succeed",
+      "platform": "ios",
+      "status": "reproduced-under-source-and-thread-diagnosis",
+      "evidence": "../native-full-app-20261031/ios-full-app-2f91218e-review.json",
+      "observation": "Navigation failed at Edit memory book; driver reports busy main run loop and mismatched animation observation. No retained crash stack or complete API/body export; exact cause remains unproven.",
+      "severity": "medium"
+    }
+  ],
+  "existingCi": {
+    "run": 41235679679,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41235679679",
+    "lastObservedAt": "2026-10-31T20:32:03.725Z",
+    "iosProducer": "success",
+    "iosConsumers": "started; no case totals inferred from job metadata",
+    "cancellation": "Not performed: available GitHub connection has no cancel-run operation; no authenticated GitHub CLI or web session available.",
+    "newRunStartedAfterStopInstruction": false,
+    "latestFocusedRetainedAppTest": {
+      "run": 41253722308,
+      "job": 124692367750,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41253722308",
+      "status": "in_progress",
+      "consumerCommit": "cd36cf4ea182de90e4097caff6072e00a76785fd",
+      "retainedAppSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+      "thisRepairIncludedInRetainedApp": false,
+      "originalCasesSelected": [
+        "memory-reader-controls"
+      ],
+      "separateDiagnostic": "diagnostic-warm-tabs-reader",
+      "caseResultsVerified": 0
+    }
+  },
+  "releaseState": {
+    "productionReleasePerformedByThisHandoff": false,
+    "testFlight": "held",
+    "appPrHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "verifiedGroupedCandidate": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "newFixes": "Source preserved on focused review branch; no app build or deployment. Retained-app test does not contain new reader/fixture/control repairs.",
+    "focusedReviewSource": "a65f2b0b089308857085d7183ec176aad9e57372"
+  },
+  "remainingBoundaries": [
+    "Unresolved iPhone reader stall.",
+    "No all-button runtime coverage.",
+    "Hosted member/admin authenticated checks pending.",
+    "Atomic Support migration tested locally but not applied.",
+    "Two earlier QA migration requests lack confirmed terminal outcomes; not replayed.",
+    "No physical-device or release acceptance."
+  ],
+  "latestFocusedRepair": {
+    "recordedAt": "2026-10-31T23:58:27.505809+00:00",
+    "task": "Post poll fixture and iPhone memory reader; restore earlier authorized fixes lost during workspace interruption",
+    "sourceBranch": "codex/reader-recoverability-20261031",
+    "sourceCommit": "a65f2b0b089308857085d7183ec176aad9e57372",
+    "sourceUrl": "https://github.com/donadmiral/tbirds-nest/commit/a65f2b0b089308857085d7183ec176aad9e57372",
+    "poll": {
+      "status": "LOCAL_FIX_VERIFIED_DEVICE_RETEST_PENDING",
+      "passed": 3,
+      "failed": 0,
+      "receipt": "poll-transport-repair/acceptance.json"
+    },
+    "reader": {
+      "status": "LOCAL_RECOVERABILITY_FIX_VERIFIED_NATIVE_STALL_NOT_YET_RESOLVED",
+      "freshLocalPassed": 61,
+      "freshLocalFailed": 0,
+      "receipt": "iphone-reader-stall-investigation/review.json",
+      "staticChecks": {
+        "scopedESLint": 0,
+        "nativeTypeScript": 0,
+        "saveAndOpenSettingsCallbacksUnchanged": true
+      },
+      "actualNativeRun": {
+        "run": 41253722308,
+        "job": 124692367750,
+        "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41253722308",
+        "status": "in_progress",
+        "consumerCommit": "cd36cf4ea182de90e4097caff6072e00a76785fd",
+        "retainedAppSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+        "thisRepairIncludedInRetainedApp": false,
+        "originalCasesSelected": [
+          "memory-reader-controls"
+        ],
+        "separateDiagnostic": "diagnostic-warm-tabs-reader",
+        "caseResultsVerified": 0
+      }
+    },
+    "restoration": {
+      "event": "Workspace interruption restored an approximately20:35 snapshot. Later files were missing.",
+      "currentReaderRecoveredExactly": true,
+      "earlierControlFixesRestoredWithNewEvidence": true,
+      "sourceCheckpointConfirmedOnGitHub": true,
+      "restorationVerification": "restoration-checkpoint/verification.json",
+      "combinedFocusedPasses": 36,
+      "countingNote": "The four existing title cases overlap the61-case reader group. Do not add repeated runs to unique coverage.",
+      "nativeControls": "native-sheet-restoration/review.json",
+      "webOfferAndAdminAppearance": "web-offer-admin-appearance-restoration/review.json",
+      "saveFlow": "memory-book-save-test-repair/fresh-flow-restoration.json",
+      "androidMedia": "android-media-abi-repair/restored-preparation.json",
+      "remainingLostProof": [
+        "Later12-path Android ABI interface-dispatch proof is not recovered; the earlier9-path source preparation survives and22fresh checks pass.",
+        "The separately reviewed memory-cover audit persistence-receipt gate is not recovered; corrected flow and7fresh checks are preserved."
+      ],
+      "finalTypeScript": {
+        "native": "restoration-checkpoint/native-typecheck.json",
+        "webAndAdmin": "restoration-checkpoint/web-admin-typescript-review.json",
+        "allExitCodes": 0
+      }
+    },
+    "wholeAppComplete": false,
+    "everyPageAndButtonTested": false,
+    "newAppBuild": false,
+    "deployment": false,
+    "fiveMillionDailyUserCapacityTested": false,
+    "noRealProviderDataWritten": true
+  },
+  "currentTaskScope": "User-authorized individual source/test repairs; one retained-app iPhone test. New application builds and deployments remain held for user review."
+}

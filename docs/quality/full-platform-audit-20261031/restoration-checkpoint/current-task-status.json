@@ -1,0 +1,66 @@
+{
+  "recordedAt": "2026-10-31T23:58:27.505809+00:00",
+  "task": "Post poll fixture and iPhone memory reader; restore earlier authorized fixes lost during workspace interruption",
+  "sourceBranch": "codex/reader-recoverability-20261031",
+  "sourceCommit": "a65f2b0b089308857085d7183ec176aad9e57372",
+  "sourceUrl": "https://github.com/donadmiral/tbirds-nest/commit/a65f2b0b089308857085d7183ec176aad9e57372",
+  "poll": {
+    "status": "LOCAL_FIX_VERIFIED_DEVICE_RETEST_PENDING",
+    "passed": 3,
+    "failed": 0,
+    "receipt": "poll-transport-repair/acceptance.json"
+  },
+  "reader": {
+    "status": "LOCAL_RECOVERABILITY_FIX_VERIFIED_NATIVE_STALL_NOT_YET_RESOLVED",
+    "freshLocalPassed": 61,
+    "freshLocalFailed": 0,
+    "receipt": "iphone-reader-stall-investigation/review.json",
+    "staticChecks": {
+      "scopedESLint": 0,
+      "nativeTypeScript": 0,
+      "saveAndOpenSettingsCallbacksUnchanged": true
+    },
+    "actualNativeRun": {
+      "run": 41253722308,
+      "job": 124692367750,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41253722308",
+      "status": "in_progress",
+      "consumerCommit": "cd36cf4ea182de90e4097caff6072e00a76785fd",
+      "retainedAppSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+      "thisRepairIncludedInRetainedApp": false,
+      "originalCasesSelected": [
+        "memory-reader-controls"
+      ],
+      "separateDiagnostic": "diagnostic-warm-tabs-reader",
+      "caseResultsVerified": 0
+    }
+  },
+  "restoration": {
+    "event": "Workspace interruption restored an approximately20:35 snapshot. Later files were missing.",
+    "currentReaderRecoveredExactly": true,
+    "earlierControlFixesRestoredWithNewEvidence": true,
+    "sourceCheckpointConfirmedOnGitHub": true,
+    "restorationVerification": "restoration-checkpoint/verification.json",
+    "combinedFocusedPasses": 36,
+    "countingNote": "The four existing title cases overlap the61-case reader group. Do not add repeated runs to unique coverage.",
+    "nativeControls": "native-sheet-restoration/review.json",
+    "webOfferAndAdminAppearance": "web-offer-admin-appearance-restoration/review.json",
+    "saveFlow": "memory-book-save-test-repair/fresh-flow-restoration.json",
+    "androidMedia": "android-media-abi-repair/restored-preparation.json",
+    "remainingLostProof": [
+      "Later12-path Android ABI interface-dispatch proof is not recovered; the earlier9-path source preparation survives and22fresh checks pass.",
+      "The separately reviewed memory-cover audit persistence-receipt gate is not recovered; corrected flow and7fresh checks are preserved."
+    ],
+    "finalTypeScript": {
+      "native": "restoration-checkpoint/native-typecheck.json",
+      "webAndAdmin": "restoration-checkpoint/web-admin-typescript-review.json",
+      "allExitCodes": 0
+    }
+  },
+  "wholeAppComplete": false,
+  "everyPageAndButtonTested": false,
+  "newAppBuild": false,
+  "deployment": false,
+  "fiveMillionDailyUserCapacityTested": false,
+  "noRealProviderDataWritten": true
+}
