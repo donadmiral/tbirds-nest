@@ -25,7 +25,8 @@ function runtime({ platform = 'android', qa = false, env = {} } = {}) {
   const nativeTimers = new Map(), backgroundSchedules = new Map(), warnings = [], events = [];
   const result = { retained: 'original result reference' };
   const fixture = { fetch() { throw Error('Unexpected fixture transport request'); }, configure() {} };
-  const linking = { prefixes: [], config: { screens: {} } };
+  const linking = { prefixes: [], config: { screens: {} },
+    getStateFromPath: require('@react-navigation/core/lib/commonjs/getStateFromPath').default };
   let runtimeInstalled = false, transportInstalled = false, dailyLoads = 0;
   const setNative = (callback, delay) => { const id = ++nativeId; nativeTimers.set(id, { callback, due: now + delay }); return id; };
   const clearNative = id => nativeTimers.delete(id);
@@ -103,6 +104,7 @@ function runtime({ platform = 'android', qa = false, env = {} } = {}) {
     if (name === 'expo-file-system/legacy') return { documentDirectory: 'synthetic:///', writeAsStringAsync: async () => {} };
     if (name === './backend-fixture.cjs') return { createFixture() { events.push('fixture'); return fixture; }, FixtureWebSocket: class {} };
     if (name === './fixture-runtime.cjs') return { installFixtureRuntime(value) { assert.equal(value, fixture); runtimeInstalled = true; events.push('runtime'); } };
+    if (name === './capture-boundary-trace.cjs') return require('../native/capture-boundary-trace.cjs');
     if (name === './install-fixture-transport.cjs') return { installFixtureTransport(value) { assert.equal(value, fixture); transportInstalled = true; sandbox.fetch = fixture.fetch; events.push('transport'); } };
     if (name === '../../src/navigation/linking') {
       // Treat the first app dependency as auth-capable, so the QA bootstrap

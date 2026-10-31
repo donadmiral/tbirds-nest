@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: the real fixture recorder retains only known phases, booleans, sequence and a numeric timestamp
+ok 1 - the real fixture recorder retains only known phases, booleans, sequence and a numeric timestamp
+  ---
+  duration_ms: 2.278317
+  type: 'test'
+  ...
+# Subtest: retention stays bounded and reports dropped markers without growing the event list
+ok 2 - retention stays bounded and reports dropped markers without growing the event list
+  ---
+  duration_ms: 0.240782
+  type: 'test'
+  ...
+# Subtest: clock, synchronous sink and rejecting sink failures remain isolated observations
+ok 3 - clock, synchronous sink and rejecting sink failures remain isolated observations
+  ---
+  duration_ms: 5.329556
+  type: 'test'
+  ...
+# Subtest: broken recorder accessors, detail producers and immutable receipt arrays cannot escape observation
+ok 4 - broken recorder accessors, detail producers and immutable receipt arrays cannot escape observation
+  ---
+  duration_ms: 0.459541
+  type: 'test'
+  ...
+# Subtest: the installed native WHATWG Response is observed without extra reads, clones or promise replacement
+ok 5 - the installed native WHATWG Response is observed without extra reads, clones or promise replacement
+  ---
+  duration_ms: 3.268407
+  type: 'test'
+  ...
+# Subtest: reader response tracing preserves receiver, arguments, result reference and synchronous error identity
+ok 6 - reader response tracing preserves receiver, arguments, result reference and synchronous error identity
+  ---
+  duration_ms: 0.341313
+  type: 'test'
+  ...
+# Subtest: reader retention stays bounded independently of capture markers and never consumes unrequested bodies
+ok 7 - reader retention stays bounded independently of capture markers and never consumes unrequested bodies
+  ---
+  duration_ms: 0.437878
+  type: 'test'
+  ...
+# Subtest: nonselected and nonextensible responses keep their original behavior without false body completion
+ok 8 - nonselected and nonextensible responses keep their original behavior without false body completion
+  ---
+  duration_ms: 0.646863
+  type: 'test'
+  ...
+# Subtest: actual capture component and readback helper record mount and one pending init before completion
+ok 9 - actual capture component and readback helper record mount and one pending init before completion
+  ---
+  duration_ms: 62.282766
+  type: 'test'
+  ...
+# Subtest: an unfinished read may complete after component cleanup without creating another init or UI update
+ok 10 - an unfinished read may complete after component cleanup without creating another init or UI update
+  ---
+  duration_ms: 12.468706
+  type: 'test'
+  ...
+# Subtest: actual readback retains the original rejection and emits no error contents
+ok 11 - actual readback retains the original rejection and emits no error contents
+  ---
+  duration_ms: 11.04218
+  type: 'test'
+  ...
+# Subtest: failed diagnostics preserve successful actual readback and wrong-owner guards still precede init
+ok 12 - failed diagnostics preserve successful actual readback and wrong-owner guards still precede init
+  ---
+  duration_ms: 11.756825
+  type: 'test'
+  ...
+# Subtest: fixture installation initializes the real WHATWG types behind React Native lazy fetch before overriding it
+ok 13 - fixture installation initializes the real WHATWG types behind React Native lazy fetch before overriding it
+  ---
+  duration_ms: 1.830213
+  type: 'test'
+  ...
+# Subtest: native UI fixtures run the actual Supabase authentication and PostgREST adapters without a provider request
+ok 14 - native UI fixtures run the actual Supabase authentication and PostgREST adapters without a provider request
+  ---
+  duration_ms: 31.686273
+  type: 'test'
+  ...
+# Subtest: an unimplemented endpoint or external provider is a recorded failure, never a green empty response
+ok 15 - an unimplemented endpoint or external provider is a recorded failure, never a green empty response
+  ---
+  duration_ms: 0.968807
+  type: 'test'
+  ...
+# Subtest: only exact book POST and reaction GET responses report actual SDK body-consumption boundaries
+ok 16 - only exact book POST and reaction GET responses report actual SDK body-consumption boundaries
+  ---
+  duration_ms: 3.145451
+  type: 'test'
+  ...
+# Subtest: the full app connectivity probe has an explicit local health response and retains abort/offline failures
+ok 17 - the full app connectivity probe has an explicit local health response and retains abort/offline failures
+  ---
+  duration_ms: 0.656708
+  type: 'test'
+  ...
+# Subtest: the isolated socket completes actual Phoenix join/heartbeat messages without opening a network socket
+ok 18 - the isolated socket completes actual Phoenix join/heartbeat messages without opening a network socket
+  ---
+  duration_ms: 2.965791
+  type: 'test'
+  ...
+# Subtest: observed Home ancillary requests return the exact synthetic unread and empty-announcement/ranking contracts
+ok 19 - observed Home ancillary requests return the exact synthetic unread and empty-announcement/ranking contracts
+  ---
+  duration_ms: 2.833262
+  type: 'test'
+  ...
+# Subtest: the Jobs screen application helper reads the versioned empty page through the actual Supabase adapter
+ok 20 - the Jobs screen application helper reads the versioned empty page through the actual Supabase adapter
+  ---
+  duration_ms: 15.848679
+  type: 'test'
+  ...
+# Subtest: the observed Home marketplace helper reads its empty recommendation shelf through the actual Supabase adapter
+ok 21 - the observed Home marketplace helper reads its empty recommendation shelf through the actual Supabase adapter
+  ---
+  duration_ms: 20.814801
+  type: 'test'
+  ...
+# Subtest: native book fixtures persist a revisioned owner edit through actual Supabase adapters and a fresh shelf/read
+ok 22 - native book fixtures persist a revisioned owner edit through actual Supabase adapters and a fresh shelf/read
+  ---
+  duration_ms: 4.674862
+  type: 'test'
+  ...
+# Subtest: private synthetic books deny another actor and reject a previous session token after an owner returns
+ok 23 - private synthetic books deny another actor and reject a previous session token after an owner returns
+  ---
+  duration_ms: 3.324821
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 404.957117

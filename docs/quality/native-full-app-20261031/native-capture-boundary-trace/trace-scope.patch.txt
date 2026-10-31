@@ -1,0 +1,758 @@
+diff --git a/tests/native/MemoryCaptureFixtureScreen.tsx b/tests/native/MemoryCaptureFixtureScreen.tsx
+index a1b967e6..3ec24081 100644
+--- a/tests/native/MemoryCaptureFixtureScreen.tsx
++++ b/tests/native/MemoryCaptureFixtureScreen.tsx
+@@ -8,6 +8,7 @@ import {BOOK,OWNER,memoryBook} from './memory-fixture.cjs';
+ import {fixtureRuntime} from './fixture-runtime.cjs';
+ import {getStatus,subscribe} from './memory-capture-observer.cjs';
+ import {readSavedAccount} from './account-readback.cjs';
++import {observeCaptureBoundary} from './capture-boundary-trace.cjs';
+ 
+ /** Registered only by the guarded disposable native UI preparation. The actual
+  * AppNavigator supplies its real account, call and safe-area providers. */
+@@ -18,6 +19,7 @@ export default function MemoryCaptureFixtureScreen(){
+  const [accountReadback,setAccountReadback]=useState<boolean|null>(null);
+  useEffect(()=>subscribe(setStatus),[]);
+  useEffect(()=>{
++  observeCaptureBoundary(fixtureRuntime,'mounted');
+   let alive=true;
+   void readSavedAccount({authStore:useAuthStore,accountsStore:useAccountsStore})
+    .then((result:{passed:boolean;reloaded:boolean;accountCount:number})=>{
+diff --git a/tests/native/account-readback.cjs b/tests/native/account-readback.cjs
+index 59acd59c..800562f5 100644
+--- a/tests/native/account-readback.cjs
++++ b/tests/native/account-readback.cjs
+@@ -1,4 +1,6 @@
+ const { OWNER } = require('./backend-fixture.cjs');
++const { fixtureRuntime } = require('./fixture-runtime.cjs');
++const { observeCaptureBoundary } = require('./capture-boundary-trace.cjs');
+ 
+ /** Runs only after the actual app navigation reaches the disposable capture route.
+  * Reload the production account store from its real SecureStore adapter; never
+@@ -10,13 +12,21 @@ async function readSavedAccount({ authStore, accountsStore }) {
+   }
+   const session = authStore.getState().session;
+   if (session?.user?.id !== OWNER) throw new Error('Saved-account acceptance requires the synthetic owner.');
+-  await accountsStore.getState().init();
+-  const { accounts, currentId } = accountsStore.getState();
+-  const current = authStore.getState().session;
+-  const passed = accounts.length === 1 && accounts[0].id === session.user.id
+-    && accounts[0].refresh_token === session.refresh_token && currentId === session.user.id
+-    && current?.user?.id === session.user.id && current.refresh_token === session.refresh_token;
+-  return { passed, reloaded: true, accountCount: accounts.length };
++  observeCaptureBoundary(fixtureRuntime, 'readback-start');
++  try {
++    await accountsStore.getState().init();
++    const { accounts, currentId } = accountsStore.getState();
++    const current = authStore.getState().session;
++    const passed = accounts.length === 1 && accounts[0].id === session.user.id
++      && accounts[0].refresh_token === session.refresh_token && currentId === session.user.id
++      && current?.user?.id === session.user.id && current.refresh_token === session.refresh_token;
++    const result = { passed, reloaded: true, accountCount: accounts.length };
++    observeCaptureBoundary(fixtureRuntime, 'readback-complete', { fulfilled: true, passed });
++    return result;
++  } catch (error) {
++    observeCaptureBoundary(fixtureRuntime, 'readback-complete', { fulfilled: false });
++    throw error;
++  }
+ }
+ 
+ module.exports = { readSavedAccount };
+diff --git a/tests/native/backend-fixture.cjs b/tests/native/backend-fixture.cjs
+index 3c1d1038..b359683a 100644
+--- a/tests/native/backend-fixture.cjs
++++ b/tests/native/backend-fixture.cjs
+@@ -5,6 +5,7 @@ const OWNER = '10000000-0000-4000-8000-000000000001';
+ const PEER = '10000000-0000-4000-8000-000000000002';
+ const SECOND = '10000000-0000-4000-8000-000000000003';
+ const { BOOK, NAVIGATION_BOOK, MEDIA, capability, memoryBook, navigationBook } = require('./memory-fixture.cjs');
++const { createCaptureBoundaryRecorder, createReaderResponseObserver } = require('./capture-boundary-trace.cjs');
+ const CONVERSATION = '30000000-0000-4000-8000-000000000001';
+ const STORY = '40000000-0000-4000-8000-000000000001';
+ const created = '2026-01-02T10:00:00.000Z';
+@@ -80,6 +81,8 @@ function createFixture(onChange = () => {}) {
+   let memoryMode = 'normal';
+   const issuedMedia = new Set();
+   const receipt = { mode: 'synthetic-native-ui', networkForwarded: false, requests: [], unhandled: [], mutations: [], media: [], bookReads: [], accountReadbacks: [] };
++  const recordCaptureBoundary = createCaptureBoundaryRecorder(receipt, onChange);
++  const observeReaderResponse = createReaderResponseObserver(receipt, onChange);
+   const record = (kind, value) => { receipt[kind].push(value); onChange(receipt); };
+   const response = (value, status = 200, headers = {}) => new Response(value === null && status === 204 ? null : JSON.stringify(value),
+     { status, headers: { 'content-type': 'application/json', 'x-supabase-api-version': '2024-01-01', ...headers } });
+@@ -108,7 +111,8 @@ function createFixture(onChange = () => {}) {
+     if (name === 'get_profile_insights') return { views_7d: 3, views_30d: 12 };
+     if (name === 'get_profile_context') return { mutual_names: [], mutual_count: 0, shared_communities: [] };
+     if (name === 'get_memory_albums') {
+-      const { pages, ...summary } = savedBook;
++      const summary = { ...savedBook };
++      delete summary.pages;
+       return { is_owner: args.p_owner === owner, books: owner === OWNER && args.p_owner === OWNER ? [summary] : [] };
+     }
+     if (name === 'get_memory_book') {
+@@ -123,7 +127,7 @@ function createFixture(onChange = () => {}) {
+     if (name === 'get_memory_book_creative_capabilities') return { version: 1, supported: true };
+     if (name === 'save_memory_book_creative_presentation') {
+       let claims;
+-      try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch {}
++      try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch { /* Invalid claims are rejected by the ownership check below. */ }
+       if (owner !== OWNER || claims?.sub !== OWNER || claims?.session_id !== sessionId || args.p_album !== NAVIGATION_BOOK) {
+         return response({ code: '42501', message: 'The synthetic book belongs to another account.' }, 403);
+       }
+@@ -207,6 +211,9 @@ function createFixture(onChange = () => {}) {
+     const method = (init.method || input.method || 'GET').toUpperCase();
+     const path = url.pathname;
+     if (url.origin !== 'https://uaulhuelcfkjwojtymmw.supabase.co') return unknown(method, url.origin + path);
++    const readerKind = path === '/rest/v1/rpc/get_memory_book' && method === 'POST' ? 'book'
++      : path === '/rest/v1/story_reactions' && method === 'GET' ? 'reactions' : null;
++    const readerResponse = value => readerKind ? observeReaderResponse(value, readerKind) : value;
+     if (offline) throw new TypeError('Synthetic offline state');
+     if (init.signal?.aborted) throw Object.assign(new Error('Aborted'), { name: 'AbortError' });
+     if (delayMs) await new Promise((resolve, reject) => {
+@@ -234,15 +241,15 @@ function createFixture(onChange = () => {}) {
+       return response(user());
+     }
+     if (path === '/auth/v1/factors') return response({ all: [], totp: [], phone: [] });
+-    if (!owner && path.startsWith('/rest/v1/')) return response({ message: 'Authentication required' }, 401);
++    if (!owner && path.startsWith('/rest/v1/')) return readerResponse(response({ message: 'Authentication required' }, 401));
+     if (path.startsWith('/rest/v1/rpc/')) {
+       const value = rpc(path.slice('/rest/v1/rpc/'.length), body, headers);
+-      return value === undefined ? unknown(method, path) : value instanceof Response ? value : response(value);
++      return readerResponse(value === undefined ? unknown(method, path) : value instanceof Response ? value : response(value));
+     }
+     if (path === '/functions/v1/crisp-bridge') return response({ success: true, linked: false, linked_at: null });
+     if (path === '/functions/v1/content-media-sign') {
+       let claims;
+-      try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch {}
++      try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch { /* Invalid claims are rejected by the ownership check below. */ }
+       if (owner !== OWNER || claims?.sub !== owner || claims?.session_id !== sessionId) return response({ message: 'Synthetic media ownership changed.' }, 403);
+       if (method !== 'POST' || body.delivery !== 'no-store' || !Array.isArray(body.references) || body.references.length !== 1
+         || body.references[0].kind !== 'memory_album' || body.references[0].id !== BOOK) return unknown(method, path);
+@@ -267,13 +274,13 @@ function createFixture(onChange = () => {}) {
+       if (url.searchParams.has('limit')) selected = selected.slice(0, Number(url.searchParams.get('limit')));
+       const countHeaders = { 'content-range': selected.length ? `0-${selected.length - 1}/${total}` : `*/${total}` };
+       if (method === 'HEAD') return new Response(null, { status: 200, headers: countHeaders });
+-      if (headers.get('accept')?.includes('vnd.pgrst.object')) return selected.length === 1 ? response(selected[0], 200, countHeaders)
+-        : response({ code: 'PGRST116', details: 'The result contains ' + selected.length + ' rows', message: 'Expected one row' }, 406);
+-      return response(selected, 200, countHeaders);
++      if (headers.get('accept')?.includes('vnd.pgrst.object')) return readerResponse(selected.length === 1 ? response(selected[0], 200, countHeaders)
++        : response({ code: 'PGRST116', details: 'The result contains ' + selected.length + ' rows', message: 'Expected one row' }, 406));
++      return readerResponse(response(selected, 200, countHeaders));
+     }
+     return unknown(method, path);
+   }
+-  return { fetch: fetchFixture, receipt, profiles, posts,
++  return { fetch: fetchFixture, receipt, profiles, posts, recordCaptureBoundary,
+     authorizeMemoryMedia(url) {
+       if (owner !== OWNER || offline || !issuedMedia.has(url)) {
+         record('unhandled', { method: 'MEDIA', path: String(url).split('?')[0] });
+diff --git a/tests/native/entry.js b/tests/native/entry.js
+index af3eef07..7714edb3 100644
+--- a/tests/native/entry.js
++++ b/tests/native/entry.js
+@@ -5,6 +5,7 @@ import * as FileSystem from 'expo-file-system/legacy';
+ import { createFixture, FixtureWebSocket } from './backend-fixture.cjs';
+ import { installFixtureTransport } from './install-fixture-transport.cjs';
+ import { installFixtureRuntime } from './fixture-runtime.cjs';
++import { observeCaptureBoundary, isCaptureState } from './capture-boundary-trace.cjs';
+ 
+ if (process.env.EXPO_PUBLIC_APP_ENV !== 'qa' || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY !== 'native-ui-synthetic-no-provider-key') {
+   throw new Error('The isolated native UI entry cannot use a provider credential or production configuration.');
+@@ -25,6 +26,9 @@ const fixture = createFixture(persist);
+ installFixtureRuntime(fixture);
+ installFixtureTransport(fixture, FixtureWebSocket);
+ Linking.addEventListener('url', ({ url }) => {
++  if (typeof url === 'string' && /^platinum-circles-qa:/i.test(url)) {
++    observeCaptureBoundary(fixture, 'received', { matched: url === 'platinum-circles-qa://ui-fixture/memory' });
++  }
+   if (!url.startsWith('platinum-circles-qa://ui-fixture/')) return;
+   const query = new URL(url).searchParams;
+   fixture.configure({ offline: query.get('offline') === '1', delayMs: Number(query.get('delay') || 0) });
+@@ -38,17 +42,39 @@ const { linking } = require('../../src/navigation/linking');
+ const { CommonActions, getActionFromState } = require('@react-navigation/native');
+ linking.prefixes.push('platinum-circles-qa://');
+ linking.config.screens.NativeMemoryCaptureFixture = 'ui-fixture/memory';
++const defaultPathState = linking.getStateFromPath;
++linking.getStateFromPath = function (path, ...args) {
++  try {
++    const state = defaultPathState.call(this, path, ...args);
++    observeCaptureBoundary(fixture, 'parsed', () => ({ expectedPath: path === 'ui-fixture/memory', matched: isCaptureState(state) }));
++    return state;
++  } catch (error) {
++    observeCaptureBoundary(fixture, 'parse-failed', { expectedPath: path === 'ui-fixture/memory' });
++    throw error;
++  }
++};
+ const defaultLinkAction = linking.getActionFromState || getActionFromState;
+ linking.getActionFromState = (state, options) => {
+-  const route = state.routes[0];
+-  if (state.routes.length === 1 && route?.name === 'NativeMemoryCaptureFixture'
+-    && route.path === 'ui-fixture/memory') {
+-    // Remove prior screen-owned Modals even when navigation failed mid-sheet.
+-    // Only navigator routes change: App providers, auth/account stores, the
+-    // synthetic transport and its cumulative receipt remain in this process.
+-    return CommonActions.reset({ index: 0, routes: [route] });
++  try {
++    const route = state.routes[0];
++    if (state.routes.length === 1 && route?.name === 'NativeMemoryCaptureFixture'
++      && route.path === 'ui-fixture/memory') {
++      // Remove prior screen-owned Modals even when navigation failed mid-sheet.
++      // Only navigator routes change: App providers, auth/account stores, the
++      // synthetic transport and its cumulative receipt remain in this process.
++      const action = CommonActions.reset({ index: 0, routes: [route] });
++      // Linking performs dispatch after this returns. This is only production of
++      // an action; the separate mounted observation is a later boundary.
++      observeCaptureBoundary(fixture, 'action-produced', () => ({ matched: true, reset: action.type === 'RESET' }));
++      return action;
++    }
++    const action = defaultLinkAction(state, options);
++    observeCaptureBoundary(fixture, action === undefined ? 'action-empty' : 'action-produced', () => ({ matched: false, reset: action?.type === 'RESET' }));
++    return action;
++  } catch (error) {
++    observeCaptureBoundary(fixture, 'action-failed', () => ({ matched: isCaptureState(state) }));
++    throw error;
+   }
+-  return defaultLinkAction(state, options);
+ };
+ const App = require('../../App').default;
+ registerRootComponent(App);
+diff --git a/tests/quality/native-account-readback.cjs b/tests/quality/native-account-readback.cjs
+index 69d93185..09fe7b35 100644
+--- a/tests/quality/native-account-readback.cjs
++++ b/tests/quality/native-account-readback.cjs
+@@ -10,8 +10,14 @@ const env = { EXPO_PUBLIC_APP_ENV: 'qa', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'native-
+ 
+ function reader(environment = env) {
+   const module = { exports: {} };
++  const fixture = createFixture();
+   vm.runInNewContext(fs.readFileSync(path.join(root, 'tests/native/account-readback.cjs'), 'utf8'), {
+-    module, exports: module.exports, process: { env: environment }, require: () => ({ OWNER }),
++    module, exports: module.exports, process: { env: environment }, require: name => {
++      if (name === './backend-fixture.cjs') return { OWNER };
++      if (name === './fixture-runtime.cjs') return { fixtureRuntime: () => fixture };
++      if (name === './capture-boundary-trace.cjs') return require('../native/capture-boundary-trace.cjs');
++      throw Error('Unexpected readback dependency: ' + name);
++    },
+   });
+   return module.exports.readSavedAccount;
+ }
+diff --git a/tests/quality/native-capture-setup.cjs b/tests/quality/native-capture-setup.cjs
+index e6c45742..22d7ff78 100644
+--- a/tests/quality/native-capture-setup.cjs
++++ b/tests/quality/native-capture-setup.cjs
+@@ -165,17 +165,23 @@ const getStateFromPath = require('@react-navigation/core/lib/commonjs/getStateFr
+ const getActionFromState = require('@react-navigation/core/lib/commonjs/getActionFromState').default;
+ const CommonActions = require('@react-navigation/routers/lib/commonjs/CommonActions');
+ const StackRouter = require('@react-navigation/routers/lib/commonjs/StackRouter').default;
+-function entryRuntime() {
++function entryRuntime({ parser, action, recorder } = {}) {
+   const { linking } = load('src/navigation/linking.ts', { 'expo-linking': { createURL: () => 'platinum-circles-qa:///' },
+     '@react-navigation/native': { getStateFromPath } });
+-  const receipt = { requests: ['already-authenticated-navigation'], accountReadbacks: [] };
+-  const fixture = { receipt, configure() {} }, events = [], listeners = [];
++  if (parser) linking.getStateFromPath = parser;
++  if (action) linking.getActionFromState = action;
++  const fixture = require('../native/backend-fixture.cjs').createFixture();
++  if (recorder) fixture.recordCaptureBoundary = recorder;
++  const receipt = fixture.receipt;
++  receipt.requests.push('already-authenticated-navigation');
++  const events = [], listeners = [];
+   const auth = { session: { owner: 'unchanged synthetic owner' } }, accounts = { stored: 1 };
+   const imports = { 'react-native-url-polyfill/auto': {}, 'react-native': { Linking: { addEventListener: (_name, listener) => listeners.push(listener) } },
+     'expo-file-system/legacy': { documentDirectory: 'file:///documents/', writeAsStringAsync() { throw Error('No receipt mutation during route setup'); } },
+     './backend-fixture.cjs': { createFixture: () => { events.push('fixture'); return fixture; }, FixtureWebSocket: class {} },
+     './install-fixture-transport.cjs': { installFixtureTransport: value => { assert.equal(value, fixture); events.push('transport'); } },
+     './fixture-runtime.cjs': { installFixtureRuntime: value => { assert.equal(value, fixture); events.push('runtime'); } },
++    './capture-boundary-trace.cjs': require('../native/capture-boundary-trace.cjs'),
+     expo: { registerRootComponent: () => events.push('registered') }, '@daily-co/react-native-daily-js': {},
+     '../../src/navigation/linking': { linking }, '@react-navigation/native': { CommonActions, getActionFromState }, '../../App': { default() {} } };
+   load('tests/native/entry.js', imports, false, { process: { env: { EXPO_PUBLIC_APP_ENV: 'qa', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'native-ui-synthetic-no-provider-key' } },
+@@ -218,3 +224,72 @@ test('a similar route name, wrong path or multiroute state cannot use the captur
+     { routes: [{ name: 'Main' }, { name: 'NativeMemoryCaptureFixture', path: 'ui-fixture/memory' }] },
+   ]) assert.deepEqual(plain(linking.getActionFromState(state, linking.config)), plain(getActionFromState(state, linking.config)));
+ });
++
++test('the actual exact capture link records reception, parsing and action production without claiming dispatch or mount', () => {
++  const r = entryRuntime();
++  const extractPath = require('@react-navigation/native/lib/commonjs/extractPathFromURL').default;
++  r.listeners[0]({ url: 'platinum-circles://ui-fixture/memory' });
++  assert.deepEqual(r.receipt.captureBoundaries, []);
++  const url = 'platinum-circles-qa://ui-fixture/memory';
++  r.listeners[0]({ url });
++  const path = extractPath(r.linking.prefixes, url);
++  const state = r.linking.getStateFromPath(path, r.linking.config);
++  const action = r.linking.getActionFromState(state, r.linking.config);
++  assert.equal(action.type, 'RESET');
++  assert.equal(action.payload.routes[0], state.routes[0]);
++  assert.deepEqual(r.receipt.captureBoundaries.map(row => row.phase), ['received', 'parsed', 'action-produced']);
++  assert.equal(r.receipt.captureBoundaries[1].matched, true);
++  assert.equal(r.receipt.captureBoundaries[2].reset, true);
++  assert.equal(r.receipt.captureBoundaries.some(row => row.phase === 'mounted' || row.phase === 'dispatched'), false);
++  assert.equal(JSON.stringify(r.receipt.captureBoundaries).includes(url), false);
++});
++
++test('QA ingress formatting mismatches and every parser callback remain distinguishable without changing accepted links', () => {
++  const r = entryRuntime(); let configurations = 0;
++  r.fixture.configure = () => { configurations++; };
++  for (const url of ['PLATINUM-CIRCLES-QA://ui-fixture/memory', 'platinum-circles-qa:///ui-fixture/memory',
++    'platinum-circles-qa://unrelated', 'platinum-circles-qa://ui-fixture/memory?delay=1']) r.listeners[0]({ url });
++  assert.equal(configurations, 1, 'only the unchanged original exact-prefix branch configures the fixture');
++  assert.ok(r.receipt.captureBoundaries.every(row => row.phase === 'received' && row.matched === false));
++  for (const path of ['feed', 'ui-fixture/memory?delay=1', 'ui-fixture/memory']) {
++    const state = r.linking.getStateFromPath(path, r.linking.config);
++    assert.deepEqual(plain(state), plain(getStateFromPath(path, r.linking.config)));
++  }
++  assert.deepEqual(r.receipt.captureBoundaries.filter(row => row.phase === 'parsed').map(row =>
++    ({ expectedPath: row.expectedPath, matched: row.matched })), [
++    { expectedPath: false, matched: false }, { expectedPath: false, matched: false }, { expectedPath: true, matched: true },
++  ]);
++  assert.equal(JSON.stringify(r.receipt.captureBoundaries).includes('ui-fixture'), false);
++});
++
++test('actual entry observation preserves parser receiver, arguments, state identity and original errors', () => {
++  const state = { routes: [{ name: 'NativeMemoryCaptureFixture', path: 'ui-fixture/memory' }] };
++  const receiver = {}, options = {}, extra = {};
++  const r = entryRuntime({ parser: function (...args) {
++    assert.equal(this, receiver); assert.deepEqual(args, ['ui-fixture/memory', options, extra]); return state;
++  }, recorder() { throw Error('diagnostic sink failure'); } });
++  assert.equal(r.linking.getStateFromPath.call(receiver, 'ui-fixture/memory', options, extra), state);
++  assert.equal(r.linking.getActionFromState(state, options).payload.routes[0], state.routes[0]);
++  const failure = new Error('original parser error');
++  const broken = entryRuntime({ parser() { throw failure; } });
++  assert.throws(() => broken.linking.getStateFromPath('ui-fixture/memory', options), error => error === failure);
++  assert.deepEqual(broken.receipt.captureBoundaries.map(row => row.phase), ['parse-failed']);
++  assert.equal(broken.receipt.captureBoundaries[0].expectedPath, true);
++  const defaultFailure = new Error('original action error');
++  const defaultAction = entryRuntime({ action() { throw defaultFailure; } });
++  assert.throws(() => defaultAction.linking.getActionFromState({ routes: [{ name: 'Main' }] }, options), error => error === defaultFailure);
++  assert.deepEqual(defaultAction.receipt.captureBoundaries.map(row => row.phase), ['action-failed']);
++  assert.equal(defaultAction.receipt.captureBoundaries[0].matched, false);
++});
++
++test('an unmatched actual parser result is returned unchanged and recorded without inventing an action', () => {
++  const r = entryRuntime({ parser: () => undefined });
++  assert.equal(r.linking.getStateFromPath('ui-fixture/memory', r.linking.config), undefined);
++  assert.deepEqual(r.receipt.captureBoundaries.map(row => ({ phase: row.phase, matched: row.matched })), [{ phase: 'parsed', matched: false }]);
++});
++
++test('an undefined default action remains undefined and is not recorded as produced or dispatched', () => {
++  const r = entryRuntime({ action: () => undefined });
++  assert.equal(r.linking.getActionFromState({ routes: [{ name: 'Main' }] }, r.linking.config), undefined);
++  assert.deepEqual(r.receipt.captureBoundaries.map(row => row.phase), ['action-empty']);
++});
+diff --git a/tests/quality/native-timer-bootstrap.cjs b/tests/quality/native-timer-bootstrap.cjs
+index c1578627..d42e9cc0 100644
+--- a/tests/quality/native-timer-bootstrap.cjs
++++ b/tests/quality/native-timer-bootstrap.cjs
+@@ -25,7 +25,8 @@ function runtime({ platform = 'android', qa = false, env = {} } = {}) {
+   const nativeTimers = new Map(), backgroundSchedules = new Map(), warnings = [], events = [];
+   const result = { retained: 'original result reference' };
+   const fixture = { fetch() { throw Error('Unexpected fixture transport request'); }, configure() {} };
+-  const linking = { prefixes: [], config: { screens: {} } };
++  const linking = { prefixes: [], config: { screens: {} },
++    getStateFromPath: require('@react-navigation/core/lib/commonjs/getStateFromPath').default };
+   let runtimeInstalled = false, transportInstalled = false, dailyLoads = 0;
+   const setNative = (callback, delay) => { const id = ++nativeId; nativeTimers.set(id, { callback, due: now + delay }); return id; };
+   const clearNative = id => nativeTimers.delete(id);
+@@ -103,6 +104,7 @@ function runtime({ platform = 'android', qa = false, env = {} } = {}) {
+     if (name === 'expo-file-system/legacy') return { documentDirectory: 'synthetic:///', writeAsStringAsync: async () => {} };
+     if (name === './backend-fixture.cjs') return { createFixture() { events.push('fixture'); return fixture; }, FixtureWebSocket: class {} };
+     if (name === './fixture-runtime.cjs') return { installFixtureRuntime(value) { assert.equal(value, fixture); runtimeInstalled = true; events.push('runtime'); } };
++    if (name === './capture-boundary-trace.cjs') return require('../native/capture-boundary-trace.cjs');
+     if (name === './install-fixture-transport.cjs') return { installFixtureTransport(value) { assert.equal(value, fixture); transportInstalled = true; sandbox.fetch = fixture.fetch; events.push('transport'); } };
+     if (name === '../../src/navigation/linking') {
+       // Treat the first app dependency as auth-capable, so the QA bootstrap
+diff --git a/tests/quality/native-ui-fixture.cjs b/tests/quality/native-ui-fixture.cjs
+index 73865fce..b3ba6f00 100644
+--- a/tests/quality/native-ui-fixture.cjs
++++ b/tests/quality/native-ui-fixture.cjs
+@@ -70,6 +70,34 @@ test('an unimplemented endpoint or external provider is a recorded failure, neve
+   assert.equal(fixture.receipt.unhandled.length, 2);
+ });
+ 
++test('only exact book POST and reaction GET responses report actual SDK body-consumption boundaries', async () => {
++  const fixture = createFixture();
++  const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {
++    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: fixture.fetch },
++  });
++  await client.auth.signInWithPassword({ email: 'qa.alex@example.invalid', password: 'FixtureOnly-2026!' });
++  await client.from('profiles').select('*').eq('id', OWNER).single();
++  await client.from('story_reactions').select('story_id', { head: true });
++  assert.deepEqual(fixture.receipt.readerResponseBoundaries, []);
++  const book = await client.rpc('get_memory_book', { p_album: NAVIGATION_BOOK });
++  assert.equal(book.error, null); assert.equal(book.data.id, NAVIGATION_BOOK);
++  const reactions = await client.from('story_reactions').select('story_id').eq('user_id', OWNER).in('story_id', ['synthetic-story']);
++  assert.equal(reactions.error, null); assert.deepEqual(reactions.data, []);
++  const events = fixture.receipt.readerResponseBoundaries;
++  assert.equal(events.length, 6);
++  for (const kind of ['book', 'reactions']) {
++    const rows = events.filter(row => row.kind === kind);
++    assert.deepEqual(rows.map(row => row.phase), ['response-ready', 'body-start', 'body-complete']);
++    assert.ok(rows.every(row => row.id === rows[0].id && Number.isSafeInteger(row.atUnixMs)));
++    assert.equal(rows[0].status, 200); assert.equal(rows[0].bodyObserved, true); assert.equal(rows[2].fulfilled, true);
++  }
++  assert.equal(JSON.stringify(events).includes(OWNER), false);
++  assert.equal(JSON.stringify(events).includes('synthetic-story'), false);
++  assert.equal(JSON.stringify(events).includes(NAVIGATION_BOOK), false);
++  assert.equal(fixture.receipt.unhandled.length, 0);
++  await client.auth.signOut();
++});
++
+ test('the full app connectivity probe has an explicit local health response and retains abort/offline failures', async () => {
+   const fixture = createFixture();
+   const health = await fixture.fetch(origin + '/auth/v1/health');
+diff --git a/tests/native/capture-boundary-trace.cjs b/tests/native/capture-boundary-trace.cjs
+new file mode 100644
+index 00000000..17e81254
+--- /dev/null
++++ b/tests/native/capture-boundary-trace.cjs
+@@ -0,0 +1,110 @@
++/** Bounded QA observation only. No URL, route payload, account value or error
++ * detail is retained, and observer failures cannot change the observed work. */
++const MAX_CAPTURE_BOUNDARIES = 32;
++const MAX_READER_BOUNDARIES = 64;
++const phases = new Set(['received', 'parsed', 'parse-failed', 'action-produced', 'action-empty', 'action-failed', 'mounted', 'readback-start', 'readback-complete']);
++
++function notifyReceipt(receipt, onChange) {
++  try {
++    const pending = onChange(receipt);
++    if (pending && typeof pending.then === 'function') Promise.resolve(pending).catch(() => {});
++  } catch { /* Observation is best effort. */ }
++}
++
++function createCaptureBoundaryRecorder(receipt, onChange, now = Date.now) {
++  const events = receipt.captureBoundaries = [];
++  receipt.captureBoundaryDropped = 0;
++  const notify = () => notifyReceipt(receipt, onChange);
++  return (phase, details = {}) => {
++    try {
++      if (!phases.has(phase)) return false;
++      if (events.length >= MAX_CAPTURE_BOUNDARIES) {
++        receipt.captureBoundaryDropped = Math.min(Number.MAX_SAFE_INTEGER, receipt.captureBoundaryDropped + 1);
++        notify();
++        return false;
++      }
++      const event = { sequence: events.length + 1, phase };
++      try {
++        const at = now();
++        if (Number.isSafeInteger(at) && at >= 0) event.atUnixMs = at;
++      } catch { /* Sequence still identifies the boundary when the clock fails. */ }
++      if (['received', 'parsed', 'action-produced', 'action-empty', 'action-failed'].includes(phase)) event.matched = details?.matched === true;
++      if (phase === 'parsed' || phase === 'parse-failed') event.expectedPath = details?.expectedPath === true;
++      if (phase === 'action-produced') event.reset = details?.reset === true;
++      if (phase === 'readback-complete') {
++        event.fulfilled = details?.fulfilled === true;
++        if (event.fulfilled) event.passed = details?.passed === true;
++      }
++      events.push(event);
++      notify();
++      return true;
++    } catch { return false; }
++  };
++}
++
++/** Only the two selected synthetic reader responses use this observer. The
++ * installed PostgREST adapter consumes text(); it is never read or cloned here. */
++function createReaderResponseObserver(receipt, onChange, now = Date.now) {
++  const events = receipt.readerResponseBoundaries = [];
++  receipt.readerResponseDropped = 0;
++  let responseSequence = 0, eventSequence = 0;
++  const record = (id, kind, phase, details = {}) => {
++    try {
++      const event = { sequence: ++eventSequence, id, kind, phase, ...details };
++      try {
++        const at = now();
++        if (Number.isSafeInteger(at) && at >= 0) event.atUnixMs = at;
++      } catch { /* Preserve ordering without a timestamp. */ }
++      if (events.length >= MAX_READER_BOUNDARIES) {
++        events.splice(16, 1); // Keep initial evidence and the most recent boundaries.
++        receipt.readerResponseDropped = Math.min(Number.MAX_SAFE_INTEGER, receipt.readerResponseDropped + 1);
++      }
++      events.push(event);
++      notifyReceipt(receipt, onChange);
++    } catch { /* Diagnostics cannot affect a response or its body promise. */ }
++  };
++  return (response, kind) => {
++    if (kind !== 'book' && kind !== 'reactions') return response;
++    const id = ++responseSequence;
++    let bodyObserved = false;
++    try {
++      const text = response.text;
++      if (typeof text === 'function') {
++        Object.defineProperty(response, 'text', { configurable: true, writable: true, value: function (...args) {
++          record(id, kind, 'body-start');
++          let pending;
++          try { pending = text.apply(this, args); }
++          catch (error) { record(id, kind, 'body-complete', { fulfilled: false }); throw error; }
++          try {
++            pending.then(() => record(id, kind, 'body-complete', { fulfilled: true }),
++              () => record(id, kind, 'body-complete', { fulfilled: false }));
++          } catch { /* The original return value is still returned unchanged. */ }
++          return pending;
++        } });
++        bodyObserved = true;
++      }
++    } catch { /* A non-extensible response remains usable without body tracing. */ }
++    const details = { bodyObserved };
++    try { const status = response.status; if (Number.isInteger(status) && status >= 100 && status <= 599) details.status = status; } catch { /* No status observation. */ }
++    record(id, kind, 'response-ready', details);
++    return response;
++  };
++}
++
++function observeCaptureBoundary(runtime, phase, details) {
++  try {
++    const fixture = typeof runtime === 'function' ? runtime() : runtime;
++    if (typeof fixture?.recordCaptureBoundary !== 'function') return;
++    fixture.recordCaptureBoundary(phase, typeof details === 'function' ? details() : details);
++  } catch { /* Preserve the original state, action, result and error. */ }
++}
++
++function isCaptureState(state) {
++  try {
++    return state?.routes?.length === 1 && state.routes[0]?.name === 'NativeMemoryCaptureFixture'
++      && state.routes[0].path === 'ui-fixture/memory';
++  } catch { return false; }
++}
++
++module.exports = { MAX_CAPTURE_BOUNDARIES, MAX_READER_BOUNDARIES, createCaptureBoundaryRecorder,
++  createReaderResponseObserver, observeCaptureBoundary, isCaptureState };
+diff --git a/tests/quality/native-capture-boundary-trace.cjs b/tests/quality/native-capture-boundary-trace.cjs
+new file mode 100644
+index 00000000..e8abff9b
+--- /dev/null
++++ b/tests/quality/native-capture-boundary-trace.cjs
+@@ -0,0 +1,234 @@
++const assert = require('node:assert/strict');
++const fs = require('node:fs');
++const path = require('node:path');
++const vm = require('node:vm');
++const test = require('node:test');
++const ts = require('typescript');
++const { createFixture, OWNER, PEER } = require('../native/backend-fixture.cjs');
++const trace = require('../native/capture-boundary-trace.cjs');
++const root = path.resolve(__dirname, '../..');
++const env = { EXPO_PUBLIC_APP_ENV: 'qa', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'native-ui-synthetic-no-provider-key' };
++const flush = () => new Promise(resolve => setImmediate(resolve));
++
++test('the real fixture recorder retains only known phases, booleans, sequence and a numeric timestamp', () => {
++  const fixture = createFixture();
++  const secret = 'private-url-token-account-error-sentinel';
++  const details = { matched: true, reset: true, fulfilled: true, passed: true, url: secret, token: secret,
++    get session() { throw Error('Unknown fields must not be read'); } };
++  fixture.recordCaptureBoundary('unknown-' + secret, details);
++  for (const phase of ['received', 'parsed', 'action-produced', 'mounted', 'readback-start', 'readback-complete']) {
++    assert.equal(fixture.recordCaptureBoundary(phase, details), true);
++  }
++  assert.equal(fixture.receipt.captureBoundaries.length, 6);
++  assert.equal(JSON.stringify(fixture.receipt.captureBoundaries).includes(secret), false);
++  const allowed = new Set(['sequence', 'phase', 'atUnixMs', 'matched', 'expectedPath', 'reset', 'fulfilled', 'passed']);
++  for (const [index, row] of fixture.receipt.captureBoundaries.entries()) {
++    assert.equal(row.sequence, index + 1);
++    assert.ok(Number.isSafeInteger(row.atUnixMs));
++    assert.ok(Object.keys(row).every(key => allowed.has(key)));
++  }
++});
++
++test('retention stays bounded and reports dropped markers without growing the event list', () => {
++  const receipt = {}, snapshots = [];
++  const record = trace.createCaptureBoundaryRecorder(receipt, value => snapshots.push(value.captureBoundaries.length), () => 17);
++  for (let i = 0; i < 100; i += 1) record('received');
++  assert.equal(receipt.captureBoundaries.length, 32);
++  assert.equal(receipt.captureBoundaryDropped, 68);
++  assert.equal(receipt.captureBoundaries.at(-1).sequence, 32);
++  assert.ok(snapshots.every(size => size <= 32));
++});
++
++test('clock, synchronous sink and rejecting sink failures remain isolated observations', async () => {
++  const receipt = {};
++  const record = trace.createCaptureBoundaryRecorder(receipt, () => { throw Error('sink failed'); }, () => { throw Error('clock failed'); });
++  assert.equal(record('mounted'), true);
++  assert.deepEqual(receipt.captureBoundaries, [{ sequence: 1, phase: 'mounted' }]);
++  const asyncReceipt = {};
++  const asyncRecord = trace.createCaptureBoundaryRecorder(asyncReceipt, () => Promise.reject(Error('async sink failed')));
++  assert.equal(asyncRecord('readback-start'), true);
++  await flush();
++  assert.equal(asyncReceipt.captureBoundaries.length, 1);
++});
++
++test('broken recorder accessors, detail producers and immutable receipt arrays cannot escape observation', () => {
++  assert.doesNotThrow(() => trace.observeCaptureBoundary(() => { throw Error('missing runtime'); }, 'received'));
++  assert.doesNotThrow(() => trace.observeCaptureBoundary({ get recordCaptureBoundary() { throw Error('recorder getter'); } }, 'received'));
++  assert.doesNotThrow(() => trace.observeCaptureBoundary({ recordCaptureBoundary() { throw Error('recorder'); } }, 'parsed'));
++  const fixture = createFixture();
++  assert.doesNotThrow(() => trace.observeCaptureBoundary(fixture, 'parsed', () => { throw Error('detail producer'); }));
++  assert.deepEqual(fixture.receipt.captureBoundaries, []);
++  assert.equal(fixture.recordCaptureBoundary('parsed', { get matched() { throw Error('detail getter'); } }), false);
++  Object.freeze(fixture.receipt.captureBoundaries);
++  assert.equal(fixture.recordCaptureBoundary('received'), false);
++});
++
++test('the installed native WHATWG Response is observed without extra reads, clones or promise replacement', async () => {
++  const context = vm.createContext({ URL, URLSearchParams, console });
++  vm.runInContext(fs.readFileSync(require.resolve('whatwg-fetch'), 'utf8'), context);
++  const response = new context.Response('private synthetic response body');
++  const originalText = response.text;
++  let reads = 0, originalPromise;
++  response.text = function (...args) { reads++; originalPromise = originalText.apply(this, args); return originalPromise; };
++  response.clone = () => { throw Error('Observation must never clone'); };
++  const receipt = {};
++  const observe = trace.createReaderResponseObserver(receipt, () => {}, () => 23);
++  assert.equal(observe(response, 'book'), response);
++  assert.equal(reads, 0); assert.equal(response.bodyUsed, false);
++  const pending = response.text();
++  assert.equal(pending, originalPromise); assert.equal(reads, 1);
++  assert.equal(await pending, 'private synthetic response body');
++  await flush();
++  assert.equal(response.bodyUsed, true);
++  assert.deepEqual(receipt.readerResponseBoundaries.map(row => row.phase), ['response-ready', 'body-start', 'body-complete']);
++  assert.equal(receipt.readerResponseBoundaries.at(-1).fulfilled, true);
++  assert.equal(JSON.stringify(receipt).includes('private synthetic response body'), false);
++  const rejected = response.text();
++  assert.equal(rejected, originalPromise);
++  const originalError = await originalPromise.catch(error => error);
++  await assert.rejects(rejected, error => error === originalError);
++  assert.equal(reads, 2, 'the second read was explicitly requested by this test, never by observation');
++  assert.equal(receipt.readerResponseBoundaries.at(-1).fulfilled, false);
++});
++
++test('reader response tracing preserves receiver, arguments, result reference and synchronous error identity', async () => {
++  const receipt = {}, receiver = {}, argument = {}, result = { privateValue: 'never recorded' };
++  const promised = Promise.resolve(result);
++  const response = { status: 200, text(...args) { assert.equal(this, receiver); assert.deepEqual(args, [argument]); return promised; } };
++  const observe = trace.createReaderResponseObserver(receipt, () => { throw Error('sink failure'); });
++  observe(response, 'reactions');
++  const pending = response.text.call(receiver, argument);
++  assert.equal(pending, promised); assert.equal(await pending, result);
++  const failure = new Error('private synchronous body error');
++  const broken = { status: 500, text() { throw failure; } };
++  observe(broken, 'book');
++  assert.throws(() => broken.text(), error => error === failure);
++  assert.equal(receipt.readerResponseBoundaries.at(-1).fulfilled, false);
++  assert.equal(JSON.stringify(receipt).includes('private'), false);
++});
++
++test('reader retention stays bounded independently of capture markers and never consumes unrequested bodies', () => {
++  const fixture = createFixture();
++  const receipt = fixture.receipt;
++  const observe = trace.createReaderResponseObserver(receipt, () => {});
++  let reads = 0;
++  for (let i = 0; i < 100; i += 1) observe({ status: 200, text() { reads++; return Promise.resolve('unused'); } }, 'book');
++  assert.equal(reads, 0);
++  assert.equal(receipt.readerResponseBoundaries.length, 64);
++  assert.equal(receipt.readerResponseDropped, 36);
++  assert.equal(receipt.readerResponseBoundaries[0].id, 1);
++  assert.equal(receipt.readerResponseBoundaries.at(-1).id, 100);
++  fixture.recordCaptureBoundary('mounted');
++  assert.equal(receipt.captureBoundaries.length, 1);
++});
++
++test('nonselected and nonextensible responses keep their original behavior without false body completion', async () => {
++  const receipt = {}, observe = trace.createReaderResponseObserver(receipt, () => Promise.reject(Error('sink')));
++  const ignored = { get text() { throw Error('unselected response must not be inspected'); } };
++  assert.equal(observe(ignored, 'unrelated'), ignored);
++  assert.deepEqual(receipt.readerResponseBoundaries, []);
++  const response = Object.freeze({ status: 200, text: () => Promise.resolve('original') });
++  assert.equal(observe(response, 'reactions'), response);
++  assert.equal(await response.text(), 'original');
++  await flush();
++  assert.equal(receipt.readerResponseBoundaries[0].bodyObserved, false);
++  assert.equal(receipt.readerResponseBoundaries.length, 1);
++});
++
++function load(file, imports) {
++  const module = { exports: {} };
++  const source = fs.readFileSync(path.join(root, file), 'utf8');
++  const code = file.endsWith('.tsx') ? ts.transpileModule(source, {
++    fileName: file, compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
++      jsx: ts.JsxEmit.React, esModuleInterop: true },
++  }).outputText : source;
++  vm.runInNewContext(code, { module, exports: module.exports, process: { env }, require: name => {
++    if (Object.hasOwn(imports, name)) return imports[name];
++    throw Error('Unexpected capture dependency: ' + name);
++  } }, { filename: file });
++  return module.exports;
++}
++
++function runtime({ initialization, recorder } = {}) {
++  const fixture = createFixture(), effects = [], states = [];
++  if (recorder) fixture.recordCaptureBoundary = recorder;
++  const session = { user: { id: OWNER }, refresh_token: 'private-synthetic-token' };
++  const authStore = selector => selector({ session });
++  authStore.getState = () => ({ session });
++  let initializations = 0;
++  const accountsStore = { getState: () => ({
++    accounts: [{ id: OWNER, refresh_token: session.refresh_token }], currentId: OWNER,
++    init() { initializations++; return initialization ? initialization() : Promise.resolve(); },
++  }) };
++  const readSavedAccount = load('tests/native/account-readback.cjs', {
++    './backend-fixture.cjs': { OWNER }, './fixture-runtime.cjs': { fixtureRuntime: () => fixture },
++    './capture-boundary-trace.cjs': trace,
++  }).readSavedAccount;
++  const React = {
++    createElement: (type, props, ...children) => ({ type, props: { ...props, children } }),
++    useState: initial => [typeof initial === 'function' ? initial() : initial, value => states.push(value)],
++    useEffect: effect => effects.push(effect),
++  };
++  const Screen = load('tests/native/MemoryCaptureFixtureScreen.tsx', {
++    react: React, 'react-native': { StyleSheet: { create: value => value }, View: 'View', Text: 'Text', TouchableOpacity: 'TouchableOpacity' },
++    '../../src/components/memory/MemoryMovieExport': () => null,
++    '../../src/stores/authStore': { useAuthStore: authStore }, '../../src/stores/accountsStore': { useAccountsStore: accountsStore },
++    './memory-fixture.cjs': require('../native/memory-fixture.cjs'), './fixture-runtime.cjs': { fixtureRuntime: () => fixture },
++    './memory-capture-observer.cjs': { getStatus: () => 'ready', subscribe: () => () => {} },
++    './account-readback.cjs': { readSavedAccount }, './capture-boundary-trace.cjs': trace,
++  }).default;
++  return { fixture, session, authStore, accountsStore, readSavedAccount, effects, states,
++    mount() { const rendered = Screen(); const cleanup = effects.map(effect => effect()); return { rendered, cleanup }; },
++    get initializations() { return initializations; } };
++}
++
++test('actual capture component and readback helper record mount and one pending init before completion', async () => {
++  let release;
++  const held = new Promise(resolve => { release = resolve; });
++  const r = runtime({ initialization: () => held });
++  r.mount();
++  assert.equal(r.initializations, 1);
++  assert.deepEqual(r.fixture.receipt.captureBoundaries.map(row => row.phase), ['mounted', 'readback-start']);
++  assert.deepEqual(r.fixture.receipt.accountReadbacks, []);
++  release(); await flush();
++  assert.equal(r.initializations, 1);
++  const completed = r.fixture.receipt.captureBoundaries.at(-1);
++  assert.equal(completed.phase, 'readback-complete');
++  assert.equal(completed.fulfilled, true); assert.equal(completed.passed, true);
++  assert.deepEqual(r.fixture.receipt.accountReadbacks, [{ passed: true, reloaded: true, accountCount: 1 }]);
++  assert.equal(r.states.at(-1), true);
++  assert.equal(JSON.stringify(r.fixture.receipt.captureBoundaries).includes(r.session.refresh_token), false);
++});
++
++test('an unfinished read may complete after component cleanup without creating another init or UI update', async () => {
++  let release;
++  const held = new Promise(resolve => { release = resolve; });
++  const r = runtime({ initialization: () => held });
++  const mounted = r.mount();
++  mounted.cleanup.forEach(cleanup => cleanup?.());
++  release(); await flush();
++  assert.equal(r.initializations, 1);
++  assert.equal(r.fixture.receipt.captureBoundaries.at(-1).phase, 'readback-complete');
++  assert.equal(r.fixture.receipt.accountReadbacks.length, 1);
++  assert.deepEqual(r.states, []);
++});
++
++test('actual readback retains the original rejection and emits no error contents', async () => {
++  const failure = new Error('private keychain error detail');
++  const r = runtime({ initialization: () => Promise.reject(failure) });
++  await assert.rejects(r.readSavedAccount(r), error => error === failure);
++  assert.equal(r.initializations, 1);
++  assert.deepEqual(r.fixture.receipt.captureBoundaries.map(row => row.phase), ['readback-start', 'readback-complete']);
++  assert.equal(r.fixture.receipt.captureBoundaries.at(-1).fulfilled, false);
++  assert.equal(JSON.stringify(r.fixture.receipt.captureBoundaries).includes(failure.message), false);
++});
++
++test('failed diagnostics preserve successful actual readback and wrong-owner guards still precede init', async () => {
++  const r = runtime({ recorder() { throw Error('diagnostics failed'); } });
++  const result = await r.readSavedAccount(r);
++  assert.deepEqual(JSON.parse(JSON.stringify(result)), { passed: true, reloaded: true, accountCount: 1 });
++  assert.equal(r.initializations, 1);
++  r.authStore.getState = () => ({ session: { ...r.session, user: { id: PEER } } });
++  await assert.rejects(r.readSavedAccount(r), /synthetic owner/);
++  assert.equal(r.initializations, 1);
++});

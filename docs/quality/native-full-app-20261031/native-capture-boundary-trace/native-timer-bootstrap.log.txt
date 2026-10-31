@@ -1,0 +1,14 @@
+✔ actual Android Daily timer replacement leaves the earlier SDK acquisition timeout alive after fulfilled auth (8.975352ms)
+✔ actual production entry initializes Daily once before auth and the SDK cancels its original acquisition timeout (8.500238ms)
+✔ actual QA entry installs its guarded transports before Daily and initializes timers before linking or App auth (30.423503ms)
+✔ production or real-provider QA configuration cannot initialize Daily or app auth (29.41679ms)
+✔ actual iOS Daily entry does not replace timer registries during an existing SDK acquisition (1.438703ms)
+✔ bootstrapped actual SDK lock still excludes work and rejects at its configured 5000 ms acquisition deadline (4.446274ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 91.226566

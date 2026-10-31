@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T16:05:07.459983+00:00",
+  "title": "QA-only capture and reader response boundary observation",
+  "status": "Focused local verification passed; next native run must establish the observed boundaries on each platform.",
+  "baseCommit": "f4c35f32795be5f196840c37382143a2d7e33d55",
+  "baselineNativeRun": {
+    "runId": 41211437305,
+    "iosJobId": 124567097560,
+    "testedMerge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "artifactId": 13048655033,
+    "artifactZipSha256": "616971794433088fcd6b8e05923eb86426e4008136caae6afad04e885bdfd6de"
+  },
+  "baselineEvidence": {
+    "docs/quality/native-full-app-20261031/ios-full-app-f4c35f32-review.json": "e12c67bd145cc3d2d8f717226531b5897bd8144268a7f1503cccbfc5e27f26af",
+    "docs/quality/native-full-app-20261031/ios-f4c35f32-auth-independent-review.json": "b8ae2889d5a403f40bd999ac6b58055de50726563d26d7ef857c3607db896a29",
+    "docs/quality/native-full-app-20261031/ios-f4c35f32-navigation-independent-review.json": "37a3ad282dd1d70e5bd6365cfea0293fd7fd3229d45973d951aef19b1a5d1157",
+    "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation-repair.json": "f40012bcdd342aeba5b1895e2d0503062f8cecc05c8bf0a85c6800933496f34a"
+  },
+  "observedGap": [
+    "The f4 iPhone navigation flow failed reader readiness with an ActivityIndicator; the later capture flow failed its mandatory heading while the book cover was visible. Those retained failures remain unchanged.",
+    "The baseline records an openLink command and later failure hierarchy but has no direct JavaScript URL reception, parser, action-production, fixture-mount or readback-start markers. Capture entry therefore remains unresolved.",
+    "The baseline counts two book and two reaction requests without response-body settlement timing. Fresh auth activity and the lack of a completed readback do not identify the missing navigation/reader boundary."
+  ],
+  "scope": {
+    "nativeFiles": [
+      "tests/native/capture-boundary-trace.cjs",
+      "tests/native/backend-fixture.cjs",
+      "tests/native/entry.js",
+      "tests/native/MemoryCaptureFixtureScreen.tsx",
+      "tests/native/account-readback.cjs"
+    ],
+    "qualityFiles": [
+      "tests/quality/native-capture-boundary-trace.cjs",
+      "tests/quality/native-capture-setup.cjs",
+      "tests/quality/native-account-readback.cjs",
+      "tests/quality/native-timer-bootstrap.cjs",
+      "tests/quality/native-ui-fixture.cjs"
+    ],
+    "beforeSha256": {
+      "tests/native/capture-boundary-trace.cjs": null,
+      "tests/native/backend-fixture.cjs": "854cbd355bc8e02736997027fce630e22e298a62a3e1bcfb372d0648f0cf2eb9",
+      "tests/native/entry.js": "f2b85281d0355d80ff005627005d8fa07aa131ba2626a70c216d925669803f55",
+      "tests/native/MemoryCaptureFixtureScreen.tsx": "2733bae6355e06851454cab5e73e7579bff585b23de5aa2b8259acae7f68de2d",
+      "tests/native/account-readback.cjs": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19",
+      "tests/quality/native-capture-boundary-trace.cjs": null,
+      "tests/quality/native-capture-setup.cjs": "3acca49540381734d53e55f954ddea6eabe7175bf363b51e81a4ba963c112547",
+      "tests/quality/native-account-readback.cjs": "e29c9448c6725e996ad71ccc0b9175c578a69d5011d10dd0ddd6de3912613856",
+      "tests/quality/native-timer-bootstrap.cjs": "f9527e61f00a4c0e400e7a759121df6e0b7f4a01eae7df3b8620bf400a9ced2c",
+      "tests/quality/native-ui-fixture.cjs": "c62b06bc52b7a45fd0b28d0d7e2bbc799d20f90c7456df8584db8b7c30cbe790"
+    },
+    "afterSha256": {
+      "tests/native/capture-boundary-trace.cjs": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb",
+      "tests/native/backend-fixture.cjs": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d",
+      "tests/native/entry.js": "826953456afbe130b718cc4c7a2cd8bfdfb584c88d0835291c7dad409d57528e",
+      "tests/native/MemoryCaptureFixtureScreen.tsx": "c3b4f3c429e2d7224fcc5d380f2769591bd9fd4431a3a392aa67910debc59f3f",
+      "tests/native/account-readback.cjs": "b2b3d08f52305b704f0b4f0df7fc92e15c021f8d070a9653cb15fc90f946e4ce",
+      "tests/quality/native-capture-boundary-trace.cjs": "41e3491ebf19d2331a7a7018ceed213578b4ba7cbaf602db75ddfc384d66726b",
+      "tests/quality/native-capture-setup.cjs": "27bfaf3cb430895f5cd9b425f2077f1af82944278d21cd49ed4f1155baa41c26",
+      "tests/quality/native-account-readback.cjs": "b82c68864f6e58265e0863d23070dd5492304c2b40274740442b47a4cbcf29c6",
+      "tests/quality/native-timer-bootstrap.cjs": "9d14d28f4ffe2644715c831b1bf59b3f4c936c7b73e4308dc60dbdd3345c6cb2",
+      "tests/quality/native-ui-fixture.cjs": "ecd7228d0a0fa288470393cb5e004ef408513a8a6c450ebeab12e4ea60b04f20"
+    },
+    "productionSourceEditedByThisChange": false,
+    "preparationOrFrozenRendererEditedByThisChange": false,
+    "flowAssertionsDeadlinesAndExistingVerifiersChanged": false,
+    "providerRequestsOrAuthenticationInitiated": false
+  },
+  "captureObservation": {
+    "receiptFields": [
+      "captureBoundaries",
+      "captureBoundaryDropped"
+    ],
+    "maximumEvents": 32,
+    "retention": "First 32 accepted events; saturating dropped-marker counter thereafter.",
+    "fields": "Sequence, known phase, optional safe integer Unix milliseconds, and phase-specific booleans only. No received URL, path, query, navigation state/action payload, session, account/storage value, token or error details are retained.",
+    "ingress": "Relevant QA-scheme URL events record whether the URL exactly matches the existing capture URL. The original startsWith acceptance/configuration remains unchanged, including formatting mismatches.",
+    "parser": "Every existing parser callback records expectedPath and matched booleans. The original receiver, arguments, returned state identity and thrown error identity are preserved.",
+    "action": "The existing exact capture RESET and default delegate are unchanged. Produced, empty and failed actions are distinct. Action production is explicitly not a dispatch observation; a later mounted marker is separate evidence.",
+    "readback": "The actual capture component records mounted. The existing QA/key/owner guards remain before one actual account-store init. Start and fulfilled/passed or rejected completion markers observe the same work without repeating init.",
+    "failureIsolation": "Runtime lookup, detail extraction, recorder, clock and synchronous/asynchronous sink failures are isolated from the observed state/action/result/error. Unmount does not create a new init or UI completion."
+  },
+  "readerResponseObservation": {
+    "selection": {
+      "origin": "Existing synthetic-only origin guard remains authoritative.",
+      "book": "Exact POST /rest/v1/rpc/get_memory_book",
+      "reactions": "Exact GET /rest/v1/story_reactions",
+      "otherRequests": "No response text decoration or added reader event."
+    },
+    "receiptFields": [
+      "readerResponseBoundaries",
+      "readerResponseDropped"
+    ],
+    "maximumEvents": 64,
+    "retention": "First 16 and most recent 48 events, with a separate saturating drop counter; no active response/payload map.",
+    "phases": [
+      "response-ready",
+      "body-start",
+      "body-complete"
+    ],
+    "fields": "Numeric response/event IDs, one of two fixed kinds, known phase, optional safe integer Unix milliseconds, safe HTTP status, bodyObserved and fulfilled booleans only.",
+    "identity": "The same Response is returned. Its selected text() instance method calls the original method once with the original receiver/arguments and returns the original body Promise by identity. Original values and errors remain unchanged.",
+    "consumption": "No extra text/json read or clone. An attached Promise reaction observes settlement only. Unrequested, nonselected and nonextensible bodies retain their original behavior; a failed decoration is identified by bodyObserved=false.",
+    "timingQualification": "The added Promise reaction and existing receipt notifications have observation overhead. This is not a claim of timing neutrality, JSON parse completion, SDK hydration, React commit or reader readiness."
+  },
+  "approvedBaselineLintCleanup": [
+    "The saved-book metadata projection copies savedBook then deletes pages, preserving the same serialized summary and avoiding an unused destructured variable.",
+    "Comments explain the two existing intentional JWT parsing catch branches. Their subsequent ownership rejection checks and authorization behavior are unchanged; no lint rule is disabled."
+  ],
+  "validation": {
+    "formalTests": 53,
+    "passed": 53,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "perFile": [
+      {
+        "file": "tests/quality/native-capture-boundary-trace.cjs",
+        "exitCode": 0,
+        "counts": {
+          "tests": 12,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "output": "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-capture-boundary-trace.log.txt"
+      },
+      {
+        "file": "tests/quality/native-capture-setup.cjs",
+        "exitCode": 0,
+        "counts": {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "output": "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-capture-setup.log.txt"
+      },
+      {
+        "file": "tests/quality/native-account-readback.cjs",
+        "exitCode": 0,
+        "counts": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "output": "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-account-readback.log.txt"
+      },
+      {
+        "file": "tests/quality/native-timer-bootstrap.cjs",
+        "exitCode": 0,
+        "counts": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "output": "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-timer-bootstrap.log.txt"
+      },
+      {
+        "file": "tests/quality/native-ui-fixture.cjs",
+        "exitCode": 0,
+        "counts": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "output": "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-ui-fixture.log.txt"
+      }
+    ],
+    "meaningfulExecution": "Tests execute the actual QA entry/parser/action/StackRouter paths, actual capture component with hook/native UI doubles, actual readback helper/store contract, installed WHATWG Response, and actual Supabase/PostgREST adapter against the synthetic fixture.",
+    "negativeCases": "Malformed/unmatched links, parser/action errors, broken diagnostics, clock/sink failures, bounded retention, wrong-owner guards, original synchronous/rejected body errors, second body use, nonselected/nonextensible responses, no extra consumption and exact endpoint/method selection remain covered.",
+    "eslint": {
+      "command": [
+        "node_modules/.bin/eslint",
+        "tests/native/capture-boundary-trace.cjs",
+        "tests/native/backend-fixture.cjs",
+        "tests/native/entry.js",
+        "tests/native/MemoryCaptureFixtureScreen.tsx",
+        "tests/native/account-readback.cjs",
+        "tests/quality/native-capture-boundary-trace.cjs",
+        "tests/quality/native-capture-setup.cjs",
+        "tests/quality/native-account-readback.cjs",
+        "tests/quality/native-timer-bootstrap.cjs",
+        "tests/quality/native-ui-fixture.cjs"
+      ],
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sourceHashesUnchanged": true
+    },
+    "nativeTypeScript": {
+      "command": [
+        "node_modules/.bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.json"
+      ],
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gitDiffCheck": "Passed with no whitespace errors.",
+    "sourceManifest": {
+      "mechanism": "Execute unchanged actual prepare-native-ui source-enumeration/hash block in a read-only VM, without executing overlays.",
+      "preparationSha256": "b7b85afaf239d525bd8af01b5f180dc93acfd71610a963302a83817e01cec571",
+      "sourceCount": 498,
+      "selected": {
+        "tests/native/capture-boundary-trace.cjs": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb",
+        "tests/native/backend-fixture.cjs": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d",
+        "tests/native/entry.js": "826953456afbe130b718cc4c7a2cd8bfdfb584c88d0835291c7dad409d57528e",
+        "tests/native/MemoryCaptureFixtureScreen.tsx": "c3b4f3c429e2d7224fcc5d380f2769591bd9fd4431a3a392aa67910debc59f3f",
+        "tests/native/account-readback.cjs": "b2b3d08f52305b704f0b4f0df7fc92e15c021f8d070a9653cb15fc90f946e4ce"
+      },
+      "newHelperIncludedExactlyOnce": true,
+      "preparationFileUnchanged": true
+    },
+    "sourceGuard": "All ten source/test hashes unchanged across focused runs and final receipt generation. Frozen renderer five paths, existing native flows, orchestration and verifiers were checked unchanged."
+  },
+  "runtimeLimits": [
+    "This trace does not repair or prove the unresolved f4 capture-routing boundary. Required native navigation, capture, saved-account/keychain readback and decoded movie gates remain mandatory and unpassed for that run.",
+    "JavaScript tests and native/component doubles are not real UIKit/Android routing, native keychain, same-process continuity or device performance acceptance.",
+    "Missing markers cannot imply absence of an event when the receipt was not persisted, instrumentation failed, or its bounded buffer dropped events. Drop counters and bodyObserved must be read with the timeline.",
+    "Epoch timestamps are observations from the app process, not calibrated host/video latency. Reader body settlement is narrower than SDK parsing or UI readiness.",
+    "The separate optional-reaction production fix and empirical Android renderer candidate have independent owners/evidence. This receipt makes no claim that either explains or cures the baseline failure."
+  ],
+  "retainedFiles": {
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/focused-validation.json": {
+      "bytes": 3098,
+      "sha256": "c92158ab58049fd8b6f5aef97e20eeaedbc0bbd00fff7d8e4ae89c5fef035d93"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/installed-source-provenance.json": {
+      "bytes": 1604,
+      "sha256": "d81266644935c6a7c47495f276193b1d8cd6111700343e19c7237c2da65dc351"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-account-readback.log.txt": {
+      "bytes": 726,
+      "sha256": "a902ba27953989f9abcbdd75867e62cb22bf39dde4d26148a6aa6f2055483e75"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-capture-boundary-trace.log.txt": {
+      "bytes": 1456,
+      "sha256": "1d4ab1ac68f77f5278d27d4214f5c72719873eed88ea5cf92041866728c6b755"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-capture-setup.log.txt": {
+      "bytes": 1879,
+      "sha256": "ea6e05a41248b81d0d87e2ad5c7921ccd7687c33e3775eb42e121df8d1242ee9"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-timer-bootstrap.log.txt": {
+      "bytes": 830,
+      "sha256": "437f2370eaa33cc8e4d8a02ecd83a5d909351c38ba4763508f7815a690b76ff4"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-typescript-result.json": {
+      "bytes": 198,
+      "sha256": "e541338e661a721ff80c55905d95c2c14f3a5d6b48e05fab8c01db33db4c368e"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-typescript.log.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/native-ui-fixture.log.txt": {
+      "bytes": 1450,
+      "sha256": "a14f04764949e7197d94d788905a084f5c493df5ddc0ec22040e954606e7b159"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/reader-response-independent.tap": {
+      "bytes": 6283,
+      "sha256": "403620155a2a5d412e1c291555adfa6f99b691c4faa04a86452f723e1ade8f29"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/scoped-eslint-result.json": {
+      "bytes": 636,
+      "sha256": "717398691659953c105d68612de2d41d5dcf67e017d28bbfee2227f3b20f39a4"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/scoped-eslint.log.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/source-manifest-inclusion.json": {
+      "bytes": 898,
+      "sha256": "ac1680d5ff97eec45407cf42eec0038b3242ca09c627eceb7321811e5d1d5f0b"
+    },
+    "docs/quality/native-full-app-20261031/native-capture-boundary-trace/trace-scope.patch.txt": {
+      "bytes": 47947,
+      "sha256": "864e9f0eabbbe84e6a13854046852a4dbaeb0beac8631b748e86589769c450a8"
+    }
+  }
+}

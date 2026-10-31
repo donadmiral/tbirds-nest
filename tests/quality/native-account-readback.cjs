@@ -10,8 +10,14 @@ const env = { EXPO_PUBLIC_APP_ENV: 'qa', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'native-
 
 function reader(environment = env) {
   const module = { exports: {} };
+  const fixture = createFixture();
   vm.runInNewContext(fs.readFileSync(path.join(root, 'tests/native/account-readback.cjs'), 'utf8'), {
-    module, exports: module.exports, process: { env: environment }, require: () => ({ OWNER }),
+    module, exports: module.exports, process: { env: environment }, require: name => {
+      if (name === './backend-fixture.cjs') return { OWNER };
+      if (name === './fixture-runtime.cjs') return { fixtureRuntime: () => fixture };
+      if (name === './capture-boundary-trace.cjs') return require('../native/capture-boundary-trace.cjs');
+      throw Error('Unexpected readback dependency: ' + name);
+    },
   });
   return module.exports.readSavedAccount;
 }

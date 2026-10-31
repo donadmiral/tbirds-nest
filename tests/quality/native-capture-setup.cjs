@@ -165,17 +165,23 @@ const getStateFromPath = require('@react-navigation/core/lib/commonjs/getStateFr
 const getActionFromState = require('@react-navigation/core/lib/commonjs/getActionFromState').default;
 const CommonActions = require('@react-navigation/routers/lib/commonjs/CommonActions');
 const StackRouter = require('@react-navigation/routers/lib/commonjs/StackRouter').default;
-function entryRuntime() {
+function entryRuntime({ parser, action, recorder } = {}) {
   const { linking } = load('src/navigation/linking.ts', { 'expo-linking': { createURL: () => 'platinum-circles-qa:///' },
     '@react-navigation/native': { getStateFromPath } });
-  const receipt = { requests: ['already-authenticated-navigation'], accountReadbacks: [] };
-  const fixture = { receipt, configure() {} }, events = [], listeners = [];
+  if (parser) linking.getStateFromPath = parser;
+  if (action) linking.getActionFromState = action;
+  const fixture = require('../native/backend-fixture.cjs').createFixture();
+  if (recorder) fixture.recordCaptureBoundary = recorder;
+  const receipt = fixture.receipt;
+  receipt.requests.push('already-authenticated-navigation');
+  const events = [], listeners = [];
   const auth = { session: { owner: 'unchanged synthetic owner' } }, accounts = { stored: 1 };
   const imports = { 'react-native-url-polyfill/auto': {}, 'react-native': { Linking: { addEventListener: (_name, listener) => listeners.push(listener) } },
     'expo-file-system/legacy': { documentDirectory: 'file:///documents/', writeAsStringAsync() { throw Error('No receipt mutation during route setup'); } },
     './backend-fixture.cjs': { createFixture: () => { events.push('fixture'); return fixture; }, FixtureWebSocket: class {} },
     './install-fixture-transport.cjs': { installFixtureTransport: value => { assert.equal(value, fixture); events.push('transport'); } },
     './fixture-runtime.cjs': { installFixtureRuntime: value => { assert.equal(value, fixture); events.push('runtime'); } },
+    './capture-boundary-trace.cjs': require('../native/capture-boundary-trace.cjs'),
     expo: { registerRootComponent: () => events.push('registered') }, '@daily-co/react-native-daily-js': {},
     '../../src/navigation/linking': { linking }, '@react-navigation/native': { CommonActions, getActionFromState }, '../../App': { default() {} } };
   load('tests/native/entry.js', imports, false, { process: { env: { EXPO_PUBLIC_APP_ENV: 'qa', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'native-ui-synthetic-no-provider-key' } },
@@ -217,4 +223,73 @@ test('a similar route name, wrong path or multiroute state cannot use the captur
     { routes: [{ name: 'NativeMemoryCaptureFixture', path: 'ui-fixture/other' }] },
     { routes: [{ name: 'Main' }, { name: 'NativeMemoryCaptureFixture', path: 'ui-fixture/memory' }] },
   ]) assert.deepEqual(plain(linking.getActionFromState(state, linking.config)), plain(getActionFromState(state, linking.config)));
+});
+
+test('the actual exact capture link records reception, parsing and action production without claiming dispatch or mount', () => {
+  const r = entryRuntime();
+  const extractPath = require('@react-navigation/native/lib/commonjs/extractPathFromURL').default;
+  r.listeners[0]({ url: 'platinum-circles://ui-fixture/memory' });
+  assert.deepEqual(r.receipt.captureBoundaries, []);
+  const url = 'platinum-circles-qa://ui-fixture/memory';
+  r.listeners[0]({ url });
+  const path = extractPath(r.linking.prefixes, url);
+  const state = r.linking.getStateFromPath(path, r.linking.config);
+  const action = r.linking.getActionFromState(state, r.linking.config);
+  assert.equal(action.type, 'RESET');
+  assert.equal(action.payload.routes[0], state.routes[0]);
+  assert.deepEqual(r.receipt.captureBoundaries.map(row => row.phase), ['received', 'parsed', 'action-produced']);
+  assert.equal(r.receipt.captureBoundaries[1].matched, true);
+  assert.equal(r.receipt.captureBoundaries[2].reset, true);
+  assert.equal(r.receipt.captureBoundaries.some(row => row.phase === 'mounted' || row.phase === 'dispatched'), false);
+  assert.equal(JSON.stringify(r.receipt.captureBoundaries).includes(url), false);
+});
+
+test('QA ingress formatting mismatches and every parser callback remain distinguishable without changing accepted links', () => {
+  const r = entryRuntime(); let configurations = 0;
+  r.fixture.configure = () => { configurations++; };
+  for (const url of ['PLATINUM-CIRCLES-QA://ui-fixture/memory', 'platinum-circles-qa:///ui-fixture/memory',
+    'platinum-circles-qa://unrelated', 'platinum-circles-qa://ui-fixture/memory?delay=1']) r.listeners[0]({ url });
+  assert.equal(configurations, 1, 'only the unchanged original exact-prefix branch configures the fixture');
+  assert.ok(r.receipt.captureBoundaries.every(row => row.phase === 'received' && row.matched === false));
+  for (const path of ['feed', 'ui-fixture/memory?delay=1', 'ui-fixture/memory']) {
+    const state = r.linking.getStateFromPath(path, r.linking.config);
+    assert.deepEqual(plain(state), plain(getStateFromPath(path, r.linking.config)));
+  }
+  assert.deepEqual(r.receipt.captureBoundaries.filter(row => row.phase === 'parsed').map(row =>
+    ({ expectedPath: row.expectedPath, matched: row.matched })), [
+    { expectedPath: false, matched: false }, { expectedPath: false, matched: false }, { expectedPath: true, matched: true },
+  ]);
+  assert.equal(JSON.stringify(r.receipt.captureBoundaries).includes('ui-fixture'), false);
+});
+
+test('actual entry observation preserves parser receiver, arguments, state identity and original errors', () => {
+  const state = { routes: [{ name: 'NativeMemoryCaptureFixture', path: 'ui-fixture/memory' }] };
+  const receiver = {}, options = {}, extra = {};
+  const r = entryRuntime({ parser: function (...args) {
+    assert.equal(this, receiver); assert.deepEqual(args, ['ui-fixture/memory', options, extra]); return state;
+  }, recorder() { throw Error('diagnostic sink failure'); } });
+  assert.equal(r.linking.getStateFromPath.call(receiver, 'ui-fixture/memory', options, extra), state);
+  assert.equal(r.linking.getActionFromState(state, options).payload.routes[0], state.routes[0]);
+  const failure = new Error('original parser error');
+  const broken = entryRuntime({ parser() { throw failure; } });
+  assert.throws(() => broken.linking.getStateFromPath('ui-fixture/memory', options), error => error === failure);
+  assert.deepEqual(broken.receipt.captureBoundaries.map(row => row.phase), ['parse-failed']);
+  assert.equal(broken.receipt.captureBoundaries[0].expectedPath, true);
+  const defaultFailure = new Error('original action error');
+  const defaultAction = entryRuntime({ action() { throw defaultFailure; } });
+  assert.throws(() => defaultAction.linking.getActionFromState({ routes: [{ name: 'Main' }] }, options), error => error === defaultFailure);
+  assert.deepEqual(defaultAction.receipt.captureBoundaries.map(row => row.phase), ['action-failed']);
+  assert.equal(defaultAction.receipt.captureBoundaries[0].matched, false);
+});
+
+test('an unmatched actual parser result is returned unchanged and recorded without inventing an action', () => {
+  const r = entryRuntime({ parser: () => undefined });
+  assert.equal(r.linking.getStateFromPath('ui-fixture/memory', r.linking.config), undefined);
+  assert.deepEqual(r.receipt.captureBoundaries.map(row => ({ phase: row.phase, matched: row.matched })), [{ phase: 'parsed', matched: false }]);
+});
+
+test('an undefined default action remains undefined and is not recorded as produced or dispatched', () => {
+  const r = entryRuntime({ action: () => undefined });
+  assert.equal(r.linking.getActionFromState({ routes: [{ name: 'Main' }] }, r.linking.config), undefined);
+  assert.deepEqual(r.receipt.captureBoundaries.map(row => row.phase), ['action-empty']);
 });

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "root",
+  "recordedAtUtc": "2026-10-31T16:08:52.985921+00:00",
+  "result": "Accepted: QA capture-link, parser, action and account-readback observation preserves the existing behavior and required acceptance gates. Fresh native acceptance remains necessary.",
+  "ownerReceipt": {
+    "path": "docs/quality/native-full-app-20261031/native-capture-boundary-trace-repair.json",
+    "sha256": "0082d2e24cac2854f97fc31c5d9d3613afd9f0b2ed88eb423c944be5537a67de"
+  },
+  "sourceHashes": {
+    "tests/native/capture-boundary-trace.cjs": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb",
+    "tests/native/backend-fixture.cjs": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d",
+    "tests/native/entry.js": "826953456afbe130b718cc4c7a2cd8bfdfb584c88d0835291c7dad409d57528e",
+    "tests/native/MemoryCaptureFixtureScreen.tsx": "c3b4f3c429e2d7224fcc5d380f2769591bd9fd4431a3a392aa67910debc59f3f",
+    "tests/native/account-readback.cjs": "b2b3d08f52305b704f0b4f0df7fc92e15c021f8d070a9653cb15fc90f946e4ce",
+    "tests/quality/native-capture-boundary-trace.cjs": "41e3491ebf19d2331a7a7018ceed213578b4ba7cbaf602db75ddfc384d66726b",
+    "tests/quality/native-capture-setup.cjs": "27bfaf3cb430895f5cd9b425f2077f1af82944278d21cd49ed4f1155baa41c26",
+    "tests/quality/native-account-readback.cjs": "b82c68864f6e58265e0863d23070dd5492304c2b40274740442b47a4cbcf29c6",
+    "tests/quality/native-timer-bootstrap.cjs": "9d14d28f4ffe2644715c831b1bf59b3f4c936c7b73e4308dc60dbdd3345c6cb2",
+    "tests/quality/native-ui-fixture.cjs": "ecd7228d0a0fa288470393cb5e004ef408513a8a6c450ebeab12e4ea60b04f20"
+  },
+  "findings": [
+    "QA-scheme reception records only an exact-match boolean; existing URL acceptance/configuration is unchanged. Differently formatted ingress and parser calls remain distinguishable.",
+    "Actual parser receiver, arguments, result identity and thrown error identity are preserved. No raw URL, path, query, route payload or error detail is retained.",
+    "The exact capture-only RESET predicate and default action delegation are unchanged. Returned actions retain identity; undefined actions and original failures remain distinct. Action production is never represented as actual dispatch or successful presentation.",
+    "Mounted observation records the existing component effect. The same single account-store init call and original result/error/guard behavior remain. Late completion does not substitute for the mandatory visible-heading and saved-account assertions.",
+    "No new event listener, timer bootstrap, route registration, provider reset, production code path, assertion, deadline or acceptance exemption is introduced by this trace.",
+    "Observation errors are caught without replacing observed state, action, result or error. The bounded recorded fields are primitive diagnostic values; instrumentation still has overhead."
+  ],
+  "reactReview": [
+    "The capture component retains its existing effect dependency and cleanup; only a best-effort observation is added.",
+    "No conditional hooks, inline component definitions, extra account initialization or render-time side effects are added."
+  ],
+  "independentValidation": {
+    "commandMethod": "One direct Node execution per selected existing quality file; actual QA entry/setup/account helper with controlled native hosts.",
+    "nodeVersion": "v24.22.1",
+    "counts": {
+      "tests": 30,
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0
+    },
+    "sourceHashesMatchedBeforeAfter": true,
+    "results": {
+      "path": "docs/quality/native-full-app-20261031/native-capture-boundary-trace/root-capture-integration-results.json",
+      "bytes": 2975,
+      "sha256": "c2e5f0bf91c4adc0de2989408e70d3d4d137938ea0e57015fa754da583fca52e"
+    },
+    "reporterCorrection": "The first successful18-case command emitted Node spec output. The collector was corrected to parse that existing output; those tests were not rerun."
+  },
+  "separateResponseReview": {
+    "path": "docs/quality/native-full-app-20261031/native-reader-response-observer-independent-review.json",
+    "sha256": "a70fdc435b304c62a849d899aa99f27a3ca4bcd8b03b978aa5494261909c7a9c",
+    "cases": 23,
+    "counting": "The disjoint23 response/fixture and30 entry/readback/timer cases cover the same53-case owner suite. Repeated executions are not additional cases."
+  },
+  "limits": [
+    "These controlled tests do not establish native URL delivery, UIKit visibility, physical SecureStore acceptance, a decoded movie or the cause/cure of the f4 iPhone failures.",
+    "Trace persistence and bounded retention can omit evidence; a missing marker alone is not proof a phase never entered.",
+    "Required native JUnit, fixture, account, media decoder and workflow outcomes remain the acceptance authority."
+  ]
+}

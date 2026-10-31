@@ -1,0 +1,26 @@
+✔ android actual adapter reads only the registered packaged asset 1 (451.223258ms)
+✔ android actual adapter reads only the registered packaged asset 2 (5.464385ms)
+✔ android actual adapter reads only the registered packaged asset 3 (4.324802ms)
+✔ ios actual adapter reads only the registered packaged asset 1 (3.99107ms)
+✔ ios actual adapter reads only the registered packaged asset 2 (4.015447ms)
+✔ ios actual adapter reads only the registered packaged asset 3 (3.939323ms)
+✔ unissued media and forbidden request options cannot reach asset delivery (4.195336ms)
+✔ remote and arbitrary asset schemes are rejected before the native resource API (22.993638ms)
+✔ materialized file scheme, presence and byte bounds still fail closed (15.041863ms)
+✔ real adapter cancellation closes a held second chunk exactly once (5.171865ms)
+✔ actual QA capture link resets navigator routes while retaining the app runtime and cumulative receipt (33.921586ms)
+✔ noncapture links preserve the installed default action semantics (2.725097ms)
+✔ a similar route name, wrong path or multiroute state cannot use the capture-only route replacement (1.294657ms)
+✔ the actual exact capture link records reception, parsing and action production without claiming dispatch or mount (2.313468ms)
+✔ QA ingress formatting mismatches and every parser callback remain distinguishable without changing accepted links (2.45439ms)
+✔ actual entry observation preserves parser receiver, arguments, state identity and original errors (3.492731ms)
+✔ an unmatched actual parser result is returned unchanged and recorded without inventing an action (1.713286ms)
+✔ an undefined default action remains undefined and is not recorded as produced or dispatched (1.134225ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 584.082705

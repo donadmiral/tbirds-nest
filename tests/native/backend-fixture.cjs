@@ -5,6 +5,7 @@ const OWNER = '10000000-0000-4000-8000-000000000001';
 const PEER = '10000000-0000-4000-8000-000000000002';
 const SECOND = '10000000-0000-4000-8000-000000000003';
 const { BOOK, NAVIGATION_BOOK, MEDIA, capability, memoryBook, navigationBook } = require('./memory-fixture.cjs');
+const { createCaptureBoundaryRecorder, createReaderResponseObserver } = require('./capture-boundary-trace.cjs');
 const CONVERSATION = '30000000-0000-4000-8000-000000000001';
 const STORY = '40000000-0000-4000-8000-000000000001';
 const created = '2026-01-02T10:00:00.000Z';
@@ -80,6 +81,8 @@ function createFixture(onChange = () => {}) {
   let memoryMode = 'normal';
   const issuedMedia = new Set();
   const receipt = { mode: 'synthetic-native-ui', networkForwarded: false, requests: [], unhandled: [], mutations: [], media: [], bookReads: [], accountReadbacks: [] };
+  const recordCaptureBoundary = createCaptureBoundaryRecorder(receipt, onChange);
+  const observeReaderResponse = createReaderResponseObserver(receipt, onChange);
   const record = (kind, value) => { receipt[kind].push(value); onChange(receipt); };
   const response = (value, status = 200, headers = {}) => new Response(value === null && status === 204 ? null : JSON.stringify(value),
     { status, headers: { 'content-type': 'application/json', 'x-supabase-api-version': '2024-01-01', ...headers } });
@@ -108,7 +111,8 @@ function createFixture(onChange = () => {}) {
     if (name === 'get_profile_insights') return { views_7d: 3, views_30d: 12 };
     if (name === 'get_profile_context') return { mutual_names: [], mutual_count: 0, shared_communities: [] };
     if (name === 'get_memory_albums') {
-      const { pages, ...summary } = savedBook;
+      const summary = { ...savedBook };
+      delete summary.pages;
       return { is_owner: args.p_owner === owner, books: owner === OWNER && args.p_owner === OWNER ? [summary] : [] };
     }
     if (name === 'get_memory_book') {
@@ -123,7 +127,7 @@ function createFixture(onChange = () => {}) {
     if (name === 'get_memory_book_creative_capabilities') return { version: 1, supported: true };
     if (name === 'save_memory_book_creative_presentation') {
       let claims;
-      try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch {}
+      try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch { /* Invalid claims are rejected by the ownership check below. */ }
       if (owner !== OWNER || claims?.sub !== OWNER || claims?.session_id !== sessionId || args.p_album !== NAVIGATION_BOOK) {
         return response({ code: '42501', message: 'The synthetic book belongs to another account.' }, 403);
       }
@@ -207,6 +211,9 @@ function createFixture(onChange = () => {}) {
     const method = (init.method || input.method || 'GET').toUpperCase();
     const path = url.pathname;
     if (url.origin !== 'https://uaulhuelcfkjwojtymmw.supabase.co') return unknown(method, url.origin + path);
+    const readerKind = path === '/rest/v1/rpc/get_memory_book' && method === 'POST' ? 'book'
+      : path === '/rest/v1/story_reactions' && method === 'GET' ? 'reactions' : null;
+    const readerResponse = value => readerKind ? observeReaderResponse(value, readerKind) : value;
     if (offline) throw new TypeError('Synthetic offline state');
     if (init.signal?.aborted) throw Object.assign(new Error('Aborted'), { name: 'AbortError' });
     if (delayMs) await new Promise((resolve, reject) => {
@@ -234,15 +241,15 @@ function createFixture(onChange = () => {}) {
       return response(user());
     }
     if (path === '/auth/v1/factors') return response({ all: [], totp: [], phone: [] });
-    if (!owner && path.startsWith('/rest/v1/')) return response({ message: 'Authentication required' }, 401);
+    if (!owner && path.startsWith('/rest/v1/')) return readerResponse(response({ message: 'Authentication required' }, 401));
     if (path.startsWith('/rest/v1/rpc/')) {
       const value = rpc(path.slice('/rest/v1/rpc/'.length), body, headers);
-      return value === undefined ? unknown(method, path) : value instanceof Response ? value : response(value);
+      return readerResponse(value === undefined ? unknown(method, path) : value instanceof Response ? value : response(value));
     }
     if (path === '/functions/v1/crisp-bridge') return response({ success: true, linked: false, linked_at: null });
     if (path === '/functions/v1/content-media-sign') {
       let claims;
-      try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch {}
+      try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch { /* Invalid claims are rejected by the ownership check below. */ }
       if (owner !== OWNER || claims?.sub !== owner || claims?.session_id !== sessionId) return response({ message: 'Synthetic media ownership changed.' }, 403);
       if (method !== 'POST' || body.delivery !== 'no-store' || !Array.isArray(body.references) || body.references.length !== 1
         || body.references[0].kind !== 'memory_album' || body.references[0].id !== BOOK) return unknown(method, path);
@@ -267,13 +274,13 @@ function createFixture(onChange = () => {}) {
       if (url.searchParams.has('limit')) selected = selected.slice(0, Number(url.searchParams.get('limit')));
       const countHeaders = { 'content-range': selected.length ? `0-${selected.length - 1}/${total}` : `*/${total}` };
       if (method === 'HEAD') return new Response(null, { status: 200, headers: countHeaders });
-      if (headers.get('accept')?.includes('vnd.pgrst.object')) return selected.length === 1 ? response(selected[0], 200, countHeaders)
-        : response({ code: 'PGRST116', details: 'The result contains ' + selected.length + ' rows', message: 'Expected one row' }, 406);
-      return response(selected, 200, countHeaders);
+      if (headers.get('accept')?.includes('vnd.pgrst.object')) return readerResponse(selected.length === 1 ? response(selected[0], 200, countHeaders)
+        : response({ code: 'PGRST116', details: 'The result contains ' + selected.length + ' rows', message: 'Expected one row' }, 406));
+      return readerResponse(response(selected, 200, countHeaders));
     }
     return unknown(method, path);
   }
-  return { fetch: fetchFixture, receipt, profiles, posts,
+  return { fetch: fetchFixture, receipt, profiles, posts, recordCaptureBoundary,
     authorizeMemoryMedia(url) {
       if (owner !== OWNER || offline || !issuedMedia.has(url)) {
         record('unhandled', { method: 'MEDIA', path: String(url).split('?')[0] });

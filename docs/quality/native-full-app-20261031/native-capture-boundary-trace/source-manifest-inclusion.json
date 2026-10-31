@@ -1,0 +1,14 @@
+{
+  "mechanism": "Execute unchanged actual prepare-native-ui source-enumeration/hash block in a read-only VM, without executing overlays.",
+  "preparationSha256": "b7b85afaf239d525bd8af01b5f180dc93acfd71610a963302a83817e01cec571",
+  "sourceCount": 498,
+  "selected": {
+    "tests/native/capture-boundary-trace.cjs": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb",
+    "tests/native/backend-fixture.cjs": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d",
+    "tests/native/entry.js": "826953456afbe130b718cc4c7a2cd8bfdfb584c88d0835291c7dad409d57528e",
+    "tests/native/MemoryCaptureFixtureScreen.tsx": "c3b4f3c429e2d7224fcc5d380f2769591bd9fd4431a3a392aa67910debc59f3f",
+    "tests/native/account-readback.cjs": "b2b3d08f52305b704f0b4f0df7fc92e15c021f8d070a9653cb15fc90f946e4ce"
+  },
+  "newHelperIncludedExactlyOnce": true,
+  "preparationFileUnchanged": true
+}

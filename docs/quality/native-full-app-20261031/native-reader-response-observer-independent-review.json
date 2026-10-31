@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "focusedRunCompletedByUtc": "2026-10-31T16:03:23Z",
+  "status": "INDEPENDENT_READER_RESPONSE_OBSERVER_REVIEW_ACCEPTED",
+  "baseApplication": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "mergeCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39"
+  },
+  "scope": "QA-only reader response observer, exact request selection and fixture-contract preservation. Root separately reviews the capture-link/parser/component/account-readback trace integration in the same candidate.",
+  "sourceFiles": [
+    {
+      "path": "tests/native/capture-boundary-trace.cjs",
+      "bytes": 5185,
+      "sha256": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb"
+    },
+    {
+      "path": "tests/native/backend-fixture.cjs",
+      "bytes": 25074,
+      "sha256": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d"
+    },
+    {
+      "path": "tests/quality/native-capture-boundary-trace.cjs",
+      "bytes": 13896,
+      "sha256": "41e3491ebf19d2331a7a7018ceed213578b4ba7cbaf602db75ddfc384d66726b"
+    },
+    {
+      "path": "tests/quality/native-ui-fixture.cjs",
+      "bytes": 17188,
+      "sha256": "ecd7228d0a0fa288470393cb5e004ef408513a8a6c450ebeab12e4ea60b04f20"
+    }
+  ],
+  "hashGuard": {
+    "beforeFocusedRunMatchedOwnerFreeze": true,
+    "afterFocusedRunMatchedOwnerFreeze": true,
+    "beforeReceiptWriteMatchedOwnerFreeze": true
+  },
+  "decision": {
+    "blockers": [],
+    "sourceAccepted": true,
+    "freshNativeAcceptance": false
+  },
+  "findings": [
+    {
+      "area": "Exact selection",
+      "result": "Selection follows the existing QA-origin check and requires exact pathname /rest/v1/rpc/get_memory_book with POST, or /rest/v1/story_reactions with GET. Unrelated responses and reaction HEAD requests are unobserved. Existing offline, abort and authentication behavior is retained; selected returned errors can be observed without changing their status/body."
+    },
+    {
+      "area": "Response and body contract",
+      "result": "The observer returns the identical Response. It captures the existing text method without invoking it, and invokes it once only when the caller requests text, with the original receiver and arguments. It returns the original promise or other return value, preserves synchronous error identity, and attaches only success/failure observation. It does not clone or consume a second body."
+    },
+    {
+      "area": "Actual installed implementations",
+      "result": "The focused tests exercise the installed whatwg-fetch Response bodyUsed behavior, original fulfilled promise/value, original rejected promise/error and no-clone condition. A separate actual installed Supabase/PostgREST client consumes selected fixture responses and produces the expected six ready/start/complete boundaries for book and reaction calls."
+    },
+    {
+      "area": "Failure isolation",
+      "result": "Observer recording, clock and synchronous/asynchronous sink failures are contained. An immutable Response that cannot accept an own text method remains usable and reports bodyObserved=false without claiming body completion. Nonselected responses are not inspected."
+    },
+    {
+      "area": "Privacy and retention",
+      "result": "New reader events contain only monotonic event/response IDs, book-or-reactions kind, known phase, valid numeric status, booleans and a nonnegative safe-integer timestamp. No response body, URL, request arguments, account identifier, token or error detail is retained. The reader list is limited to 64 events, preserving the first 16 and most recent 48, with a saturating dropped counter."
+    },
+    {
+      "area": "Existing fixture contract",
+      "result": "The get_memory_albums change copies savedBook and deletes pages, preserving the previous enumerable-object summary for this plain synthetic fixture. The two empty-catch changes add explanatory comments only. Existing ownership/session-denial, media and offline/abort fixture cases remain passing; no provider forwarding or endpoint behavior was added."
+    }
+  ],
+  "independentVerification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-capture-boundary-trace.cjs tests/quality/native-ui-fixture.cjs",
+    "runtime": "Node.js v24.22.1",
+    "executionCount": 1,
+    "exitCode": 0,
+    "result": {
+      "tests": 23,
+      "traceCases": 12,
+      "fixtureCases": 11,
+      "pass": 23,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 404.957117
+    },
+    "output": {
+      "path": "docs/quality/native-full-app-20261031/native-capture-boundary-trace/reader-response-independent.tap",
+      "bytes": 6283,
+      "sha256": "403620155a2a5d412e1c291555adfa6f99b691c4faa04a86452f723e1ade8f29"
+    }
+  },
+  "installedPublicSourceReviewed": {
+    "versions": {
+      "@supabase/supabase-js": "2.103.0",
+      "@supabase/postgrest-js": "2.103.0",
+      "whatwg-fetch": "3.6.20"
+    },
+    "files": [
+      {
+        "path": "node_modules/@supabase/postgrest-js/src/PostgrestBuilder.ts",
+        "bytes": 20966,
+        "sha256": "a9f199b2303afe62ab5e0dc1f0034e7bccda0e0e9e057b16fad451556b62a4c3"
+      },
+      {
+        "path": "node_modules/whatwg-fetch/dist/fetch.umd.js",
+        "bytes": 19815,
+        "sha256": "8c006dece7b95b63787c3ae297593c6bad9386cb8054697d18104177a5f52c87"
+      }
+    ],
+    "finding": "The installed PostgREST processResponse consumes res.text() before JSON.parse. The installed WHATWG body implementation returns its original body promise or consumed-body rejection; the observer preserves those values."
+  },
+  "limits": [
+    "This changes synthetic QA observation only. It neither fixes nor establishes the cause of the earlier device reader/capture failure.",
+    "response-ready means the selected synthetic Response is available at the fixture boundary. body-start means a caller invoked text; body-complete means that original text promise settled. These events do not attest JSON parsing, media hydration, React commit, frame readiness or real provider/network response timing.",
+    "The observer adds a promise reaction and existing receipt notifications, including serialization/file-writing work. Promise identity and value/error behavior are preserved for the tested consumers, but execution timing and global unhandled-rejection reporting are not claimed to be instrumentation-neutral.",
+    "Only the new event timeline is bounded; this review does not redesign the existing cumulative fixture receipt or persistence queue. Eviction can split a response boundary sequence, so dropped counts and sequence IDs must be considered when interpreting missing events.",
+    "No body is read unless its original caller requests it. Pre-response throws, offline/abort paths and nonselected requests have no new response-boundary event; missing events alone cannot establish where execution stopped.",
+    "The local tests exercise actual installed JavaScript implementations under controlled hosts. They do not execute a fresh iOS/Android app or establish final Metro dependency provenance.",
+    "No production source edit, test edit, broad test rerun, provider/database request, authentication action, commit, ref movement, deployment or native rerun was performed by this reviewer."
+  ]
+}

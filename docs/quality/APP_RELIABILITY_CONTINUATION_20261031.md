@@ -156,6 +156,84 @@ dropped events or identify the reader/capture cause. Cumulative profile,
 shelf, book and reaction reads are two each; the earlier profile request-storm
 pattern is absent from these counts.
 
+### PREPARED reader follow-up
+
+The independently reviewed reader follow-up is saved on the isolated
+[`984fadc6c4154fa1977cf04b93a29d05f0ff0104` candidate](https://github.com/donadmiral/tbirds-nest/commit/984fadc6c4154fa1977cf04b93a29d05f0ff0104);
+remote byte readback verified all 14 files (283,356 bytes). This is a saved
+follow-up, not the published application head. It removes
+optional reaction reads from the authorized book's loading dependency: holding
+that read no longer withholds the book, and an optional read failure no longer
+clears it. Initial unknown reaction state disables only the reaction control
+with a loading or unavailable status; confirmed known state remains usable
+during ordinary refreshes. Late results are fenced across book/account changes,
+account ABA, unmounting, newer reads and newer confirmed reaction changes. A
+separate optional-read ticket also handles soundtrack confirmation without
+stranding reaction status.
+
+**33 focused cases passed: 27 actual-component cases plus six existing
+native/web authorization and media cases.** The final 27 component cases run
+against the original `f4c35f32` screen produced **10 passes and 17 failures**.
+Two soundtrack interactions also failed before the intermediate ticket
+refinement. The independent reviewer repeated all 33 focused cases successfully
+and verified unchanged source hashes. Native TypeScript and scoped ESLint passed.
+These counts describe this prepared follow-up suite.
+
+Required auth readiness, the authorized book read, media hydration and visibility
+checks remain prerequisites. Mandatory native flow commands and deadlines are
+preserved. The component tests execute the production screen and shared helpers
+with controlled React scheduling, native views, auth, transport and media
+boundaries. They establish the loading/state defects and their local repair;
+they do not identify the promise responsible for the retained iPhone spinner or
+establish a native cure. Published application head remains `f4c35f32`, and
+complete installed-app acceptance remains **milestone 6, open**. A fresh native
+run is still required for this prepared change.
+
+[Reader follow-up and focused evidence](native-full-app-20261031/native-reader-reactions-repair.json) ·
+[Independent reader review](native-full-app-20261031/native-reader-reactions-independent-review.json)
+
+### PREPARED QA diagnostics follow-up
+
+A separate QA-only diagnostic follow-up is prepared to distinguish the unresolved
+reader and capture-entry boundaries on the next native run. It adds bounded,
+redacted markers for capture URL reception, parser and action outcomes, actual
+capture-component mounting, and the existing saved-account readback. Action
+production is recorded separately from mounting and does not attest dispatch.
+For the two selected synthetic reader endpoints, it records response availability,
+the caller's body-read start, and settlement of that same body promise. It returns
+the original response and preserves its original body promise, values and errors;
+it does not make an extra body read or clone. Event fields contain fixed phases,
+numeric identifiers/timestamps and selected booleans/status values, with explicit
+drop counters. URLs, navigation payloads, account contents and credentials are
+excluded.
+
+**53 focused cases passed: 12 trace, 18 capture-setup, six account-readback,
+six timer-bootstrap and 11 fixture cases.** Independent reviewers repeated the
+same suite in separate groups: **23 response/fixture cases and 30 entry/setup,
+account and timer cases**, all passing against unchanged source hashes. These
+are independent checks of the 53 cases, not additional cases. The owner's native
+TypeScript and scoped ESLint checks passed. The final combined static gate also
+passed native TypeScript (23 seconds), scoped ESLint and whitespace checks, with
+all 1,516 selected source/configuration inputs unchanged before and after the
+checks across the 18 changed source/test paths. This static gate did not rerun
+the full root test suite or establish new native acceptance.
+
+The observation adds promise callbacks and receipt-writing work; it is not a
+claim of timing neutrality. Body settlement does not establish JSON parsing,
+media hydration, React commit or visible reader readiness. Missing markers must
+be interpreted with persistence, instrumentation and buffer-drop limits. The
+local tests exercise installed JavaScript implementations with controlled native
+and component boundaries. **This prepared diagnostic change neither identifies
+the cause of the retained iPhone failure nor establishes a routing, readback or
+capture cure.** The existing native flows, deadlines and acceptance gates remain
+mandatory; published application head remains `f4c35f32` and milestone 6 remains
+open.
+
+[QA diagnostic follow-up and focused evidence](native-full-app-20261031/native-capture-boundary-trace-repair.json) ·
+[Independent reader-response observation review](native-full-app-20261031/native-reader-response-observer-independent-review.json) ·
+[Independent capture integration review](native-full-app-20261031/native-capture-boundary-integration-independent-review.json) ·
+[Combined static gate](native-full-app-20261031/native-v7-combined-static-gate.json)
+
 ### Saved Android runner follow-up
 
 The reviewed follow-up is saved separately at

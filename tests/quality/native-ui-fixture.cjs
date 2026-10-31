@@ -70,6 +70,34 @@ test('an unimplemented endpoint or external provider is a recorded failure, neve
   assert.equal(fixture.receipt.unhandled.length, 2);
 });
 
+test('only exact book POST and reaction GET responses report actual SDK body-consumption boundaries', async () => {
+  const fixture = createFixture();
+  const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: fixture.fetch },
+  });
+  await client.auth.signInWithPassword({ email: 'qa.alex@example.invalid', password: 'FixtureOnly-2026!' });
+  await client.from('profiles').select('*').eq('id', OWNER).single();
+  await client.from('story_reactions').select('story_id', { head: true });
+  assert.deepEqual(fixture.receipt.readerResponseBoundaries, []);
+  const book = await client.rpc('get_memory_book', { p_album: NAVIGATION_BOOK });
+  assert.equal(book.error, null); assert.equal(book.data.id, NAVIGATION_BOOK);
+  const reactions = await client.from('story_reactions').select('story_id').eq('user_id', OWNER).in('story_id', ['synthetic-story']);
+  assert.equal(reactions.error, null); assert.deepEqual(reactions.data, []);
+  const events = fixture.receipt.readerResponseBoundaries;
+  assert.equal(events.length, 6);
+  for (const kind of ['book', 'reactions']) {
+    const rows = events.filter(row => row.kind === kind);
+    assert.deepEqual(rows.map(row => row.phase), ['response-ready', 'body-start', 'body-complete']);
+    assert.ok(rows.every(row => row.id === rows[0].id && Number.isSafeInteger(row.atUnixMs)));
+    assert.equal(rows[0].status, 200); assert.equal(rows[0].bodyObserved, true); assert.equal(rows[2].fulfilled, true);
+  }
+  assert.equal(JSON.stringify(events).includes(OWNER), false);
+  assert.equal(JSON.stringify(events).includes('synthetic-story'), false);
+  assert.equal(JSON.stringify(events).includes(NAVIGATION_BOOK), false);
+  assert.equal(fixture.receipt.unhandled.length, 0);
+  await client.auth.signOut();
+});
+
 test('the full app connectivity probe has an explicit local health response and retains abort/offline failures', async () => {
   const fixture = createFixture();
   const health = await fixture.fetch(origin + '/auth/v1/health');

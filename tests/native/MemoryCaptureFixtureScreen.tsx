@@ -8,6 +8,7 @@ import {BOOK,OWNER,memoryBook} from './memory-fixture.cjs';
 import {fixtureRuntime} from './fixture-runtime.cjs';
 import {getStatus,subscribe} from './memory-capture-observer.cjs';
 import {readSavedAccount} from './account-readback.cjs';
+import {observeCaptureBoundary} from './capture-boundary-trace.cjs';
 
 /** Registered only by the guarded disposable native UI preparation. The actual
  * AppNavigator supplies its real account, call and safe-area providers. */
@@ -18,6 +19,7 @@ export default function MemoryCaptureFixtureScreen(){
  const [accountReadback,setAccountReadback]=useState<boolean|null>(null);
  useEffect(()=>subscribe(setStatus),[]);
  useEffect(()=>{
+  observeCaptureBoundary(fixtureRuntime,'mounted');
   let alive=true;
   void readSavedAccount({authStore:useAuthStore,accountsStore:useAccountsStore})
    .then((result:{passed:boolean;reloaded:boolean;accountCount:number})=>{
