@@ -1,0 +1,20 @@
+{
+  "baseline": "f4c35f32795be5f196840c37382143a2d7e33d55",
+  "launchArgumentsDifferOnlyInGpuValue": true,
+  "afterLaunchBootInstallBothFlowsAndVerifiersByteIdentical": true,
+  "workflowAndAllFlowsByteIdentical": [
+    ".github/workflows/native-app-ui.yml",
+    "tests/native/flows/navigation.yaml",
+    "tests/native/flows/memory-navigation.yaml",
+    "tests/native/flows/memory-capture.yaml"
+  ],
+  "productionAndNativeFixtureSourcesChanged": false,
+  "collectorCoveredByExistingWorkflowGlob": true,
+  "hashes": {
+    "scripts/quality/test-android-app-ui.sh": "1cafb6dba876d9ee92288d7aa233ee41739fc2f271d4e1ca174f82c09620e12d",
+    "scripts/quality/native-ui-emulator-diagnostics.py": "0d02a6b446e4219757a17c0c52e4d5da0190a9800e92c547b629da6977bdc1e8",
+    "scripts/quality/prepare-native-ui.cjs": "b7b85afaf239d525bd8af01b5f180dc93acfd71610a963302a83817e01cec571",
+    "tests/quality/native-auth-diagnostics.cjs": "31e4d3ea874ff7b1090061a23b746c800a5e0e01a17f7588d41f9e724e1b4e78",
+    "tests/quality/native-emulator-diagnostics.cjs": "607adc77b1205b3ef07f445b57dad86e0110c3f39f134dacec60e69557c7db66"
+  }
+}

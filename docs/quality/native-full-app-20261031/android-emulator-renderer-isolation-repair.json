@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T15:32:02.069444+00:00",
+  "status": "locally verified empirical renderer-isolation candidate; full native runtime acceptance pending",
+  "baseline": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "testedMerge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "run": 41211437305,
+    "failedAndroidJob": 124567097694,
+    "ownerReview": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-review.json",
+      "sha256": "56b2103e6d4221c58f08e68f7c671826fbf93f67cbba7d7916ee23b441a175ad",
+      "bytes": 10926
+    }
+  },
+  "observedFailure": {
+    "hostSignal": "SIGSEGV",
+    "emulatorVersion": "37.2.13.0",
+    "buildId": "16740729",
+    "emulatorPid": 6995,
+    "shellReportUTC": "2026-10-31T15:04:12.2863567Z",
+    "gpuArgument": "software",
+    "effectiveModes": {
+      "vulkan": "lavapipe",
+      "gles": "swangle"
+    },
+    "advertisedCrashStore": "/tmp/android-runner/emu-crash-37.2.13.db",
+    "crashStoreRetainedInFailedArtifact": false,
+    "componentRootCauseProven": false,
+    "actualCrashInstantKnown": false
+  },
+  "change": {
+    "launchArgument": {
+      "before": "-gpu software",
+      "after": "-gpu swiftshader"
+    },
+    "purpose": "Select an explicit documented software backend to isolate the observed adaptive Lavapipe/SwANGLE selection. This does not establish which component caused SIGSEGV or prove the new mode will cure it.",
+    "guestVulkanDisabled": false,
+    "systemImage": "system-images;android-35;default;x86_64",
+    "memoryMB": 3072,
+    "productionAppOrFixtureSourcesChanged": false,
+    "workflowOrFlowFilesChanged": false,
+    "gateTimeoutsRunnerConcurrencyOrResourcesChanged": false,
+    "bothRequiredFlowsAndAllVerifiersPreserved": true,
+    "productionCapabilityActivated": false,
+    "sourceHashes": {
+      "scripts/quality/test-android-app-ui.sh": "1cafb6dba876d9ee92288d7aa233ee41739fc2f271d4e1ca174f82c09620e12d",
+      "scripts/quality/native-ui-emulator-diagnostics.py": "0d02a6b446e4219757a17c0c52e4d5da0190a9800e92c547b629da6977bdc1e8",
+      "scripts/quality/prepare-native-ui.cjs": "b7b85afaf239d525bd8af01b5f180dc93acfd71610a963302a83817e01cec571",
+      "tests/quality/native-auth-diagnostics.cjs": "31e4d3ea874ff7b1090061a23b746c800a5e0e01a17f7588d41f9e724e1b4e78",
+      "tests/quality/native-emulator-diagnostics.cjs": "607adc77b1205b3ef07f445b57dad86e0110c3f39f134dacec60e69557c7db66"
+    }
+  },
+  "primarySources": [
+    {
+      "url": "https://developer.android.com/studio/run/emulator-acceleration",
+      "reviewedUTCDate": "2026-10-31",
+      "finding": "The current documentation lists software as an adaptive software selector and swiftshader as a supported software option for GLES and Vulkan. It also lists lavapipe and swangle separately; swiftshader_indirect was deprecated in 36.4.9."
+    },
+    {
+      "url": "https://developer.android.com/studio/run/emulator-troubleshooting",
+      "reviewedUTCDate": "2026-10-31",
+      "finding": "The documented -feature -Vulkan argument disables Vulkan. It is deliberately omitted here to retain that coverage and avoid adding a second experiment. The page also documents -gpu swiftshader as a graphics troubleshooting option."
+    },
+    {
+      "url": "https://developer.android.com/studio/releases/emulator",
+      "reviewedUTCDate": "2026-10-31",
+      "finding": "The installed 37.2.13 already includes the Oct 28, 2026 fix for a host GLES resource leak after guest process exit. Recent macOS-specific fixes do not establish a remedy for this Linux host SIGSEGV."
+    },
+    {
+      "url": "https://developer.android.com/studio/releases/fixed-bugs/emulator/37",
+      "reviewedUTCDate": "2026-10-31",
+      "finding": "No positively matching fix for the observed Linux host crash was identified in the reviewed 37.x stable/canary issue list; no upgrade or downgrade is proposed."
+    }
+  ],
+  "publicSourceReview": {
+    "repository": "https://android.googlesource.com/platform/external/qemu",
+    "branch": "emu-main-dev",
+    "commit": "cf0f40a0aad1aa3fca68f2f89372525c8d28ca68",
+    "files": [
+      {
+        "url": "https://android.googlesource.com/platform/external/qemu/+/cf0f40a0aad1aa3fca68f2f89372525c8d28ca68/android/android-ui/modules/aemu-gl-init/src/android/opengl/emugl_config.cpp?format=TEXT",
+        "commit": "cf0f40a0aad1aa3fca68f2f89372525c8d28ca68",
+        "path": "android/android-ui/modules/aemu-gl-init/src/android/opengl/emugl_config.cpp",
+        "bytes": 53613,
+        "sha256": "d933892f59f9febf9796882e32390c8495a2bb757ed0a7f677af63a8e41ed935",
+        "gitBlob": "7e584e712925e31833b75fa3c173dc4f95b832b6"
+      },
+      {
+        "url": "https://android.googlesource.com/platform/external/qemu/+/cf0f40a0aad1aa3fca68f2f89372525c8d28ca68/android/android-ui/modules/aemu-ui-window/src/android/main-common-ui.c?format=TEXT",
+        "commit": "cf0f40a0aad1aa3fca68f2f89372525c8d28ca68",
+        "path": "android/android-ui/modules/aemu-ui-window/src/android/main-common-ui.c",
+        "bytes": 18188,
+        "sha256": "07b9ef209f8b1d2a35f6c1156a8e11db9f8d3d379d14f11c5e4111ffe49dd887",
+        "gitBlob": "df673899e3780d4a146d4f043bdeae3c22c60e98"
+      }
+    ],
+    "findings": [
+      "emugl_config.cpp separates Vulkan and GLES selection. The reviewed Linux explicit swiftshader path selects the SwiftShader Vulkan ICD and GLES library; the Lavapipe path defaults GLES to SwANGLE. The next runtime logs must verify the installed binary actually makes the expected selection.",
+      "The reviewed code emits the same selected-mode diagnostic seen in the retained failed-run log. The source also contains a GLES 3.1/API 35 compatibility condition, so documented mode support is not treated as complete feature-equivalence proof for the unchanged API 35 test image.",
+      "The retrieved public branch commit is not established as the exact source revision of installed build 16740729. No source-based installed-binary identity claim is made."
+    ],
+    "lineAnchors": {
+      "emugl_config.cpp": [
+        "989-1034",
+        "1085-1117",
+        "1151-1165",
+        "1293-1354"
+      ],
+      "main-common-ui.c": [
+        "247",
+        "317-327"
+      ]
+    }
+  },
+  "diagnosticCollection": {
+    "helper": "scripts/quality/native-ui-emulator-diagnostics.py",
+    "mode": "best effort after existing emulator stop/wait in the existing EXIT cleanup",
+    "runBinding": [
+      "Linux CI QA environment and numeric workflow run identity",
+      "Actual launched PID and nanosecond launch marker passed by the runner",
+      "One current regular emulator.log with one version and one Crashpad marker matching that PID",
+      "Exact /tmp/android-<current-user>/emu-crash-<logged-version>.db path, checked through no-follow directory descriptors",
+      "Only regular single-link current-user files modified within the current launch/collection window"
+    ],
+    "pathSafety": [
+      "No /tmp sweep, arbitrary path, symlink traversal, foreign owner, hardlink, FIFO or device copying",
+      "Fresh output directory required; existing output or symlink is rejected",
+      "Source files are opened relative to checked directory descriptors; before/after descriptor metadata detects observed mutation",
+      "Incomplete copies are removed and never marked complete; source files are not modified or deleted"
+    ],
+    "bounds": {
+      "logBytes": 1048576,
+      "perFileBytes": 16777216,
+      "totalBytesReadIncludingFailedCopies": 33554432,
+      "entriesIncludingSkippedAndDirectories": 128,
+      "maxDepth": 6,
+      "internalSeconds": 5,
+      "outerCommandSeconds": 10
+    },
+    "manifest": "Records copied/skipped files, hashes, bounds, PID, current run/log binding and the pre-cleanup shell status; missing or rejected diagnostics do not change the acceptance gate.",
+    "coverageLimits": [
+      "The store name is version/user based, not per-process. Binding uses the current process marker and file modification window; it is not proof of the producer of every byte.",
+      "Crashpad may have no complete current dump, and size/time limits can intentionally omit data. Missing diagnostics never count as acceptance.",
+      "gateExitCode records the status observed on entry to EXIT cleanup. Under cancellation it is not necessarily the final signal/workflow result and must never be used as the acceptance verdict.",
+      "An external termination may stop collection before a manifest is written. Existing mandatory flow/JUnit/decoder/full-app results and workflow conclusion remain authoritative."
+    ],
+    "additionalVersionHelpEvidence": [
+      "emulator-version.log",
+      "emulator-gpu-help.log",
+      "emulator-cli-metadata.json",
+      "existing emulator.log with actual backend selection"
+    ],
+    "integration": "The helper is added to the existing explicit original-source manifest and mirrored preparation fixture; the existing native-ui workflow glob already covers it."
+  },
+  "focusedValidation": {
+    "totalFormalCases": 52,
+    "collectorAndActualShellCases": 37,
+    "existingAuthAndSourceManifestCases": 15,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "scopedLintPassed": true,
+    "bashSyntaxPassed": true,
+    "pythonCompilePassed": true,
+    "whitespacePassed": true,
+    "redBeforeGuard": "The actual metadata-write negative case failed before adding ||true; both its nested case and parent group failed. All 37 focused cases pass after the guard.",
+    "nativeRunPerformedForCandidate": false,
+    "fullRootSuiteRepeated": false,
+    "details": {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/focused-validation.json",
+      "sha256": "eb547dc6c5a907769d28da2e364053b66f0c8b6307b6faab994e785e95bcfad8",
+      "bytes": 2268
+    }
+  },
+  "runtimeAcceptanceRequired": [
+    "Observe actual emulator version/help and selected GLES/Vulkan backend in a new source-bound run",
+    "Complete both mandatory navigation and capture flows, strict JUnit verification and cumulative fixture evidence",
+    "Pass real saved-account readback and native capture/movie decoding with existing pixel/audio/cleanup checks",
+    "Preserve current iPhone run until its terminal evidence is collected; no conclusion is inferred from this local runner verification"
+  ],
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/collector-and-cleanup-tests.log.txt",
+      "sha256": "025c869ce6c097740ad9a788776e0a952e721855d7298958f34d6453317c795e",
+      "bytes": 2671
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/emugl-config-source.json",
+      "sha256": "b85ca6199f996ca48960dc26835075f31b1e6e2e23027b322e09d789279faf94",
+      "bytes": 502
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/focused-validation.json",
+      "sha256": "eb547dc6c5a907769d28da2e364053b66f0c8b6307b6faab994e785e95bcfad8",
+      "bytes": 2268
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/independent-cancellation-probe.py.txt",
+      "sha256": "e0a279d5b514532f646149c5656ea2a6c4bcb31421a54bbb93e12a16c452e069",
+      "bytes": 3687
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/independent-cancellation.json",
+      "sha256": "13b6dee6808638f1516a37d3f39bf714842b51f0b98b6bbfa27fabafc6a45ee2",
+      "bytes": 1092
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/independent-focused-before-metadata-guard.log.txt",
+      "sha256": "2002f53ef7244bb8a5bee4a29c15194e0445d103d12a7270b2ed965b52cf4682",
+      "bytes": 2388
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/independent-focused.log.txt",
+      "sha256": "15869412fb3d14eea81dafccf65fb2ebdfbf01b5104c8b25ddf8fc9327006951",
+      "bytes": 2673
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/main-common-ui-source.json",
+      "sha256": "b38247c54169f8ab3af72e16844c53f2acb14bdb6cd2c50b75a5dc7ce72ac42c",
+      "bytes": 492
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/metadata-best-effort-before.log.txt",
+      "sha256": "8cddb314ed22e79f273dd588de7cb75e95506d93386fa0f2364d4f3f4cbd53d3",
+      "bytes": 3728
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/qemu-selected-refs.json",
+      "sha256": "c93f9ebb7fa80bc664fc60d8c288f2c5ff262b8d60962aec5946e532debd2546",
+      "bytes": 1014
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/runner-and-provenance.patch.txt",
+      "sha256": "0004fcb68330e877007434eb3a021141efbd66cee5940e43e1492fd4f541d80b",
+      "bytes": 5344
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/scope-verification.json",
+      "sha256": "32c7833fd5b8860ae55f922fe3903f816d059f2b0542193f928863263d59a329",
+      "bytes": 1111
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/source-manifest-integration-tests.log.txt",
+      "sha256": "7940f503c8441d659cecebc55493440e6d3ddccaa700e2ca6d7c46daf465c085",
+      "bytes": 1722
+    }
+  ],
+  "actions": {
+    "sourceOrTestsPushed": false,
+    "ciRerunOrCancellation": false,
+    "refMutation": false,
+    "appleOrExpoAuthentication": false,
+    "paidRunnerOrServiceChange": false,
+    "largeLiveIPhoneLogRequest": false
+  }
+}

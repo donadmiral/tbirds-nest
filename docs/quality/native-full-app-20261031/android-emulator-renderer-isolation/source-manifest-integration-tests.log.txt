@@ -1,0 +1,23 @@
+✔ actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span (6.079633ms)
+✔ lock wrapper preserves receiver, timeout arguments, callback arguments and result references (1.411167ms)
+✔ acquisition timeout retains the original error without invoking work or recording error content (0.886606ms)
+✔ callback and storage failures retain rejection identity and leave no false active operation (1.251045ms)
+✔ storage arguments, optional callbacks, receiver and resolved values survive observation (0.536078ms)
+✔ event retention is bounded while preserving startup and recent observations (1.868847ms)
+✔ diagnostic clock and sink errors cannot change auth results (0.450299ms)
+✔ timer descriptors identify lazy getters without invoking or changing them (3.918486ms)
+✔ timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence (0.522107ms)
+✔ timer descriptor failures and bounded identity overflow preserve auth behavior (2.382902ms)
+✔ one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations (0.512803ms)
+✔ native factory rejects production or real-provider configuration before filesystem access (4.215663ms)
+✔ native trace writes are batched, serialized, isolated from storage and recover after failure (5.035299ms)
+✔ disposable source overlay changes only the reviewed three anchors and retains SDK lock and storage (0.554266ms)
+✔ disposable preparation retains diagnostic source, original auth hash and exact overlay content (108.518528ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 146.278435

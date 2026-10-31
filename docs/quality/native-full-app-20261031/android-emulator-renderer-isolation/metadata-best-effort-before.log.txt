@@ -1,0 +1,77 @@
+✔ copies only current-run regular bytes with hashes and preserves original gate metadata (35.060791ms)
+✔ missing advertised store yields explicit unavailable evidence without a gate result (33.419764ms)
+✔ skips files outside the current run window while accepting a fresh empty metadata file (35.133981ms)
+✔ does not follow file/directory symlinks, hardlinks or FIFOs (41.386804ms)
+✔ rejects a symlink in the advertised store path (34.547019ms)
+✔ refuses a symlinked log directory without writing through it (35.02978ms)
+▶ refuses a preexisting output directory or symlink
+  ✔ directory (41.242031ms)
+  ✔ symlink (35.897981ms)
+✔ refuses a preexisting output directory or symlink (77.858292ms)
+▶ rejects a mismatched PID, different path/version or ambiguous process marker
+  ✔ pid (33.196934ms)
+  ✔ path (32.341362ms)
+  ✔ version (32.924835ms)
+  ✔ longVersion (39.148959ms)
+  ✔ duplicate (36.358323ms)
+✔ rejects a mismatched PID, different path/version or ambiguous process marker (174.981042ms)
+▶ requires current CI/QA/run identity and a plausible launch boundary
+  ✔ 0 (36.351793ms)
+  ✔ 1 (35.860414ms)
+  ✔ 2 (28.979407ms)
+  ✔ 3 (36.374027ms)
+  ✔ 4 (29.209283ms)
+✔ requires current CI/QA/run identity and a plausible launch boundary (167.823989ms)
+▶ rejects stale, symlinked and oversized emulator logs before reading a store
+  ✔ stale (34.716534ms)
+  ✔ symlink (38.053607ms)
+  ✔ oversized (35.648616ms)
+✔ rejects stale, symlinked and oversized emulator logs before reading a store (109.007252ms)
+✔ per-file limit rejects an oversized sparse file without reading it (36.866442ms)
+✔ total bytes are bounded across multiple individually valid files (72.924913ms)
+▶ entry and nesting bounds prevent unbounded enumeration
+  ✔ entries (51.128493ms)
+  ✔ depth (33.330434ms)
+✔ entry and nesting bounds prevent unbounded enumeration (85.260402ms)
+✔ a real source mutation during read discards the partial copy and consumes its read budget (29.710792ms)
+▶ actual prelaunch diagnostics remain best effort when the CLI or metadata output fails
+  ✔ CLI failures retained (8.333891ms)
+  ✖ metadata output unavailable (8.165459ms)
+✖ actual prelaunch diagnostics remain best effort when the CLI or metadata output fails (18.02861ms)
+▶ the actual runner cleanup preserves success and failure when diagnostic collection fails
+  ✔ gate 0 (14.905398ms)
+  ✔ gate 7 (12.856673ms)
+✔ the actual runner cleanup preserves success and failure when diagnostic collection fails (28.164687ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 35
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1024.059888
+
+✖ failing tests:
+
+test at tests/quality/native-emulator-diagnostics.cjs:264:13
+✖ metadata output unavailable (8.165459ms)
+  AssertionError [ERR_ASSERTION]: bash: line 7: native-ui-logs/emulator-cli-metadata.json: Is a directory
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-emulator-diagnostics.cjs:276:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at TestContext.test (node:internal/test_runner/test:400:20)
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-emulator-diagnostics.cjs:264:13)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

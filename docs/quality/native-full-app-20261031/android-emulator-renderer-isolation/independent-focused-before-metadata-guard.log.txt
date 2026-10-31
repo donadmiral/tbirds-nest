@@ -1,0 +1,48 @@
+✔ copies only current-run regular bytes with hashes and preserves original gate metadata (36.217411ms)
+✔ missing advertised store yields explicit unavailable evidence without a gate result (34.51061ms)
+✔ skips files outside the current run window while accepting a fresh empty metadata file (33.94909ms)
+✔ does not follow file/directory symlinks, hardlinks or FIFOs (37.963271ms)
+✔ rejects a symlink in the advertised store path (35.862394ms)
+✔ refuses a symlinked log directory without writing through it (37.849143ms)
+▶ refuses a preexisting output directory or symlink
+  ✔ directory (31.14739ms)
+  ✔ symlink (91.293094ms)
+✔ refuses a preexisting output directory or symlink (123.196556ms)
+▶ rejects a mismatched PID, different path/version or ambiguous process marker
+  ✔ pid (32.197022ms)
+  ✔ path (29.858326ms)
+  ✔ version (34.852801ms)
+  ✔ longVersion (37.445768ms)
+  ✔ duplicate (34.152885ms)
+✔ rejects a mismatched PID, different path/version or ambiguous process marker (169.772991ms)
+▶ requires current CI/QA/run identity and a plausible launch boundary
+  ✔ 0 (39.007679ms)
+  ✔ 1 (33.508734ms)
+  ✔ 2 (37.729942ms)
+  ✔ 3 (43.03274ms)
+  ✔ 4 (38.539051ms)
+✔ requires current CI/QA/run identity and a plausible launch boundary (195.831626ms)
+▶ rejects stale, symlinked and oversized emulator logs before reading a store
+  ✔ stale (32.107792ms)
+  ✔ symlink (34.39535ms)
+  ✔ oversized (38.932976ms)
+✔ rejects stale, symlinked and oversized emulator logs before reading a store (106.069665ms)
+✔ per-file limit rejects an oversized sparse file without reading it (33.766365ms)
+✔ total bytes are bounded across multiple individually valid files (72.394059ms)
+▶ entry and nesting bounds prevent unbounded enumeration
+  ✔ entries (49.002952ms)
+  ✔ depth (36.950108ms)
+✔ entry and nesting bounds prevent unbounded enumeration (86.396762ms)
+✔ a real source mutation during read discards the partial copy and consumes its read budget (32.014325ms)
+▶ the actual runner cleanup preserves success and failure when diagnostic collection fails
+  ✔ gate 0 (14.093418ms)
+  ✔ gate 7 (14.649331ms)
+✔ the actual runner cleanup preserves success and failure when diagnostic collection fails (29.784364ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1079.854861

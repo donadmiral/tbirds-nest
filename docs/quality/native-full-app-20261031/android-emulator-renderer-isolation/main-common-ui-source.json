@@ -1,0 +1,8 @@
+{
+  "url": "https://android.googlesource.com/platform/external/qemu/+/cf0f40a0aad1aa3fca68f2f89372525c8d28ca68/android/android-ui/modules/aemu-ui-window/src/android/main-common-ui.c?format=TEXT",
+  "commit": "cf0f40a0aad1aa3fca68f2f89372525c8d28ca68",
+  "path": "android/android-ui/modules/aemu-ui-window/src/android/main-common-ui.c",
+  "bytes": 18188,
+  "sha256": "07b9ef209f8b1d2a35f6c1156a8e11db9f8d3d379d14f11c5e4111ffe49dd887",
+  "gitBlob": "df673899e3780d4a146d4f043bdeae3c22c60e98"
+}
