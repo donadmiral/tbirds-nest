@@ -51,6 +51,15 @@ Fresh validation was launched for this exact source:
 | Android compilation and encoders | [41218724047](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047) |
 | Complete installed native apps | [41218724056](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056) |
 
+The fresh type/quality workflow passed: 1,853 root tests, 683 web tests,
+195 operations tests and two Edge TLS cases. Backend Node/RPC fixtures passed
+314 and 883 cases, respectively, with three conditional skips each. All six
+skips have fresh passing counterparts in their intended fixture branches;
+those counterparts are already included in the totals. Root CI includes one
+wrapper for the separate 33-check auth program, so its internal checks are not
+added again. All four checkout logs match the published PR merge. These local
+database fixtures do not resolve the hosted QA stage-4 request states.
+
 The fresh browser workflow completed successfully in 308 seconds, including
 131 UI journeys, 12 story-video cases, 25 memory-movie cases, five music cases,
 five cover cases and 288 cover layouts with zero reported overflow or overlap.
@@ -75,7 +84,7 @@ artifact IDs and provider digests are retained, but the three encoder ZIPs
 were not independently downloaded or decoded again. Quality and compiler
 reviews remain separate.
 
-At the native owner's 16:23:42 UTC observation, both full-app scripts were
+At the native owner's 16:26:58 UTC observation, both full-app scripts were
 running with no failed step or artifact upload; that step metadata does not
 distinguish their internal compile and UI phases. The expected original-source
 manifest contains 498 files, calculated from the published Git tree. Actual
@@ -84,11 +93,26 @@ Earlier supporting results and native failures below belong to `f4c35f32`;
 they are not counted as new runtime passes for this source. Milestone 6
 remains open.
 
+A new clean detached signed-QA checkout now contains this exact `b5c9c82b`
+source and tree. Thirteen critical files match published Git blobs. The cached
+public EAS JSON 27.2.0 parser validates the preview and production profiles;
+isolated evaluation of the tracked application configuration resolves the
+expected QA/production identities and matching backends. Preview is an
+internal physical-device profile using the `qa-preview` channel; both profiles
+select remote credentials and automatic version increments. Configuration and
+package inputs are unchanged from `f4c35f32`. This is local source/configuration
+preparation only: project dependencies, full Expo plugin/archive resolution,
+current authentication, remote signing and device membership were not checked.
+No account/login/build/credential/submission command or Apple sign-in retry
+was performed. The earlier f4 CLI login observation below remains historical.
+
 [Publication and source binding](live-app-20261031/publication-b5c9c82b.json) ·
 [Combined static gate](native-full-app-20261031/native-v7-combined-static-gate.json) ·
 [Expected native source manifest](native-full-app-20261031/native-full-app-b5c9c82b-expected-sources.json) ·
+[Fresh quality verification](live-app-20261031/ci-quality-b5c9c82b.json) ·
 [Fresh browser verification](live-app-20261031/browser-quality-b5c9c82b.json) ·
-[Fresh native encoder verification](native-full-app-20261031/native-encoders-b5c9c82b-status-and-source-equivalence.json)
+[Fresh native encoder verification](native-full-app-20261031/native-encoders-b5c9c82b-status-and-source-equivalence.json) ·
+[Current-source signed-QA preparation](native-full-app-20261031/ios-signed-qa-preparation-b5c9c82b.json)
 
 ## Previous published repair candidate: f4c35f32 (v6)
 
@@ -1399,7 +1423,9 @@ allows stored signing credentials to be reused through an authenticated Expo
 account. A fresh Apple sign-in is not inherently required for that route. The
 supported read-only `eas whoami` check was performed with official EAS CLI 27.2.0
 from an isolated temporary package cache; it returned exit 1 and `Not logged in`.
-The current environment therefore has no usable logged-in Expo CLI session.
+That check established no usable logged-in Expo CLI session at that time. No
+subsequent CLI login was performed; the b5 preparation did not recheck account
+status.
 A subsequent read-only browser check found an existing authenticated session for
 `donadmiral` and opened the Platinum Circles project. Its details drawer confirms
 the same owner, slug and project ID as the repository configuration. The browser
@@ -1418,7 +1444,7 @@ distribution certificate as **Valid** for the configured team. The QA device's
 inclusion was not inspected, and displayed validity does not prove successful
 signing or Apple acceptance of a new build/submission.
 
-The CLI remains signed out. No private key material was read,
+The last CLI session check was signed out. No private key material was read,
 no browser credentials were transferred to the CLI, and no new login, project
 link, signed build or submission was attempted. The earlier Apple sign-in was
 not retried. Actual new build/profile validation, Apple processing and physical
@@ -1429,7 +1455,7 @@ installation remain unverified; simulator work continues independently.
 [Verified existing Expo browser access](native-full-app-20261031/expo-browser-existing-session-observation.json) ·
 [Observed Expo signing metadata](native-full-app-20261031/expo-signing-metadata-6878c384.json) ·
 [Observed project signing associations](native-full-app-20261031/expo-project-signing-associations-6878c384.json) ·
-[Current-source signed-build readiness](native-full-app-20261031/ios-signed-release-readiness-6878c384.json) ·
+[Earlier signed-build readiness](native-full-app-20261031/ios-signed-release-readiness-6878c384.json) ·
 [Bounded iPhone log-tool outcome](native-full-app-20261031/ios-e173b2db-log-transport-observation.json)
 
 The remaining release work includes the blocked hosted installation, complete

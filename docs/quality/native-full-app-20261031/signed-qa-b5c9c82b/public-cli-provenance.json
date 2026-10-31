@@ -1,0 +1,79 @@
+{
+  "easCliVersion": "27.2.0",
+  "easJsonVersion": "27.2.0",
+  "cacheRoot": "/tmp/platinum-eas-cli-cache/_npx/f7be299412af61a2/node_modules",
+  "publicFiles": [
+    {
+      "package": "eas-cli",
+      "relativePath": "package.json",
+      "bytes": 8323,
+      "sha256": "a2a0e5b817c9d976029d27c56903455e3ab5b24c0ba38cedc32f993cecfe303c",
+      "matchesPreviouslyReviewedCacheBytes": true
+    },
+    {
+      "package": "eas-cli",
+      "relativePath": "build/commands/build/index.js",
+      "bytes": 15798,
+      "sha256": "06eeef607d832af939cca680061b8a61c7b39e2680425a8a39a9b07e598e66e1",
+      "matchesPreviouslyReviewedCacheBytes": true
+    },
+    {
+      "package": "eas-cli",
+      "relativePath": "build/commands/build/inspect.js",
+      "bytes": 7154,
+      "sha256": "24bc0d76b90274576d1e108376028f3160c938bf46cfe29856235e0813fe733c",
+      "matchesPreviouslyReviewedCacheBytes": true
+    },
+    {
+      "package": "@expo/eas-json",
+      "relativePath": "package.json",
+      "bytes": 1689,
+      "sha256": "dade8e2464ecc2ffabcaba111ecac1c3ee74abdd66387c774c209109684f802f"
+    },
+    {
+      "package": "@expo/eas-json",
+      "relativePath": "build/accessor.js",
+      "bytes": 5997,
+      "sha256": "743763948b339bd8002fc6c8288418f0d8d772c9c2cfb1dcba3327ea2b317ae2"
+    },
+    {
+      "package": "@expo/eas-json",
+      "relativePath": "build/utils.js",
+      "bytes": 4033,
+      "sha256": "7dec301add26f37e5dec76775eda3993432508ed69d6f1facd42c21247bb11e2"
+    },
+    {
+      "package": "@expo/eas-json",
+      "relativePath": "build/build/schema.js",
+      "bytes": 5813,
+      "sha256": "cf73a4b6feee1784542247179c2e3177bf0a8fa8ef93efe7b7729346d794f6ab"
+    },
+    {
+      "package": "@expo/eas-json",
+      "relativePath": "build/build/resolver.js",
+      "bytes": 2396,
+      "sha256": "ee404692cf4721625d9a2acadc1b214034e220555520a3c4550955a13a1d2573"
+    }
+  ],
+  "priorBuildHelp": {
+    "path": "docs/quality/native-full-app-20261031/signed-qa-f4c35f32/eas-build-help.txt",
+    "bytes": 4241,
+    "sha256": "1c54bf81781cc4c63cc4d473557196b8c34acd62c9d8a07df2d1147a725968fa"
+  },
+  "cliCommandsInvoked": [],
+  "publicLibraryCalls": [
+    "EasJsonAccessor.fromProjectPath",
+    "EasJsonUtils.getCliConfigAsync",
+    "EasJsonUtils.getBuildProfileAsync for preview/production and iOS/Android",
+    "EasJsonUtils.getSubmitProfileNamesAsync"
+  ],
+  "commandFlagsReviewed": [
+    "--platform ios",
+    "--profile preview",
+    "--non-interactive",
+    "--freeze-credentials",
+    "--no-wait",
+    "--json"
+  ],
+  "loggedInArchiveBoundary": "build:inspect requires LoggedIn and DynamicProjectConfig; neither it nor its archive internals were invoked."
+}

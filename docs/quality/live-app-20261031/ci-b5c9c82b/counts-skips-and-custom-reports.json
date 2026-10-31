@@ -1,0 +1,1047 @@
+{
+  "formalCounts": {
+    "root": {
+      "tests": 1853,
+      "suites": 0,
+      "pass": 1853,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 99085.232245
+    },
+    "backendNode": {
+      "tests": 317,
+      "suites": 0,
+      "pass": 314,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "duration_ms": 109333.642642
+    },
+    "rpcAuthorization": {
+      "tests": 886,
+      "pass": 883,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "tapChildInvocations": 43,
+      "totalIsolatedChildInvocations": 46
+    },
+    "web": {
+      "tests": 683,
+      "suites": 0,
+      "pass": 683,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 36480.710329
+    },
+    "admin": {
+      "tests": 195,
+      "suites": 0,
+      "pass": 195,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 13523.158433
+    },
+    "edgeTls": {
+      "pass": 2,
+      "fail": 0,
+      "elapsedReported": "163ms"
+    }
+  },
+  "rootAuthSummary": [
+    "# 33/33 auth regression checks passed"
+  ],
+  "rpcInvocations": [
+    {
+      "isolatedInvocation": 4,
+      "script": "./test-admin-support-review-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-admin-support-review-chain.mjs",
+      "sourceSha256": "05b573c5e2f1b87758d60e069f7cc4d7ad1b705a6a9030a43afd695d747ef3e0",
+      "tests": 16,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5202.526922,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 5,
+      "script": "./test-admin-completion-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-admin-completion-chain.mjs",
+      "sourceSha256": "75aace8d8986940304179b697dbf989104a67e8dc4ae757aa95df22104adc9e0",
+      "tests": 34,
+      "suites": 0,
+      "pass": 34,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5693.772701,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 6,
+      "script": "./test-qa-admin-completion-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-qa-admin-completion-chain.mjs",
+      "sourceSha256": "8fdf1e890e89d2c043ad19125b9707c9bfa9c3fa6101a229986a9bbbd538c017",
+      "tests": 36,
+      "suites": 0,
+      "pass": 36,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5904.992742,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 7,
+      "script": "./test-account-storage-erasure-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-account-storage-erasure-chain.mjs",
+      "sourceSha256": "9dcb09aa8187322b76c3d0590eec005f790ae70744c85421d09ba508fc1428d9",
+      "tests": 11,
+      "suites": 0,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4721.007773,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 8,
+      "script": "./test-private-media-cutover-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs",
+      "sourceSha256": "b1878952c9d6e13fc8791e90de4987a5c35951722f690f56ba3c923d38730fce",
+      "tests": 14,
+      "suites": 0,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4508.787875,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 9,
+      "script": "./test-bounded-media-delivery-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-bounded-media-delivery-chain.mjs",
+      "sourceSha256": "245feab46b00da5369847aa671881eb4540bf1e4bd3f95cb6b87a0b0c1cbeb83",
+      "tests": 21,
+      "suites": 0,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5983.266132,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 10,
+      "script": "./test-bounded-media-delivery-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_MEDIA_UPGRADE": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-bounded-media-delivery-chain.mjs",
+      "sourceSha256": "245feab46b00da5369847aa671881eb4540bf1e4bd3f95cb6b87a0b0c1cbeb83",
+      "tests": 21,
+      "suites": 0,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 6208.903903,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 11,
+      "script": "./test-database-hardening-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-database-hardening-chain.mjs",
+      "sourceSha256": "04917712f4d55d719866d15792fccf0033fb818460a41e058828b4f8781fd591",
+      "tests": 18,
+      "suites": 0,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4808.997756,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 12,
+      "script": "./test-database-hardening-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_DATABASE_HARDENING": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-database-hardening-chain.mjs",
+      "sourceSha256": "04917712f4d55d719866d15792fccf0033fb818460a41e058828b4f8781fd591",
+      "tests": 18,
+      "suites": 0,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5351.16534,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 13,
+      "script": "./test-erasure-operator-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-erasure-operator-chain.mjs",
+      "sourceSha256": "55e7a4aeb77649da46f2a444fc84029c599e6d6e0958f5f3eb194c845f175a3a",
+      "tests": 20,
+      "suites": 0,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5276.540665,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 14,
+      "script": "./test-erasure-operator-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_ERASURE_OPERATOR": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-erasure-operator-chain.mjs",
+      "sourceSha256": "55e7a4aeb77649da46f2a444fc84029c599e6d6e0958f5f3eb194c845f175a3a",
+      "tests": 20,
+      "suites": 0,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5800.895191,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 15,
+      "script": "./test-staff-social-shells-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-staff-social-shells-chain.mjs",
+      "sourceSha256": "a19c68508fb9a490b7fc8fbeec08c02938c2c32d1378af245b6cc514ecc9123b",
+      "tests": 16,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4806.453946,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 16,
+      "script": "./test-staff-social-shells-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_STAFF_SHELLS": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-staff-social-shells-chain.mjs",
+      "sourceSha256": "a19c68508fb9a490b7fc8fbeec08c02938c2c32d1378af245b6cc514ecc9123b",
+      "tests": 16,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5421.359025,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 17,
+      "script": "./test-studio-workflow-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-studio-workflow-chain.mjs",
+      "sourceSha256": "c58d35e6927ce1e7055db5ead465de93c74b1029dc11ea5883f9ad2abcaf8169",
+      "tests": 41,
+      "suites": 0,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5512.618265,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 18,
+      "script": "./test-studio-workflow-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_STUDIO_WORKFLOWS": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-studio-workflow-chain.mjs",
+      "sourceSha256": "c58d35e6927ce1e7055db5ead465de93c74b1029dc11ea5883f9ad2abcaf8169",
+      "tests": 41,
+      "suites": 0,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 6052.007381,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 19,
+      "script": "./test-business-auth-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-business-auth-chain.mjs",
+      "sourceSha256": "c58688a0dc274142e20d07fb27e4ec815f16a0fe300921bb683017d331df0b2e",
+      "tests": 27,
+      "suites": 0,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5395.237761,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 20,
+      "script": "./test-business-auth-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_BUSINESS_AUTH": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-business-auth-chain.mjs",
+      "sourceSha256": "c58688a0dc274142e20d07fb27e4ec815f16a0fe300921bb683017d331df0b2e",
+      "tests": 27,
+      "suites": 0,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5764.673765,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 21,
+      "script": "./test-notification-preferences.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-notification-preferences.mjs",
+      "sourceSha256": "8b7e4752b29350ff492296e312180c8fdba39993d02144bbf398b81579f804db",
+      "tests": 33,
+      "suites": 0,
+      "pass": 32,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0,
+      "duration_ms": 5516.569305,
+      "skips": [
+        [
+          "a real bound business session works until device revocation",
+          ""
+        ]
+      ]
+    },
+    {
+      "isolatedInvocation": 22,
+      "script": "./test-notification-preferences.mjs",
+      "environment": {
+        "NOTIFICATION_BUSINESS_FIXTURE": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-notification-preferences.mjs",
+      "sourceSha256": "8b7e4752b29350ff492296e312180c8fdba39993d02144bbf398b81579f804db",
+      "tests": 33,
+      "suites": 0,
+      "pass": 33,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5918.812416,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 23,
+      "script": "./test-notification-event-dispatch.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-notification-event-dispatch.mjs",
+      "sourceSha256": "a61ad88974d9f2aac680d992336f1c1ca47f543712ff563c201c24f797cf2100",
+      "tests": 16,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5292.954194,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 24,
+      "script": "./test-offer-response-serialization.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-offer-response-serialization.mjs",
+      "sourceSha256": "8685d72eb02c79e358a3d81f496d14f8fd6905e233a0dcd82e4c27bc2096bf5c",
+      "tests": 15,
+      "suites": 0,
+      "pass": 15,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4247.87163,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 25,
+      "script": "./test-original-music-library.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "sourceSha256": "f9075a07639a91cd10e489d4f1c1f9ffb7e9bf9991225ff394f9f77bbe7e10aa",
+      "tests": 31,
+      "suites": 0,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5766.777239,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 26,
+      "script": "./test-original-music-library.mjs",
+      "environment": {
+        "MUSIC_FIXTURE_PREEXISTING": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "sourceSha256": "f9075a07639a91cd10e489d4f1c1f9ffb7e9bf9991225ff394f9f77bbe7e10aa",
+      "tests": 31,
+      "suites": 0,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5767.395702,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 27,
+      "script": "./test-original-music-library.mjs",
+      "environment": {
+        "MUSIC_PIPELINE_FIXTURE": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "sourceSha256": "f9075a07639a91cd10e489d4f1c1f9ffb7e9bf9991225ff394f9f77bbe7e10aa",
+      "tests": 31,
+      "suites": 0,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5895.517245,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 28,
+      "script": "./test-music-operations.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-music-operations.mjs",
+      "sourceSha256": "723631d7d96a511478935557dc1077668e9a284cde7ff42a52d186b8db873825",
+      "tests": 19,
+      "suites": 0,
+      "pass": 19,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4990.412139,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 29,
+      "script": "./test-licensed-catalogue.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-licensed-catalogue.mjs",
+      "sourceSha256": "26a5499396705b9a84cddfd34d5cfd99ba13fe4541e8e526e27b8a14b0a8a6af",
+      "tests": 22,
+      "suites": 0,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5223.38201,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 30,
+      "script": "./test-business-music-integration.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-business-music-integration.mjs",
+      "sourceSha256": "3b2e77ec28e2e9cb0d178e10764f721d006b779091836103001ced5399c0d15f",
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5003.486157,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 31,
+      "script": "./test-business-music-integration.mjs",
+      "environment": {
+        "PLATINUM_QA_BUSINESS_AUTH": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-business-music-integration.mjs",
+      "sourceSha256": "3b2e77ec28e2e9cb0d178e10764f721d006b779091836103001ced5399c0d15f",
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5483.166909,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 32,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {
+        "PLATINUM_CURRENT_PRODUCTION_LINK_PREVIEW": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-link-preview-chain.mjs",
+      "sourceSha256": "aca38353a57485308ce12ba8708a96a12a2e078071e23c9778a02d1df2e741c1",
+      "tests": 12,
+      "suites": 0,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4418.730532,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 33,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-link-preview-chain.mjs",
+      "sourceSha256": "aca38353a57485308ce12ba8708a96a12a2e078071e23c9778a02d1df2e741c1",
+      "tests": 12,
+      "suites": 0,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4585.226849,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 34,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_LINK_PREVIEW": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-link-preview-chain.mjs",
+      "sourceSha256": "aca38353a57485308ce12ba8708a96a12a2e078071e23c9778a02d1df2e741c1",
+      "tests": 12,
+      "suites": 0,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5107.00454,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 35,
+      "script": "../../../tests/link-preview.test.cjs",
+      "environment": {},
+      "sourcePath": "tests/link-preview.test.cjs",
+      "sourceSha256": "c63dfd319438212343a445cc691634397084098279ddddcef39412aa7d481333",
+      "tests": 21,
+      "suites": 0,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 288.017236,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 36,
+      "script": "./test-legacy-chat-media-compatibility.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-legacy-chat-media-compatibility.mjs",
+      "sourceSha256": "acaa654b48a11f1d0920270900c5d67a56aa735ca8f7c000f7c54c7f7acb8745",
+      "tests": 11,
+      "suites": 0,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4080.040354,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 37,
+      "script": "./test-legacy-public-media-snapshots.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-legacy-public-media-snapshots.mjs",
+      "sourceSha256": "878b2ee7610b8683f37303db8cb5fbd4ccd7a508a5305e75976a0ba0c70d3557",
+      "tests": 11,
+      "suites": 0,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4277.665234,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 38,
+      "script": "./test-memory-book-visual-presentation.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-memory-book-visual-presentation.mjs",
+      "sourceSha256": "d6fe6dfa0b8880b2650c45c9e6f175d0280f60cf8a65a079a5228f40a4c9e1ad",
+      "tests": 16,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4380.548853,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 39,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-memory-book-creative.mjs",
+      "sourceSha256": "d46e8454733ad216d19dd767edde87bb13a76ea336a3a7ef289217d3271e324c",
+      "tests": 31,
+      "suites": 0,
+      "pass": 30,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0,
+      "duration_ms": 5864.401665,
+      "skips": [
+        [
+          "a current exact business binding supports creative persistence and revoked devices stop it",
+          "Paired combined-music fixture exercises actual business issuance."
+        ]
+      ]
+    },
+    {
+      "isolatedInvocation": 40,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {
+        "MEMORY_CREATIVE_MUSIC_ORDER": "before"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-memory-book-creative.mjs",
+      "sourceSha256": "d46e8454733ad216d19dd767edde87bb13a76ea336a3a7ef289217d3271e324c",
+      "tests": 31,
+      "suites": 0,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 6327.800666,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 41,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {
+        "MEMORY_CREATIVE_MUSIC_ORDER": "after"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-memory-book-creative.mjs",
+      "sourceSha256": "d46e8454733ad216d19dd767edde87bb13a76ea336a3a7ef289217d3271e324c",
+      "tests": 31,
+      "suites": 0,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 6244.384011,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 42,
+      "script": "../content-media-db.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "sourcePath": "supabase/tests/content-media-db.test.cjs",
+      "sourceSha256": "4218c34b4578fb4c1a5e42d8f3ce9767f6e181555209b0f24ec7f58ae90d9ed5",
+      "tests": 17,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0,
+      "duration_ms": 2985.177112,
+      "skips": [
+        [
+          "sound publication is owner-bound, attested and idempotent",
+          ""
+        ]
+      ]
+    },
+    {
+      "isolatedInvocation": 43,
+      "script": "../story-mention-reshare-db.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "sourcePath": "supabase/tests/story-mention-reshare-db.test.cjs",
+      "sourceSha256": "6bd1792b80659caccd0449f972c82c30b3f923a7455bcbab7c6ef0572a4882c3",
+      "tests": 33,
+      "suites": 0,
+      "pass": 33,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3177.892867,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 44,
+      "script": "../discover-media-projections.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "sourcePath": "supabase/tests/discover-media-projections.test.cjs",
+      "sourceSha256": "06a29b704913d4686bfc95f38a55618aed61e1ed82c6b7dac00e198b0c8c23f5",
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4423.635401,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 45,
+      "script": "../../../tests/quality/chat-call-authorization.cjs",
+      "environment": {},
+      "sourcePath": "tests/quality/chat-call-authorization.cjs",
+      "sourceSha256": "f826b4e1726199e04bf1997e9f1bc27aa1e4b5eb58590433694cd2d1d8e6dab8",
+      "tests": 1,
+      "suites": 0,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2500.551449,
+      "skips": []
+    },
+    {
+      "isolatedInvocation": 46,
+      "script": "../../../tests/quality/call-membership-recovery.cjs",
+      "environment": {},
+      "sourcePath": "tests/quality/call-membership-recovery.cjs",
+      "sourceSha256": "fd7b831b8825dfd7255031db1a07d4a34b2c12a7fcc9cf996fc7d1f7eac4adb5",
+      "tests": 1,
+      "suites": 0,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2457.744254,
+      "skips": []
+    }
+  ],
+  "conditionalSkipsWithPassingCounterparts": [
+    {
+      "name": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "skippedStep": "backendNode",
+      "skipLines": [
+        "ok 84 - book signing uses the reader permission for explicit custom access and inactive accounts # SKIP"
+      ],
+      "passingLines": [
+        "ok 12 - book signing uses the reader permission for explicit custom access and inactive accounts"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../content-media-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "skippedStep": "backendNode",
+      "skipLines": [
+        "ok 89 - visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization # SKIP"
+      ],
+      "passingLines": [
+        "ok 17 - visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../content-media-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "skippedStep": "backendNode",
+      "skipLines": [
+        "ok 286 - visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls # SKIP"
+      ],
+      "passingLines": [
+        "ok 31 - visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../story-mention-reshare-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a real bound business session works until device revocation",
+      "skippedStep": "rpcAuthorization",
+      "skipLines": [
+        "ok 33 - a real bound business session works until device revocation # SKIP"
+      ],
+      "passingLines": [
+        "ok 33 - a real bound business session works until device revocation"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-notification-preferences.mjs",
+          "environment": {
+            "NOTIFICATION_BUSINESS_FIXTURE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a current exact business binding supports creative persistence and revoked devices stop it",
+      "skippedStep": "rpcAuthorization",
+      "skipLines": [
+        "ok 31 - a current exact business binding supports creative persistence and revoked devices stop it # SKIP Paired combined-music fixture exercises actual business issuance."
+      ],
+      "passingLines": [
+        "ok 31 - a current exact business binding supports creative persistence and revoked devices stop it",
+        "ok 31 - a current exact business binding supports creative persistence and revoked devices stop it"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-memory-book-creative.mjs",
+          "environment": {
+            "MEMORY_CREATIVE_MUSIC_ORDER": "before"
+          }
+        },
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-memory-book-creative.mjs",
+          "environment": {
+            "MEMORY_CREATIVE_MUSIC_ORDER": "after"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sound publication is owner-bound, attested and idempotent",
+      "skippedStep": "rpcAuthorization",
+      "skipLines": [
+        "ok 9 - sound publication is owner-bound, attested and idempotent # SKIP"
+      ],
+      "passingLines": [
+        "ok 81 - sound publication is owner-bound, attested and idempotent"
+      ],
+      "passingCounterparts": [
+        {
+          "step": "backendNode"
+        }
+      ]
+    }
+  ],
+  "nonTapBackendReports": [
+    {
+      "runtime": "PostgreSQL 18.6 (PGlite 0.5.10) on wasm32-unknown-emscripten, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.5 (1db513782be24469589d7cb8a1f1834e9a33f271), 32-bit",
+      "runtimePackage": "@electric-sql/pglite@0.5.10",
+      "hostedWrites": false,
+      "testCount": 13,
+      "candidateSha256": "12eecb88f7ef39952d8f4deb2c187a134dd72c92131164236392b7b8e66b4b00",
+      "script": "test-push-authorization.mjs",
+      "arrayEntries": {
+        "tests": 13,
+        "limitations": 3
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "community_group_authorization",
+      "checks": 19,
+      "script": "community-group-tests.mjs",
+      "arrayEntries": {
+        "results": 19,
+        "limitations": 3
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "hostedWrites": false,
+      "testCount": 4,
+      "candidateSha256": "7614375d9996a321859954663e85ec71cfde7104148e6d487c8e54a78237ca33",
+      "script": "test-combined-atomicity.mjs",
+      "arrayEntries": {
+        "tests": 4
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "admin-commands-integrated",
+      "passed": 22,
+      "hostedWrites": false,
+      "script": "test-admin-commands.mjs",
+      "arrayEntries": {
+        "tests": 22,
+        "limitations": 2
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "pending-migration-chain",
+      "passed": 41,
+      "hostedWrites": false,
+      "script": "test-pending-migration-chain.mjs",
+      "arrayEntries": {
+        "applied": 41,
+        "limitations": 1
+      },
+      "countUnit": "applied migration files, not test scenarios",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "ok": true,
+      "units": 18,
+      "sourceFiles": 19,
+      "alreadyAppliedUnits": 7,
+      "remainingUnits": 11,
+      "heldMigrations": 34,
+      "musicInfrastructureUnchanged": true,
+      "excludedFinanceMarketHiringAdminStorageUnchanged": true,
+      "privateMediaSchemaAbsent": true,
+      "originalBucketVisibilityPreserved": true,
+      "script": "test-production-rollout-chain.mjs",
+      "arrayEntries": {
+        "baselineFunctionHashes": 8
+      },
+      "countUnit": "migration units/source files/check entries as named; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "ok": true,
+      "baselineUnits": 18,
+      "candidateUnits": 7,
+      "script": "test-parity-release-chain.mjs",
+      "arrayEntries": {
+        "checks": 9
+      },
+      "countUnit": "migration units/source files/check entries as named; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "success": true,
+      "candidate": "20261023185734_redacted_client_diagnostics",
+      "script": "test-app-quality-hiring-chain.mjs",
+      "arrayEntries": {
+        "checks": 11
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "success": true,
+      "candidate": "20261029190200_comment_author_highlights",
+      "script": "test-app-quality-hiring-chain.mjs",
+      "arrayEntries": {
+        "checks": 15
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "success": true,
+      "baselineUnits": 25,
+      "candidate": "20261025073234_applicant_self_service_quality",
+      "script": "test-app-quality-hiring-chain.mjs",
+      "arrayEntries": {
+        "checks": 16
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    }
+  ],
+  "nonTapBackendTextReports": [
+    "Read-only postflight passed: exact definitions/ACLs and six expected role denials.",
+    "8 verification integrity database scenarios passed"
+  ]
+}

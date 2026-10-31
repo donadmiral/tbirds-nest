@@ -1,0 +1,303 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31 16:25:02 UTC",
+  "repository": "donadmiral/tbirds-nest",
+  "workflow": {
+    "id": 41218724145,
+    "name": "Type and quality gates",
+    "path": ".github/workflows/typecheck.yml",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "run_attempt": 1,
+    "created_at": "2026-10-31T16:14:35Z",
+    "run_started_at": "2026-10-31T16:14:35Z",
+    "updated_at": "2026-10-31T16:24:13Z",
+    "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724145"
+  },
+  "outcome": "All four fresh Type and quality jobs passed. All formal failed/cancelled/todo counters are zero; six intentional conditional skips have fresh passing counterparts.",
+  "sourceBinding": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "pullRequestMerge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "headAndMergeTree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "remoteCommitTreesIndependentlyVerified": true,
+    "allFourCheckoutLogsMatchMerge": true,
+    "workflowSha256": "dc41c9a035b84a2c562349a876b6e5805960ea1392e8bb0ad8e9244bfd50be0a",
+    "frozenSelectedInputsMatched": 1516,
+    "selectedInputCount": 1516,
+    "changedPathsBound": 18,
+    "staticGateReceipt": {
+      "path": "docs/quality/native-full-app-20261031/native-v7-combined-static-gate.json",
+      "sha256": "7f043629c4c4e4ec119f20a10e199130465ae40c40fd4f0829bb1f0210a6f6bf"
+    },
+    "comparison": {
+      "path": "docs/quality/live-app-20261031/ci-b5c9c82b/source-binding-summary.json",
+      "bytes": 765,
+      "sha256": "aed7db2d06aeb8dd0c76bb4a633394145bfba94d354b1eac9bd3e9bb8dc30f5d"
+    },
+    "localHeadAlignmentClaimed": false
+  },
+  "runtimeVersions": {
+    "node": "v22.23.4",
+    "npm": "10.9.9",
+    "deno": "--version",
+    "pglite": "@electric-sql/pglite@0.5.10",
+    "pgliteRuntime": "PostgreSQL 18.6 (PGlite 0.5.10) on wasm32-unknown-emscripten, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.5 (1db513782be24469589d7cb8a1f1834e9a33f271), 32-bit"
+  },
+  "testCounts": {
+    "root": {
+      "jobId": 124588620473,
+      "step": "Test phone, diagnostics, feed and call regressions",
+      "stepConclusion": "success",
+      "tests": 1853,
+      "suites": 0,
+      "pass": 1853,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 99085.232245
+    },
+    "backendNode": {
+      "jobId": 124588620473,
+      "step": "Test payment recovery and database boundaries",
+      "stepConclusion": "success",
+      "tests": 317,
+      "suites": 0,
+      "pass": 314,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "duration_ms": 109333.642642
+    },
+    "rpcAuthorization": {
+      "jobId": 124588620473,
+      "step": "Test RPC authorization",
+      "stepConclusion": "success",
+      "tests": 886,
+      "pass": 883,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "tapChildInvocations": 43,
+      "totalIsolatedChildInvocations": 46
+    },
+    "web": {
+      "jobId": 124588620480,
+      "step": "Test web quality regressions",
+      "stepConclusion": "success",
+      "tests": 683,
+      "suites": 0,
+      "pass": 683,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 36480.710329
+    },
+    "admin": {
+      "jobId": 124588620644,
+      "step": "Test operations quality regressions",
+      "stepConclusion": "success",
+      "tests": 195,
+      "suites": 0,
+      "pass": 195,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 13523.158433
+    },
+    "edgeTls": {
+      "jobId": 124588620258,
+      "step": "Test actual pinned-IP HTTPS and cancellation",
+      "stepConclusion": "success",
+      "pass": 2,
+      "fail": 0,
+      "elapsedReported": "163ms"
+    }
+  },
+  "rootAuthCounting": {
+    "observedFormalRootTests": 1853,
+    "includedStandaloneAuthProgramWrappers": 1,
+    "derivedOtherFormalCases": 1852,
+    "separatelyPrintedInternalAuthChecks": 33,
+    "authSummary": "# 33/33 auth regression checks passed",
+    "wrapperLine": "ok 46 - tests/quality/auth-regressions.cjs",
+    "internalChecksAddedToFormalTotal": false
+  },
+  "typeChecks": {
+    "phone": "success",
+    "web": "success",
+    "operations": "success",
+    "authenticatedEdgeHandlers": "success"
+  },
+  "jobs": [
+    {
+      "id": 124588620258,
+      "name": "Link preview Edge TLS",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:14:55Z",
+      "runtimeSeconds": 17.0
+    },
+    {
+      "id": 124588620473,
+      "name": "Phone app",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:24:13Z",
+      "runtimeSeconds": 575.0
+    },
+    {
+      "id": 124588620480,
+      "name": "Web app",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:16:57Z",
+      "runtimeSeconds": 139.0
+    },
+    {
+      "id": 124588620644,
+      "name": "Operations app",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:16:09Z",
+      "runtimeSeconds": 91.0
+    }
+  ],
+  "conditionalSkips": {
+    "backendNode": 3,
+    "rpcAuthorization": 3,
+    "total": 6,
+    "freshCounterpartsVerified": 6,
+    "counterpartsAlreadyWithinReportedTotals": true,
+    "details": {
+      "path": "docs/quality/live-app-20261031/ci-b5c9c82b/counts-skips-and-custom-reports.json",
+      "bytes": 31886,
+      "sha256": "f082bff6571a670365576d73bbeee87e61e74f210d2609d0313a103511b8529a"
+    }
+  },
+  "nonTapReports": {
+    "jsonReports": 10,
+    "separateTextReports": [
+      "Read-only postflight passed: exact definitions/ACLs and six expected role denials.",
+      "8 verification integrity database scenarios passed"
+    ],
+    "counting": "Report-specific checks/scenarios/migration files/units are retained separately. They are not added to formal TAP totals, and missing formal fail/skip counters are not invented.",
+    "details": {
+      "path": "docs/quality/live-app-20261031/ci-b5c9c82b/counts-skips-and-custom-reports.json",
+      "bytes": 31886,
+      "sha256": "f082bff6571a670365576d73bbeee87e61e74f210d2609d0313a103511b8529a"
+    }
+  },
+  "provenance": {
+    "logNormalization": "Remove the initial BOM, leading ISO timestamp prefixes and ANSI colors; retain one terminal LF. Formal TAP blocks are counted once per completed top-level/isolated runner.",
+    "completedJobLogsFetched": 4,
+    "logDigests": {
+      "phone": {
+        "jobId": 124588620473,
+        "apiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588620473/logs",
+        "raw": {
+          "path": "/tmp/platinum-ci-b5c9c82b-phone.log",
+          "bytes": 1312373,
+          "sha256": "eee24f61b02470f86004ef73a37b2dfae72d0f702ae02db3a5a8aa4111cac178"
+        },
+        "normalized": {
+          "path": "/tmp/platinum-ci-b5c9c82b-phone-normalized.log",
+          "bytes": 749798,
+          "sha256": "3b888af11e632499045d7938122908d127f58ea5a5047846c3faae52b41358f4"
+        },
+        "checkouts": [
+          "cddbe51a25efbb39b9e91fb822a9821957b9a2bd"
+        ]
+      },
+      "web": {
+        "jobId": 124588620480,
+        "apiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588620480/logs",
+        "raw": {
+          "path": "/tmp/platinum-ci-b5c9c82b-web.log",
+          "bytes": 289466,
+          "sha256": "d5d696b71f88ed74e99d6862ded3a34646d91c186076656ef70552b577ed4d65"
+        },
+        "normalized": {
+          "path": "/tmp/platinum-ci-b5c9c82b-web-normalized.log",
+          "bytes": 164197,
+          "sha256": "7b35f8ed9aab7a715ce64c3fb14452bfc2e456c2d08ae3337acff4a1f4adf2f8"
+        },
+        "checkouts": [
+          "cddbe51a25efbb39b9e91fb822a9821957b9a2bd"
+        ]
+      },
+      "admin": {
+        "jobId": 124588620644,
+        "apiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588620644/logs",
+        "raw": {
+          "path": "/tmp/platinum-ci-b5c9c82b-admin.log",
+          "bytes": 95224,
+          "sha256": "0aec7411a5c11dcdfdddd52d7e9456fc7f74a84ec1cfb6f0280e5d069093d910"
+        },
+        "normalized": {
+          "path": "/tmp/platinum-ci-b5c9c82b-admin-normalized.log",
+          "bytes": 55284,
+          "sha256": "74d7329a80b79a2e6f0c0e495bf16000501823ad6ebfcd0d684d656a047b8625"
+        },
+        "checkouts": [
+          "cddbe51a25efbb39b9e91fb822a9821957b9a2bd"
+        ]
+      },
+      "edge": {
+        "jobId": 124588620258,
+        "apiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588620258/logs",
+        "raw": {
+          "path": "/tmp/platinum-ci-b5c9c82b-edge.log",
+          "bytes": 20801,
+          "sha256": "3b4a92294a22c451f1326e0e3ce4fe000116a6fdafd6c1a9ed6054f4bae0461b"
+        },
+        "normalized": {
+          "path": "/tmp/platinum-ci-b5c9c82b-edge-normalized.log",
+          "bytes": 13713,
+          "sha256": "5ec3b0bd2fcff13dce6e4d24bd7c4a42eb39cc3ef2913981047ed5f3a4194fcc"
+        },
+        "checkouts": [
+          "cddbe51a25efbb39b9e91fb822a9821957b9a2bd"
+        ]
+      }
+    },
+    "boundedSummaryProjection": {
+      "path": "docs/quality/live-app-20261031/ci-b5c9c82b/log-summary-projection.txt",
+      "bytes": 7754,
+      "sha256": "0a6f37e8c4aa7ad34680f5d1846f242edbd58371d0fc01899149080fb8f1172d"
+    },
+    "terminalMetadata": {
+      "path": "docs/quality/live-app-20261031/ci-b5c9c82b/terminal-jobs.json",
+      "bytes": 3976,
+      "sha256": "cac0340eb06ae09f8f31589a6da3c3dcaf0a63be28161f18ca8984ca9cbd9257"
+    },
+    "countAndCounterpartEvidence": {
+      "path": "docs/quality/live-app-20261031/ci-b5c9c82b/counts-skips-and-custom-reports.json",
+      "bytes": 31886,
+      "sha256": "f082bff6571a670365576d73bbeee87e61e74f210d2609d0313a103511b8529a"
+    },
+    "qualityArtifactsReturned": 0,
+    "artifactsDownloaded": 0
+  },
+  "reviewerActions": {
+    "localTestsRerun": false,
+    "sourceEdited": false,
+    "workflowRetriedOrCancelled": false,
+    "refsChanged": false,
+    "providerDataWritten": false
+  },
+  "limits": [
+    "Backend SQL/RPC checks use isolated local PGlite fixtures. Their success does not establish hosted QA migration completion, provider actor journeys or either ambiguous stage4 request outcome.",
+    "The six conditional skips remain reported. Fresh passing counterparts are in the intended alternate fixture branches, already counted in the fresh TAP totals; they are not additional test passes.",
+    "The 33 internal auth assertions belong to one standalone root file wrapper already represented in the 1853 CI formal total. They must not be added again.",
+    "The two local Deno TLS checks and authenticated-handler typechecks do not constitute a new Edge deployment.",
+    "Native compilers, standalone encoder harnesses, full-app simulator/emulator navigation and capture, signed distribution and physical-device acceptance remain separate.",
+    "Only this fresh b5 workflow is represented here; earlier f4 and 6878 device evidence remains historical."
+  ]
+}

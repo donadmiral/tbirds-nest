@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T16:27:48.757489+00:00",
+  "reviewer": "navigation_performance",
+  "status": "Clean published-source QA checkout and local configuration preparation complete; no signed build initiated.",
+  "source": {
+    "repository": "donadmiral/tbirds-nest",
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "prMerge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "mainWorktree": "/workspace/scratch/f9638ed3020b/platinum-circles",
+    "detachedWorktree": "/workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-b5c9c82b",
+    "creationCommand": "git worktree add --detach /workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-b5c9c82b b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "detached": true,
+    "clean": true,
+    "integrity": {
+      "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+      "detached": true,
+      "clean": true,
+      "gitStatus": "",
+      "trackedFileCount": 2963,
+      "criticalFiles": [
+        {
+          "path": "app.json",
+          "bytes": 3985,
+          "sha256": "129b756b7bf5e6e1b6b456bbe982f63923b83b0568fa41cac6721a892ea555c2",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "app.config.js",
+          "bytes": 1812,
+          "sha256": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "eas.json",
+          "bytes": 2474,
+          "sha256": "2743117e9493cb0e2ef3eb452f3c7bf166700adf0ac4088a3dcc5ba89e85efd7",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "package.json",
+          "bytes": 5301,
+          "sha256": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "package-lock.json",
+          "bytes": 545630,
+          "sha256": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": ".easignore",
+          "bytes": 733,
+          "sha256": "9c57368cd63ca32d8cce18c532b4f9275192edc6bb61209c40dec13715f82ae1",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "index.js",
+          "bytes": 300,
+          "sha256": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "src/navigation/AppNavigator.tsx",
+          "bytes": 37975,
+          "sha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+          "bytes": 67979,
+          "sha256": "63cf58cdf501ef43c333c9cce04ba3620fb775f1de532e4d92ace987d0d8826f",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "modules/boomerang/memoryComposition.ts",
+          "bytes": 4733,
+          "sha256": "38debdfe443ebdc3b728cb5a3f8605f203866a8dfc7c56daab14896686e9eead",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "modules/boomerang/ios/BoomerangModule.swift",
+          "bytes": 16619,
+          "sha256": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+          "bytes": 2990,
+          "sha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+          "matchesLiteralPublishedGitBlob": true
+        },
+        {
+          "path": "shared/musicAvailability.ts",
+          "bytes": 336,
+          "sha256": "4d5685745d2ddfc3941fbee61e404a5f05b3620ff30b4c8c928af968205af157",
+          "matchesLiteralPublishedGitBlob": true
+        }
+      ],
+      "unchangedConfigFromF4": {
+        "pathspecs": [
+          "app.json",
+          "app.config.js",
+          "eas.json",
+          ".easignore",
+          "package.json",
+          "package-lock.json"
+        ],
+        "changedPaths": []
+      },
+      "projectDependenciesInstalled": false,
+      "mainCheckoutHeadAfter": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6"
+    }
+  },
+  "configuration": {
+    "method": "The cached public @expo/eas-json 27.2.0 accessor validates the tracked eas.json and resolves both platform profiles including schema defaults. The exact tracked app.config.js function then executes in an isolated Node VM with only EAS_BUILD, APP_ENV and the selected committed backend URL in process.env; output is a public-identifier/boolean projection. No CLI command, config plugin, native generation or provider request is involved.",
+    "projection": {
+      "schemaValidatedWithInstalledPublicEasJson": true,
+      "cli": {
+        "version": ">= 16.20.0",
+        "appVersionSource": "remote"
+      },
+      "profiles": [
+        {
+          "name": "preview",
+          "distribution": "internal",
+          "environment": "preview",
+          "channel": "qa-preview",
+          "credentialsSource": "remote",
+          "autoIncrement": true,
+          "iosSimulator": false,
+          "androidBuildType": "apk",
+          "committedEnvironmentNames": [
+            "EXPO_PUBLIC_APP_ENV",
+            "EXPO_PUBLIC_GIPHY_KEY",
+            "EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED",
+            "EXPO_PUBLIC_SUPABASE_ANON_KEY",
+            "EXPO_PUBLIC_SUPABASE_URL"
+          ],
+          "privateMediaSessionsEnabled": "false",
+          "matchingBackend": true,
+          "resolvedApp": {
+            "name": "Platinum QA",
+            "slug": "platinum-circles",
+            "owner": "donadmiral",
+            "scheme": "platinum-circles-qa",
+            "marketingVersion": "1.1.0",
+            "iosBundleIdentifier": "app.platinumcircles.mobile.qa",
+            "iosBuildNumber": "1",
+            "androidPackage": "app.platinumcircles.mobile.qa",
+            "androidVersionCode": 1,
+            "androidGoogleServicesFileConfigured": false,
+            "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+            "environment": "qa"
+          }
+        },
+        {
+          "name": "production",
+          "distribution": "store",
+          "environment": "production",
+          "channel": null,
+          "credentialsSource": "remote",
+          "autoIncrement": true,
+          "iosSimulator": null,
+          "androidBuildType": null,
+          "committedEnvironmentNames": [
+            "EXPO_PUBLIC_APP_ENV",
+            "EXPO_PUBLIC_GIPHY_KEY",
+            "EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED",
+            "EXPO_PUBLIC_SUPABASE_ANON_KEY",
+            "EXPO_PUBLIC_SUPABASE_URL"
+          ],
+          "privateMediaSessionsEnabled": "false",
+          "matchingBackend": true,
+          "resolvedApp": {
+            "name": "PlatinumCircles",
+            "slug": "platinum-circles",
+            "owner": "donadmiral",
+            "scheme": "platinum-circles",
+            "marketingVersion": "1.1.0",
+            "iosBundleIdentifier": "app.platinumcircles.mobile",
+            "iosBuildNumber": "1",
+            "androidPackage": "app.platinumcircles.mobile",
+            "androidVersionCode": 1,
+            "androidGoogleServicesFileConfigured": true,
+            "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+            "environment": "production"
+          }
+        }
+      ],
+      "submitProfileNames": [
+        "production"
+      ],
+      "productionSubmission": {
+        "ascAppId": "6764038613",
+        "appleTeamId": "6PHMSMFKSF",
+        "androidTrack": "internal",
+        "androidReleaseStatus": "completed"
+      }
+    },
+    "sourceConfigChangedFromF4": false,
+    "remoteEnvironmentInspected": false,
+    "firebaseFileContentsInspected": false,
+    "initialAttempt": "A first projection helper attempted a nested Node subprocess and failed with EPERM before app.config execution. The final helper instead evaluates the same pure configuration source in an isolated VM without spawning another process; it exited 0. This is a local tooling limitation, not app/build acceptance."
+  },
+  "cli": {
+    "easCliVersion": "27.2.0",
+    "easJsonVersion": "27.2.0",
+    "cacheRoot": "/tmp/platinum-eas-cli-cache/_npx/f7be299412af61a2/node_modules",
+    "publicFiles": [
+      {
+        "package": "eas-cli",
+        "relativePath": "package.json",
+        "bytes": 8323,
+        "sha256": "a2a0e5b817c9d976029d27c56903455e3ab5b24c0ba38cedc32f993cecfe303c",
+        "matchesPreviouslyReviewedCacheBytes": true
+      },
+      {
+        "package": "eas-cli",
+        "relativePath": "build/commands/build/index.js",
+        "bytes": 15798,
+        "sha256": "06eeef607d832af939cca680061b8a61c7b39e2680425a8a39a9b07e598e66e1",
+        "matchesPreviouslyReviewedCacheBytes": true
+      },
+      {
+        "package": "eas-cli",
+        "relativePath": "build/commands/build/inspect.js",
+        "bytes": 7154,
+        "sha256": "24bc0d76b90274576d1e108376028f3160c938bf46cfe29856235e0813fe733c",
+        "matchesPreviouslyReviewedCacheBytes": true
+      },
+      {
+        "package": "@expo/eas-json",
+        "relativePath": "package.json",
+        "bytes": 1689,
+        "sha256": "dade8e2464ecc2ffabcaba111ecac1c3ee74abdd66387c774c209109684f802f"
+      },
+      {
+        "package": "@expo/eas-json",
+        "relativePath": "build/accessor.js",
+        "bytes": 5997,
+        "sha256": "743763948b339bd8002fc6c8288418f0d8d772c9c2cfb1dcba3327ea2b317ae2"
+      },
+      {
+        "package": "@expo/eas-json",
+        "relativePath": "build/utils.js",
+        "bytes": 4033,
+        "sha256": "7dec301add26f37e5dec76775eda3993432508ed69d6f1facd42c21247bb11e2"
+      },
+      {
+        "package": "@expo/eas-json",
+        "relativePath": "build/build/schema.js",
+        "bytes": 5813,
+        "sha256": "cf73a4b6feee1784542247179c2e3177bf0a8fa8ef93efe7b7729346d794f6ab"
+      },
+      {
+        "package": "@expo/eas-json",
+        "relativePath": "build/build/resolver.js",
+        "bytes": 2396,
+        "sha256": "ee404692cf4721625d9a2acadc1b214034e220555520a3c4550955a13a1d2573"
+      }
+    ],
+    "priorBuildHelp": {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-f4c35f32/eas-build-help.txt",
+      "bytes": 4241,
+      "sha256": "1c54bf81781cc4c63cc4d473557196b8c34acd62c9d8a07df2d1147a725968fa"
+    },
+    "cliCommandsInvoked": [],
+    "publicLibraryCalls": [
+      "EasJsonAccessor.fromProjectPath",
+      "EasJsonUtils.getCliConfigAsync",
+      "EasJsonUtils.getBuildProfileAsync for preview/production and iOS/Android",
+      "EasJsonUtils.getSubmitProfileNamesAsync"
+    ],
+    "commandFlagsReviewed": [
+      "--platform ios",
+      "--profile preview",
+      "--non-interactive",
+      "--freeze-credentials",
+      "--no-wait",
+      "--json"
+    ],
+    "loggedInArchiveBoundary": "build:inspect requires LoggedIn and DynamicProjectConfig; neither it nor its archive internals were invoked."
+  },
+  "authentication": {
+    "currentStatusRechecked": false,
+    "historicalEvidence": {
+      "path": "docs/quality/native-full-app-20261031/ios-signed-qa-preparation-f4c35f32.json",
+      "sha256": "ed189e78faddc27b49bb4f1a29876e7626dde779b1e207dcd301492797dcd6ac",
+      "observation": "Earlier f4 preparation observed the CLI Not logged in within 2026-10-31T15:07:00Z to 15:07:52Z. That historical observation is not a fresh account or credential check."
+    },
+    "loginInvoked": false,
+    "appleSignInRetried": false,
+    "credentialsInspectedOrChanged": false
+  },
+  "dependencies": {
+    "installedInNewCheckout": false,
+    "lockedPackageAndConfigFilesUnchanged": true,
+    "boundary": "The existing cached public EAS JSON parser does not establish full Expo config-plugin, dependency installation or archive readiness in this new checkout."
+  },
+  "preparedBuild": {
+    "cwd": "/workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-b5c9c82b",
+    "command": "npm exec --offline --yes --cache /tmp/platinum-eas-cli-cache --package=eas-cli@27.2.0 -- eas build --platform ios --profile preview --non-interactive --freeze-credentials --no-wait --json",
+    "executed": false,
+    "autoSubmitRequested": false,
+    "credentialRefreshRequested": false,
+    "purpose": "Reference only for a later authorized signed internal QA iPhone build. Starting it would queue a provider build and may advance the remote build version.",
+    "limits": [
+      "No current Expo CLI session, remote signing profile, certificate, target-device membership or remote environment was verified.",
+      "--freeze-credentials prevents credential updates in non-interactive mode; it does not prove existing remote credentials or target-device membership are valid.",
+      "The tracked local build number 1 and configured remote auto-increment do not establish the next hosted build number.",
+      "Preview is an internal QA build; only a production submit profile is configured. No build or submission was created."
+    ]
+  },
+  "gates": {
+    "currentFullNativeRun": 41218724056,
+    "currentFullNativeAcceptance": "Not established by this preparation; the current native run is reviewed separately.",
+    "productionMemoryMovieVersion": {
+      "ios": 0,
+      "android": 0
+    },
+    "commercialMusicCatalogEnabled": false,
+    "privateMediaSessionsEnabled": false,
+    "capabilityOrLicensingChanged": false
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-b5c9c82b/config-projection.cjs.txt",
+      "bytes": 3417,
+      "sha256": "c46c3169b207f5100ce8ef3b89c9d0dad8bad6195710b253ae61760cd71a390f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-b5c9c82b/config-projection.json",
+      "bytes": 2599,
+      "sha256": "edc54d5bcdb40cb0ae8f2c58855a5d4385bb9d34a35fb6f34093314133f37711"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-b5c9c82b/public-cli-provenance.json",
+      "bytes": 2666,
+      "sha256": "80b03d5853a330be2000b34763ab0dac144e2edd19c4113e28c90dbd53ad345b"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/signed-qa-b5c9c82b/source-integrity.json",
+      "bytes": 3234,
+      "sha256": "fd467da72759e0baa347f74ab1c457277bb98e8a606aaf7f6637cd8b5f3f39ff"
+    }
+  ],
+  "limits": [
+    "This is source and local configuration preparation only, not signed-device, Apple, TestFlight, App Store, native capture or release acceptance.",
+    "The pure configuration VM excludes optional QA Firebase file variables. Production configuration names its existing file, but neither its contents nor remote file variables were inspected.",
+    "No login, pairing, Apple sign-in, account command, build, inspect/archive command, credential change, submission, CI rerun/cancel or deployment was performed.",
+    "No application/test/configuration files, main report or branch refs were changed. The new detached worktree preserves the exact published source."
+  ]
+}
