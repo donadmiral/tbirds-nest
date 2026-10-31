@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "mode": "current-run-emulator-crashpad",
+  "runId": "41218724056",
+  "emulatorPid": 7038,
+  "gateExitCode": 1,
+  "runStartedUnixNs": "1793464415145798004",
+  "collectionStartedUnixNs": "1793464552129731035",
+  "limits": {
+    "logBytes": 1048576,
+    "fileBytes": 16777216,
+    "totalReadBytes": 33554432,
+    "entries": 128,
+    "depth": 6,
+    "seconds": 5
+  },
+  "status": "collected",
+  "entries": [
+    {
+      "path": "settings.dat",
+      "status": "copied",
+      "bytes": 40,
+      "sha256": "a05289b5d4c32cca35c66c7c7322722653b00d7fd47e717dd068c8c406313690",
+      "sourceMtimeNs": "1793464415218268520"
+    }
+  ],
+  "limitsHit": [],
+  "entriesExamined": 5,
+  "bytesRead": 40,
+  "bytesCopied": 40,
+  "filesCopied": 1,
+  "filesDirectory": "files",
+  "source": {
+    "path": "/tmp/android-runner/emu-crash-37.2.13.db",
+    "version": "37.2.13",
+    "logSHA256": "57024b6dcf236fc2ecefb5f275d1ab4b2f4c97e3dc108fe6ccc2bd10d72c0c21",
+    "logBytes": 8355
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "recordedAtUtc": "2026-10-31T16:41:19Z",
+  "status": "ANDROID_AUTH_ACCOUNT_AND_BOUNDARY_ACCEPTANCE_UNAVAILABLE_AFTER_DEVICE_LOSS",
+  "application": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6"
+  },
+  "artifact": {
+    "runId": 41218724056,
+    "jobId": 124588620179,
+    "id": 13049009956,
+    "name": "android-full-app-ui",
+    "zipBytes": 365665,
+    "zipSha256": "fe4e1dab20ff0a5363fb0d0660a008b43d410a729ab01fa3a2b7da1667d4ff86",
+    "archiveDownloadedAndVerifiedBy": "native_acceptance",
+    "sharedExtraction": "/tmp/android-full-app-b5c9c82b-41218724056",
+    "duplicateDownloadByThisReviewer": false
+  },
+  "sourceBinding": {
+    "canonicalManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-b5c9c82b-source.json",
+      "bytes": 59522,
+      "sha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102"
+    },
+    "manifestBytesIndependentlyMatchedSharedExtraction": true,
+    "globalOriginalSourceChecks": 498,
+    "retainedOverlayChecks": 6,
+    "dependencyChecks": 9,
+    "globalVerificationPerformedBy": "native_acceptance",
+    "scope": "This reviewer independently verified the canonical manifest digest and equality with the shared extraction; the global source/overlay/dependency verification is attributed to its owner."
+  },
+  "exportedEvidence": {
+    "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/auth-evidence-availability.json",
+    "bytes": 2067,
+    "sha256": "ef2655f73f5af19f2688f64375b75c858ed380fc50f87110db8314cccf564ce7"
+  },
+  "authFindings": {
+    "retainedReactNativeJsLines": 12,
+    "matchingSdkLockAcquisitionWarningsInRetainedLog": 0,
+    "matchingSdkAuthErrorsInRetainedLog": 0,
+    "matchingAccountInitCompletionLogs": 0,
+    "matchingAccountFailureLogs": 0,
+    "lockWaitHoldAndStorageDurationsAvailable": false,
+    "timerIdentityEvidenceAvailable": false,
+    "interpretation": "No matching SDK warning is visible in the retained app log, but empty diagnostic exports prevent numerical auth/lock/storage/timer acceptance. Missing traces are not zero-operation or zero-wait results."
+  },
+  "accountFindings": {
+    "successfulIndexWrites": 2,
+    "nativeLogTimes": [
+      "10-31 16:34:43.965",
+      "10-31 16:34:44.036"
+    ],
+    "sourceMeaning": "accountsStore.writeIndex logs only after SecureStore.setItemAsync for the index resolves. This establishes those two index writes, not reloading saved account/token values.",
+    "completedSavedAccountReadbackEvidenceAvailable": false,
+    "readbackResult": null,
+    "interpretation": "No accountReadbacks array or readback-start/readback-complete markers can be parsed from the empty exports. The retained log has no accounts init completion. No successful or failed saved-account reload result is established."
+  },
+  "fixtureAndBoundaryFindings": {
+    "fixtureRequestCounts": null,
+    "readerResponseTimeline": null,
+    "captureBoundaryTimeline": null,
+    "observersLogToReceiptNotConsole": true,
+    "interpretation": "The new selected book/reaction text-consumption observer and capture/parser/readback recorder publish into the missing receipt. Absence of console markers is not independent evidence that those observers did or did not run."
+  },
+  "coverageCorrelation": {
+    "navigationReview": {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b-navigation-independent-review.json",
+      "bytes": 14949,
+      "sha256": "7669ae765ef76589fa362d9c5f391495eafcca5ea27deddee3af1517db3c30d7"
+    },
+    "profileScreenshotCompletedAt": "2026-10-31T16:35:10.945Z",
+    "firstShelfScrollStartedAt": "2026-10-31T16:35:10.947Z",
+    "lastRetainedMaestroOperation": "swipe UP at16:35:11.671",
+    "readerOrShelfTapReached": false,
+    "basis": "Exact navigation coverage/timestamps are from navigation_performance\u2019s separately retained command/log review. This auth review does not infer a failure cause from those timestamps.",
+    "lastRetainedAppLogTime": "10-31 16:35:12.422",
+    "capture": {
+      "attempts": 1,
+      "exitCode": 1,
+      "retainedLog": {
+        "path": "maestro-memory-capture.log",
+        "bytes": 62,
+        "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+      },
+      "exactMessage": "Device emulator-5556 was requested, but it is not connected.",
+      "captureJUnitPresent": false,
+      "meaning": "The independently required capture invocation was attempted once but had no connected emulator and produced no capture testcase evidence."
+    }
+  },
+  "evidence": {
+    "logProjection": {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/auth-account-log-projection.json",
+      "bytes": 4067,
+      "sha256": "1b5d4825508acdc4d8c286e409cde39713845ae6166d0bf94705b4fb9e984212"
+    },
+    "originalAppLog": {
+      "path": "app.log",
+      "bytes": 1508553,
+      "sha256": "b50c38b638dbab43663ebfe185bddb586f47c8f0356c2aef91a493987f83f221"
+    },
+    "flowResults": {
+      "path": "flow-results.json",
+      "bytes": 351,
+      "sha256": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85"
+    },
+    "phaseResults": {
+      "path": "phase-results.json",
+      "bytes": 63,
+      "sha256": "9488f7548883aadb3421cbedd6aa243cfc4a05c4fc03aad3b3792b1a871e4f1e"
+    },
+    "accountStoreSource": {
+      "path": "src/stores/accountsStore.ts",
+      "bytes": 6719,
+      "sha256": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71"
+    },
+    "readbackHelperSource": {
+      "path": "tests/native/account-readback.cjs",
+      "bytes": 1748,
+      "sha256": "b2b3d08f52305b704f0b4f0df7fc92e15c021f8d070a9653cb15fc90f946e4ce"
+    },
+    "exportRunnerSource": {
+      "path": "scripts/quality/test-android-app-ui.sh",
+      "bytes": 7361,
+      "sha256": "1cafb6dba876d9ee92288d7aa233ee41739fc2f271d4e1ca174f82c09620e12d"
+    }
+  },
+  "limits": [
+    "The empty exports are retained as canonical size/hash absence metadata, not replaced with fabricated JSON or empty event arrays. On-device contents cannot be reconstructed from them.",
+    "This review does not establish auth performance, timer stability, request frequency, successful saved-account reload, body parsing, reader readiness or capture acceptance.",
+    "The bounded app-log excerpt ends before final workflow cleanup and does not attest continuous JavaScript progress. A final Choreographer message is not attributed to auth or used to diagnose the emulator failure.",
+    "The observed workflow/device loss does not demonstrate a failure of the newly repaired reader behavior, because navigation did not reach the shelf tap or reader.",
+    "Host termination, selected graphics backend and Crashpad analysis are separately owned by native_acceptance. No duplicate host log retrieval or component-causality claim is made here.",
+    "No provider request, source edit, test rerun, authentication action, workflow/ref change or main-report edit was performed."
+  ]
+}

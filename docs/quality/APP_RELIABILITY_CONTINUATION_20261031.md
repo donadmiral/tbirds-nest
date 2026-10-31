@@ -50,7 +50,7 @@ installed-app run remains active:
 | Browser interaction and media | [41218724100](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724100) | Passed |
 | iOS compilation and encoders | [41218724062](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062) | Passed |
 | Android compilation and encoders | [41218724047](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047) | Passed |
-| Complete installed native apps | [41218724056](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056) | Both device jobs active at 16:35:22 UTC |
+| Complete installed native apps | [41218724056](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056) | Android failed after emulator host loss; iPhone still active at 16:50:22 UTC |
 
 The fresh type/quality workflow passed: 1,853 root tests, 683 web tests,
 195 operations tests and two Edge TLS cases. Backend Node/RPC fixtures passed
@@ -92,14 +92,47 @@ for this review, so current per-job source-copy manifests, internal build
 details and artifact byte digests were not independently verified. These
 compilation gates do not establish installed-app or signed-device acceptance.
 
-At the native owner's 16:35:22 UTC observation, both full-app scripts were
-running with no failed step or artifact upload; that step metadata does not
-distinguish their internal compile and UI phases. The expected original-source
-manifest contains 498 files, calculated from the published Git tree. Actual
-full-native artifact hashes and terminal outcomes remain to be reviewed.
-Earlier supporting results and native failures below belong to `f4c35f32`;
-they are not counted as new runtime passes for this source. Milestone 6
-remains open.
+The Android full-app job completed with failed acceptance at 16:35:55 UTC.
+The single downloaded archive matches SHA-256
+`fe4e1dab20ff0a5363fb0d0660a008b43d410a729ab01fa3a2b7da1667d4ff86`.
+All 498 original source hashes, six overlays and nine dependency hashes match
+the published candidate. Its complete app build succeeded in 16 minutes
+46 seconds. Main-page navigation through Profile passed; the final Profile
+screenshot completed at 16:35:10.945 UTC. The first centered memory-shelf scroll
+then lost device transport, before any shelf tap or reader assertion.
+
+The completed host log reports the emulator process's **SIGSEGV** at
+16:35:51.9332966 UTC; this is the shell's report time, not an established crash
+instant. The requested explicit SwiftShader mode was actually selected for
+both Vulkan and GLES, but it did not prevent the failure. Both this run and
+the earlier adaptive-software run ultimately reported the same Google
+SwiftShader 4.0.0.1 GLES implementation. That common observation is not proof
+that it caused the crash. No faulting module, stack or OOM cause is established.
+The bounded Crashpad collector succeeded but found only a 40-byte settings
+file, with no dump. A pre-boot protected-range unmap warning is retained and
+is not treated as causal evidence.
+
+Both required flow commands were attempted once. Capture reported that the
+emulator was disconnected and produced no testcase or movie. All four exported
+auth/fixture JSON files are zero bytes, so request counts, lock/timer results,
+account reload and the new reader/capture boundaries are unavailable. Empty
+exports after transport loss do not establish that no events were recorded
+inside the device. Twelve retained JavaScript log lines include two successful
+account-index writes; those writes do not establish saved-account readback.
+The owner, navigation and auth reviews preserve these limits independently.
+
+At 16:50:22 UTC, the iPhone job was still in its full-app script, with no failed
+step or artifact upload. Its final outcome remains open. Earlier supporting
+results and native failures below belong to `f4c35f32` and are not counted as
+new runtime passes for this source. Milestone 6 remains open.
+
+A scoped source/build review confirms that this Android QA build selected
+Skia Ganesh/OpenGL with Graphite off; reviewed movie effects also use GLES.
+This supports a GLES-only host-renderer isolation experiment. A follow-up using
+Mesa LLVMpipe with positive host/emulator renderer checks is being reviewed
+separately, together with bounded host crash-record observation. No new device
+attempt or successful crash cure is claimed, and the active iPhone run's source
+has not been changed.
 
 A new clean detached signed-QA checkout now contains this exact `b5c9c82b`
 source and tree. Thirteen critical files match published Git blobs. The cached
@@ -121,6 +154,10 @@ was performed. The earlier f4 CLI login observation below remains historical.
 [Fresh browser verification](live-app-20261031/browser-quality-b5c9c82b.json) ·
 [Fresh native encoder verification](native-full-app-20261031/native-encoders-b5c9c82b-status-and-source-equivalence.json) ·
 [Fresh compiler verification](native-full-app-20261031/native-compile-b5c9c82b-status.json) ·
+[Android full-app review](native-full-app-20261031/android-full-app-b5c9c82b-review.json) ·
+[Independent Android navigation review](native-full-app-20261031/android-b5c9c82b-navigation-independent-review.json) ·
+[Independent Android auth review](native-full-app-20261031/android-b5c9c82b-auth-independent-review.json) ·
+[GLES compatibility assessment](native-full-app-20261031/android-b5c9c82b-gles-compatibility-assessment.json) ·
 [Current-source signed-QA preparation](native-full-app-20261031/ios-signed-qa-preparation-b5c9c82b.json)
 
 ## Previous published repair candidate: f4c35f32 (v6)

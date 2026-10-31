@@ -1,0 +1,77 @@
+{
+  "source": "Completed authenticated GitHub Actions job log fetched once",
+  "jobId": 124588620179,
+  "sourceSha256": "56e0e5a97d7a54eb1e3d8419f19571711130f2ef23a32e82033da2c70f658015",
+  "sourceBytes": 366908,
+  "sourceLines": 3482,
+  "lines": [
+    {
+      "line": 3364,
+      "text": "2026-10-31T16:33:33.0372136Z For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation."
+    },
+    {
+      "line": 3365,
+      "text": "2026-10-31T16:33:33.0373356Z "
+    },
+    {
+      "line": 3366,
+      "text": "2026-10-31T16:33:33.0373732Z BUILD SUCCESSFUL in 16m 46s"
+    },
+    {
+      "line": 3367,
+      "text": "2026-10-31T16:33:33.0374474Z 1403 actionable tasks: 1403 executed"
+    },
+    {
+      "line": 3368,
+      "text": "2026-10-31T16:33:34.7185706Z Loading local repository...                                                     "
+    },
+    {
+      "line": 3401,
+      "text": "2026-10-31T16:35:47.2525999Z \tat kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)"
+    },
+    {
+      "line": 3402,
+      "text": "2026-10-31T16:35:51.8604848Z "
+    },
+    {
+      "line": 3403,
+      "text": "2026-10-31T16:35:51.8616110Z Device emulator-5556 was requested, but it is not connected."
+    },
+    {
+      "line": 3404,
+      "text": "2026-10-31T16:35:51.9332966Z scripts/quality/test-android-app-ui.sh: line 116:  7038 Segmentation fault      (core dumped) \"$android_sdk/emulator/emulator\" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader -memory 3072 > native-ui-logs/emulator.log 2>&1"
+    },
+    {
+      "line": 3405,
+      "text": "2026-10-31T16:35:51.9355234Z error: device 'emulator-5556' not found"
+    },
+    {
+      "line": 3406,
+      "text": "2026-10-31T16:35:51.9377031Z error: device 'emulator-5556' not found"
+    },
+    {
+      "line": 3432,
+      "text": "2026-10-31T16:35:52.0799113Z "
+    },
+    {
+      "line": 3433,
+      "text": "2026-10-31T16:35:52.0799302Z Node.js v22.23.4"
+    },
+    {
+      "line": 3434,
+      "text": "2026-10-31T16:35:52.1481627Z ##[error]Process completed with exit code 1."
+    },
+    {
+      "line": 3435,
+      "text": "2026-10-31T16:35:52.1617466Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
+    },
+    {
+      "line": 3436,
+      "text": "2026-10-31T16:35:52.1617910Z with:"
+    }
+  ],
+  "limits": [
+    "The timestamp on the Bash SIGSEGV report is the reporting time, not a measured instant of the emulator crash.",
+    "No stack, core image or memory-pressure cause is supplied by these lines."
+  ]
+}

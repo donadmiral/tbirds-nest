@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "artifactId": 13049009956,
+  "files": [
+    {
+      "path": "native-ui-auth-diagnostics.json",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "present": true,
+      "parseableJson": false,
+      "observation": "An empty exported file; not a JSON object, empty event array, zero counter or completed result."
+    },
+    {
+      "path": "native-ui-auth-diagnostics-final.json",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "present": true,
+      "parseableJson": false,
+      "observation": "An empty exported file; not a JSON object, empty event array, zero counter or completed result."
+    },
+    {
+      "path": "native-ui-receipt.json",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "present": true,
+      "parseableJson": false,
+      "observation": "An empty exported file; not a JSON object, empty event array, zero counter or completed result."
+    },
+    {
+      "path": "native-ui-receipt-final.json",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "present": true,
+      "parseableJson": false,
+      "observation": "An empty exported file; not a JSON object, empty event array, zero counter or completed result."
+    }
+  ],
+  "availableMetrics": {
+    "lockOperationCount": null,
+    "maxLockWaitMs": null,
+    "maxLockHoldMs": null,
+    "timerIdentityChanges": null,
+    "fixtureRequestCount": null,
+    "profileOrShelfRequestCount": null,
+    "bookOrReactionRequestCount": null,
+    "savedAccountReadbackResults": null,
+    "readerResponseBoundaries": null,
+    "captureBoundaries": null
+  },
+  "interpretation": "The four exported files are empty. Their unavailable values must remain unknown. The runner redirects adb stdout into each file before the command succeeds; after disconnection an empty export does not prove that the corresponding on-device writer/file was empty."
+}

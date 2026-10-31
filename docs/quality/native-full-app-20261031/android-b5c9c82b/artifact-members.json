@@ -1,0 +1,197 @@
+[
+  {
+    "path": "app.log",
+    "bytes": 1508553,
+    "sha256": "b50c38b638dbab43663ebfe185bddb586f47c8f0356c2aef91a493987f83f221"
+  },
+  {
+    "path": "build.log",
+    "bytes": 189816,
+    "sha256": "4e071a14f2a9f18e7b449c9b6cbda5929237420bd13b124d90464aa87fba8030"
+  },
+  {
+    "path": "emulator-cli-metadata.json",
+    "bytes": 42,
+    "sha256": "cdf3ad7af8ffd359862843e7946f96ac9b371d8e4996f3691c7c12a9d4c4cf91"
+  },
+  {
+    "path": "emulator-crashpad/files/settings.dat",
+    "bytes": 40,
+    "sha256": "a05289b5d4c32cca35c66c7c7322722653b00d7fd47e717dd068c8c406313690"
+  },
+  {
+    "path": "emulator-crashpad/manifest.json",
+    "bytes": 991,
+    "sha256": "d0aeb1017f1cb17d2aba3db26d76c79b2eeeb9f3373e7f1457a3f0781d982fee"
+  },
+  {
+    "path": "emulator-crashpad-collector.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "emulator-gpu-help.log",
+    "bytes": 686,
+    "sha256": "2b41d0c256896c5ef239eb26346d65fce2de08275953f3c131d639aedfa69f6f"
+  },
+  {
+    "path": "emulator-version.log",
+    "bytes": 655,
+    "sha256": "1a523c9091747b7bf48a755396278f2eca455352b40c281336f1c3e075607b54"
+  },
+  {
+    "path": "emulator.log",
+    "bytes": 8355,
+    "sha256": "57024b6dcf236fc2ecefb5f275d1ab4b2f4c97e3dc108fe6ccc2bd10d72c0c21"
+  },
+  {
+    "path": "flow-results.json",
+    "bytes": 351,
+    "sha256": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85"
+  },
+  {
+    "path": "flow-verification.json",
+    "bytes": 89,
+    "sha256": "563b1fc2263772fab105ed01de4ef3fbadccc02cec744309682a392fb1cc83f6"
+  },
+  {
+    "path": "maestro/navigation/2026-10-31_163417/Full native app navigation/commands.json",
+    "bytes": 67469,
+    "sha256": "f20fddcd8850d4003250496c8afa4c40672969347b4469a0118e49e950e63b14"
+  },
+  {
+    "path": "maestro/navigation/2026-10-31_163417/Full native app navigation/logs/maestro.log",
+    "bytes": 19943,
+    "sha256": "e72558497720b456bd3cdb105673a78cc1b7ef316a36a412080b41bfe8eee9d5"
+  },
+  {
+    "path": "maestro/navigation/2026-10-31_163417/Full native app navigation/manifest.json",
+    "bytes": 480,
+    "sha256": "c163209e049c35be89dac73a93572f2c3e8d681d1676f0127c893cbd8025ccac"
+  },
+  {
+    "path": "maestro/navigation/2026-10-31_163417/Full native app navigation/takeScreenshot/home.png",
+    "bytes": 51659,
+    "sha256": "388465208b40045d7c70a9d7f5e5db5a722d7f9e12ae1a5407de3dc55df7ea8c"
+  },
+  {
+    "path": "maestro/navigation/2026-10-31_163417/Full native app navigation/takeScreenshot/jobs.png",
+    "bytes": 43692,
+    "sha256": "4af69a4de15bfbae7b741dcc333956d78da4080551921450644acada96c6b62c"
+  },
+  {
+    "path": "maestro/navigation/2026-10-31_163417/Full native app navigation/takeScreenshot/market.png",
+    "bytes": 33412,
+    "sha256": "fbc4fe55ea204e82188344c12833404a26336c53c46b6b225866e6155caca78c"
+  },
+  {
+    "path": "maestro/navigation/2026-10-31_163417/Full native app navigation/takeScreenshot/messages.png",
+    "bytes": 33923,
+    "sha256": "bfc8534accdcfe5f87067224c0c8cbefc549a97ff38bf79f106591a78a08dcda"
+  },
+  {
+    "path": "maestro-memory-capture.log",
+    "bytes": 62,
+    "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+  },
+  {
+    "path": "maestro/navigation/2026-10-31_163417/Full native app navigation/takeScreenshot/profile.png",
+    "bytes": 41801,
+    "sha256": "c615b53c86604f50efc37c893124a1d77e92a28adf66cf9f0b8f643d5d13cabf"
+  },
+  {
+    "path": "maestro-navigation.log",
+    "bytes": 1441,
+    "sha256": "f9d6a33333192567646e35665a4ed61ccb3dd19e833b745dddf9aa64122dccb1"
+  },
+  {
+    "path": "maestro-navigation.xml",
+    "bytes": 4385,
+    "sha256": "dbc84868fb171e6b8a37b3075203ea5f48686357cd97c51068a6f63eb7ac13e6"
+  },
+  {
+    "path": "native-ui-auth-diagnostics.json",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "native-ui-auth-diagnostics-final.json",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "native-ui-receipt-final.json",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "native-ui-receipt.json",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "overlays/index.js",
+    "bytes": 33,
+    "sha256": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c"
+  },
+  {
+    "path": "overlays/metro.config.js",
+    "bytes": 72,
+    "sha256": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534"
+  },
+  {
+    "path": "overlays/modules__boomerang__ios__BoomerangModule.swift",
+    "bytes": 16619,
+    "sha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8"
+  },
+  {
+    "path": "overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt",
+    "bytes": 2990,
+    "sha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617"
+  },
+  {
+    "path": "overlays/src__navigation__AppNavigator.tsx",
+    "bytes": 38123,
+    "sha256": "d7377b4164e5beb7e508f53a24ad03f944ca9126cc83966c5bb8a99617c6c62a"
+  },
+  {
+    "path": "overlays/src__services__supabase.ts",
+    "bytes": 5251,
+    "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5"
+  },
+  {
+    "path": "phase-results.json",
+    "bytes": 63,
+    "sha256": "9488f7548883aadb3421cbedd6aa243cfc4a05c4fc03aad3b3792b1a871e4f1e"
+  },
+  {
+    "path": "prebuild.log",
+    "bytes": 172,
+    "sha256": "d5e4be0a0c10691bffa446716505e068d943d1fca32f0d93d5af6f817e29c4e4"
+  },
+  {
+    "path": "recording.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "sdk-install.log",
+    "bytes": 20090,
+    "sha256": "b7c921a208dbaf25b87729001fd3ec0b8858580d52269f0da99bbf922300e68f"
+  },
+  {
+    "path": "sdk-packages.txt",
+    "bytes": 135,
+    "sha256": "80a8e246e96293b58e0ae0810b43b19794f2dc84077511b3b1d94dd9608e62ab"
+  },
+  {
+    "path": "source.json",
+    "bytes": 59522,
+    "sha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102"
+  },
+  {
+    "path": "toolchain.log",
+    "bytes": 199,
+    "sha256": "ce4d3a9267e0a3cc61da7b1fd7540dc0033332a025f10970aa0aa5994c36b252"
+  }
+]

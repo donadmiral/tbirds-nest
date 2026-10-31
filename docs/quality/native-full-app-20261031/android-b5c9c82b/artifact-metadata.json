@@ -1,0 +1,19 @@
+{
+  "id": 13049009956,
+  "name": "android-full-app-ui",
+  "size_in_bytes": 365665,
+  "url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13049009956",
+  "archive_download_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13049009956/zip",
+  "expired": false,
+  "created_at": "2026-10-31T16:35:53Z",
+  "expires_at": "2026-11-07T16:35:52Z",
+  "updated_at": "2026-10-31T16:35:53Z",
+  "digest": "sha256:fe4e1dab20ff0a5363fb0d0660a008b43d410a729ab01fa3a2b7da1667d4ff86",
+  "workflow_run": {
+    "id": 41218724056,
+    "repository_id": 1314826575,
+    "head_repository_id": 1314826575,
+    "head_branch": "codex/app-quality-20261029",
+    "head_sha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6"
+  }
+}
