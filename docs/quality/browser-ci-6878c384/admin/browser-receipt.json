@@ -1,0 +1,163 @@
+{
+  "checkedAt": "2026-10-31T07:07:36.365Z",
+  "runtime": "153.0.8010.12",
+  "scope": "Actual shared admin components, synthetic records and navigation adapter; not authenticated hosted acceptance",
+  "checks": [
+    {
+      "name": "Corrupt saved navigation preferences do not crash the workspace",
+      "passed": true
+    },
+    {
+      "name": "Unknown queue count is shown as unavailable",
+      "passed": true
+    },
+    {
+      "name": "Command search traps focus, supports Escape and restores focus",
+      "passed": true
+    },
+    {
+      "name": "Record switch clears the previous record action text",
+      "passed": true
+    },
+    {
+      "name": "Required review length prevents a short form submission",
+      "passed": true
+    },
+    {
+      "name": "A valid review submits the selected identity with an idempotency key",
+      "passed": true
+    },
+    {
+      "name": "Pagination never leaves an actionable record from the hidden page",
+      "passed": true
+    },
+    {
+      "name": "Search is case-insensitive and clearing filters restores all rows",
+      "passed": true
+    },
+    {
+      "name": "Tab filter keeps selection inside the visible records",
+      "passed": true
+    },
+    {
+      "name": "Numeric column sorting and rows-per-page controls update actual records",
+      "passed": true
+    },
+    {
+      "name": "Closing record details returns focus to its selected row",
+      "passed": true
+    },
+    {
+      "name": "Closing a full-screen photo preserves the record and restores its original trigger",
+      "passed": true
+    },
+    {
+      "name": "Full-screen gallery navigation retains the selected attachment after closing",
+      "passed": true
+    },
+    {
+      "name": "Charts expose exact values and keyboard-operable series controls",
+      "passed": true
+    },
+    {
+      "name": "Share actions move focus into the panel and Escape returns to the trigger",
+      "passed": true
+    },
+    {
+      "name": "Clipboard rejection is visible and success is announced only after a confirmed copy",
+      "passed": true
+    },
+    {
+      "name": "Table export actions escape the clipped table and remain inside the viewport",
+      "passed": true
+    },
+    {
+      "name": "Dark appearance changes the actual workspace palette",
+      "passed": true
+    },
+    {
+      "name": "Desktop rail collapse preserves accessible route labels",
+      "passed": true
+    },
+    {
+      "name": "Mobile workspace has no horizontal page overflow",
+      "passed": true
+    },
+    {
+      "name": "Mobile drawer traps navigation, closes on Escape and restores trigger focus",
+      "passed": true
+    },
+    {
+      "name": "A note survives storage failure and is collected only after persistence succeeds",
+      "passed": true
+    },
+    {
+      "name": "Mobile export panel and collection tray have no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "Presentation builder loads scoped collections and remains usable at 390 pixels",
+      "passed": true
+    },
+    {
+      "name": "Presentation works when fullscreen is unavailable and offers a visible exit",
+      "passed": true
+    },
+    {
+      "name": "Restricted roles receive no member-search escape or unauthorized quick action",
+      "passed": true
+    },
+    {
+      "name": "Restricted workspace directory excludes deletion, staff and marketplace tools",
+      "passed": true
+    },
+    {
+      "name": "Navigation uses the same scalable outline icon grid for every destination",
+      "passed": true
+    },
+    {
+      "name": "Workflow directory is keyboard-contained, searchable and restores focus on Escape",
+      "passed": true
+    },
+    {
+      "name": "Deletion requests have a real route, selected navigation, breadcrumb and return path",
+      "passed": true
+    },
+    {
+      "name": "Orders and seller reviews remain distinct workflows with their correct parent desks",
+      "passed": true
+    },
+    {
+      "name": "Record details offer a deterministic return to the list even on direct navigation",
+      "passed": true
+    },
+    {
+      "name": "Role guide matches current policy and closes without changing an account",
+      "passed": true
+    },
+    {
+      "name": "Changing the selected record initializes its confirmed role and cannot carry a previous role",
+      "passed": true
+    },
+    {
+      "name": "Offline submission preserves the draft and requires explicit retry after reconnecting",
+      "passed": true
+    },
+    {
+      "name": "The account menu provides security, presentation and actual sign-out controls",
+      "passed": true
+    },
+    {
+      "name": "Workflow map and account controls fit a phone viewport",
+      "passed": true
+    }
+  ],
+  "browserErrors": [],
+  "screenshots": [
+    "desktop-light.png",
+    "desktop-dark.png",
+    "mobile-light.png",
+    "presentation-mobile.png",
+    "workspace-tools.png"
+  ]
+}

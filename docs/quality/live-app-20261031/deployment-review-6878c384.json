@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-31 07:09:03 UTC",
+  "commit": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+  "prMerge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+  "verifiedTree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+  "treesIdentical": true,
+  "method": "Read-only authenticated deployment/alias/bounded-build-event inspection plus direct literal Git object comparisons; no deployment, source, environment, alias, or Git ref mutations.",
+  "applications": [
+    {
+      "application": "web",
+      "project": {
+        "id": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+        "name": "platinum-web",
+        "framework": "nextjs"
+      },
+      "requestedDeployment": {
+        "id": "dpl_FaSXfbC3uimSA6HAsHsQ8bSf8YoN",
+        "commit": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+        "state": "CANCELED",
+        "environment": "preview",
+        "url": "https://platinum-k9nlltpl0-intobank.vercel.app",
+        "createdAt": "2026-10-31T07:05:54.015Z",
+        "cancellationReason": "The deployment was canceled because the Ignored Build Step command returned exit code 0.",
+        "ignoreCommandEvent": "Running \"pc_sha=$VERCEL_GIT_PREVIOUS_SHA; case \"$pc_sha\" in ''|*[!0-9a-fA-F]*) exit 1;; esac; [ \"${#pc_sha}\" -eq 40 ] || exit 1; [ \"$pc_sha\" = \"$(git rev-parse HEAD)\" ] && exit 1; git diff --quiet \"$pc_sha\" HEAD -- . ../shared && exit 0; exit 1\""
+      },
+      "retainedReadyDeployment": {
+        "id": "dpl_BZyKWqMVaJ7ce7kS5NVmfX1xNGAX",
+        "commit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+        "state": "READY",
+        "environment": "preview",
+        "url": "https://platinum-47i0ssv6k-intobank.vercel.app",
+        "branchAlias": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+        "aliasDeploymentId": "dpl_BZyKWqMVaJ7ce7kS5NVmfX1xNGAX",
+        "readyAt": "2026-10-31T04:40:17.747Z"
+      },
+      "sourceEquivalence": {
+        "method": "Complete application/shared/root dependency Git objects compared directly with literal candidate and retained deployment commits. Application trees include own lockfiles, configuration, public assets and scripts.",
+        "inputs": [
+          {
+            "path": "web",
+            "retainedAndCandidateGitObject": "99cfcd225fdf6de428c5b797e2d2c48f07a77bd8"
+          },
+          {
+            "path": "shared",
+            "retainedAndCandidateGitObject": "d676187cb20ae4f214d76754f987357ae41fca15"
+          },
+          {
+            "path": "package.json",
+            "retainedAndCandidateGitObject": "30c0b9e16b8a4822e372c59e677e348a76d3622d"
+          },
+          {
+            "path": "package-lock.json",
+            "retainedAndCandidateGitObject": "929eea34c7feeffa664089b0c708420e0cd92c96"
+          },
+          {
+            "path": "vendor",
+            "retainedAndCandidateGitObject": "81790cd76439aa7d7ac4898663cfe08bf88dfae2"
+          }
+        ]
+      }
+    },
+    {
+      "application": "admin",
+      "project": {
+        "id": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+        "name": "admin-web",
+        "framework": "nextjs"
+      },
+      "requestedDeployment": {
+        "id": "dpl_6fQr6NtWXUZSaDPhZr25AAh1b3Bq",
+        "commit": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+        "state": "CANCELED",
+        "environment": "preview",
+        "url": "https://admin-lb2hiylgc-intobank.vercel.app",
+        "createdAt": "2026-10-31T07:05:53.945Z",
+        "cancellationReason": "The deployment was canceled because the Ignored Build Step command returned exit code 0.",
+        "ignoreCommandEvent": "Running \"case \"$VERCEL_GIT_PREVIOUS_SHA\" in ''|*[!0-9a-fA-F]*) exit 1;; esac; [ \"${#VERCEL_GIT_PREVIOUS_SHA}\" -eq 40 ] || exit 1; git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- . && exit 0; exit 1\""
+      },
+      "retainedReadyDeployment": {
+        "id": "dpl_AVkd9Ygx8v6eUkmVnFRm8ErzBrSM",
+        "commit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+        "state": "READY",
+        "environment": "preview",
+        "url": "https://admin-9csh4ygo3-intobank.vercel.app",
+        "branchAlias": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+        "aliasDeploymentId": "dpl_AVkd9Ygx8v6eUkmVnFRm8ErzBrSM",
+        "readyAt": "2026-10-31T04:03:46.214Z"
+      },
+      "sourceEquivalence": {
+        "method": "Complete application/shared/root dependency Git objects compared directly with literal candidate and retained deployment commits. Application trees include own lockfiles, configuration, public assets and scripts.",
+        "inputs": [
+          {
+            "path": "admin-web",
+            "retainedAndCandidateGitObject": "37d06fed5fed387da0c9b5ad499a3a84fc83721f"
+          },
+          {
+            "path": "shared",
+            "retainedAndCandidateGitObject": "d676187cb20ae4f214d76754f987357ae41fca15"
+          },
+          {
+            "path": "package.json",
+            "retainedAndCandidateGitObject": "30c0b9e16b8a4822e372c59e677e348a76d3622d"
+          },
+          {
+            "path": "package-lock.json",
+            "retainedAndCandidateGitObject": "929eea34c7feeffa664089b0c708420e0cd92c96"
+          },
+          {
+            "path": "vendor",
+            "retainedAndCandidateGitObject": "81790cd76439aa7d7ac4898663cfe08bf88dfae2"
+          }
+        ]
+      }
+    }
+  ],
+  "changedPathsSincePreviousNativeCandidate": [
+    "scripts/quality/test-android-app-ui.sh",
+    "src/components/memory/MemoryFilm.tsx",
+    "src/components/memory/MemoryMovieExport.tsx",
+    "src/hooks/useNativeModalDismissal.ts",
+    "tests/helpers/memoryFilmHarness.cjs",
+    "tests/native/entry.js",
+    "tests/native/expo-fetch-fixture.cjs",
+    "tests/native/flows/memory-capture.yaml",
+    "tests/quality/memory-film.cjs",
+    "tests/quality/native-capture-open-link.cjs",
+    "tests/quality/native-capture-setup.cjs",
+    "tests/quality/native-memory-modal-lifecycle.cjs",
+    "tests/quality/native-timer-bootstrap.cjs"
+  ],
+  "changedDocumentationCount": 107,
+  "priorEvidence": {
+    "webLive": "docs/quality/live-app-20261031/live-navigation-followup-ab281bca.json",
+    "priorDeploymentReview": "docs/quality/live-app-20261031/deployment-review-e173b2db.json",
+    "reuseDecision": "Aliases remain on the same READY builds and complete application/shared/package/lock/vendor inputs match. Earlier live observations retain their original account/timing/sample scope; no repeated hosted journey was necessary or performed."
+  },
+  "limits": [
+    "Neither new candidate deployment is READY: both builds were intentionally ignored, not compiled successfully at this SHA.",
+    "Git input equivalence does not establish environment-variable or backend/runtime-data equivalence. No credential/environment values were retrieved.",
+    "Browser run41179235074 is reviewed separately; full-native run41179235060 is owned by the native acceptance reviewer."
+  ]
+}

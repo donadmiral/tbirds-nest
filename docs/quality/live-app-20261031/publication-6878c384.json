@@ -1,0 +1,517 @@
+{
+  "schemaVersion": 1,
+  "scope": "Publication and fetched-source verification for the combined native follow-up; subsequent CI outcomes are recorded separately.",
+  "publishedHead": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+  "prMerge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+  "identicalTree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+  "parent": "a042acc7cf2ea2efaa690069162b2a2276414912",
+  "previousApplicationHead": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "publication": {
+    "repository": "donadmiral/tbirds-nest",
+    "branch": "codex/app-quality-20261029",
+    "expectedPreviousHeadMatched": true,
+    "force": false,
+    "pr": 3,
+    "draft": true
+  },
+  "verification": {
+    "independentLocalGitTreeComputationMatched": true,
+    "githubCreatedTreeMatched": true,
+    "uniqueBinaryBlobsVerified": 8,
+    "binaryPaths": 9,
+    "allNewChangedDeletedPathsFetchedAndVerified": 75,
+    "sourceAndMergeTreesMatch": true,
+    "publishedParentMatches": true,
+    "localBranchAndIndexAlignedWithoutChangingWorkingFiles": true,
+    "workingTreeCleanImmediatelyAfterAlignment": true
+  },
+  "localGate": {
+    "path": "docs/quality/native-full-app-20261031/native-v5-final-root-regressions.json",
+    "sha256": "d84c1c8a37a57a73eb670f174af61bc269fef2a6a98a303ff6428bc841056df1",
+    "selectedFiles": 169,
+    "formalPassed": 1751,
+    "formalFailed": 0,
+    "formalSkipped": 0,
+    "standaloneAuthChecks": 33,
+    "inputsUnchanged": true
+  },
+  "newRuns": {
+    "quality": 41179235474,
+    "browser": 41179235074,
+    "iosIntegrationEncoders": 41179235256,
+    "androidIntegrationEncoders": 41179235082,
+    "fullNativeApps": 41179235060
+  },
+  "sourceChangesSincePreviousHead": [
+    "scripts/quality/test-android-app-ui.sh",
+    "src/components/memory/MemoryFilm.tsx",
+    "src/components/memory/MemoryMovieExport.tsx",
+    "src/hooks/useNativeModalDismissal.ts",
+    "tests/helpers/memoryFilmHarness.cjs",
+    "tests/native/entry.js",
+    "tests/native/expo-fetch-fixture.cjs",
+    "tests/native/flows/memory-capture.yaml",
+    "tests/quality/memory-film.cjs",
+    "tests/quality/native-capture-open-link.cjs",
+    "tests/quality/native-capture-setup.cjs",
+    "tests/quality/native-memory-modal-lifecycle.cjs",
+    "tests/quality/native-timer-bootstrap.cjs"
+  ],
+  "candidateFiles": [
+    {
+      "path": "docs/quality/APP_RELIABILITY_CONTINUATION_20261031.md",
+      "deleted": false,
+      "sha256": "43bf8921e452e0fa9d834293119d70b9cca982f833c60a23fd9d99b69a5613a1",
+      "gitBlob": "e1c8096180276f06d46b997ee9260184d5829819"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db-auth-independent-review.json",
+      "deleted": false,
+      "sha256": "982643486cf0b04d60b69c6f14cb6ee4187bef0c1e84482b47c819271d232c58",
+      "gitBlob": "05dbc24f1025a7c3ba9930d1e8bc19a90dff8e13"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/overlays/src__services__supabase.ts.txt",
+      "deleted": false,
+      "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+      "gitBlob": "e8b747f941522baa6927d4e30daf8055ad9b7575"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/expo-browser-existing-session-observation.json",
+      "deleted": false,
+      "sha256": "22b4da198fde9a9966088b2d105e8a7fb432db111a91d91149070a19baa08cfc",
+      "gitBlob": "ad12e86bf57c02c9e7c3c4fe698baee6a03f647f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-signature-before-resign.log",
+      "deleted": false,
+      "sha256": "cbbed04053cee38b4615c41248b6244e6a1f9d98eceb1bd925ad3de56b539c3c",
+      "gitBlob": "cee3fa797234e3fb5b23bd3773980814392da383"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-signature-verification.log",
+      "deleted": false,
+      "sha256": "f0ccb9045d05b5def9c7ddf6c70864b92a59b61cdd39c431dd7b356ed1e5490e",
+      "gitBlob": "40780d69c6ad5ce2a7184a70518c6d623f3ab815"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-signature.log",
+      "deleted": false,
+      "sha256": "d0ee371f12bdaf3bcb2be2ce8577eee818b69359cda538409b706f6fdc1c971b",
+      "gitBlob": "b164836f44c4c74c595fd40f2d4c705c70cd58b6"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-signing.log",
+      "deleted": false,
+      "sha256": "072b72a1b428d4369dce58316e69aff87d3c6e34c017cd3e1226ddefdb2ee048",
+      "gitBlob": "cdb6cf6308490449d48bde6b1a069841dc1411f7"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-capture-open-link-independent-review.json",
+      "deleted": false,
+      "sha256": "8f1ad9483d4c7fa070c304ed3e4233bb6a6d444f0848154fc82a9368586bb7f5",
+      "gitBlob": "0b6f80b6eb74eab834deff578e133a5f12c2ff3b"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-capture-open-link-repair.json",
+      "deleted": false,
+      "sha256": "87da10e2ae81a3afb78fe9be7b5b97effb35f6450b7a918b708eb8544663a184",
+      "gitBlob": "818e3b3d3493ab7998f5a49ad693ad8d241eb152"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-auth-runtime-review.json",
+      "deleted": false,
+      "sha256": "3be2a44e286115897439902214c13baf9bfe225801e8b9fc27c909618ce0b656",
+      "gitBlob": "4e3d97e28fdf159577a8ce065b2f3891e9acb7a4"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-memory-navigation-review.json",
+      "deleted": false,
+      "sha256": "03c26fd1da464d1c70262fea28cc4489749879b4985e923439a50102e748dc29",
+      "gitBlob": "a0a61defb425bae6e120f9024af58d5cb4398425"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-signing/simulator-entitlements-before-resign.json",
+      "deleted": false,
+      "sha256": "e5d99760ac25963889a44e3f83db998ce5d8946b012d98871a3006a7491fa946",
+      "gitBlob": "16716937f05a14722ab58c70f578b9b2339a922f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-signing/simulator-entitlements.json",
+      "deleted": false,
+      "sha256": "5fcfeaa905f4dabc7a8d4aaeace8db269c247e819ab22a6768e40865571c4726",
+      "gitBlob": "765dbbf398f61b1f6c3a214e49621fd4760e45d9"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-signing/simulator-host-entitlements-before-resign.plist",
+      "deleted": false,
+      "sha256": "00491886daae07a5296c8bad50f116bf006b0004d7bf7338ad46669fbd903a4a",
+      "gitBlob": "6dbaad6647e8894742541a1db7dd7a1313dfeaee"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-signing/simulator-host-entitlements.plist",
+      "deleted": false,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-signing/simulator-signature-before-resign.log",
+      "deleted": false,
+      "sha256": "c2aef88a86a8ff48fb8d055d177e78dfad8a7fc1d9d177397bdbf293d73c0acc",
+      "gitBlob": "e7ec1a223fbf9490c76d34bcfc41d391cd6a1068"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-signing/simulator-signature-verification.log",
+      "deleted": false,
+      "sha256": "f0ccb9045d05b5def9c7ddf6c70864b92a59b61cdd39c431dd7b356ed1e5490e",
+      "gitBlob": "40780d69c6ad5ce2a7184a70518c6d623f3ab815"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-signing/simulator-signature.log",
+      "deleted": false,
+      "sha256": "7c2b13a437f54af76fed8fe88768ef8c31e810492afcc8ddb9d89b6fa57907a2",
+      "gitBlob": "a5e6323a148b30ec42661f1d3442e056e7593c19"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-signing/simulator-signing.log",
+      "deleted": false,
+      "sha256": "072b72a1b428d4369dce58316e69aff87d3c6e34c017cd3e1226ddefdb2ee048",
+      "gitBlob": "cdb6cf6308490449d48bde6b1a069841dc1411f7"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/account-write-log-projection.json",
+      "deleted": false,
+      "sha256": "ea7811830a19c15f19523f9db0b84556e09f272a4086baf50582d02aa68b33f0",
+      "gitBlob": "b3e6e21d56199f800778e9a177a35ffbbd776210"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/capture-commands.json",
+      "deleted": false,
+      "sha256": "52be8947bee672ebb6cb474e8b4f6c069d93ab4ecc7e40e9db2a09e29d2dc0b6",
+      "gitBlob": "c2d93ab0c648e07be263226f938b2939afbba4da"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/capture-open-link-ax.json",
+      "deleted": false,
+      "sha256": "df636b1b3ce9ddcf2439db86478f543415a28e24f9e9ea487f0603edb7237696",
+      "gitBlob": "18a8b3becd5603f0e15391d57bcba8fdd8d33857"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/capture-open-link.png",
+      "deleted": false,
+      "sha256": "7a115edbd88951c3fd1e5da02b6e1a4bf2d52edd2f8b9a0056e3eae1c33c4c5d",
+      "gitBlob": "5580234934ab8e8de60fcdfe0f9e6fc24dd1a435"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/flow-results.json",
+      "deleted": false,
+      "sha256": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85",
+      "gitBlob": "f70d0de831278257855d30473a05355f3e9f6e6d"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/flow-verification.json",
+      "deleted": false,
+      "sha256": "563b1fc2263772fab105ed01de4ef3fbadccc02cec744309682a392fb1cc83f6",
+      "gitBlob": "a643e3ad25c9ffee13e92d01837c99a4d8ff308a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/maestro-memory-capture.xml",
+      "deleted": false,
+      "sha256": "55f48ed83dbba401c51d9ff9fff8f8e17ef9f8873f0fb4b93a96a433f07cc294",
+      "gitBlob": "b836361fa5491b72f27af023004a52a4ffb7e594"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/memory-export-entry.png",
+      "deleted": false,
+      "sha256": "f770e14e87e7971e80ce1b57221d77601f52acc0fa17cf32a695157510cea8c0",
+      "gitBlob": "1224d1081bec2bb194cadc7feb2a76d7439e1612"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/memory-film.png",
+      "deleted": false,
+      "sha256": "133bc6f3462263c2ee2ff455279ceeaaa68043033751221591689e772a202e39",
+      "gitBlob": "106b934a585c8fb883c45f38229ebfe71ec1d4d9"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/memory-reader.png",
+      "deleted": false,
+      "sha256": "aa72fd2bffcd1cc5a70c28972ade9aee3d3644eb098e97a540a36687bfcc483f",
+      "gitBlob": "424e4ee47375063115fb9e1921885dd9abf2723f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/memory-shelf.png",
+      "deleted": false,
+      "sha256": "99a70a89d21ab219c63149dcff288ccb01cab66293aac236028a332207eff8f4",
+      "gitBlob": "67a7168d1d637f0194b8dffe8c440a0ea6cab022"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/native-ui-auth-diagnostics.json",
+      "deleted": false,
+      "sha256": "0750d5b6a3f1dfe6eb3ea58edf8856389eab7257559be164a9ba48b14bb18772",
+      "gitBlob": "3e6af1919407a2b0e4af8034aad041b1b76911d0"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/native-ui-receipt.json",
+      "deleted": false,
+      "sha256": "e1dac86fd43457ef3e91840de0a35674a1f67838b12485b2689a2ca86f5d6459",
+      "gitBlob": "8fee9308f0af9c4d822ae62c13f8c168dea1a49a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/navigation-commands.json",
+      "deleted": false,
+      "sha256": "f679686cffd74a045a577936869e81b15fd514baf3a5fde77c2dfd691a27160a",
+      "gitBlob": "83324a1df9642509377324b168c2f0ea6aee9acc"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/navigation-frame-590s.png",
+      "deleted": false,
+      "sha256": "daeae40988f25c9c76d47c0569df9e46fe4e31f5a0cdadd485284902d22cb7d2",
+      "gitBlob": "f9b5cd4a492d1566ea0d8d7efa81b42df4551147"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/navigation-frame-594s.png",
+      "deleted": false,
+      "sha256": "7c5828dd4d60cc5de0ca2299d3071b3d87ca1529d78b17aa01cd457d783cf99f",
+      "gitBlob": "aad82d020e53a5cb6b220ff25eabaf74e828900b"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/navigation-frame-616s.png",
+      "deleted": false,
+      "sha256": "7c5828dd4d60cc5de0ca2299d3071b3d87ca1529d78b17aa01cd457d783cf99f",
+      "gitBlob": "aad82d020e53a5cb6b220ff25eabaf74e828900b"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/navigation-junit.xml",
+      "deleted": false,
+      "sha256": "398f609a94fbfa8b122f2666e9d36359253ffc49e25376a42bf67d84358f8f04",
+      "gitBlob": "0c30c7806bde1713f5bc8ae349505799c76a4855"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/phase-results.json",
+      "deleted": false,
+      "sha256": "9488f7548883aadb3421cbedd6aa243cfc4a05c4fc03aad3b3792b1a871e4f1e",
+      "gitBlob": "52e88cb29efb55bf4c2c8257c22af4975f93c1b1"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/settings-failure-ax.json",
+      "deleted": false,
+      "sha256": "47094766e2eb4d1967f5ed81a612af9798529776d7a3c33fd57e6f028be736af",
+      "gitBlob": "661fd38732abb06438e5850d822dc0ea75cf72d8"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/settings-failure.png",
+      "deleted": false,
+      "sha256": "98e0fe4ed00d54054f92ec4735b690746845da0290baa55df7176815de98492c",
+      "gitBlob": "56a5e0a1e3350672b0f68639052e7fb0abb6f88d"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/settings-tap-log-projection.json",
+      "deleted": false,
+      "sha256": "a3974822cb9d0d89cd5c3f4c66960448e37511f4c168dca11f6c4bb2f6968a42",
+      "gitBlob": "813bceb1b25e0078a4179a324e19ae63361ee9e7"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/toolchain.log",
+      "deleted": false,
+      "sha256": "8d315d67a5517bc04b78c43c06e9ef5213bbb599704c907128dd3ad66b06ab29",
+      "gitBlob": "b7c213911075444194159c9987a05003ed481d69"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-full-app-e173b2db-review.json",
+      "deleted": false,
+      "sha256": "90825f9f814491be8d32bbc9a70f1c310c641135b15880ebc59cb771525e90ae",
+      "gitBlob": "49e6fb7658b8b2e93ed4eec49da91ff92ca4b6e9"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-capture-setup-independent-review.json",
+      "deleted": false,
+      "sha256": "b07cbdcb700b9027c5066e7e1bcf76802bb3a7b16b02220cd80d0d171487d8ee",
+      "gitBlob": "9c8a508ceef3e82c5062d0edc7efc029cd1ba537"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-capture-setup-repair.json",
+      "deleted": false,
+      "sha256": "be1bb8c99c56fa2667914dc98259abfa08439b9ee5ac98b5e960c2ed7ef7bb1f",
+      "gitBlob": "57d4480bc25660c51866ccdfa2da0975c172b918"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-capture-setup/android-installed-asset-reproduction.json",
+      "deleted": false,
+      "sha256": "c621b038cd13d19595071e17afa9f2b8952d9355744168953d5c871ddb367e4b",
+      "gitBlob": "2f63c1017b3558e79a95d22c726954588943aef1"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-capture-setup/focused-tests.txt",
+      "deleted": false,
+      "sha256": "d3e97ec057d6267ef3e7f8be805fdbc808a6c604e49181b4bf1b5c9ef2d5a9ba",
+      "gitBlob": "7892d82c23dbedca9a81b49ccfc03298953b52fc"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-capture-setup/independent-abort-probes.cjs.txt",
+      "deleted": false,
+      "sha256": "bb5c9b1d25f3eae1718c0a6ca3bf9070e57158b3fbf45082faa2ad8b7bdeff9a",
+      "gitBlob": "9d4e42a17047d21cdc3adfa68f5ee71e2f1e0a98"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-capture-setup/independent-abort-probes.json",
+      "deleted": false,
+      "sha256": "bbf1d8968cd6fc2a69105643cc3f17bf1e3f980f93b35a917054b3f054fab1df",
+      "gitBlob": "7cdb32856e5bdfdd67ddb4701c769249d15bf686"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-capture-setup/independent-focused.tap",
+      "deleted": false,
+      "sha256": "39890e1c0649b993d2571493210f26791c5a2f331f02d5d6407cc3fe6f58099f",
+      "gitBlob": "e9a87658c292d5c3c2eda6e8a0aa200e59e97846"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-capture-setup/route-default-action-reproduction.json",
+      "deleted": false,
+      "sha256": "693e116a4a0e2c3c8f19f722247265a2eb4832d9a052f518ad3edf7f6ac00e02",
+      "gitBlob": "7e88fe04a2f7bb66e72bbb483f31c048dfa32abe"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-modal-dismissal-independent-review.json",
+      "deleted": false,
+      "sha256": "51022fabb9eae04ad7df47d424001f4f794ff9162ac5d2d079f8a1e3e852b604",
+      "gitBlob": "5326113904efac6782aa952b6b237bb552d2b766"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-memory-modal-dismissal-repair.json",
+      "deleted": false,
+      "sha256": "06654a7a4789ae3d211373f3f15f2bfcf8a923522f4a24b8381ed12c943bb33a",
+      "gitBlob": "ab4dc3f37e9b9f8c41525cf023873bb316b866d3"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-modal-lifecycle/dismissal.tap",
+      "deleted": false,
+      "sha256": "d99c2ebf23c80db90cacd7367a3181eda69f4127eb0817649062d13a6cde693b",
+      "gitBlob": "dd1e629474bc79b0a53b2388a3c3dd1994b9542e"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-modal-lifecycle/e173-negative.tap",
+      "deleted": false,
+      "sha256": "57afee6f4ac114fab5894fee8a923d990649a789a3301c150e8464c840de74e1",
+      "gitBlob": "fe443d1f478541736dd2c05a09434dafee6ffc0f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-modal-lifecycle/film-lifecycle.tap",
+      "deleted": false,
+      "sha256": "b320b35c28f0907ca2a90fc1871950cab615d612df5aac400ce39b8bfe3003a1",
+      "gitBlob": "c7d0736890bfe1e6d3a7cbaea0394fdbb472fc1a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-modal-lifecycle/film.tap",
+      "deleted": false,
+      "sha256": "9130365f53cbccf844386192cd9aaabf371b3dda1749749a45aaab1097380019",
+      "gitBlob": "4e1ef8dcb517e2f308729bd3a9e81d1e3d57cdaa"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-v5-final-root-regressions.json",
+      "deleted": false,
+      "sha256": "d84c1c8a37a57a73eb670f174af61bc269fef2a6a98a303ff6428bc841056df1",
+      "gitBlob": "8af705f636ce93a60f6f92a037cf69fba730a615"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-v5-local/root-isolated.txt",
+      "deleted": false,
+      "sha256": "4b478086109ce4dceac1680c4bf41c4d4d835281db2954be5b910d838b004034",
+      "gitBlob": "a2634b1377772af656c659baba1b6e3532c3b1ea"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-v5-local/root-sandbox-attempt.tap.txt",
+      "deleted": false,
+      "sha256": "05ac82362bac16ef2551d3f982d018020543da01fb3427e6f4337f6b138f38a7",
+      "gitBlob": "d8e95eebf29005546033489f6bc227615ed3aa4c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-v5-root-sandbox-attempt.json",
+      "deleted": false,
+      "sha256": "72bfab8cb409e22a63a18593514725344421192754ddfaf2ed26a2a6b4fe1c90",
+      "gitBlob": "957d679b3e2ed311f3e875009fcf5916a802b7af"
+    },
+    {
+      "path": "src/components/memory/MemoryFilm.tsx",
+      "deleted": false,
+      "sha256": "3b144c45ce8f5b85ef890806c2f3e0752b1e77950f7cfa9b357fb6e1c46971b4",
+      "gitBlob": "64f6c75a6567e74dcba01ad5d9ea7a54d955d209"
+    },
+    {
+      "path": "src/components/memory/MemoryMovieExport.tsx",
+      "deleted": false,
+      "sha256": "f08a34b3f5ebf06a43cabf717e6e8b0cf3eda145a5ecfa38ccd99eb4823bae3a",
+      "gitBlob": "e0a4f4b0663f1e0beb5b519b6b1e65eeb19f15f7"
+    },
+    {
+      "path": "src/hooks/useNativeModalDismissal.ts",
+      "deleted": false,
+      "sha256": "3cece062691b5407cec3a2a9f45c01fc12f5a42e2eea25972de7f7e6b2053974",
+      "gitBlob": "e01e7949e03a4756719f084ad7c08557e7243e4c"
+    },
+    {
+      "path": "tests/helpers/memoryFilmHarness.cjs",
+      "deleted": false,
+      "sha256": "af11d4804b94848a01716915190a0c6f1996bec131b7f51fbdc203ecd3464157",
+      "gitBlob": "0cf371e017503232bf43e1ed4e3f24429f8d338e"
+    },
+    {
+      "path": "tests/native/entry.js",
+      "deleted": false,
+      "sha256": "f2b85281d0355d80ff005627005d8fa07aa131ba2626a70c216d925669803f55",
+      "gitBlob": "af3eef07e6e04540abb987413d81123282f7cda9"
+    },
+    {
+      "path": "tests/native/expo-fetch-fixture.cjs",
+      "deleted": false,
+      "sha256": "581958e6f71da21d7707863ad3b30062a9c47682eb2611c697055e03f3f7beec",
+      "gitBlob": "b6b6e3887dea5205833a2b8ac2b4853066050627"
+    },
+    {
+      "path": "tests/native/flows/memory-capture.yaml",
+      "deleted": false,
+      "sha256": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde",
+      "gitBlob": "f48932ce85f613a4ae25bbd45028c2407fbc061b"
+    },
+    {
+      "path": "tests/quality/memory-film.cjs",
+      "deleted": false,
+      "sha256": "a2a698622f7ad99004ae8f2a624f8060e1470344474b7aab2aadb95aad9b36fa",
+      "gitBlob": "455507f5577a729eba6486363bd36c75d2bddb92"
+    },
+    {
+      "path": "tests/quality/native-capture-open-link.cjs",
+      "deleted": false,
+      "sha256": "8789514527b86f1a6a5caa89ef5f1f67798f85f2f51d4dab5ddcf114696e192f",
+      "gitBlob": "2e54acd508702a618e3f72898ba4c1f9f6456daa"
+    },
+    {
+      "path": "tests/quality/native-capture-setup.cjs",
+      "deleted": false,
+      "sha256": "3acca49540381734d53e55f954ddea6eabe7175bf363b51e81a4ba963c112547",
+      "gitBlob": "e6c457422b66236a797b0c89e72df8fd5697d45d"
+    },
+    {
+      "path": "tests/quality/native-memory-modal-lifecycle.cjs",
+      "deleted": false,
+      "sha256": "703472667f28470092ef471688b7bd5aaf95e1de79d5e78d16ff011603052687",
+      "gitBlob": "28002fdcf6f4f49cf2ef34aa73b90cb11ca285b9"
+    },
+    {
+      "path": "tests/quality/native-timer-bootstrap.cjs",
+      "deleted": false,
+      "sha256": "f9527e61f00a4c0e400e7a759121df6e0b7f4a01eae7df3b8620bf400a9ced2c",
+      "gitBlob": "c1578627ce71f893f19ee384503e7791554fb3d0"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/overlays/src__services__supabase.ts",
+      "deleted": true,
+      "sha256": null,
+      "gitBlob": null
+    }
+  ],
+  "limits": [
+    "Publication and local regression success do not establish complete native runtime acceptance.",
+    "No merge, production promotion, signed-device build or TestFlight submission is recorded here."
+  ],
+  "recordedAtUtc": "2026-10-31T07:13:24Z"
+}

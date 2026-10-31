@@ -1,0 +1,617 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T07:15:22.575153Z",
+  "repository": "donadmiral/tbirds-nest",
+  "scope": "Fresh standalone encoder CI completion/log evidence with unchanged-source comparison; no new archive download or independent media decode.",
+  "sourceBinding": {
+    "headSha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "checkoutMergeSha": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "headTreeSha": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+    "mergeTreeSha": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+    "treesIdentical": true,
+    "method": "GitHub immutable commit metadata, local Git objects, and each completed encoder job checkout log."
+  },
+  "freshEncoderCases": {
+    "cases": 58,
+    "pass": 58,
+    "fail": 0,
+    "skipped": 0,
+    "countingRule": "39 Android instrumentation cases + 8 iOS story cases + 11 iOS memory cases. Measurements within each case are not counted again."
+  },
+  "encoderJobs": [
+    {
+      "kind": "android-story-and-memory",
+      "workflowRun": 41179235082,
+      "jobId": 124473037000,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41179235082/job/124473037000",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T07:05:57Z",
+      "completedAt": "2026-10-31T07:11:56Z",
+      "jobElapsedSeconds": 359.0,
+      "checkoutMergeSha": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+      "counts": {
+        "cases": 39,
+        "pass": 39,
+        "fail": 0,
+        "skipped": 0
+      },
+      "observedLogSummary": "Android production story and memory encoder instrumentation passed",
+      "countEvidence": "Authenticated completed job log and the unchanged mandatory acceptance script. The script rejects missing, failed or skipped declared cases; this review did not download the raw JUnit or simulator receipt archive.",
+      "logProvenance": {
+        "normalizedPath": "/tmp/platinum-native6878-124473037000.log",
+        "normalizedSha256": "033ca1dc40a84ad210b0c89b1252447ba037a2afdb625f5239ab19e373e1e7a2",
+        "bytes": 71610,
+        "normalization": "UTF-8 body with leading ISO timestamp prefixes, ANSI escape sequences and initial BOM removed; final newlines canonicalized to one LF."
+      },
+      "artifactMetadata": {
+        "id": 13034267729,
+        "name": "android-story-audio-export",
+        "bytes": 1513600,
+        "providerReportedDigest": "sha256:2c3a2f56089207baf403adeef00c7fb0c054c90ca49b7ead1575e8c22999b996",
+        "createdAt": "2026-10-31T07:11:55Z",
+        "expiresAt": "2026-11-07T07:11:54Z",
+        "runHeadSha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+        "archiveDownloaded": false,
+        "archiveDigestIndependentlyVerified": false,
+        "currentMediaIndependentlyDecoded": false
+      },
+      "currentPrintedReceiptBinding": {
+        "commit": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+        "workflowRun": "41179235082",
+        "compiledSourceCopiesVerified": true,
+        "sourceHashesIndependentlyMatchedToPublishedCommit": {
+          "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+          "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+          "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+          "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+          "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+          "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+          "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+          "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt": "692e0629c6ee7a642ed17cd3b00cba8c64d6b6e56854839deabaf8261573bf51",
+          "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6"
+        },
+        "storyCases": 23,
+        "memoryCases": 16,
+        "emulatorBuild": "Android/sdk_phone64_x86_64/emu64x:15/AE3A.240806.019/12368160:userdebug/test-keys",
+        "toolchain": {
+          "agp": "8.11.0",
+          "kotlin": "2.1.20",
+          "compileSdk": "36",
+          "minSdk": "24"
+        },
+        "media3Version": "1.8.1",
+        "reportedMovieFiles": 39,
+        "reportedNormalizedImages": 3,
+        "reportedHashesIndependentlyCheckedAgainstBinaryFiles": false
+      },
+      "caseNames": [
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "imagePreparationRejectsUnsafeInputsAndPreservesExistingFiles",
+          "seconds": "0.066"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "aggregateInputBytesAreBoundedWithoutCopyingLargeSources",
+          "seconds": "0.071"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "sourcePathsRemainConfinedEvenThroughSymlinks",
+          "seconds": "0.054"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "stillScenesKeepOrderAndContinuousDuckedSoundtrack",
+          "seconds": "10.779"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "normalizedJpegHonorsExifOrientation",
+          "seconds": "0.024"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "animatedContainersAreRejectedBeforeStaticPreparation",
+          "seconds": "0.027"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "sceneArtworkFadeAndMotionUseLocalTime",
+          "seconds": "8.492"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "movieLimitsAndGainContinuityAreEnforcedBeforeWriting",
+          "seconds": "0.204"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+          "seconds": "0.833"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "videoPageAndBookAudioPreserveIndependentClocks",
+          "seconds": "12.871"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "cancellationReleasesWriterBeforeRetryAndBlocksStory",
+          "seconds": "3.29"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "onePassBookMusicDoesNotShortenSilentTail",
+          "seconds": "6.862"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "mutedVideoKeepsPageVoiceoverAndSilentCards",
+          "seconds": "9.128"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "zeroGainBookSelectionEncodesSilence",
+          "seconds": "4.532"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "cancelAllStopsMovieAndImagePreparation",
+          "seconds": "1.614"
+        },
+        {
+          "class": "expo.modules.boomerang.MemoryMovieExportTest",
+          "name": "normalizedPngIsBoundedAndPreservesTransparency",
+          "seconds": "1.052"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+          "seconds": "3.475"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+          "seconds": "1.436"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+          "seconds": "4.236"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+          "seconds": "4.53"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+          "seconds": "1.611"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "invalidInputsCannotOverwriteOrEscapeTheCache",
+          "seconds": "0.056"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+          "seconds": "0.003"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "soundtrackVolumeAndZeroGainAreEncoded",
+          "seconds": "2.897"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "fullColorMatrixScaleAndTranslationMatchPixels",
+          "seconds": "1.437"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "selectedExcerptLoopsThroughActualStillMovie",
+          "seconds": "1.766"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "originalOnlyAudioIsPreservedAndMeasured",
+          "seconds": "4.407"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "mutedOriginalDoesNotLeakIntoTheMovie",
+          "seconds": "4.311"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+          "seconds": "6.442"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+          "seconds": "0.729"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+          "seconds": "3.022"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+          "seconds": "1.712"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+          "seconds": "1.912"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+          "seconds": "3.241"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+          "seconds": "5.864"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "longVoiceoverIsClippedToTheOutputMovie",
+          "seconds": "1.257"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk",
+          "seconds": "0.992"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+          "seconds": "4.577"
+        },
+        {
+          "class": "expo.modules.boomerang.StoryAudioExportTest",
+          "name": "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop",
+          "seconds": "4.743"
+        }
+      ]
+    },
+    {
+      "kind": "ios-story",
+      "workflowRun": 41179235256,
+      "jobId": 124473038110,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41179235256/job/124473038110",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T07:05:58Z",
+      "completedAt": "2026-10-31T07:12:01Z",
+      "jobElapsedSeconds": 363.0,
+      "checkoutMergeSha": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+      "counts": {
+        "cases": 8,
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      "observedLogSummary": "Native encoded story audio: all eight named simulator cases passed; all six movies retained and hashed.",
+      "countEvidence": "Authenticated completed job log and the unchanged mandatory acceptance script. The script rejects missing, failed or skipped declared cases; this review did not download the raw JUnit or simulator receipt archive.",
+      "logProvenance": {
+        "normalizedPath": "/tmp/platinum-native6878-124473038110.log",
+        "normalizedSha256": "4305b326b5877c712e65747ad4429882b875bd13a3cc0fb2cd9ee7cd89c3c0da",
+        "bytes": 14878,
+        "normalization": "UTF-8 body with leading ISO timestamp prefixes, ANSI escape sequences and initial BOM removed; final newlines canonicalized to one LF."
+      },
+      "artifactMetadata": {
+        "id": 13034970008,
+        "name": "native-story-audio-export",
+        "bytes": 409269,
+        "providerReportedDigest": "sha256:72ee0e3db7f37efe1bcef2653599788ac1a51ec9033da254d653f937ea5906b6",
+        "createdAt": "2026-10-31T07:11:56Z",
+        "expiresAt": "2026-11-07T07:11:55Z",
+        "runHeadSha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+        "archiveDownloaded": false,
+        "archiveDigestIndependentlyVerified": false,
+        "currentMediaIndependentlyDecoded": false
+      },
+      "currentReceiptContentsReviewed": false
+    },
+    {
+      "kind": "ios-memory",
+      "workflowRun": 41179235256,
+      "jobId": 124473037767,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41179235256/job/124473037767",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T07:05:58Z",
+      "completedAt": "2026-10-31T07:13:07Z",
+      "jobElapsedSeconds": 429.0,
+      "checkoutMergeSha": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+      "counts": {
+        "cases": 11,
+        "pass": 11,
+        "fail": 0,
+        "skipped": 0
+      },
+      "observedLogSummary": "Native whole-book movies: all eleven named simulator cases passed; seven movies and both normalized PNGs retained and hashed.",
+      "countEvidence": "Authenticated completed job log and the unchanged mandatory acceptance script. The script rejects missing, failed or skipped declared cases; this review did not download the raw JUnit or simulator receipt archive.",
+      "logProvenance": {
+        "normalizedPath": "/tmp/platinum-native6878-124473037767.log",
+        "normalizedSha256": "7591e99389754eb627769b06c5b4346a17e77c7d9578e18a16bf50ed52de259e",
+        "bytes": 17130,
+        "normalization": "UTF-8 body with leading ISO timestamp prefixes, ANSI escape sequences and initial BOM removed; final newlines canonicalized to one LF."
+      },
+      "artifactMetadata": {
+        "id": 13034650722,
+        "name": "native-memory-movie-export",
+        "bytes": 411829,
+        "providerReportedDigest": "sha256:f58f096c5160deaaee2f6a12920eb37447a430e6c81cb139d73b049692390813",
+        "createdAt": "2026-10-31T07:13:02Z",
+        "expiresAt": "2026-11-07T07:13:00Z",
+        "runHeadSha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+        "archiveDownloaded": false,
+        "archiveDigestIndependentlyVerified": false,
+        "currentMediaIndependentlyDecoded": false
+      },
+      "currentReceiptContentsReviewed": false
+    }
+  ],
+  "sourceEquivalence": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "base": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "comparedScopes": [
+      "modules",
+      "plugins",
+      "vendor",
+      "package.json",
+      "package-lock.json",
+      "app.json",
+      "app.config.js",
+      ".github/workflows/ios-native-compile.yml",
+      ".github/workflows/android-native-compile.yml",
+      "scripts/quality/compile-ios-simulator.sh",
+      "scripts/quality/compile-android-native.sh",
+      "scripts/quality/test-ios-story-audio.sh",
+      "scripts/quality/test-ios-memory-movie.sh",
+      "scripts/quality/test-android-story-audio.sh",
+      "scripts/quality/StoryAudioExportHarness.swift",
+      "scripts/quality/MemoryMovieExportHarness.swift",
+      "scripts/quality/android-story-export",
+      "scripts/quality/android-media-dependencies.init.gradle"
+    ],
+    "changedPaths": [],
+    "fileCount": 65,
+    "manifestSha256": "890c0f98a74ec26960cc6f2d11fd41deaa443593e5b7967b2d210a63020ced60",
+    "manifest": {
+      ".github/workflows/android-native-compile.yml": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+      ".github/workflows/ios-native-compile.yml": "41366d7673b2c4781c998cf80655fde1cc2041f19a607b10dc6dd088b5784510",
+      "app.config.js": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+      "app.json": "129b756b7bf5e6e1b6b456bbe982f63923b83b0568fa41cac6721a892ea555c2",
+      "modules/boomerang/android/build.gradle": "1073ed103b08ff07f4f21f79d5914497ef03c990b11bb2be7eadcfe6e287dbb4",
+      "modules/boomerang/android/src/main/AndroidManifest.xml": "2546c8dc8df1bcb3de9278896051f61500eb3c7fdf666410f99d9f12946242fc",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+      "modules/boomerang/expo-module.config.json": "ba5f8cb49be7bc1f8f5e6e0770a6df48146627b03727e1fb263e15b32ac8ede3",
+      "modules/boomerang/index.ts": "09c80294bafef7e7beefa2a0d4a3f12c2ea50bfcb395128ab3e7f278e56c3ea1",
+      "modules/boomerang/ios/Boomerang.podspec": "6a14d809da8b187413f12049416b2bc0eabb6d12e76e5df480f59c316445a512",
+      "modules/boomerang/ios/BoomerangModule.swift": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+      "modules/boomerang/ios/MemoryMovieComposition.swift": "920fc4a01277f3712863909ca8188ef7b3a7efa3b4e560d9caeba056addc0d11",
+      "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+      "modules/boomerang/ios/StoryVideoView.swift": "1601cd03287a4c42e395a1c7f7163cf3465daaab6f0f6957a1264569725749ac",
+      "modules/boomerang/memoryComposition.ts": "b3d85bf48e3923e8636aaa2eab00c9a73734f78a10314e350278948882687bf5",
+      "modules/boomerang/package.json": "38d4ccb5e267741ae967791370bbed92bcfaa8ad9ab12a802d15f4c140cb25e2",
+      "modules/boomerang/storyComposition.ts": "94ce20c34f1d7e893057127364a43aa21ca69e0ee57a018007af22a533b0c075",
+      "modules/boomerang/storyVideo.tsx": "803d9eb95350ed2379681b5fee83dc89a81a7d9db3be39bb1aa548f973da112a",
+      "package-lock.json": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+      "package.json": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+      "plugins/withVoipPushKit.js": "badab0e2ea3925e85cf7fae8a7e492f01b7af824c3132c937fa2c4a527ffda4a",
+      "scripts/quality/MemoryMovieExportHarness.swift": "515ec7ad6e1150a0e7035defb7fcde9699b96067637204137f16a2e5681f874f",
+      "scripts/quality/StoryAudioExportHarness.swift": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+      "scripts/quality/android-media-dependencies.init.gradle": "19537f9653fe95d4271c5cadc52e3363c3103b3e7dfdb79b70e37979593b005f",
+      "scripts/quality/android-story-export/.gitignore": "48beb236df7bcd0e416ba90634a2bce8c8660529b83a959043981276783fd79c",
+      "scripts/quality/android-story-export/build.gradle": "43d2e6d7df99ba6fb4c51870416b93271cd074a150728042acfb5580cfc0a0ad",
+      "scripts/quality/android-story-export/gradle.properties": "d477c6ea499a0b0916442e37bca983ae0a6f22d4b8c22f1882be0e5cd34b7b4c",
+      "scripts/quality/android-story-export/settings.gradle": "c28f8c006ff219e6e7e8c9dc90d5d2eff36eb87b59f0dd7596ee7e1be61d695b",
+      "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+      "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+      "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+      "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+      "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt": "692e0629c6ee7a642ed17cd3b00cba8c64d6b6e56854839deabaf8261573bf51",
+      "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6",
+      "scripts/quality/android-story-export/src/main/AndroidManifest.xml": "a6c09b92672c80c279243f688eff43369a6d327305e40e9d6fc99edadf0d07be",
+      "scripts/quality/android-story-export/src/main/java/expo/modules/boomerang/FixtureMediaProvider.kt": "6b253b3cf247efdaee5e539361de5f4189d1fe0641def507c5b92cac79efb450",
+      "scripts/quality/compile-android-native.sh": "d638f2dedd0026cd91b149354927899185cbdf4c55c3f3db7a1b61b566f6fbf7",
+      "scripts/quality/compile-ios-simulator.sh": "c920dab98837d4cb4397cd8bf7ac7e9ec078c29f2cf30639717be59257eaf898",
+      "scripts/quality/test-android-story-audio.sh": "8b9aba3df62726b0f367348015b16aa831962416696712f822796d4a0e66cdff",
+      "scripts/quality/test-ios-memory-movie.sh": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c",
+      "scripts/quality/test-ios-story-audio.sh": "c024ac519360f68b3e2a9b30694439ab7e94fb6c34519ff1bc4d0309c8d61215",
+      "vendor/README.md": "44e13f83a6b34b86a6c710ac72c1d6cde34522e5d2034133a03982dd8c9e932f",
+      "vendor/decode-uri-component-cjs/LICENSE": "ed7a9a0f74e43951b2520efe1a4349cb9ed5f3dff0b0f268e2e51a4d38df7ea4",
+      "vendor/decode-uri-component-cjs/PROVENANCE.json": "9204d02aef66bd593d02f8ae323db95786fbeebd987192b126acaacfad4f118e",
+      "vendor/decode-uri-component-cjs/index.cjs": "e82696ecdf0ee2c25bd90169cc7915e552d2ccb82a5006c55bc17aecdb55b919",
+      "vendor/decode-uri-component-cjs/local.patch": "b1a29230e5db5a2b7cdc9ac2a99703dcbdd6eed5be44f9dc6bb333a5ddc025a5",
+      "vendor/decode-uri-component-cjs/package.json": "a806497a6666a73122e0b5927ef4a34b7b270d71585d3cbd1e639abf33ddcfa9",
+      "vendor/decode-uri-component-cjs/upstream/index.js": "6a86ac891edf15c5efa0841ebb31935e3669d58b98318b57d7b08a4530317cb0",
+      "vendor/decode-uri-component-cjs/upstream/license": "ed7a9a0f74e43951b2520efe1a4349cb9ed5f3dff0b0f268e2e51a4d38df7ea4",
+      "vendor/decode-uri-component-cjs/upstream/package.metadata.json": "8822236f8ec0fc7c8f540812dda32b81797bec92e51bd567fbb196fda04a7f13",
+      "vendor/decode-uri-component-cjs/upstream/test.js": "acb81f2173ef208c173465fa98f054923c1ca78b7aa09e1493ee5936b963acba",
+      "vendor/deepmerge-safe-cjs/LICENSE": "6cfc4687cb2f2d86f4a77e6b526290d3878e5e512f3fec2f4cb36a9cb36f798b",
+      "vendor/deepmerge-safe-cjs/PROVENANCE.json": "8c958d08de1fd799f4ae3f6f3677df094b253f70fb0247e401cd19d6e524032e",
+      "vendor/deepmerge-safe-cjs/index.cjs": "07da2fe622bdb3781eddce30b2d89d6c3bd55c1da66a9ce613cac7018b96e92d",
+      "vendor/deepmerge-safe-cjs/local.patch": "ee1ba00842e7a45f3d78a0d34620246d1d0f4c95e33e11beb6a336f46c5abc7f",
+      "vendor/deepmerge-safe-cjs/package.json": "b7d2bfa2a6292a7fef742b461b63a4415dd837f14108384ff97a5aa4dab70200",
+      "vendor/deepmerge-safe-cjs/upstream/dist/cjs.js": "2e5160f84a1141bd927264afe4d15766f1e6cf07daef182b37ff53fea121de7d",
+      "vendor/deepmerge-safe-cjs/upstream/is-mergeable-object/index.js": "29449d50d8b7b7b45b1104ad5a21c92f34de22cc0aa55d0296197ecf5303e2fe",
+      "vendor/deepmerge-safe-cjs/upstream/is-mergeable-object/package.metadata.json": "e8b4126b398f22247c9b8177f492dc9e75b1c4506807ccc0263624a91dda7c2b",
+      "vendor/deepmerge-safe-cjs/upstream/is-mergeable-object/readme.md": "0bfa1f6512f467b72d7edb2fdd283889e8fcc9b1fc9627ce997616ecf5e47262",
+      "vendor/deepmerge-safe-cjs/upstream/license.txt": "6cfc4687cb2f2d86f4a77e6b526290d3878e5e512f3fec2f4cb36a9cb36f798b",
+      "vendor/deepmerge-safe-cjs/upstream/package.metadata.json": "f56978e7a6da1a3c6edee41abb54f98584a2fa2680458c48db820ae772fef0c9"
+    },
+    "priorEncoderEvidence": "docs/quality/native-full-app-20261031/native-encoders-e173b2db-source-equivalence.json",
+    "priorEncoderEvidenceSha256": "51a220ccb416824e23703d155056ba9c3b55476ed065210074b3c5476e93343c",
+    "recordedInputChecks": [
+      {
+        "kind": "ios-story",
+        "priorCaseCount": 8,
+        "retainedReceipt": "ios-story-e173b2db-receipt.json",
+        "retainedReceiptSha256": "4c69ab1c03697520538578b0203ff56efb470746c6c14e60a1d24dd327835ed1",
+        "checks": [
+          {
+            "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+            "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/StoryAudioExportHarness.swift",
+            "sha256": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/test-ios-story-audio.sh",
+            "sha256": "c024ac519360f68b3e2a9b30694439ab7e94fb6c34519ff1bc4d0309c8d61215",
+            "matchesPublished6878": true
+          }
+        ]
+      },
+      {
+        "kind": "ios-memory",
+        "priorCaseCount": 11,
+        "retainedReceipt": "ios-memory-e173b2db-receipt.json",
+        "retainedReceiptSha256": "cd2ef2ea859733f9ac4b0d11164375c6d49e30011fe3db3e939a64f4e672740c",
+        "checks": [
+          {
+            "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+            "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "modules/boomerang/ios/MemoryMovieComposition.swift",
+            "sha256": "920fc4a01277f3712863909ca8188ef7b3a7efa3b4e560d9caeba056addc0d11",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/MemoryMovieExportHarness.swift",
+            "sha256": "515ec7ad6e1150a0e7035defb7fcde9699b96067637204137f16a2e5681f874f",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/test-ios-memory-movie.sh",
+            "sha256": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif",
+            "sha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png",
+            "sha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp",
+            "sha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+            "matchesPublished6878": true
+          }
+        ]
+      },
+      {
+        "kind": "android-encoders",
+        "priorCaseCount": 39,
+        "retainedReceipt": "android-encoders-e173b2db-receipt.json",
+        "retainedReceiptSha256": "39072ac770a2da80fc046bb4099dd2d880015f2df985b8fc4c3b930faebb0b4a",
+        "checks": [
+          {
+            "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+            "sha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+            "sha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+            "sha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif",
+            "sha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png",
+            "sha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp",
+            "sha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif",
+            "sha256": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt",
+            "sha256": "692e0629c6ee7a642ed17cd3b00cba8c64d6b6e56854839deabaf8261573bf51",
+            "matchesPublished6878": true
+          },
+          {
+            "path": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt",
+            "sha256": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6",
+            "matchesPublished6878": true
+          }
+        ]
+      }
+    ]
+  },
+  "metadataProvenance": {
+    "path": "/tmp/native-6878-encoder-metadata.json",
+    "sha256": "b02ce29a4aeeacc07c399a3d82a433e510e5fb32f5ec0c277a272e6d4416a691",
+    "observedAt": "2026-10-31T07:15:22.058Z"
+  },
+  "compilerStatusAtThisObservation": [
+    {
+      "jobId": 124473037191,
+      "name": "Compile Kotlin and Android native integration",
+      "status": "in_progress",
+      "conclusion": null
+    },
+    {
+      "jobId": 124473037869,
+      "name": "Compile Swift and native integration",
+      "status": "in_progress",
+      "conclusion": null
+    }
+  ],
+  "limits": [
+    "Fresh success is established by authenticated completed CI steps/logs and their required source-bound harness. Artifact digests here are provider metadata, not independently rehashed bytes.",
+    "iOS artifact receipt contents and current media files were not downloaded. Android receipt content was obtained from the authenticated job log, not from a downloaded archive.",
+    "All 65 compared engine, native integration, dependency, harness and workflow/config files are unchanged from e173; all 19 retained source/fixture hash entries match the published candidate. This supports reuse of earlier independent decoder findings but is not a fresh binary-equivalence claim.",
+    "The preceding e173 receipt separately verified archive/media hashes; its referenced independent decode evidence originated from earlier unchanged engines. These observations are not relabeled as a new independent decode.",
+    "Standalone harnesses exercise actual platform encoders with synthetic media. They do not establish complete installed-app navigation, UIKit modal behavior, capture/account readback, real-user data access, physical-device performance, signing, TestFlight or production capability activation.",
+    "The full-app Android graphics-selector correction is outside these standalone encoder scripts. Passing this standalone run does not by itself validate that correction or reproduce the earlier full-app emulator failure."
+  ],
+  "actions": {
+    "sourceEdited": false,
+    "providerWrites": false,
+    "workflowsRetriedOrCancelled": false,
+    "refsMoved": false,
+    "archivesDownloaded": false,
+    "localTestsRerun": false
+  }
+}

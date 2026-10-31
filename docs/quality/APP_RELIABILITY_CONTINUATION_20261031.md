@@ -14,12 +14,15 @@ This is a milestone count, not a whole-product completion percentage. The
 [workflow history](https://github.com/donadmiral/tbirds-nest/actions/workflows/native-app-ui.yml)
 remain available independently of the chat connection.
 
-The follow-up combines the reviewed Android emulator correction, the exact iOS
-capture confirmation, native film/export dismissal ownership, and two
-source-reproduced QA capture setup repairs. It is based on application head
-`e173b2dbcf253342be5683fa85f102aa38065411` through the previously saved evidence
-and follow-up checkpoint `a042acc7cf2ea2efaa690069162b2a2276414912`.
-The exact published head and new CI runs are tracked in the review checklist.
+The follow-up is published at
+`6878c384f4f2de8b4bcf2cf49e6597b250bd9bde`. Its tested PR merge is
+`ba8d659c4b6172c1c4930cd6d348d627bdb1470f`; both have the verified tree
+`bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d`.
+It combines the reviewed Android emulator correction, the exact iOS capture
+confirmation, native film/export dismissal ownership, and two source-reproduced
+QA capture setup repairs. It follows application head
+`e173b2dbcf253342be5683fa85f102aa38065411` through the saved follow-up checkpoint
+`a042acc7cf2ea2efaa690069162b2a2276414912`.
 
 The production change is confined to the film, movie-export component and their
 shared dismissal hook. iOS retains each native modal while closing and completes
@@ -49,15 +52,60 @@ The first restricted local run retained six failing file results: required
 subprocess or loopback operations returned EPERM. That result is preserved.
 The approved execution reran the identical source and assertions, using the
 same per-file method and concurrency as the preceding verified local gate;
-every file passed. Local formal counts and standalone auth checks are kept
-separate from CI's file-wrapper counting.
+every file passed. Fresh root CI reports **1,752 passes** because it includes
+one file-level wrapper for the standalone auth program. The local **1,751
+formal passes plus 33 standalone auth checks** and the CI count describe
+different reporting methods; they are not added together.
 
-These are source and local regression results. A fresh complete iPhone and
-Android run still must establish native settings presentation, real packaged
-resource/file access, account readback, movie generation, cancellation/retry,
-cleanup and independent decoding. The preceding green CI and failed complete
-native attempt below are bound to their earlier source, not substituted for
-this new runtime acceptance.
+### Current verification on 6878c384
+
+The fresh [type and quality run](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235474)
+and [browser run](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235074)
+both completed successfully on the published source above.
+
+| Gate on the current source | Observed result |
+| --- | --- |
+| Root regression CI | 1,752 passed; no failures or skips |
+| Web and operations CI | 683 and 195 passed; no failures or skips |
+| TypeScript and Edge | All three TypeScript stages passed; two Edge TLS cases passed |
+| Backend fixtures | 314 Node and 883 RPC cases passed, with three conditional skips in each mode; all six skips have passing counterparts |
+| Browser UI | 131 journeys passed: 37 admin, 41 web, 25 commerce, 25 Studio and three real-Next journeys |
+| Browser media and layouts | 12 story, 25 memory, five music and five cover-editor cases passed; 288 layouts had zero measured overflow or overlap; CI reported 18 encoded outputs |
+| Standalone native encoders | 58 passed, zero failures or skips: 39 Android, eight iOS story and 11 iOS memory cases |
+| Complete installed native apps | Milestone 6 remains open in [run 41179235060](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235060); no complete current-source runtime acceptance is claimed |
+
+The browser artifact ZIP digest and 24 source hashes were checked. The real
+Next cold-route probe retained navigation across all 124 sampled frames,
+including 43 fallback frames. Warm Home, Messages, Jobs and Profile probes
+reported zero blank-content frames within their documented synthetic fixtures.
+These observations establish visible continuity under the tested conditions;
+they do not measure production network latency or physical-device/GPU speed.
+The artifact retains reports, screenshots and logs rather than the encoded
+movie binaries, so those movies were not independently decoded again.
+
+The fresh encoder results come from authenticated completed CI logs and the
+required platform harnesses. Their current archives were not downloaded or
+independently rehashed. All 65 compared engine, integration, dependency and
+harness/configuration inputs match the earlier source, supporting reuse of the
+previous independent decoder evidence without claiming fresh binary equivalence.
+
+Both current-source web/admin builds were intentionally ignored by the existing
+build step. Their aliases still point to the READY web `ab281bca` and admin
+`26e80ae9` deployments, with complete relevant application/shared/dependency
+inputs equal to this candidate. The earlier hosted observations retain their
+original scope; no repeated hosted journey was performed.
+
+The complete iPhone and Android runs still must establish native settings
+presentation, real packaged resource/file access, account readback, movie
+generation, cancellation/retry, cleanup and independent decoding. Passing
+quality, browser and standalone encoder gates does not close that milestone.
+The preceding complete-native failure below remains bound to its earlier source.
+
+[Published source binding](live-app-20261031/publication-6878c384.json) ·
+[Current quality receipt](live-app-20261031/ci-quality-6878c384.json) ·
+[Current browser receipt](live-app-20261031/browser-quality-6878c384.json) ·
+[Current deployment binding](live-app-20261031/deployment-review-6878c384.json) ·
+[Current standalone encoder evidence](native-full-app-20261031/native-encoders-6878c384-status-and-source-equivalence.json)
 
 [Final combined local gate](native-full-app-20261031/native-v5-final-root-regressions.json) ·
 [Retained restricted-run result](native-full-app-20261031/native-v5-root-sandbox-attempt.json) ·
@@ -75,8 +123,8 @@ pages, film and export entry, then failed settings presentation. Its independent
 capture attempt was blocked by the exact iOS application-opening confirmation.
 The iPhone script ran from 05:38:02 to 06:35:38 UTC, uploaded its evidence, and
 the job finished at 06:35:56. The downloaded archive and its source hashes were
-verified. Focused follow-up repairs are being reviewed before publishing a
-combined candidate for the next installed-app run.
+verified. Those failures led to the combined follow-up published above for the
+next installed-app run.
 
 That attempt used source `e173b2dbcf253342be5683fa85f102aa38065411`. Its tested PR
 merge is `e6ca24e27b00207344eb7989ed53d2305cb04cf3`. Both have tree
@@ -895,14 +943,31 @@ A subsequent read-only browser check found an existing authenticated session for
 the same owner, slug and project ID as the repository configuration. The browser
 session does not authenticate the CLI, and no cookies or credentials were copied.
 The overview lists an earlier successful iOS build/submission on source
-`1bb8246`, which does not cover the current candidate. Stored remote
-signing/submission credential validity remains unknown. No login, project link,
-signed build or submission was attempted. The earlier Apple browser check was
-not repeated. Simulator work continues independently.
+`1bb8246`, which does not cover the current candidate. A subsequent read-only
+credential-metadata check showed Expo's distribution-certificate status as
+**Valid**, with displayed expiration **Apr 21, 2027 10:53 PM**. The tooltip did
+not state a timezone, so no UTC conversion is inferred. An App Store Connect
+submission-key entry is present for the same configured Apple team.
+
+A further read-only project check found the existing QA **Ad-hoc** association
+for `app.platinumcircles.mobile.qa` and production **App Store** association for
+`app.platinumcircles.mobile`. Expo displays both provisioning profiles and their
+distribution certificate as **Valid** for the configured team. The QA device's
+inclusion was not inspected, and displayed validity does not prove successful
+signing or Apple acceptance of a new build/submission.
+
+The CLI remains signed out. No private key material was read,
+no browser credentials were transferred to the CLI, and no new login, project
+link, signed build or submission was attempted. The earlier Apple sign-in was
+not retried. Actual new build/profile validation, Apple processing and physical
+installation remain unverified; simulator work continues independently.
 
 [Signed-release configuration and exact handoff](native-full-app-20261031/ios-signed-release-handoff-e173b2db.json) ·
 [Observed Expo session check](native-full-app-20261031/expo-existing-session-observation-e173b2db.json) ·
 [Verified existing Expo browser access](native-full-app-20261031/expo-browser-existing-session-observation.json) ·
+[Observed Expo signing metadata](native-full-app-20261031/expo-signing-metadata-6878c384.json) ·
+[Observed project signing associations](native-full-app-20261031/expo-project-signing-associations-6878c384.json) ·
+[Current-source signed-build readiness](native-full-app-20261031/ios-signed-release-readiness-6878c384.json) ·
 [Bounded iPhone log-tool outcome](native-full-app-20261031/ios-e173b2db-log-transport-observation.json)
 
 The remaining release work includes the blocked hosted installation, complete
