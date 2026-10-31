@@ -50,7 +50,7 @@ installed-app run remains active:
 | Browser interaction and media | [41218724100](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724100) | Passed |
 | iOS compilation and encoders | [41218724062](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062) | Passed |
 | Android compilation and encoders | [41218724047](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047) | Passed |
-| Complete installed native apps | [41218724056](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056) | Android failed after emulator host loss; iPhone still active at 16:50:22 UTC |
+| Complete installed native apps | [41218724056](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056) | Android failed after emulator host loss; iPhone still active at 17:00:12 UTC |
 
 The fresh type/quality workflow passed: 1,853 root tests, 683 web tests,
 195 operations tests and two Edge TLS cases. Backend Node/RPC fixtures passed
@@ -121,18 +121,18 @@ inside the device. Twelve retained JavaScript log lines include two successful
 account-index writes; those writes do not establish saved-account readback.
 The owner, navigation and auth reviews preserve these limits independently.
 
-At 16:50:22 UTC, the iPhone job was still in its full-app script, with no failed
+At 17:00:12 UTC, the iPhone job was still in its full-app script, with no failed
 step or artifact upload. Its final outcome remains open. Earlier supporting
 results and native failures below belong to `f4c35f32` and are not counted as
 new runtime passes for this source. Milestone 6 remains open.
 
 A scoped source/build review confirms that this Android QA build selected
 Skia Ganesh/OpenGL with Graphite off; reviewed movie effects also use GLES.
-This supports a GLES-only host-renderer isolation experiment. A follow-up using
-Mesa LLVMpipe with positive host/emulator renderer checks is being reviewed
-separately, together with bounded host crash-record observation. No new device
-attempt or successful crash cure is claimed, and the active iPhone run's source
-has not been changed.
+This supports a GLES-only host-renderer isolation experiment. The reviewed
+follow-up below uses Mesa llvmpipe with positive host/emulator renderer checks,
+together with bounded host crash-record observation. No new device attempt or
+successful crash cure is claimed, and the active iPhone run's source has not
+been changed.
 
 A new clean detached signed-QA checkout now contains this exact `b5c9c82b`
 source and tree. Thirteen critical files match published Git blobs. The cached
@@ -159,6 +159,65 @@ was performed. The earlier f4 CLI login observation below remains historical.
 [Independent Android auth review](native-full-app-20261031/android-b5c9c82b-auth-independent-review.json) ·
 [GLES compatibility assessment](native-full-app-20261031/android-b5c9c82b-gles-compatibility-assessment.json) ·
 [Current-source signed-QA preparation](native-full-app-20261031/ios-signed-qa-preparation-b5c9c82b.json)
+
+### Prepared next Android QA runner (v8)
+
+Eight source/test paths are prepared separately from the published app head.
+They change Android CI host packages, its disposable renderer/diagnostics,
+source provenance and focused tests. They do not change production app code,
+native flow commands, assertions, deadlines, encoder implementations or
+production movie capability. No new emulator run has used these bytes yet.
+
+The runner starts an owned Xvfb display, verifies Mesa llvmpipe using host
+`glxinfo`, then launches the emulator with the same software-driver environment
+and explicit host GLES. It independently requires the emulator's own startup
+log to identify Mesa llvmpipe with GLES 3 or later. Missing, conflicting or
+SwiftShader renderer evidence fails the gate. The log reader captures a bounded
+startup prefix, allows append-only growth and rejects changed captured bytes.
+An independent review caught and repaired a newline-consuming parser defect;
+five additional negative cases cover it. Guest Vulkan is disabled only for
+this GLES-focused QA run and remains outside its acceptance coverage.
+
+The new host diagnostic helper snapshots the current emulator's process,
+executable, UID, start ticks, boot and launch identity before UI flows. Cleanup
+may make one noninteractive read-only query for an already-saved matching
+systemd crash summary. The query is restricted by boot, crashed-process
+identity, message ID and time window, with explicit field and byte limits.
+Snapshot and collection have one- and two-second internal budgets and separate
+three-second caller limits; the privileged child also has its own timeout.
+It reads no core contents and changes no host core policy. Missing, denied,
+timed-out or ambiguous records remain diagnostic outcomes, never acceptance.
+Collection occurs after cleanup, so a future record must be interpreted against
+that timeline; journal records do not independently prove process-start-tick
+equality.
+
+The disjoint focused groups passed **124 formal cases**: 25 renderer checks,
+47 host diagnostic checks and 52 existing Crashpad/shell/auth/provenance checks.
+Independent reruns are not added to those counts. The renderer tests include
+actual extracted cleanup with a TERM-ignoring child and preserve original exits
+0 and 23. Host diagnostic tests combine synthetic process/journal fixtures with
+controlled real child processes; they do not establish CI journal availability.
+Both new helpers have independent source reviews. The final scoped Bash,
+Python, JavaScript, YAML, ESLint and whitespace checks pass; all eight candidate
+and two existing Crashpad dependency hashes stayed unchanged through the gate.
+The actual preparation script enumerates 500 unique original source paths,
+six unchanged overlays and nine unchanged installed dependency hashes. Each
+new helper appears exactly once in the preparation list and provenance fixture.
+All 496 tracked runtime/configuration paths in the scoped comparison match
+`b5c9c82b`, including file modes, with no new runtime files.
+
+Actual Xvfb/emulator integration, successful journeys, account readback and
+movie acceptance still require the next installed-app run. The shared prior
+SwiftShader signature motivates this isolation; no faulting component or
+proven crash cure is asserted. Saving this candidate on the follow-up branch
+does not replace or cancel the active iPhone run.
+
+[Independent renderer review](native-full-app-20261031/android-mesa-renderer-independent-review.json) ·
+[Host diagnostic preparation](native-full-app-20261031/native-emulator-host-diagnostics-preparation.json) ·
+[Independent host diagnostic review](native-full-app-20261031/native-emulator-host-diagnostics-independent-review.json) ·
+[Combined QA integration checks](native-full-app-20261031/native-v8-qa-integration.json) ·
+[Independent source/provenance review](native-full-app-20261031/native-v8-qa-scope-independent-review.json) ·
+[Expected native source manifest](native-full-app-20261031/native-v8-source-provenance-manifest.json)
 
 ## Previous published repair candidate: f4c35f32 (v6)
 

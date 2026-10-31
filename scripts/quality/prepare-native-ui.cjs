@@ -22,7 +22,7 @@ const source = ['App.tsx', 'index.js', 'app.config.js', 'package-lock.json', ...
   'modules/boomerang/memoryComposition.ts',
   'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/verify-native-ui.cjs',
   'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh',
-  'scripts/quality/test-android-app-ui.sh', 'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
+  'scripts/quality/test-android-app-ui.sh', 'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
 const hashes = Object.fromEntries(source.map(file => [file, crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')]));
 // Capture installed distributions before overlays; this does not change SDK resolution or code.
 const dependencyFiles = {

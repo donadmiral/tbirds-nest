@@ -1,0 +1,329 @@
+TAP version 13
+# Subtest: actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span
+ok 1 - actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span
+  ---
+  duration_ms: 8.819717
+  type: 'test'
+  ...
+# Subtest: lock wrapper preserves receiver, timeout arguments, callback arguments and result references
+ok 2 - lock wrapper preserves receiver, timeout arguments, callback arguments and result references
+  ---
+  duration_ms: 1.211473
+  type: 'test'
+  ...
+# Subtest: acquisition timeout retains the original error without invoking work or recording error content
+ok 3 - acquisition timeout retains the original error without invoking work or recording error content
+  ---
+  duration_ms: 0.746263
+  type: 'test'
+  ...
+# Subtest: callback and storage failures retain rejection identity and leave no false active operation
+ok 4 - callback and storage failures retain rejection identity and leave no false active operation
+  ---
+  duration_ms: 0.816418
+  type: 'test'
+  ...
+# Subtest: storage arguments, optional callbacks, receiver and resolved values survive observation
+ok 5 - storage arguments, optional callbacks, receiver and resolved values survive observation
+  ---
+  duration_ms: 0.516768
+  type: 'test'
+  ...
+# Subtest: event retention is bounded while preserving startup and recent observations
+ok 6 - event retention is bounded while preserving startup and recent observations
+  ---
+  duration_ms: 0.989909
+  type: 'test'
+  ...
+# Subtest: diagnostic clock and sink errors cannot change auth results
+ok 7 - diagnostic clock and sink errors cannot change auth results
+  ---
+  duration_ms: 0.281784
+  type: 'test'
+  ...
+# Subtest: timer descriptors identify lazy getters without invoking or changing them
+ok 8 - timer descriptors identify lazy getters without invoking or changing them
+  ---
+  duration_ms: 1.21637
+  type: 'test'
+  ...
+# Subtest: timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence
+ok 9 - timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence
+  ---
+  duration_ms: 0.519822
+  type: 'test'
+  ...
+# Subtest: timer descriptor failures and bounded identity overflow preserve auth behavior
+ok 10 - timer descriptor failures and bounded identity overflow preserve auth behavior
+  ---
+  duration_ms: 3.858735
+  type: 'test'
+  ...
+# Subtest: one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations
+ok 11 - one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations
+  ---
+  duration_ms: 0.58486
+  type: 'test'
+  ...
+# Subtest: native factory rejects production or real-provider configuration before filesystem access
+ok 12 - native factory rejects production or real-provider configuration before filesystem access
+  ---
+  duration_ms: 4.252587
+  type: 'test'
+  ...
+# Subtest: native trace writes are batched, serialized, isolated from storage and recover after failure
+ok 13 - native trace writes are batched, serialized, isolated from storage and recover after failure
+  ---
+  duration_ms: 14.05071
+  type: 'test'
+  ...
+# Subtest: disposable source overlay changes only the reviewed three anchors and retains SDK lock and storage
+ok 14 - disposable source overlay changes only the reviewed three anchors and retains SDK lock and storage
+  ---
+  duration_ms: 0.480963
+  type: 'test'
+  ...
+# Subtest: disposable preparation retains diagnostic source, original auth hash and exact overlay content
+ok 15 - disposable preparation retains diagnostic source, original auth hash and exact overlay content
+  ---
+  duration_ms: 118.699291
+  type: 'test'
+  ...
+# Subtest: copies only current-run regular bytes with hashes and preserves original gate metadata
+ok 16 - copies only current-run regular bytes with hashes and preserves original gate metadata
+  ---
+  duration_ms: 49.692001
+  type: 'test'
+  ...
+# Subtest: missing advertised store yields explicit unavailable evidence without a gate result
+ok 17 - missing advertised store yields explicit unavailable evidence without a gate result
+  ---
+  duration_ms: 44.898509
+  type: 'test'
+  ...
+# Subtest: skips files outside the current run window while accepting a fresh empty metadata file
+ok 18 - skips files outside the current run window while accepting a fresh empty metadata file
+  ---
+  duration_ms: 44.146513
+  type: 'test'
+  ...
+# Subtest: does not follow file/directory symlinks, hardlinks or FIFOs
+ok 19 - does not follow file/directory symlinks, hardlinks or FIFOs
+  ---
+  duration_ms: 58.594432
+  type: 'test'
+  ...
+# Subtest: rejects a symlink in the advertised store path
+ok 20 - rejects a symlink in the advertised store path
+  ---
+  duration_ms: 54.565441
+  type: 'test'
+  ...
+# Subtest: refuses a symlinked log directory without writing through it
+ok 21 - refuses a symlinked log directory without writing through it
+  ---
+  duration_ms: 41.012309
+  type: 'test'
+  ...
+# Subtest: refuses a preexisting output directory or symlink
+    # Subtest: directory
+    ok 1 - directory
+      ---
+      duration_ms: 50.89851
+      type: 'test'
+      ...
+    # Subtest: symlink
+    ok 2 - symlink
+      ---
+      duration_ms: 59.12099
+      type: 'test'
+      ...
+    1..2
+ok 22 - refuses a preexisting output directory or symlink
+  ---
+  duration_ms: 110.822477
+  type: 'test'
+  ...
+# Subtest: rejects a mismatched PID, different path/version or ambiguous process marker
+    # Subtest: pid
+    ok 1 - pid
+      ---
+      duration_ms: 46.478261
+      type: 'test'
+      ...
+    # Subtest: path
+    ok 2 - path
+      ---
+      duration_ms: 45.239793
+      type: 'test'
+      ...
+    # Subtest: version
+    ok 3 - version
+      ---
+      duration_ms: 45.668958
+      type: 'test'
+      ...
+    # Subtest: longVersion
+    ok 4 - longVersion
+      ---
+      duration_ms: 58.900708
+      type: 'test'
+      ...
+    # Subtest: duplicate
+    ok 5 - duplicate
+      ---
+      duration_ms: 57.44654
+      type: 'test'
+      ...
+    1..5
+ok 23 - rejects a mismatched PID, different path/version or ambiguous process marker
+  ---
+  duration_ms: 254.813443
+  type: 'test'
+  ...
+# Subtest: requires current CI/QA/run identity and a plausible launch boundary
+    # Subtest: 0
+    ok 1 - 0
+      ---
+      duration_ms: 40.360128
+      type: 'test'
+      ...
+    # Subtest: 1
+    ok 2 - 1
+      ---
+      duration_ms: 41.240411
+      type: 'test'
+      ...
+    # Subtest: 2
+    ok 3 - 2
+      ---
+      duration_ms: 39.596309
+      type: 'test'
+      ...
+    # Subtest: 3
+    ok 4 - 3
+      ---
+      duration_ms: 48.752742
+      type: 'test'
+      ...
+    # Subtest: 4
+    ok 5 - 4
+      ---
+      duration_ms: 42.339604
+      type: 'test'
+      ...
+    1..5
+ok 24 - requires current CI/QA/run identity and a plausible launch boundary
+  ---
+  duration_ms: 213.635009
+  type: 'test'
+  ...
+# Subtest: rejects stale, symlinked and oversized emulator logs before reading a store
+    # Subtest: stale
+    ok 1 - stale
+      ---
+      duration_ms: 50.282721
+      type: 'test'
+      ...
+    # Subtest: symlink
+    ok 2 - symlink
+      ---
+      duration_ms: 31.190418
+      type: 'test'
+      ...
+    # Subtest: oversized
+    ok 3 - oversized
+      ---
+      duration_ms: 31.94242
+      type: 'test'
+      ...
+    1..3
+ok 25 - rejects stale, symlinked and oversized emulator logs before reading a store
+  ---
+  duration_ms: 114.05472
+  type: 'test'
+  ...
+# Subtest: per-file limit rejects an oversized sparse file without reading it
+ok 26 - per-file limit rejects an oversized sparse file without reading it
+  ---
+  duration_ms: 32.296357
+  type: 'test'
+  ...
+# Subtest: total bytes are bounded across multiple individually valid files
+ok 27 - total bytes are bounded across multiple individually valid files
+  ---
+  duration_ms: 84.016126
+  type: 'test'
+  ...
+# Subtest: entry and nesting bounds prevent unbounded enumeration
+    # Subtest: entries
+    ok 1 - entries
+      ---
+      duration_ms: 44.268352
+      type: 'test'
+      ...
+    # Subtest: depth
+    ok 2 - depth
+      ---
+      duration_ms: 36.872683
+      type: 'test'
+      ...
+    1..2
+ok 28 - entry and nesting bounds prevent unbounded enumeration
+  ---
+  duration_ms: 81.643009
+  type: 'test'
+  ...
+# Subtest: a real source mutation during read discards the partial copy and consumes its read budget
+ok 29 - a real source mutation during read discards the partial copy and consumes its read budget
+  ---
+  duration_ms: 31.111143
+  type: 'test'
+  ...
+# Subtest: actual prelaunch diagnostics remain best effort when the CLI or metadata output fails
+    # Subtest: CLI failures retained
+    ok 1 - CLI failures retained
+      ---
+      duration_ms: 18.457974
+      type: 'test'
+      ...
+    # Subtest: metadata output unavailable
+    ok 2 - metadata output unavailable
+      ---
+      duration_ms: 7.65961
+      type: 'test'
+      ...
+    1..2
+ok 30 - actual prelaunch diagnostics remain best effort when the CLI or metadata output fails
+  ---
+  duration_ms: 26.713151
+  type: 'test'
+  ...
+# Subtest: the actual runner cleanup preserves success and failure when diagnostic collection fails
+    # Subtest: gate 0
+    ok 1 - gate 0
+      ---
+      duration_ms: 16.261814
+      type: 'test'
+      ...
+    # Subtest: gate 7
+    ok 2 - gate 7
+      ---
+      duration_ms: 17.634335
+      type: 'test'
+      ...
+    1..2
+ok 31 - the actual runner cleanup preserves success and failure when diagnostic collection fails
+  ---
+  duration_ms: 34.511585
+  type: 'test'
+  ...
+1..31
+# tests 52
+# suites 0
+# pass 52
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1498.149156

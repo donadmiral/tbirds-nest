@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "recordedAtUtc": "2026-10-31T16:56:02+00:00",
+  "status": "accepted for a subsequent empirical QA run; no remaining source-review blocker after the newline-field fix",
+  "scope": {
+    "publishedBaseHead": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "candidateState": "local frozen QA-only renderer/runner/provenance candidate; no ref change by reviewer",
+    "reviewedPaths": [
+      {
+        "path": "scripts/quality/native-ui-emulator-graphics.py",
+        "bytes": 5358,
+        "sha256": "7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78"
+      },
+      {
+        "path": "tests/quality/native-emulator-graphics.cjs",
+        "bytes": 7951,
+        "sha256": "c93c86747b01214dbe349b5f4e1d5bbd273993c0f4dd98fcb6a048b1c1defab3"
+      },
+      {
+        "path": "scripts/quality/test-android-app-ui.sh",
+        "bytes": 9513,
+        "sha256": "e152bfa57b13fe9321703055769ee8f6bbf3ab7457440810a9e777832d15f355"
+      },
+      {
+        "path": ".github/workflows/native-app-ui.yml",
+        "bytes": 4595,
+        "sha256": "f4c37d8f777628134b86ca91fa9476b59428150d4559d0848533f3e3cd8298f1"
+      },
+      {
+        "path": "scripts/quality/prepare-native-ui.cjs",
+        "bytes": 7007,
+        "sha256": "3aaf404903272008f7f9479f21814981f58548df3366855b6382942af3ce2053"
+      },
+      {
+        "path": "tests/quality/native-auth-diagnostics.cjs",
+        "bytes": 19961,
+        "sha256": "494fea44421e8e95f88f3b3c8eec1e464157650dc3eabcb5570c3084f407291c"
+      }
+    ],
+    "additionalIntegrationDependency": {
+      "path": "scripts/quality/native-ui-emulator-host-diagnostics.py",
+      "bytes": 21145,
+      "sha256": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef"
+    },
+    "independentInnerHostDiagnosticReview": "Not duplicated here; navigation_performance owns that helper. This review checks its snapshot/collect wiring, arguments, bounds, source inclusion and effect on the existing runner gates."
+  },
+  "findingAndResolution": {
+    "initialFinding": "The host field regex used whitespace that could consume a newline; a blank OpenGL renderer field followed by an unrelated llvmpipe line was accepted by the actual helper.",
+    "directInitialProbe": {
+      "input": "OpenGL vendor string: Mesa/X.org\nOpenGL renderer string:\nllvmpipe from an unrelated diagnostic line\n",
+      "actualResult": "accepted renderer = llvmpipe from an unrelated diagnostic line",
+      "expectedResult": "reject empty renderer field"
+    },
+    "ownerFix": "Field separators now permit horizontal whitespace only. Mode evidence is also anchored to one INFO line. Five mandatory negative cases cover blank host renderer/vendor, continued mode, and blank emulator vendor/version.",
+    "independentFinalVerification": "All five negative cases and the full focused renderer file pass on the frozen bytes."
+  },
+  "rendererReview": {
+    "actualFieldValidation": "One nonempty host vendor/renderer and one emulator vendor/renderer/version are required. Mesa vendor, llvmpipe renderer and GLES >= 3.0 are required. SwiftShader in any observed identity/version is rejected; duplicate identity/mode fields fail.",
+    "hostVersusEmulator": "The successful glxinfo context cannot substitute for emulator identity: emulator phase rereads the host evidence and independently requires explicit host GLES mode plus emulator renderer fields.",
+    "vulkanMeaning": "The runner explicitly passes -feature -Vulkan. The receipt distinguishes requested guestVulkan=false from selectedVulkanMode metadata; this helper does not separately attest guest Vulkan API availability or Vulkan acceptance.",
+    "readBounds": "Each log is opened read-only with O_NOFOLLOW and O_NONBLOCK, must be regular and <=1 MiB at open, and is read only to that observed size. A second same-FD prefix comparison rejects truncation or changed captured bytes; append-only growth is permitted and recorded.",
+    "receiptBehavior": "Writes use a temporary file plus replace. A missing or invalid input produces a failed receipt and nonzero status; stale earlier success is replaced in the tested failure case."
+  },
+  "processReview": {
+    "displayOwnership": "Xvfb allocates its own display via -displayfd into the owned temporary directory, disables TCP listening and records the exact background child PID. Display readiness is bounded to 50 x 0.1-second polls and glxinfo to 10 seconds.",
+    "environment": "The same DISPLAY, LIBGL_ALWAYS_SOFTWARE=true, GALLIUM_DRIVER=llvmpipe and C locale are scoped to both glxinfo and the emulator launch. Xvfb liveness is checked before launch and after boot.",
+    "teardown": "Cleanup addresses the owned Xvfb PID, sends TERM, waits through a two-second bounded tail probe, then KILLs if necessary and reaps the child. Existing saved exit status is restored.",
+    "newDiagnostics": "One best-effort snapshot runs before flows and one collect after emulator wait and before existing Crashpad collection; each has a three-second outer bound and || true. They cannot convert a failed acceptance result into success.",
+    "preservedGates": {
+      "postRendererAppInstallAndGateTailIdenticalAfterRemovingDiagnosticSnapshot": true,
+      "flowEvidenceDecoderVerifierAndFinalStatusTailByteIdentical": true,
+      "snapshotExactlyOnceBestEffort3SecondsBeforeFlows": true,
+      "collectExactlyOnceBestEffort3SecondsAfterOwnedEmulatorWaitBeforeCrashpad": true,
+      "sameDisplaySoftwareDriverAndLocaleEnvironmentAtBothCommands": true,
+      "initialAdbWait180SecondsUnchanged": true,
+      "bootPoll120By2SecondsUnchanged": true,
+      "emulatorMemory3072Unchanged": true,
+      "workflowChangeOnlyRequiredHostPackageList": true,
+      "newRendererAndHostDiagnosticHelpersIncludedInPreparationAndRequiredFixture": true
+    }
+  },
+  "independentTests": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-emulator-graphics.cjs",
+    "execution": "Approved subprocess-enabled execution; no assertion changes for the parent-reported restricted EPERM result.",
+    "exitCode": 0,
+    "formalTests": 25,
+    "topLevelTests": 23,
+    "nestedTests": 2,
+    "pass": 25,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "durationMs": 5222.893573,
+    "runtime": {
+      "node": "24.22.1",
+      "python": "3.12.14",
+      "platform": "Linux"
+    },
+    "cleanupCases": [
+      {
+        "originalExit": 0,
+        "observedExit": 0,
+        "durationMs": 2111.193107
+      },
+      {
+        "originalExit": 23,
+        "observedExit": 23,
+        "durationMs": 2109.758901
+      }
+    ],
+    "testLimits": "Renderer data are bounded synthetic log fixtures; cleanup executes the extracted real shell function with a TERM-ignoring disposable child. No real Xvfb/GLX context, emulator or Android app was launched. The separate auth/preparation and host-diagnostic suite counts are not included."
+  },
+  "sourceFreeze": {
+    "allSixReviewedHashesMatchedBeforeAndAfterFocusedExecution": true,
+    "productionSourcesEditedByReviewer": false,
+    "testsEditedByReviewer": false
+  },
+  "evidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-mesa-renderer-independent-review/focused-tests.tap",
+      "bytes": 5137,
+      "sha256": "2eed77d8e9f06d11b7bb156589dd72bc795daa49bacb9cb08ad6daf24035a901"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-mesa-renderer-independent-review/scope-verification.json",
+      "bytes": 1472,
+      "sha256": "4bfd3bbe0e0424e6582d085cc47fdee223a565ac1e1a3fc6278b5595248fdd2c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b-gles-compatibility-assessment.json",
+      "bytes": 14430,
+      "sha256": "42f4160d27e09c24959680fc447f2f33f2c095cada1635dbaef96e701945dc52"
+    }
+  ],
+  "limits": [
+    "This is source and focused local acceptance, not a successful hosted native run or a confirmed SIGSEGV cure.",
+    "Renderer identity is attested for the captured startup log prefixes, not an entire later process lifetime.",
+    "Guest Vulkan, physical-device graphics/performance, UI journeys, movie export and account readback still require their own acceptance evidence.",
+    "The actual faulting emulator component remains unknown.",
+    "This review did not repeat companion auth/host-diagnostic suites, provider queries, builds or artifact downloads."
+  ],
+  "actions": {
+    "sourceEdits": 0,
+    "refChanges": 0,
+    "providerCalls": 0,
+    "ciReruns": 0,
+    "focusedTestInvocations": 1,
+    "writtenArtifacts": "This JSON, exact focused TAP and bounded scope-verification JSON only."
+  }
+}

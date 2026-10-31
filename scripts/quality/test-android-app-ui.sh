@@ -18,6 +18,7 @@ emulator_pid=''
 emulator_started_ns=''
 log_pid=''
 video_pid=''
+xvfb_pid=''
 cleanup() {
   status=$?
   trap - EXIT
@@ -35,11 +36,19 @@ cleanup() {
     kill "$emulator_pid" >/dev/null 2>&1 || true
     wait "$emulator_pid" >/dev/null 2>&1 || true
     # Diagnostics cannot replace the original flow/decoder/verification result.
+    timeout 3 python3 scripts/quality/native-ui-emulator-host-diagnostics.py collect \
+      --pid "$emulator_pid" --started-ns "$emulator_started_ns" --gate-exit "$status" \
+      > native-ui-logs/emulator-host-collector.log 2>&1 || true
     timeout 10 python3 scripts/quality/native-ui-emulator-diagnostics.py \
       --pid "$emulator_pid" --started-ns "$emulator_started_ns" --gate-exit "$status" \
       > native-ui-logs/emulator-crashpad-collector.log 2>&1 || true
   fi
   if [[ -n "$log_pid" ]]; then kill "$log_pid" >/dev/null 2>&1 || true; fi
+  if [[ -n "${xvfb_pid:-}" ]]; then
+    kill "$xvfb_pid" >/dev/null 2>&1 || true
+    timeout 2 tail --pid="$xvfb_pid" -f /dev/null >/dev/null 2>&1 || kill -9 "$xvfb_pid" >/dev/null 2>&1 || true
+    wait "$xvfb_pid" >/dev/null 2>&1 || true
+  fi
   rm -rf "$work_dir"
   exit "$status"
 }
@@ -49,6 +58,26 @@ trap cleanup EXIT
   node --version
   maestro --version
 } > native-ui-logs/toolchain.log 2>&1
+# Both prior software modes ultimately exposed packaged SwiftShader GLES. Use
+# a disposable host display with Mesa's CPU renderer and verify the actual
+# driver, rather than accepting an automatic fallback to that same library.
+command -v Xvfb >/dev/null
+command -v glxinfo >/dev/null
+dpkg-query -W xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0 > native-ui-logs/host-graphics-packages.txt
+Xvfb -displayfd 3 -screen 0 1024x768x24 -nolisten tcp \
+  3> "$work_dir/xvfb-display" > native-ui-logs/xvfb.log 2>&1 &
+xvfb_pid=$!
+for ((attempt=0; attempt<50; attempt++)); do
+  if [[ -s "$work_dir/xvfb-display" ]]; then break; fi
+  kill -0 "$xvfb_pid"
+  sleep 0.1
+done
+read -r native_ui_display_number < "$work_dir/xvfb-display"
+[[ "$native_ui_display_number" =~ ^[0-9]+$ ]]
+native_ui_display=":$native_ui_display_number"
+DISPLAY="$native_ui_display" LIBGL_ALWAYS_SOFTWARE=true GALLIUM_DRIVER=llvmpipe LC_ALL=C \
+  timeout 10 glxinfo -B > native-ui-logs/host-graphics.log 2>&1
+python3 scripts/quality/native-ui-emulator-graphics.py host
 python3 - <<'PY' > native-ui-logs/sdk-packages.txt
 from pathlib import Path
 import tomllib
@@ -84,16 +113,21 @@ with zipfile.ZipFile(sys.argv[1]) as z:
     if not any(p.startswith('lib/x86_64/') for p in z.namelist()): raise SystemExit('Emulator ABI is missing.')
 PY
 printf 'no\n' | "$avd_manager" create avd --force --name platinum_app_ui --package 'system-images;android-35;default;x86_64' --path "$ANDROID_AVD_HOME/platinum_app_ui.avd"
-# Select an explicit supported backend to isolate the observed host crashes
-# with adaptive software (Lavapipe/SwANGLE). Guest Vulkan remains enabled.
+# Isolate the common packaged SwiftShader GLES path observed in both crashes.
+# This QA app compiles Skia Ganesh/OpenGL and its movie effects use GLES.
+# Guest Vulkan is intentionally outside this GLES-only acceptance run.
 # https://developer.android.com/studio/run/emulator-acceleration
+# https://developer.android.com/studio/run/emulator-troubleshooting
+# https://docs.mesa3d.org/envvars.html
 emulator_version_status=0
 timeout 10 "$android_sdk/emulator/emulator" -version > native-ui-logs/emulator-version.log 2>&1 || emulator_version_status=$?
 emulator_help_status=0
 timeout 10 "$android_sdk/emulator/emulator" -help-gpu > native-ui-logs/emulator-gpu-help.log 2>&1 || emulator_help_status=$?
 printf '{"versionExitCode":%s,"gpuHelpExitCode":%s}\n' "$emulator_version_status" "$emulator_help_status" > native-ui-logs/emulator-cli-metadata.json || true
 emulator_started_ns="$(date +%s%N)"
-"$android_sdk/emulator/emulator" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader -memory 3072 > native-ui-logs/emulator.log 2>&1 &
+kill -0 "$xvfb_pid"
+DISPLAY="$native_ui_display" LIBGL_ALWAYS_SOFTWARE=true GALLIUM_DRIVER=llvmpipe LC_ALL=C \
+  "$android_sdk/emulator/emulator" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu host -feature -Vulkan -memory 3072 > native-ui-logs/emulator.log 2>&1 &
 emulator_pid=$!
 timeout 180 "$adb_bin" wait-for-device
 for ((attempt=0; attempt<120; attempt++)); do
@@ -101,6 +135,8 @@ for ((attempt=0; attempt<120; attempt++)); do
   sleep 2
 done
 test "$("$adb_bin" shell getprop sys.boot_completed | tr -d '\r')" = 1
+kill -0 "$xvfb_pid"
+python3 scripts/quality/native-ui-emulator-graphics.py emulator
 # The disposable AOSP image permits diagnostic root access. Keep the actual
 # release app non-debuggable and read only its synthetic acceptance receipt.
 "$adb_bin" root
@@ -112,6 +148,9 @@ test "$("$adb_bin" shell id -u | tr -d '\r')" = 0
 log_pid=$!
 "$adb_bin" shell screenrecord --time-limit 180 /sdcard/platinum-navigation.mp4 > native-ui-logs/recording.log 2>&1 &
 video_pid=$!
+timeout 3 python3 scripts/quality/native-ui-emulator-host-diagnostics.py snapshot \
+  --pid "$emulator_pid" --started-ns "$emulator_started_ns" --sdk-root "$android_sdk" \
+  > native-ui-logs/emulator-host-snapshot.log 2>&1 || true
 flow_status=0
 bash scripts/quality/run-native-ui-flows.sh "$ANDROID_SERIAL" || flow_status=$?
 evidence_status=0

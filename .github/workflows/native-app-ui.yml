@@ -108,7 +108,7 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
           echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends libpulse0 ffmpeg
+          sudo apt-get install --yes --no-install-recommends libpulse0 ffmpeg xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
       - run: npm ci --ignore-scripts --no-fund

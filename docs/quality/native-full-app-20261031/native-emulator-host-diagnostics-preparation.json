@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T16:58:00Z",
+  "status": "PREPARED_LOCAL_DIAGNOSTICS_ONLY",
+  "publishedSource": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "unchangedByThisWork": true
+  },
+  "motivation": {
+    "runId": 41218724056,
+    "jobId": 124588620179,
+    "artifactId": 13049009956,
+    "archiveSHA256": "fe4e1dab20ff0a5363fb0d0660a008b43d410a729ab01fa3a2b7da1667d4ff86",
+    "observed": "The Android host shell reports emulator PID 7038 SIGSEGV at 16:35:51.9332966 UTC. This is reporting time, not a measured crash instant. The current bounded Crashpad collector retained only a 40-byte settings.dat; no dump or stack was supplied. This helper seeks an already-saved systemd summary without requesting core contents or changing host core policy.",
+    "ownerReceipt": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-b5c9c82b-review.json",
+      "sha256": "8e9ca892eb8b368c1f5578a980d543079281fe50a5b5c32201606d4a64bae8b1"
+    },
+    "hostProjection": {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/host-job-log-projection.json",
+      "sha256": "b8ef23bffa515ee26d613db8707ff77747d3b877a4560257989b013bc9cef819"
+    },
+    "crashpadManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/emulator-crashpad-manifest.json",
+      "sha256": "d0aeb1017f1cb17d2aba3db26d76c79b2eeeb9f3373e7f1457a3f0781d982fee"
+    },
+    "settings": {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/emulator-crashpad-settings.dat",
+      "bytes": 40,
+      "sha256": "a05289b5d4c32cca35c66c7c7322722653b00d7fd47e717dd068c8c406313690"
+    }
+  },
+  "sources": [
+    {
+      "path": "scripts/quality/native-ui-emulator-host-diagnostics.py",
+      "sha256": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef",
+      "role": "New Linux QA CI process snapshot and bounded saved-journal summary reader"
+    },
+    {
+      "path": "tests/quality/native-emulator-host-diagnostics.cjs",
+      "sha256": "5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a",
+      "role": "Actual helper execution against synthetic proc/journal fixtures and controlled real child processes"
+    }
+  ],
+  "ownership": {
+    "changedByThisAgent": [
+      "scripts/quality/native-ui-emulator-host-diagnostics.py",
+      "tests/quality/native-emulator-host-diagnostics.cjs"
+    ],
+    "integrationOwnedBy": "/root",
+    "integrationPaths": [
+      "scripts/quality/test-android-app-ui.sh",
+      "scripts/quality/prepare-native-ui.cjs",
+      "tests/quality/native-auth-diagnostics.cjs"
+    ],
+    "mainReportEdited": false,
+    "refsChanged": false,
+    "ciRestarted": false
+  },
+  "snapshot": {
+    "command": "timeout 3 python3 scripts/quality/native-ui-emulator-host-diagnostics.py snapshot --pid \"$emulator_pid\" --started-ns \"$emulator_started_ns\" --sdk-root \"$android_sdk\" > native-ui-logs/emulator-host-snapshot.log 2>&1 || true",
+    "placement": "After the emulator has booted and before required Maestro flows; root owns exact runner integration.",
+    "output": "native-ui-logs/emulator-process-identity.json",
+    "guards": [
+      "Linux, CI=true, QA environment, numeric current GitHub run ID, positive PID and launch within the last two hours",
+      "Current UID owns the opened /proc/PID directory and all four reported process UID fields match",
+      "Executable is one of three explicit canonical SDK emulator/QEMU paths, executable regular file owned by current UID or root; open process target device/inode match the expected file",
+      "Live process state; start ticks, UID and executable checked around reads; boot ID read before and after",
+      "Owned fixed logs directory; no-follow regular bounded inputs, no linked snapshot reuse and exclusive 0600 output"
+    ],
+    "retainedIdentity": [
+      "run ID",
+      "PID",
+      "UID",
+      "canonical executable path, device and inode",
+      "process start ticks and ticks per second",
+      "canonical SDK root",
+      "launch and snapshot epoch nanoseconds",
+      "current boot ID"
+    ]
+  },
+  "collection": {
+    "command": "timeout 3 python3 scripts/quality/native-ui-emulator-host-diagnostics.py collect --pid \"$emulator_pid\" --started-ns \"$emulator_started_ns\" --gate-exit \"$status\" > native-ui-logs/emulator-host-collector.log 2>&1 || true",
+    "output": "native-ui-logs/emulator-host-diagnostics.json",
+    "queryPrefix": [
+      "/usr/bin/sudo",
+      "-n",
+      "--",
+      "/usr/bin/timeout",
+      "--signal=TERM",
+      "--kill-after=0.2s",
+      "1.5s",
+      "/usr/bin/journalctl"
+    ],
+    "queryOptions": [
+      "--no-pager",
+      "--quiet",
+      "--all",
+      "--output=json",
+      "--output-fields=<explicit allowlist>",
+      "--lines=4",
+      "--boot=<captured boot ID>",
+      "--since=@<launch seconds>",
+      "--until=@<collection seconds plus one>"
+    ],
+    "exactMatches": [
+      "MESSAGE_ID=fc2e22bc6ee647b6b90729ab34a250b1",
+      "COREDUMP_PID=<captured crashed-process PID>",
+      "COREDUMP_UID=<captured crashed-process UID>",
+      "COREDUMP_EXE=<captured executable>"
+    ],
+    "outputFields": [
+      "MESSAGE_ID",
+      "COREDUMP_PID",
+      "COREDUMP_UID",
+      "COREDUMP_EXE",
+      "COREDUMP_SIGNAL",
+      "COREDUMP_SIGNAL_NAME",
+      "COREDUMP_TIMESTAMP",
+      "MESSAGE",
+      "_BOOT_ID",
+      "__REALTIME_TIMESTAMP",
+      "__MONOTONIC_TIMESTAMP"
+    ],
+    "correctness": [
+      "One noninteractive read-only query, no fallback query or permission modification",
+      "A current-run, same-boot snapshot is required; a live reused PID or changed executable is rejected; an absent process is expected after a crash",
+      "Every returned record is independently checked for exact crashed-process identity, message ID, boot, signal and microsecond crash timestamp inside the exact launch-to-collection window",
+      "JSON duplicate keys, malformed/array identity fields and out-of-window records are rejected; fields outside the allowlist are discarded including journal cursor",
+      "MESSAGE is bounded by UTF-8 byte length; missing message is explicitly recorded; multiple matching records remain ambiguous",
+      "Raw stdout/stderr are not persisted; numeric result and byte counts remain; permission, missing-tool, timeout, malformed, partial and no-record outcomes are explicit",
+      "Original gate exit is recorded, never converted into acceptance; the root runner retains its original required-flow/evidence/decoder result"
+    ],
+    "privilegedReadAuthorization": "Root approved the single fixed sudo -n journal read in the existing disposable CI runner; it does not install a handler, request credentials or change permission/core policy."
+  },
+  "bounds": {
+    "snapshotCooperativeSeconds": 1,
+    "collectionCooperativeSeconds": 2,
+    "eachOuterTimeoutSeconds": 3,
+    "privilegedJournalTimeoutSeconds": 1.5,
+    "privilegedKillAfterSeconds": 0.2,
+    "inputBytes": 65536,
+    "stdoutBytes": 131072,
+    "stderrBytes": 4096,
+    "maxRecords": 4,
+    "maxMessageUtf8Bytes": 32768,
+    "rationale": "The elevated timeout supervises its own journal child. Python also bounds pipe reads and controlled child shutdown; the caller's three-second timeout covers blocking OS operations. No retry or unbounded debugger/core command is used."
+  },
+  "validation": {
+    "focusedResult": {
+      "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-emulator-host-diagnostics.cjs",
+      "exitCode": 0,
+      "topLevelCases": 20,
+      "formalTests": 47,
+      "passed": 47,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 2342.498733,
+      "helperSHA256": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef",
+      "testSHA256": "5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a",
+      "outputRetention": "Structured result reconstructed from the observed tool TAP output; full TAP text is in conversation tool output, not claimed as a retained raw file."
+    },
+    "static": [
+      {
+        "command": "./node_modules/.bin/eslint tests/quality/native-emulator-host-diagnostics.cjs",
+        "exitCode": 0
+      },
+      {
+        "command": "Python ast.parse of the helper source (no bytecode write)",
+        "exitCode": 0
+      }
+    ],
+    "scopes": [
+      "Actual helper snapshot/collect CLI and file guards execute against a synthetic current-UID proc/SDK tree",
+      "Journal selection tests use controlled JSON records and a substituted query boundary; no local sudo or journalctl command ran",
+      "Real subprocess reader tests execute harmless Python children for output caps, normal completion, a stall and ignored SIGTERM",
+      "The 47 formal Node count includes 20 top-level cases and nested guard cases; it is one owner run, not 47 native workflows"
+    ],
+    "deferred": [
+      "Native owner independently reviews the frozen helper and runs only the focused file",
+      "Root owns combined runner/provenance integration gates",
+      "Actual current CI systemd journal/tool permissions, saved crash availability and native outcomes remain unverified"
+    ]
+  },
+  "primaryReferences": [
+    {
+      "url": "https://man7.org/linux/man-pages/man5/proc_pid_stat.5.html",
+      "usedFor": "Process start ticks are field 22, measured since boot in clock ticks."
+    },
+    {
+      "url": "https://www.freedesktop.org/software/systemd/man/latest/journalctl.html",
+      "usedFor": "Exact field matches, boot/time filtering, bounded line selection and explicit JSON field selection; --all permits long requested MESSAGE values before our byte caps."
+    },
+    {
+      "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd-coredump.html",
+      "usedFor": "Coredump message ID, crashed-process COREDUMP_PID/UID/EXE fields, microsecond COREDUMP_TIMESTAMP, and optional saved backtrace in MESSAGE."
+    },
+    {
+      "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd.journal-fields.html",
+      "usedFor": "Trusted _PID/_UID/_EXE describe the logging process, so they are not used as crashed-process identifiers."
+    },
+    {
+      "url": "https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md",
+      "usedFor": "The current inventory lists systemd-coredump, but the inspected inventory image differs from the failed job image; this does not establish runtime availability or handler activation."
+    }
+  ],
+  "limits": [
+    "This is a prepared CI-only diagnostic, not a repair for the emulator crash and not native or movie acceptance.",
+    "No current b5 native artifact contains this new snapshot or journal output.",
+    "A journal record does not contain the captured process-start-ticks field. Matching boot, PID, UID, executable and launch interval improves attribution but cannot prove start-ticks equality or exclude an unobserved intervening reuse.",
+    "A matching backtrace may identify a faulting component; it does not by itself establish why that component failed.",
+    "The current root integration collects after emulator shutdown. Any matching crash must be interpreted against the retained pre-cleanup/cleanup chronology; the helper does not label it the original UI failure.",
+    "No matching saved record can reflect missing tools, permission denial, disabled/unsupported crash handling, pending systemd processing, or no saved record; absence does not prove the emulator did not crash.",
+    "The helper requests no core image, environment, command-line or mapped-library field; it does not scan arbitrary host paths, dump memory, enable core collection, run GDB or change sysctl/ulimit.",
+    "The MESSAGE text is systemd-produced diagnostic text and may include a stack summary. Only the explicit fields and bounded message are persisted.",
+    "The initial focused tool TAP output was observed directly; this receipt retains its structured result and exact source hashes rather than claiming a separately retained raw TAP file."
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "recordedAtUtc": "2026-10-31T17:02:09+00:00",
+  "status": "passed; frozen v8 QA-only integration candidate",
+  "source": {
+    "applicationHead": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "isolatedCheckpointReportedByParent": "58309ba8f01e6ff115deea5f59f9199a77b4c698",
+    "checkpointBindingLimit": "That Git commit exists locally but does not contain the new graphics helper. This receipt binds the tested local candidate to exact before/after hashes and does not claim the candidate was tested at that checkpoint commit.",
+    "frozenQaPathCount": 8,
+    "additionalExistingCrashpadDependencies": 2,
+    "allTenHashesUnchangedBeforeAfter": true,
+    "onlyEightIntendedQaSourcePathsDifferFromB5": true,
+    "candidateHashes": {
+      "scripts/quality/native-ui-emulator-graphics.py": "7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78",
+      "tests/quality/native-emulator-graphics.cjs": "c93c86747b01214dbe349b5f4e1d5bbd273993c0f4dd98fcb6a048b1c1defab3",
+      "scripts/quality/native-ui-emulator-host-diagnostics.py": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef",
+      "tests/quality/native-emulator-host-diagnostics.cjs": "5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a",
+      "scripts/quality/test-android-app-ui.sh": "e152bfa57b13fe9321703055769ee8f6bbf3ab7457440810a9e777832d15f355",
+      "scripts/quality/prepare-native-ui.cjs": "3aaf404903272008f7f9479f21814981f58548df3366855b6382942af3ce2053",
+      "tests/quality/native-auth-diagnostics.cjs": "494fea44421e8e95f88f3b3c8eec1e464157650dc3eabcb5570c3084f407291c",
+      ".github/workflows/native-app-ui.yml": "f4c37d8f777628134b86ca91fa9476b59428150d4559d0848533f3e3cd8298f1"
+    },
+    "existingDependencyHashes": {
+      "scripts/quality/native-ui-emulator-diagnostics.py": "0d02a6b446e4219757a17c0c52e4d5da0190a9800e92c547b629da6977bdc1e8",
+      "tests/quality/native-emulator-diagnostics.cjs": "607adc77b1205b3ef07f445b57dad86e0110c3f39f134dacec60e69557c7db66"
+    }
+  },
+  "integrationTest": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-emulator-diagnostics.cjs tests/quality/native-auth-diagnostics.cjs",
+    "invocations": 1,
+    "execution": "Approved subprocess-enabled local execution; no assertion weakening for restricted-environment EPERM.",
+    "exitCode": 0,
+    "formalTests": 52,
+    "topLevelTests": 31,
+    "nestedTests": 21,
+    "pass": 52,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "durationMs": 1498.149156,
+    "breakdown": [
+      {
+        "file": "tests/quality/native-emulator-diagnostics.cjs",
+        "formalCases": 37,
+        "coverage": "Bounded current-run Crashpad file selection, path/PID/window checks, symlink/hardlink/special-file refusal, limits/mutation behavior, actual prelaunch and extracted cleanup success/failure preservation."
+      },
+      {
+        "file": "tests/quality/native-auth-diagnostics.cjs",
+        "formalCases": 15,
+        "coverage": "Existing installed-SDK lock/storage observation invariants and disposable source preparation/provenance, including both newly integrated helpers."
+      }
+    ],
+    "countsExcluded": [
+      "Renderer suite 25: already independently run and sealed; not rerun here.",
+      "Host diagnostic suite 47: separately owned/reviewed; not rerun here.",
+      "No standalone auth-program 33 count added."
+    ],
+    "runtime": {
+      "node": "24.22.1",
+      "python": "3.12.14",
+      "platform": "Linux"
+    }
+  },
+  "staticVerification": {
+    "bashSyntax": "pass",
+    "pythonAstSyntax": "2 files pass; no bytecode emission by the syntax check",
+    "javascriptNodeCheck": "4 files pass",
+    "workflowYamlSyntax": "0 errors and 0 warnings",
+    "scopedEslint": "4 files, 0 errors, 0 warnings, 0 fatal errors",
+    "whitespace": "No tracked diff diagnostics, no new-file no-index diagnostics, and no violations in an additional full-file scan of all eight paths. New-file no-index exit 1 denotes the file difference and is retained accurately.",
+    "typeScript": "Not rerun: no TypeScript or application source changes in this eight-path QA candidate."
+  },
+  "scopeNotes": [
+    "Both helpers are present in the preparation source manifest and disposable fixture required-file list.",
+    "The renderer and host-diagnostic functional suites remain disjoint from these 52 cases.",
+    "The new diagnostic calls remain best-effort and cannot override the saved acceptance status; previous renderer review binds the exact runner and its preserved flow/decoder/final gates.",
+    "Two generated Python bytecode cache files were removed after tests; no source/test/report/ref was edited by this reviewer."
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-v8-qa-integration/integration-tests.tap",
+      "bytes": 9666,
+      "sha256": "e3eba4577cde53f6eb804b973547f4962a83febc911c77cbdf0c058ce0c3cc89"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-v8-qa-integration/source-binding.json",
+      "bytes": 4365,
+      "sha256": "8a54949651bdeb3b34fa36188c29e46e3ff596261ffacb0f36ee4c49079bd1f7"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-v8-qa-integration/static-checks.json",
+      "bytes": 5486,
+      "sha256": "d44db98c5955861caa1424ef0a0a941a9e8d2b8506a6dd6aaa7482ea53febcd6"
+    }
+  ],
+  "relatedFrozenReviews": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-mesa-renderer-independent-review.json",
+      "bytes": 8692,
+      "sha256": "a6f9fae80be5bb80ca4ff962c593c6c2c21bbab5cc0f694ab750fd8952710bd4"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-emulator-host-diagnostics-preparation.json",
+      "bytes": 12201,
+      "sha256": "bfbcb8d003f06a36727ca68b0cbfa47b15d06646f57128d2850571ae5856bdeb"
+    }
+  ],
+  "limits": [
+    "This local gate does not launch Xvfb, the Android Emulator, an iPhone Simulator or a production app.",
+    "No live provider, Apple/Expo authentication, signed build, CI rerun, deployment, ref change or main report update was performed.",
+    "Actual renderer selection and the unchanged full UI/capture/movie/account acceptance gates remain required on the next native run.",
+    "The emulator SIGSEGV faulting component and the runtime efficacy of this isolation change remain unproven."
+  ],
+  "actions": {
+    "functionalTestInvocations": 1,
+    "sourceEdits": 0,
+    "providerCalls": 0,
+    "refChanges": 0,
+    "rootReportEdits": 0,
+    "writtenReviewArtifacts": 4
+  }
+}

@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T17:02:12.042441+00:00",
+  "reviewer": "navigation_performance independent final v8 provenance and QA-only scope review",
+  "status": "ACCEPTED_PREPARED_QA_SCOPE_AND_PROVENANCE_ONLY",
+  "publishedBaseline": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6"
+  },
+  "manifest": {
+    "path": "docs/quality/native-full-app-20261031/native-v8-source-provenance-manifest.json",
+    "sha256": "eedb262e025ab280a6be2a459e34cf1261c9988c5e1e7d839fb11038687162bc",
+    "bytes": 67603
+  },
+  "observedCounts": {
+    "originals": 500,
+    "uniqueOriginals": 500,
+    "overlays": 6,
+    "dependencies": 9,
+    "changedNonDocumentationPaths": 8,
+    "runtimePathsCompared": 496
+  },
+  "baselineOriginalVerification": {
+    "count": 498,
+    "method": "All retained b5 original SHA-256 values compared to bytes whose Git blob IDs match the literal b5 tree; changed QA originals use exact git-show bytes.",
+    "allMatch": true,
+    "mismatches": []
+  },
+  "originalDelta": {
+    "added": [
+      "scripts/quality/native-ui-emulator-graphics.py",
+      "scripts/quality/native-ui-emulator-host-diagnostics.py"
+    ],
+    "removed": [],
+    "changed": [
+      "scripts/quality/prepare-native-ui.cjs",
+      "scripts/quality/test-android-app-ui.sh",
+      ".github/workflows/native-app-ui.yml"
+    ],
+    "unchanged": 495
+  },
+  "newHelperProvenance": [
+    {
+      "path": "scripts/quality/native-ui-emulator-graphics.py",
+      "originalEnumerationOccurrences": 1,
+      "disposableRequiredArrayOccurrences": 1,
+      "disposableManifestHashAssertionOccurrences": 1,
+      "sha256": "7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78"
+    },
+    {
+      "path": "scripts/quality/native-ui-emulator-host-diagnostics.py",
+      "originalEnumerationOccurrences": 1,
+      "disposableRequiredArrayOccurrences": 1,
+      "disposableManifestHashAssertionOccurrences": 1,
+      "sha256": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef"
+    }
+  ],
+  "exactEightQaPaths": [
+    {
+      "path": ".github/workflows/native-app-ui.yml",
+      "change": "modified",
+      "bytes": 4595,
+      "sha256": "f4c37d8f777628134b86ca91fa9476b59428150d4559d0848533f3e3cd8298f1",
+      "baselineSHA256": "893ef1c3c6ae5976337ab7ecb12d6f8080ad51ddfa3e80995745f409540cddca",
+      "qaPurpose": "Adds the disposable Ubuntu graphics packages used by the reviewed Mesa CI renderer isolation."
+    },
+    {
+      "path": "scripts/quality/native-ui-emulator-graphics.py",
+      "change": "added",
+      "bytes": 5358,
+      "sha256": "7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78",
+      "baselineSHA256": null,
+      "qaPurpose": "New CI-only validation of the actual host and emulator graphics renderer."
+    },
+    {
+      "path": "scripts/quality/native-ui-emulator-host-diagnostics.py",
+      "change": "added",
+      "bytes": 21145,
+      "sha256": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef",
+      "baselineSHA256": null,
+      "qaPurpose": "New QA-only process identity snapshot and bounded saved-journal summary reader."
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui.cjs",
+      "change": "modified",
+      "bytes": 7007,
+      "sha256": "3aaf404903272008f7f9479f21814981f58548df3366855b6382942af3ce2053",
+      "baselineSHA256": "b7b85afaf239d525bd8af01b5f180dc93acfd71610a963302a83817e01cec571",
+      "qaPurpose": "Records both new Python QA helpers in the original-source provenance list; existing overlays are byte-identical."
+    },
+    {
+      "path": "scripts/quality/test-android-app-ui.sh",
+      "change": "modified",
+      "bytes": 9513,
+      "sha256": "e152bfa57b13fe9321703055769ee8f6bbf3ab7457440810a9e777832d15f355",
+      "baselineSHA256": "1cafb6dba876d9ee92288d7aa233ee41739fc2f271d4e1ca174f82c09620e12d",
+      "qaPurpose": "Runs and verifies the reviewed disposable Mesa/Xvfb renderer, adds bounded host snapshot/collection, and preserves original required-flow/evidence/decoder exits."
+    },
+    {
+      "path": "tests/quality/native-auth-diagnostics.cjs",
+      "change": "modified",
+      "bytes": 19961,
+      "sha256": "494fea44421e8e95f88f3b3c8eec1e464157650dc3eabcb5570c3084f407291c",
+      "baselineSHA256": "31e4d3ea874ff7b1090061a23b746c800a5e0e01a17f7588d41f9e724e1b4e78",
+      "qaPurpose": "Copies both helpers into the disposable preparation fixture and asserts their original hashes."
+    },
+    {
+      "path": "tests/quality/native-emulator-graphics.cjs",
+      "change": "added",
+      "bytes": 7951,
+      "sha256": "c93c86747b01214dbe349b5f4e1d5bbd273993c0f4dd98fcb6a048b1c1defab3",
+      "baselineSHA256": null,
+      "qaPurpose": "Focused renderer and actual cleanup integration regression coverage."
+    },
+    {
+      "path": "tests/quality/native-emulator-host-diagnostics.cjs",
+      "change": "added",
+      "bytes": 20363,
+      "sha256": "5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a",
+      "baselineSHA256": null,
+      "qaPurpose": "Focused process, journal-selection, privacy and subprocess-budget regression coverage."
+    }
+  ],
+  "runtimeComparison": {
+    "paths": [
+      "App.tsx",
+      "index.js",
+      "app.config.js",
+      "src/**",
+      "shared/**",
+      "modules/**",
+      "tests/native/**"
+    ],
+    "method": "Every tracked blob and executable/symlink mode compared directly to literal b5 git tree, independent of git status cache.",
+    "count": 496,
+    "mismatches": [],
+    "untrackedRuntimePaths": [],
+    "comparisonSHA256": "88ff1e70358f5d6f6308ea8a6a062dc70d8f23c0871bee04cc9152aefd097645",
+    "allMatch": true
+  },
+  "overlayComparison": {
+    "count": 6,
+    "allSixBeforeAfterReasonsAndRetainedPathsMatchB5": true,
+    "allGeneratedAndRetainedVirtualBytesMatchAfterHashes": true,
+    "files": [
+      "src/services/supabase.ts",
+      "modules/boomerang/ios/BoomerangModule.swift",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "src/navigation/AppNavigator.tsx",
+      "metro.config.js",
+      "index.js"
+    ]
+  },
+  "dependencyComparison": {
+    "selectedFileCount": 9,
+    "allNineHashesMatchB5": true,
+    "installedVersions": {
+      "@supabase/supabase-js": "2.103.0",
+      "@supabase/auth-js": "2.103.0"
+    },
+    "allInstalledVersionsMatchLock": true
+  },
+  "sourceMemoryCapability": 0,
+  "capabilityMode": "qa-capability-overlay",
+  "method": {
+    "preparation": "Actual prepare-native-ui.cjs executed in a VM with real frozen source/dependency reads, no-op mkdir and memory-only writes. No app source, generated native project or disk overlay was changed; no test group or native build ran. An initial wrapper attempt stopped at a nested git spawn EPERM; the final complete read used the same git results materialized through direct shell tool calls.",
+    "baselineGit": "Direct read-only git diff/list/tree/show results, with SHA-256 and Git blob/mode comparisons. The final enumeration never delegates a write to the real filesystem; generated overlays/source.json exist only in a memory map.",
+    "authFixtureReview": "Read the existing required-copy loop and manifest-hash assertion loop. Each added helper occurs once in each list; no fixture test was rerun for this review.",
+    "sourceFreeze": "All eight path hashes captured before and after the read are identical; the host helper/test remain at the independently reviewed frozen hashes.",
+    "testGroupsExecuted": 0,
+    "nativeExecutions": 0,
+    "providerQueries": 0,
+    "sourceEdits": 0,
+    "refChanges": 0
+  },
+  "reviewReferences": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-emulator-host-diagnostics-preparation.json",
+      "sha256": "bfbcb8d003f06a36727ca68b0cbfa47b15d06646f57128d2850571ae5856bdeb",
+      "purpose": "owner host-diagnostic purpose and focused result"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-emulator-host-diagnostics-independent-review.json",
+      "sha256": "78c5092386c28d0eee1e7dd5a3fcb679228bfae4bf89041aec084fa63fdd4233",
+      "purpose": "independent helper source and 47-case execution review"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-mesa-renderer-independent-review.json",
+      "sha256": "a6f9fae80be5bb80ca4ff962c593c6c2c21bbab5cc0f694ab750fd8952710bd4",
+      "purpose": "independent renderer and required-exit integration review"
+    }
+  ],
+  "limits": [
+    "This is a final local-source/provenance review. The currently running native workflow is still the published b5 candidate and cannot validate these prepared v8 QA changes.",
+    "All eight changed/new non-documentation candidate paths are QA workflow, runner, provenance or quality-test files. Generated Python bytecode under scripts/quality/__pycache__ is explicitly excluded from the candidate and preparation enumeration.",
+    "No App.tsx, index.js, app.config.js, src, shared, modules or tests/native runtime bytes or tracked modes differ from literal b5; there are no new runtime files. This does not prove unchanged runtime behavior under a different emulator renderer.",
+    "The six existing disposable overlays are unchanged, including the QA-only renderer-capability overlay. Production memory capability remains 0 and no runtime capability or music licensing change is introduced.",
+    "The journal helper and renderer have their separately source-bound focused review receipts. Those repeated local test counts are not added here, and no further test group ran for this review.",
+    "No claim is made that Mesa prevents the host SIGSEGV, that a journal record will exist, or that full native navigation/capture/decode acceptance has passed."
+  ]
+}
