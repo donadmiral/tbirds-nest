@@ -82,17 +82,31 @@ def bounded_command(args, timeout=5, limit=128 * 1024):
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                start_new_session=True)
     chunks = {'stdout': bytearray(), 'stderr': bytearray()}
+    started = time.monotonic()
     deadline = time.monotonic() + timeout
+    leader_completed_before_eof = False
     with selectors.DefaultSelector() as poller:
         for name, stream in [('stdout', process.stdout), ('stderr', process.stderr)]:
             os.set_blocking(stream.fileno(), False)
             poller.register(stream, selectors.EVENT_READ, name)
         try:
             while poller.get_map():
+                # A successful client can leave a service holding inherited
+                # pipes. Drain bytes already available after the leader exits;
+                # do not wait for that unrelated service to close its pipes.
+                leader_finished = process.poll() is not None
+                if leader_finished:
+                    leader_completed_before_eof = True
                 remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    raise subprocess.TimeoutExpired(args, timeout)
-                for key, _ in poller.select(min(remaining, 0.1)):
+                if remaining <= 0 and not leader_finished:
+                    error = subprocess.TimeoutExpired(args, timeout, output=bytes(chunks['stdout']), stderr=bytes(chunks['stderr']))
+                    error.leader_exit_code = process.poll()
+                    error.elapsed_seconds = time.monotonic() - started
+                    raise error
+                events = poller.select(0 if leader_finished else min(remaining, 0.1))
+                if leader_finished and not events:
+                    break
+                for key, _ in events:
                     data = os.read(key.fileobj.fileno(), 8192)
                     if not data:
                         poller.unregister(key.fileobj)
@@ -102,13 +116,21 @@ def bounded_command(args, timeout=5, limit=128 * 1024):
                         if len(chunks[key.data]) > cap:
                             raise ValueError('Diagnostic command output limit exceeded')
             code = process.wait(timeout=max(0.01, deadline - time.monotonic()))
-        except BaseException:
+        except BaseException as error:
+            if isinstance(error, subprocess.TimeoutExpired):
+                error.output = bytes(chunks['stdout'])
+                error.stderr = bytes(chunks['stderr'])
+                error.leader_exit_code = process.poll()
+                error.elapsed_seconds = time.monotonic() - started
             stop_group(process)
             raise
         finally:
             process.stdout.close()
             process.stderr.close()
-    return subprocess.CompletedProcess(args, code, bytes(chunks['stdout']), bytes(chunks['stderr']))
+    result = subprocess.CompletedProcess(args, code, bytes(chunks['stdout']), bytes(chunks['stderr']))
+    result.leader_completed_before_pipe_eof = leader_completed_before_eof
+    result.elapsed_seconds = time.monotonic() - started
+    return result
 
 
 def read_command(args, timeout=5):
@@ -116,6 +138,40 @@ def read_command(args, timeout=5):
     if result.returncode:
         raise ValueError('Required diagnostic/setup command failed with exit ' + str(result.returncode))
     return result.stdout.decode().strip()
+
+
+def setup_read(args, stage, timeout, records, output):
+    """Keep bounded cold-start evidence without altering application deadlines."""
+    row = {'stage': stage, 'timeoutSeconds': timeout, 'startedAtEpochMs': round(time.time() * 1000), 'status': 'running'}
+    records.append(row)
+    atomic_json(output, {'commands': records})
+    def retain(stdout, stderr):
+        for name, data in [('stdout', stdout or b''), ('stderr', stderr or b'')]:
+            row[name + 'Bytes'] = len(data)
+            row[name + 'Tail'] = data[-4096:].decode(errors='replace')
+            row[name + 'Truncated'] = len(data) > 4096
+    try:
+        result = bounded_command(args, timeout)
+        retain(result.stdout, result.stderr)
+        row.update({'status': 'completed' if result.returncode == 0 else 'failed', 'exitCode': result.returncode,
+                    'elapsedSeconds': result.elapsed_seconds, 'leaderCompletedBeforePipeEOF': result.leader_completed_before_pipe_eof})
+        if result.returncode:
+            raise ValueError('Simulator setup command failed with exit ' + str(result.returncode))
+        return result.stdout.decode().strip()
+    except subprocess.TimeoutExpired as error:
+        retain(error.output, error.stderr)
+        row.update({'status': 'timed-out', 'leaderExitCodeAtTimeout': getattr(error, 'leader_exit_code', None),
+                    'elapsedSeconds': getattr(error, 'elapsed_seconds', None)})
+        raise
+    except BaseException as error:
+        row.update({'status': 'failed' if isinstance(error, Exception) else 'interrupted', 'issue': type(error).__name__})
+        raise
+    finally:
+        row['finishedAtEpochMs'] = round(time.time() * 1000)
+        try:
+            atomic_json(output, {'commands': records})
+        except OSError:
+            pass
 
 
 def extract_app(archive, destination):
@@ -468,11 +524,13 @@ def main():
     for sig in [signal.SIGINT, signal.SIGTERM]:
         old_handlers[sig] = signal.signal(sig, cancel)
     result = 1
+    setup_records = []
     try:
-        device = read_command(['xcrun', 'simctl', 'create', 'Platinum retained audit ' + os.environ.get('GITHUB_RUN_ID', ''),
-                               'com.apple.CoreSimulator.SimDeviceType.iPhone-16', RUNTIME], timeout=30)
-        read_command(['xcrun', 'simctl', 'boot', device], timeout=30)
-        read_command(['xcrun', 'simctl', 'bootstatus', device, '-b'], timeout=300)
+        device = setup_read(['xcrun', 'simctl', 'create', 'Platinum retained audit ' + os.environ.get('GITHUB_RUN_ID', ''),
+                             'com.apple.CoreSimulator.SimDeviceType.iPhone-16', RUNTIME], 'create', 120,
+                            setup_records, output / 'setup-commands.json')
+        setup_read(['xcrun', 'simctl', 'boot', device], 'boot', 120, setup_records, output / 'setup-commands.json')
+        setup_read(['xcrun', 'simctl', 'bootstatus', device, '-b'], 'bootstatus', 300, setup_records, output / 'setup-commands.json')
         provenance['compatibilityVerification'] = verify_compatibility(app, manifest, device)
         provenance['device'] = device
         atomic_json(output / 'recovery-provenance.json', provenance)

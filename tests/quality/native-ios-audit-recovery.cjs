@@ -168,6 +168,30 @@ class RecoveryTests(unittest.TestCase):
   if proc.exists():self.assertEqual(proc.read_text().split()[2],'Z')
  def test_actual_command_output_limit_stops_owned_process(self):
   with self.assertRaises(ValueError):m.bounded_command([sys.executable,'-c','import sys,time;sys.stdout.write("x"*100000);sys.stdout.flush();time.sleep(30)'],timeout=2,limit=1024)
+ def test_completed_leader_does_not_wait_for_inherited_service_pipe_eof(self):
+  marker=self.root/'inherited-child.pid';child='import time;time.sleep(30)'
+  code='import subprocess,sys;from pathlib import Path;p=subprocess.Popen([sys.executable,"-c",'+repr(child)+']);Path(sys.argv[1]).write_text(str(p.pid));print("01234567-89AB-CDEF-0123-456789ABCDEF",flush=True)'
+  try:
+   result=m.bounded_command([sys.executable,'-c',code,str(marker)],timeout=.5)
+   self.assertEqual(result.returncode,0);self.assertEqual(result.stdout.strip(),b'01234567-89AB-CDEF-0123-456789ABCDEF')
+   self.assertTrue(result.leader_completed_before_pipe_eof)
+   self.assertLess(result.elapsed_seconds,.5)
+  finally:
+   if marker.exists():
+    try:os.kill(int(marker.read_text()),signal.SIGTERM)
+    except ProcessLookupError:pass
+ def test_real_timeout_retains_partial_output_and_setup_phase_metadata(self):
+  path=self.root/'setup.json';records=[]
+  args=[sys.executable,'-c','import sys,time;print("partial startup",flush=True);print("bounded diagnostic",file=sys.stderr,flush=True);time.sleep(30)']
+  with self.assertRaises(subprocess.TimeoutExpired) as caught:m.setup_read(args,'create',.2,records,path)
+  self.assertEqual(caught.exception.output,b'partial startup\n');self.assertEqual(caught.exception.stderr,b'bounded diagnostic\n')
+  self.assertIsNone(caught.exception.leader_exit_code)
+  row=json.loads(path.read_text())['commands'][0]
+  self.assertEqual(row['status'],'timed-out');self.assertEqual(row['stdoutTail'],'partial startup\n');self.assertEqual(row['stderrTail'],'bounded diagnostic\n')
+  self.assertLessEqual(row['stdoutBytes'],131072);self.assertLessEqual(row['stderrBytes'],4096)
+  closed=[sys.executable,'-c','import os,time;os.write(1,b"before close");os.close(1);os.close(2);time.sleep(30)']
+  with self.assertRaises(subprocess.TimeoutExpired) as ended:m.bounded_command(closed,timeout=.2)
+  self.assertEqual(ended.exception.output,b'before close');self.assertIsNone(ended.exception.leader_exit_code)
  def test_diagnostic_junit_rejects_empty_failed_skipped_and_wrong_case(self):
   p=self.root/'junit.xml';good='<testsuites><testsuite tests="1" failures="0"><testcase name="Diagnostic warm tabs then saved memory reader" file="tests/native/diagnostics/ios-warm-tabs-reader.yaml" status="SUCCESS"/></testsuite></testsuites>'
   p.write_text(good);self.assertTrue(m.diagnostic_junit(p)['passed'])
@@ -177,7 +201,7 @@ unittest.main(argv=['recovery-tests'],verbosity=2)
 `;
   const result = spawnSync('python3', ['-c', code, helper], { encoding: 'utf8', timeout: 30000 });
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stderr, /Ran 17 tests/);
+  assert.match(result.stderr, /Ran 19 tests/);
 });
 
 test('recovery workflow consumes the exact existing app and separates helper provenance', () => {
