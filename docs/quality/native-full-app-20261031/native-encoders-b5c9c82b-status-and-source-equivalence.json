@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31 16:23:16 UTC",
+  "repository": "donadmiral/tbirds-nest",
+  "outcome": "All three fresh standalone encoder jobs passed their required cases.",
+  "sourceBinding": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "pullRequestMerge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "headAndMergeTree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "remoteHeadAndMergeTreesIndependentlyVerified": true,
+    "allThreeCheckoutLogsMatchMerge": true,
+    "localHeadAlignmentClaimed": false,
+    "frozenSelectedInputCount": 1516,
+    "frozenInputsMatchedBothSha256AndRemoteGitBlobs": 1516,
+    "staticGateReceipt": {
+      "path": "docs/quality/native-full-app-20261031/native-v7-combined-static-gate.json",
+      "sha256": "7f043629c4c4e4ec119f20a10e199130465ae40c40fd4f0829bb1f0210a6f6bf"
+    }
+  },
+  "counts": {
+    "androidStory": {
+      "requiredCases": 23,
+      "passed": 23
+    },
+    "androidMemory": {
+      "requiredCases": 16,
+      "passed": 16
+    },
+    "iosStory": {
+      "requiredCases": 8,
+      "passed": 8
+    },
+    "iosMemory": {
+      "requiredCases": 11,
+      "passed": 11
+    },
+    "totalRequiredCases": 58,
+    "totalPassed": 58,
+    "countingBasis": "Android actual measured passed=true case arrays corroborated by 39 instrumentation entries; iOS fresh required harness success statements identify eight and eleven cases. The measured and instrumentation Android counts are the same cases, not additive.",
+    "formalSkipCounterAvailable": false,
+    "separateRootAuthChecksAdded": false
+  },
+  "jobs": [
+    {
+      "platform": "android",
+      "runId": 41218724047,
+      "jobId": 124588620082,
+      "name": "Verify encoded story audio and memory movies on Android Emulator",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:21:07Z",
+      "runtimeSeconds": 389.0,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047/job/124588620082",
+      "requiredStepConclusions": [
+        {
+          "name": "Exercise the actual story and memory encoders in an isolated emulator",
+          "conclusion": "success"
+        }
+      ],
+      "artifact": {
+        "id": 13048992960,
+        "name": "android-story-audio-export",
+        "sizeInBytes": 1486495,
+        "providerDigest": "sha256:e29a1c537d18839ede937e15ba570b6c8bc417db95f3677980b479e7db71979b",
+        "expired": false,
+        "bytesIndependentlyDownloaded": false
+      }
+    },
+    {
+      "platform": "ios",
+      "runId": 41218724062,
+      "jobId": 124588620364,
+      "name": "Verify encoded story audio on iOS Simulator",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "startedAt": "2026-10-31T16:14:39Z",
+      "completedAt": "2026-10-31T16:22:55Z",
+      "runtimeSeconds": 496.0,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062/job/124588620364",
+      "requiredStepConclusions": [
+        {
+          "name": "Verify actual story soundtrack movies in an isolated simulator",
+          "conclusion": "success"
+        }
+      ],
+      "artifact": {
+        "id": 13049625970,
+        "name": "native-story-audio-export",
+        "sizeInBytes": 409259,
+        "providerDigest": "sha256:3dc26f847a42d54dee8c741bdbb7ed0bf871c674b8b1ac4abceffd55441de370",
+        "expired": false,
+        "bytesIndependentlyDownloaded": false
+      }
+    },
+    {
+      "platform": "ios",
+      "runId": 41218724062,
+      "jobId": 124588620581,
+      "name": "Verify full memory movies on iOS Simulator",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:20:54Z",
+      "runtimeSeconds": 376.0,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062/job/124588620581",
+      "requiredStepConclusions": [
+        {
+          "name": "Encode and inspect actual multi-scene memory movies",
+          "conclusion": "success"
+        }
+      ],
+      "artifact": {
+        "id": 13049092560,
+        "name": "native-memory-movie-export",
+        "sizeInBytes": 411799,
+        "providerDigest": "sha256:4c31af2a2523f71e32dd308fa0c9f4bb3f7c01773307490ded5ca8e98b1dcdb1",
+        "expired": false,
+        "bytesIndependentlyDownloaded": false
+      }
+    }
+  ],
+  "androidSourceChecks": {
+    "compiledSourceCopiesVerified": true,
+    "matchedReportedSourceHashes": [
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+        "reportedAndPublishedSha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633"
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+        "reportedAndPublishedSha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab"
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+        "reportedAndPublishedSha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif",
+        "reportedAndPublishedSha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png",
+        "reportedAndPublishedSha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp",
+        "reportedAndPublishedSha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif",
+        "reportedAndPublishedSha256": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt",
+        "reportedAndPublishedSha256": "692e0629c6ee7a642ed17cd3b00cba8c64d6b6e56854839deabaf8261573bf51"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt",
+        "reportedAndPublishedSha256": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6"
+      }
+    ],
+    "freshPrintedReceipt": {
+      "path": "docs/quality/native-full-app-20261031/supporting-b5c9c82b/android-encoder-receipt.json",
+      "bytes": 29215,
+      "sha256": "1eb3323c10e47615657f2e4cd75c756a8960e977d32b55c8d628e7cc8f26ee4b"
+    }
+  },
+  "sourceEquivalence": {
+    "base": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "candidate": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "comparedFiles": 65,
+    "unchangedFiles": 65,
+    "changedFiles": [],
+    "scopes": [
+      "modules",
+      "plugins",
+      "vendor",
+      "package.json",
+      "package-lock.json",
+      "app.json",
+      "app.config.js",
+      ".github/workflows/ios-native-compile.yml",
+      ".github/workflows/android-native-compile.yml",
+      "scripts/quality/compile-ios-simulator.sh",
+      "scripts/quality/compile-android-native.sh",
+      "scripts/quality/test-ios-story-audio.sh",
+      "scripts/quality/test-ios-memory-movie.sh",
+      "scripts/quality/test-android-story-audio.sh",
+      "scripts/quality/StoryAudioExportHarness.swift",
+      "scripts/quality/MemoryMovieExportHarness.swift",
+      "scripts/quality/android-story-export",
+      "scripts/quality/android-media-dependencies.init.gradle"
+    ],
+    "manifest": {
+      "path": "docs/quality/native-full-app-20261031/supporting-b5c9c82b/unchanged-native-source-manifest.json",
+      "bytes": 8294,
+      "sha256": "d690036f5d0ed53ee7b8ed83104362532d0835baf58b4b1f82a12cb12df72f01"
+    },
+    "historicalComparisonReceipt": {
+      "path": "docs/quality/native-full-app-20261031/native-encoders-f4c35f32-status-and-source-equivalence.json",
+      "bytes": 32829,
+      "sha256": "46d42e96cdaaf42895da3f4db9effe031aafdf8c4a78b0aa0f1c8c678eb1d35d"
+    }
+  },
+  "provenance": {
+    "completedJobLogsFetched": 3,
+    "artifactArchivesDownloaded": 0,
+    "freshMoviesIndependentlyDecoded": 0,
+    "logs": {
+      "android_encoder": {
+        "raw": {
+          "path": "/tmp/platinum-ci-b5c9c82b-android_encoder.log",
+          "bytes": 119391,
+          "sha256": "2c7bb46465fb9741e630ddd4f166c4f58d3a2f07f789ac6abd7c6c48785da577"
+        },
+        "normalized": {
+          "path": "/tmp/platinum-ci-b5c9c82b-android_encoder-normalized.log",
+          "bytes": 71729,
+          "sha256": "46bcfd329bf1c8335151bf0d0e5a667c471e683a30b1a92b8ab2dc59b8d83188"
+        },
+        "checkouts": [
+          "cddbe51a25efbb39b9e91fb822a9821957b9a2bd"
+        ],
+        "apiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588620082/logs"
+      },
+      "ios_story": {
+        "raw": {
+          "path": "/tmp/platinum-ci-b5c9c82b-ios_story.log",
+          "bytes": 25414,
+          "sha256": "0c63e1ec956f2e03ff2e877a610d354ff0f39f0307be3c80a72822403ac6098f"
+        },
+        "normalized": {
+          "path": "/tmp/platinum-ci-b5c9c82b-ios_story-normalized.log",
+          "bytes": 16584,
+          "sha256": "4176860290db4202a3899774fe7fe3feea02174c89da5bfd4d3d9c19436418d1"
+        },
+        "checkouts": [
+          "cddbe51a25efbb39b9e91fb822a9821957b9a2bd"
+        ],
+        "apiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588620364/logs"
+      },
+      "ios_memory": {
+        "raw": {
+          "path": "/tmp/platinum-ci-b5c9c82b-ios_memory.log",
+          "bytes": 23969,
+          "sha256": "a451da93e1bb1d8164d03999e045471b90fec74002a42005544b3ab7a1e4c539"
+        },
+        "normalized": {
+          "path": "/tmp/platinum-ci-b5c9c82b-ios_memory-normalized.log",
+          "bytes": 15574,
+          "sha256": "3c0d6dadd2bd446872620a3c1ac055fdde8c29d99ce249d0324e50b1777b2c93"
+        },
+        "checkouts": [
+          "cddbe51a25efbb39b9e91fb822a9821957b9a2bd"
+        ],
+        "apiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588620581/logs"
+      }
+    },
+    "boundedLogProjection": {
+      "path": "docs/quality/native-full-app-20261031/supporting-b5c9c82b/encoder-log-projection.txt",
+      "bytes": 570,
+      "sha256": "98dcf7467a41a68397e9360675cb819c3652c12e34d6d4e3f58d739d866db5e6"
+    },
+    "terminalMetadata": {
+      "path": "docs/quality/native-full-app-20261031/supporting-b5c9c82b/encoder-terminal-metadata.json",
+      "bytes": 3103,
+      "sha256": "8f5354ee471fe57ca9bb0c231bb65c03e594ce34b4b46a400c465352dee1a3d3"
+    }
+  },
+  "limits": [
+    "Fresh encoder movies were exercised and verified by their CI harnesses; this reviewer did not independently download or decode the new archives. Artifact digests above are provider metadata, not independent byte verification.",
+    "The iOS printed success statements and exact checkout logs bind the required unchanged harnesses to this source. Fresh iOS receipt JSON/source-copy manifests inside ZIPs were not independently opened.",
+    "These standalone native engine harnesses do not execute the changed MemoryAlbumScreen, QA response observation, full-app capture orchestration or the full-app Android renderer-isolation launch setting.",
+    "Compiler status, full-app navigation/capture/account readback, physical-device behavior, signed distribution, TestFlight and hosted-backend acceptance are separate gates.",
+    "No additional local tests, workflow retry/cancellation, source edit, ref change, provider-data write or authentication action was performed."
+  ]
+}

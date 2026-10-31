@@ -1,0 +1,87 @@
+{
+  "observedAt": "2026-10-31 16:23:16 UTC",
+  "jobs": [
+    {
+      "platform": "android",
+      "runId": 41218724047,
+      "jobId": 124588620082,
+      "name": "Verify encoded story audio and memory movies on Android Emulator",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:21:07Z",
+      "runtimeSeconds": 389.0,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047/job/124588620082",
+      "requiredStepConclusions": [
+        {
+          "name": "Exercise the actual story and memory encoders in an isolated emulator",
+          "conclusion": "success"
+        }
+      ],
+      "artifact": {
+        "id": 13048992960,
+        "name": "android-story-audio-export",
+        "sizeInBytes": 1486495,
+        "providerDigest": "sha256:e29a1c537d18839ede937e15ba570b6c8bc417db95f3677980b479e7db71979b",
+        "expired": false,
+        "bytesIndependentlyDownloaded": false
+      }
+    },
+    {
+      "platform": "ios",
+      "runId": 41218724062,
+      "jobId": 124588620364,
+      "name": "Verify encoded story audio on iOS Simulator",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "startedAt": "2026-10-31T16:14:39Z",
+      "completedAt": "2026-10-31T16:22:55Z",
+      "runtimeSeconds": 496.0,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062/job/124588620364",
+      "requiredStepConclusions": [
+        {
+          "name": "Verify actual story soundtrack movies in an isolated simulator",
+          "conclusion": "success"
+        }
+      ],
+      "artifact": {
+        "id": 13049625970,
+        "name": "native-story-audio-export",
+        "sizeInBytes": 409259,
+        "providerDigest": "sha256:3dc26f847a42d54dee8c741bdbb7ed0bf871c674b8b1ac4abceffd55441de370",
+        "expired": false,
+        "bytesIndependentlyDownloaded": false
+      }
+    },
+    {
+      "platform": "ios",
+      "runId": 41218724062,
+      "jobId": 124588620581,
+      "name": "Verify full memory movies on iOS Simulator",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:20:54Z",
+      "runtimeSeconds": 376.0,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062/job/124588620581",
+      "requiredStepConclusions": [
+        {
+          "name": "Encode and inspect actual multi-scene memory movies",
+          "conclusion": "success"
+        }
+      ],
+      "artifact": {
+        "id": 13049092560,
+        "name": "native-memory-movie-export",
+        "sizeInBytes": 411799,
+        "providerDigest": "sha256:4c31af2a2523f71e32dd308fa0c9f4bb3f7c01773307490ded5ca8e98b1dcdb1",
+        "expired": false,
+        "bytesIndependentlyDownloaded": false
+      }
+    }
+  ],
+  "remoteHeadAndMergeTree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6"
+}

@@ -5,7 +5,7 @@ native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
-## Current published repair candidate: f4c35f32 (v6)
+## Current published repair candidate: b5c9c82b (v7)
 
 Repair-cycle progress: **5 of 6 milestones complete**. The remaining milestone
 is complete installed-app acceptance on iPhone Simulator and Android Emulator.
@@ -14,9 +14,87 @@ This is a milestone count, not a whole-product completion percentage. The
 [workflow history](https://github.com/donadmiral/tbirds-nest/actions/workflows/native-app-ui.yml)
 remain available independently of the chat connection.
 
-The reviewed v6 checkpoint is now published as application/PR head
+The reviewed follow-up is now published as application/PR head
+[`b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6`](https://github.com/donadmiral/tbirds-nest/commit/b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6).
+Its PR merge is `cddbe51a25efbb39b9e91fb822a9821957b9a2bd`; both have verified
+tree `d72a8c25e7b9e8890d3520a0c825a6175aecf3c6`. The app branch was advanced
+with an expected-head, non-forced update after the preceding full-native run
+had completed. No active device run was canceled for this publication.
+
+All 18 changed source/test files match their frozen reviewed hashes. The final
+commit's 37 files and 473,775 bytes were read back and verified; its reader and
+renderer parent checkpoints had also been verified separately. Local Git
+metadata now points to the published candidate, with working source preserved.
+The final combined native TypeScript, scoped ESLint and whitespace checks passed,
+and all 1,516 selected source/configuration inputs stayed unchanged through
+that gate. This is not a claim that the full root suite was rerun locally.
+
+| Follow-up included in this source | Local verification and acceptance limit |
+| --- | --- |
+| Reader readiness | 33 focused cases passed. Authorized books no longer wait for optional reactions; unknown reactions remain non-actionable and stale results are fenced. Required auth/book/media gates remain. This does not prove the cause or cure of the earlier iPhone spinner. |
+| Android emulator | 52 focused cases passed. The runner selects explicit SwiftShader and retains bounded crash diagnostics. Guest Vulkan and all required flows remain. The next actual renderer selection and crash outcome require runtime evidence. |
+| QA observations | 53 focused cases passed, independently reviewed in disjoint groups of 23 and 30. Bounded capture-entry/readback and selected response-body markers preserve observed results and errors. Their presence is not native UI or movie acceptance. |
+
+The only production runtime file changed by this follow-up is
+`src/screens/profile/MemoryAlbumScreen.tsx`; the other 17 paths are runner,
+provenance, fixture and test changes. Workflow files, native flow commands,
+assertions, deadlines, native encoders and production movie capability remain
+unchanged.
+
+Fresh validation was launched for this exact source:
+
+| Gate | Current-source run |
+| --- | --- |
+| Type and quality | [41218724145](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724145) |
+| Browser interaction and media | [41218724100](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724100) |
+| iOS compilation and encoders | [41218724062](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062) |
+| Android compilation and encoders | [41218724047](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047) |
+| Complete installed native apps | [41218724056](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056) |
+
+The fresh browser workflow completed successfully in 308 seconds, including
+131 UI journeys, 12 story-video cases, 25 memory-movie cases, five music cases,
+five cover cases and 288 cover layouts with zero reported overflow or overlap.
+Its required harnesses reported 18 encoded and decoded movie outputs; the
+retained artifact has reports rather than movie binaries, so those outputs
+were not decoded again during review. The ZIP digest and 24 selected published
+source hashes were verified. All 11 reported console/error fields were empty.
+
+The real Next cold-route probe recorded 109 samples, including 43 fallback
+samples, with zero missing-navigation samples. Warm Home, Messages, Jobs and
+Profile returns had zero blank-content samples; their first destination
+observations were 40.7, 29.8, 35.4 and 37.4 milliseconds, respectively. These
+are scoped CI fixture/development-server observations, not hosted-network or
+physical-device performance measurements.
+
+All 58 required standalone native encoder cases also passed on this source:
+Android 23 story plus 16 memory, and iOS eight story plus 11 memory. All three
+checkout logs match the verified PR merge; all 65 scoped engine/harness/config
+files are unchanged from `f4c35f32`, and nine printed Android source hashes
+match. These are engine-harness passes, not full-app capture acceptance. Fresh
+artifact IDs and provider digests are retained, but the three encoder ZIPs
+were not independently downloaded or decoded again. Quality and compiler
+reviews remain separate.
+
+At the native owner's 16:23:42 UTC observation, both full-app scripts were
+running with no failed step or artifact upload; that step metadata does not
+distinguish their internal compile and UI phases. The expected original-source
+manifest contains 498 files, calculated from the published Git tree. Actual
+full-native artifact hashes and terminal outcomes remain to be reviewed.
+Earlier supporting results and native failures below belong to `f4c35f32`;
+they are not counted as new runtime passes for this source. Milestone 6
+remains open.
+
+[Publication and source binding](live-app-20261031/publication-b5c9c82b.json) ·
+[Combined static gate](native-full-app-20261031/native-v7-combined-static-gate.json) ·
+[Expected native source manifest](native-full-app-20261031/native-full-app-b5c9c82b-expected-sources.json) ·
+[Fresh browser verification](live-app-20261031/browser-quality-b5c9c82b.json) ·
+[Fresh native encoder verification](native-full-app-20261031/native-encoders-b5c9c82b-status-and-source-equivalence.json)
+
+## Previous published repair candidate: f4c35f32 (v6)
+
+The preceding v6 checkpoint was published as application/PR head
 [`f4c35f32795be5f196840c37382143a2d7e33d55`](https://github.com/donadmiral/tbirds-nest/commit/f4c35f32795be5f196840c37382143a2d7e33d55).
-Its current PR merge is `6f3204cd44996dfe66ffe2dcf7192543805aa912`; both have the
+Its tested PR merge is `6f3204cd44996dfe66ffe2dcf7192543805aa912`; both have the
 verified tree `7699f995aa8e5192658f785258eb48f408af6a39`. The four repairs below
 are included in that source. The earlier isolated checkpoint is preserved in
 its history; it is no longer merely a proposed follow-up.
@@ -156,12 +234,12 @@ dropped events or identify the reader/capture cause. Cumulative profile,
 shelf, book and reaction reads are two each; the earlier profile request-storm
 pattern is absent from these counts.
 
-### PREPARED reader follow-up
+### Reader follow-up incorporated into v7
 
 The independently reviewed reader follow-up is saved on the isolated
 [`984fadc6c4154fa1977cf04b93a29d05f0ff0104` candidate](https://github.com/donadmiral/tbirds-nest/commit/984fadc6c4154fa1977cf04b93a29d05f0ff0104);
-remote byte readback verified all 14 files (283,356 bytes). This is a saved
-follow-up, not the published application head. It removes
+remote byte readback verified all 14 files (283,356 bytes). It is now included
+in the published `b5c9c82b` candidate. It removes
 optional reaction reads from the authorized book's loading dependency: holding
 that read no longer withholds the book, and an optional read failure no longer
 clears it. Initial unknown reaction state disables only the reaction control
@@ -177,7 +255,7 @@ against the original `f4c35f32` screen produced **10 passes and 17 failures**.
 Two soundtrack interactions also failed before the intermediate ticket
 refinement. The independent reviewer repeated all 33 focused cases successfully
 and verified unchanged source hashes. Native TypeScript and scoped ESLint passed.
-These counts describe this prepared follow-up suite.
+These counts describe this focused follow-up suite.
 
 Required auth readiness, the authorized book read, media hydration and visibility
 checks remain prerequisites. Mandatory native flow commands and deadlines are
@@ -185,17 +263,16 @@ preserved. The component tests execute the production screen and shared helpers
 with controlled React scheduling, native views, auth, transport and media
 boundaries. They establish the loading/state defects and their local repair;
 they do not identify the promise responsible for the retained iPhone spinner or
-establish a native cure. Published application head remains `f4c35f32`, and
-complete installed-app acceptance remains **milestone 6, open**. A fresh native
-run is still required for this prepared change.
+establish a native cure. Complete installed-app acceptance remains
+**milestone 6, open**; the fresh `b5c9c82b` native run is active.
 
 [Reader follow-up and focused evidence](native-full-app-20261031/native-reader-reactions-repair.json) ·
 [Independent reader review](native-full-app-20261031/native-reader-reactions-independent-review.json)
 
-### PREPARED QA diagnostics follow-up
+### QA diagnostics follow-up incorporated into v7
 
-A separate QA-only diagnostic follow-up is prepared to distinguish the unresolved
-reader and capture-entry boundaries on the next native run. It adds bounded,
+A separate QA-only diagnostic follow-up is included in `b5c9c82b` to distinguish
+the unresolved reader and capture-entry boundaries on its native run. It adds bounded,
 redacted markers for capture URL reception, parser and action outcomes, actual
 capture-component mounting, and the existing saved-account readback. Action
 production is recorded separately from mounting and does not attest dispatch.
@@ -223,23 +300,22 @@ claim of timing neutrality. Body settlement does not establish JSON parsing,
 media hydration, React commit or visible reader readiness. Missing markers must
 be interpreted with persistence, instrumentation and buffer-drop limits. The
 local tests exercise installed JavaScript implementations with controlled native
-and component boundaries. **This prepared diagnostic change neither identifies
+and component boundaries. **This diagnostic change neither identifies
 the cause of the retained iPhone failure nor establishes a routing, readback or
 capture cure.** The existing native flows, deadlines and acceptance gates remain
-mandatory; published application head remains `f4c35f32` and milestone 6 remains
-open.
+mandatory; milestone 6 remains open for published `b5c9c82b`.
 
 [QA diagnostic follow-up and focused evidence](native-full-app-20261031/native-capture-boundary-trace-repair.json) ·
 [Independent reader-response observation review](native-full-app-20261031/native-reader-response-observer-independent-review.json) ·
 [Independent capture integration review](native-full-app-20261031/native-capture-boundary-integration-independent-review.json) ·
 [Combined static gate](native-full-app-20261031/native-v7-combined-static-gate.json)
 
-### Saved Android runner follow-up
+### Android runner follow-up incorporated into v7
 
 The reviewed follow-up is saved separately at
 [`f4ee61a3`](https://github.com/donadmiral/tbirds-nest/commit/f4ee61a3d3e991e5a8c442e36f2c9ef53a8bcf1b),
-with all 20 source/evidence files read back and verified. It has not been
-published to the app/PR branch or exercised in a new emulator run. The sole
+with all 20 source/evidence files read back and verified. It is now included
+in the published `b5c9c82b` candidate and its fresh native run. The sole
 launch-argument change selects documented `swiftshader` instead of adaptive
 `software`. Guest Vulkan, the API 35 image, memory allocation, workflow,
 both flows, decoder gates and deadlines remain intact. This is an empirical

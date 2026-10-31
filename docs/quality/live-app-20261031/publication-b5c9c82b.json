@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31 16:19:16 UTC",
+  "application": {
+    "repository": "donadmiral/tbirds-nest",
+    "pullRequest": 3,
+    "branch": "codex/app-quality-20261029",
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "base": "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "previousHead": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "firstPostPublicationObservationUtc": "2026-10-31 16:15:17 UTC"
+  },
+  "publication": {
+    "method": "Expected-head, non-forced fast-forward",
+    "expectedHeadMatched": true,
+    "refUpdateSucceeded": true,
+    "mergeTreeMatchesReviewedTree": true,
+    "previousNativeRunWasTerminal": true
+  },
+  "verification": {
+    "finalCommitFilesVerified": 37,
+    "finalCommitBytesVerified": 473775,
+    "allChangedSourceFilesVerified": 18,
+    "sourcePaths": [
+      "scripts/quality/native-ui-emulator-diagnostics.py",
+      "scripts/quality/prepare-native-ui.cjs",
+      "scripts/quality/test-android-app-ui.sh",
+      "src/screens/profile/MemoryAlbumScreen.tsx",
+      "tests/native/MemoryCaptureFixtureScreen.tsx",
+      "tests/native/account-readback.cjs",
+      "tests/native/backend-fixture.cjs",
+      "tests/native/capture-boundary-trace.cjs",
+      "tests/native/entry.js",
+      "tests/quality/memory-media-regressions.cjs",
+      "tests/quality/native-account-readback.cjs",
+      "tests/quality/native-auth-diagnostics.cjs",
+      "tests/quality/native-capture-boundary-trace.cjs",
+      "tests/quality/native-capture-setup.cjs",
+      "tests/quality/native-emulator-diagnostics.cjs",
+      "tests/quality/native-memory-album-loading.cjs",
+      "tests/quality/native-timer-bootstrap.cjs",
+      "tests/quality/native-ui-fixture.cjs"
+    ],
+    "rendererCheckpoint": {
+      "commit": "f4ee61a3d3e991e5a8c442e36f2c9ef53a8bcf1b",
+      "parent": "b70a8c1c8a20b316da1e0dcd2ca97753f8a09b52",
+      "tree": "4c1ccb45db3481c84f455755f173f3170b1647b2",
+      "filesVerified": 20,
+      "bytesVerified": 115161,
+      "sourcePaths": [
+        "scripts/quality/native-ui-emulator-diagnostics.py",
+        "scripts/quality/prepare-native-ui.cjs",
+        "scripts/quality/test-android-app-ui.sh",
+        "tests/quality/native-auth-diagnostics.cjs",
+        "tests/quality/native-emulator-diagnostics.cjs"
+      ],
+      "localApplicationHead": "f4c35f32795be5f196840c37382143a2d7e33d55"
+    },
+    "readerCheckpoint": {
+      "commit": "984fadc6c4154fa1977cf04b93a29d05f0ff0104",
+      "parent": "7f3f01817c3ae180268c35ebcbb09c4d83f67dd8",
+      "tree": "8a9b748babec4515c4c915308f947d1dd9e9c5c9",
+      "filesVerified": 14,
+      "bytesVerified": 283356,
+      "sourcePaths": [
+        "src/screens/profile/MemoryAlbumScreen.tsx",
+        "tests/quality/memory-media-regressions.cjs",
+        "tests/quality/native-memory-album-loading.cjs"
+      ],
+      "localApplicationHead": "f4c35f32795be5f196840c37382143a2d7e33d55"
+    },
+    "combinedStaticGate": {
+      "path": "docs/quality/native-full-app-20261031/native-v7-combined-static-gate.json",
+      "sha256": "7f043629c4c4e4ec119f20a10e199130465ae40c40fd4f0829bb1f0210a6f6bf",
+      "selectedInputs": 1516,
+      "sourceChanges": 18,
+      "typescriptPassed": true,
+      "scopedLintPassed": true,
+      "whitespacePassed": true,
+      "inputsUnchanged": true
+    },
+    "localMetadata": {
+      "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "workingSourceFilesPreserved": 18,
+      "stagedChangesBeforeAlignment": 0
+    }
+  },
+  "originalNativeSourceExpectation": {
+    "path": "docs/quality/native-full-app-20261031/native-full-app-b5c9c82b-expected-sources.json",
+    "sha256": "2e5a27635c432e491fcbe48e69f944a549c4b229c901ac5dc795ce545ec55f25",
+    "originalSourceFiles": 498
+  },
+  "newRuns": [
+    {
+      "id": 41218724145,
+      "name": "Type and quality gates"
+    },
+    {
+      "id": 41218724100,
+      "name": "Browser interaction and video gates"
+    },
+    {
+      "id": 41218724062,
+      "name": "iOS native compile"
+    },
+    {
+      "id": 41218724047,
+      "name": "Android native compile"
+    },
+    {
+      "id": 41218724056,
+      "name": "Full native application UI"
+    }
+  ],
+  "runObservation": "All five runs were in progress at the first post-publication observation; their terminal results require separate review. The full-native job conclusions are not inferred from source or local tests.",
+  "priorFullNativeRun": {
+    "id": 41211437305,
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "status": "completed",
+    "conclusion": "failure",
+    "updatedAt": "2026-10-31T15:34:36Z"
+  },
+  "progress": {
+    "repairMilestonesCompleted": 5,
+    "total": 6,
+    "meaning": "Repair-cycle milestone count, not whole-product completion or elapsed build percentage",
+    "remaining": "Complete installed-app navigation, account readback and movie acceptance on both platforms"
+  },
+  "limits": [
+    "This publication is not a merge, production promotion, signed-device build, TestFlight submission or complete native acceptance.",
+    "Runtime assertions, flow deadlines, decoding requirements, workflows and production movie capability remain unchanged."
+  ]
+}
