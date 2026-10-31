@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span
+ok 1 - actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span
+  ---
+  duration_ms: 5.298359
+  type: 'test'
+  ...
+# Subtest: lock wrapper preserves receiver, timeout arguments, callback arguments and result references
+ok 2 - lock wrapper preserves receiver, timeout arguments, callback arguments and result references
+  ---
+  duration_ms: 0.947114
+  type: 'test'
+  ...
+# Subtest: acquisition timeout retains the original error without invoking work or recording error content
+ok 3 - acquisition timeout retains the original error without invoking work or recording error content
+  ---
+  duration_ms: 0.705962
+  type: 'test'
+  ...
+# Subtest: callback and storage failures retain rejection identity and leave no false active operation
+ok 4 - callback and storage failures retain rejection identity and leave no false active operation
+  ---
+  duration_ms: 0.928666
+  type: 'test'
+  ...
+# Subtest: storage arguments, optional callbacks, receiver and resolved values survive observation
+ok 5 - storage arguments, optional callbacks, receiver and resolved values survive observation
+  ---
+  duration_ms: 0.39856
+  type: 'test'
+  ...
+# Subtest: event retention is bounded while preserving startup and recent observations
+ok 6 - event retention is bounded while preserving startup and recent observations
+  ---
+  duration_ms: 0.642656
+  type: 'test'
+  ...
+# Subtest: diagnostic clock and sink errors cannot change auth results
+ok 7 - diagnostic clock and sink errors cannot change auth results
+  ---
+  duration_ms: 0.273802
+  type: 'test'
+  ...
+# Subtest: timer descriptors identify lazy getters without invoking or changing them
+ok 8 - timer descriptors identify lazy getters without invoking or changing them
+  ---
+  duration_ms: 0.396496
+  type: 'test'
+  ...
+# Subtest: timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence
+ok 9 - timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence
+  ---
+  duration_ms: 0.301414
+  type: 'test'
+  ...
+# Subtest: timer descriptor failures and bounded identity overflow preserve auth behavior
+ok 10 - timer descriptor failures and bounded identity overflow preserve auth behavior
+  ---
+  duration_ms: 1.683852
+  type: 'test'
+  ...
+# Subtest: one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations
+ok 11 - one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations
+  ---
+  duration_ms: 0.369346
+  type: 'test'
+  ...
+# Subtest: native factory rejects production or real-provider configuration before filesystem access
+ok 12 - native factory rejects production or real-provider configuration before filesystem access
+  ---
+  duration_ms: 3.397921
+  type: 'test'
+  ...
+# Subtest: native trace writes are batched, serialized, isolated from storage and recover after failure
+ok 13 - native trace writes are batched, serialized, isolated from storage and recover after failure
+  ---
+  duration_ms: 6.313696
+  type: 'test'
+  ...
+# Subtest: disposable source overlay changes only the reviewed three anchors and retains SDK lock and storage
+ok 14 - disposable source overlay changes only the reviewed three anchors and retains SDK lock and storage
+  ---
+  duration_ms: 0.406131
+  type: 'test'
+  ...
+# Subtest: disposable preparation retains diagnostic source, original auth hash and exact overlay content
+ok 15 - disposable preparation retains diagnostic source, original auth hash and exact overlay content
+  ---
+  duration_ms: 90.746123
+  type: 'test'
+  ...
+# Subtest: the real Expo options loader selects only Android video source and retains the Apple options
+ok 16 - the real Expo options loader selects only Android video source and retains the Apple options
+  ---
+  duration_ms: 2.115703
+  type: 'test'
+  ...
+# Subtest: the Expo library compile scope changes only its guarded Media3 version scalar
+ok 17 - the Expo library compile scope changes only its guarded Media3 version scalar
+  ---
+  duration_ms: 0.270056
+  type: 'test'
+  ...
+# Subtest: the installed pinned Expo load control changes only the two Media3 interface signatures
+ok 18 - the installed pinned Expo load control changes only the two Media3 interface signatures
+  ---
+  duration_ms: 0.428294
+  type: 'test'
+  ...
+# Subtest: unknown distributions, unexpected changes and a changed version fail closed
+ok 19 - unknown distributions, unexpected changes and a changed version fail closed
+  ---
+  duration_ms: 0.33916
+  type: 'test'
+  ...
+# Subtest: the actual Android plugin applies idempotently to a disposable installed package and leaves iOS unregistered
+ok 20 - the actual Android plugin applies idempotently to a disposable installed package and leaves iOS unregistered
+  ---
+  duration_ms: 3.652934
+  type: 'test'
+  ...
+# Subtest: the app, production module, standalone instrumentation and graph verifier select the same reviewed dependency
+ok 21 - the app, production module, standalone instrumentation and graph verifier select the same reviewed dependency
+  ---
+  duration_ms: 0.621305
+  type: 'test'
+  ...
+# Subtest: the exact full-app B-frame video is packaged into instrumentation and retained by its source manifest
+ok 22 - the exact full-app B-frame video is packaged into instrumentation and retained by its source manifest
+  ---
+  duration_ms: 0.176515
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 201.948802

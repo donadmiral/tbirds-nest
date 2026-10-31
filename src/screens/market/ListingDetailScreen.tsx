@@ -13,7 +13,7 @@ import SellerReviews from '../../components/market/SellerReviews';
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet,
-  Text, TouchableOpacity, View, Modal, TextInput , KeyboardAvoidingView, Platform , Share } from 'react-native';
+  Text, TouchableOpacity, View, Modal, TextInput, Pressable, Keyboard, useWindowDimensions, KeyboardAvoidingView, Platform, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
@@ -36,7 +36,8 @@ function priceLabel(item: Listing): string {
 }
 
 export default function ListingDetailScreen({ navigation, route }: any) {
-  useTheme();
+  const { isDark } = useTheme();
+  const { height: screenHeight } = useWindowDimensions();
   const listingId: string = route.params?.listingId;
   const { profile } = useAuthStore();
   const userId: string | undefined = profile?.id;
@@ -119,26 +120,45 @@ export default function ListingDetailScreen({ navigation, route }: any) {
   const [offerOpen, setOfferOpen] = useState(false);
   const [offerAmt, setOfferAmt] = useState('');
   const [offerBusy, setOfferBusy] = useState(false);
+  const [offerError, setOfferError] = useState('');
+  const offerGuard = useRef({ mounted: true, open: false, busy: false, generation: 0 });
+  const offerScope = useRef(''); offerScope.current = listingId + ':' + userId;
+  useEffect(() => { const guard = offerGuard.current; guard.mounted = true; return () => { guard.mounted = false; guard.generation++; }; }, []);
+  useEffect(() => { offerGuard.current.generation++; offerGuard.current.open = false; offerGuard.current.busy = false; setOfferOpen(false); setOfferAmt(''); setOfferError(''); setOfferBusy(false); setBusy(false); }, [listingId, userId]);
+  const renderedOfferGeneration = offerGuard.current.generation;
+  const changeOfferAmount = (value: string) => { const guard = offerGuard.current; if (guard.mounted && guard.open && !guard.busy && guard.generation === renderedOfferGeneration) { setOfferAmt(value); setOfferError(''); } };
+  const closeOffer = () => { const guard = offerGuard.current; if (!guard.mounted || !guard.open || guard.busy || guard.generation !== renderedOfferGeneration) return; guard.generation++; guard.open = false; Keyboard.dismiss(); setOfferOpen(false); setOfferAmt(''); setOfferError(''); };
+  const openOffer = () => { const guard = offerGuard.current; if (!guard.mounted || guard.busy) return; guard.generation++; guard.open = true; Keyboard.dismiss(); setOfferAmt(''); setOfferError(''); setOfferOpen(true); };
   const submitOffer = async () => {
-    const amt = Number(offerAmt.replace(/,/g, ''));
-    if (!listing || !Number.isFinite(amt) || amt <= 0) { Alert.alert('Enter a valid amount'); return; }
-    setOfferBusy(true);
+    const guard = offerGuard.current, generation = renderedOfferGeneration, routeScope = offerScope.current, accountScope = navigationScope();
+    if (!guard.mounted || !guard.open || guard.busy || guard.generation !== generation || !listing || listing.id !== listingId || !userId || isOwner || listing.status !== 'available') return;
+    const current = () => guard.mounted && guard.generation === generation && offerScope.current === routeScope && navigationScope() === accountScope && useAuthStore.getState().profile?.id === userId;
+    if (!current()) return;
+    const amountText = offerAmt.trim().replace(/,/g, '');
+    const amt = Number(amountText);
+    if (!/^\d+(?:\.\d{1,2})?$/.test(amountText) || !Number.isFinite(amt) || amt <= 0) { setOfferError('Enter a valid amount.'); return; }
+    guard.busy = true; setOfferBusy(true); setOfferError('');
     try {
       const { error } = await supabase.rpc('make_offer', { p_listing_id: listing.id, p_amount: amt });
       if (error) throw error;
-      setOfferOpen(false); setOfferAmt('');
-      messageSeller(); // land in the thread where the offer now lives
-    } catch (e: any) {
-      Alert.alert('Offer not sent', e?.message || 'Try again.');
-    } finally { setOfferBusy(false); }
+      if (!current()) return;
+      guard.open = false; Keyboard.dismiss(); setOfferOpen(false); setOfferAmt('');
+      await messageSeller(current);
+    } catch {
+      if (current()) setOfferError('Your offer could not be confirmed. Check the conversation before retrying.');
+    } finally { if (current()) { guard.busy = false; setOfferBusy(false); } }
   };
 
-  const messageSeller = async () => {
+  const messageSeller = async (stillCurrent: () => boolean = () => true) => {
     if (!listing || !userId || isOwner) return;
+    const scope = navigationScope(), target = listing.id;
+    const current = () => offerGuard.current.mounted && navigationScope() === scope && listingRef.current?.id === target && useAuthStore.getState().profile?.id === userId && stillCurrent();
+    if (!current()) return;
     setBusy(true);
     try {
       const { data, error } = await supabase.rpc('start_dm_ctx', { p_receiver_id: listing.seller_id, p_context: 'market', p_ref_id: listing.id });
       if (error || !data) throw error || new Error('Could not start conversation');
+      if (!current()) return;
       navigation.navigate('Chat', {
         conversationId: data as string,
         userId: listing.seller_id,
@@ -151,9 +171,9 @@ export default function ListingDetailScreen({ navigation, route }: any) {
         },
       });
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Could not open conversation');
+      if (current()) Alert.alert('Error', e?.message || 'Could not open conversation');
     } finally {
-      setBusy(false);
+      if (current()) setBusy(false);
     }
   };
 
@@ -330,7 +350,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
           <View style={{ flexDirection: 'row', gap: 10, flex: 1 }}>
             <TouchableOpacity
               style={[s.cta, { flex: 1 }, busy && { opacity: 0.6 }]}
-              onPress={messageSeller}
+              onPress={() => void messageSeller()}
               disabled={busy || listing.status !== 'available'}
               activeOpacity={0.85}
             >
@@ -341,7 +361,8 @@ export default function ListingDetailScreen({ navigation, route }: any) {
             {listing.status === 'available' && (
               <TouchableOpacity
                 style={[s.cta, { flex: 1, backgroundColor: getTheme().surface.canvas, borderWidth: 1.5, borderColor: getTheme().ink.primary }]}
-                onPress={() => { setOfferAmt(''); setOfferOpen(true); }}
+                onPress={openOffer}
+                disabled={offerBusy || busy}
                 activeOpacity={0.85}
               >
                 <Text style={[s.ctaTxt, { color: getTheme().ink.primary }]}>Make offer</Text>
@@ -350,31 +371,27 @@ export default function ListingDetailScreen({ navigation, route }: any) {
           </View>
         )}
       </View>
-      <Modal visible={offerOpen} transparent animationType="slide" onRequestClose={() => setOfferOpen(false)}>
-        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(11,30,61,0.45)' }} activeOpacity={1} onPress={() => setOfferOpen(false)} />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={{ backgroundColor: getTheme().surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: 40 }}>
-          <Text style={{ fontSize: 17, fontWeight: '800', color: getTheme().ink.primary }}>Make an offer</Text>
-          <Text style={{ fontSize: 13, color: getTheme().ink.secondary, marginTop: 3 }}>Asking {listing ? listing.currency + ' ' + listing.price : ''}</Text>
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
-            {[0.9, 0.8, 0.7].map(f => {
-              const v = listing ? Math.round(Number(listing.price) * f) : 0;
-              return (
-                <TouchableOpacity key={f} onPress={() => setOfferAmt(String(v))}
-                  style={{ flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: getTheme().brand.tintBg, alignItems: 'center' }}>
-                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: getTheme().ink.primary }}>{listing?.currency} {v}</Text>
-                </TouchableOpacity>
-              );
-            })}
+      <Modal visible={offerOpen} transparent animationType="slide" onRequestClose={closeOffer}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <Pressable testID="listing-offer-backdrop" accessibilityRole="button" accessibilityLabel="Dismiss offer" disabled={offerBusy} onPress={closeOffer} style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11,30,61,0.45)' }]} />
+          <View testID="listing-offer-sheet" accessibilityViewIsModal onAccessibilityEscape={closeOffer} style={{ flexShrink: 1, maxHeight: Math.max(160, screenHeight - insets.top - 24), backgroundColor: getTheme().surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: Math.max(insets.bottom, 12) }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text accessibilityRole="header" style={{ fontSize: 17, fontWeight: '800', color: getTheme().ink.primary }}>Make an offer</Text>
+              <Pressable testID="listing-offer-cancel" accessibilityRole="button" accessibilityLabel="Cancel" disabled={offerBusy} onPress={closeOffer} style={{ minWidth: 64, minHeight: 48, alignItems: 'center', justifyContent: 'center', opacity: offerBusy ? 0.5 : 1 }}><Text style={{ color: getTheme().ink.primary }}>Cancel</Text></Pressable>
+            </View>
+            <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ paddingBottom: 8 }} style={{ flexShrink: 1 }}>
+              <Text style={{ fontSize: 13, color: getTheme().ink.secondary }}>Asking {listing.currency} {listing.price}</Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
+                {[0.9, 0.8, 0.7].map(f => { const value = Math.round(Number(listing.price) * f); return <TouchableOpacity key={f} disabled={offerBusy} onPress={() => changeOfferAmount(String(value))} style={{ flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: getTheme().brand.tintBg, alignItems: 'center' }}><Text style={{ color: getTheme().ink.primary }}>{listing.currency} {value}</Text></TouchableOpacity>; })}
+              </View>
+              <TextInput testID="listing-offer-amount" accessibilityLabel="Your amount" value={offerAmt} onChangeText={changeOfferAmount} editable={!offerBusy} keyboardType="decimal-pad" keyboardAppearance={isDark ? 'dark' : 'light'} placeholder="Your amount" placeholderTextColor={getTheme().ink.secondary} style={{ marginTop: 12, borderWidth: 1.5, borderColor: getTheme().surface.hairline, borderRadius: 12, padding: 14, fontSize: 17, color: getTheme().ink.primary }} />
+              {!!offerError && <Text accessibilityRole="alert" style={{ color: getTheme().ink.primary, marginTop: 8 }}>{offerError}</Text>}
+              {offerBusy && <Text accessibilityLiveRegion="polite" style={{ color: getTheme().ink.secondary, marginTop: 8 }}>Sending your offer. Please wait for confirmation.</Text>}
+              <TouchableOpacity testID="listing-offer-send" accessibilityRole="button" accessibilityLabel="Send offer" onPress={submitOffer} disabled={offerBusy} style={{ marginTop: 12, backgroundColor: getTheme().brand.base, borderRadius: 14, minHeight: 48, alignItems: 'center', justifyContent: 'center', opacity: offerBusy ? 0.6 : 1 }}>
+                {offerBusy ? <ActivityIndicator color={getTheme().ink.inverse} size={16} /> : <Text style={{ color: getTheme().ink.inverse, fontWeight: '800' }}>Send offer</Text>}
+              </TouchableOpacity>
+            </ScrollView>
           </View>
-          <TextInput value={offerAmt} onChangeText={setOfferAmt} keyboardType="numeric" placeholder="Your amount"
-            placeholderTextColor={getTheme().ink.secondary}
-            style={{ marginTop: 12, borderWidth: 1.5, borderColor: getTheme().surface.hairline, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 17, fontWeight: '700', color: getTheme().ink.primary }} />
-          <TouchableOpacity onPress={submitOffer} disabled={offerBusy}
-            style={{ marginTop: 12, backgroundColor: getTheme().brand.base, borderRadius: 14, paddingVertical: 14, alignItems: 'center', opacity: offerBusy ? 0.6 : 1 }}>
-            {offerBusy ? <ActivityIndicator color={getTheme().ink.inverse} size={16} /> : <Text style={{ color: getTheme().ink.inverse, fontSize: 15.5, fontWeight: '800' }}>Send offer</Text>}
-          </TouchableOpacity>
-        </View>
         </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>

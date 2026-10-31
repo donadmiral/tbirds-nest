@@ -1,6 +1,7 @@
 import groovy.json.JsonOutput
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
 // Read the actual resolved application runtime graph. The 1.11.1 common module
 // publishes alignment constraints; this graph verifier uses no force rule.
@@ -15,7 +16,12 @@ gradle.beforeProject { project ->
         if (!destination) {
           throw new GradleException('A destination for the resolved Media3 receipt is required.')
         }
-        def resolved = project.configurations.getByName('debugRuntimeClasspath').incoming.resolutionResult.allComponents
+        def configuration = project.providers.gradleProperty('platinumStoryMediaConfiguration').getOrElse('debugRuntimeClasspath')
+        if (!(configuration in ['debugRuntimeClasspath', 'releaseRuntimeClasspath'])) {
+          throw new GradleException('Only a complete Android application runtime classpath can be verified.')
+        }
+        def components = project.configurations.getByName(configuration).incoming.resolutionResult.allComponents
+        def resolved = components
           .collect { it.id }
           .findAll { it instanceof ModuleComponentIdentifier && it.group == 'androidx.media3' }
           .collect { [group: it.group, module: it.module, version: it.version] }
@@ -25,14 +31,38 @@ gradle.beforeProject { project ->
         if (!modules.containsAll(required) || resolved.any { it.version != '1.11.1' }) {
           throw new GradleException('The actual Android runtime does not contain the complete aligned Media3 1.11.1 graph: ' + JsonOutput.toJson(resolved))
         }
+        def expoCompile = null
+        if (project.providers.gradleProperty('platinumRequireExpoVideoSource').getOrElse('false') == 'true') {
+          def video = project.rootProject.findProject(':expo-video')
+          def selected = components.collect { it.id }
+          if (video == null || !selected.any { it instanceof ProjectComponentIdentifier && it.projectPath == ':expo-video' }
+              || selected.any { it instanceof ModuleComponentIdentifier && it.group == 'host.exp.exponent' && it.module == 'expo.modules.video' }) {
+            throw new GradleException('The actual application graph must use the adapted expo-video source project, not its precompiled Maven publication.')
+          }
+          def compileConfiguration = configuration.replace('RuntimeClasspath', 'CompileClasspath')
+          def compileComponents = video.configurations.getByName(compileConfiguration).incoming.resolutionResult.allComponents
+            .collect { it.id }
+            .findAll { it instanceof ModuleComponentIdentifier && it.group == 'androidx.media3' }
+            .collect { [group: it.group, module: it.module, version: it.version] }
+            .sort { left, right -> left.module <=> right.module }
+          def compileRequired = ['media3-common', 'media3-session', 'media3-exoplayer', 'media3-exoplayer-dash',
+                                 'media3-exoplayer-hls', 'media3-ui', 'media3-datasource-okhttp'] as Set
+          if (!(compileComponents.collect { it.module } as Set).containsAll(compileRequired)
+              || compileComponents.any { it.version != '1.11.1' }) {
+            throw new GradleException('The adapted expo-video source must compile against the same complete Media3 1.11.1 graph: ' + JsonOutput.toJson(compileComponents))
+          }
+          expoCompile = [project: video.path, configuration: compileConfiguration, components: compileComponents,
+                         sourceSelected: true, aligned: true]
+        }
         def output = new File(destination)
         output.parentFile.mkdirs()
         output.text = JsonOutput.prettyPrint(JsonOutput.toJson([
           project: project.path,
-          configuration: 'debugRuntimeClasspath',
+          configuration: configuration,
           expectedVersion: '1.11.1',
           aligned: true,
           components: resolved,
+          expoVideoCompile: expoCompile,
           scope: 'Resolved runtime version alignment; separate from security or encoded-media acceptance.'
         ])) + '\n'
         println('Verified ' + resolved.size() + ' resolved Media3 runtime components at 1.11.1.')

@@ -29,15 +29,26 @@ name: Audit independent cover settings entry
 - inputText: AUDIT BOOK TITLE
 - copyTextFrom: Book title
 - assertTrue: ${maestro.copiedText === "AUDIT BOOK TITLE"}
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - hideKeyboard
+# A harmless heading inside the real handled-taps ScrollView dismisses focus.
+# Android hideKeyboard sends Back and can close this settings modal.
 - scrollUntilVisible:
-    element: Save memory book
+    element: Paper tint
     direction: DOWN
     centerElement: true
+- tapOn: Paper tint
+- assertVisible: Book settings
+- assertVisible: Save memory book
 - tapOn: Save memory book
+- extendedWaitUntil:
+    notVisible: Book settings
+    timeout: 15000
 - assertVisible: '(?s)^.*book cover: AUDIT BOOK TITLE\..*$'
+- tapOn: Edit memory book
+- assertVisible: Book settings
+- copyTextFrom: Book title
+- assertTrue: ${maestro.copiedText === "AUDIT BOOK TITLE"}
+- tapOn: Cancel memory book edits
+- extendedWaitUntil:
+    notVisible: Book settings
+    timeout: 15000
 - takeScreenshot: memory-cover-settings

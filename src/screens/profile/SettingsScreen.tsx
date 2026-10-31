@@ -4,7 +4,7 @@ import TierName from '../../components/TierName';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import { AppState, KeyboardAvoidingView, Platform ,
+import { AppState, Keyboard, KeyboardAvoidingView, Platform ,
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert,
   StatusBar, Linking, Modal, TextInput, ActivityIndicator, Image,
 } from 'react-native';
@@ -14,6 +14,7 @@ import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useAccountsStore } from '../../stores/accountsStore';
 import { useThemeStore } from '../../stores/themeStore';
+import AppearanceSheet from '../../components/AppearanceSheet';
 import { useLockStore } from '../../stores/lockStore';
 import React, { useCallback, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -72,6 +73,8 @@ function Row({ icon, label, sublabel, onPress, danger, right, chevron = true }: 
 
 export default function SettingsScreen() {
   const { isDark } = useTheme();
+  const themeMode = useThemeStore(state => state.mode);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
   const navigation = useNavigation<any>();
   const exportBusy = React.useRef(false);
   const insets = useSafeAreaInsets();
@@ -184,7 +187,7 @@ export default function SettingsScreen() {
     if (!saved && notificationEditor.current === editor && editor.getState().issue) Alert.alert('Not saved', editor.getState().issue!);
   };
 
-type SetRow = { icon: string; color?: string; label: string; sub?: string; onPress?: () => void; right?: React.ReactNode; danger?: boolean; chevron?: boolean; visible?: boolean };
+type SetRow = { icon: string; color?: string; label: string; sub?: string; searchTerms?: string; onPress?: () => void; right?: React.ReactNode; danger?: boolean; chevron?: boolean; visible?: boolean };
   const sw = (value: boolean, onChange: (v: boolean) => void, disabled = false, label?: string) => (
     <Switch value={value} onValueChange={onChange} accessibilityLabel={label} trackColor={{ false: getTheme().surface.hairline, true: getTheme().status.success }} thumbColor="#FFF" disabled={disabled} />
   );
@@ -280,15 +283,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           { text: 'Cancel', style: 'cancel' },
         ]);
       } },
-      { icon: 'moon', color: getTheme().ink.primary, label: 'Appearance', sub: (() => { const m = useThemeStore.getState().mode; return m === 'lightsOut' ? 'Lights out' : m === 'dark' ? 'Dim' : m === 'light' ? 'Light' : 'Follows your phone'; })(), onPress: () => {
-        Alert.alert('Appearance', 'Choose a light, dim, or black background.', [
-          { text: 'Follow my phone', onPress: () => useThemeStore.getState().setMode('system') },
-          { text: 'Light', onPress: () => useThemeStore.getState().setMode('light') },
-          { text: 'Dim', onPress: () => useThemeStore.getState().setMode('dark') },
-          { text: 'Lights out', onPress: () => useThemeStore.getState().setMode('lightsOut') },
-          { text: 'Cancel', style: 'cancel' },
-        ]);
-      } },
+      { icon: 'moon', color: getTheme().ink.primary, label: 'Appearance', searchTerms: 'Follow my phone system Light Dim dark Lights out black', sub: themeMode === 'lightsOut' ? 'Lights out' : themeMode === 'dark' ? 'Dim' : themeMode === 'light' ? 'Light' : 'Follows your phone', onPress: () => { Keyboard.dismiss(); setAppearanceOpen(true); } },
       { icon: 'lock', color: getTheme().ink.primary, label: 'Biometric app lock', sub: 'Use biometrics at launch and when you return after being away', onPress: toggleAppLock, chevron: false, right: sw(lockEnabled === true, toggleAppLock) },
     ] },
     { title: 'IntoBank', rows: [
@@ -548,7 +543,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
         </View>
         {buildSections().map(sec => {
           const q = settingsQuery.trim().toLowerCase();
-          const rows = sec.rows.filter(r => r.visible !== false && (!q || (r.label + ' ' + (r.sub || '')).toLowerCase().includes(q)));
+          const rows = sec.rows.filter(r => r.visible !== false && (!q || (r.label + ' ' + (r.sub || '') + ' ' + (r.searchTerms || '')).toLowerCase().includes(q)));
           if (!rows.length) return null;
           return (
             <Section key={sec.title} title={sec.title}>
@@ -565,6 +560,8 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
 
         <Text style={s.footerTxt}>PlatinumCircles</Text>
       </ScrollView>
+
+      <AppearanceSheet visible={appearanceOpen} onClose={() => setAppearanceOpen(false)} />
 
       {/* Change Password Modal */}
       <Modal visible={pwModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setPwModal(false); setCurrentPw(''); setNewPw(''); setConfirmPw(''); setShowNewPw(false); setShowConfPw(false); }}>

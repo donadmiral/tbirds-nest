@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "preparedAtUtc": "2026-10-31T23:49:18.238374+00:00",
+  "kind": "restored-test-only-memory-book-save-flow",
+  "applicationSourceChanged": false,
+  "sourceFiles": [
+    {
+      "path": "tests/native/audit/flows/memory-cover-settings.yaml",
+      "bytes": 1475,
+      "sha256": "463692341e6784e55633091fea0e1e1c4eafd089c96946f407418b2a85c9bf59"
+    },
+    {
+      "path": "tests/native/flows/memory-navigation.yaml",
+      "bytes": 4335,
+      "sha256": "0740b5882380b719690427692ddca89cbf6350f39889aa7c3c7e8b169f21e936"
+    },
+    {
+      "path": "tests/quality/native-memory-book-save-flow.cjs",
+      "bytes": 8301,
+      "sha256": "327ae1d43a936e6d15d4105e9b6df684c3aaa3f4bb7232fe83b0740e6fd355af"
+    }
+  ],
+  "actualSourceReviewed": [
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "sha256": "1e110a707c088f12d9d333570f259af530c8324a2d1f1f42dcbef86c2263b557"
+    },
+    {
+      "path": "node_modules/react-native/Libraries/Components/ScrollView/ScrollView.js",
+      "sha256": "d30c787e61c63577500424fbd3021528017ff09094bbfe633c526cdbc8625713"
+    }
+  ],
+  "changes": [
+    "Keep Select All, erasure, exact entered title copy/assert, original save and cover assertions.",
+    "Replace modal-time Android hideKeyboard/Back with semantic scroll and tap on harmless Paper tint text inside actual handled-taps ScrollView.",
+    "Assert Book settings and Save remain available, require one Save, and wait for settings to close.",
+    "Reopen settings and copy/assert the exact persisted title, then cancel without a second save.",
+    "Full journey retains existing Profile/shelf/book reopen and saved cover content assertions."
+  ],
+  "observedBaseline": {
+    "source": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "case": "memory-cover-settings",
+    "retainedDirectory": "docs/quality/native-full-app-20261031/native-audit-android-d46c50f0-41235679679/failures/memory-cover-settings",
+    "exactTitleEntryPassed": true,
+    "hideKeyboardCompleted": true,
+    "nextSaveScrollFailed": true,
+    "saveTapExecuted": false,
+    "saveRequestObserved": false
+  },
+  "verification": {
+    "freshBefore": {
+      "formalCases": 7,
+      "passed": 3,
+      "failed": 4,
+      "skipped": 0,
+      "durationMs": 334.035492
+    },
+    "freshAfter": {
+      "formalCases": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 316.413379
+    },
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-memory-book-save-flow.cjs",
+    "baselineEnvironment": "PLATINUM_MEMORY_SAVE_FLOW_BEFORE=1",
+    "actualPinnedRNResponderMethodsExecuted": true,
+    "actualModalOnRequestCloseExecuted": true,
+    "platformFlowBranches": [
+      "Android",
+      "iOS"
+    ],
+    "scopedLintExitCode": 0,
+    "scopedWhitespacePassed": true
+  },
+  "limits": [
+    "No device gesture/layout or live persistence run was performed by these focused tests. Installed RN handlers execute with controlled event/focus hosts.",
+    "The exact retained d46 reader consumer in41253722308 does not use these local flow changes.",
+    "The current restored normal audit runner lacks the separately reviewed case-specific save receipt gate; this flow-only task does not restore or claim that gate.",
+    "No application code, production/provider data, build, deployment, ref or newCI action was changed."
+  ],
+  "retainedFiles": {
+    "fresh-after.tap": {
+      "bytes": 2065,
+      "sha256": "7fd3cb7da27e497ee3a82b64c38ea02625f562cff4f21748024fd414954b1ffc"
+    },
+    "fresh-before.tap": {
+      "bytes": 5486,
+      "sha256": "a36baca67195fc75cea161db5f42f2e26d9bc96aa870aa75aed794af6fd96e04"
+    },
+    "before/memory-navigation.yaml.txt": {
+      "bytes": 3891,
+      "sha256": "4ced394c981bca81c8cd29ff0d2945ea658f7061faf6576fef2a8c4974e14cbb"
+    },
+    "before/memory-cover-settings.yaml.txt": {
+      "bytes": 1012,
+      "sha256": "c441efc557a5a3adcfad5f5ebbaa2db92870ae93710c20fb59c29eefcf6dd409"
+    }
+  }
+}

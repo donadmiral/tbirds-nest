@@ -28,7 +28,7 @@ function seg(on: boolean): React.CSSProperties {
   };
 }
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = 'light' | 'dark' | 'lightsOut' | 'system';
 function subscribeTheme(listener: () => void) {
   const observer = new MutationObserver(listener);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -36,7 +36,7 @@ function subscribeTheme(listener: () => void) {
 }
 function currentTheme(): Theme {
   const value = document.documentElement.getAttribute('data-theme');
-  return value === 'dark' || value === 'light' ? value : 'system';
+  return value === 'dark' || value === 'light' || value === 'lightsOut' ? value : 'system';
 }
 const serverTheme = (): Theme => 'system';
 export default function ThemeControls() {
@@ -53,6 +53,9 @@ export default function ThemeControls() {
         <AdminIcon name="sun" size={17} />
       </button>
       <button type="button" title="Dark" aria-label="Dark appearance" aria-pressed={theme === 'dark'} className="pc-seg" style={seg(theme === 'dark')} onClick={() => choose('dark')}>
+        <AdminIcon name="moon" size={17} />
+      </button>
+      <button type="button" title="Lights out" aria-label="Lights out appearance" aria-pressed={theme === 'lightsOut'} className="pc-seg" style={seg(theme === 'lightsOut')} onClick={() => choose('lightsOut')}>
         <AdminIcon name="moon" size={17} />
       </button>
       <button type="button" title="Use device appearance" aria-label="Use device appearance" aria-pressed={theme === 'system'} className="pc-seg" style={seg(theme === 'system')} onClick={() => choose('system')}>

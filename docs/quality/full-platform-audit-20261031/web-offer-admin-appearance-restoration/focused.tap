@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: actual control selects all four modes and writes the existing persistence cookie
+ok 1 - actual control selects all four modes and writes the existing persistence cookie
+  ---
+  duration_ms: 68.069804
+  type: 'test'
+  ...
+# Subtest: actual server layout restores Lights out cookie and rejects unknown values
+ok 2 - actual server layout restores Lights out cookie and rejects unknown values
+  ---
+  duration_ms: 13.287883
+  type: 'test'
+  ...
+# Subtest: Lights out inherits both dark token sets and has explicit black workspace surfaces
+ok 3 - Lights out inherits both dark token sets and has explicit black workspace surfaces
+  ---
+  duration_ms: 0.318921
+  type: 'test'
+  ...
+# Subtest: explicit Cancel at compose preserves draft without RPC
+ok 4 - explicit Cancel at compose preserves draft without RPC
+  ---
+  duration_ms: 115.121821
+  type: 'test'
+  ...
+# Subtest: explicit Cancel at review preserves draft without RPC
+ok 5 - explicit Cancel at review preserves draft without RPC
+  ---
+  duration_ms: 49.752792
+  type: 'test'
+  ...
+# Subtest: busy submission blocks Cancel/close and duplicate dispatch, then confirms once
+ok 6 - busy submission blocks Cancel/close and duplicate dispatch, then confirms once
+  ---
+  duration_ms: 34.513133
+  type: 'test'
+  ...
+# Subtest: failed submission preserves review and allows Cancel/reopen with original draft
+ok 7 - failed submission preserves review and allows Cancel/reopen with original draft
+  ---
+  duration_ms: 24.327108
+  type: 'test'
+  ...
+# Subtest: visual viewport updates height/offset and cleans both listeners and inline properties
+ok 8 - visual viewport updates height/offset and cleans both listeners and inline properties
+  ---
+  duration_ms: 11.585909
+  type: 'test'
+  ...
+# Subtest: ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy
+ok 9 - ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy
+  ---
+  duration_ms: 7.050684
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 627.098214

@@ -38,7 +38,7 @@ export default async function RootLayout({
 }>) {
   const jar = await cookies();
   const storedTheme = jar.get('pc-theme')?.value;
-  const theme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : 'system';
+  const theme = storedTheme === 'dark' || storedTheme === 'light' || storedTheme === 'lightsOut' ? storedTheme : 'system';
   const density = jar.get('pc-density')?.value === 'compact' ? 'compact' : 'comfortable';
 
   return (

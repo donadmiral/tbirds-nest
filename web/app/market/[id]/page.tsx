@@ -184,12 +184,12 @@ function ListingDetails({ id }: { id: string }) {
       </aside>
     </div>
     {reportOpen && uid ? <MarketReportForm key={listing.id + uid} kind="listing" id={listing.id} userId={uid} onClose={() => setReportOpen(false)} /> : null}
-    <ProductDialog open={offerOpen} title={offerReview ? "Review offer" : "Make an offer"} description={listing.title} busy={busy} onClose={() => setOfferOpen(false)}>
+    <ProductDialog open={offerOpen} title={offerReview ? "Review offer" : "Make an offer"} description={listing.title} busy={busy} keyboardSafe onClose={() => { if (!mutating.current) setOfferOpen(false); }}>
       <form className={styles.form} onSubmit={event => { event.preventDefault(); if (offerReview) void sendOffer(); else reviewOffer(); }}>
         {offerReview ? <dl className={styles.review}><div><dt>Your offer</dt><dd>{priceLabel({ ...listing, price: Number(offerAmt.replace(/,/g, "")) })}</dd></div><div><dt>Listed price</dt><dd>{priceLabel(listing)}</dd></div><div><dt>Sent to</dt><dd>{listing.seller?.full_name ?? "The seller"}</dd></div></dl> : <label>Your offer ({listing.currency})<input type="number" min="0.01" step="0.01" inputMode="decimal" required value={offerAmt} onChange={event => setOfferAmt(event.target.value)} /></label>}
         <p className={styles.notice}>The seller will receive your offer in Market messages. Sending an offer does not charge you.</p>
         {actionError ? <p role="alert" className={styles.error}>{actionError}</p> : null}
-        <div className={styles.actions}><button type="button" disabled={busy} className={styles.button} onClick={() => offerReview ? setOfferReview(false) : setOfferOpen(false)}>{offerReview ? "Edit offer" : "Cancel"}</button><button type="submit" disabled={busy} className={styles.primary}>{busy ? "Sending…" : offerReview ? "Send offer" : "Review offer"}</button></div>
+        <div className={styles.actions}><button type="button" disabled={busy} className={styles.button} onClick={() => { if (!mutating.current) setOfferOpen(false); }}>Cancel</button>{offerReview ? <button type="button" disabled={busy} className={styles.button} onClick={() => setOfferReview(false)}>Edit offer</button> : null}<button type="submit" disabled={busy} className={styles.primary}>{busy ? "Sending…" : offerReview ? "Send offer" : "Review offer"}</button></div>
       </form>
     </ProductDialog>
     <ProductDialog open={confirmation !== null} title={confirmation === "sold" ? "Mark this item as sold?" : "Block this seller?"} busy={busy} onClose={() => setConfirmation(null)}>

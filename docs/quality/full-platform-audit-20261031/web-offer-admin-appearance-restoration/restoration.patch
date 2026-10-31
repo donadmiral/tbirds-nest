@@ -1,0 +1,253 @@
+--- a/web/app/market/[id]/page.tsx
++++ b/web/app/market/[id]/page.tsx
+@@ -184,12 +184,12 @@
+       </aside>
+     </div>
+     {reportOpen && uid ? <MarketReportForm key={listing.id + uid} kind="listing" id={listing.id} userId={uid} onClose={() => setReportOpen(false)} /> : null}
+-    <ProductDialog open={offerOpen} title={offerReview ? "Review offer" : "Make an offer"} description={listing.title} busy={busy} onClose={() => setOfferOpen(false)}>
++    <ProductDialog open={offerOpen} title={offerReview ? "Review offer" : "Make an offer"} description={listing.title} busy={busy} keyboardSafe onClose={() => { if (!mutating.current) setOfferOpen(false); }}>
+       <form className={styles.form} onSubmit={event => { event.preventDefault(); if (offerReview) void sendOffer(); else reviewOffer(); }}>
+         {offerReview ? <dl className={styles.review}><div><dt>Your offer</dt><dd>{priceLabel({ ...listing, price: Number(offerAmt.replace(/,/g, "")) })}</dd></div><div><dt>Listed price</dt><dd>{priceLabel(listing)}</dd></div><div><dt>Sent to</dt><dd>{listing.seller?.full_name ?? "The seller"}</dd></div></dl> : <label>Your offer ({listing.currency})<input type="number" min="0.01" step="0.01" inputMode="decimal" required value={offerAmt} onChange={event => setOfferAmt(event.target.value)} /></label>}
+         <p className={styles.notice}>The seller will receive your offer in Market messages. Sending an offer does not charge you.</p>
+         {actionError ? <p role="alert" className={styles.error}>{actionError}</p> : null}
+-        <div className={styles.actions}><button type="button" disabled={busy} className={styles.button} onClick={() => offerReview ? setOfferReview(false) : setOfferOpen(false)}>{offerReview ? "Edit offer" : "Cancel"}</button><button type="submit" disabled={busy} className={styles.primary}>{busy ? "Sending…" : offerReview ? "Send offer" : "Review offer"}</button></div>
++        <div className={styles.actions}><button type="button" disabled={busy} className={styles.button} onClick={() => { if (!mutating.current) setOfferOpen(false); }}>Cancel</button>{offerReview ? <button type="button" disabled={busy} className={styles.button} onClick={() => setOfferReview(false)}>Edit offer</button> : null}<button type="submit" disabled={busy} className={styles.primary}>{busy ? "Sending…" : offerReview ? "Send offer" : "Review offer"}</button></div>
+       </form>
+     </ProductDialog>
+     <ProductDialog open={confirmation !== null} title={confirmation === "sold" ? "Mark this item as sold?" : "Block this seller?"} busy={busy} onClose={() => setConfirmation(null)}>
+--- a/web/components/ProductDialog.tsx
++++ b/web/components/ProductDialog.tsx
+@@ -5,8 +5,8 @@
+ import styles from './ProductDialog.module.css';
+ 
+ /** A single close path lets each editor preserve or explicitly discard its draft. */
+-export function ProductDialog({ open, title, description, busy = false, onClose, children, wide = false }: {
+-  open: boolean; title: string; description?: string; busy?: boolean; onClose: () => void; children: ReactNode; wide?: boolean;
++export function ProductDialog({ open, title, description, busy = false, onClose, children, wide = false, keyboardSafe = false }: {
++  open: boolean; title: string; description?: string; busy?: boolean; onClose: () => void; children: ReactNode; wide?: boolean; keyboardSafe?: boolean;
+ }) {
+   const ref = useRef<HTMLDialogElement>(null);
+   const titleId = useId(), descriptionId = useId();
+@@ -23,7 +23,24 @@
+       if (previous?.isConnected) previous.focus({ preventScroll: true });
+     };
+   }, [open]);
+-  return <dialog ref={ref} tabIndex={-1} className={`${styles.dialog} ${wide ? styles.wide : ''}`} aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}
++  useEffect(() => {
++    const dialog = ref.current, viewport = window.visualViewport;
++    if (!open || !keyboardSafe || !dialog || !viewport) return;
++    const update = () => {
++      dialog.style.setProperty('--dialog-viewport-top', `${viewport.offsetTop}px`);
++      dialog.style.setProperty('--dialog-viewport-height', `${viewport.height}px`);
++    };
++    update();
++    viewport.addEventListener('resize', update);
++    viewport.addEventListener('scroll', update, { passive: true });
++    return () => {
++      viewport.removeEventListener('resize', update);
++      viewport.removeEventListener('scroll', update);
++      dialog.style.removeProperty('--dialog-viewport-top');
++      dialog.style.removeProperty('--dialog-viewport-height');
++    };
++  }, [open, keyboardSafe]);
++  return <dialog ref={ref} tabIndex={-1} className={`${styles.dialog} ${wide ? styles.wide : ''} ${keyboardSafe ? styles.keyboardSafe : ''}`} aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}
+     onKeyDown={event => {
+       if (event.key !== 'Tab') return;
+       const dialog = event.currentTarget;
+--- a/web/components/ProductDialog.module.css
++++ b/web/components/ProductDialog.module.css
+@@ -11,3 +11,4 @@
+ .content { padding: 22px 24px 24px; }
+ @media (max-width: 580px) { .dialog, .wide { width: calc(100% - 16px); max-height: 92dvh; border-radius: 16px; }.header { padding: 18px 16px 15px; }.header h2 { font-size: 20px; }.content { padding: 18px 16px 20px; } }
+ @media (prefers-reduced-motion: reduce) { .dialog::backdrop { backdrop-filter: none; } }
++.keyboardSafe { top: calc(var(--dialog-viewport-top, 0px) + var(--dialog-viewport-height, 100dvh) / 2); bottom: auto; margin: 0 auto; transform: translateY(-50%); max-height: calc(var(--dialog-viewport-height, 100dvh) - 16px); }
+--- /dev/null
++++ b/web/tests/offer-cancel-restoration.cjs
+@@ -0,0 +1,66 @@
++const test = require('node:test');
++const assert = require('node:assert/strict');
++const fs = require('node:fs');
++const path = require('node:path');
++const vm = require('node:vm');
++const ts = require('typescript');
++const text = n => n == null ? '' : typeof n === 'string' || typeof n === 'number' ? String(n) : Array.isArray(n) ? n.map(text).join('') : text(n.props?.children);
++function host() {
++  let cursor = 0; const slots = [], pending = [];
++  const hooks = {
++    useState(value) { const i = cursor++; if (!(i in slots)) slots[i] = typeof value === 'function' ? value() : value; return [slots[i], next => { slots[i] = typeof next === 'function' ? next(slots[i]) : next; }]; },
++    useRef(value) { const i = cursor++; return slots[i] ||= { current: value }; },
++    useId() { return 'id-' + cursor++; },
++    useEffect(fn, deps) { const i = cursor++; if (!slots[i] || !deps.every((v, j) => Object.is(v, slots[i].deps[j]))) { slots[i]?.cleanup?.(); slots[i] = { deps }; pending.push(() => { slots[i].cleanup = fn(); }); } },
++  };
++  return { hooks, render(fn) { cursor = 0; return fn(); }, commit() { pending.splice(0).forEach(fn => fn()); }, destroy() { slots.forEach(x => x?.cleanup?.()); } };
++}
++function load(file, h, imports, globals = {}) {
++  const module = { exports: {} };
++  let source = fs.readFileSync(file, 'utf8');
++  if (file.endsWith('page.tsx')) source += '\nexport { ListingDetails };';
++  const jsx = (type, props) => ({ type, props });
++  vm.runInNewContext(ts.transpileModule(source, { fileName: file, compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText, {
++    module, exports: module.exports, console, queueMicrotask, setTimeout, clearTimeout, ...globals,
++    require(id) { if (id === 'react') return h.hooks; if (id === 'react/jsx-runtime') return { jsx, jsxs: jsx }; if (id.endsWith('.module.css')) return new Proxy({}, { get: (_, k) => String(k) }); if (id in imports) return imports[id]; throw new Error(id); },
++  });
++  return module.exports;
++}
++function nodes(root) { const a = []; function walk(n) { if (!n || typeof n !== 'object') return; if (Array.isArray(n)) return n.forEach(walk); a.push(n); if (n.type !== 'Dialog' || n.props.open) walk(n.props?.children); } walk(root); return a; }
++function listing(rpc) {
++  const h = host(), calls = []; let tree;
++  const client = { auth: { getSession: async () => ({ data: { session: { user: { id: 'buyer' } } } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) }, rpc: async (name, args) => { calls.push({ name, args }); return rpc ? rpc(name, args) : { data: 'conversation', error: null }; } };
++  const imports = { 'next/image': 'img', 'next/link': 'a', 'next/navigation': { useParams: () => ({ id: 'listing' }), useRouter: () => ({ push() {} }) }, 'lucide-react': new Proxy({}, { get: (_, k) => k }), '@/lib/supabase/client': { createClient: () => client }, '@/lib/profileLookup': { profilePath: () => '/seller' }, '@/lib/market': { getListing: async () => ({ id: 'listing', seller_id: 'seller', title: 'Fixture item', images: [], status: 'available', currency: 'USD', price: 30 }), getSavedListingIds: async () => new Set(), toggleSaved() {}, priceLabel: x => '$' + x.price } };
++  for (const name of ['PersonName', 'SellerTrust', 'MarketOrders', 'MarketReportForm', 'SellerReviews', 'RelativeTime']) imports['@/components/' + name] = { [name]: name };
++  imports['@/components/ProductDialog'] = { ProductDialog: 'Dialog' };
++  const { ListingDetails } = load(path.join(__dirname, '../app/market/[id]/page.tsx'), h, imports);
++  const render = () => { tree = h.render(() => ListingDetails({ id: 'listing' })); h.commit(); };
++  const all = () => nodes(tree), button = name => all().find(n => n.type === 'button' && text(n) === name);
++  const click = name => { const b = button(name); assert.ok(b, name); if (!b.props.disabled) b.props.onClick(); render(); };
++  const flush = async () => { for (let i = 0; i < 5; i++) { await new Promise(setImmediate); render(); } };
++  render();
++  return { calls, click, button, flush, render, dialog: () => all().find(n => n.type === 'Dialog' && n.props.title !== 'Block this seller?' && n.props.title !== 'Mark this item as sold?'), fill(value) { all().find(n => n.type === 'input').props.onChange({ target: { value } }); render(); }, value: () => all().find(n => n.type === 'input')?.props.value, submit() { all().find(n => n.type === 'form').props.onSubmit({ preventDefault() {} }); render(); }, destroy: h.destroy };
++}
++for (const review of [false, true]) test('explicit Cancel at ' + (review ? 'review' : 'compose') + ' preserves draft without RPC', async () => {
++  const a = listing(); await a.flush(); a.click('Make offer'); a.fill('21.50'); if (review) a.submit(); a.click('Cancel'); assert.equal(a.dialog().props.open, false); assert.equal(a.calls.length, 0); a.click('Make offer'); assert.equal(a.value(), '21.50'); assert.equal(a.dialog().props.keyboardSafe, true); a.destroy();
++});
++test('busy submission blocks Cancel/close and duplicate dispatch, then confirms once', async () => {
++  let finish; const held = new Promise(resolve => { finish = resolve; }); const a = listing(name => name === 'make_offer' ? held : Promise.resolve({ data: 'conversation', error: null })); await a.flush(); a.click('Make offer'); a.fill('21'); a.submit(); a.submit(); await a.flush(); assert.equal(a.button('Cancel').props.disabled, true); a.dialog().props.onClose(); a.render(); assert.equal(a.dialog().props.open, true); a.submit(); await a.flush(); assert.equal(a.calls.filter(x => x.name === 'make_offer').length, 1); finish({ error: null }); await a.flush(); assert.equal(a.dialog().props.open, false); a.click('Make offer'); assert.equal(a.value(), ''); a.destroy();
++});
++test('failed submission preserves review and allows Cancel/reopen with original draft', async () => {
++  const a = listing(async () => { throw new Error('controlled failure'); }); await a.flush(); a.click('Make offer'); a.fill('21'); a.submit(); a.submit(); await a.flush(); assert.equal(a.button('Cancel').props.disabled, false); a.click('Cancel'); a.click('Make offer'); assert.equal(a.value(), '21'); a.destroy();
++});
++function dialog() {
++  const h = host(), listeners = new Map(), properties = new Map(); let closed = 0, props, tree;
++  const viewport = { height: 844, offsetTop: 0, addEventListener: (name, fn) => listeners.set(name, fn), removeEventListener: name => listeners.delete(name) };
++  const element = { open: false, style: { setProperty: (k, v) => properties.set(k, v), removeProperty: k => properties.delete(k) }, showModal() { this.open = true; }, close() { this.open = false; }, getBoundingClientRect: () => ({ left: 8, right: 382, top: 8, bottom: 400 }) };
++  const { ProductDialog } = load(path.join(__dirname, '../components/ProductDialog.tsx'), h, { 'lucide-react': { X: 'svg' } }, { window: { visualViewport: viewport }, document: { activeElement: null, body: { style: { overflow: '' } } }, HTMLElement: class {} });
++  function render(next) { props = next; tree = h.render(() => ProductDialog({ title: 'Offer', children: 'body', onClose: () => closed++, ...props })); tree.props.ref.current = element; h.commit(); }
++  return { render, viewport, listeners, properties, get tree() { return tree; }, get closed() { return closed; }, destroy: h.destroy };
++}
++test('visual viewport updates height/offset and cleans both listeners and inline properties', () => {
++  const a = dialog(); a.render({ open: true, keyboardSafe: true }); assert.equal(a.properties.get('--dialog-viewport-height'), '844px'); a.viewport.height = 320; a.viewport.offsetTop = 63; a.listeners.get('resize')(); assert.equal(a.properties.get('--dialog-viewport-height'), '320px'); assert.equal(a.properties.get('--dialog-viewport-top'), '63px'); a.destroy(); assert.equal(a.listeners.size, 0); assert.equal(a.properties.size, 0);
++});
++test('ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy', () => {
++  const a = dialog(); a.render({ open: true, busy: true }); assert.equal(a.listeners.size, 0); a.tree.props.onCancel({ preventDefault() {} }); a.tree.props.onClick({ target: a.tree.props.ref.current, currentTarget: a.tree.props.ref.current, clientX: 0, clientY: 0 }); assert.equal(a.closed, 0); a.render({ open: true, busy: false }); a.tree.props.onCancel({ preventDefault() {} }); a.tree.props.onClick({ target: a.tree.props.ref.current, currentTarget: a.tree.props.ref.current, clientX: 0, clientY: 0 }); assert.equal(a.closed, 2); a.destroy();
++});
+--- a/admin-web/components/ThemeControls.tsx
++++ b/admin-web/components/ThemeControls.tsx
+@@ -28,7 +28,7 @@
+   };
+ }
+ 
+-type Theme = 'light' | 'dark' | 'system';
++type Theme = 'light' | 'dark' | 'lightsOut' | 'system';
+ function subscribeTheme(listener: () => void) {
+   const observer = new MutationObserver(listener);
+   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+@@ -36,7 +36,7 @@
+ }
+ function currentTheme(): Theme {
+   const value = document.documentElement.getAttribute('data-theme');
+-  return value === 'dark' || value === 'light' ? value : 'system';
++  return value === 'dark' || value === 'light' || value === 'lightsOut' ? value : 'system';
+ }
+ const serverTheme = (): Theme => 'system';
+ export default function ThemeControls() {
+@@ -55,6 +55,9 @@
+       <button type="button" title="Dark" aria-label="Dark appearance" aria-pressed={theme === 'dark'} className="pc-seg" style={seg(theme === 'dark')} onClick={() => choose('dark')}>
+         <AdminIcon name="moon" size={17} />
+       </button>
++      <button type="button" title="Lights out" aria-label="Lights out appearance" aria-pressed={theme === 'lightsOut'} className="pc-seg" style={seg(theme === 'lightsOut')} onClick={() => choose('lightsOut')}>
++        <AdminIcon name="moon" size={17} />
++      </button>
+       <button type="button" title="Use device appearance" aria-label="Use device appearance" aria-pressed={theme === 'system'} className="pc-seg" style={seg(theme === 'system')} onClick={() => choose('system')}>
+         <AdminIcon name="monitor" size={17} />
+       </button>
+--- a/admin-web/app/layout.tsx
++++ b/admin-web/app/layout.tsx
+@@ -38,7 +38,7 @@
+ }>) {
+   const jar = await cookies();
+   const storedTheme = jar.get('pc-theme')?.value;
+-  const theme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : 'system';
++  const theme = storedTheme === 'dark' || storedTheme === 'light' || storedTheme === 'lightsOut' ? storedTheme : 'system';
+   const density = jar.get('pc-density')?.value === 'compact' ? 'compact' : 'comfortable';
+ 
+   return (
+--- a/admin-web/app/globals.css
++++ b/admin-web/app/globals.css
+@@ -49,7 +49,7 @@
+   color-scheme: light;
+ }
+ 
+-[data-theme="dark"] {
++[data-theme="dark"], [data-theme="lightsOut"] {
+   --on: 245, 243, 239;
+   --bg: #0A1220;
+   --rail: #111B2B;
+@@ -316,7 +316,7 @@
+   header, aside { background: var(--panel) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+ }
+ @media (pointer: coarse) { .pc-seg { min-width: 44px; min-height: 44px; } }
+-[data-theme="dark"] .pc-wordmark { filter: invert(1); }
++[data-theme="dark"] .pc-wordmark, [data-theme="lightsOut"] .pc-wordmark { filter: invert(1); }
+ @media (prefers-color-scheme: dark) { [data-theme="system"] .pc-wordmark { filter: invert(1); } }
+ 
+ 
+@@ -647,7 +647,7 @@
+   --champagne: #A77B37;
+   --champagne-soft: #F5EEE2;
+ }
+-[data-theme="dark"] {
++[data-theme="dark"], [data-theme="lightsOut"] {
+   --accent: #D9B676;
+   --accent-rgb: 217, 182, 118;
+   --accent-2: #E8CA95;
+@@ -877,3 +877,15 @@
+   .pc-staff-field { flex-basis: 100%; }
+   .pc-staff-invite form > fieldset > button { width: 100%; }
+ }
++
++/* Lights out keeps readable dark-theme controls on black workspace surfaces. */
++[data-theme="lightsOut"] {
++  --bg: #000000;
++  --rail: #000000;
++  --topbar: #000000;
++  --panel: #080808;
++  --panel-2: #111111;
++  --chip-bg: #111111;
++  --deep: #111111;
++  --line: #303030;
++}
+--- /dev/null
++++ b/admin-web/tests/theme-lights-out-restoration.cjs
+@@ -0,0 +1,32 @@
++const test = require('node:test');
++const assert = require('node:assert/strict');
++const fs = require('node:fs');
++const path = require('node:path');
++const vm = require('node:vm');
++const ts = require('typescript');
++function compile(file, imports, globals = {}) {
++  const module = { exports: {} }, jsx = (type, props) => ({ type, props });
++  vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), { fileName: file, compilerOptions: { jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText, { module, exports: module.exports, ...globals, require(id) { if (id === 'react/jsx-runtime') return { jsx, jsxs: jsx }; if (id.endsWith('.css')) return {}; if (id in imports) return imports[id]; throw new Error(id); } });
++  return module.exports.default;
++}
++test('actual control selects all four modes and writes the existing persistence cookie', () => {
++  let theme = 'system'; const document = { documentElement: { getAttribute: () => theme, setAttribute: (_k, v) => { theme = v; } }, cookie: '' };
++  const Controls = compile('components/ThemeControls.tsx', { react: { useSyncExternalStore: (_subscribe, read) => read() }, '@/components/AdminIcon': 'svg' }, { document });
++  for (const mode of ['light', 'dark', 'lightsOut', 'system']) {
++    const labels = { light: 'Light appearance', dark: 'Dark appearance', lightsOut: 'Lights out appearance', system: 'Use device appearance' };
++    const tree = Controls(); assert.equal(tree.props.children.length, 4); tree.props.children.find(n => n.props['aria-label'] === labels[mode]).props.onClick();
++    assert.equal(theme, mode); assert.match(document.cookie, new RegExp('^pc-theme=' + mode + ';'));
++    const selected = Controls().props.children.filter(n => n.props['aria-pressed']); assert.equal(selected.length, 1); assert.equal(selected[0].props['aria-label'], labels[mode]);
++  }
++});
++test('actual server layout restores Lights out cookie and rejects unknown values', async () => {
++  let stored = 'lightsOut'; const font = () => ({ variable: 'font' });
++  const Layout = compile('app/layout.tsx', { 'next/headers': { cookies: async () => ({ get: key => ({ value: key === 'pc-theme' ? stored : undefined }) }) }, 'next/font/google': { Geist: font, Geist_Mono: font, JetBrains_Mono: font }, '@/components/ClientDiagnostics': { ClientDiagnostics: 'Diagnostics' } });
++  assert.equal((await Layout({ children: 'content' })).props['data-theme'], 'lightsOut'); stored = 'invalid'; assert.equal((await Layout({ children: 'content' })).props['data-theme'], 'system');
++});
++test('Lights out inherits both dark token sets and has explicit black workspace surfaces', () => {
++  const css = fs.readFileSync(path.join(__dirname, '../app/globals.css'), 'utf8');
++  assert.equal((css.match(/\[data-theme="dark"\], \[data-theme="lightsOut"\] \{/g) || []).length, 2);
++  assert.match(css, /\[data-theme="lightsOut"\] \{\s*--bg: #000000;/);
++  assert.match(css, /\[data-theme="lightsOut"\] \.pc-wordmark/);
++});

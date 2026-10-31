@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "status": "NEW_RESTORATION_FOCUSED_CHECKS_PASS_BROWSER_RUNTIME_PENDING",
+  "recordedAt": "2026-10-31T23:49:02.283577+00:00",
+  "originalBytesRecovered": false,
+  "baseline": {
+    "commit": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+    "scope": "Only the eight named paths; other existing dirty work is preserved."
+  },
+  "changes": [
+    "Explicit Cancel is available in offer compose and review; Edit offer remains separate. Dismissal preserves amount, successful confirmation clears it.",
+    "The existing same-turn mutation ref blocks close during dispatch; disabled controls and existing submission guards prevent duplicate actions. Existing RPC and account checks unchanged.",
+    "Offer dialogs opt in to visualViewport height/offset updates with bounded scrollable layout; ordinary dialogs remain unchanged.",
+    "Admin Lights out joins existing modes, inherits both dark token groups, uses black workspace surfaces, and persists/restores through the existing cookie/server layout. Member-web Lights out was already present and unchanged."
+  ],
+  "verification": {
+    "command": [
+      "env",
+      "-u",
+      "NODE_TEST_CONTEXT",
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "web/tests/offer-cancel-restoration.cjs",
+      "admin-web/tests/theme-lights-out-restoration.cjs"
+    ],
+    "executedCases": 9,
+    "pass": 9,
+    "fail": 0,
+    "skip": 0,
+    "breakdown": {
+      "webOfferAndDialog": 6,
+      "adminThemeAndServerLayout": 3
+    },
+    "harness": "Actual TSX component functions, effects and event handlers transpiled by installed TypeScript; controlled React/DOM/viewport/auth/RPC hosts. Actual admin server layout executes with controlled cookie/font dependencies.",
+    "sourceHashesUnchangedDuringFinalRun": true,
+    "scopedWebEslintExit": 0,
+    "scopedAdminEslintExit": 0,
+    "trackedWhitespaceExit": 0,
+    "newTestNodeSyntaxExit": 0,
+    "browser": "Not run: prior Chromium and system browser executables are absent; no download or build initiated.",
+    "typescriptProjectGate": "Not run in this bounded restoration."
+  },
+  "reactReview": [
+    "Viewport effect depends only on open and keyboardSafe; no setState or render loop.",
+    "Listeners exist only while an opted-in dialog is open; scroll is passive and both listeners/styles are removed.",
+    "No new fetches, dependencies, server auth changes or RPC retries.",
+    "The existing mutation ref provides synchronous submission ownership; dialog close callback checks it.",
+    "Admin cookie is accepted by the server layout on initial render, and useSyncExternalStore retains the existing subscription model."
+  ],
+  "limits": [
+    "Not byte-identical recovery of the earlier missing patch or evidence.",
+    "Controlled hosts do not establish physical keyboard, browser focus behavior, CSS geometry, or device appearance acceptance.",
+    "No native files, production backend operations, build, CI dispatch, deployment, or reference mutations."
+  ],
+  "files": [
+    {
+      "path": "web/app/market/[id]/page.tsx",
+      "bytes": 18078,
+      "sha256": "e40976ca864c5daee885fc756595c1d76dd1498c1a1de386fe907ff4929fd93a"
+    },
+    {
+      "path": "web/components/ProductDialog.tsx",
+      "bytes": 3859,
+      "sha256": "e71fd0aab2d4247155e79b66dddc279cc67d30c7d461f7cb6f3c4663db03257c"
+    },
+    {
+      "path": "web/components/ProductDialog.module.css",
+      "bytes": 1822,
+      "sha256": "3998ab87b5e600f14672392108b2311d410689796c5fcc9f7d64e9b25e1490e9"
+    },
+    {
+      "path": "web/tests/offer-cancel-restoration.cjs",
+      "bytes": 8551,
+      "sha256": "9a42ec0e18518dac202bab4f82ce701773cb469318b7dc9e9a76f38de7be6b85"
+    },
+    {
+      "path": "admin-web/components/ThemeControls.tsx",
+      "bytes": 2656,
+      "sha256": "8dfd79871969cf17a5a8df86a1e4d684184c83df30983294826d7357daf723c0"
+    },
+    {
+      "path": "admin-web/app/layout.tsx",
+      "bytes": 1710,
+      "sha256": "4d5b8137eec1f669ee011b99ff76fe8c63a2db6284854402c7302fa31b7b85c3"
+    },
+    {
+      "path": "admin-web/app/globals.css",
+      "bytes": 64764,
+      "sha256": "cfe27743aad1aa311a356e1fcae76cb18b58390e25381739c656e5fb131712dd"
+    },
+    {
+      "path": "admin-web/tests/theme-lights-out-restoration.cjs",
+      "bytes": 3035,
+      "sha256": "bd639af15588723bdeb700f156d3ab0b2d48cf176f6d9cb4534b07c42e0c21a1"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-offer-admin-appearance-restoration/focused.tap",
+      "sha256": "56dec34f67069fd7e542a278ea887db7cdc83d66bf969adb47d35190aeed0bdc",
+      "bytes": 2096
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-offer-admin-appearance-restoration/source-manifest.json",
+      "sha256": "76b8f25d498fd42aba2b132ebbb8d5525218d4d47d005f3965f818b711a74444",
+      "bytes": 1277
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/web-offer-admin-appearance-restoration/restoration.patch",
+      "sha256": "80aff5b96ace7a972c06af7cdfb1d87c0cbbd40831f99ec1b85e66cf770bc5fd",
+      "bytes": 20902
+    }
+  ]
+}

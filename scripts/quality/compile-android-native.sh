@@ -82,6 +82,7 @@ bash android/gradlew -p android --no-daemon --console=plain --stacktrace \
   --max-workers=2 '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g' \
   -I "$PWD/scripts/quality/android-media-dependencies.init.gradle" \
   "-PplatinumStoryMediaReceipt=$PWD/android-native-compile-logs/media3-runtime.json" \
+  -PplatinumRequireExpoVideoSource=true \
   -PreactNativeArchitectures=arm64-v8a :app:verifyStoryMediaDependencies :app:assembleDebug \
   2>&1 | tee android-native-compile-logs/gradle.log
 
@@ -109,6 +110,8 @@ apks = list(Path('android/app/build/outputs/apk/debug').glob('*-unsigned.apk'))
 if len(apks) != 1:
     raise SystemExit('Exactly one unsigned Android QA APK is required.')
 apk = apks[0]
+subprocess.run([sys.executable, 'scripts/quality/native-ui-android-media-abi.py', '--apk', str(apk),
+                '--output', 'android-native-compile-logs/media3-packaged-abi.json'], check=True)
 with zipfile.ZipFile(apk) as archive:
     if archive.testzip() is not None:
         raise SystemExit('The Android QA APK failed ZIP integrity verification.')
@@ -136,6 +139,7 @@ receipt = {
                       'compiled_classes': [str(p) for p in objects]},
     'native_sources': native_sources,
     'media3_runtime': json.loads(Path('android-native-compile-logs/media3-runtime.json').read_text()),
+    'media3_packaged_abi': json.loads(Path('android-native-compile-logs/media3-packaged-abi.json').read_text()),
     'expo_module_registration_verified': True,
     'android_abi': 'arm64-v8a',
     'apk': {'path': str(apk), 'sha256': hashlib.sha256(apk.read_bytes()).hexdigest(), 'bytes': apk.stat().st_size},

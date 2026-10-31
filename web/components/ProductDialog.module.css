@@ -11,3 +11,4 @@
 .content { padding: 22px 24px 24px; }
 @media (max-width: 580px) { .dialog, .wide { width: calc(100% - 16px); max-height: 92dvh; border-radius: 16px; }.header { padding: 18px 16px 15px; }.header h2 { font-size: 20px; }.content { padding: 18px 16px 20px; } }
 @media (prefers-reduced-motion: reduce) { .dialog::backdrop { backdrop-filter: none; } }
+.keyboardSafe { top: calc(var(--dialog-viewport-top, 0px) + var(--dialog-viewport-height, 100dvh) / 2); bottom: auto; margin: 0 auto; transform: translateY(-50%); max-height: calc(var(--dialog-viewport-height, 100dvh) - 16px); }

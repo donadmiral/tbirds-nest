@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: android Appearance exposes all choices/current state and all non-mutating dismissals
+ok 1 - android Appearance exposes all choices/current state and all non-mutating dismissals
+  ---
+  duration_ms: 71.223198
+  type: 'test'
+  ...
+# Subtest: ios Appearance exposes all choices/current state and all non-mutating dismissals
+ok 2 - ios Appearance exposes all choices/current state and all non-mutating dismissals
+  ---
+  duration_ms: 15.965037
+  type: 'test'
+  ...
+# Subtest: android offer cancel clears draft without sending and retains keyboard-safe controls
+ok 3 - android offer cancel clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 31.715625
+  type: 'test'
+  ...
+# Subtest: android offer backdrop clears draft without sending and retains keyboard-safe controls
+ok 4 - android offer backdrop clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 17.089326
+  type: 'test'
+  ...
+# Subtest: android offer back clears draft without sending and retains keyboard-safe controls
+ok 5 - android offer back clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 15.613367
+  type: 'test'
+  ...
+# Subtest: android offer escape clears draft without sending and retains keyboard-safe controls
+ok 6 - android offer escape clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 15.568289
+  type: 'test'
+  ...
+# Subtest: ios offer cancel clears draft without sending and retains keyboard-safe controls
+ok 7 - ios offer cancel clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 15.436801
+  type: 'test'
+  ...
+# Subtest: ios offer backdrop clears draft without sending and retains keyboard-safe controls
+ok 8 - ios offer backdrop clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 11.223623
+  type: 'test'
+  ...
+# Subtest: ios offer back clears draft without sending and retains keyboard-safe controls
+ok 9 - ios offer back clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 14.272637
+  type: 'test'
+  ...
+# Subtest: ios offer escape clears draft without sending and retains keyboard-safe controls
+ok 10 - ios offer escape clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 18.494388
+  type: 'test'
+  ...
+# Subtest: offer send is single-flight; busy dismissals/edits are guarded and failure preserves draft
+ok 11 - offer send is single-flight; busy dismissals/edits are guarded and failure preserves draft
+  ---
+  duration_ms: 18.019694
+  type: 'test'
+  ...
+# Subtest: old offer callbacks cannot affect reopened draft; invalid input never dispatches
+ok 12 - old offer callbacks cannot affect reopened draft; invalid input never dispatches
+  ---
+  duration_ms: 17.876337
+  type: 'test'
+  ...
+# Subtest: late offer success after unmount cannot navigate or write state
+ok 13 - late offer success after unmount cannot navigate or write state
+  ---
+  duration_ms: 9.405903
+  type: 'test'
+  ...
+# Subtest: theme rapid choices coalesce behind one active write and older hydration cannot replace latest choice
+ok 14 - theme rapid choices coalesce behind one active write and older hydration cannot replace latest choice
+  ---
+  duration_ms: 15.750524
+  type: 'test'
+  ...
+# Subtest: theme persistence rejection cannot strand a newer pending choice
+ok 15 - theme persistence rejection cannot strand a newer pending choice
+  ---
+  duration_ms: 6.685314
+  type: 'test'
+  ...
+# Subtest: Settings Appearance search includes every mode while preserving existing contrast edits
+ok 16 - Settings Appearance search includes every mode while preserving existing contrast edits
+  ---
+  duration_ms: 23.236193
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 479.76664

@@ -49,7 +49,7 @@
   color-scheme: light;
 }
 
-[data-theme="dark"] {
+[data-theme="dark"], [data-theme="lightsOut"] {
   --on: 245, 243, 239;
   --bg: #0A1220;
   --rail: #111B2B;
@@ -316,7 +316,7 @@ input::placeholder, textarea::placeholder { color: var(--txt-muted); opacity: 1;
   header, aside { background: var(--panel) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 }
 @media (pointer: coarse) { .pc-seg { min-width: 44px; min-height: 44px; } }
-[data-theme="dark"] .pc-wordmark { filter: invert(1); }
+[data-theme="dark"] .pc-wordmark, [data-theme="lightsOut"] .pc-wordmark { filter: invert(1); }
 @media (prefers-color-scheme: dark) { [data-theme="system"] .pc-wordmark { filter: invert(1); } }
 
 
@@ -647,7 +647,7 @@ textarea.pc-action-input { min-height: 100px; resize: vertical; }
   --champagne: #A77B37;
   --champagne-soft: #F5EEE2;
 }
-[data-theme="dark"] {
+[data-theme="dark"], [data-theme="lightsOut"] {
   --accent: #D9B676;
   --accent-rgb: 217, 182, 118;
   --accent-2: #E8CA95;
@@ -876,4 +876,16 @@ textarea.pc-action-input { min-height: 100px; resize: vertical; }
   .pc-role-desks li { font-size: 11px; }
   .pc-staff-field { flex-basis: 100%; }
   .pc-staff-invite form > fieldset > button { width: 100%; }
+}
+
+/* Lights out keeps readable dark-theme controls on black workspace surfaces. */
+[data-theme="lightsOut"] {
+  --bg: #000000;
+  --rail: #000000;
+  --topbar: #000000;
+  --panel: #080808;
+  --panel-2: #111111;
+  --chip-bg: #111111;
+  --deep: #111111;
+  --line: #303030;
 }

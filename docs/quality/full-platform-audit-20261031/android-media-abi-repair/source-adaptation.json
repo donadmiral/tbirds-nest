@@ -1,0 +1,9 @@
+{
+  "version": "3.0.16",
+  "sourceBefore": "edc43515ed73af65f4ec142684f7e95ee2b9f84475619df7fcfa28a0f0ff3ae1",
+  "sourceAfter": "f628d5385071a6c2139cd17d9c7adf833dfd27e6eef52958101558b2849deb0d",
+  "gradleBefore": "db00bf5669614c5cf1566105fee6e62b305ae50f30c075984c0e07e0ed553842",
+  "gradleAfter": "843508193c2f3d9e2bd214c01fe15f66a2684891058c8023ec3745fbc7e2e3f6",
+  "nodeModulesModified": false,
+  "compiled": false
+}

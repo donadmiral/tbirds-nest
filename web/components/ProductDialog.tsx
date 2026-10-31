@@ -5,8 +5,8 @@ import { X } from 'lucide-react';
 import styles from './ProductDialog.module.css';
 
 /** A single close path lets each editor preserve or explicitly discard its draft. */
-export function ProductDialog({ open, title, description, busy = false, onClose, children, wide = false }: {
-  open: boolean; title: string; description?: string; busy?: boolean; onClose: () => void; children: ReactNode; wide?: boolean;
+export function ProductDialog({ open, title, description, busy = false, onClose, children, wide = false, keyboardSafe = false }: {
+  open: boolean; title: string; description?: string; busy?: boolean; onClose: () => void; children: ReactNode; wide?: boolean; keyboardSafe?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId(), descriptionId = useId();
@@ -23,7 +23,24 @@ export function ProductDialog({ open, title, description, busy = false, onClose,
       if (previous?.isConnected) previous.focus({ preventScroll: true });
     };
   }, [open]);
-  return <dialog ref={ref} tabIndex={-1} className={`${styles.dialog} ${wide ? styles.wide : ''}`} aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}
+  useEffect(() => {
+    const dialog = ref.current, viewport = window.visualViewport;
+    if (!open || !keyboardSafe || !dialog || !viewport) return;
+    const update = () => {
+      dialog.style.setProperty('--dialog-viewport-top', `${viewport.offsetTop}px`);
+      dialog.style.setProperty('--dialog-viewport-height', `${viewport.height}px`);
+    };
+    update();
+    viewport.addEventListener('resize', update);
+    viewport.addEventListener('scroll', update, { passive: true });
+    return () => {
+      viewport.removeEventListener('resize', update);
+      viewport.removeEventListener('scroll', update);
+      dialog.style.removeProperty('--dialog-viewport-top');
+      dialog.style.removeProperty('--dialog-viewport-height');
+    };
+  }, [open, keyboardSafe]);
+  return <dialog ref={ref} tabIndex={-1} className={`${styles.dialog} ${wide ? styles.wide : ''} ${keyboardSafe ? styles.keyboardSafe : ''}`} aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}
     onKeyDown={event => {
       if (event.key !== 'Tab') return;
       const dialog = event.currentTarget;

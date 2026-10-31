@@ -1,0 +1,72 @@
+{
+  "recordedAt": "2026-10-31T23:47:56.661938+00:00",
+  "status": "EARLIER_PREPARED_SOURCE_SURVIVES_NEW_BINARY_NOT_VERIFIED",
+  "sourcePaths": [
+    {
+      "path": "package.json",
+      "bytes": 5414,
+      "sha256": "76dc10731480fa4f4f80650db90aad1bbbc0b751ecd56a0c71b723dd6162f296"
+    },
+    {
+      "path": "plugins/withMedia3Compatibility.js",
+      "bytes": 4087,
+      "sha256": "5ba26f5c53b43d42ae8f9b5abeb32ea638a3baa646319c18ec51086b16968516"
+    },
+    {
+      "path": "scripts/quality/android-media-dependencies.init.gradle",
+      "bytes": 4703,
+      "sha256": "5ee7406cc5f91c2d66973b521c01476933e4a69e519a2cc1e7e4988197cd6afc"
+    },
+    {
+      "path": "scripts/quality/native-ui-android-media-abi.py",
+      "bytes": 11854,
+      "sha256": "4a0103fcc06b3e3040524acdb38bdb564e39ce764c827ed576866028ea95e2f7"
+    },
+    {
+      "path": "scripts/quality/test-android-app-ui.sh",
+      "bytes": 10781,
+      "sha256": "39c1afb0124e7364814ef9e23a13baef48587858ff08c89d6ef97c764c2d8fde"
+    },
+    {
+      "path": "scripts/quality/compile-android-native.sh",
+      "bytes": 10051,
+      "sha256": "4bde6e6d2e4a59c462c667fec33076bbf4fd8a0830c949a9891b3ea83af9ce42"
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui.cjs",
+      "bytes": 7273,
+      "sha256": "a0e550ad66b5ec8dc89e4971d08c9e4f509aec7df333197d89412b26597cb63e"
+    },
+    {
+      "path": "tests/quality/native-auth-diagnostics.cjs",
+      "bytes": 20277,
+      "sha256": "a97c3b5530bde0e147e1ffa6548db18371580534f48b00f26b563ec3cf2230fb"
+    },
+    {
+      "path": "tests/quality/native-media3-compatibility.cjs",
+      "bytes": 9565,
+      "sha256": "b4db06f10a7d76a5e849a4b8c44395b4e116fa863bf32838895171005ab7e1c8"
+    }
+  ],
+  "focusedRerun": {
+    "command": [
+      "env",
+      "-u",
+      "NODE_TEST_CONTEXT",
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "tests/quality/native-media3-compatibility.cjs",
+      "tests/quality/native-auth-diagnostics.cjs"
+    ],
+    "passed": 22,
+    "failed": 0,
+    "skipped": 0,
+    "tap": "restored-preparation.tap"
+  },
+  "preservedOriginalEvidence": "repair-preparation.json",
+  "restorationBoundary": "This verifies the surviving20:33 source preparation, not the lost later12-path portable proof. No later receipt or test output has been recreated.",
+  "actualInstalledCorrectionVerified": false,
+  "newBuild": false
+}

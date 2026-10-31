@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T23:50:49.995935+00:00",
+  "status": "fresh-local-restoration-focused-pass-device-validation-pending",
+  "historicalProof": "This is a fresh minimal restoration after workspace rollback. It is not byte-identical to the older lost Appearance/offer repair and does not claim the older37/19-case gates.",
+  "changes": [
+    "Appearance-only full four-radio choice sheet with current state, explicitCancel, Back/escape/backdrop dismissal, safe-area bounded scrolling and reactive Settings row. Existing two dirty Settings contrast edits are preserved.",
+    "Theme persistence uses one activewrite and one latest pendingmode. Earlier hydration cannot replace a newer choice; failed storage does not strand a queued choice.",
+    "Offer explicitCancel outside a bounded ScrollView/full-flex keyboard-avoiding layout; draft clears on idle dismissal; pending send disables all dismissal/edit controls; same-turn send, stale reopening, owner/scope and unmount guards retire invalid callbacks."
+  ],
+  "tests": {
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0,
+    "path": "focused-tests.tap",
+    "sha256": "d4c005937726d303022724a534cacf312ccf62cd505fa21ac1ff3852d9a17d2d",
+    "scope": "Actual AppearanceSheet with controlled native/store hosts; actual extracted ListingDetail offer handlers+JSX with controlled hooks/RPC, actual Zustand themeStore with held storage; actual Settings search expression. No real account/provider mutation."
+  },
+  "scopedLint": {
+    "exit": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "nativeTypeScript": {
+    "exit": 0,
+    "note": "Run completed before final ref-cleanup variable capture; final change adds only a local alias to the same ref object. No type-affecting change."
+  },
+  "readerFrozenPathsUnchanged": {
+    "src/screens/profile/MemoryAlbumScreen.tsx": "1e110a707c088f12d9d333570f259af530c8324a2d1f1f42dcbef86c2263b557",
+    "shared/memoryReaderRequest.ts": "f94a543372623afa7e02d293f8345e0d60b24dc18fa828b9b38e28f6087c2010",
+    "tests/quality/native-memory-album-loading.cjs": "6e635b6df4600b654d7e2ad3985f39e833abceaf17bb2121c3209205b91d8a79",
+    "tests/quality/memory-media-regressions.cjs": "2f4a59c647a757429ecae7357a74edb1e26e93b68b577fbd5436af822c5da7e7"
+  },
+  "sourceManifest": "source-manifest.json",
+  "sourceManifestSha256": "4158ae497e9264fe8afced3dc6a9b53ce578d3435d975ec47e0e05ced16c3437",
+  "limits": [
+    "No native device/IME geometry, build, CI, deployment or remote write.",
+    "No broad settings/menu migration.",
+    "Component/layout contracts cannot prove physical keyboard visibility; manual/device acceptance remains pending.",
+    "Onlysynthetic offer responses were used; no real offer or message was sent."
+  ]
+}

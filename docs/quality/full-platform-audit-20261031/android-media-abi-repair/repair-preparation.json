@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "status": "PREPARED SOURCE FIX; NOT BUILT, INSTALLED OR DEPLOYED",
+  "frozenAt": "2026-10-31T20:33:43.345444+00:00",
+  "baseline": {
+    "head": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "tree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+    "workflowRun": 41235679679,
+    "apkSha256": "9897c6328030bde3bf2bdbf4553012f5431362d4f7a0e53960821301daa14298",
+    "buildLogArtifact": 13056011644,
+    "buildLogArchiveSha256": "76351ae3491ad590da120ce270b0c8d083d5f8a56128d87333d0ef899e838abd"
+  },
+  "finding": "The shipped Expo DefaultLoadControl implements the Media3 LoadControl interface but defines only getAllocator() and the old preloading overload. The packaged interface requires getAllocator(PlayerId). The producer selected the bundled precompiled Expo Maven publication, bypassing the already-patched Java source. This explains the retained AbstractMethodError.",
+  "changes": [
+    "Android-only supported Expo buildFromSource opt-out for expo-video.",
+    "Keep the existing two-signature Java adaptation; also hash-guard the pinned Expo Gradle file and change only its own Media3 version scalar from1.8.0 to1.11.1. Both inputs validate before either write.",
+    "Check app release/runtime and Expo source compile dependency scopes for complete1.11.1 alignment and reject a precompiled Expo publication.",
+    "Check actual APK DEX class definitions, required allocator/preloading signatures, all interface abstract methods and every Expo override naming an interface method, before audit packaging or normal installation. The separate compile gate uses the same check.",
+    "Retain package.json and the new checker in the native source manifest."
+  ],
+  "validation": {
+    "focused": {
+      "formalPass": 22,
+      "formalFail": 0,
+      "skipped": 0,
+      "composition": "7 Media3 +15 existing provenance cases",
+      "durationMs": 201.948802
+    },
+    "actualOldApkCheckerExit": 1,
+    "actualOldApkCheckerResult": "Expected rejection of missing concrete allocator/preloading methods and obsolete signatures.",
+    "pythonAst": "pass",
+    "bashSyntax": "pass for both changed Android scripts",
+    "trackedWhitespace": "pass for eight tracked paths; new helper has no trailing whitespace",
+    "eslint": "exit0; no errors. The plugin is excluded by the existing lint configuration and emitted one ignored-file warning; its actual execution is covered by focused tests."
+  },
+  "limits": [
+    "No new build, deployment, workflow launch, retry, installation, signing or native acceptance occurred. Work stopped at the user request.",
+    "No positive rebuilt-APK result or complete Expo Java/Kotlin source compile against the new library scope has been obtained for this candidate.",
+    "The new Gradle resolution branch has source/placement checks but has not executed under Gradle. The Python DEX verifier was exercised against the actual failing APK; a future compatible assembled APK remains pending.",
+    "Production memory capability and all product flow assertions/deadlines are unchanged. The successful standalone encoder40-case evidence does not validate packaged Expo playback."
+  ],
+  "references": [
+    "https://docs.expo.dev/modules/autolinking/#buildfromsource",
+    "https://source.android.com/docs/core/runtime/dex-format"
+  ],
+  "sourcePaths": [
+    {
+      "path": "package.json",
+      "bytes": 5414,
+      "sha256": "76dc10731480fa4f4f80650db90aad1bbbc0b751ecd56a0c71b723dd6162f296"
+    },
+    {
+      "path": "plugins/withMedia3Compatibility.js",
+      "bytes": 4087,
+      "sha256": "5ba26f5c53b43d42ae8f9b5abeb32ea638a3baa646319c18ec51086b16968516"
+    },
+    {
+      "path": "scripts/quality/android-media-dependencies.init.gradle",
+      "bytes": 4703,
+      "sha256": "5ee7406cc5f91c2d66973b521c01476933e4a69e519a2cc1e7e4988197cd6afc"
+    },
+    {
+      "path": "scripts/quality/native-ui-android-media-abi.py",
+      "bytes": 11854,
+      "sha256": "4a0103fcc06b3e3040524acdb38bdb564e39ce764c827ed576866028ea95e2f7"
+    },
+    {
+      "path": "scripts/quality/test-android-app-ui.sh",
+      "bytes": 10781,
+      "sha256": "39c1afb0124e7364814ef9e23a13baef48587858ff08c89d6ef97c764c2d8fde"
+    },
+    {
+      "path": "scripts/quality/compile-android-native.sh",
+      "bytes": 10051,
+      "sha256": "4bde6e6d2e4a59c462c667fec33076bbf4fd8a0830c949a9891b3ea83af9ce42"
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui.cjs",
+      "bytes": 7273,
+      "sha256": "a0e550ad66b5ec8dc89e4971d08c9e4f509aec7df333197d89412b26597cb63e"
+    },
+    {
+      "path": "tests/quality/native-auth-diagnostics.cjs",
+      "bytes": 20277,
+      "sha256": "a97c3b5530bde0e147e1ffa6548db18371580534f48b00f26b563ec3cf2230fb"
+    },
+    {
+      "path": "tests/quality/native-media3-compatibility.cjs",
+      "bytes": 9565,
+      "sha256": "b4db06f10a7d76a5e849a4b8c44395b4e116fa863bf32838895171005ab7e1c8"
+    }
+  ],
+  "retained": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/android-media-abi-repair/d46-packaged-abi-negative.json",
+      "bytes": 16828,
+      "sha256": "5a49a13c1c386ae8a21656192a4ac94a046078c80da96259f4feb34cb2a4531f"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/android-media-abi-repair/d46-packaged-abi-negative.txt",
+      "bytes": 615,
+      "sha256": "6822b14a91c5590500a19a66cf7bb270cccc31c4c2a8ceded37ab57515ed404a"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/android-media-abi-repair/d46-packaged-class-definitions.json",
+      "bytes": 28927,
+      "sha256": "b5eed308e9a342d8f7777ae4d6cceff2845b27e6b9b360e6a88fec8880f7895b"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/android-media-abi-repair/focused.tap",
+      "bytes": 5660,
+      "sha256": "5b216b5d3f7dd40ec10cb85eecffc9c364e82d655cc301e7ff82b21918cf30a0"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/android-media-abi-repair/publication-selection.json",
+      "bytes": 1009,
+      "sha256": "fd40fe2d6b7f9c7dbf09a3773dca580c6fd4bdd9b2532a6792f692691bbef18d"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/android-media-abi-repair/source-adaptation.json",
+      "bytes": 421,
+      "sha256": "9a55349f250ab2dd3d8018d4672a30da02d1de8f31363061dba5bbbfecdb2194"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/android-media-abi-repair/source-manifest.json",
+      "bytes": 1480,
+      "sha256": "958f0cc7b25eafbd00f11c88b87de6565bc19ad6766c9a7607f42af3f61d4b20"
+    }
+  ]
+}

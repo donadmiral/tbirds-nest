@@ -19,6 +19,25 @@ type State = {
 
 const KEY = 'pc.theme.mode';
 let preferenceRevision = 0;
+let pendingMode: ThemeMode | null = null;
+let writeCycle: Promise<void> | null = null;
+function persistMode(mode: ThemeMode): Promise<void> {
+  pendingMode = mode;
+  if (writeCycle) return writeCycle;
+  let complete!: () => void;
+  const cycle = new Promise<void>(resolve => { complete = resolve; });
+  writeCycle = cycle;
+  void (async () => {
+    try {
+      while (pendingMode !== null) {
+        const next = pendingMode; pendingMode = null;
+        try { await AsyncStorage.setItem(KEY, next); } catch { /* The visible preference remains usable; the next choice may retry storage. */ }
+      }
+    } finally { writeCycle = null; complete(); }
+  })();
+  return cycle;
+}
+
 const systemNow = (): Resolved => (Appearance.getColorScheme() === 'dark' ? 'dark' : 'light');
 const resolve = (mode: ThemeMode, system: Resolved): Resolved => mode === 'system' ? system : mode === 'light' ? 'light' : 'dark';
 
@@ -38,7 +57,7 @@ export const useThemeStore = create<State>((set, get) => ({
   setMode: async (m) => {
     ++preferenceRevision;
     set({ mode: m, resolved: resolve(m, get().system) });
-    try { await AsyncStorage.setItem(KEY, m); } catch {}
+    await persistMode(m);
   },
 }));
 

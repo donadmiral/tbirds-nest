@@ -1,0 +1,26 @@
+{
+  "buildLogSha256": "f2c3c4293de0c27d9217e3f6c3133e0f02aab6a3c8cba29a3c68d6ef71621bde",
+  "rows": [
+    {
+      "line": 158,
+      "text": "  - [\ud83d\udce6] expo-video (3.0.16)"
+    },
+    {
+      "line": 159,
+      "text": "  - [\ud83d\udce6] expo-video-thumbnails (10.0.8)"
+    }
+  ],
+  "baselinePackageSha256": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+  "baselineExpoAutolinking": null,
+  "installedSettingsManager": {
+    "path": "node_modules/expo-modules-autolinking/android/expo-gradle-plugin/expo-autolinking-settings-plugin/src/main/kotlin/expo/modules/plugin/SettingsManager.kt",
+    "sha256": "318a7991ffa614cd3fb4f9e412c24d083b74b856de9fe601329ea645e25113a9",
+    "rule": "Publication is selected unless buildFromSourceRegex matches the exact project name; absent publication script returns true."
+  },
+  "publication": {
+    "groupId": "host.exp.exponent",
+    "artifactId": "expo.modules.video",
+    "version": "3.0.16",
+    "repository": "local-maven-repo"
+  }
+}

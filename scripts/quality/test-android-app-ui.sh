@@ -109,9 +109,14 @@ manifest.write_text(text)
 PY
 bash android/gradlew -p android --no-daemon --console=plain --stacktrace --max-workers=2 \
   '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g' -PreactNativeArchitectures=x86_64 \
-  :app:assembleRelease 2>&1 | tee native-ui-logs/build.log
+  -I "$PWD/scripts/quality/android-media-dependencies.init.gradle" \
+  "-PplatinumStoryMediaReceipt=$PWD/native-ui-logs/media3-runtime.json" \
+  -PplatinumStoryMediaConfiguration=releaseRuntimeClasspath -PplatinumRequireExpoVideoSource=true \
+  :app:verifyStoryMediaDependencies :app:assembleRelease 2>&1 | tee native-ui-logs/build.log
 apk="$PWD/android/app/build/outputs/apk/release/app-release.apk"
 test -s "$apk"
+python3 scripts/quality/native-ui-android-media-abi.py --apk "$apk" \
+  --output native-ui-logs/media3-packaged-abi.json
 python3 - "$apk" <<'PY'
 import sys,zipfile
 with zipfile.ZipFile(sys.argv[1]) as z:
