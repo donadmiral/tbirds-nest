@@ -224,6 +224,7 @@ test('actual pinned call transport propagates errors while retaining the legacy 
   const supabase = { from(table) {
     const request = { table, headers: {} }; requests.push(request);
     const query = { select() { return query; }, update() { return query; }, eq() { return query; }, maybeSingle() { return query; },
+      gt() { return query; }, order() { return query; }, limit() { return query; },
       setHeader(key, value) { request.headers[key] = value; return query; }, abortSignal(signal) { request.signal = signal; return query; },
       then(resolve, reject) { return Promise.resolve({ data: null, error: failure }).then(resolve, reject); } };
     return query;
@@ -234,6 +235,7 @@ test('actual pinned call transport propagates errors while retaining the legacy 
   const options = { accessToken: 'original-account-token', signal: new AbortController().signal, throwOnError: true };
   await assert.rejects(callService.getCall(CALL, options), /database unavailable/);
   await assert.rejects(callService.declineCall(CALL, options), /database unavailable/);
+  await assert.rejects(callService.listRingingCalls(A, options), /database unavailable/);
   assert.ok(requests.every(request => request.headers.Authorization === 'Bearer original-account-token' && request.signal === options.signal));
   assert.equal(await callService.getCall(CALL), null); assert.equal(await callService.declineCall(CALL), false);
 });

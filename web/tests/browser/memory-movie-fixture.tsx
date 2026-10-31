@@ -22,6 +22,7 @@ function Fixture() {
   const current = useMemo(() => {
     const params = new URLSearchParams(search);
     return pages.map<MemoryPage>((page, index) => {
+    if (index === 1 && mode === 'unadjusted_no_webgl' && page.media_transform) return { ...page, media_transform: { ...page.media_transform, adjust: {} } };
     if (index) return page;
     if (mode === 'missing') return { ...page, media_url: '/missing.jpg' };
     if (mode === 'overflow') return { ...page, caption: 'Long original caption. '.repeat(100) };

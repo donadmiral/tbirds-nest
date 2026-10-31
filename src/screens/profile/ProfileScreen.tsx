@@ -1,5 +1,5 @@
 import { themedSheet, useTheme } from '../../theme/useTheme';
-import React, { useRef , useCallback, useEffect, useState } from 'react';
+import React, { useRef , useCallback, useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { Pressable , View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Alert, Share, useWindowDimensions } from 'react-native';
 import VideoThumb from '../../components/VideoThumb';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -13,8 +13,9 @@ import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 import { supabase } from '../../services/supabase';
-import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
-import { profileRead } from '../../utils/profileRead';
+import { withoutPrivateMedia } from '../../services/contentMedia';
+import { profileContentRead, profilePostCursor, mergeProfilePosts, type ProfilePostCursor } from '../../services/profileContent';
+import { navigationScope, subscribeNavigationScope } from '../../lib/navigationCache';
 import { useProfileMediaRefresh } from '../../hooks/useProfileMediaRefresh';
 import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
@@ -78,10 +79,11 @@ export default function ProfileScreen() {
   const authProfile = useAuthStore(state => state.profile);
   const setAuthProfile = useAuthStore(state => state.setProfile);
   const userId = authProfile?.id ?? null;
+  const sessionScope = useSyncExternalStore(subscribeNavigationScope, navigationScope, navigationScope);
   const authProfileRef = useRef(authProfile);
   authProfileRef.current = authProfile;
-  const scope = useRef({ userId });
-  if (scope.current.userId !== userId) scope.current = { userId };
+  const scope = useRef({ userId, sessionScope });
+  if (scope.current.userId !== userId || scope.current.sessionScope !== sessionScope) scope.current = { userId, sessionScope };
   const profileRequest = useRef(0), tabRequest = useRef(0), moreRequest = useRef(0);
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
@@ -96,46 +98,68 @@ export default function ProfileScreen() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
+  const activeTabRef = useRef(activeTab); activeTabRef.current = activeTab;
   const [loadError, setLoadError] = useState<string | null>(null);
   const [tabPosts, setTabPosts] = useState<Post[]>([]);
+  const tabPostsRef = useRef(tabPosts); tabPostsRef.current = tabPosts;
+  const ownPageRef = useRef<{ cursor: ProfilePostCursor | null; pages: number; hasMore: boolean }>({ cursor: null, pages: 0, hasMore: false });
+  const resetPostsRef = useRef(false);
+  const profileReadRef = useRef<AbortController | null>(null), tabReadRef = useRef<AbortController | null>(null), moreReadRef = useRef<AbortController | null>(null);
+  const moreBusyRef = useRef<object | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollOffsets = useRef<Record<ProfileTab, number>>({ posts: 0, reposts: 0, saved: 0, tagged: 0 });
+  const renderScope = scope.current;
   const [postsHasMore, setPostsHasMore] = useState(false);
   const [loadingMorePosts, setLoadingMorePosts] = useState(false);
   const [tabReposts, setTabReposts] = useState<Post[]>([]);
   const [tabSaved, setTabSaved] = useState<Post[]>([]);
   const [tabTagged, setTabTagged] = useState<Post[]>([]);
+  const otherTabRowsRef = useRef({ reposts: tabReposts, saved: tabSaved, tagged: tabTagged });
+  otherTabRowsRef.current = { reposts: tabReposts, saved: tabSaved, tagged: tabTagged };
   const [tabLoading, setTabLoading] = useState(false);
+  const [tabRefreshing, setTabRefreshing] = useState(false);
+  const tabRefreshingRef = useRef(false);
   const tabLoadedRef = useRef<Record<string, boolean>>({});
 
 
   const prefetchedOwner = useRef<string | null>(null);
   const load = useCallback(async () => {
     const owner = scope.current, request = ++profileRequest.current;
-    const current = () => mounted.current && scope.current === owner && request === profileRequest.current;
+    const current = () => mounted.current && scope.current === owner && navigationScope() === owner.sessionScope && request === profileRequest.current;
+    profileReadRef.current?.abort();
+    const controller = new AbortController(); profileReadRef.current = controller;
     if (!userId) { setLoading(false); return; }
     try {
-      const usePrefetch = prefetchedOwner.current !== userId; prefetchedOwner.current = userId;
-      const prefetched = usePrefetch ? takePrefetched<Record<string, unknown>>('profile:' + userId) ?? await awaitPrefetched<Record<string, unknown>>('profile:' + userId) : null;
-      const { data: pj, error: pErr } = prefetched ? { data: prefetched, error: null } : await profileRead(supabase.rpc('get_profile', { p_profile_id: userId }));
-      if (!current()) return;
-      if (pErr) throw pErr;
-      if (!pj || (pj as any).id !== userId) throw new Error('Profile is unavailable. Please retry.');
-      setLoadError(null);
-      const pd: any = pj || {};
-      setProfile({
-        id: pd.id, full_name: pd.full_name || '', username: pd.username || '',
-        bio: pd.bio || '', location: pd.location || '', degree_program: pd.degree_program || '',
-        avatar_url: pd.avatar_url || null, email: pd.email || '', role: pd.role || 'student',
-        profile_visibility: pd.profile_visibility || 'public',
-        banner_url: pd.banner_url || null, headline: pd.headline || null,
-        workplace: pd.workplace || null, account_type: pd.account_type || 'personal',
-        is_verified: !!pd.is_verified, verified_tier: pd.verified_tier ?? null, created_at: pd.created_at, business: pd.business || null,
-      } as any);
-      if (setAuthProfile) setAuthProfile({ ...(authProfileRef.current as any), ...pd });
-      const c = pd.counts || {};
+      await profileContentRead(userId, owner.sessionScope, controller.signal, async reader => {
+        const usePrefetch = prefetchedOwner.current !== userId; prefetchedOwner.current = userId;
+        const prefetched = usePrefetch ? takePrefetched<Record<string, unknown>>('profile:' + userId) ?? await awaitPrefetched<Record<string, unknown>>('profile:' + userId) : null;
+        reader.check();
+        const pj = prefetched ?? await reader.read<Record<string, unknown>>(supabase.rpc('get_profile', { p_profile_id: userId }));
+        if (!current()) return;
+        if (!pj || (pj as any).id !== userId) throw new Error('Profile is unavailable. Please retry.');
+        setLoadError(null);
+        const pd: any = pj || {};
+        setProfile({
+          id: pd.id, full_name: pd.full_name || '', username: pd.username || '',
+          bio: pd.bio || '', location: pd.location || '', degree_program: pd.degree_program || '',
+          avatar_url: pd.avatar_url || null, email: pd.email || '', role: pd.role || 'student',
+          profile_visibility: pd.profile_visibility || 'public',
+          banner_url: pd.banner_url || null, headline: pd.headline || null,
+          workplace: pd.workplace || null, account_type: pd.account_type || 'personal',
+          is_verified: !!pd.is_verified, verified_tier: pd.verified_tier ?? null, created_at: pd.created_at, business: pd.business || null,
+        } as any);
+        if (setAuthProfile) setAuthProfile({ ...(authProfileRef.current as any), ...pd });
+        reader.check();
+        if (!current()) return;
+        const c = pd.counts || {};
 
-      // Reach comes from the 28-day function a moment later; keep the number already shown until it lands, so it never flips.
-      setStats(prev => ({ posts: c.posts ?? 0, connections: 0, followers: c.followers ?? 0, following: c.following ?? 0, reach: (prev as any)?.reach ?? c.reach ?? null } as any));
-      supabase.rpc('get_profile_reach_28d', { p_profile_id: pd.id }).then(({ data }) => { if (current() && data != null) setStats(prev => ({ ...(prev as any), reach: data })); }, () => {});
+        // Reach comes from the 28-day function a moment later; keep the number already shown until it lands, so it never flips.
+        setStats(prev => ({ posts: c.posts ?? 0, connections: 0, followers: c.followers ?? 0, following: c.following ?? 0, reach: (prev as any)?.reach ?? c.reach ?? null } as any));
+        void profileContentRead(userId, owner.sessionScope, controller.signal, async reach => {
+          const data = await reach.read<number | null>(supabase.rpc('get_profile_reach_28d', { p_profile_id: pd.id }));
+          if (current() && data != null) setStats(prev => current() ? { ...prev, reach: data } : prev);
+        }).catch(() => {});
+      });
     } catch(e: any){ if (current()) setLoadError(e?.message || 'Could not load your profile. Please retry.'); }
     finally { if (current()) { setLoading(false); setRefreshing(false); } }
   }, [userId, setAuthProfile]);
@@ -148,20 +172,29 @@ export default function ProfileScreen() {
 
   const loadTabContent = useCallback(async (tab: ProfileTab, revision = contentRevisionRef.current) => {
     const owner = scope.current, request = ++tabRequest.current;
-    const current = () => mounted.current && scope.current === owner && request === tabRequest.current && revision === contentRevisionRef.current;
+    const current = () => mounted.current && scope.current === owner && navigationScope() === owner.sessionScope
+      && request === tabRequest.current && revision === contentRevisionRef.current;
+    tabReadRef.current?.abort(); moreReadRef.current?.abort(); moreBusyRef.current = null; moreRequest.current++;
+    const controller = new AbortController(); tabReadRef.current = controller;
     if (!userId) { setTabLoading(false); return; }
+    tabRefreshingRef.current = true; setTabRefreshing(true);
+    setLoadingMorePosts(false);
     setTabLoading(!tabLoadedRef.current[tab]);
     setTabError(null);
+    const previousPosts = tabPostsRef.current.filter(row => row.user_id === userId), previousPage = ownPageRef.current;
+    const reset = tab === 'posts' && resetPostsRef.current; resetPostsRef.current = false;
     let succeeded = false;
     let pendingRows: any[] | null = null;
-    const queryPosts = async (configure: (query: any) => any): Promise<any[]> => {
-      const execute = (selection: string) => profileRead<{ data: any[] | null; error: any }>(configure(supabase.from('posts').select(selection)));
-      let result = await execute('*, post_media(id, url, media_type, width, height, sort_order, edit)');
-      // A network/auth error is not a missing relationship. Retrying that as a
-      // second, less complete query only extends the loading state.
-      if (result.error && ['PGRST200', 'PGRST204', '42703', '42P01'].includes(result.error.code)) result = await execute('*');
-      if (result.error) throw result.error;
-      return (result.data || []).filter(row => !row.archived_at);
+    const visibleRows = () => tab === 'posts' ? tabPostsRef.current : otherTabRowsRef.current[tab];
+    const setVisibleRows = (rows: Post[]) => {
+      if (!current()) return;
+      if (tab === 'posts') { tabPostsRef.current = rows; setTabPosts(rows); }
+      else {
+        otherTabRowsRef.current[tab] = rows;
+        if (tab === 'reposts') setTabReposts(rows);
+        else if (tab === 'saved') setTabSaved(rows);
+        else setTabTagged(rows);
+      }
     };
     const publish = (rows: any[]) => {
       if (!current()) return;
@@ -169,114 +202,149 @@ export default function ProfileScreen() {
       if (tab === 'posts') {
         const pinnedId = (authProfileRef.current as any)?.pinned_post_id ?? null;
         const sorted = pinnedId ? [...normalized.filter(row => row.id === pinnedId), ...normalized.filter(row => row.id !== pinnedId)] : normalized;
-        setTabPosts(sorted.map(row => ({ ...row, is_pinned: row.id === pinnedId })));
-      } else if (tab === 'reposts') setTabReposts(normalized);
-      else if (tab === 'saved') setTabSaved(normalized);
-      else setTabTagged(normalized);
+        const next = sorted.map(row => ({ ...row, is_pinned: row.id === pinnedId }));
+        setVisibleRows(next);
+      } else setVisibleRows(normalized);
     };
     try {
-      let rows: any[] = [];
-      if (tab === 'posts' || tab === 'tagged') {
-        rows = await queryPosts(query => query.eq('user_id', userId).order('created_at', { ascending: false }).limit(tab === 'posts' ? 50 : 80));
-        if (!current()) return;
-        if (tab === 'posts') setPostsHasMore(rows.length >= 50);
-        else rows = rows.filter(row => (Array.isArray(row.post_media) && row.post_media.length > 0) || !!row.media_url);
-      } else {
-        const table = tab === 'reposts' ? 'post_reposts' : 'post_bookmarks';
-        const { data: links, error } = await profileRead(supabase.from(table).select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50));
-        if (error) throw error;
-        if (!current()) return;
-        const ids = (links || []).map((row: any) => row.post_id);
-        if (ids.length) {
-          const found = await queryPosts(query => query.in('id', ids));
-          const byId = new Map(found.map(row => [row.id, row]));
-          rows = (links || []).flatMap((link: any) => {
-            const row = byId.get(link.post_id);
-            return row ? [{ ...row, ...(tab === 'reposts' ? { _repostLabel: 'You reposted', _repostedAt: link.created_at } : { _savedAt: link.created_at }) }] : [];
-          });
+      await profileContentRead(userId, owner.sessionScope, controller.signal, async reader => {
+        let rows: any[] = [];
+        if (tab === 'posts') {
+          const preserve = !reset && tabLoadedRef.current.posts && previousPosts.length > 0;
+          const [page, retained] = await Promise.all([
+            reader.posts(query => query.eq('user_id', userId).order('created_at', { ascending: false }).order('id', { ascending: false }).limit(50)),
+            preserve ? reader.retained(previousPosts.map(row => row.id)) : Promise.resolve([]),
+          ]);
+          if (!current()) return;
+          const cursor = profilePostCursor(page), fresh = page.filter(row => !row.archived_at);
+          const retainedOwn = retained.filter(row => row.user_id === userId);
+          rows = mergeProfilePosts(preserve ? previousPosts : [], fresh, retainedOwn, scrollOffsets.current.posts > 0);
+          // Only own rows enter this first publication. General post access is
+          // insufficient to retain a collaboration whose accepted link may have
+          // been removed; the separate decoration read verifies that membership.
+          // Revalidated older pages keep their scanned own-post cursor.
+          ownPageRef.current = preserve && previousPage.pages > 1 && retainedOwn.length > 0
+            ? previousPage : { cursor, pages: 1, hasMore: cursor !== null };
+          setPostsHasMore(ownPageRef.current.hasMore);
+        } else if (tab === 'tagged') {
+          rows = (await reader.posts(query => query.eq('user_id', userId).order('created_at', { ascending: false }).limit(80)))
+            .filter(row => !row.archived_at && ((Array.isArray(row.post_media) && row.post_media.length > 0) || !!row.media_url));
+        } else {
+          const table = tab === 'reposts' ? 'post_reposts' : 'post_bookmarks';
+          const links = await reader.read<any[]>(supabase.from(table).select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50));
+          if (!Array.isArray(links) || links.some(row => !row || typeof row.post_id !== 'string')) throw new Error('The saved profile rows could not be verified. Please retry.');
+          if (!current()) return;
+          const ids = links.map(row => row.post_id);
+          if (ids.length) {
+            const found = await reader.retained(ids);
+            const byId = new Map(found.map(row => [row.id, row]));
+            rows = links.flatMap(link => {
+              const row = byId.get(link.post_id);
+              return row ? [{ ...row, ...(tab === 'reposts' ? { _repostLabel: 'You reposted', _repostedAt: link.created_at } : { _savedAt: link.created_at }) }] : [];
+            });
+          }
         }
-      }
-      if (!current()) return;
+        if (!current()) return;
 
-      // The database has authorized these rows. Show their metadata immediately,
-      // with private references removed, while the separate media request runs.
-      // A signing outage must not hide every post behind a global spinner.
-      if (!tabLoadedRef.current[tab] || rows.length === 0) { pendingRows = rows.map(row => ({ ...row, _mediaExpected: !!(row.post_media?.length || row.media_url || row.image_url) })); publish(withoutPrivateMedia(pendingRows).map(row => ({ ...row, _mediaPending: true }))); }
-      setTabLoading(false);
-      tabLoadedRef.current[tab] = true;
-      succeeded = true;
-      const authorized = await profileRead(hydratePostMedia(rows), 25000);
-      if (!current()) return;
-      publish(authorized);
+        // Authorized metadata can render before media signing. A warm refresh
+        // retains its visible previews, but rows revoked by RLS are removed as
+        // soon as the metadata read succeeds, even if signing later fails.
+        if (tabLoadedRef.current[tab]) {
+          const allowed = new Set(rows.map(row => row.id)), previous = visibleRows();
+          const visible = previous.filter(row => allowed.has(row.id));
+          if (visible.length !== previous.length) setVisibleRows(visible);
+        }
+        if (!tabLoadedRef.current[tab] || rows.length === 0 || visibleRows().length === 0) {
+          pendingRows = rows.map(row => ({ ...row, _mediaExpected: !!(row.post_media?.length || row.media_url || row.image_url) }));
+          publish(withoutPrivateMedia(pendingRows).map(row => ({ ...row, _mediaPending: true })));
+        }
+        setTabLoading(false); tabLoadedRef.current[tab] = true; succeeded = true;
+        const authorized = await reader.sign(rows);
+        if (!current()) return;
+        publish(authorized);
 
-      // Collaborator and author decoration are independent reads. Own posts are
-      // already usable; these queries cannot hold the first-page loading state.
-      void (async () => {
-        try {
+        // Decoration is independently bounded; it must not delay first content
+        // or replace pages appended while collaborators were being fetched.
+        void profileContentRead(userId, owner.sessionScope, controller.signal, async decoration => {
+          let decoratedRows = authorized;
           if (tab === 'posts') {
-            const { data: links, error } = await profileRead(supabase.from('post_collaborators').select('post_id').eq('user_id', userId).eq('status', 'accepted'));
-            if (error) throw error;
+            const links = await decoration.read<any[]>(supabase.from('post_collaborators').select('post_id').eq('user_id', userId).eq('status', 'accepted'));
+            if (!Array.isArray(links) || links.some(row => !row || typeof row.post_id !== 'string')) throw new Error('Collaborations could not be verified.');
             if (!current()) return;
-            const ownIds = new Set(rows.map(row => row.id));
-            const ids = (links || []).map((link: any) => link.post_id).filter((id: string) => !ownIds.has(id));
-            if (!ids.length) return;
-            const collaborations = await queryPosts(query => query.in('id', ids));
+            const ids = links.map(link => link.post_id);
+            const collaborations = ids.length ? await decoration.retained(ids) : [];
+            const safe = await decoration.sign(collaborations);
             if (!current()) return;
-            const safe = await profileRead(hydratePostMedia(collaborations), 25000);
-            if (!current()) return;
-            const combined = [...authorized, ...safe.map(row => ({ ...row, _repostLabel: 'Collab' }))]
-              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-            publish(combined);
-            rows = combined;
+            const own = tabPostsRef.current.filter(row => row.user_id === userId);
+            const ownIds = new Set(own.map(row => row.id));
+            const combined = [...own, ...safe.filter(row => !ownIds.has(row.id)).map(row => ({ ...row, _repostLabel: 'Collab' }))];
+            if (scrollOffsets.current.posts > 0) {
+              const byId = new Map(combined.map(row => [row.id, row]));
+              const retainedIds = new Set(tabPostsRef.current.map(row => row.id));
+              decoratedRows = [...tabPostsRef.current.flatMap(row => byId.has(row.id) ? [byId.get(row.id)!] : []), ...combined.filter(row => !retainedIds.has(row.id))];
+            } else decoratedRows = combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            publish(decoratedRows);
           }
           if (!current()) return;
-          const ids = Array.from(new Set(rows.map(row => row.user_id))).filter(id => id && id !== userId);
+          const ids = Array.from(new Set(decoratedRows.map(row => row.user_id))).filter(id => id && id !== userId);
           if (!ids.length) return;
-          const { data: people, error } = await profileRead(supabase.from('profiles').select('id, full_name, avatar_url').in('id', ids));
-          if (error) throw error;
+          const people = await decoration.read<any[]>(supabase.from('profiles').select('id, full_name, avatar_url').in('id', ids));
+          if (!Array.isArray(people)) throw new Error('Author details could not be verified.');
           if (!current()) return;
-          const authors = new Map((people || []).map((person: any) => [person.id, person]));
+          const authors = new Map(people.map(person => [person.id, person]));
           const decorate = (previous: Post[]) => previous.map(post => authors.has(post.user_id) ? { ...post, _originalAuthor: authors.get(post.user_id) } : post);
-          if (tab === 'posts') setTabPosts(decorate);
+          if (tab === 'posts') setTabPosts(previous => { if (!current()) return previous; const next = decorate(previous); tabPostsRef.current = next; return next; });
           else if (tab === 'reposts') setTabReposts(decorate);
           else if (tab === 'saved') setTabSaved(decorate);
-        } catch {
+        }).catch(() => {
           if (current()) setTabError(tab === 'posts' ? 'Some collaborations could not load. Your own posts are shown. Retry posts to try again.' : 'Some author details could not load. Retry posts to try again.');
-        }
-      })();
+        });
+      });
     } catch (error: any) {
       if (current()) { if (pendingRows) publish(withoutPrivateMedia(pendingRows)); setTabError(error?.message || 'Could not load these posts. Please retry.'); }
     } finally {
-      if (current()) { setTabLoading(false); if (succeeded) tabLoadedRef.current[tab] = true; }
+      if (current()) { tabRefreshingRef.current = false; setTabRefreshing(false); setTabLoading(false); if (succeeded) tabLoadedRef.current[tab] = true; }
     }
   }, [userId]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     tabLoadedRef.current = {};
+    profileReadRef.current?.abort(); tabReadRef.current?.abort(); moreReadRef.current?.abort(); moreBusyRef.current = null;
+    tabPostsRef.current = []; ownPageRef.current = { cursor: null, pages: 0, hasMore: false };
+    otherTabRowsRef.current = { reposts: [], saved: [], tagged: [] };
+    scrollOffsets.current = { posts: 0, reposts: 0, saved: 0, tagged: 0 };
+    resetPostsRef.current = false; prefetchedOwner.current = null; tabRefreshingRef.current = false; setTabRefreshing(false);
     const known = authProfileRef.current?.id === userId ? authProfileRef.current as unknown as Profile : null;
     setProfile(known); setTabPosts([]); setTabReposts([]); setTabSaved([]); setTabTagged([]);
+    setStats({ posts: 0, connections: 0, followers: 0, following: 0 });
     setTabError(null); setLoadError(null); setLoading(!!userId && !known);
-    setPostsHasMore(false); setLoadingMorePosts(false); setTabLoading(false);
-  }, [userId]);
+    setPostsHasMore(false); setLoadingMorePosts(false); setTabLoading(false); setHasStory(false);
+  }, [userId, sessionScope]);
+  useLayoutEffect(() => { scrollRef.current?.scrollTo({ y: scrollOffsets.current[activeTab], animated: false }); }, [activeTab, sessionScope]);
   useFocusEffect(useCallback(() => {
+    if (!sessionScope) return;
     setLoadingMorePosts(false);
     void load();
-    return () => { profileRequest.current++; };
-  }, [load]));
+    return () => { profileRequest.current++; profileReadRef.current?.abort(); };
+  }, [load, sessionScope]));
   const [hasStory, setHasStory] = useState(false);
   useFocusEffect(useCallback(() => {
-    let alive = true;
-    if (!userId) return;
-    supabase.from('stories').select('id').eq('user_id', userId)
-      .gte('created_at', new Date(Date.now() - 86400000).toISOString()).limit(1)
-      .then(({ data }) => { if (alive) setHasStory((data || []).length > 0); });
-    return () => { alive = false; };
-  }, [userId]));
+    if (!userId || !sessionScope) return;
+    const owner = scope.current, controller = new AbortController();
+    const current = () => mounted.current && scope.current === owner && navigationScope() === sessionScope && !controller.signal.aborted;
+    void profileContentRead(userId, sessionScope, controller.signal, async reader => {
+      const rows = await reader.read<{ id: string }[]>(supabase.from('stories').select('id').eq('user_id', userId)
+        .gte('created_at', new Date(Date.now() - 86400000).toISOString()).limit(1));
+      if (!Array.isArray(rows)) throw new Error('Your story indicator could not be verified.');
+      if (current()) setHasStory(rows.length > 0);
+    }).catch(() => { if (current()) setHasStory(false); });
+    return () => { controller.abort(); };
+  }, [userId, sessionScope]));
 
   useFocusEffect(useCallback(() => {
-    if (userId) void loadTabContent(activeTab, contentRevision);
-    return () => { tabRequest.current++; moreRequest.current++; };
-  }, [activeTab, userId, contentRevision, loadTabContent]));
+    if (userId && sessionScope) void loadTabContent(activeTab, contentRevision);
+    return () => { tabRequest.current++; moreRequest.current++; tabReadRef.current?.abort(); moreReadRef.current?.abort(); moreBusyRef.current = null; tabRefreshingRef.current = false; };
+  }, [activeTab, userId, sessionScope, contentRevision, loadTabContent]));
 
   useEffect(() => {
     if (route.params?.edit && profile) { navigation.navigate('EditProfile'); navigation.setParams({ edit: undefined } as any); }
@@ -362,29 +430,40 @@ export default function ProfileScreen() {
     return (<View style={st.tabEmpty}><View style={st.tabEmptyIcon}><Feather name={c.icon as any} size={28} color={t.ink.faint} /></View><Text style={st.tabEmptyTitle}>{c.title}</Text><Text style={st.tabEmptySub}>{c.sub}</Text></View>);
   };
 
-const loadMorePosts = useCallback(async () => {
-    if (!userId || loadingMorePosts || tabPosts.length === 0) return;
+  const loadMorePosts = useCallback(async () => {
+    const cursor = ownPageRef.current.cursor;
+    if (!userId || !cursor || !ownPageRef.current.hasMore || moreBusyRef.current || tabRefreshingRef.current || activeTabRef.current !== 'posts') return;
     const owner = scope.current, request = ++moreRequest.current, tabGeneration = tabRequest.current;
-    const current = () => mounted.current && scope.current === owner && request === moreRequest.current && tabGeneration === tabRequest.current;
-    setLoadingMorePosts(true);
-    setTabError(null);
+    const lock = {}; moreBusyRef.current = lock;
+    const controller = new AbortController(); moreReadRef.current = controller;
+    const current = () => mounted.current && scope.current === owner && navigationScope() === owner.sessionScope
+      && request === moreRequest.current && tabGeneration === tabRequest.current && activeTabRef.current === 'posts';
+    setLoadingMorePosts(true); setTabError(null);
     try {
-      const before = (tabPosts[tabPosts.length - 1] as any)?.created_at;
-      let result = await profileRead(supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order, edit)')
-        .eq('user_id', userId).lt('created_at', before).order('created_at', { ascending: false }).limit(50));
-      if (result.error && ['PGRST200', 'PGRST204', '42703', '42P01'].includes(result.error.code)) {
-        result = await profileRead(supabase.from('posts').select('*')
-          .eq('user_id', userId).lt('created_at', before).order('created_at', { ascending: false }).limit(50));
-      }
-      if (result.error) throw result.error;
-      const rows = result.data || [];
-      if (!current()) return;
-      const authorized = await profileRead(hydratePostMedia(rows.filter((row: any) => !row.archived_at)), 25000);
-      if (!current()) return;
-      setTabPosts(prev => { const ids = new Set(prev.map(post => post.id)); return [...prev, ...authorized.filter(row => !ids.has(row.id)).map(normalizePost)]; });
-      setPostsHasMore(rows.length >= 50);
-    } catch (error: any) { if (current()) setTabError(error?.message || 'Could not load more posts. Please retry.'); } finally { if (mounted.current && scope.current === owner && request === moreRequest.current) setLoadingMorePosts(false); }
-  }, [userId, loadingMorePosts, tabPosts]);
+      await profileContentRead(userId, owner.sessionScope, controller.signal, async reader => {
+        const rows = await reader.posts(query => query.eq('user_id', userId)
+          .or(`created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`)
+          .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(50));
+        if (!current()) return;
+        const nextCursor = profilePostCursor(rows);
+        const authorized = await reader.sign(rows.filter(row => !row.archived_at));
+        if (!current()) return;
+        setTabPosts(previous => {
+          if (!current()) return previous;
+          const ids = new Set(previous.map(post => post.id));
+          const next = [...previous, ...authorized.filter(row => !ids.has(row.id)).map(normalizePost)];
+          tabPostsRef.current = next; return next;
+        });
+        ownPageRef.current = { cursor: nextCursor, pages: ownPageRef.current.pages + 1, hasMore: nextCursor !== null };
+        setPostsHasMore(nextCursor !== null);
+      });
+    } catch (error: any) { if (current()) setTabError(error?.message || 'Could not load more posts. Please retry.'); }
+    finally {
+      if (moreBusyRef.current === lock) moreBusyRef.current = null;
+      if (moreReadRef.current === controller) moreReadRef.current = null;
+      if (mounted.current && scope.current === owner && request === moreRequest.current) setLoadingMorePosts(false);
+    }
+  }, [userId]);
 
   const getTabData = () => {
     switch (activeTab) {
@@ -406,7 +485,10 @@ const loadMorePosts = useCallback(async () => {
   return (
     <SafeAreaView style={st.safe} edges={['top','left','right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'}/>
-      <ScrollView contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);void load();setContentRevision(value=>value+1);}} tintColor={t.brand.base}/>} onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
+      <ScrollView key={activeTab} ref={scrollRef} contentOffset={{ x: 0, y: scrollOffsets.current[activeTab] }} contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);resetPostsRef.current=true;void load();setContentRevision(value=>value+1);}} tintColor={t.brand.base}/>} onScroll={event => {
+        handleTabBarScroll(event);
+        if (scope.current === renderScope) scrollOffsets.current[activeTab] = Math.max(0, event.nativeEvent.contentOffset.y);
+      }} scrollEventThrottle={16} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
         <ProfileHeader
           profile={profile}
           stats={stats}
@@ -428,7 +510,7 @@ const loadMorePosts = useCallback(async () => {
         {tabError ? <View style={{padding:16}}><Text accessibilityRole="alert" style={{color:t.brand.base}}>{tabError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => void loadTabContent(activeTab)}><Text style={{color:t.brand.base,paddingVertical:12}}>Retry posts</Text></TouchableOpacity></View> : null}
         {tabLoading && tabData.length === 0?(<View style={{paddingVertical:40,alignItems:'center'}}><ActivityIndicator color={t.brand.base}/></View>):tabData.length===0?(tabError ? null : emptyState(activeTab)):tabData.map(post=>renderPostCard(post))}
         {activeTab === 'posts' && postsHasMore && !tabLoading && (
-          <TouchableOpacity onPress={loadMorePosts} disabled={loadingMorePosts} activeOpacity={0.8}
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Show more posts" onPress={loadMorePosts} disabled={loadingMorePosts || tabRefreshing} activeOpacity={0.8}
             style={{ alignSelf: 'center', marginVertical: 16, paddingHorizontal: 22, paddingVertical: 10, borderRadius: 999, backgroundColor: t.brand.tintBg }}>
             {loadingMorePosts ? <ActivityIndicator size="small" color={t.brand.base} /> : <Text style={{ fontSize: 13.5, fontWeight: '700', color: t.brand.base }}>Show more posts</Text>}
           </TouchableOpacity>

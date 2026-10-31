@@ -1,4 +1,5 @@
 import { storyVideoMime, type StoryVideoRecipe } from '../../shared/storyVideoComposition';
+import { IDENTITY_COLOR_MATRIX } from '../../shared/storyColorMatrix';
 import { finalizeRecordedWebm } from './recordedWebm';
 import { decodeExportAudio, playExportAudio, type LocalExportAudio } from './videoExportAudio';
 import { fetchStaticExportImage } from './exportImage';
@@ -83,15 +84,32 @@ export async function captureStoryArtwork(element: HTMLElement, width: number, h
 
 export function createStoryVideoRenderer(video: HTMLVideoElement, recipe: StoryVideoRecipe) {
   const canvas = document.createElement('canvas'); canvas.width = recipe.width; canvas.height = recipe.height;
+  const ratio = (recipe.fit === 'cover' ? Math.max(recipe.width / video.videoWidth, recipe.height / video.videoHeight) : Math.min(recipe.width / video.videoWidth, recipe.height / video.videoHeight)) * recipe.scale;
+  if (recipe.matrix.length === IDENTITY_COLOR_MATRIX.length && recipe.matrix.every((value, index) => value === IDENTITY_COLOR_MATRIX[index])) {
+    // Unadjusted video needs only the same framing transform as the GPU path.
+    // Compare every matrix value exactly so a missing GPU never discards edits.
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Video canvas export is unavailable in this browser.');
+    const width = video.videoWidth * ratio, height = video.videoHeight * ratio;
+    const left = (recipe.width - width) / 2 + recipe.x * recipe.width, top = (recipe.height - height) / 2 + recipe.y * recipe.height;
+    let verified = false;
+    return { canvas, draw() {
+      context.clearRect(0, 0, recipe.width, recipe.height);
+      context.drawImage(video, left, top, width, height);
+      if (!verified) {
+        try { context.getImageData(0, 0, 1, 1); } catch { throw new Error('The video pixels could not be read. Check that this media is still available.'); }
+        verified = true;
+      }
+    }, dispose() { canvas.width = 0; canvas.height = 0; } };
+  }
   const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: true });
-  if (!gl) throw new Error('Video color export needs WebGL in this browser.');
+  if (!gl) throw new Error('Video color edits need WebGL for export. Enable hardware acceleration or try another browser.');
   const shaders: WebGLShader[] = [];
   const shader = (type: number, source: string) => { const value = gl.createShader(type); if (!value) throw new Error('The video renderer could not start.'); shaders.push(value); gl.shaderSource(value, source); gl.compileShader(value); if (!gl.getShaderParameter(value, gl.COMPILE_STATUS)) throw new Error('The video grade is unsupported by this device.'); return value; };
   const program = gl.createProgram(); if (!program) throw new Error('The video renderer could not start.');
   gl.attachShader(program, shader(gl.VERTEX_SHADER, 'attribute vec2 pos; attribute vec2 tex; varying vec2 uv; void main(){gl_Position=vec4(pos,0.,1.);uv=tex;}'));
   gl.attachShader(program, shader(gl.FRAGMENT_SHADER, 'precision mediump float; varying vec2 uv; uniform sampler2D image; uniform vec4 red; uniform vec4 green; uniform vec4 blue; uniform vec4 alpha; uniform vec4 bias; void main(){vec4 p=texture2D(image,uv);gl_FragColor=clamp(vec4(dot(red,p),dot(green,p),dot(blue,p),dot(alpha,p))+bias,0.,1.);}'));
   gl.linkProgram(program); if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error('The video grade could not be linked.'); gl.useProgram(program);
-  const ratio = (recipe.fit === 'cover' ? Math.max(recipe.width / video.videoWidth, recipe.height / video.videoHeight) : Math.min(recipe.width / video.videoWidth, recipe.height / video.videoHeight)) * recipe.scale;
   const w = video.videoWidth * ratio / recipe.width, h = video.videoHeight * ratio / recipe.height, x = recipe.x * 2, y = -recipe.y * 2;
   const vertices = new Float32Array([-w+x,-h+y,0,1, w+x,-h+y,1,1, -w+x,h+y,0,0, w+x,h+y,1,0]);
   const buffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buffer); gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
@@ -135,8 +153,8 @@ export async function exportStoryVideo(options: { url: string; recipe: StoryVide
       if (Math.abs(video.currentTime - recipe.trimStart) > .05) throw new Error('The video could not seek to the selected trim. Download it and reopen the local file before exporting.');
     }
     else if (video.readyState < 2) await bounded(new Promise<void>(resolve => { video.onloadeddata = () => resolve(); }), signal);
-    options.progress('Preparing story artwork…'); const artwork = await options.capture(); check(signal);
     renderer = createStoryVideoRenderer(video, recipe);
+    options.progress('Preparing story artwork…'); const artwork = await options.capture(); check(signal);
     const draw = () => { renderer!.draw(); context.clearRect(0,0,recipe.width,recipe.height); context.drawImage(artwork.background,0,0,recipe.width,recipe.height); context.drawImage(renderer!.canvas,0,0); const time = Math.max(0,(video.currentTime-recipe.trimStart)/recipe.speed); for (const layer of artwork.layers) if (time >= layer.start && time < layer.end) context.drawImage(layer.image,0,0,recipe.width,recipe.height); };
     draw(); stream = canvas.captureStream(30);
     let audioDestination: MediaStreamAudioDestinationNode | null = null;

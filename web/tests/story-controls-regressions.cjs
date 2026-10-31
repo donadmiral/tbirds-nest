@@ -5,27 +5,36 @@ const vm = require('node:vm');
 const { test } = require('node:test');
 const ts = require('typescript');
 const compile = file => ts.transpileModule(fs.readFileSync(path.join(__dirname, '../components', file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
-const sources = { StoryViewer: compile('StoryViewer.tsx'), StoryRings: compile('StoryRings.tsx') };
+const sources = { StoryViewer: compile('StoryViewer.tsx'), StoryRings: compile('StoryRings.tsx'), StoryAvatar: compile('StoryAvatar.tsx') };
 function shared(name) { const file = path.resolve(__dirname, '../../shared', name + '.ts'), exports = {}; vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports, require: relative => shared(relative.replace('./', '')) }); return exports; }
 
 const nodes = node => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(nodes) : [node,...nodes(node.props?.children)];
 const content = node => typeof node === 'string' ? node : Array.isArray(node) ? node.map(content).join('') : content(node?.props?.children ?? '');
-function scenario(name, { own=true, video=false, hasStories=true } = {}) {
+function scenario(name, { own=true, video=false, hasStories=true, warm=false, holdNavigation=null, navigationError=false } = {}) {
   let cursor=0,dirty=true,tree,effects=[],id=0,reactions=0,closed=0;
   const slots=[],intervals=new Map(),timeouts=new Map(),listeners=new Map();
   const story={id:'story',user_id:'author',media_type:video?'video':'image',media_url:'https://media.test/story',caption:'Caption remains readable',duration_sec:10,created_at:'2026-10-22T12:00:00Z'};
   const user={user_id:'author',full_name:'Author',story_count:1};
   let identity=own?'author':'viewer', authListener;
+  let navSnapshot={owner:identity,scope:'1:'+identity,initialized:true,changed:false,revision:1};
+  const warmMemory={scope:navSnapshot.scope,owner:identity,mode:'all',checkedAt:Date.now(),users:hasStories?[user]:[],spot:[],avatar:null};
+  const navigationListeners=new Set();
+  const navigationStore={getSnapshot:()=>navSnapshot,getServerSnapshot:()=>navSnapshot,subscribe:fn=>{navigationListeners.add(fn);return()=>navigationListeners.delete(fn);}};
   const same=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
   const hooks={Fragment:'Fragment',useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return[slots[i],value=>{const n=typeof value==='function'?value(slots[i]):value;if(!Object.is(n,slots[i])){slots[i]=n;dirty=true;}}];},useRef(initial){const i=cursor++;return slots[i]??={current:initial};},useCallback(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={fn,deps};return slots[i].fn;},useEffect(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps)){const old=slots[i];slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}}};
   hooks.useLayoutEffect=hooks.useEffect;
+  hooks.useSyncExternalStore=(subscribe,snapshot)=>{const [value,setValue]=hooks.useState(snapshot);hooks.useEffect(()=>subscribe(()=>setValue(snapshot())),[subscribe,snapshot]);return value;};
   const player={currentTime:0,paused:false,ended:false,playCalls:0,pauseCalls:0,play(){this.paused=false;this.playCalls++;return Promise.resolve();},pause(){this.paused=true;this.pauseCalls++;}};
   const client={auth:{onAuthStateChange:fn=>{authListener=fn;return{data:{subscription:{unsubscribe(){authListener=null;}}}};},getSession:async()=>({data:{session:{user:{id:identity}}}})},rpc:async()=>({data:[],error:null}),from(){const query={select(){return query;},eq(){return query;},in(){return query;},maybeSingle(){return query;},then(ok,bad){return Promise.resolve({data:[],error:null}).then(ok,bad);}};return query;}};
   const document={hidden:false,addEventListener:(n,fn)=>listeners.set(n,fn),removeEventListener:n=>listeners.delete(n),createElement:()=>({removeAttribute(){},load(){}})};
   const imports={react:hooks,'next/link':{__esModule:true,default:'a'},'@/lib/soundtrack':{soundtrackFromValue:()=>null},'../../shared/storyColorMatrix':shared('storyColorMatrix'),'../../shared/trendingStories':{loadTrendingStories:async()=>[]},'@/lib/contentMedia':{hydrateStoryMedia:async rows=>rows},'react/jsx-runtime':{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})},'@/lib/supabase/client':{createClient:()=>client},'@/lib/media':{displayImageUrl:x=>x},'@/lib/feed':{timeAgo:()=> 'now'},'@/lib/stories':{getCatchupFeed:async()=>hasStories?[user]:[],getUserStories:async()=>identity?[story]:[],getStoryPoll:async()=>null,getMyStoryReactions:async()=>[],markStoryViewed:async()=>{},toggleStoryReaction:async()=>{reactions++;return{reacted:true};},REACTION_EMOJIS:['heart'],STORY_FILTERS:[]}};
+  imports['@/lib/navigationCache']={getNavigationStore:()=>navigationStore};
+  imports['@/lib/storyNavigation']={storyNavigationMemory:()=>warm&&navSnapshot.scope===warmMemory.scope?warmMemory:null,loadStoryNavigation:async mode=>{if(holdNavigation)await holdNavigation;if(navigationError)throw Error('Offline');return{scope:navSnapshot.scope,owner:identity,mode,checkedAt:Date.now(),users:hasStories?[user]:[],spot:[],avatar:null};}};
+  imports['@/lib/stories'].getRingUsers=async()=>{if(holdNavigation)await holdNavigation;return hasStories?[user]:[];};
+  imports['@/lib/stories'].invalidateRings=()=>{};
   const timers={setInterval:fn=>{const n=++id;intervals.set(n,fn);return n;},clearInterval:n=>intervals.delete(n),setTimeout:(fn,ms)=>{const n=++id;timeouts.set(n,{fn,ms});return n;},clearTimeout:n=>timeouts.delete(n)};
   const exports={};vm.runInNewContext(sources[name],{exports,require:n=>imports[n]??new Proxy({},{get:(_,key)=>String(key)}),document,window:{...timers,addEventListener:(n,fn)=>listeners.set(n,fn),removeEventListener:n=>listeners.delete(n)},Image:function(){},console,queueMicrotask,...timers});
-  const props=name==='StoryViewer'?{users:[user],startIndex:0,onClose(){closed++;}}:{};
+  const props=name==='StoryViewer'?{users:[user],startIndex:0,onClose(){closed++;}}:name==='StoryAvatar'?{userId:'author',name:'Author',avatarUrl:null}:{};
   function render(){let n=0;while(dirty){if(++n>40)throw Error('Render loop');dirty=false;cursor=0;tree=exports[name](props);nodes(tree).forEach(node=>{if(node.type==='video'&&node.props.ref)node.props.ref.current=player;});const pending=effects;effects=[];pending.forEach(fn=>fn());}return tree;}
   render();return{get tree(){return render();},get intervals(){return intervals.size;},get reactions(){return reactions;},get closed(){return closed;},player,
     button(label){return nodes(render()).find(n=>n.type==='button'&&n.props['aria-label']===label);},
@@ -33,7 +42,7 @@ function scenario(name, { own=true, video=false, hasStories=true } = {}) {
     click(label,detail=1){const b=this.button(label);assert.ok(b,label);b.props.onClick({detail});render();},
     zone(){return nodes(render()).find(n=>n.props?.onDoubleClick);},
     timeout(ms){for(const[n,t]of [...timeouts])if(t.ms===ms){timeouts.delete(n);t.fn();}render();},
-    changeViewer(next){identity=next;authListener?.('SIGNED_OUT',next?{user:{id:next}}:null);render();},
+    changeViewer(next){identity=next;navSnapshot={owner:next,scope:next?(navSnapshot.revision+1)+':'+next:null,initialized:true,changed:true,revision:navSnapshot.revision+1};navigationListeners.forEach(fn=>fn());authListener?.('SIGNED_OUT',next?{user:{id:next}}:null);render();},
     unmount(){slots.forEach(s=>s?.cleanup?.());},
   };
 }
@@ -60,6 +69,34 @@ test('own story uses a native button with a separate labelled create link',async
 });
 test('an empty own story still exposes ordinary create links without nested anchors',async()=>{
   const h=scenario('StoryRings',{hasStories:false});await h.flush();const links=nodes(h.tree).filter(n=>n.type==='a');assert.equal(links.length,2);for(const link of links){assert.equal(link.props.href,'/story/new');assert.equal(nodes(link).filter(n=>n.type==='a').length,1);}h.unmount();
+});
+
+test('the story strip has stable usable geometry before its first network response',async()=>{
+  const h=scenario('StoryRings',{navigationError:true});
+  const region=nodes(h.tree).find(node=>node.props?.['aria-label']==='Stories');
+  assert.ok(region);assert.ok(region.props.className.includes('min-h-[118px]'));
+  assert.ok(nodes(h.tree).some(node=>node.type==='a'&&node.props['aria-label']==='Create a story'));
+  await h.flush();assert.ok(h.button('Retry story refresh'));assert.ok(nodes(h.tree).some(node=>node.props?.['aria-label']==='Stories'));h.unmount();
+});
+
+test('warm story metadata and its viewer survive a refresh failure but clear on an account round trip',async()=>{
+  let release;const gate=new Promise(resolve=>{release=resolve;});
+  const h=scenario('StoryRings',{warm:true,holdNavigation:gate,navigationError:true});
+  assert.ok(h.button('View your story'),'cached story controls are present before any asynchronous refresh');
+  h.click('View your story');assert.ok(nodes(h.tree).some(node=>node.type==='StoryViewer'));
+  release();await h.flush();assert.ok(h.button('Retry story refresh'));assert.ok(h.button('View your story'));
+  h.changeViewer('other');h.changeViewer('author');
+  assert.equal(h.button('View your story'),undefined);assert.ok(!nodes(h.tree).some(node=>node.type==='StoryViewer'));h.unmount();
+});
+
+test('a warm avatar and pending refresh cannot retain an old account story viewer',async()=>{
+  let release;const gate=new Promise(resolve=>{release=resolve;});
+  const h=scenario('StoryAvatar',{warm:true,holdNavigation:gate});
+  const button=nodes(h.tree).find(node=>node.type==='button'&&node.props.title==='View story');assert.ok(button);
+  button.props.onClick({preventDefault(){},stopPropagation(){}});assert.ok(nodes(h.tree).some(node=>node.type==='StoryViewer'));
+  h.changeViewer('other');h.changeViewer('author');
+  assert.ok(!nodes(h.tree).some(node=>node.type==='StoryViewer'));assert.ok(!nodes(h.tree).some(node=>node.type==='button'&&node.props.title==='View story'));
+  release();await h.flush();assert.ok(!nodes(h.tree).some(node=>node.type==='button'&&node.props.title==='View story'));h.unmount();
 });
 
 

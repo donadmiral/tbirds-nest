@@ -20,6 +20,22 @@ function loadCallback(name, context) {
   vm.runInNewContext(compile('module.exports = ' + callback.getText(source)), { module, ...context, console, Set, Map, Error, Promise });
   return module.exports;
 }
+function loadFunction(name) {
+ const source=ts.createSourceFile('JobsScreen.tsx',fs.readFileSync(path.join(root,'src/screens/jobs/JobsScreen.tsx'),'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let declaration;
+ function visit(node){if(ts.isFunctionDeclaration(node)&&node.name?.getText(source)===name)declaration=node.getText(source);ts.forEachChild(node,visit);}visit(source);assert.ok(declaration);
+ const module={exports:{}};vm.runInNewContext(compile(declaration+';module.exports='+name),{module,console});return module.exports;
+}
+function beforePaint(context) {
+ const source=ts.createSourceFile('JobsScreen.tsx',fs.readFileSync(path.join(root,'src/screens/jobs/JobsScreen.tsx'),'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let declaration;
+ function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(source)==='useLayoutEffect')declaration=node.arguments[0].getText(source);ts.forEachChild(node,visit);}visit(source);assert.ok(declaration);
+ const module={exports:{}};vm.runInNewContext(compile('module.exports='+declaration),{module,...context});return module.exports();
+}
+function initialState(cache,scope) {
+ const source=ts.createSourceFile('JobsScreen.tsx',fs.readFileSync(path.join(root,'src/screens/jobs/JobsScreen.tsx'),'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ const names=['[initialJobs]','[jobs, setJobs]','[posterLogos, setPosterLogos]','[myApplications, setMyApplications]','[savedIds, setSavedIds]','[appliedMap, setAppliedMap]','[loading, setLoading]'];const declarations=[];
+ function visit(node){if(ts.isVariableDeclaration(node)&&names.includes(node.name.getText(source)))declarations.push('const '+node.getText(source)+';');ts.forEachChild(node,visit);}visit(source);assert.equal(declarations.length,names.length);
+ const module={exports:{}};vm.runInNewContext(compile(declarations.join('\n')+'\nmodule.exports={jobs,posterLogos,myApplications,savedIds,appliedMap,loading}'),{module,navigationScope:()=>scope,navigationCache:cache,posterLogosFor:loadFunction('posterLogosFor'),Set,useState:value=>[typeof value==='function'?value():value,()=>{}]});return module.exports;
+}
 function fixture() {
   const module = { exports: {} };
   vm.runInNewContext(compile(fs.readFileSync(path.join(root, 'shared/navigationCache.ts'), 'utf8')), {
@@ -42,6 +58,8 @@ function fixture() {
     setJobs: set('jobs'), setSavedIds: set('saved'), setAppliedMap: set('applied'), setMyApplications: set('apps'),
     setLoading: set('loading'), setRefreshing: set('refreshing'), setLoadError: set('error'), setPosterLogos: set('logos'),
   };
+  context.posterLogosFor = loadFunction('posterLogosFor');
+  context.publishJobs = loadCallback('publishJobs', context);
   return { state, reads, context, jobsService, load: loadCallback('loadAll', context), switchAccount() { scope = 'account-B:session-2'; cache.setScope(scope); } };
 }
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
@@ -82,4 +100,30 @@ test('an account switch aborts the original Jobs reads and prevents a late respo
 test('refreshing the Jobs list does not overwrite an optimistic save still being confirmed', async () => {
   const h = fixture(); await h.load(); h.state.saved.add('job-1'); h.context.pendingSaves.current.add('job-1');
   await h.load(); assert.equal(h.state.saved.has('job-1'), true);
+});
+
+test('the Jobs first render consumes the current session snapshot before any effects run',()=>{
+ const h=fixture(),snapshot=[[{id:'cached',posted_by:'recruiter',title:'Retained job',profile:{avatar_url:'logo.png'}}],['cached'],{cached:'applied'},[{id:'application'}]];
+ h.context.navigationCache.save(h.context.navigationScope(),'jobs:all:recent',snapshot);
+ const first=initialState(h.context.navigationCache,h.context.navigationScope());
+ assert.equal(first.loading,false);assert.equal(first.jobs,snapshot[0]);assert.equal(first.posterLogos.recruiter,'logo.png');assert.equal(first.savedIds.has('cached'),true);assert.equal(first.appliedMap.cached,'applied');assert.equal(first.myApplications,snapshot[3]);assert.equal(h.reads.length,0);
+ h.switchAccount();const changed=initialState(h.context.navigationCache,h.context.navigationScope());assert.equal(changed.loading,true);assert.equal(changed.jobs.length,0);assert.equal(changed.savedIds.size,0);
+});
+test('revisiting a loaded Jobs filter restores its rows before paint while its fresh read is pending',async()=>{
+ const h=fixture();await h.load();const loaded=h.state.jobs;const gate=deferred();
+ h.context.loadedListKey.current='jobs:global:salary';h.state.jobs=[{id:'other-filter'}];h.state.loading=true;
+ beforePaint(h.context);assert.equal(h.state.jobs,loaded);assert.equal(h.state.loading,false);assert.equal(h.context.loadedListKey.current,'jobs:all:recent');
+ h.jobsService.getJobs=()=>gate.promise;const read=h.load();assert.equal(h.state.jobs,loaded);assert.equal(h.state.loading,false);
+ gate.resolve([{id:'updated'}]);await read;assert.equal(h.state.jobs[0].id,'updated');
+});
+test('an uncached Jobs selection does not relabel old rows after its read fails',async()=>{
+ const h=fixture();await h.load();h.context.scopeMode='global';h.context.sortBy='salary';beforePaint(h.context);
+ assert.equal(h.state.jobs.length,0);assert.equal(h.state.loading,true);assert.equal(h.context.loadedListKey.current,null);
+ h.jobsService.getJobs=async()=>{throw Error('Offline')};await loadCallback('loadAll',h.context)();
+ assert.equal(h.state.loading,false);assert.equal(h.state.jobs.length,0);assert.equal(h.state.error,'Offline');
+});
+test('restoring a filter invalidates its outgoing refresh before that response can publish',async()=>{
+ const h=fixture();await h.load();const gate=deferred();h.jobsService.getJobs=()=>gate.promise;const old=h.load();await Promise.resolve();
+ h.context.scopeMode='global';beforePaint(h.context);gate.resolve([{id:'wrong-filter'}]);await old;
+ assert.equal(h.state.jobs.length,0);assert.equal(h.state.loading,true);
 });

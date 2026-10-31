@@ -24,10 +24,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
-import { hydratePostMedia, hydrateStoryMedia } from '../../services/contentMedia';
+import { hydratePostMedia, hydrateStoryMedia, withoutPrivateMedia } from '../../services/contentMedia';
 import { orderTimeout } from '../../../shared/orderRequest';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { navigationScope } from '../../lib/navigationCache';
 import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 
@@ -53,6 +54,18 @@ type Notif = {
   viewer_follows: boolean;
   unread_in_group: number;
 };
+
+function invitesFirst(list: Notif[]) {
+  const isInvite = (row: Notif) => row.type === 'collab_invite' || row.type === 'community_invite';
+  return [...list.filter(isInvite), ...list.filter(row => !isInvite(row))];
+}
+
+function collaboratorInviteKey(list: Notif[]) {
+  return JSON.stringify(list.filter(row => row.type === 'collab_invite').map(row => ({
+    id: row.notification_id,
+    postId: row.post_id || row.data?.post_id || null,
+  })));
+}
 
 const HAIR = StyleSheet.hairlineWidth;
 
@@ -218,7 +231,6 @@ function sectionFor(iso: string): string {
 export default function NotificationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t, isDark } = useTheme();
-  const { profile } = useAuthStore();
   const userId = useAuthStore(state => state.session?.user.id || '');
 
   const [rows, setRows] = useState<Notif[]>([]);
@@ -235,9 +247,15 @@ export default function NotificationsScreen({ navigation }: any) {
   const generation=useRef(0), pageLock=useRef(false), owner=useRef(userId), rowsRef=useRef<Notif[]>([]);owner.current=userId;rowsRef.current=rows;
   const mounted = useRef(true);
 
-  useEffect(() => {mounted.current=true;return () => { mounted.current = false;generation.current++; };}, []);
+  useEffect(() => {
+    const lifecycleGeneration = generation;
+    mounted.current = true;
+    return () => { mounted.current = false; lifecycleGeneration.current++; };
+  }, []);
 
-  const hydrateThumbs = useCallback(async (batch:Notif[],run:number,actor:string) => {
+  const hydrateThumbs = useCallback(async (batch:Notif[],run:number,actor:string,scope:string|null) => {
+    const current = () => mounted.current && run === generation.current && owner.current === actor && navigationScope() === scope;
+    if (!scope || !current()) return;
     const postIds=Array.from(new Set(batch.map(row=>row.post_id||(row.data as any)?.post_id).filter(Boolean)));
     const storyIds=Array.from(new Set(batch.map(row=>(row.data as any)?.story_id).filter(Boolean)));
     const add:Record<string,string>={};
@@ -245,41 +263,76 @@ export default function NotificationsScreen({ navigation }: any) {
       postIds.length?deadline(supabase.from('posts').select('id, media_url, post_media(url, media_type, sort_order)').in('id',postIds)):Promise.resolve({data:[],error:null}),
       storyIds.length?deadline(supabase.from('stories').select('id, thumbnail_url, media_url, media_type').in('id',storyIds)):Promise.resolve({data:[],error:null}),
     ]);
+    if (!current()) return;
     if(postResult.error)throw postResult.error;if(storyResult.error)throw storyResult.error;
     const [posts,stories]=await Promise.all([hydratePostMedia(postResult.data||[]),hydrateStoryMedia(storyResult.data||[])]);
     posts.forEach((post:any)=>{const media=[...(post.post_media||[])].sort((a:any,b:any)=>(a.sort_order||0)-(b.sort_order||0));const url=media.find((item:any)=>item.media_type==='image')?.url||(post.media_url&&!/\.(mp4|mov|m4v)($|\?)/i.test(post.media_url)?post.media_url:null);if(url)add['p:'+post.id]=url;});
     stories.forEach((story:any)=>{const url=story.thumbnail_url||(story.media_type!=='video'?story.media_url:null);if(url)add['s:'+story.id]=url;});
-    if(mounted.current&&run===generation.current&&owner.current===actor)setThumbs(old=>({...old,...add}));
+    if(current())setThumbs(old=>current()?({...old,...add}):old);
   },[]);
+  const hydrateRows = useCallback(async (batch: Notif[], published: Notif[], run: number, actor: string, scope: string | null, clearOnError = false) => {
+    const current = () => mounted.current && run === generation.current && owner.current === actor && navigationScope() === scope;
+    if (!scope || !current()) return;
+    // Text, invitations and navigation remain usable while thumbnail access is
+    // resolved. Both media paths run independently of the metadata publication.
+    const before = new Map(published.map(row => [row.notification_id, row]));
+    const decorate = async () => {
+      const signed = await hydratePostMedia(batch);
+      if (!current()) return;
+      const byId = new Map(signed.map(row => [row.notification_id, row]));
+      setRows(rows => current() ? rows.map(row => row === before.get(row.notification_id) ? byId.get(row.notification_id) ?? row : row) : rows);
+    };
+    const outcomes = await Promise.allSettled([decorate(), hydrateThumbs(batch, run, actor, scope)]);
+    if (current() && outcomes.some(result => result.status === 'rejected')) {
+      if (clearOnError) {
+        setThumbs({});
+        setRows(rows => current() ? rows.map(row => row === before.get(row.notification_id) ? withoutPrivateMedia([row])[0] : row) : rows);
+      }
+      setError('Some activity photos could not load. Your activity is available. Pull down to retry.');
+    }
+  }, [hydrateThumbs]);
+
   const load = useCallback(async () => {
-    const run=++generation.current,actor=userId;pageLock.current=false;setLoadingMore(false);setError(null);
+    const run=++generation.current,actor=userId,scope=navigationScope();pageLock.current=false;setLoadingMore(false);setError(null);
     const snapshot=new Date().toISOString();cursorRef.current={offset:0,asOf:snapshot};
-    if(!actor){setRows([]);setThumbs({});setLoading(false);setRefreshing(false);return;}
+    const current = () => mounted.current && run === generation.current && owner.current === actor && navigationScope() === scope;
+    if(!actor || !scope){setRows([]);setThumbs({});setLoading(false);setRefreshing(false);return;}
     try {
       const {data,error:err}=await deadline(supabase.rpc('get_notifications_page',{p_limit:60,p_offset:0,p_as_of:snapshot}));if(err)throw err;
-      const batch=await hydratePostMedia((data||[]) as Notif[]);
-      if(!mounted.current||run!==generation.current||owner.current!==actor)return;
-      setRows(invitesFirst(batch));cursorRef.current.offset=batch.length;setDone(batch.length<60);
-      void hydrateThumbs(batch,run,actor).catch(()=>{});
-    }catch(e:any){if(mounted.current&&run===generation.current&&owner.current===actor)setError(e?.message||'Notifications could not be loaded.');}
-    finally{if(mounted.current&&run===generation.current&&owner.current===actor){setLoading(false);setRefreshing(false);}}
-  },[userId,hydrateThumbs]);
+      if(!current())return;
+      if (!Array.isArray(data) || data.some(row => !row || typeof row.notification_id !== 'string')) throw new Error('The activity response could not be verified. Please retry.');
+      const batch=data as Notif[],published=withoutPrivateMedia(batch);
+      setRows(invitesFirst(published));setThumbs({});cursorRef.current.offset=batch.length;setDone(batch.length<60);
+      setLoading(false);setRefreshing(false);
+      void hydrateRows(batch,published,run,actor,scope);
+    }catch(e:any){if(current())setError(e?.message||'Notifications could not be loaded.');}
+    finally{if(current()){setLoading(false);setRefreshing(false);}}
+  },[userId,hydrateRows]);
   const loadMore=useCallback(async()=>{
-    if(pageLock.current||done||!userId)return;const run=generation.current,actor=userId,page={...cursorRef.current};pageLock.current=true;setLoadingMore(true);
+    if(pageLock.current||done||!userId)return;
+    const run=generation.current,actor=userId,scope=navigationScope(),page={...cursorRef.current};
+    if(!scope)return;
+    pageLock.current=true;setLoadingMore(true);
+    const current = () => mounted.current && run === generation.current && owner.current === actor && navigationScope() === scope;
     try{
       const {data,error:err}=await deadline(supabase.rpc('get_notifications_page',{p_limit:60,p_offset:page.offset,p_as_of:page.asOf}));if(err)throw err;
-      const batch=await hydratePostMedia((data||[]) as Notif[]);
-      if(!mounted.current||run!==generation.current||owner.current!==actor)return;
-      cursorRef.current.offset+=batch.length;setRows(old=>{const seen=new Set(old.map(row=>row.notification_id));return [...old,...batch.filter(row=>!seen.has(row.notification_id))];});setDone(batch.length<60);setError(null);
-      void hydrateThumbs(batch,run,actor).catch(()=>{});
-    }catch(e:any){if(mounted.current&&run===generation.current&&owner.current===actor)setError(e?.message||'More notifications could not be loaded.');}
-    finally{if(mounted.current&&run===generation.current&&owner.current===actor){pageLock.current=false;setLoadingMore(false);}}
-  },[userId,done,hydrateThumbs]);
+      if(!current())return;
+      if (!Array.isArray(data) || data.some(row => !row || typeof row.notification_id !== 'string')) throw new Error('The next activity page could not be verified. Please retry.');
+      const batch=data as Notif[],published=withoutPrivateMedia(batch);
+      cursorRef.current.offset+=batch.length;setRows(old=>{const seen=new Set(old.map(row=>row.notification_id));return [...old,...published.filter(row=>!seen.has(row.notification_id))];});setDone(batch.length<60);setError(null);
+      void hydrateRows(batch,published,run,actor,scope);
+    }catch(e:any){if(current())setError(e?.message||'More notifications could not be loaded.');}
+    finally{if(current()){pageLock.current=false;setLoadingMore(false);}}
+  },[userId,done,hydrateRows]);
   useEffect(()=>{generation.current++;pageLock.current=false;setRows([]);setThumbs({});setBusy({});setDone(false);setLoading(!!userId);setError(null);},[userId]);
   useEffect(()=>{
-    const timer=setInterval(()=>{const run=generation.current,actor=userId;if(!actor||!rowsRef.current.length)return;void (async()=>{try{const fresh=await hydratePostMedia(rowsRef.current);if(run!==generation.current||owner.current!==actor)return;setRows(fresh);await hydrateThumbs(fresh,run,actor);}catch{/* Media fails closed when access changes; a refresh retries. */if(run===generation.current&&owner.current===actor){setThumbs({});setRows(old=>old.map(row=>({...row,post_thumb:null})));setError('Some media could not be refreshed. Pull down to retry.');}}})();},240000);
+    const timer=setInterval(()=>{
+      const run=generation.current,actor=userId,scope=navigationScope(),batch=rowsRef.current;
+      if(!actor||!scope||!batch.length)return;
+      void hydrateRows(batch,batch,run,actor,scope,true);
+    },240000);
     return()=>clearInterval(timer);
-  },[userId,hydrateThumbs]);
+  },[userId,hydrateRows]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
@@ -365,19 +418,28 @@ export default function NotificationsScreen({ navigation }: any) {
   };
 
   // Any invitation notification whose request is no longer open is removed, here and on the server.
-  const pruneAnsweredInvites = useCallback(async (list: Notif[]) => {
-    const inv = list.filter(r => r.type === 'collab_invite'); if (!inv.length) return;
-    const { data: s } = await supabase.auth.getSession(); const me = s.session?.user.id; if (!me) return;
-    const ids = inv.map(r => (r as any).post_id || (r as any).data?.post_id).filter(Boolean);
-    const { data } = await supabase.from('post_collaborators').select('post_id').eq('user_id', me).eq('status', 'invited').in('post_id', ids.length ? ids : ['00000000-0000-0000-0000-000000000000']);
-    const open = new Set(((data as any[]) || []).map(x => x.post_id));
-    const stale = inv.filter(r => !open.has((r as any).post_id || (r as any).data?.post_id));
-    if (!stale.length) return;
-    setRows(prev => prev.filter(r => !stale.some(x => x.notification_id === r.notification_id)));
-    supabase.from('notifications').delete().in('id', stale.map(r => r.notification_id)).then(() => {}, () => {});
-  }, []);
-  useEffect(() => { pruneAnsweredInvites(rows); }, [rows.length, pruneAnsweredInvites]);
-  const invitesFirst = (list: Notif[]) => { const isInv = (r: Notif) => r.type === 'collab_invite' || r.type === 'community_invite'; const inv = list.filter(isInv); const rest = list.filter(r => !isInv(r)); return [...inv, ...rest]; };
+  const inviteKey = collaboratorInviteKey(rows);
+  const pruneAnsweredInvites = useCallback(async (key: string) => {
+    const inv = JSON.parse(key) as { id: string; postId: string | null }[];
+    const run = generation.current, actor = userId, scope = navigationScope();
+    const current = () => mounted.current && run === generation.current && owner.current === actor && navigationScope() === scope;
+    if (!inv.length || !actor || !scope || !current()) return;
+    const ids = inv.map(row => row.postId).filter((id): id is string => typeof id === 'string' && id.length > 0);
+    if (!ids.length) return;
+    try {
+      const { data, error } = await deadline(supabase.from('post_collaborators').select('post_id').eq('user_id', actor).eq('status', 'invited').in('post_id', ids));
+      if (error || !Array.isArray(data) || data.some(row => !row || typeof row.post_id !== 'string') || !current()) return;
+      const open = new Set(data.map(row => row.post_id));
+      const stale = inv.filter(row => typeof row.postId === 'string' && row.postId.length > 0 && !open.has(row.postId)).map(row => row.id);
+      if (!stale.length) return;
+      const staleIds = new Set(stale);
+      setRows(prev => current() ? prev.filter(row => !staleIds.has(row.notification_id)) : prev);
+      await deadline(supabase.from('notifications').delete().eq('recipient_id', actor).in('id', stale));
+    } catch {
+      // An unavailable invitation check must not discard the activity list.
+    }
+  }, [userId]);
+  useEffect(() => { void pruneAnsweredInvites(inviteKey); }, [inviteKey, pruneAnsweredInvites]);
   const respondCollab = async (n: Notif, accept: boolean) => {
     const pid = (n as any).post_id || (n as any).data?.post_id; const { data: s } = await supabase.auth.getSession(); const me = s.session?.user.id;
     if (!pid || !me) { Alert.alert('Not available', 'This invitation cannot be found.'); return; }
@@ -565,7 +627,7 @@ export default function NotificationsScreen({ navigation }: any) {
 
       {loading ? (
             <ListRowSkeleton rows={9} />
-      ) : error ? (
+      ) : error && rows.length === 0 ? (
         <View style={s.centered}>
           <Feather name="alert-circle" size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>Could not load your activity</Text>
@@ -584,6 +646,7 @@ export default function NotificationsScreen({ navigation }: any) {
         </View>
       ) : (
         <TapTopSectionList ListHeaderComponent={<>
+          {error ? <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}><Text accessibilityRole="alert" style={{ color: t.ink.primary }}>{error}</Text><TouchableOpacity accessibilityRole="button" onPress={() => void load()} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: t.status.link }}>Retry activity</Text></TouchableOpacity></View> : null}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 2, gap: 6 }}>
               {([['all', 'All'], ['collabs', 'Invites'], ['likes', 'Likes'], ['comments', 'Comments'], ['follows', 'Follows'], ['mentions', 'Mentions']] as const).map(([k, lbl]) => (
                 <TouchableOpacity key={k} onPress={() => setFilt(k)} style={[s.chip, filt === k && s.chipOn]}>

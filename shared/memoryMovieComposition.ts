@@ -29,7 +29,7 @@ export function validateMemoryMovieRequest(request:MemoryMovieNativeRequest):num
   if(!finite(seconds,.05,120)||scene.inputKind==='image'&&(r.trimStart!==0||r.speed!==1||seconds<1||seconds>30))throw new Error('A movie scene is too long. Choose a shorter cut.');
   const m=scene.motion;
   if(!scene.transition||!finite(scene.transition.fadeSec,0,Math.min(.5,seconds/2))||!m||!finite(m.fromScale,1,1.1)||!finite(m.toScale,1,1.1)||!finite(m.x,-.05,.05)||!finite(m.y,-.05,.05))throw new Error('The movie movement is invalid.');
-  if(scene.backgroundUri&&!local(scene.backgroundUri)||!Array.isArray(scene.layers)||scene.layers.length>24||scene.layers.some(layer=>!local(layer.uri)||!finite(layer.start,0,seconds)||!finite(layer.end,layer.start+.001,seconds+.001))||scene.audio&&!audio(scene.audio))throw new Error('A movie artwork or audio layer is invalid.');
+  if(scene.backgroundUri&&!local(scene.backgroundUri)||!Array.isArray(scene.layers)||scene.layers.length>24||scene.layers.some(layer=>!local(layer.uri)||!finite(layer.start,0,seconds)||!finite(layer.end,layer.start+.001,seconds+.001)||('animation' in layer&&layer.animation!=null))||scene.audio&&!audio(scene.audio))throw new Error('A movie artwork or audio layer is invalid.');
   layers+=scene.layers.length;duration+=seconds;
  }
  if(duration>300.001||layers>240)throw new Error('This movie exceeds its time or artwork limit. Choose a shorter cut.');

@@ -11,10 +11,24 @@ name: Full native app navigation
 - tapOn: Username or email
 - inputText: qa.alex@example.invalid
 # On compact Android displays the open email keyboard covers the next field.
-- hideKeyboard
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - tapOn: Password
 - inputText: FixtureOnly-2026!
-- hideKeyboard
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # The iOS keyboard has no standard dismiss button; use the real scroll-view dismissal.
+      - tapOn: Platinum Circles
 - tapOn: Sign in
 - extendedWaitUntil:
     visible: A quiet morning in the desert. Small moments worth keeping.
@@ -47,6 +61,7 @@ name: Full native app navigation
     timeout: 15000
 - assertVisible: Edit profile
 - takeScreenshot: profile
+- runFlow: memory-navigation.yaml
 - tapOn: Settings
 - extendedWaitUntil:
     visible: Settings
@@ -62,3 +77,4 @@ name: Full native app navigation
       - tapOn: Home
       - assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - takeScreenshot: returned-home
+- runFlow: memory-capture.yaml

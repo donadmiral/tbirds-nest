@@ -1,0 +1,51 @@
+{
+  "recordedAt": "2026-10-31T02:31:49.273771+00:00",
+  "scope": "Real source with controlled JS/native-provider fixtures and installed dependency inspection. Full native runtime acceptance follows in CI.",
+  "changes": [
+    "Reconcile calls using captured recipient session and stored current call metadata",
+    "Cancel stale work on account changes, teardown and bounded deadlines",
+    "Coalesce simultaneous navigation and preserve failed decline retry",
+    "Recheck Android invitation after native surface setup and remove expired notifications",
+    "Replay early native Answer/End with bounded deduplication and final hangup precedence",
+    "Stop an in-flight answer after OS hangup, including before React renders its active state",
+    "Upgrade exact CallKeep4.6.1 from4.3.16 to remove native duplicate ReactMethod crash"
+  ],
+  "verification": {
+    "nativeCallReliability": 23,
+    "incomingCallAccess": 19,
+    "notificationTap": 15,
+    "nativeEventLifecycle": 8,
+    "nativeDependencyCompatibility": 11,
+    "failures": 0,
+    "skips": 0,
+    "scopedLint": {
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "dependency": {
+    "from": "4.3.16",
+    "to": "4.6.1",
+    "changedPackages": 1,
+    "integrity": "sha512-N5HaFrTg3p2WFIf0Vdgj0LUu2lsVmY4gDx01k93uEY5c2i/WLjmf3tzYEqZrTjyBl28StcepvdYnUW2L+g23/A==",
+    "upstream": "https://github.com/react-native-webrtc/react-native-callkeep/releases/tag/4.6.1"
+  },
+  "hostedProviderCallAcceptance": false,
+  "physicalDeviceAcceptance": false,
+  "sourceSha256": {
+    "src/components/IncomingCallListener.tsx": "fc76c67edd13b3107c36f6488f4f360caafb24d0e65e891a235b1de990f7c374",
+    "src/services/incomingCallAccess.ts": "8b9768bf14df125b53db02b922bfd4c37da688bd1a0beabc3e33aaf5974a6014",
+    "src/services/nativeCallService.ts": "f29ac060611a237b1e71679d571a1cd3c18e602e7e2537fc5c8564c581cde031",
+    "src/services/androidCallNotification.ts": "1ef5f74f2fa1fc35fcb3cc8db7b11fcc4c473c7f3606c9f7324e731edb5de161",
+    "src/services/callBackgroundTask.ts": "cc3ece1a8d0b77f71451a8f8a46bbebaf741fd4e5797bff36a9eae8098283afb",
+    "src/services/callService.ts": "d975ef8cf4440063fbefae5654107ad2c582b36ff8f71c493621f8d7ca7a5751",
+    "src/stores/authStore.ts": "ff79196ce493b4277dbdfe7afbf9834f85d360d77760fe07df4843ebe7d5197b",
+    "package.json": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+    "package-lock.json": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+    "tests/native-call-reliability.test.cjs": "54f178c4096ce8e22e0844e9aa395885ccdd38d80b77b34ea986629d67a504ae",
+    "tests/quality/incoming-call-access.cjs": "427331ccd73a2f9435c3422e8eab4a652750995623b9a2765ae05fd85bb6c427",
+    "tests/quality/native-call-event-lifecycle.cjs": "dbd8974ef01f4cab7a4f53f59c6525c6e61f50bc3e55d43c18c2daa607ed1cea",
+    "tests/quality/notification-tap.cjs": "d8ee60dcbb53a2af61ef1db2c9d04e6781eac3e1945d07e8dea873a494e00fb1",
+    "tests/quality/native-dependency-compat.cjs": "532c680ab8487926e45f6121be8e19f9eeb60c42e6236c1f2159ff874a6d96cd"
+  }
+}

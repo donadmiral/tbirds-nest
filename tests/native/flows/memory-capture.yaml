@@ -1,0 +1,48 @@
+appId: app.platinumcircles.mobile.qa
+name: Actual native memory capture and encoding
+---
+# The preceding navigation flow authenticated the actual production App.
+- openLink: platinum-circles-qa://ui-fixture/memory
+- extendedWaitUntil:
+    visible: Native capture acceptance
+    timeout: 30000
+- tapOn: Open cancellation movie
+- extendedWaitUntil:
+    visible: Create memory movie
+    timeout: 15000
+- tapOn:
+    text: Create memory movie
+    waitToSettleTimeoutMs: 1000
+- extendedWaitUntil:
+    visible: Reading the movie’s video timing…
+    timeout: 15000
+# The test transport returns one real file chunk, then holds its reader until
+# the real UI cancellation closes it. Tapping this label has no app action.
+- tapOn:
+    text: Reading the movie’s video timing…
+    repeat: 2
+    delay: 1000
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    text: Close movie export
+    waitToSettleTimeoutMs: 1000
+- extendedWaitUntil:
+    visible: Memory capture cleanup passed
+    timeout: 15000
+- tapOn: Open complete movie
+- extendedWaitUntil:
+    visible: Create memory movie
+    timeout: 15000
+- tapOn:
+    text: Create memory movie
+    waitToSettleTimeoutMs: 1000
+- extendedWaitUntil:
+    visible: Save movie to Photos
+    timeout: 180000
+- takeScreenshot: captured-memory-ready
+# Keep the measured file in app-private evidence; do not request Photos access.
+- tapOn: Close movie export
+- extendedWaitUntil:
+    visible: Memory capture cleanup passed
+    timeout: 15000
+- takeScreenshot: captured-memory-cleanup

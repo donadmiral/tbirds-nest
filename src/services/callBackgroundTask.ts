@@ -13,7 +13,8 @@
  * the same ringing notification the app would otherwise have received. So the
  * worst case is exactly today's behaviour rather than a silent phone.
  */
-import { showIncomingCall, parseCallPayload } from './androidCallNotification';
+import { showIncomingCall } from './androidCallNotification';
+import { parseCallPayload, readIncomingCall, withIncomingCallSession, type IncomingCallPayload, type IncomingCallSession } from './incomingCallAccess';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { nativeCallService } from './nativeCallService';
@@ -25,7 +26,6 @@ import { nativeCallService } from './nativeCallService';
 // exactly as it did, and the call still rings through the notification path.
 let TaskManager: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   TaskManager = require('expo-task-manager');
 } catch {
   TaskManager = null;
@@ -33,75 +33,68 @@ try {
 
 export const INCOMING_CALL_TASK = 'INCOMING_CALL_TASK';
 
-type CallData = {
-  type?: string;
-  call_id?: string;
-  callId?: string;
-  caller_name?: string;
-  is_video?: boolean | string;
-};
-
-function readCallData(raw: any): CallData | null {
-  // Expo delivers the FCM message under different shapes depending on whether
-  // the app was alive, so check the places it can be before giving up.
-  const candidates = [
-    raw?.data?.notification?.data,
-    raw?.data?.data,
-    raw?.notification?.data,
-    raw?.data,
-    raw,
-  ];
-  for (const c of candidates) {
-    if (c && typeof c === 'object' && (c.call_id || c.callId)) return c as CallData;
+function readCallData(raw: unknown): IncomingCallPayload | null {
+  const value = raw as { data?: { notification?: { data?: unknown }; data?: unknown }; notification?: { data?: unknown } } | null;
+  const candidates = [value?.data?.notification?.data, value?.data?.data, value?.notification?.data, value?.data, raw];
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== 'object') continue;
+    const body = (candidate as { body?: unknown }).body;
+    let data: unknown = body ?? candidate;
+    if (typeof data === 'string') {
+      if (data.length > 16_384) continue;
+      try { data = JSON.parse(data); } catch { continue; }
+    }
+    const payload = parseCallPayload(data);
+    if (payload) return payload;
   }
   return null;
 }
 
-async function ringFallback(callId: string, callerName: string, isVideo: boolean) {
-  try {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: callerName,
-        body: isVideo ? 'Incoming video call' : 'Incoming call',
-        data: { type: 'incoming_call', call_id: callId, caller_name: callerName, is_video: isVideo },
-        categoryIdentifier: 'incoming_call',
-        sound: 'default',
-      },
-      trigger: null,
-    });
-  } catch (e) {
-    console.log('[CallTask] fallback notification failed:', (e as any)?.message);
-  }
+async function ringFallback(call: IncomingCallPayload, session: IncomingCallSession) {
+  session.ensure();
+  if (!call.expiresAt || call.expiresAt <= Date.now()) return;
+  const id = await Notifications.scheduleNotificationAsync({
+    content: {
+      title: call.callerName,
+      body: call.isVideo ? 'Incoming video call' : 'Incoming call',
+      data: { type: 'incoming_call', call_id: call.callId, caller_name: call.callerName,
+        is_video: !!call.isVideo, recipient_id: session.userId, conversation_id: call.conversationId },
+      categoryIdentifier: 'incoming_call', sound: 'default',
+    },
+    trigger: null,
+  });
+  if (!session.current() || call.expiresAt <= Date.now()) await Notifications.dismissNotificationAsync(id).catch(() => {});
 }
 
-if (TaskManager?.defineTask) TaskManager.defineTask(INCOMING_CALL_TASK, async ({ data, error }: any) => {
-  // Android, WhatsApp-style: the full-screen call notification comes first; everything below is the fallback.
-  try { const raw: any = (data as any)?.notification?.data ?? (data as any)?.data ?? (data as any); const body = raw?.body ? (typeof raw.body === 'string' ? JSON.parse(raw.body) : raw.body) : raw; const cp = parseCallPayload(body); if (cp && await showIncomingCall(cp)) return; } catch (e: any) { console.log('[CallTask] full-screen path failed:', e?.message); }
-  if (error) {
-    console.log('[CallTask] error:', error?.message);
-    return;
-  }
-  const call = readCallData(data);
-  if (!call) return;
-  if (call.type && call.type !== 'incoming_call') return;
+const pendingCalls = new Map<string, Promise<void>>();
 
-  const callId = String(call.call_id || call.callId || '').toLowerCase();
-  if (!callId) return;
-  const callerName = String(call.caller_name || 'Platinum Circles');
-  const isVideo = call.is_video === true || call.is_video === 'true';
+export async function handleIncomingCallTask({ data, error }: { data?: unknown; error?: unknown }): Promise<void> {
+  if (Platform.OS !== 'android' || error) return;
+  const payload = readCallData(data);
+  if (!payload) return;
+  const pending = pendingCalls.get(payload.callId);
+  if (pending) return pending;
+  if (pendingCalls.size >= 16) return;
+  const task = withIncomingCallSession(payload, async session => {
+    const fresh = await readIncomingCall(payload, session);
+    if (!fresh) return;
+    if (await showIncomingCall(fresh.payload, session)) return;
+    session.ensure();
+    if (!await readIncomingCall(payload, session)) return;
+    const ready = await nativeCallService.prepareForIncomingCall();
+    session.ensure();
+    // Preparing the native surface may take long enough for a caller to cancel.
+    const current = await readIncomingCall(payload, session);
+    if (!current) return;
+    if (ready && nativeCallService.displayIncomingCall(current.call.id, current.payload.callerName, !!current.payload.isVideo)) return;
+    await ringFallback(current.payload, session);
+  }).catch(() => { /* Failed or stale delivery cannot ring a different account. */ })
+    .finally(() => { if (pendingCalls.get(payload.callId) === task) pendingCalls.delete(payload.callId); });
+  pendingCalls.set(payload.callId, task);
+  return task;
+}
 
-  const ready = await nativeCallService.prepareForIncomingCall();
-  if (!ready) {
-    await ringFallback(callId, callerName, isVideo);
-    return;
-  }
-  try {
-    nativeCallService.displayIncomingCall(callId, callerName, isVideo);
-  } catch (e) {
-    console.log('[CallTask] displayIncomingCall failed:', (e as any)?.message);
-    await ringFallback(callId, callerName, isVideo);
-  }
-});
+if (TaskManager?.defineTask) TaskManager.defineTask(INCOMING_CALL_TASK, handleIncomingCallTask);
 
 /** Register the task. Android only: iOS rings through PushKit and CallKit. */
 export async function registerIncomingCallTask(): Promise<void> {

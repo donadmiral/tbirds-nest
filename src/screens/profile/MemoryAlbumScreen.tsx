@@ -209,6 +209,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     () => [...(album?.pages ?? [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
     [album],
   );
+  const draftCoverMedia = memoryCoverMedia(memoryCoverPage(pages, coverStoryId));
 
   useEffect(() => { if (idx > 0 && idx >= pages.length) setIdx(Math.max(0, pages.length - 1)); }, [pages.length, idx]);
   const pageAudio = useSoundtrackPlayer({selection:memoryPageSoundtrack(pages[idx]),use:'memory_album',playbackKey:pages[idx]?.id,active:focused && foreground && callState === 'idle' && opened && !filmVisible && (!playMode || playing) && !grid && !pageActions && !settings && !musicOpen && !picker && !captionFor && !playingUrl});
@@ -333,7 +334,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     return (
       <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
         <View style={st.topBar}>
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to profile" onPress={() => navigation.goBack()} style={{minWidth:44,minHeight:44,alignItems:'center',justifyContent:'center'}}>
             <Feather name="chevron-left" size={26} color={t.ink.primary} />
           </TouchableOpacity>
           <Text style={st.topTitle}>Memory album</Text>
@@ -359,12 +360,12 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     <View style={[st.safe, { paddingTop: Math.max(insets.top, 12), backgroundColor: t.surface.canvas }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <View style={st.topBar}>
-        <TouchableOpacity onPress={() => (opened ? closeBook() : navigation.goBack())} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={opened ? 'Close memory book' : 'Back to profile'} onPress={() => (opened ? closeBook() : navigation.goBack())} style={{minWidth:44,minHeight:44,alignItems:'center',justifyContent:'center'}}>
           <Feather name="chevron-left" size={26} color={t.ink.primary} />
         </TouchableOpacity>
         <Text numberOfLines={1} style={[st.topTitle,{flex:1,textAlign:'center',marginHorizontal:12}]}>{album.title}</Text>
         {opened ? <View style={{flexDirection:'row',alignItems:'center',gap:12}}><TouchableOpacity accessibilityLabel={grid?'Read book':'View all pages'} onPress={()=>setGrid(v=>!v)} style={{minWidth:36,minHeight:44,alignItems:'center',justifyContent:'center'}}><Feather name={grid?'book-open':'grid'} size={20} color={t.ink.primary}/></TouchableOpacity>{album.is_owner&&<TouchableOpacity accessibilityLabel="Page options" onPress={pageMenu} style={{minWidth:30,minHeight:44,alignItems:'center',justifyContent:'center'}}><Feather name="more-horizontal" size={22} color={t.ink.primary}/></TouchableOpacity>}</View> : album.is_owner ? (
-          <TouchableOpacity onPress={openSettings} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Edit memory book" onPress={openSettings} style={{minWidth:44,minHeight:44,alignItems:'center',justifyContent:'center'}}>
             <Feather name="settings" size={19} color={t.ink.primary} />
           </TouchableOpacity>
         ) : <View style={{ width: 22 }} />}
@@ -375,7 +376,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
       {!!mutationError&&!settings&&<Text style={{color:t.ink.secondary,paddingHorizontal:16}}>{mutationError}</Text>}
       {!!(music.error||pageAudio.error)&&opened&&<TouchableOpacity onPress={()=>{music.retry();pageAudio.retry();}}><Text style={{color:t.ink.secondary,paddingHorizontal:16}}>Soundtrack could not play. Tap to retry.</Text></TouchableOpacity>}
       {!opened ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ScrollView style={{flex:1}} contentContainerStyle={{flexGrow:1,alignItems:'center',justifyContent:'center',paddingTop:16,paddingBottom:24}}>
           <Animated.View style={{ transform: [{ scale: coverScale }], opacity: coverFade }}>
             <TouchableOpacity activeOpacity={0.92} onPress={openBook}>
               <MemoryBookCover artwork={album.cover_artwork} title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))} width={bookW} height={bookH} />
@@ -389,7 +390,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
               <Text style={st.fabTxt}>Add memories</Text>
             </TouchableOpacity>
           ) : null}
-        </View>
+        </ScrollView>
       ) : grid ? <ScrollView contentContainerStyle={{padding:18,paddingBottom:40}}><Text style={{fontSize:13,color:t.ink.secondary,textAlign:'center',marginBottom:20}}>{pages.length} pages · Select a page to read or edit</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:14}}>{pages.map((pg,i)=><TouchableOpacity key={pg.id} accessibilityLabel={'Open memory '+(i+1)} onPress={()=>{idxRef.current=i;setIdx(i);setGrid(false);}} style={{width:(screenWidth-50)/2,backgroundColor:PAGE_CREAM,borderLeftWidth:6,borderColor:artwork.spine,padding:10,shadowColor:'#000',shadowOpacity:.1,shadowRadius:5,shadowOffset:{width:0,height:3}}}><Text style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',color:'#142642',textAlign:'center',fontSize:10,marginBottom:10}}>{String(i+1).padStart(2,'0')}</Text><View style={{height:(screenWidth-50)/2*1.15,overflow:'hidden'}}><MemoryStoryTile story={pg}/></View><Text numberOfLines={2} style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:13,color:'#142642',marginTop:10}}>{pg.caption||fmtDate(pg.taken_at)}</Text></TouchableOpacity>)}</View>{album.is_owner&&<TouchableOpacity onPress={openPicker} style={{padding:16,alignItems:'center',marginTop:20,borderWidth:1,borderStyle:'dashed',borderRadius:14,borderColor:t.surface.hairline}}><Text style={{color:t.ink.primary}}>+ Add memories</Text></TouchableOpacity>}</ScrollView> : (
         <View style={{ flex: 1, alignItems: 'center',overflow:'hidden' }}>
           <MemoryPageTurn ref={pageTurn} key={bookId} pageIds={pages.map(p=>p.id)} index={idx} width={pageWidth} height={pageHeight} active={focused&&!filmVisible&&!pageActions&&!settings&&!picker&&!captionFor&&!playingUrl} reduceMotion={reduceMotion} spine={artwork.spine} title={album.title} onCommit={i=>{idxRef.current=i;setIdx(i);}} onTurningChange={setTurning} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
@@ -522,10 +523,10 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
         <View style={st.sheetWrap}>
           <View style={st.sheet}>
             <Text style={st.sheetTitle}>Book settings</Text>
-            <ScrollView scrollEnabled={!framing} style={{ flexGrow: 0 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            <ScrollView scrollEnabled={!framing} style={{ flexGrow: 0 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <TextInput accessibilityLabel="Book title" value={title} onChangeText={setTitle} placeholder="Memories" placeholderTextColor={t.ink.muted} keyboardAppearance={isDark ? "dark" : "light"} style={st.input} maxLength={30} />
               <TextInput accessibilityLabel="Book subtitle" value={subtitle} onChangeText={setSubtitle} placeholder="A small line to remember it by" placeholderTextColor={t.ink.muted} keyboardAppearance={isDark ? "dark" : "light"} style={st.input} maxLength={120} />
-              <View style={{alignItems:'center',paddingVertical:18}}><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...memoryCoverMedia(memoryCoverPage(pages,coverStoryId))} width={168} height={220}/></View>
+              <View style={{alignItems:'center',paddingVertical:18}}><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...draftCoverMedia} width={168} height={220}/></View>
               <Text style={st.lbl}>Cover memory</Text>
               {pages.length ? <ScrollView horizontal contentContainerStyle={{gap:10,paddingVertical:6}}>{pages.map((pg,i)=><TouchableOpacity key={pg.id} accessibilityLabel={'Use memory '+(i+1)+' on the cover'} accessibilityState={{selected:coverStoryId===pg.story_id}} onPress={()=>setCoverStoryId(pg.story_id??null)} style={{width:68,height:86,borderWidth:coverStoryId===pg.story_id?3:1,borderColor:coverStoryId===pg.story_id?t.ink.primary:t.surface.hairline,borderRadius:8,overflow:'hidden'}}><MemoryStoryTile story={pg}/></TouchableOpacity>)}</ScrollView> : <Text style={{color:t.ink.secondary,fontSize:13}}>Add memories to choose a photo or video cover.</Text>}
               <Text style={st.lbl}>Paper tint</Text>
@@ -542,15 +543,15 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
                   {aud === a.key ? <Feather name="check" size={15} color={t.ink.primary} /> : null}
                 </TouchableOpacity>
               ))}
-              <MemoryCoverControls value={coverArtwork} onChange={setCoverArtwork} hasPhoto={!!memoryCoverPage(pages,coverStoryId)} disabled={settingsBusy} onDragStateChange={setFraming}/><MemoryFilmControls value={filmSettings} onChange={setFilmSettings} disabled={settingsBusy}/>
+              <MemoryCoverControls value={coverArtwork} onChange={setCoverArtwork} hasPhoto={!!(draftCoverMedia.photoUrl||draftCoverMedia.videoUrl)} disabled={settingsBusy} onDragStateChange={setFraming}/><MemoryFilmControls value={filmSettings} onChange={setFilmSettings} disabled={settingsBusy}/>
               <MemoryAudienceEditor ownerId={ownerId} />
               <Text style={st.lbl}>Cover design</Text>
-              <ScrollView horizontal contentContainerStyle={{gap:14,padding:7}}>{MEMORY_DESIGNS.map(d=><TouchableOpacity key={d.id} accessibilityRole="button" accessibilityLabel={`${d.label} cover design`} accessibilityState={{selected:design===d.id}} onPress={()=>setDesign(d.id)} style={{opacity:design===d.id?1:.45}}><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={d.id} {...memoryCoverMedia(memoryCoverPage(pages,coverStoryId))} width={70} height={92}/><Text style={{color:t.ink.primary,fontSize:10,marginTop:6}}>{d.label}</Text></TouchableOpacity>)}</ScrollView>
+              <ScrollView horizontal contentContainerStyle={{gap:14,padding:7}}>{MEMORY_DESIGNS.map(d=><TouchableOpacity key={d.id} accessibilityRole="button" accessibilityLabel={`${d.label} cover design`} accessibilityState={{selected:design===d.id}} onPress={()=>setDesign(d.id)} style={{opacity:design===d.id?1:.45}}><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={d.id} {...draftCoverMedia} width={70} height={92}/><Text style={{color:t.ink.primary,fontSize:10,marginTop:6}}>{d.label}</Text></TouchableOpacity>)}</ScrollView>
               {!!mutationError&&<Text style={{color:t.ink.secondary,marginVertical:8}}>{mutationError}</Text>}
             </ScrollView>
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 18, marginTop: 14 }}>
-              <TouchableOpacity disabled={settingsBusy} onPress={() => {if(!saveLock.current)setSettings(false);}}><Text style={{ color: t.ink.secondary, fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
-              <TouchableOpacity disabled={settingsBusy} onPress={saveSettings}><Text style={{ color: t.ink.primary, fontWeight: '800' }}>{settingsBusy?'Saving…':'Save'}</Text></TouchableOpacity>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel memory book edits" disabled={settingsBusy} onPress={() => {if(!saveLock.current)setSettings(false);}} style={{minWidth:44,minHeight:44,alignItems:'center',justifyContent:'center'}}><Text style={{ color: t.ink.secondary, fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Save memory book" disabled={settingsBusy} onPress={saveSettings} style={{minWidth:44,minHeight:44,alignItems:'center',justifyContent:'center'}}><Text style={{ color: t.ink.primary, fontWeight: '800' }}>{settingsBusy?'Saving…':'Save'}</Text></TouchableOpacity>
             </View>
           </View>
         </View>

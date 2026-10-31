@@ -195,11 +195,14 @@ export const callService = {
     }
   },
 
-  async listRingingCalls(userId: string): Promise<CallRecord[]> {
-    const { data, error } = await supabase.from('call_sessions').select('*')
+  async listRingingCalls(userId: string, options?: CallRequestOptions): Promise<CallRecord[]> {
+    const query = supabase.from('call_sessions').select('*')
       .eq('receiver_id', userId).eq('status', 'ringing')
       .gt('created_at', new Date(Date.now() - 45000).toISOString())
       .order('created_at', { ascending: false }).limit(10);
+    if (options?.accessToken) query.setHeader('Authorization', `Bearer ${options.accessToken}`);
+    if (options?.signal) query.abortSignal(options.signal);
+    const { data, error } = await query;
     if (error) throw error;
     return ((data || []) as CallSessionRow[]).map(row => toRecord(row)!).filter(Boolean);
   },

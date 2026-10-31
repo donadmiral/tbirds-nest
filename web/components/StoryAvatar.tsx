@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { getRingUsers, invalidateRings, type CatchupUser } from "@/lib/stories";
 import { StoryViewer } from "@/components/StoryViewer";
 
 import { displayImageUrl } from "@/lib/media";
+import { getNavigationStore } from '@/lib/navigationCache';
+import { storyNavigationMemory } from '@/lib/storyNavigation';
 
 export function StoryAvatar({ userId, name, avatarUrl, size = 44, href }: {
   userId: string | null | undefined;
@@ -15,14 +17,20 @@ export function StoryAvatar({ userId, name, avatarUrl, size = 44, href }: {
   href?: string | null;
 }) {
   const [raw, setRaw] = useState(false);
-  const [users, setUsers] = useState<CatchupUser[]>([]);
-  const [open, setOpen] = useState(false);
+  const [store] = useState(getNavigationStore);
+  const session = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
+  const [saved, setSaved] = useState<{ scope: string; users: CatchupUser[] } | null>(() => storyNavigationMemory());
+  const users = saved?.scope === session.scope ? saved.users : [];
+  const [open, setOpen] = useState<{ scope: string; userId: string } | null>(null);
+  const mounted = useRef(false);
 
   useEffect(() => {
     let off = false;
-    getRingUsers().then((u) => { if (!off) setUsers(u); });
-    return () => { off = true; };
-  }, []);
+    mounted.current = true;
+    const scope = session.scope;
+    if (scope && !session.changed) void getRingUsers().then(value => { if (!off && store.getSnapshot().scope === scope) setSaved({ scope, users: value }); });
+    return () => { off = true; mounted.current = false; };
+  }, [session.scope, session.changed, store]);
 
   const idx = userId ? users.findIndex((u) => u.user_id === userId) : -1;
   const ring = idx >= 0 ? (users[idx].has_unseen ? "unseen" : "seen") : "none";
@@ -47,13 +55,17 @@ export function StoryAvatar({ userId, name, avatarUrl, size = 44, href }: {
   if (ring !== "none") {
     return (
       <>
-        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true); }} className="shrink-0" title="View story">
+        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (session.scope && userId && store.getSnapshot().scope === session.scope) setOpen({ scope: session.scope, userId }); }} className="shrink-0" title="View story">
           {wrapped}
         </button>
-        {open ? (
+        {open && open.scope === session.scope && open.userId === userId ? (
           <StoryViewer users={users}
             startIndex={idx}
-            onClose={() => { setOpen(false); invalidateRings(); getRingUsers(true).then(setUsers); }}
+            onClose={() => {
+              setOpen(null); invalidateRings();
+              const scope = session.scope;
+              if (scope) void getRingUsers(true).then(value => { if (mounted.current && store.getSnapshot().scope === scope) setSaved({ scope, users: value }); });
+            }}
           />
         ) : null}
       </>

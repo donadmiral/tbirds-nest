@@ -1,0 +1,17 @@
+import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
+import { createQaNotificationCredentialInstaller } from './handler.ts';
+
+// The preparation script substitutes only a digest and a ten-minute window.
+// The raw nonce is never placed in deployed code or a repository file.
+const nonceHash = '__NONCE_SHA256__';
+const armedAt = Number('__ARMED_AT_MS__');
+const expiresAt = Number('__EXPIRES_AT_MS__');
+const projectUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const service = createClient(projectUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+Deno.serve(createQaNotificationCredentialInstaller({
+  projectUrl, serviceKey, nonceHash, armedAt, expiresAt,
+  install: (hash, key, signal) => service.rpc('install_qa_notification_dispatch_credential', {
+    p_nonce_hash: hash, p_service_key: key,
+  }).abortSignal(signal),
+}));

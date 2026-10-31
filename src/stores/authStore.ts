@@ -130,11 +130,7 @@ function registerSession(session: Session, generation: number, setupCalls = fals
   try {
     const { nativeCallService } = require('../services/nativeCallService');
     if (!nativeCallService) return;
-    Promise.resolve(nativeCallService.setup({
-      onAnswer: (uuid: string) => console.log('[voip] answerCall', uuid),
-      onEnd: (uuid: string) => console.log('[voip] endCall', uuid),
-      onAudioSessionActivated: () => console.log('[voip] audio session active'),
-    })).catch((error: any) => console.log('[voip] setup error', error?.message));
+    Promise.resolve(nativeCallService.setup()).catch(() => console.log('NATIVE_CALL_SETUP_FAILED'));
     nativeCallService.registerVoipToken((token: string) => {
       // The callback survives token refreshes but must never register a token
       // for an account that has since signed out or switched.

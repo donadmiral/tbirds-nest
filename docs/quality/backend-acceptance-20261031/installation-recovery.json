@@ -1,0 +1,135 @@
+{
+  "recordedAt": "2026-10-31T00:58:01.950702Z",
+  "project": "uaulhuelcfkjwojtymmw",
+  "environment": "disposable QA branch",
+  "publishedBaseCommit": "645fcb137bf32abf28bca176ee556982ed705540",
+  "schemaChangesTool": "supabase_apply_migration",
+  "offer": {
+    "source": "supabase/migrations/20261030181000_market_offer_response_serialization.sql",
+    "sha256": "b50b2e547fd23ac101b222270d348b036af737705a4b62fde8a239a3083d1407",
+    "started": {
+      "current_time": "2026-10-31 00:15:54 UTC"
+    },
+    "outcome": "success",
+    "providerVersion": "20261031001559",
+    "postflight": [
+      {
+        "checked_at": "2026-10-31 00:17:20.378287+00",
+        "history": [
+          {
+            "name": "market_offer_response_serialization",
+            "version": "20261031001559",
+            "statements_md5": "f74d58c6ea6f79a4c9dfa980c38e91d6",
+            "statement_count": 1
+          }
+        ],
+        "functions": [
+          {
+            "acl": [
+              "postgres=X/postgres",
+              "authenticated=X/postgres"
+            ],
+            "owner": "postgres",
+            "body_md5": "0ddaee6415ee86544d71a3a597235baa",
+            "identity": "offer_response_capabilities()",
+            "anon_execute": false,
+            "configuration": [
+              "search_path=\"\""
+            ],
+            "definition_md5": "202d112edf91ae9c8967cc8ed82e6977",
+            "security_definer": true,
+            "service_role_execute": false,
+            "authenticated_execute": true
+          },
+          {
+            "acl": [
+              "postgres=X/postgres",
+              "authenticated=X/postgres"
+            ],
+            "owner": "postgres",
+            "body_md5": "f4b33ccd5af1182be5b5f94a0e82828b",
+            "identity": "respond_offer(uuid,text,numeric)",
+            "anon_execute": false,
+            "configuration": [
+              "search_path=\"\""
+            ],
+            "definition_md5": "b02ab340f83ec2ab2946a0a94047bcd8",
+            "security_definer": true,
+            "service_role_execute": false,
+            "authenticated_execute": true
+          }
+        ],
+        "business_auth_schema_present": false,
+        "music_library_schema_present": false
+      }
+    ]
+  },
+  "business": {
+    "source": "supabase/migrations/20261030034752_business_bound_auth_sessions.sql",
+    "sha256": "66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996",
+    "boundedAttempt": {
+      "started": {
+        "current_time": "2026-10-31 00:22:04 UTC"
+      },
+      "outcome": {
+        "status": "no_result_within_45000ms",
+        "remoteOutcome": "unknown",
+        "serverCancellationConfirmed": false
+      }
+    },
+    "fullyAwaitedDiagnostic": {
+      "cell": "g2:31",
+      "requestedWaitMs": 1000,
+      "reportedWaitSeconds": 1393.2,
+      "outcome": "functions.wait was aborted by user after blocking; no success, SQL error, elicitation or rejection was delivered",
+      "serverCancellationConfirmed": false
+    },
+    "postflight": [
+      {
+        "observed_at": "2026-10-31 00:49:07.314614+00",
+        "business_auth_installed": false,
+        "music_installed": false,
+        "candidate_history": [
+          {
+            "name": "market_offer_response_serialization",
+            "version": "20261031001559",
+            "statements_md5": "f74d58c6ea6f79a4c9dfa980c38e91d6"
+          }
+        ],
+        "active_business_queries": 0
+      }
+    ]
+  },
+  "transportEvidence": {
+    "qaGetProject": "NotFoundException despite successful SQL, logs, advisors and small apply_migration",
+    "qaBranchStatus": "MIGRATIONS_FAILED",
+    "qaPreviewStatus": "ACTIVE_HEALTHY",
+    "officialMcpSourceCommit": "ed5084d1957541c5130f551d5f7e0fee5e3ddfeb",
+    "classifierUrl": "https://github.com/supabase/mcp/blob/ed5084d1957541c5130f551d5f7e0fee5e3ddfeb/packages/mcp-server-supabase/src/tools/destructive-sql.ts",
+    "classifierSha256": "e350da140fa468ed224fca628885cd6212a78aaf7cb7ae1ff4d8468c0ba52c46",
+    "toolUrl": "https://github.com/supabase/mcp/blob/ed5084d1957541c5130f551d5f7e0fee5e3ddfeb/packages/mcp-server-supabase/src/tools/database-operation-tools.ts",
+    "toolSha256": "50af8557251196298d95d3f00e7c1f3498bff1ed9eaade67cd4b149c8ed58197",
+    "retrievedAt": "2026-10-31T00:24:01Z",
+    "localClassifier": {
+      "offer": false,
+      "business": true,
+      "notificationPrimary": false,
+      "notificationDedup": false
+    },
+    "interpretation": "A missing destructive-SQL confirmation handoff is plausible but not proven. No form or approval rejection was received. Small non-destructive requests work; no conclusion that payload size alone is the cause.",
+    "bypassesUsed": false,
+    "authenticatedCliAvailable": false
+  },
+  "production": {
+    "changed": false,
+    "postgresVersion": "17.6",
+    "qaPostgresVersion": "17.11",
+    "mediaCutover": false
+  },
+  "limits": [
+    "No business/music installation success or dependent Edge deployment is claimed.",
+    "No licensed catalogue enabled.",
+    "No real offer response or message sent.",
+    "Provider-generated history versions differ from repository source timestamps; use name plus exact statement digest."
+  ]
+}

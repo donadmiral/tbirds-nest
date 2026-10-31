@@ -1,6 +1,7 @@
 // Mirrors src/services/storiesService.ts shapes and RPCs used by the viewer.
 import { createClient } from "@/lib/supabase/client";
 import { hydrateStoryMedia } from "@/lib/contentMedia";
+import { invalidateStoryNavigation, loadStoryNavigation } from './storyNavigation';
 
 export type CatchupUser = {
   user_id: string;
@@ -172,18 +173,13 @@ export async function markStoryViewed(storyId: string): Promise<void> {
   await supabase.rpc("mark_story_viewed", { p_story_id: storyId });
 }
 
-// Shared ring source: one cached catchup call powers every ringed avatar.
-let ringCache: { users: CatchupUser[]; at: number } | null = null;
-
 export async function getRingUsers(force = false): Promise<CatchupUser[]> {
-  if (!force && ringCache && Date.now() - ringCache.at < 60000) return ringCache.users;
-  const users = await getCatchupFeed(50);
-  ringCache = { users, at: Date.now() };
-  return users;
+  try { return (await loadStoryNavigation('all', force)).users; }
+  catch { return []; }
 }
 
 export function invalidateRings(): void {
-  ringCache = null;
+  invalidateStoryNavigation();
 }
 
 export const REACTION_EMOJIS = ["\u2764\uFE0F", "\uD83D\uDD25", "\uD83D\uDE02", "\uD83D\uDE2E", "\uD83D\uDE22", "\uD83D\uDC4F"];

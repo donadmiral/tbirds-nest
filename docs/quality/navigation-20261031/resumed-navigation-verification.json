@@ -1,0 +1,165 @@
+{
+  "recordedAt": "2026-10-31T02:27:34.522882+00:00",
+  "baseCommit": "6c3586a712e5dae7ca57517f1fb059e641e1f6f2",
+  "status": "Scoped recovered navigation and Profile changes verified; additional media-renewal session/metadata races repaired. Full native application CI remains separate.",
+  "sourceSha256": {
+    "src/screens/profile/ProfileScreen.tsx": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+    "src/services/profileContent.ts": "8bb0708d65f0b51c1bff66540d99f4f1858d2639d0864564725918ff07570894",
+    "src/hooks/useProfileMediaRefresh.ts": "abf91eb5a43af40b501950e9fcd498c284449752937a0a1d8deb8b0146efa984",
+    "tests/quality/profile-content-regressions.cjs": "3523648fd2d75fc102c4444c369fab83c87f4a3a475c084495ef65aa030f7be1",
+    "tests/quality/profile-media-renewal.cjs": "9897532d48ed7a4b6383f78115867e4b55350c171762e2abe8c41e4f775ce5b9",
+    "web/components/HomeFeed.tsx": "ebdd14c00a0b941bc393612a3a94de41117fae3aeb99f3f395fd4a551c52c4b7",
+    "web/components/StoryAvatar.tsx": "27686d08b6979b8ae023b5ae2c80b2e49ca8840da7fea9a028064cc25e017347",
+    "web/components/StoryRings.tsx": "2436b40469417b3731827fcff0f6bfa09bd5d2f363586c968818c0a1c76f852d",
+    "web/lib/homeFeedScroll.ts": "78f61dad205e11cb1a07e35ec578df64795fc6702c4ac365392538b5a5cabf8a",
+    "web/lib/stories.ts": "5414202b59980697215dc8ff81ab2c03f88ff141d88b2a0b6369b955aee12383",
+    "web/lib/storyNavigation.ts": "24e89ba161ec9f23db1c22849ee4e2be38eb251d1e485c006c47a469f67e77b4",
+    "web/tests/browser/social-backend.ts": "27d1bdcc8e83098c6e5a7e10277c34b201c55a2d184d915e294e0571d29adace",
+    "web/tests/browser/social-run.cjs": "cb6b1ae30b438c8688f8b34bbf3c3e631ba80e76a7b822f0537a41ef0eaca5f2",
+    "web/tests/browser/social-navigation.cjs": "a744df2acee1d1fedce4d0e00232bd93b963044ca81a9787f42cc95f0a7f315b",
+    "web/tests/story-navigation.cjs": "9cb915104a65283b5672e8789559cc5e07fa41ce01735e20cc7e30a2f8950727",
+    "web/tests/home-feed-scroll.cjs": "0a33116022634baa1a3207a21089a52778dbe0d375eb2fe782e2095fb7af3aa6",
+    "web/tests/story-controls-regressions.cjs": "4ebc2ba11479a5060c67dca61d67d5071297cb59651d32e5329539be1d380bdb",
+    "web/tests/scroll-memory-regressions.cjs": "929a55159ec6aa2e3a8eb374f712e309fedbd77f127f4203b7232f7a23f4b668"
+  },
+  "tests": [
+    {
+      "command": "env -u NODE_TEST_CONTEXT node tests/quality/profile-content-regressions.cjs",
+      "summary": {
+        "tests": 35,
+        "pass": 35,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "a106e8869a0461b4af005cf9e097d08bb2842f391f710bef4fee700a22b35e6e"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node tests/quality/profile-media-renewal.cjs",
+      "summary": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "e7b02a439cee9f298a9cd7a8964ecbcc46a053f88b887f264bb71b7b9d5ede81"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node web/tests/story-navigation.cjs",
+      "summary": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "9b14ea2c70db5fb6f6268e97e627057cba4924b39f06a8584193d088fd7cc1f5"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node web/tests/home-feed-scroll.cjs",
+      "summary": {
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "b4adc9e29c4e2c830ae4b8d829372510939c5476d4ae00c31a568aa5d0cab339"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node web/tests/story-controls-regressions.cjs",
+      "summary": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "02fab81fb6c54fec75681a2dbba863a7c089a583df9b785d6fd34016c2bb9fde"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node web/tests/scroll-memory-regressions.cjs",
+      "summary": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "a314eaec7a4af3d97bdc175c0a69c933188c8e60cd7f270dfae6a4db79643f00"
+    }
+  ],
+  "browser": {
+    "command": "PLATINUM_CHROMIUM=/tmp/platinum-gate-chrome/chrome-linux64/chrome PLATINUM_SOCIAL_ARTIFACTS=/tmp/platinum-resumed-navigation-browser node web/tests/browser/social-run.cjs",
+    "passed": 40,
+    "errors": 0,
+    "runtime": "153.0.8010.12",
+    "receipt": "resumed-public-web-browser.json",
+    "frames": "resumed-warm-navigation-frames.json",
+    "logSha256": "66e4bcf0e4a6c1453efd607e5b5f6fa6b5f44aca9aa25f3a179398bf13050c40",
+    "observations": [
+      {
+        "destination": "/home",
+        "firstDestinationFrameMs": 187.70000000298023,
+        "sampledFrames": 38,
+        "destinationFrames": 38,
+        "blankContentFrames": 0,
+        "expected": {
+          "posts": 16,
+          "top": 780
+        },
+        "maxFrameIntervalMs": 166.70000000000005
+      },
+      {
+        "destination": "/messages",
+        "firstDestinationFrameMs": 49.100000001490116,
+        "sampledFrames": 78,
+        "destinationFrames": 78,
+        "blankContentFrames": 0,
+        "expected": {
+          "messages": 34,
+          "top": 247,
+          "draft": "A warm navigation draft stays with this account.",
+          "query": "Jordan",
+          "detailsOpen": false
+        },
+        "maxFrameIntervalMs": 50
+      }
+    ]
+  },
+  "types": {
+    "web": {
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "native": {
+      "exitCode": 2,
+      "scope": "Whole native checkout",
+      "issue": "tests/native/MemoryCaptureFixtureScreen.tsx cleanup returned boolean. Assigned to native acceptance workstream; navigation files had no type errors.",
+      "logSha256": "bf47c5da4fef047b636f5dbd646d2b56160fed2da6f1d4d7b8a8dda53699d41a"
+    }
+  },
+  "lint": {
+    "native": {
+      "files": 3,
+      "errors": 0,
+      "warnings": 0,
+      "logSha256": "e422c12c0155637a4d8ee3214ae55b26341d6133238a081ece40dad1c0dc39b2"
+    },
+    "web": {
+      "files": 7,
+      "errors": 0,
+      "warnings": 0,
+      "logSha256": "1b970f0e86bcbad739cefcef8fc1cb042e66f4be0eadeaba7922adb51583a097"
+    }
+  },
+  "changes": [
+    "Recovered Home before-paint scroll restoration and fixed-height story strip are now exercised by held-refresh animation-frame tests.",
+    "Recovered story metadata cache is scoped to the current Auth session and reused by avatars/strip; current private-media authorization remains mandatory.",
+    "Recovered Profile focus preserves paged rows and tab offsets while revalidating authorization; pagination retains exact timestamp/ID cursor and uses bounded, cancellable reads.",
+    "Periodic Profile media renewal now uses the same pinned session/deadline/abort path as normal Profile reads, including immediate same-user A-to-B-to-A invalidation.",
+    "Renewal only replaces unchanged row objects, preventing late media responses from overwriting newer captions/counts that retained an identical expiry.",
+    "Blur cancels periodic media work, and old-session timers cannot dispatch fresh work or show errors in a new session."
+  ],
+  "limits": [
+    "Browser evidence runs actual components in a development Chromium fixture with synthetic Auth/database/media and Next navigation adapters. It does not measure live Next routing, production JS, hosted network or physical-device speed.",
+    "Frame probes inspect animation-frame content layout/paintability and scroll. They do not measure GPU rendering or establish a universal latency SLA.",
+    "Native tests compile production service/hook and screen callbacks with controlled transport. Full bundled iPhone/Android acceptance remains a separate CI gate.",
+    "Source hashes bind this scoped working-tree candidate; other workstreams changed different files concurrently."
+  ]
+}

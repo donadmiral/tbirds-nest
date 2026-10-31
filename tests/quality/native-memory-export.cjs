@@ -144,6 +144,13 @@ test('pre-aborted exports and unavailable builds never invoke native encoding', 
   const f = bridgeFixture(), controller = new AbortController(); controller.abort(); await assert.rejects(f.composeMemoryMovie(request(), controller.signal), /cancelled/); assert.equal(f.calls.length, 0);
   const old = bridgeFixture('android', 0); await assert.rejects(old.composeMemoryMovie(request()), /new Android build/); assert.equal(old.calls.length, 0);
 });
+test('unimplemented animated native artwork cannot silently export as a static layer', async () => {
+  const f = bridgeFixture(), value = request();
+  value.scenes[0].layers = [{ uri: 'file:///cache/sticker.png', start: 0, end: 2,
+    animation: { version: 1, frames: [{ time: 0, opacity: 0 }, { time: 1, opacity: 1 }] } }];
+  await assert.rejects(f.composeMemoryMovie(value), /artwork or audio layer/);
+  assert.equal(f.calls.length, 0);
+});
 
 function pipelineFixture() {
   const system = fileSystem(), controller = new AbortController(), events = [], stopped = { value: false };

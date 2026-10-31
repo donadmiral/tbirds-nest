@@ -1,0 +1,47 @@
+{
+  "checked_at": "2026-10-31",
+  "head": "8742d3a43e54e0b8518cec308604289d089364cd",
+  "tested_commit": "34988df5f3b7e431836f1067aa72cd59c338dc39",
+  "workflow_run": 41155341785,
+  "job": 124401001983,
+  "artifact": {
+    "id": 13026127669,
+    "bytes": 12412801,
+    "sha256": "919752e01d94f08d7b2e0882ac4bfe7fcbdf44c8d3a1e0a7a84cc8edd76633b8"
+  },
+  "observed": {
+    "full_release_simulator_build": "BUILD SUCCEEDED",
+    "app_launched": true,
+    "credentials_entered": true,
+    "authentication_requests": 0,
+    "failed_command": "hideKeyboard after password entry",
+    "failure": "Could not hide the standard iOS keyboard; no standard dismiss action was exposed.",
+    "actual_header_accessibility_label": "Platinum Circles",
+    "header_bounds": [
+      78,
+      250,
+      314,
+      275
+    ],
+    "keyboard_go_key_bounds": [
+      295,
+      730,
+      393,
+      776
+    ],
+    "provider_forwarded": false,
+    "old_health_fixture_missing": true
+  },
+  "repair": {
+    "file": "tests/native/flows/navigation.yaml",
+    "sha256": "67e30cc7af95d422bbbd1f94ba7c1ed899ae0ea82718a9af0b6d72f8e339f9b3",
+    "behavior": "Keep Android hideKeyboard after both fields. On iOS tap the visible noninteractive branded header after the password so the actual ScrollView dismisses its keyboard, then tap the actual Sign in button.",
+    "production_source_changed": false,
+    "health_contract": "Already repaired in 6c3586a7; no duplicate source edit."
+  },
+  "limits": [
+    "This failed run proves full app compilation and launch, not successful authentication/navigation.",
+    "The narrow platform-specific automation repair still requires the next full-app UI run.",
+    "No provider, physical-device or production-memory capability activation is inferred."
+  ]
+}

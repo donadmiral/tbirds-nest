@@ -1,0 +1,601 @@
+{
+  "version": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "original": {
+    "path": "supabase/migrations/20261030034752_business_bound_auth_sessions.sql",
+    "bytes": 33277,
+    "sha256": "66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996"
+  },
+  "classifier": {
+    "source": "https://github.com/supabase-community/supabase-mcp/blob/ed5084d1957541c5130f551d5f7e0fee5e3ddfeb/packages/mcp-server-supabase/src/tools/destructive-sql.ts",
+    "sha256": "e350da140fa468ed224fca628885cd6212a78aaf7cb7ae1ff4d8468c0ba52c46",
+    "scope": "Exact official source executed; classification is retained, not proof of approval or of the remote stall cause."
+  },
+  "generatedBy": "supabase/tests/rpc-authorization/build-business-auth-staged.mjs",
+  "baselineFingerprint": "4a259eee35ddc7a875ccd187e30fa3a6",
+  "stages": [
+    {
+      "number": 1,
+      "name": "foundation",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/01_foundation.sql",
+      "bytes": 6695,
+      "sha256": "8e53627216124cd336563e21d82ef4404fad62a39ef3a8dcf99946964e3b936c",
+      "requiresDestructiveConfirmation": false,
+      "originalStatementIndices": [
+        3,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "expectedBeforeFingerprint": null,
+      "expectedAfterFingerprint": "19066ba1115e91e5c52b9ba6d0055641",
+      "publicActivation": false
+    },
+    {
+      "number": 2,
+      "name": "private_guards",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/02_private_guards.sql",
+      "bytes": 9598,
+      "sha256": "c1ed268feafd07571eca37c6fe6b52cbc996bce4ad750decc27c6615cf945c7c",
+      "requiresDestructiveConfirmation": false,
+      "originalStatementIndices": [
+        21,
+        22,
+        23,
+        24,
+        25,
+        27
+      ],
+      "expectedBeforeFingerprint": "19066ba1115e91e5c52b9ba6d0055641",
+      "expectedAfterFingerprint": "756c75d5c5ce2659a65ee4632d4edab4",
+      "publicActivation": false
+    },
+    {
+      "number": 3,
+      "name": "private_member_signin",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/03_private_member_signin.sql",
+      "bytes": 10066,
+      "sha256": "ea53bf7724232fb2cae762c122d7837294e63ec2ef93581e3ca15be90db3b847",
+      "requiresDestructiveConfirmation": true,
+      "originalStatementIndices": [
+        28,
+        29
+      ],
+      "expectedBeforeFingerprint": "756c75d5c5ce2659a65ee4632d4edab4",
+      "expectedAfterFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+      "publicActivation": false
+    },
+    {
+      "number": 4,
+      "name": "private_owner_access",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/04_private_owner_access.sql",
+      "bytes": 9577,
+      "sha256": "f463251cb3d5eee7ca9afa0ae19affcce385f84836f742980524e6eaad169a0b",
+      "requiresDestructiveConfirmation": false,
+      "originalStatementIndices": [
+        30
+      ],
+      "expectedBeforeFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+      "expectedAfterFingerprint": "3718506a7cf16a513514502dbf370f89",
+      "publicActivation": false
+    },
+    {
+      "number": 5,
+      "name": "private_finish_signin",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/05_private_finish_signin.sql",
+      "bytes": 10346,
+      "sha256": "d2c8fef4066a9c0c1812d4cc57973cb5dade14065feccc2432cd925305be883e",
+      "requiresDestructiveConfirmation": false,
+      "originalStatementIndices": [
+        31
+      ],
+      "expectedBeforeFingerprint": "3718506a7cf16a513514502dbf370f89",
+      "expectedAfterFingerprint": "1eb5ad671173842667ced9e052f232bd",
+      "publicActivation": false
+    },
+    {
+      "number": 6,
+      "name": "private_revocation",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/06_private_revocation.sql",
+      "bytes": 8926,
+      "sha256": "b74f20d93180a25a09f32bbfa29ff25d6d57444827eefbcf87687ed6fe3c3b91",
+      "requiresDestructiveConfirmation": true,
+      "originalStatementIndices": [
+        32,
+        33,
+        35,
+        37,
+        39
+      ],
+      "expectedBeforeFingerprint": "1eb5ad671173842667ced9e052f232bd",
+      "expectedAfterFingerprint": "070a20dc374c50741b19573e21822048",
+      "publicActivation": false
+    },
+    {
+      "number": 7,
+      "name": "activate",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/07_activate.sql",
+      "bytes": 11986,
+      "sha256": "3072742fd0cca8555c3369cbf2555971e68a3882782b6a3e3087bc7340e0f704",
+      "requiresDestructiveConfirmation": false,
+      "originalStatementIndices": [
+        26,
+        34,
+        36,
+        38,
+        40,
+        7,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "expectedBeforeFingerprint": "070a20dc374c50741b19573e21822048",
+      "expectedAfterFingerprint": "172a1c1313c6c68356021c15a82bf869",
+      "publicActivation": true,
+      "locks": [
+        "public.profiles SHARE ROW EXCLUSIVE",
+        "auth.sessions SHARE ROW EXCLUSIVE"
+      ]
+    }
+  ],
+  "originalStatements": [
+    {
+      "index": 0,
+      "bytes": 225,
+      "sha256": "b56d3fe323a04a24be1fdf105c5ed1121e62830508aa5f177d8fca313ec14703",
+      "firstLine": "begin;",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 1,
+      "bytes": 29,
+      "sha256": "e252fc950ea4b9ba834119a59b8238a3e74ad15d7acb0dfe925de85c8b578cfa",
+      "firstLine": "set local lock_timeout='3s';",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 2,
+      "bytes": 35,
+      "sha256": "a22280d3d142f36479d5c4b438bb13ab550a5b06434dd6f7a4c444f15e33e0b4",
+      "firstLine": "set local statement_timeout='60s';",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 3,
+      "bytes": 2292,
+      "sha256": "25fd8b65b2ba7e61c2738f2038d88368960716a7291b41aa27ca5be036f8ae06",
+      "firstLine": "do $preflight$",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 4,
+      "bytes": 30,
+      "sha256": "36e233bf18a0a9d3dc548b18d4d8339a2b2a59a27b5990a387c61eab9a6a340f",
+      "firstLine": "create schema business_auth;",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 5,
+      "bytes": 80,
+      "sha256": "26df79e872d9adba35c1e9faae7cd881a6452c46a2fcf3118dda751417b450d7",
+      "firstLine": "revoke all on schema business_auth from public,anon,authenticated,service_role;",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 6,
+      "bytes": 161,
+      "sha256": "df846808b3681596248a8f029d68583116b08f188d39f0e06cb21209662f4f4b",
+      "firstLine": "create table business_auth.accounts (",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 7,
+      "bytes": 269,
+      "sha256": "f9a87400ce82d59100b7d30f6881c873de4d8cf2893ae42ffb8e6b939a1fe5c4",
+      "firstLine": "insert into business_auth.accounts(business_id) select id from public.profiles where account_type='business';",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 8,
+      "bytes": 323,
+      "sha256": "028c251d0f6e19e59d7641c0f7d1ee8ed5542417524623c832cb02ee9e707b95",
+      "firstLine": "create table business_auth.owner_seats (",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 9,
+      "bytes": 278,
+      "sha256": "a2a00fd032ef37636de10b39dac31ecc98e614e7e47f7f9de9ef72e9c4b2fdb7",
+      "firstLine": "create table business_auth.device_keys (",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 10,
+      "bytes": 699,
+      "sha256": "05379157d1ed1c88f31a607e29ed82a2035d5d05c4fedc27608583881e978b94",
+      "firstLine": "create table business_auth.grants (",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 11,
+      "bytes": 73,
+      "sha256": "7632e2a1b51a509a3254cf1cb5b74a4116cd142a347766f117556600e9090b56",
+      "firstLine": "create index business_grants_expiry on business_auth.grants(expires_at);",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 12,
+      "bytes": 603,
+      "sha256": "de93b396cd52110a70b62eaad67a0cd1ae5caa101aa028763d7c000eeb312806",
+      "firstLine": "create table business_auth.sessions (",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 13,
+      "bytes": 76,
+      "sha256": "e7b298dc25c1ad16f62fdeacb4ba6deed2f7706f254fef62eb9e50a1b4b1bf54",
+      "firstLine": "create index business_sessions_member on business_auth.sessions(member_id);",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 14,
+      "bytes": 76,
+      "sha256": "7e0a87e76647cccff4f2ecddda2375e0e4320d51a1ed67e498768dc738613baa",
+      "firstLine": "create index business_sessions_device on business_auth.sessions(device_id);",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 15,
+      "bytes": 90,
+      "sha256": "65e1ad1ae6ab349a7ff98a9c517287640a659135e2928f929a275c4ec85d17ac",
+      "firstLine": "create index business_sessions_principal on business_auth.sessions(principal_session_id);",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 16,
+      "bytes": 80,
+      "sha256": "aff6a9fc74538e517d8c6240af942ac7c2d620f2dd00ecfcb9fbf121eb284c2f",
+      "firstLine": "create index business_sessions_business on business_auth.sessions(business_id);",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 17,
+      "bytes": 149,
+      "sha256": "b7ec31a918e0491601654ae1ca32ca2e9a38abad0344dbba8340dc6c3e31df4c",
+      "firstLine": "create table business_auth.attempts (",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 18,
+      "bytes": 256,
+      "sha256": "3d65e87b36f777952dcaf1aa55bd010560383cdc60c1ecdfb5d19f212f173b35",
+      "firstLine": "create table business_auth.events (",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 19,
+      "bytes": 100,
+      "sha256": "a22383cfa64aaee05c3042df9efc64c1f086aba4d84f6d5d06c91cd0af69c3f4",
+      "firstLine": "create index business_auth_events_business on business_auth.events(business_id,created_at desc,id);",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 20,
+      "bytes": 342,
+      "sha256": "99b8ad419534ce4e283193b58743dff3c2006ed77a7873da04c757a595e748b6",
+      "firstLine": "do $private$",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 21,
+      "bytes": 809,
+      "sha256": "1067522200350d656bf509ee262c9ed1eb5857d4062ff31546b1e1c0e468f0a4",
+      "firstLine": "create function business_auth.owner_allowed(p_user uuid,p_session uuid,p_business uuid) returns boolean",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 22,
+      "bytes": 1370,
+      "sha256": "9ad14f920dc0f7adc59324b30cd31f49452d0751966af4f135f91221661c646e",
+      "firstLine": "create function business_auth.session_allowed(p_user uuid,p_session uuid) returns boolean",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 23,
+      "bytes": 554,
+      "sha256": "99bac6c243861e4fcf5ad1b9677caf137494efd5bece5b7fc760da57d532eca1",
+      "firstLine": "create function public.business_session_allowed() returns boolean",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": "business_auth.business_session_allowed()"
+    },
+    {
+      "index": 24,
+      "bytes": 302,
+      "sha256": "cc740c996213f9282dcb04a408441cd9f9503c0dce94e540f5f8f9828a65378c",
+      "firstLine": "create function public.business_auth_request_guard() returns void",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": "business_auth.business_auth_request_guard()"
+    },
+    {
+      "index": 25,
+      "bytes": 283,
+      "sha256": "77dcaada61375f8328371537dbef1b7050d620f74b54303700bab664e61a968e",
+      "firstLine": "create function business_auth.register_account() returns trigger",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 26,
+      "bytes": 169,
+      "sha256": "3f54ed53d78dac5f51622075850573d6b9e5705286a856f6b27801e448112dba",
+      "firstLine": "create trigger business_auth_register_account after insert or update of account_type on public.profiles",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 27,
+      "bytes": 740,
+      "sha256": "c16495b84702ab218dd1c321cdc0efd02517533410d5d3797c7e2c794a9d68c7",
+      "firstLine": "create function business_auth.rate_limit(p_scope text,p_limit integer) returns boolean",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 28,
+      "bytes": 2172,
+      "sha256": "4d3f07428a10fe2ce114f92c5109642be7483dcedd6b25af20ed35a27eb5d774",
+      "firstLine": "create function business_auth.device(p_business uuid,p_device text,p_proof text,p_label text,p_bootstrap boolean default false) returns jsonb",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 29,
+      "bytes": 2361,
+      "sha256": "04db97d14479b096a158eabf841d5bcb81469dd81c2c6d36a4076c1de09ffe24",
+      "firstLine": "create function public.triniti_business_signin_check(p_handle text,p_code_hash text,p_device text,p_proof_hash text,p_label text) returns jsonb",
+      "requiresDestructiveConfirmation": true,
+      "stagedPrivateSignature": "business_auth.triniti_business_signin_check(text,text,text,text,text)"
+    },
+    {
+      "index": 30,
+      "bytes": 4044,
+      "sha256": "d6372f27c67cc7e544c2c37ce0aeb06063c26dbdca23b02d714fb1e910371fd5",
+      "firstLine": "create function public.triniti_business_owner_access(p_user_id uuid,p_session_id uuid,p_application_id uuid,p_device text,p_proof_hash text,p_label text,p_bootstrap_owner boolean default false,p_business_id uuid default null) returns jsonb",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": "business_auth.triniti_business_owner_access(uuid,uuid,uuid,text,text,text,boolean,uuid)"
+    },
+    {
+      "index": 31,
+      "bytes": 4813,
+      "sha256": "8a035bcc1b7a607c17a527c87501e4258853431c7912ee3a110a6aaa76a90f43",
+      "firstLine": "create function public.triniti_business_finish_signin(p_grant_id uuid,p_business_id uuid,p_session_id uuid,p_proof_hash text) returns jsonb",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": "business_auth.triniti_business_finish_signin(uuid,uuid,uuid,text)"
+    },
+    {
+      "index": 32,
+      "bytes": 1007,
+      "sha256": "59d0d42585465e204cedb74b18605b84840f9dbbd3b6482c3633e6758a378681",
+      "firstLine": "create function public.triniti_business_cancel_signin(p_grant_id uuid,p_business_id uuid,p_session_id uuid) returns boolean",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": "business_auth.triniti_business_cancel_signin(uuid,uuid,uuid)"
+    },
+    {
+      "index": 33,
+      "bytes": 516,
+      "sha256": "408fbb4aea7ec83922abf2909f0e370c40da0da205ef32174b32a9a36895b8b2",
+      "firstLine": "create function business_auth.revoke_member_sessions() returns trigger",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 34,
+      "bytes": 192,
+      "sha256": "08f7aae9dc9dcf09397ec3e5e67986a2ac16fc8b2adfba6056abde8e796d83ab",
+      "firstLine": "create trigger business_auth_revoke_member before delete or update of active,code_hash on public.business_access_members",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 35,
+      "bytes": 669,
+      "sha256": "aa29c4436c059fa6efefa6bc381ab84c7c3868ba9c71d815f189ade3712996c0",
+      "firstLine": "create function business_auth.revoke_device_sessions() returns trigger",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 36,
+      "bytes": 175,
+      "sha256": "c882369ceaa071575fe09c115468ec20da13585e5341d1ffed28ad4b5a30ac06",
+      "firstLine": "create trigger business_auth_revoke_device before delete or update of status on public.business_devices",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 37,
+      "bytes": 833,
+      "sha256": "fbe83b1a7c60a59fe055f2f0c822fb301dece9fce20adecb842f52122945ce7f",
+      "firstLine": "create function business_auth.revoke_owner_sessions() returns trigger",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 38,
+      "bytes": 163,
+      "sha256": "257e8a1be86667ecb4f3f895b73ee875a8449d33ff8f23d02825bce4d06df108",
+      "firstLine": "create trigger business_auth_revoke_owner before delete or update on public.business_members",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 39,
+      "bytes": 368,
+      "sha256": "1f1a2faab9053e52d6f1e830803deb507abe38a3f08483ddf89c4e6d84f35cb7",
+      "firstLine": "create function business_auth.cleanup_session() returns trigger",
+      "requiresDestructiveConfirmation": true,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 40,
+      "bytes": 139,
+      "sha256": "264aa4da9671fcc88a8d734824ad11e2756ad75aa63d555379d3720dc5ccf460",
+      "firstLine": "create trigger business_auth_cleanup_session before delete on auth.sessions for each row execute function business_auth.cleanup_session();",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 41,
+      "bytes": 287,
+      "sha256": "8b1622d5e7d6684ab7d1562a6c743407bfc3063179d3cd4409ceb63fd0fb1f99",
+      "firstLine": "revoke all on function public.business_session_allowed(),public.business_auth_request_guard() from public,anon,authenticated,service_role;",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 42,
+      "bytes": 133,
+      "sha256": "e8889cd107cf95171e1088950e6c3f08da001dcc0ef7a5458e1f9cb9b882e5cc",
+      "firstLine": "grant execute on function public.business_session_allowed(),public.business_auth_request_guard() to anon,authenticated,service_role;",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 43,
+      "bytes": 549,
+      "sha256": "4eaacc89535ea2e37edbdf03d8d0a48cd189781ac171ecc11d258f84b6f11fed",
+      "firstLine": "do $rls$",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 44,
+      "bytes": 88,
+      "sha256": "505c016e7a00b9f17ce5a3b258524e08baee0ab9fe243017c1dbd8ea69817cc0",
+      "firstLine": "alter role authenticator set pgrst.db_pre_request='public.business_auth_request_guard';",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 45,
+      "bytes": 2772,
+      "sha256": "912c86c6853c3f64bbafc88b98e926f14789cf12405df358a2ea779384e46962",
+      "firstLine": "do $existing_functions$",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 46,
+      "bytes": 832,
+      "sha256": "f62e17543cc34d587f1212ba33c07bb7fc82db02047056e518edd6c7e5fc2002",
+      "firstLine": "create or replace function public.studio_bind_member(p_code text) returns jsonb",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 47,
+      "bytes": 97,
+      "sha256": "dac4678196fd14afbe64eebcfa0bd34ae673816e669e16ef54c543b6d359c893",
+      "firstLine": "revoke all on all functions in schema business_auth from public,anon,authenticated,service_role;",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 48,
+      "bytes": 505,
+      "sha256": "82cb88eade1fdc56aa22ffe1bd984eb50ec4f270f4763bcc91266756396764e5",
+      "firstLine": "do $service_grants$",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 49,
+      "bytes": 30,
+      "sha256": "28aab143b6a432fd2afe62d6f2a4f5992b0ca747981209b1ffd02c1f1cee629c",
+      "firstLine": "notify pgrst,'reload schema';",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 50,
+      "bytes": 30,
+      "sha256": "cacbf1fcaf4076c0c489b348002dec8196523618cf6eebb8e703d50b9159060d",
+      "firstLine": "notify pgrst,'reload config';",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    },
+    {
+      "index": 51,
+      "bytes": 8,
+      "sha256": "dcf65a4aff5900d6a93f2ecbd4d5dc5a5bcee2b4f68b358ad111e1820abb3cbe",
+      "firstLine": "commit;",
+      "requiresDestructiveConfirmation": false,
+      "stagedPrivateSignature": null
+    }
+  ],
+  "transactionBoundaries": {
+    "originalIndices": [
+      0,
+      1,
+      2,
+      51
+    ],
+    "change": "BEGIN/SET LOCAL timeouts/COMMIT are regenerated for each transaction, with an explicit pg_catalog deparser search path. Original substantive statements3–50 are mapped once; six CREATE headers move temporarily to the private schema."
+  },
+  "localEquivalence": {
+    "catalogEqual": true,
+    "seededAccountIdsEqual": true,
+    "allOriginalSubstantiveStatementsMappedOnce": true,
+    "newPublicFunctionsRemainPrivateUntilActivation": true,
+    "additionalPersistentObjects": false
+  },
+  "limits": [
+    "No hosted installation is asserted by this generated candidate.",
+    "Approval-classified units must retain the provider confirmation path.",
+    "The final atomic unit is larger because splitting its activation would change live authorization behavior.",
+    "Final policy enumeration depends on the current eligible hosted tables; independent postflight must check complete coverage and exact policy definitions."
+  ]
+}

@@ -27,6 +27,8 @@ cleanup() {
       "$adb_bin" pull /sdcard/platinum-navigation.mp4 native-ui-logs/navigation.mp4 >/dev/null 2>&1 || true
     fi
     "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt-final.json 2>/dev/null || true
+    mkdir -p native-ui-logs/memory-capture
+    "$adb_bin" pull /data/user/0/app.platinumcircles.mobile.qa/files/native-memory-capture/. native-ui-logs/memory-capture/ >/dev/null 2>&1 || true
     timeout 10 "$adb_bin" emu kill >/dev/null 2>&1 || true
     kill "$emulator_pid" >/dev/null 2>&1 || true
     wait "$emulator_pid" >/dev/null 2>&1 || true
@@ -99,4 +101,7 @@ maestro --device "$ANDROID_SERIAL" test --format junit --output native-ui-logs/m
   --debug-output native-ui-logs/maestro --test-output-dir native-ui-logs/maestro \
   tests/native/flows/navigation.yaml 2>&1 | tee native-ui-logs/maestro.log
 "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt.json
+mkdir -p native-ui-logs/memory-capture
+"$adb_bin" pull /data/user/0/app.platinumcircles.mobile.qa/files/native-memory-capture/. native-ui-logs/memory-capture/
+python3 scripts/quality/verify-native-ui-memory.py
 node scripts/quality/verify-native-ui.cjs android

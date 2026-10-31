@@ -3,7 +3,7 @@ import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { Image as ExpoImage } from 'expo-image';
 import { TapTopFlatList } from '../../components/TapTopList';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
@@ -15,6 +15,14 @@ import { useActorStore } from '../../stores/actorStore';
 import { jobsService, Job, JobCategory, JobApplication, JobRecommendation, ApplicationStatus, JobScope, JOB_POSTING_ACCOUNT_MESSAGE, STATUS_META as APPLICATION_STATUS_META } from '../../services/jobsService';
 import { useAuthStore } from '../../stores/authStore';
 import { navigationCache, navigationScope } from '../../lib/navigationCache';
+
+type JobsSnapshot = [Job[], string[], Record<string, ApplicationStatus>, JobApplication[]];
+
+function posterLogosFor(jobs: Job[]): Record<string, string> {
+  const logos: Record<string, string> = {};
+  jobs.forEach(job => { if (job.profile?.avatar_url) logos[job.posted_by] = job.profile.avatar_url; });
+  return logos;
+}
 
 const CATEGORY_TABS = [
   { id: 'all', label: 'All Jobs', emoji: '💼' },
@@ -96,12 +104,13 @@ export default function JobsScreen({ navigation }: any) {
   const postingActorId = useActorStore(state => state.currentActor()?.actor_id ?? userId);
   const delegatedJobActor = !!postingActorId && postingActorId !== userId;
 
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [posterLogos, setPosterLogos] = useState<Record<string, string>>({});
-  const [myApplications, setMyApplications] = useState<JobApplication[]>([]);
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
-  const [appliedMap, setAppliedMap] = useState<Record<string, ApplicationStatus>>({});
-  const [loading, setLoading] = useState(true);
+  const [initialJobs] = useState(() => navigationCache.read<JobsSnapshot>(navigationScope(), 'jobs:all:recent'));
+  const [jobs, setJobs] = useState<Job[]>(initialJobs?.[0] ?? []);
+  const [posterLogos, setPosterLogos] = useState<Record<string, string>>(() => posterLogosFor(initialJobs?.[0] ?? []));
+  const [myApplications, setMyApplications] = useState<JobApplication[]>(initialJobs?.[3] ?? []);
+  const [savedIds, setSavedIds] = useState<Set<string>>(() => new Set(initialJobs?.[1] ?? []));
+  const [appliedMap, setAppliedMap] = useState<Record<string, ApplicationStatus>>(initialJobs?.[2] ?? {});
+  const [loading, setLoading] = useState(initialJobs === null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -144,11 +153,35 @@ export default function JobsScreen({ navigation }: any) {
 
   const [busyMap, setBusyMap] = useState<Record<string, boolean>>({});
   const loadGeneration = useRef(0);
-  const loadedListKey = useRef<string | null>(null);
+  const loadedListKey = useRef<string | null>(initialJobs ? 'jobs:all:recent' : null);
   const pendingSaves = useRef(new Set<string>());
   const pendingDeletes = useRef(new Set<string>());
   const setBusy = (k: string, v: boolean) =>
     setBusyMap(p => { const n = {...p}; if(v) n[k]=true; else delete n[k]; return n; });
+
+  const publishJobs = useCallback(([fetchedJobs, savedJobIds, appMap, apps]: JobsSnapshot) => {
+    setJobs(fetchedJobs);
+    setPosterLogos(posterLogosFor(fetchedJobs));
+    setSavedIds(previous => {
+      const next = new Set(savedJobIds);
+      // Background reads retain an optimistic save until it is confirmed.
+      pendingSaves.current.forEach(id => { if (previous.has(id)) next.add(id); else next.delete(id); });
+      return next;
+    });
+    setAppliedMap(appMap); setMyApplications(apps);
+  }, []);
+
+  useLayoutEffect(() => {
+    const key = `jobs:${scopeMode}:${sortBy}`;
+    if (loadedListKey.current === key) return;
+    ++loadGeneration.current;
+    const cached = navigationCache.read<JobsSnapshot>(navigationScope(), key);
+    // A revisited filter can publish before paint while its refresh runs.
+    // No previous filter's rows are relabeled as the incoming selection.
+    publishJobs(cached ?? [[], [], {}, []]);
+    loadedListKey.current = cached ? key : null;
+    setLoading(cached === null); setLoadError(null);
+  }, [scopeMode, sortBy, publishJobs]);
 
   const loadAll = useCallback(async (showLoader = true) => {
     const token = ++loadGeneration.current;
@@ -167,7 +200,7 @@ export default function JobsScreen({ navigation }: any) {
       // Returning to the same list refreshes in place, including a loaded
       // empty list. Keep the mounted list and its scroll position intact.
       if (showLoader && loadedListKey.current !== key) setLoading(true);
-      const [fetchedJobs, savedJobIds, appMap, apps] = await navigationCache.load(scope, key, async signal => {
+      const snapshot = await navigationCache.load<JobsSnapshot>(scope, key, async signal => {
         const options = { signal, accessToken: session.access_token };
         return Promise.all([
           jobsService.getJobs({ sortBy, scope: scopeMode, userId, ...options }),
@@ -178,24 +211,13 @@ export default function JobsScreen({ navigation }: any) {
       });
       if (!current()) return;
       loadedListKey.current = key;
-      setJobs(fetchedJobs);
-      const logos: Record<string, string> = {};
-      fetchedJobs.forEach(j => { if (j.profile?.avatar_url) logos[j.posted_by] = j.profile.avatar_url; });
-      setPosterLogos(logos);
-      setSavedIds(previous => {
-        const next = new Set(savedJobIds);
-        // A background read cannot erase an optimistic save still in flight.
-        pendingSaves.current.forEach(id => { if (previous.has(id)) next.add(id); else next.delete(id); });
-        return next;
-      });
-      setAppliedMap(appMap);
-      setMyApplications(apps);
+      publishJobs(snapshot);
     } catch (e: any) {
       if (current()) setLoadError(e?.message || 'Could not load jobs. Check your connection and try again.');
     } finally {
       if (current()) { setLoading(false); setRefreshing(false); }
     }
-  }, [userId, sortBy, scopeMode]);
+  }, [userId, sortBy, scopeMode, publishJobs]);
 
   useFocusEffect(useCallback(() => {
     void loadAll(true);

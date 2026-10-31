@@ -2,19 +2,18 @@ import type { createHomeFeedController, FeedScrollRestore } from './homeFeedCont
 
 type Controller = Pick<ReturnType<typeof createHomeFeedController>, 'getSnapshot' | 'finishScrollRestore'>;
 
-/** A mode-click restoration, never an initial-mount or route-return restoration. */
+/** Restore a cached mode or route before paint when its retained layout is ready. */
 export function restoreHomeFeedScroll(controller: Controller, element: () => HTMLElement | null, request: FeedScrollRestore) {
   const href = window.location.href;
   const started = performance.now();
   let active = true, readyAt: number | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
-  let frame = 0, observedTop = window.scrollY;
+  let observedTop = window.scrollY;
   const maxTop = () => Math.max(0, Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight ?? 0) - window.innerHeight);
   const finish = () => {
     if (!active) return;
     active = false;
     if (timer !== undefined) clearTimeout(timer);
-    cancelAnimationFrame(frame);
     intentEvents.forEach(name => window.removeEventListener(name, finish, true));
     window.removeEventListener('scroll', onScroll);
     window.removeEventListener('popstate', finish);
@@ -57,6 +56,8 @@ export function restoreHomeFeedScroll(controller: Controller, element: () => HTM
     }
     timer = setTimeout(tick, 100);
   };
-  frame = requestAnimationFrame(tick);
+  // The caller runs in a layout effect. A ready retained view must not paint at
+  // the route's default offset first; only incomplete media height needs a retry.
+  tick();
   return finish;
 }

@@ -1,7 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createClient } = require('@supabase/supabase-js');
-const { createFixture, FixtureWebSocket, OWNER } = require('../native/backend-fixture.cjs');
+const { createFixture, FixtureWebSocket, OWNER, PEER } = require('../native/backend-fixture.cjs');
+const { BOOK, NAVIGATION_BOOK } = require('../native/memory-fixture.cjs');
 const origin = 'https://uaulhuelcfkjwojtymmw.supabase.co';
 
 test('fixture installation initializes the real WHATWG types behind React Native lazy fetch before overriding it', async () => {
@@ -94,4 +95,66 @@ test('the isolated socket completes actual Phoenix join/heartbeat messages witho
   assert.deepEqual(await response, [null, '1', 'realtime:feed', 'phx_reply', { status: 'ok', response: { postgres_changes: [] } }]);
   socket.close();
   assert.equal(socket.readyState, FixtureWebSocket.CLOSED);
+});
+
+test('native book fixtures persist a revisioned owner edit through actual Supabase adapters and a fresh shelf/read', async () => {
+  const fixture = createFixture();
+  const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: fixture.fetch },
+  });
+  await client.auth.signInWithPassword({ email: 'qa.alex@example.invalid', password: 'FixtureOnly-2026!' });
+  const shelf = await client.rpc('get_memory_albums', { p_owner: OWNER });
+  assert.equal(shelf.error, null); assert.equal(shelf.data.is_owner, true);
+  assert.deepEqual(shelf.data.books.map(book => book.id), [NAVIGATION_BOOK]);
+  assert.equal(shelf.data.books[0].pages, undefined, 'the shelf returns a summary, not private page payloads');
+  const { data: book } = await client.rpc('get_memory_book', { p_album: NAVIGATION_BOOK });
+  assert.equal(book.presentation_revision, 0); assert.equal(book.pages.length, 2);
+  assert.ok(book.pages.every(page => page.media_type === 'text' && page.media_url === null));
+  assert.deepEqual((await client.rpc('get_memory_book_creative_capabilities')).data, { version: 1, supported: true });
+  const args = { p_album: NAVIGATION_BOOK, p_expected_revision: 0, p_audience: 'only_me', p_title: 'THE LONG WAY HOME',
+    p_subtitle: book.subtitle, p_cover_color: 'sage', p_cover_design: 'postcard', p_cover_story_id: null,
+    p_cover_artwork: { ...book.cover_artwork, inscription: 'Roads worth remembering', inscriptionStyle: 'sans', postmark: 'DESERT DAYS' },
+    p_film_settings: { ...book.film_settings, style: 'cinematic' } };
+  const badArtwork = await client.rpc('save_memory_book_creative_presentation', { ...args,
+    p_cover_artwork: { ...args.p_cover_artwork, photoUrl: 'https://foreign.example/private' } });
+  assert.equal(badArtwork.status, 400); assert.equal(fixture.receipt.mutations.length, 0);
+  const save = await client.rpc('save_memory_book_creative_presentation', args);
+  assert.equal(save.error, null); assert.equal(save.data.presentation_revision, 1);
+  const stale = await client.rpc('save_memory_book_creative_presentation', args);
+  assert.equal(stale.status, 409); assert.equal(stale.error.message, 'MEMORY_BOOK_CHANGED');
+  assert.equal(fixture.receipt.mutations.length, 1);
+  const fresh = await client.rpc('get_memory_book', { p_album: NAVIGATION_BOOK });
+  assert.equal(fresh.data.title, 'THE LONG WAY HOME'); assert.equal(fresh.data.presentation_revision, 1);
+  assert.deepEqual(fresh.data.cover_artwork, args.p_cover_artwork); assert.deepEqual(fresh.data.film_settings, args.p_film_settings);
+  assert.equal((await client.rpc('get_memory_albums', { p_owner: OWNER })).data.books[0].title, 'THE LONG WAY HOME');
+  const capture = await client.rpc('get_memory_book', { p_album: BOOK });
+  assert.equal(capture.data.title, 'THE CAPTURED MOMENTS'); assert.equal(capture.data.presentation_revision, 0);
+  assert.equal(fixture.receipt.bookReads[0].revision, 0); assert.equal(fixture.receipt.bookReads[0].title, 'THE SMALL ADVENTURES');
+  assert.equal(fixture.receipt.bookReads.at(-1).revision, 1);
+  assert.equal(fixture.receipt.unhandled.length, 0); assert.equal(fixture.receipt.networkForwarded, false);
+  await client.auth.signOut();
+});
+
+test('private synthetic books deny another actor and reject a previous session token after an owner returns', async () => {
+  const fixture = createFixture();
+  const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: fixture.fetch },
+  });
+  const login = await client.auth.signInWithPassword({ email: 'qa.alex@example.invalid', password: 'FixtureOnly-2026!' });
+  const token = login.data.session.access_token;
+  await client.auth.signOut();
+  const other = await client.auth.signInWithPassword({ email: 'qa.jordan@example.invalid', password: 'FixtureOnly-2026!' });
+  assert.equal(other.data.user.id, PEER);
+  const shelf = await client.rpc('get_memory_albums', { p_owner: OWNER });
+  assert.deepEqual(shelf.data, { is_owner: false, books: [] });
+  assert.equal((await client.rpc('get_memory_book', { p_album: NAVIGATION_BOOK })).data, null);
+  assert.equal((await client.rpc('get_memory_book', { p_album: BOOK })).data, null);
+  const wrongActor = await client.rpc('save_memory_book_creative_presentation', { p_album: NAVIGATION_BOOK, p_expected_revision: 0 });
+  assert.equal(wrongActor.status, 403);
+  await client.auth.signOut();
+  await client.auth.signInWithPassword({ email: 'qa.alex@example.invalid', password: 'FixtureOnly-2026!' });
+  const oldSession = await client.rpc('save_memory_book_creative_presentation', { p_album: NAVIGATION_BOOK, p_expected_revision: 0 }).setHeader('Authorization', 'Bearer ' + token);
+  assert.equal(oldSession.status, 403);
+  assert.equal(fixture.receipt.mutations.length, 0); assert.equal(fixture.receipt.unhandled.length, 0);
+  await client.auth.signOut();
 });

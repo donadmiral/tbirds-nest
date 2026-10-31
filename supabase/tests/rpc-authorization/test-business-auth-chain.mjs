@@ -8,7 +8,9 @@ import {source} from './deployed-media-baseline.mjs';
 import {loadBusinessAuthBaseline} from './business-auth-fixture.mjs';
 
 const db=new PGlite({extensions}),qaMode=process.env.PLATINUM_QA_BUSINESS_AUTH==='1';
-const candidate='supabase/migrations/20261030034752_business_bound_auth_sessions.sql';
+const candidate=process.env.BUSINESS_AUTH_STAGED==='1'
+ ?'supabase/ops/qa/business-auth-staged-20261031/combined.sql'
+ :'supabase/migrations/20261030034752_business_bound_auth_sessions.sql';
 const ids=Object.fromEntries(['owner','stranger','staff','business','other_business','banned_business'].map(n=>[n,randomUUID()]));
 const personalSessions=Object.fromEntries(['owner','stranger','staff'].map(n=>[n,randomUUID()]));
 const hash=s=>createHash('sha256').update(s).digest('hex'),proof=hash('synthetic-device-proof');

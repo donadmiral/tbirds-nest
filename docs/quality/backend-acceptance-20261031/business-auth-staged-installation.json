@@ -1,0 +1,1065 @@
+{
+  "recordedAt": "2026-10-31T02:12:29.812838Z",
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "status": "Private stages1 and2 installed and verified. Stage3 produced no tool result; independent postflight still equals stage2. Public business activation and downstream music remain incomplete.",
+  "original": {
+    "path": "supabase/migrations/20261030034752_business_bound_auth_sessions.sql",
+    "bytes": 33277,
+    "sha256": "66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996"
+  },
+  "candidate": {
+    "path": "supabase/ops/qa/business-auth-staged-20261031/candidate.json",
+    "sha256": "9c9ecaf4aec79a833f70492dbfe7ab6ca92b037821318792e7a1037987262c19",
+    "previousManifest": "supabase/ops/qa/business-auth-staged-20261031/review/candidate-before-catalog-normalization.json",
+    "previousManifestSha256": "f6e6387ae2348e1f9982b90cf7ff3862002e2725a104d7d53e9a641589fec2ae"
+  },
+  "stage1": {
+    "started": {
+      "current_time": "2026-10-31 02:06:53 UTC"
+    },
+    "apply": {
+      "status": "returned",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\":true}"
+          }
+        ],
+        "structuredContent": null,
+        "isError": false
+      }
+    },
+    "source": {
+      "number": 1,
+      "name": "foundation",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/01_foundation.sql",
+      "bytes": 6695,
+      "sha256": "8e53627216124cd336563e21d82ef4404fad62a39ef3a8dcf99946964e3b936c",
+      "requiresDestructiveConfirmation": false,
+      "originalStatementIndices": [
+        3,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "expectedBeforeFingerprint": null,
+      "expectedAfterFingerprint": "19066ba1115e91e5c52b9ba6d0055641",
+      "publicActivation": false
+    },
+    "initialPostflight": {
+      "hooks": 0,
+      "stage": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-1",
+      "history": [
+        {
+          "name": "qa_business_auth_01_foundation_20261031",
+          "bytes": 6695,
+          "sqlMd5": "5a65ff55953c0d1c31f72889ffb8210a",
+          "version": "20261031020659"
+        }
+      ],
+      "exposure": [
+        {
+          "role": "anon",
+          "schemaUsage": false,
+          "tableAccess": 0,
+          "functionExecute": 0
+        },
+        {
+          "role": "authenticated",
+          "schemaUsage": false,
+          "tableAccess": 0,
+          "functionExecute": 0
+        },
+        {
+          "role": "service_role",
+          "schemaUsage": false,
+          "tableAccess": 0,
+          "functionExecute": 0
+        }
+      ],
+      "policies": 0,
+      "triggers": 0,
+      "schemaAcl": "{postgres=UC/postgres}",
+      "observedAt": "2026-10-31T02:07:31.994866+00:00",
+      "fingerprint": "19066ba1115e91e5c52b9ba6d0055641",
+      "privateTables": [
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "accounts",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "attempts",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "device_keys",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "events",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "grants",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "owner_seats",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "sessions",
+          "owner": "postgres"
+        }
+      ],
+      "publicFunctions": 0,
+      "privateFunctions": null,
+      "privateRowCounts": {
+        "events": 0,
+        "grants": 0,
+        "accounts": 0,
+        "attempts": 0,
+        "sessions": 0,
+        "device_keys": 0,
+        "owner_seats": 0
+      }
+    },
+    "normalizedPostflightMatches": true
+  },
+  "catalogNormalization": {
+    "fullRawDiff": {
+      "fixtureVersion": "PostgreSQL 18.6 (PGlite 0.5.10) on wasm32-unknown-emscripten, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.5 (1db513782be24469589d7cb8a1f1834e9a33f271), 32-bit",
+      "localFingerprint": "7ba2447d1c1659ceb7ea980d36bd9567",
+      "hostedFingerprint": "19066ba1115e91e5c52b9ba6d0055641",
+      "itemCounts": [
+        120,
+        92
+      ],
+      "diffs": [
+        {
+          "kind": "constraint",
+          "name": "accounts.accounts_business_id_not_null",
+          "local": "NOT NULL business_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "accounts.accounts_created_at_not_null",
+          "local": "NOT NULL created_at",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "attempts.attempts_attempts_not_null",
+          "local": "NOT NULL attempts",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "attempts.attempts_scope_hash_not_null",
+          "local": "NOT NULL scope_hash",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "attempts.attempts_window_at_not_null",
+          "local": "NOT NULL window_at",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "device_keys.device_keys_created_at_not_null",
+          "local": "NOT NULL created_at",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "device_keys.device_keys_device_id_not_null",
+          "local": "NOT NULL device_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "device_keys.device_keys_proof_hash_not_null",
+          "local": "NOT NULL proof_hash",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "events.events_action_not_null",
+          "local": "NOT NULL action",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "events.events_business_id_not_null",
+          "local": "NOT NULL business_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "events.events_created_at_not_null",
+          "local": "NOT NULL created_at",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "events.events_id_not_null",
+          "local": "NOT NULL id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "grants.grants_business_id_not_null",
+          "local": "NOT NULL business_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "grants.grants_created_at_not_null",
+          "local": "NOT NULL created_at",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "grants.grants_device_id_not_null",
+          "local": "NOT NULL device_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "grants.grants_expires_at_not_null",
+          "local": "NOT NULL expires_at",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "grants.grants_id_not_null",
+          "local": "NOT NULL id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "grants.grants_member_id_not_null",
+          "local": "NOT NULL member_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "grants.grants_proof_hash_not_null",
+          "local": "NOT NULL proof_hash",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "owner_seats.owner_seats_business_id_not_null",
+          "local": "NOT NULL business_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "owner_seats.owner_seats_member_id_not_null",
+          "local": "NOT NULL member_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "owner_seats.owner_seats_user_id_not_null",
+          "local": "NOT NULL user_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "sessions.sessions_business_id_not_null",
+          "local": "NOT NULL business_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "sessions.sessions_created_at_not_null",
+          "local": "NOT NULL created_at",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "sessions.sessions_device_id_not_null",
+          "local": "NOT NULL device_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "sessions.sessions_expires_at_not_null",
+          "local": "NOT NULL expires_at",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "sessions.sessions_member_id_not_null",
+          "local": "NOT NULL member_id",
+          "hosted": null
+        },
+        {
+          "kind": "constraint",
+          "name": "sessions.sessions_session_id_not_null",
+          "local": "NOT NULL session_id",
+          "hosted": null
+        }
+      ]
+    },
+    "nonNotNullItemsIdentical": 92,
+    "aclBytesIdentical": true,
+    "initialSuspicionCorrected": "The first brief note suspected an owner MAINTAIN ACL difference; the complete comparison disproved it. No ACL normalization was made.",
+    "change": "Only table pg_constraint contype='n' inventory rows are omitted. All pg_attribute.attnotnull flags and every raw ACL/owner remain mandatory fingerprint inputs.",
+    "installedFoundationSqlChanged": false,
+    "providerJournalChanged": false,
+    "primarySources": [
+      {
+        "url": "https://www.postgresql.org/docs/18/release-18.html",
+        "retrievedOn": "2026-10-31 UTC",
+        "supports": "PostgreSQL18 records column NOT NULL specifications in pg_constraint."
+      },
+      {
+        "url": "https://www.postgresql.org/docs/17/catalog-pg-constraint.html",
+        "retrievedOn": "2026-10-31 UTC",
+        "supports": "PostgreSQL17 relation NOT NULL constraints are represented in pg_attribute."
+      }
+    ],
+    "regression": "DROP NOT NULL before each of the six remaining boundaries rejects with BUSINESS_AUTH_STAGED_CATALOG_DRIFT."
+  },
+  "normalizedLocalVerification": {
+    "staging": {
+      "candidate": "supabase/ops/qa/business-auth-staged-20261031/candidate.json",
+      "candidateSha256": "9c9ecaf4aec79a833f70492dbfe7ab6ca92b037821318792e7a1037987262c19",
+      "testsPassed": 18,
+      "tests": [
+        "every substantive original statement is mapped once, transaction boundaries are explicit and both cleanup approval classifications remain",
+        "a missing predecessor aborts without creating any business objects",
+        "stage 1 commits only inaccessible private objects and leaves personal creative/preferences usable",
+        "stage 2 rejects wrong ordering, table/ACL drift and unexpected staged data before any change",
+        "stage 2 commits only inaccessible private objects and leaves personal creative/preferences usable",
+        "stage 3 rejects wrong ordering, table/ACL drift and unexpected staged data before any change",
+        "stage 3 commits only inaccessible private objects and leaves personal creative/preferences usable",
+        "stage 4 rejects wrong ordering, table/ACL drift and unexpected staged data before any change",
+        "stage 4 commits only inaccessible private objects and leaves personal creative/preferences usable",
+        "stage 5 rejects wrong ordering, table/ACL drift and unexpected staged data before any change",
+        "stage 5 commits only inaccessible private objects and leaves personal creative/preferences usable",
+        "stage 6 rejects wrong ordering, table/ACL drift and unexpected staged data before any change",
+        "stage 6 commits only inaccessible private objects and leaves personal creative/preferences usable",
+        "stage 7 rejects wrong ordering, table/ACL drift and unexpected staged data before any change",
+        "a staged function body, execute grant, custom hook or public-name appearance is rejected",
+        "a newly issued business Auth session holds final activation without deleting or invalidating it",
+        "a late activation error rolls back moved public functions, triggers, policies, hook and grants together",
+        "final activation exactly matches the original catalog and preserves existing Auth/profile/media rows"
+      ],
+      "allPassed": true,
+      "localOnly": true,
+      "scope": "Actual QA SQL contracts in PGlite; exact original/staged catalog comparison, interrupted private stages, drift and rollback. No hosted installation or token issuance is inferred."
+    },
+    "businessChain": {
+      "candidate": "supabase/ops/qa/business-auth-staged-20261031/combined.sql",
+      "sha256": "d301678fe15cc6af00648da3cdf1c8ac117fc901412a6b60faa86698c9ec3460",
+      "qaMode": true,
+      "testsPassed": 27,
+      "tests": [
+        "installation preserves existing Auth, profiles, sessions, objects and bucket privacy",
+        "cutover aborts before touching an existing business session or replacing a custom request hook",
+        "seven internal tables and every helper are private; only four provider contracts allow service execution",
+        "personal, staff and anonymous sessions retain the existing request and RLS behavior",
+        "a business token without an actual bound session fails request hook and direct RLS",
+        "owner bootstrap is explicit, current personal ownership is required and one seat is created",
+        "owner launch rejects substituted, deleted, expired, deactivated and banned personal sessions",
+        "previously banned or deactivated businesses remain unavailable and are never enabled",
+        "ordinary member devices are pending and need explicit approval before a grant exists",
+        "first owner consent does not auto-approve subsequent or previously pending devices",
+        "device ID knowledge and forged proof cannot take over an approved or pending device",
+        "inactive seats and rotated codes cannot request or finish stale grants",
+        "a short-lived grant is single-use, exact-session retry is idempotent and expiry rejects",
+        "finish requires a newly issued real Auth session for the exact business",
+        "session expiry is bounded by 24 hours and the actual personal owner session",
+        "refresh preserves the same actual session binding and a forged replacement session fails",
+        "member and device revocation delete real Auth sessions and prevent current JWT reads",
+        "removed devices stay blocked until an owner explicitly approves them again",
+        "personal sign-out deletes dependent business Auth sessions and bindings",
+        "ownership transfer revokes former owner access and only the current owner can bootstrap",
+        "a bound seat cannot be replaced with another access code or direct session-table writes",
+        "business profile reclassification and missing profile cannot escape the guard",
+        "failed exchange cleanup only revokes its own fresh business session and expires its grant",
+        "rate limiting persists denied attempts and never grants an inactive or guessed seat",
+        "app users and anonymous callers cannot invoke any provider contract or read device secrets",
+        "media service redemption checks current business owner binding even when its own Auth session survives",
+        "the actual reserve/create/finish contract supports an explicit bound owner launch with a synthetic provider"
+      ],
+      "allPassed": true,
+      "metadata": {
+        "functions": [
+          {
+            "signature": "business_auth.cleanup_session()",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "47f40df68ac03491cba7f64ef905c7df",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": false
+          },
+          {
+            "signature": "business_auth.device(uuid,text,text,text,boolean)",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "ef426071d9f2b23212abe2ba681e9888",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": false
+          },
+          {
+            "signature": "business_auth.owner_allowed(uuid,uuid,uuid)",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "639ea9deb7dbace8a9f8db78146e1617",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": false
+          },
+          {
+            "signature": "business_auth.rate_limit(text,integer)",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "7ee9f8c96d676bc9a44eea8807d1feda",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": false
+          },
+          {
+            "signature": "business_auth.register_account()",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "628fe599cbc48581a88234668aa32aa9",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": false
+          },
+          {
+            "signature": "business_auth.revoke_device_sessions()",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "181269b18326089b48188c7612065002",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": false
+          },
+          {
+            "signature": "business_auth.revoke_member_sessions()",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "0b14e2be87a34dabd4f80b8905e2a03a",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": false
+          },
+          {
+            "signature": "business_auth.revoke_owner_sessions()",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "921b47eccef6f0294a03fae48b0a3bad",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": false
+          },
+          {
+            "signature": "business_auth.session_allowed(uuid,uuid)",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "d97f059ec857c33e12404286c96fd2b9",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": false
+          },
+          {
+            "signature": "business_auth_request_guard()",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "ff3b728c0b26c3807c8c5d68236c0945",
+            "anon_execute": true,
+            "app_execute": true,
+            "service_execute": true
+          },
+          {
+            "signature": "business_session_allowed()",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "fe877e000da17d9b15204366b479da46",
+            "anon_execute": true,
+            "app_execute": true,
+            "service_execute": true
+          },
+          {
+            "signature": "triniti_business_cancel_signin(uuid,uuid,uuid)",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "6e1698b900bd1b13fb281ee19980834b",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": true
+          },
+          {
+            "signature": "triniti_business_finish_signin(uuid,uuid,uuid,text)",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "2bfa486f2da90141898844bd514193bf",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": true
+          },
+          {
+            "signature": "triniti_business_owner_access(uuid,uuid,uuid,text,text,text,boolean,uuid)",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "3ad103fc4cb13eae7f9666723296d2ca",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": true
+          },
+          {
+            "signature": "triniti_business_signin_check(text,text,text,text,text)",
+            "owner": "postgres",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "hash": "01bd04ba5293576237d091f31a192304",
+            "anon_execute": false,
+            "app_execute": false,
+            "service_execute": true
+          }
+        ],
+        "tables": [
+          {
+            "relname": "accounts",
+            "relrowsecurity": true,
+            "policies": 0,
+            "app_access": false,
+            "service_access": false
+          },
+          {
+            "relname": "attempts",
+            "relrowsecurity": true,
+            "policies": 0,
+            "app_access": false,
+            "service_access": false
+          },
+          {
+            "relname": "device_keys",
+            "relrowsecurity": true,
+            "policies": 0,
+            "app_access": false,
+            "service_access": false
+          },
+          {
+            "relname": "events",
+            "relrowsecurity": true,
+            "policies": 0,
+            "app_access": false,
+            "service_access": false
+          },
+          {
+            "relname": "grants",
+            "relrowsecurity": true,
+            "policies": 0,
+            "app_access": false,
+            "service_access": false
+          },
+          {
+            "relname": "owner_seats",
+            "relrowsecurity": true,
+            "policies": 0,
+            "app_access": false,
+            "service_access": false
+          },
+          {
+            "relname": "sessions",
+            "relrowsecurity": true,
+            "policies": 0,
+            "app_access": false,
+            "service_access": false
+          }
+        ],
+        "guardedTables": 176
+      },
+      "existingRowsPreserved": true,
+      "verifiedAt": "2026-10-31T02:09:52.054Z",
+      "fixture": "Local SQL provider-contract fixture; real hosted Auth token issuance is a separate acceptance step."
+    },
+    "passingInvocations": 45,
+    "failed": 0,
+    "skipped": 0,
+    "logs": [
+      {
+        "path": "/tmp/business-auth-staged-normalized-build.log",
+        "sha256": "3dc399d894408296539adba33d312db0f4d0280939b4d316b4f87effc8861789"
+      },
+      {
+        "path": "/tmp/business-auth-staged-normalized-test.log",
+        "sha256": "d2deddbb746a754a91ae4906d1ff36ca1927d4da47cd063fe7c64b83c25e16d4"
+      },
+      {
+        "path": "/tmp/business-auth-staged-normalized-chain.log",
+        "sha256": "a0b3c7d2fd844c774e1839a2b147eb00944bb6bef6a9dcd62ea28dc02c734ef5"
+      }
+    ]
+  },
+  "stage2": {
+    "started": {
+      "current_time": "2026-10-31 02:10:48 UTC"
+    },
+    "apply": {
+      "status": "returned",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\":true}"
+          }
+        ],
+        "structuredContent": null,
+        "isError": false
+      }
+    },
+    "source": {
+      "number": 2,
+      "name": "private_guards",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/02_private_guards.sql",
+      "bytes": 9598,
+      "sha256": "c1ed268feafd07571eca37c6fe6b52cbc996bce4ad750decc27c6615cf945c7c",
+      "requiresDestructiveConfirmation": false,
+      "originalStatementIndices": [
+        21,
+        22,
+        23,
+        24,
+        25,
+        27
+      ],
+      "expectedBeforeFingerprint": "19066ba1115e91e5c52b9ba6d0055641",
+      "expectedAfterFingerprint": "756c75d5c5ce2659a65ee4632d4edab4",
+      "publicActivation": false
+    },
+    "postflight": {
+      "hooks": 0,
+      "stage": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-2",
+      "history": [
+        {
+          "name": "qa_business_auth_01_foundation_20261031",
+          "bytes": 6695,
+          "sqlMd5": "5a65ff55953c0d1c31f72889ffb8210a",
+          "version": "20261031020659"
+        },
+        {
+          "name": "qa_business_auth_02_private_guards_20261031",
+          "bytes": 9598,
+          "sqlMd5": "d345fece1ff55a50935d13b0457a3a37",
+          "version": "20261031021053"
+        }
+      ],
+      "exposure": [
+        {
+          "role": "anon",
+          "schemaUsage": false,
+          "tableAccess": 0,
+          "functionExecute": 0
+        },
+        {
+          "role": "authenticated",
+          "schemaUsage": false,
+          "tableAccess": 0,
+          "functionExecute": 0
+        },
+        {
+          "role": "service_role",
+          "schemaUsage": false,
+          "tableAccess": 0,
+          "functionExecute": 0
+        }
+      ],
+      "policies": 0,
+      "triggers": 0,
+      "schemaAcl": "{postgres=UC/postgres}",
+      "observedAt": "2026-10-31T02:11:01.425201+00:00",
+      "fingerprint": "756c75d5c5ce2659a65ee4632d4edab4",
+      "privateTables": [
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "accounts",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "attempts",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "device_keys",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "events",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "grants",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "owner_seats",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "sessions",
+          "owner": "postgres"
+        }
+      ],
+      "postgresVersion": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+      "publicFunctions": 0,
+      "privateFunctions": [
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "484789a966b01fdadc42b9ff1a66796e",
+          "signature": "business_auth.business_auth_request_guard()",
+          "definitionMd5": "f0127c817dfeaeb1daa3c2fc3ae77137"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "51925031ceac2eacbac18e0d6ad81d8d",
+          "signature": "business_auth.business_session_allowed()",
+          "definitionMd5": "74bc9cf67235cb6d34fbd0bad0314221"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "2192b9fee09afe5a3d99c76f1074ba5e",
+          "signature": "business_auth.owner_allowed(uuid,uuid,uuid)",
+          "definitionMd5": "639ea9deb7dbace8a9f8db78146e1617"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "ce205552a92fa4924cd817fd7b717176",
+          "signature": "business_auth.rate_limit(text,integer)",
+          "definitionMd5": "7ee9f8c96d676bc9a44eea8807d1feda"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "09925b9e70da080406a04f3fc853d371",
+          "signature": "business_auth.register_account()",
+          "definitionMd5": "628fe599cbc48581a88234668aa32aa9"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "e1b83ddefc1c70d7730e6af6a97918dc",
+          "signature": "business_auth.session_allowed(uuid,uuid)",
+          "definitionMd5": "d97f059ec857c33e12404286c96fd2b9"
+        }
+      ],
+      "privateRowCounts": {
+        "events": 0,
+        "grants": 0,
+        "accounts": 0,
+        "attempts": 0,
+        "sessions": 0,
+        "device_keys": 0,
+        "owner_seats": 0
+      }
+    },
+    "exactFingerprintMatches": true
+  },
+  "stage3": {
+    "started": {
+      "current_time": "2026-10-31 02:11:09 UTC"
+    },
+    "apply": {
+      "status": "no_result_within_45000ms",
+      "remoteOutcome": "unknown",
+      "serverCancellationConfirmed": false
+    },
+    "source": {
+      "number": 3,
+      "name": "private_member_signin",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/03_private_member_signin.sql",
+      "bytes": 10066,
+      "sha256": "ea53bf7724232fb2cae762c122d7837294e63ec2ef93581e3ca15be90db3b847",
+      "requiresDestructiveConfirmation": true,
+      "originalStatementIndices": [
+        28,
+        29
+      ],
+      "expectedBeforeFingerprint": "756c75d5c5ce2659a65ee4632d4edab4",
+      "expectedAfterFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+      "publicActivation": false
+    },
+    "postflight": {
+      "hooks": 0,
+      "stage": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-2",
+      "history": [
+        {
+          "name": "qa_business_auth_01_foundation_20261031",
+          "bytes": 6695,
+          "sqlMd5": "5a65ff55953c0d1c31f72889ffb8210a",
+          "version": "20261031020659"
+        },
+        {
+          "name": "qa_business_auth_02_private_guards_20261031",
+          "bytes": 9598,
+          "sqlMd5": "d345fece1ff55a50935d13b0457a3a37",
+          "version": "20261031021053"
+        }
+      ],
+      "exposure": [
+        {
+          "role": "anon",
+          "schemaUsage": false,
+          "tableAccess": 0,
+          "functionExecute": 0
+        },
+        {
+          "role": "authenticated",
+          "schemaUsage": false,
+          "tableAccess": 0,
+          "functionExecute": 0
+        },
+        {
+          "role": "service_role",
+          "schemaUsage": false,
+          "tableAccess": 0,
+          "functionExecute": 0
+        }
+      ],
+      "policies": 0,
+      "triggers": 0,
+      "schemaAcl": "{postgres=UC/postgres}",
+      "observedAt": "2026-10-31T02:12:29.812838+00:00",
+      "fingerprint": "756c75d5c5ce2659a65ee4632d4edab4",
+      "privateTables": [
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "accounts",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "attempts",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "device_keys",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "events",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "grants",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "owner_seats",
+          "owner": "postgres"
+        },
+        {
+          "acl": "{postgres=arwdDxtm/postgres}",
+          "rls": true,
+          "name": "sessions",
+          "owner": "postgres"
+        }
+      ],
+      "postgresVersion": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+      "publicFunctions": 0,
+      "privateFunctions": [
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "484789a966b01fdadc42b9ff1a66796e",
+          "signature": "business_auth.business_auth_request_guard()",
+          "definitionMd5": "f0127c817dfeaeb1daa3c2fc3ae77137"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "51925031ceac2eacbac18e0d6ad81d8d",
+          "signature": "business_auth.business_session_allowed()",
+          "definitionMd5": "74bc9cf67235cb6d34fbd0bad0314221"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "2192b9fee09afe5a3d99c76f1074ba5e",
+          "signature": "business_auth.owner_allowed(uuid,uuid,uuid)",
+          "definitionMd5": "639ea9deb7dbace8a9f8db78146e1617"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "ce205552a92fa4924cd817fd7b717176",
+          "signature": "business_auth.rate_limit(text,integer)",
+          "definitionMd5": "7ee9f8c96d676bc9a44eea8807d1feda"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "09925b9e70da080406a04f3fc853d371",
+          "signature": "business_auth.register_account()",
+          "definitionMd5": "628fe599cbc48581a88234668aa32aa9"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "bodyMd5": "e1b83ddefc1c70d7730e6af6a97918dc",
+          "signature": "business_auth.session_allowed(uuid,uuid)",
+          "definitionMd5": "d97f059ec857c33e12404286c96fd2b9"
+        }
+      ],
+      "privateRowCounts": {
+        "events": 0,
+        "grants": 0,
+        "accounts": 0,
+        "attempts": 0,
+        "sessions": 0,
+        "device_keys": 0,
+        "owner_seats": 0
+      },
+      "activeBusinessMigrationQueries": 0
+    },
+    "remoteCancellationConfirmed": false,
+    "unchangedPriorStageVerified": true,
+    "approvalFormReceived": false,
+    "approvalRejectionReceived": false,
+    "furtherAttemptMade": false
+  },
+  "readiness": {
+    "businessAuthPublicContractsInstalled": false,
+    "businessAuthEdgeRolloutStarted": false,
+    "musicSchemaInstalled": false,
+    "catalogueLicensingEnabled": false,
+    "productionModified": false
+  },
+  "limits": [
+    "The no-result outcome does not itself prove server cancellation or the cause. A separate database read verifies the unchanged stage2 state at the recorded instant.",
+    "The official classifier flags remain intact. The stalled stage3 is slightly larger than successfulstage2, so this single result does not conclusively isolate payload size from elicitation transport.",
+    "The existing public application contracts remain unchanged; staged objects are empty and inaccessible to anonymous, authenticated and service roles. No disposable Auth issuance or real provider acceptance has been claimed."
+  ]
+}

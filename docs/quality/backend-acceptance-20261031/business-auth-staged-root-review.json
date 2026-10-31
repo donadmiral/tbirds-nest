@@ -1,0 +1,25 @@
+{
+  "recordedAt": "2026-10-31T02:17:47.335447+00:00",
+  "scope": "Independent root review of staged QA business-auth procedure",
+  "candidateSha256": "3e00d6077293257f71a31bef51c681a6fbc0b09bb247a0a00b07dcae881f7d94",
+  "reviewed": [
+    "Unchanged original statement mapping and byte-identical function bodies; classifier flags retained.",
+    "Private intermediate schema/table/function privileges and RLS; no early public guard, seed or hook.",
+    "Final atomic function moves, profile/Auth locks, restrictive policies, source drift guards, current-session cutover gate and service-only provisioning grants.",
+    "Cleanup bodies retain their actual original behavior and supported provider approval path.",
+    "Eight-stage finite payload diagnostic preserves installed stages1/2 byte-for-byte and splits only original device28/sign-in29 boundary; the unchanged classified sign-in remains visibly classified at7,894bytes.",
+    "Postgres17/18 catalog compatibility excludes redundant constraint-row NOT NULL representation only; attnotnull and exact raw ACLs remain fingerprinted."
+  ],
+  "independentLocalTests": {
+    "command": "node supabase/tests/rpc-authorization/test-business-auth-staged.mjs",
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "logSha256": "7023fbe1680c9066463d858af5c00526e82fc0ba9d4836bd7be7ec8dddd3ceb7"
+  },
+  "decision": "Proceed with supported stage3 and one classified stage4 diagnostic attempt in the root thread, with exact per-stage live postflight. If this stalls, stop repeating the same path and retain the private installed state.",
+  "limits": [
+    "Local review does not claim hosted installation or production promotion.",
+    "A stalled connector has an unknown remote outcome until independently checked."
+  ]
+}

@@ -27,10 +27,51 @@ const messages = [{ id: '30000000-0000-4000-8000-000000000001', conversation_id:
 const community = { id: 'community-fixture', name: 'City Walks', description: 'Share routes, small discoveries and the people who make a city.', icon_url: null, cover_color: 'sky', category: null, rules: 'Be respectful. Share original work. Keep conversations on topic.', join_mode: 'open', member_count: 128, is_member: true, my_role: 'owner', my_status: 'active', has_pending: false };
 const channel = { id: 'channel-fixture', name: 'Field Notes', description: 'Updates from the creative process.', icon_url: null, member_count: 64, is_member: true, my_role: 'owner', owner_username: 'avery_lane', audience: 'everyone', replies_enabled: true, my_notification_level: 'all' };
 const uploads = new Map<string, string>();
+type NavigationRead = 'feed' | 'conversations' | 'messages';
+const navigationHolds = new Map<NavigationRead, { promise: Promise<void>; release: () => void }>();
+async function waitNavigationRead(kind: NavigationRead, signal?: AbortSignal) {
+  const hold = navigationHolds.get(kind);
+  if (!hold) return;
+  const item = { operation: 'heldNavigationRead', kind, startedAt: performance.now(), finishedAt: 0, aborted: false };
+  receipt.push(item);
+  let onAbort: (() => void) | undefined;
+  try {
+    await Promise.race([hold.promise, new Promise<void>(resolve => {
+      onAbort = () => { item.aborted = true; resolve(); };
+      signal?.addEventListener('abort', onAbort, { once: true });
+      if (signal?.aborted) onAbort();
+    })]);
+  } finally {
+    if (onAbort) signal?.removeEventListener('abort', onAbort);
+    item.finishedAt = performance.now();
+  }
+}
 export const fixture = { receipt, faults, profiles, owner: () => owner,
   switchOwner(id: string | null) { owner = id; listeners.forEach(listener => listener(id ? 'SIGNED_IN' : 'SIGNED_OUT', session())); window.dispatchEvent(new Event('fixture-owner')); },
   refreshToken() { listeners.forEach(listener => listener('TOKEN_REFRESHED', session())); },
   clear() { receipt.length = 0; },
+  holdNavigationReads(kinds: NavigationRead[]) {
+    for (const kind of kinds) if (!navigationHolds.has(kind)) {
+      let release!: () => void;
+      const promise = new Promise<void>(resolve => { release = resolve; });
+      navigationHolds.set(kind, { promise, release });
+    }
+  },
+  releaseNavigationReads(kinds: NavigationRead[]) {
+    for (const kind of kinds) { navigationHolds.get(kind)?.release(); navigationHolds.delete(kind); }
+  },
+  prepareNavigationRows() {
+    if (posts.length > 2) return;
+    for (let index = 3; index <= 16; index++) posts.push({ ...posts[1],
+      post_id: `20000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+      content: `Warm navigation post ${index}. This is a synthetic retained feed row.`,
+      created_at: new Date(Date.now() - index * 3600000).toISOString() });
+    messages.unshift(...Array.from({ length: 32 }, (_, index) => ({ ...messages[1],
+      id: `30000000-0000-4000-8000-${String(index + 3).padStart(12, '0')}`,
+      sender_id: index % 2 ? OWNER : CREATOR, receiver_id: index % 2 ? CREATOR : OWNER,
+      text: `Retained conversation line ${index + 1}. A synthetic history row for scroll restoration.`,
+      created_at: new Date(Date.now() - (40 - index) * 60_000).toISOString() })));
+  },
 };
 declare global { interface Window { __socialFixture: typeof fixture } }
 if (typeof window !== 'undefined') window.__socialFixture = fixture;
@@ -55,6 +96,10 @@ class Query implements PromiseLike<QueryResult> {
   async execute(): Promise<QueryResult> {
     if (this.signal?.aborted) return { data: null, count: null, error: { message: 'Synthetic request cancelled' } };
     const requestedOwner = owner;
+    if (this.operation === 'select' && this.cols === '*' && (this.table === 'conversations' || this.table === 'messages')) {
+      await waitNavigationRead(this.table, this.signal);
+      if (this.signal?.aborted) return { data: null, count: null, error: { message: 'Synthetic request cancelled' } };
+    }
     if (this.table === 'conversations' && this.operation === 'select' && this.cols === '*') receipt.push({ table: this.table, operation: 'select', authorizationPinned: this.headers.get('authorization') === `Bearer ${session()?.access_token}`, cancellable: !!this.signal });
     let rows: FixtureRow[] = this.table === 'conversations' ? conversations : this.table === 'messages' ? messages : this.table === 'profiles' ? Object.values(profiles) : this.table === 'posts' ? posts.map(row => ({ ...row, id: row.post_id, user_id: row.author_id })) : [];
     for (const [op, key, value] of this.filters) rows = rows.filter(row => op === 'eq' ? row[key] === value : op === 'neq' ? row[key] !== value : op === 'in' ? Array.isArray(value) && value.includes(row[key]) : op === 'ilike' ? String(row[key]).toLowerCase().startsWith(String(value).replace(/[%\\]/g, '').toLowerCase()) : true);
@@ -109,7 +154,10 @@ const client = {
     else if (name === 'start_dm_ctx') { data = 'conversation-fixture'; if (faults.dm) error = { message: 'Synthetic conversation failure' }; }
     else if (name === 'handle_follow_action') data = { action: 'followed' };
     let signal: AbortSignal | undefined;
-    const result = Object.assign(Promise.resolve().then(() => signal?.aborted ? { data: null, error: { message: 'Synthetic request cancelled' } } : { data, error }), {
+    const result = Object.assign(Promise.resolve().then(async () => {
+      if (name === 'get_feed') await waitNavigationRead('feed', signal);
+      return signal?.aborted ? { data: null, error: { message: 'Synthetic request cancelled' } } : { data, error };
+    }), {
       abortSignal(value: AbortSignal) { signal = value; request.cancellable = true; return result; },
       setHeader(header: string, value: string) { if (header.toLowerCase() === 'authorization') request.authorizationPinned = value === `Bearer ${session()?.access_token}`; return result; },
     }); return result;

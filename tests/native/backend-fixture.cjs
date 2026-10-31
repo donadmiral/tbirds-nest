@@ -4,6 +4,7 @@
 const OWNER = '10000000-0000-4000-8000-000000000001';
 const PEER = '10000000-0000-4000-8000-000000000002';
 const SECOND = '10000000-0000-4000-8000-000000000003';
+const { BOOK, NAVIGATION_BOOK, MEDIA, capability, memoryBook, navigationBook } = require('./memory-fixture.cjs');
 const CONVERSATION = '30000000-0000-4000-8000-000000000001';
 const STORY = '40000000-0000-4000-8000-000000000001';
 const created = '2026-01-02T10:00:00.000Z';
@@ -69,13 +70,16 @@ function createFixture(onChange = () => {}) {
     'call_sessions', 'call_participants', 'user_push_tokens', 'job_saves', 'job_applications', 'job_recommendations',
     'job_referrals', 'saved_listings', 'business_members', 'business_profiles', 'business_applications',
     'story_views', 'story_reactions', 'story_highlights', 'story_mutes', 'hidden_words', 'support_tickets',
-    'user_devices', 'login_history', 'login_events', 'verification_applications', 'member_strikes']) rows[table] = [];
+    'user_devices', 'login_history', 'login_events', 'verification_applications', 'member_strikes', 'memory_album_access']) rows[table] = [];
+  const savedBook = navigationBook();
   let owner = null;
   let sessionCounter = 0;
   let sessionId = '';
   let offline = false;
   let delayMs = 0;
-  const receipt = { mode: 'synthetic-native-ui', networkForwarded: false, requests: [], unhandled: [], mutations: [] };
+  let memoryMode = 'normal';
+  const issuedMedia = new Set();
+  const receipt = { mode: 'synthetic-native-ui', networkForwarded: false, requests: [], unhandled: [], mutations: [], media: [], bookReads: [] };
   const record = (kind, value) => { receipt[kind].push(value); onChange(receipt); };
   const response = (value, status = 200, headers = {}) => new Response(value === null && status === 204 ? null : JSON.stringify(value),
     { status, headers: { 'content-type': 'application/json', 'x-supabase-api-version': '2024-01-01', ...headers } });
@@ -94,7 +98,7 @@ function createFixture(onChange = () => {}) {
     record('unhandled', { method, path });
     return response({ code: 'NATIVE_UI_UNHANDLED', message: 'No synthetic contract for ' + method + ' ' + path }, 501);
   };
-  function rpc(name, args) {
+  function rpc(name, args, headers) {
     if (name === 'get_feed' || name === 'get_discover_page' || name === 'get_trending_feed') return args.p_cursor_id || args.p_offset ? [] : posts;
     if (name === 'get_feed_visibility') return (args.p_ids || []).map(post_id => ({ post_id, snapshot_eligible: true }));
     if (name === 'get_profile') return profiles.find(profile => profile.id === args.p_profile_id) || null;
@@ -103,7 +107,58 @@ function createFixture(onChange = () => {}) {
     if (name === 'get_profile_reach_28d') return 12;
     if (name === 'get_profile_insights') return { views_7d: 3, views_30d: 12 };
     if (name === 'get_profile_context') return { mutual_names: [], mutual_count: 0, shared_communities: [] };
-    if (name === 'get_memory_albums') return { is_owner: args.p_owner === owner, books: [] };
+    if (name === 'get_memory_albums') {
+      const { pages, ...summary } = savedBook;
+      return { is_owner: args.p_owner === owner, books: owner === OWNER && args.p_owner === OWNER ? [summary] : [] };
+    }
+    if (name === 'get_memory_book') {
+      if (owner !== OWNER) return null;
+      if (args.p_album === BOOK) return memoryBook();
+      if (args.p_album !== NAVIGATION_BOOK) return null;
+      record('bookReads', { id: savedBook.id, owner, revision: savedBook.presentation_revision,
+        title: savedBook.title, cover_color: savedBook.cover_color, cover_design: savedBook.cover_design,
+        cover_artwork: savedBook.cover_artwork, film_settings: savedBook.film_settings });
+      return savedBook;
+    }
+    if (name === 'get_memory_book_creative_capabilities') return { version: 1, supported: true };
+    if (name === 'save_memory_book_creative_presentation') {
+      let claims;
+      try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch {}
+      if (owner !== OWNER || claims?.sub !== OWNER || claims?.session_id !== sessionId || args.p_album !== NAVIGATION_BOOK) {
+        return response({ code: '42501', message: 'The synthetic book belongs to another account.' }, 403);
+      }
+      if (args.p_expected_revision !== savedBook.presentation_revision) return response({ code: '40001', message: 'MEMORY_BOOK_CHANGED' }, 409);
+      // Match the versioned creative contract, with no arbitrary delivery URLs.
+      const artwork = args.p_cover_artwork, film = args.p_film_settings;
+      const sameKeys = (value, example) => value && typeof value === 'object' && !Array.isArray(value)
+        && Object.keys(value).sort().join(',') === Object.keys(example).sort().join(',');
+      const text = (value, limit) => typeof value === 'string' && Array.from(value).length <= limit;
+      const range = (value, low, high) => Number.isFinite(value) && value >= low && value <= high;
+      if (!text(args.p_title, 30) || !args.p_title.trim() || !text(args.p_subtitle, 120)
+        || !['blush', 'rose', 'pearl', 'cream', 'sage', 'sky', 'lilac', 'ink'].includes(args.p_cover_color)
+        || !['keepsake', 'postcard', 'editorial', 'field_notes', 'night_film', 'daybook', 'botanical', 'classic'].includes(args.p_cover_design)
+        || !['profile', 'followers', 'custom', 'only_me'].includes(args.p_audience)
+        || args.p_cover_story_id !== null && !savedBook.pages.some(page => page.story_id === args.p_cover_story_id)
+        || !sameKeys(artwork, savedBook.cover_artwork) || artwork.version !== 1
+        || !text(artwork.inscription, 160) || !text(artwork.postmark, 32)
+        || !['handwritten', 'serif', 'sans'].includes(artwork.inscriptionStyle)
+        || !['top', 'bottom'].includes(artwork.inscriptionPosition) || typeof artwork.showDate !== 'boolean'
+        || !sameKeys(artwork.photo, savedBook.cover_artwork.photo) || !range(artwork.photo.x, 0, 1)
+        || !range(artwork.photo.y, 0, 1) || !range(artwork.photo.scale, 1, 2.5)
+        || !sameKeys(film, savedBook.film_settings) || film.version !== 1
+        || !['automatic', 'original'].includes(film.mode) || !['reflective', 'bright', 'cinematic'].includes(film.style)
+        || !['short', 'standard', 'full'].includes(film.length) || !['book', 'chronological'].includes(film.order)
+        || typeof film.titleCard !== 'boolean' || typeof film.originalAudio !== 'boolean') {
+        return response({ code: '22023', message: 'Invalid synthetic creative settings.' }, 400);
+      }
+      Object.assign(savedBook, { title: args.p_title, subtitle: args.p_subtitle, cover_color: args.p_cover_color,
+        cover_design: args.p_cover_design, cover_story_id: args.p_cover_story_id, audience: args.p_audience,
+        cover_artwork: artwork, film_settings: film, presentation_revision: savedBook.presentation_revision + 1 });
+      record('mutations', { rpc: name, owner, id: savedBook.id, revision: savedBook.presentation_revision,
+        title: savedBook.title, cover_color: savedBook.cover_color, cover_design: savedBook.cover_design,
+        cover_artwork: artwork, film_settings: film });
+      return { id: savedBook.id, presentation_revision: savedBook.presentation_revision, cover_artwork: artwork, film_settings: film };
+    }
     if (name === 'get_market_feed') return args.p_offset ? [] : rows.marketplace_listings;
     if (name === 'get_unread_counts') return [{ conversation_id: CONVERSATION, unread_count: 1 }];
     if (name === 'get_catchup_feed') return [{ ...profiles[1], user_id: PEER, story_count: 1, unseen_count: 1,
@@ -166,10 +221,11 @@ function createFixture(onChange = () => {}) {
         if (!profiles.some(profile => profile.id === owner)) return response({ msg: 'Invalid synthetic session' }, 401);
       } else if (match && body.password === 'FixtureOnly-2026!') owner = match.id;
       else return response({ code: 'invalid_credentials', msg: 'Invalid login credentials' }, 400);
+      issuedMedia.clear();
       sessionId = '90000000-0000-4000-8000-' + String(++sessionCounter).padStart(12, '0');
       return response(session());
     }
-    if (path === '/auth/v1/logout') { owner = null; return response(null, 204); }
+    if (path === '/auth/v1/logout') { owner = null; issuedMedia.clear(); return response(null, 204); }
     if (path === '/auth/v1/user') {
       if (!owner) return response({ msg: 'No synthetic session' }, 401);
       return response(user());
@@ -177,10 +233,20 @@ function createFixture(onChange = () => {}) {
     if (path === '/auth/v1/factors') return response({ all: [], totp: [], phone: [] });
     if (!owner && path.startsWith('/rest/v1/')) return response({ message: 'Authentication required' }, 401);
     if (path.startsWith('/rest/v1/rpc/')) {
-      const value = rpc(path.slice('/rest/v1/rpc/'.length), body);
-      return value === undefined ? unknown(method, path) : response(value);
+      const value = rpc(path.slice('/rest/v1/rpc/'.length), body, headers);
+      return value === undefined ? unknown(method, path) : value instanceof Response ? value : response(value);
     }
     if (path === '/functions/v1/crisp-bridge') return response({ success: true, linked: false, linked_at: null });
+    if (path === '/functions/v1/content-media-sign') {
+      let claims;
+      try { claims = JSON.parse(atob((headers.get('authorization') || '').replace(/^Bearer /, '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch {}
+      if (owner !== OWNER || claims?.sub !== owner || claims?.session_id !== sessionId) return response({ message: 'Synthetic media ownership changed.' }, 403);
+      if (method !== 'POST' || body.delivery !== 'no-store' || !Array.isArray(body.references) || body.references.length !== 1
+        || body.references[0].kind !== 'memory_album' || body.references[0].id !== BOOK) return unknown(method, path);
+      const urls = Object.keys(MEDIA).map(key => ({ key, url: capability(key) }));
+      urls.forEach(item => issuedMedia.add(item.url));
+      return response({ urls, expiresAt: Date.now() + 60000 });
+    }
     if (path.startsWith('/rest/v1/')) {
       const table = path.slice('/rest/v1/'.length);
       if (!Object.hasOwn(rows, table)) return unknown(method, path);
@@ -205,9 +271,20 @@ function createFixture(onChange = () => {}) {
     return unknown(method, path);
   }
   return { fetch: fetchFixture, receipt, profiles, posts,
-    configure({ offline: nextOffline, delayMs: nextDelay } = {}) {
+    authorizeMemoryMedia(url) {
+      if (owner !== OWNER || offline || !issuedMedia.has(url)) {
+        record('unhandled', { method: 'MEDIA', path: String(url).split('?')[0] });
+        throw new Error('Synthetic memory media was not authorized for this account.');
+      }
+      const key = Object.keys(MEDIA).find(value => capability(value) === url);
+      if (!key) throw new Error('Unknown synthetic memory media.');
+      return { key, file: MEDIA[key], mode: memoryMode };
+    },
+    recordMemoryMedia(event) { record('media', { ...event, owner }); },
+    configure({ offline: nextOffline, delayMs: nextDelay, memoryMode: nextMemoryMode } = {}) {
       if (typeof nextOffline === 'boolean') offline = nextOffline;
       if (Number.isFinite(nextDelay)) delayMs = Math.min(15000, Math.max(0, nextDelay));
+      if (nextMemoryMode === 'normal' || nextMemoryMode === 'cancel') memoryMode = nextMemoryMode;
     } };
 }
 

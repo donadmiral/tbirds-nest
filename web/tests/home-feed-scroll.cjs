@@ -20,7 +20,7 @@ const deferred = () => { let resolve; const promise = new Promise(done => { reso
 const settle = () => new Promise(resolve => setImmediate(resolve));
 const row = id => ({ post_id: id, author_id: 'author', content: id, created_at: '2026-10-30T00:00:00Z', media: [], sort_key: 1 });
 
-function scenario() {
+function scenario(memory) {
   let now = 0, nextId = 0, cleanup;
   const listeners = new Map(), timers = new Map(), frames = new Map(), scrolls = [], calls = [];
   const dispatch = name => [...(listeners.get(name) ?? [])].forEach(callback => callback({}));
@@ -38,7 +38,7 @@ function scenario() {
   let reply = async (name, args) => ({ data: name === 'get_feed_visibility' ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : Array.from({ length: 20 }, (_, index) => row(args.p_mode + '-' + index)), error: null });
   const client = { rpc(name, args) { calls.push({ name, args }); return reply(name, args); } };
   const snapshots = { setAccount() {}, revision: () => 0, write: async () => {}, clear: async () => {}, read: async () => null };
-  const controller = createHomeFeedController(client, { owner: 'alice', rows: Array.from({ length: 20 }, (_, index) => row('seed-' + index)), mutedWords: [], error: null }, snapshots);
+  const controller = createHomeFeedController(client, { owner: 'alice', rows: Array.from({ length: 20 }, (_, index) => row('seed-' + index)), mutedWords: [], error: null }, snapshots, undefined, undefined, memory);
   const rootElement = { isConnected: true, dataset: { feedOwner: 'alice', feedMode: 'for_you' } };
   const { restoreHomeFeedScroll } = load('lib/homeFeedScroll.ts', {}, { window, document, performance: { now: () => now },
     setTimeout(callback, delay) { const id = ++nextId; timers.set(id, { callback, at: now + delay }); return id; },
@@ -52,15 +52,15 @@ function scenario() {
   const ast = ts.createSourceFile('HomeFeed.tsx', component, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   let effect, choose;
   const visit = node => {
-    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useEffect' && node.arguments[0]?.getText(ast).includes('restoreHomeFeedScroll')) effect = node.arguments[0].getText(ast);
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useLayoutEffect' && node.arguments[0]?.getText(ast).includes('restoreHomeFeedScroll')) effect = node.arguments[0].getText(ast);
     if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'setMode') choose = node.initializer.getText(ast);
     ts.forEachChild(node, visit);
   };
   visit(ast); assert.ok(effect && choose, 'actual mode scroll wiring exists');
   let renderedRequest;
-  const commit = () => {
+  const commit = renderedMode => {
     const state = controller.getSnapshot();
-    rootElement.dataset = { feedOwner: state.owner ?? '', feedMode: state.mode };
+    rootElement.dataset = { feedOwner: state.owner ?? '', feedMode: renderedMode ?? state.mode };
     if (renderedRequest === state.scrollRestore) return;
     cleanup?.(); renderedRequest = state.scrollRestore;
     const module = { exports: {} };
@@ -94,9 +94,19 @@ test('a first mount leaves route restoration in charge and mode clicks remember 
   await settle(); h.unmount(); assert.equal(h.listenerCount(), 0);
 });
 
+test('a warm route with enough retained height restores before the first animation frame', () => {
+  const previous = scenario(), memory = previous.controller.remember(780); previous.unmount();
+  const h = scenario(memory); assert.equal(h.window.scrollY, 0);
+  h.commit();
+  assert.equal(h.window.scrollY, 780, 'layout commit must restore the existing page before paint');
+  assert.equal(h.scrolls.length, 1); assert.equal(h.frames.size, 0); assert.equal(h.timers.size, 0);
+  assert.equal(h.controller.getSnapshot().scrollRestore, null); assert.equal(h.listenerCount(), 0);
+  h.frame(); h.advance(1000); assert.equal(h.scrolls.length, 1); h.unmount();
+});
+
 test('restoration waits for the correct rendered mode and usable content height, then runs only once', async () => {
   const h = scenario(); h.window.scrollY = 1600; h.choose('latest'); await settle(); h.commit(); h.frame();
-  h.choose('for_you'); h.commit(); h.rootElement.dataset.feedMode = 'latest'; h.height(1000); h.frame();
+  h.choose('for_you'); h.height(1000); h.commit('latest'); h.frame();
   assert.equal(h.scrolls.length, 1);
   h.rootElement.dataset.feedMode = 'for_you'; h.advance(100); assert.equal(h.scrolls.length, 1);
   const stale = [...h.timers.values()][0].callback;
@@ -118,7 +128,7 @@ test('an uncached mode never scrolls against the previous mode while its request
 test('touch, wheel, keyboard, pointer and later clicks cancel delayed restoration without a late jump', async () => {
   for (const event of ['pointerdown', 'touchstart', 'wheel', 'keydown', 'click']) {
     const h = scenario(); h.window.scrollY = 1600; h.choose('latest'); await settle(); h.commit(); h.frame();
-    h.choose('for_you'); h.commit(); h.height(1000); h.frame();
+    h.choose('for_you'); h.height(1000); h.commit(); h.frame();
     const stale = [...h.timers.values()][0].callback; h.dispatch(event);
     h.window.scrollY = 100; h.height(4000); stale(); h.advance(2000);
     assert.equal(h.scrolls.length, 1, event); assert.equal(h.controller.getSnapshot().scrollRestore, null, event);
@@ -129,7 +139,7 @@ test('touch, wheel, keyboard, pointer and later clicks cancel delayed restoratio
 test('route changes and a separate route scroll restoration supersede pending feed restoration', async () => {
   for (const routeAction of ['push', 'back', 'restore', 'restore-bottom', 'hidden']) {
     const h = scenario(); h.window.scrollY = 1600; h.choose('latest'); await settle(); h.commit(); h.frame();
-    h.choose('for_you'); h.commit(); h.height(1000); h.frame();
+    h.choose('for_you'); h.height(1000); h.commit(); h.frame();
     const stale = [...h.timers.values()][0].callback;
     if (routeAction === 'push') h.window.location.href = 'https://qa.example/post/one';
     if (routeAction === 'back') h.dispatch('popstate');
@@ -143,7 +153,7 @@ test('route changes and a separate route scroll restoration supersede pending fe
 
 test('a browser clamp may wait for media, but an unreachable saved offset settles once at the final height', async () => {
   const h = scenario(); h.window.scrollY = 1600; h.choose('latest'); await settle(); h.commit(); h.frame();
-  h.window.scrollY = 900; h.choose('for_you'); h.commit(); h.height(1000); h.window.scrollY = 200; h.dispatch('scroll'); h.frame();
+  h.window.scrollY = 900; h.choose('for_you'); h.height(1000); h.commit(); h.window.scrollY = 200; h.dispatch('scroll'); h.frame();
   assert.equal(h.scrolls.length, 1); h.advance(2000);
   assert.equal(h.scrolls.length, 2); assert.equal(h.scrolls.at(-1).top, 200); assert.equal(h.timers.size, 0);
   h.height(5000); h.advance(2000); assert.equal(h.scrolls.length, 2); await settle(); h.unmount();
@@ -151,18 +161,18 @@ test('a browser clamp may wait for media, but an unreachable saved offset settle
 
 test('rapid changes retain unapplied offsets and obsolete callbacks cannot finish a later mode request', async () => {
   const h = scenario(); h.window.scrollY = 1600; h.choose('latest'); await settle(); h.commit(); h.frame();
-  h.window.scrollY = 700; h.choose('for_you'); h.commit(); h.height(1000); h.frame();
+  h.window.scrollY = 700; h.choose('for_you'); h.height(1000); h.commit(); h.frame();
   const obsolete = [...h.timers.values()][0].callback;
   h.choose('latest'); h.commit(); const later = h.controller.getSnapshot().scrollRestore;
   obsolete(); assert.equal(h.controller.getSnapshot().scrollRestore.id, later.id);
-  h.height(6000); h.frame(); assert.equal(h.scrolls.at(-1).top, 700); await settle();
+  h.height(6000); h.advance(100); assert.equal(h.scrolls.at(-1).top, 700); await settle();
   h.choose('for_you'); h.commit(); h.frame(); assert.equal(h.scrolls.at(-1).top, 1600);
   await settle(); h.unmount();
 });
 
 test('account switching, an explicit fresh refresh and expiry cannot reuse an old tab offset', async () => {
   const h = scenario(); h.window.scrollY = 1600; h.choose('latest'); await settle(); h.commit(); h.frame();
-  h.choose('for_you'); h.commit(); h.height(1000); h.frame();
+  h.choose('for_you'); h.height(1000); h.commit(); h.frame();
   const stale = [...h.timers.values()][0].callback;
   await h.controller.load(); h.height(6000); stale(); assert.equal(h.scrolls.length, 1);
   h.controller.setOwner('bob'); await settle(); h.commit(); h.choose('latest'); await settle(); h.commit(); h.frame();

@@ -924,6 +924,7 @@ export default function ChatScreen() {
       const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', convId)
         .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(MESSAGE_PAGE_SIZE);
       if (error) throw error;
+      if (!current()) return;
       const rows = (data || []) as MessageItem[];
       const msgs = await signChatMedia(rows);
       if (!current()) return;
@@ -932,8 +933,9 @@ export default function ChatScreen() {
       setHasOlder(rows.length === MESSAGE_PAGE_SIZE);
       setMessages(prev => mergeMessagePage(msgs, prev.filter(m => m.conversation_id === convId && (!m._optimistic || !confirmedIds.has(m.id)))));
       historyLoadedRef.current = true;
-      await loadReactions(msgs.map(m => m.id));
-      await Promise.all([refreshStatus(), loadStarredIds(), loadSavedIds()]);
+      // Authorized history can render while its independent decorations load.
+      setLoading(false);
+      await Promise.all([loadReactions(msgs.map(m => m.id)), refreshStatus(), loadStarredIds(), loadSavedIds()]);
     } catch {
       if (current()) setHistoryError('Messages could not be loaded. Please try again.');
     } finally { if (current()) setLoading(false); }

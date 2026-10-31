@@ -1,0 +1,114 @@
+{
+  "recordedAt": "2026-10-31T02:35:58.940829+00:00",
+  "baseCommit": "6c3586a712e5dae7ca57517f1fb059e641e1f6f2",
+  "status": "Jobs first-render cache and Notifications metadata-first loading verified against current source callbacks; native full-app UI acceptance is a separate gate.",
+  "sourceSha256": {
+    "src/screens/jobs/JobsScreen.tsx": "8649b275bf96c5ee9612140c5f07862f0a7209aa5d2a590abb326b59e566c2cf",
+    "src/screens/notifications/NotificationsScreen.tsx": "d1f68ed250eedcf1ee8a504a539d49f1420616c41c624fddd53d363fcd22ff33",
+    "tests/quality/jobs-navigation.cjs": "5f1598be197042e0c4398bda9ccb3743c06e373d6e13c60bc7a8e97588676589",
+    "tests/quality/notification-loading.cjs": "3895aae7ca21b2bad6de480cf67a9956dea3cbc7336a8b758234496b6c1df2e7"
+  },
+  "changes": [
+    "Jobs initializes the default list, application/saved state and poster logos from the current session cache before its first render.",
+    "Jobs restores cached scope/sort snapshots before paint and invalidates outgoing refreshes; an uncached filter failure does not present the previous filter rows as the new selection.",
+    "Notifications publishes authorized textual metadata with private media removed, then hydrates row media and thumbnails independently in the background.",
+    "Delayed first-page media updates preserve appended notification pages and newer read/invitation edits; generation and navigation-session checks suppress late publication including same-user A-to-B-to-A transitions.",
+    "Activity refresh/media errors retain the visible list and expose an inline retry. Periodic media renewal failure removes unchanged private capabilities without discarding activity text.",
+    "Invitation cleanup follows invitation identity rather than list length, skips photo-only changes, and never treats a failed/malformed collaborator lookup as proof that invitations should be removed. Cleanup is session/generation guarded and deletion is filtered to its recipient."
+  ],
+  "tests": [
+    {
+      "command": "env -u NODE_TEST_CONTEXT node tests/quality/jobs-navigation.cjs",
+      "summary": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "5a82c7711eedc8fcff6c73b9530db43175dbc867710b100b2258416475ee8d3c"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node tests/quality/jobs-parity.cjs",
+      "summary": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "4c9a8ed8eb9bced1e82094012c22cdb436486f5357fb2638c26fa7a072c33ff1"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node tests/quality/jobs-market-regressions.cjs",
+      "summary": {
+        "tests": 50,
+        "pass": 50,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "f66ea5ec3087d761a62ad5af6c58e742c9eef61355d405feaaa9c1029014073f"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node tests/quality/notification-loading.cjs",
+      "summary": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "2895472039477ba8e9cd702d8b9173986814c1e23c81b3305e13d82cd8a704e2"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node tests/quality/dark-surfaces-sweep.cjs",
+      "summary": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "ef681d00e7c130ebce9105790acd2e1a29d69c9a907ce1bb58316ee5046d94cb"
+    }
+  ],
+  "totalCases": 89,
+  "types": {
+    "command": "node node_modules/typescript/bin/tsc --noEmit",
+    "scope": "Whole native checkout",
+    "exitCode": 0,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "lint": {
+    "files": 2,
+    "errors": 0,
+    "warnings": 0,
+    "logSha256": "765be3b408462d8478ecb39c9ff1281129a5e16d8926fb6c57e952b3b773079c"
+  },
+  "observations": [
+    {
+      "scenario": "Notifications metadata response with both media paths deliberately unresolved",
+      "observed": "One usable notification and SectionList are published, loading=false, before signing/thumbnails settle. No unverified private media URL is exposed."
+    },
+    {
+      "scenario": "60 notification rows, first-page signing held, next page completed",
+      "observed": "All 61 rows remain after the older media response resolves; no page truncation."
+    },
+    {
+      "scenario": "Warm Jobs remount with scoped snapshot, network work held",
+      "observed": "First render contains cached jobs, save/application state and poster logos; loading=false."
+    },
+    {
+      "scenario": "Switch back to cached Jobs filter with outgoing request held",
+      "observed": "Correct cached filter snapshot is restored in the layout effect and old request cannot overwrite it."
+    }
+  ],
+  "startupAudit": [
+    "App loads fonts independently of auth. Its QueryClient uses staleTime=30000, gcTime=300000, retry=1, refetchOnWindowFocus=false, and cancels/clears on navigation account-scope changes.",
+    "The previous 450 ms useAfterTransition gate is removed. Main tabs retain mounted content with detachInactiveScreens=false and unmountOnBlur=false.",
+    "Market, Channels and Trends already initialize their scoped cache before render. No additional cache redesign was needed for those screens."
+  ],
+  "limits": [
+    "The Jobs/Notifications tests compile production screen callbacks and render branches with controlled data/state adapters. They do not measure native pixels, frames, touch latency or live Supabase request duration.",
+    "The held-promise tests prove removal of media and network gating for the named states. Test-run wall-clock duration is not a device performance claim.",
+    "Notifications still refreshes its first metadata page on focus; this follow-up does not claim complete offscreen pagination retention or a persistent notification cache.",
+    "Existing public web frame continuity measurements are recorded separately in resumed-warm-navigation-frames.json and use a component/browser fixture, not production Next routing.",
+    "No authStore/call-service edits were made by this follow-up. Source hashes bind the four scoped files; other workstreams changed different files concurrently."
+  ]
+}

@@ -43,16 +43,16 @@ export async function AppShell({
       </div>
     );
   }
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, username, account_type, avatar_url, is_verified, verified_tier")
-    .eq("id", data.user.id)
-    .maybeSingle();
   if (professional) return <div className={chrome.professionalMain}>
     <a href="#main-content" className={chrome.skipLink}>Skip to workspace</a>
     <WebCallLayer /><GlobalMediaLightbox /><ScrollMemory />
     <main id="main-content" tabIndex={-1}>{children}</main>
   </div>;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, username, account_type, avatar_url, is_verified, verified_tier")
+    .eq("id", data.user.id)
+    .maybeSingle();
   return (
     <div className="min-h-screen">
       <a href="#main-content" className={chrome.skipLink}>Skip to content</a>

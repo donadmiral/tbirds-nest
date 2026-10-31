@@ -1,0 +1,98 @@
+{
+  "recordedAt": "2026-10-31T02:39:21.295029+00:00",
+  "baseCommit": "6c3586a712e5dae7ca57517f1fb059e641e1f6f2",
+  "status": "Isolated Chat history and professional web shell loading gates removed and verified.",
+  "sourceSha256": {
+    "src/screens/messages/ChatScreen.tsx": "a2a4a55891c6ce8dcdcea8d2aba46598b6421aa2dccc6042070e127c2f3f162e",
+    "tests/quality/chat-history-loading.cjs": "ebe4afcb8c1959b61a80d8164301b76b81f4b012f17f5f39bb90d6466a040837",
+    "web/components/AppShell.tsx": "4bda2f63c27a0bf469d628f34afa996f89a934f392a02ed2d2dcc6ce3bbe8485",
+    "web/tests/app-shell-loading.cjs": "f6b7ff804a55a1ed67296ec6585e831f1e8b4abd90cdc4320cc60373303edfe8"
+  },
+  "changes": [
+    "Chat releases its loading view as soon as signed/authorized history is published, allowing messages to render while reactions, message status, saved IDs and starred IDs load.",
+    "The four independent Chat decorations start together instead of waiting for reactions before dispatching the other three reads.",
+    "Stale Chat metadata is rejected before dispatching media signing. Existing generation/conversation checks continue to protect publication and final loading/error state.",
+    "The professional web AppShell returns after authenticated viewer resolution without issuing a navigation-profile query whose result it never uses. Standard navigation still waits for and renders that profile."
+  ],
+  "tests": [
+    {
+      "command": "env -u NODE_TEST_CONTEXT node tests/quality/chat-history-loading.cjs",
+      "summary": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "8353a2d7363f6288213b26bdc169b37ad2aa2c7b2cb8a522c1c94b43a69c172d"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node web/tests/app-shell-loading.cjs",
+      "summary": {
+        "tests": 3,
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "9444f09d21cd98034c37d3b9d4de28804e38475b2dc77d0372fe71d9ab0dfe73"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node tests/quality/chat-call-authorization.cjs",
+      "summary": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "a2fbf2420b96b6274fe7b5683bc9aa026262766782159912f06682bc673c64be"
+    },
+    {
+      "command": "env -u NODE_TEST_CONTEXT node tests/quality/chat-media-signer.cjs",
+      "summary": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "skipped": 0
+      },
+      "logSha256": "9439d9dab680c60a39b553bc85cf4610cf10437dfecd138e946058e9ce1f537f"
+    }
+  ],
+  "totalCases": 23,
+  "types": {
+    "native": {
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "web": {
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "lint": {
+    "AppShell": {
+      "errors": 0,
+      "warnings": 0,
+      "logSha256": "73fe7f1c08c7a26727b31252f851c49718472e3e4997876d6d3c414d8dc0a7e2"
+    },
+    "ChatScreen": {
+      "errors": 0,
+      "warnings": 20,
+      "newWarnings": 0,
+      "baselineWarnings": 20,
+      "baselineComparison": "Same rule/message multiset as HEAD; no warning suppressions added.",
+      "logSha256": "df483f5e77b90470439626a2a0d3026ee9ad8d06bbd35dd9f2a156beefecd51a",
+      "baselineLogSha256": "047b7ae708ef141135bb10a540d3de0fe8c285caffd155b921e516b55374a3c4"
+    }
+  },
+  "observations": [
+    "With every Chat enrichment promise deliberately held, production fetchMessages has published one authorized message, historyLoaded=true and loading=false, while all four enrichment reads have started.",
+    "With Chat signing held or rejected, no message publication or enrichment is permitted. Conversation/account/unmount and later-request races do not publish stale state.",
+    "The actual AppShell async function returns the professional workspace with call, media-lightbox and scroll layers present and zero profile query dispatches.",
+    "Pending authentication still prevents AppShell resolution, and the signed-out shell remains signed out. Ordinary navigation still waits for its own profile read."
+  ],
+  "limits": [
+    "The Chat tests execute extracted production screen callbacks with controlled state and transport, plus existing call/media authorization regressions. They do not measure native pixel continuity, network latency or device performance.",
+    "AppShell is executed as an actual transpiled async React component using mocked viewer/database and child components. This proves the removed query dependency, not deployed Next route latency.",
+    "Private media authorization remains on the Chat display path. No new private message cache or authorization bypass was introduced.",
+    "ChatScreen retains 20 pre-existing lint warnings unrelated to the changed callback; this evidence does not claim the whole file or app is lint-clean."
+  ]
+}

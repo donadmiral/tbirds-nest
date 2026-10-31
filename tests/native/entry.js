@@ -4,6 +4,7 @@ import { Linking } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { createFixture, FixtureWebSocket } from './backend-fixture.cjs';
 import { installFixtureTransport } from './install-fixture-transport.cjs';
+import { installFixtureRuntime } from './fixture-runtime.cjs';
 
 if (process.env.EXPO_PUBLIC_APP_ENV !== 'qa' || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY !== 'native-ui-synthetic-no-provider-key') {
   throw new Error('The isolated native UI entry cannot use a provider credential or production configuration.');
@@ -21,6 +22,7 @@ function persist(receipt) {
   }, 100);
 }
 const fixture = createFixture(persist);
+installFixtureRuntime(fixture);
 installFixtureTransport(fixture, FixtureWebSocket);
 Linking.addEventListener('url', ({ url }) => {
   if (!url.startsWith('platinum-circles-qa://ui-fixture/')) return;
@@ -30,5 +32,8 @@ Linking.addEventListener('url', ({ url }) => {
 // Require after replacing transports. Every real production component and
 // service is imported through App, including the actual Supabase SDK.
 const { registerRootComponent } = require('expo');
+const { linking } = require('../../src/navigation/linking');
+linking.prefixes.push('platinum-circles-qa://');
+linking.config.screens.NativeMemoryCaptureFixture = 'ui-fixture/memory';
 const App = require('../../App').default;
 registerRootComponent(App);

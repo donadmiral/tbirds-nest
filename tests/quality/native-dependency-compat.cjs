@@ -149,6 +149,26 @@ test('the actual ngrok wrapper generates a v4 tunnel name without starting a pro
   assert.match(calls[0].name, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
 });
 
+test('installed CallKeep exposes one Android React method per name and keeps the four-argument call bridge', () => {
+  const installed = require('react-native-callkeep/package.json');
+  const lock = require(path.join(root, 'package-lock.json'));
+  const declared = require(path.join(root, 'package.json'));
+  assert.equal(installed.version, '4.6.1');
+  assert.equal(declared.dependencies['react-native-callkeep'], installed.version);
+  assert.equal(lock.packages['node_modules/react-native-callkeep'].version, installed.version);
+  const moduleRoot = path.dirname(require.resolve('react-native-callkeep/package.json'));
+  const java = fs.readFileSync(path.join(moduleRoot, 'android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java'), 'utf8');
+  const methods = [...java.matchAll(/@ReactMethod\b(?:\s*\([^)]*\))?\s+public\s+\S+\s+(\w+)\s*\(([^)]*)\)/g)];
+  assert.ok(methods.length > 20, 'the actual Android bridge exports were inspected');
+  const names = methods.map(match => match[1]);
+  assert.equal(new Set(names).size, names.length, 'TurboModule interop rejects overloaded @ReactMethod names');
+  for (const name of ['displayIncomingCall', 'startCall']) {
+    const method = methods.find(match => match[1] === name);
+    assert.ok(method, name + ' remains exported');
+    assert.equal(method[2].split(',').length, 4, 'the JavaScript bridge still passes four arguments');
+  }
+});
+
 test('CallKeep config plugin matches Expo 54 and retains explicit calling permissions in modifier preview', async () => {
   const semver = require('semver');
   const installed = require('@config-plugins/react-native-callkeep/package.json');

@@ -19,6 +19,10 @@ cleanup() {
   if [[ -n "$ui_simulator" ]]; then
     container="$(xcrun simctl get_app_container "$ui_simulator" app.platinumcircles.mobile.qa data 2>/dev/null || true)"
     if [[ -f "$container/Documents/native-ui-receipt.json" ]]; then cp "$container/Documents/native-ui-receipt.json" native-ui-logs/native-ui-receipt.json; fi
+    if [[ -d "$container/Documents/native-memory-capture" ]]; then
+      mkdir -p native-ui-logs/memory-capture
+      cp -R "$container/Documents/native-memory-capture/." native-ui-logs/memory-capture/
+    fi
     xcrun simctl shutdown "$ui_simulator" >/dev/null 2>&1 || true
     xcrun simctl delete "$ui_simulator" >/dev/null 2>&1 || true
   fi
@@ -65,4 +69,7 @@ maestro --device "$ui_simulator" test --format junit --output native-ui-logs/mae
   tests/native/flows/navigation.yaml 2>&1 | tee native-ui-logs/maestro.log
 container="$(xcrun simctl get_app_container "$ui_simulator" app.platinumcircles.mobile.qa data)"
 cp "$container/Documents/native-ui-receipt.json" native-ui-logs/native-ui-receipt.json
+mkdir -p native-ui-logs/memory-capture
+cp -R "$container/Documents/native-memory-capture/." native-ui-logs/memory-capture/
+python3 scripts/quality/verify-native-ui-memory.py
 node scripts/quality/verify-native-ui.cjs ios

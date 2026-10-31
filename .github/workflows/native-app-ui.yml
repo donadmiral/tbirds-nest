@@ -16,6 +16,7 @@ on:
       - 'tests/native/**'
       - 'scripts/quality/*native-ui*'
       - 'scripts/quality/test-*-app-ui.sh'
+      - 'scripts/quality/verify-native-ui-memory.py'
       - '.github/workflows/native-app-ui.yml'
   workflow_dispatch:
 
@@ -58,6 +59,10 @@ jobs:
           echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
           gem install --user-install cocoapods --version 1.16.2 --no-document
           ruby -e 'puts File.join(Gem.user_dir, "bin")' >> "$GITHUB_PATH"
+      - name: Ensure independent movie decoding is available
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
+          ffmpeg -version
       - run: bash scripts/quality/install-native-ui-tools.sh
       - run: bash scripts/quality/test-ios-app-ui.sh
       - name: Retain actual app UI evidence
@@ -86,7 +91,7 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
           echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends libpulse0
+          sudo apt-get install --yes --no-install-recommends libpulse0 ffmpeg
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
       - run: npm ci --ignore-scripts --no-fund

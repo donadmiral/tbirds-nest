@@ -18,6 +18,11 @@ function callback(file, name, globals) {
   visit(ast); assert.ok(found, name);
   return compile(`export const run = ${found}`, { useCallback: fn => fn, ...globals }).run;
 }
+function focusCallback(file, contains, globals) {
+  const source=read(file),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let found;
+  function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useFocusEffect'&&node.arguments[0]?.getText(ast).includes(contains))found=node.arguments[0].getText(ast);ts.forEachChild(node,visit);}visit(ast);
+  assert.ok(found,contains);return compile('export const run = '+found,{useCallback:fn=>fn,...globals}).run;
+}
 const normalize = compile(read('src/utils/profilePost.ts')).normalizeProfilePost;
 const media = compile(read('shared/contentMedia.ts'));
 const { profileRead } = compile(read('src/utils/profileRead.ts'));
@@ -27,23 +32,39 @@ const withoutPrivateMedia = rows => media.replaceContentMedia(rows, base, new Ma
 function deferred() { let resolve, reject; const promise = new Promise((a,b) => { resolve=a; reject=b; }); return {promise,resolve,reject}; }
 const turn = () => new Promise(resolve => setImmediate(resolve));
 function db(rows, failures = {}, held = {}) {
-  const calls=[];
-  return {calls, from(table) {
-    const q = { then(ok, bad) { calls.push(table); return (held[table] || Promise.resolve({ data: rows[table] || [], error: failures[table] || null })).then(ok,bad); } };
-    for (const method of ['select','eq','order','limit','in','lt','maybeSingle']) q[method]=()=>q;
+  const calls=[], queries=[];
+  return {calls,queries,rows, rpc(name) { return this.from(name); }, from(table) {
+    const details={table,filters:[],headers:{}};
+    const q = { then(ok, bad) { calls.push(table);queries.push(details);return Promise.resolve().then(()=>typeof held[table]==='function'?held[table](details):held[table] || { data: typeof rows[table]==='function'?rows[table](details):rows[table] || [], error: failures[table] || null }).then(ok,bad); },
+      setHeader(name,value){details.headers[name]=value;return q;},abortSignal(signal){details.signal=signal;return q;} };
+    for (const method of ['select','eq','order','limit','in','lt','gte','or','maybeSingle']) q[method]=(...args)=>{details.filters.push([method,...args]);return q;};
     return q;
   }};
 }
 function own(hydrate, failures, held = {}, timeoutMs = 15000) {
   const source = 'src/screens/profile/ProfileScreen.tsx';
-  const state={ posts:[{id:'already-visible'}],error:null,loading:false,counts:{},reposts:[],saved:[],tagged:[] };
-  const scope={current:{userId:'owner'}}, tabRequest={current:0}, mounted={current:true}, loaded={current:{}};
-  const row={id:'post',user_id:'owner',post_media:[{id:'photo',url:raw,media_type:'image'}]};
+  const state={ posts:[{id:'already-visible',user_id:'owner',created_at:'2026-10-01T00:00:00Z'}],error:null,loading:false,counts:{},reposts:[],saved:[],tagged:[] };
+  const scope={current:{userId:'owner',sessionScope:'1:owner'}}, tabRequest={current:0}, mounted={current:true}, loaded={current:{}};
+  const row={id:'post',user_id:'owner',created_at:'2026-10-01T00:00:00Z',post_media:[{id:'photo',url:raw,media_type:'image'}]};
   const client=db({posts:[row],post_reposts:[{post_id:'post',created_at:'2026-10-01'}],post_bookmarks:[{post_id:'post',created_at:'2026-10-01'}]},failures,held);
-  const set = key => value => state[key]=typeof value==='function'?value(state[key]):value;
+  const postsRef={current:state.posts},otherTabsRef={current:{reposts:state.reposts,saved:state.saved,tagged:state.tagged}};
+  const set = key => value => {state[key]=typeof value==='function'?value(state[key]):value;if(key==='posts')postsRef.current=state[key];if(key in otherTabsRef.current)otherTabsRef.current[key]=state[key];};
+  let navScope='1:owner',authOwner='owner',scopeRevision=1;
+  const listeners=new Set();
+  const navigation={navigationScope:()=>navScope,subscribeNavigationScope:fn=>{listeners.add(fn);return()=>listeners.delete(fn);}};
+  const service=compile(read('src/services/profileContent.ts'),{setTimeout:(fn,ms)=>setTimeout(fn,Math.min(ms,timeoutMs)),require(name){
+    if(name==='../../shared/contentMedia')return hydrate ? {...media,hydrateContentMedia:(_client,_base,rows)=>hydrate(rows)} : media;
+    if(name.endsWith('/navigationCache'))return navigation;
+    if(name.endsWith('/authStore'))return{useAuthStore:{getState:()=>({session:authOwner?{user:{id:authOwner},access_token:authOwner+'-token'}:null})}};
+    if(name==='./supabase')return{supabase:client,SUPABASE_URL:base};
+    throw Error(name);
+  }});
   const globals={ contentRevisionRef:{current:0}, userId:'owner',scope,tabRequest,mounted,tabLoadedRef:loaded,authProfileRef:{current:{id:'owner'}},normalizePost:normalize,
-    hydratePostMedia:hydrate,withoutPrivateMedia,profileRead:request=>profileRead(request,timeoutMs),supabase:client,setTabError:set('error'),setTabLoading:set('loading'),setTabPosts:set('posts'),setTabCounts:set('counts'),setPostsHasMore:set('more'),setTabReposts:set('reposts'),setTabSaved:set('saved'),setTabTagged:set('tagged') };
-  return {state,scope,loaded,client,run:callback(source,'loadTabContent',globals)};
+    ...service,...navigation,tabReadRef:{current:null},moreReadRef:{current:null},moreBusyRef:{current:null},moreRequest:{current:0},tabPostsRef:postsRef,otherTabRowsRef:otherTabsRef,ownPageRef:{current:{cursor:null,pages:0,hasMore:false}},resetPostsRef:{current:false},scrollOffsets:{current:{posts:0,reposts:0,saved:0,tagged:0}},activeTabRef:{current:'posts'},tabRefreshingRef:{current:false},
+    profileReadRef:{current:null},profileRequest:{current:0},prefetchedOwner:{current:null},takePrefetched:()=>null,awaitPrefetched:async()=>null,setProfile:set('profile'),setStats:set('stats'),setAuthProfile:set('authProfile'),setLoadError:set('loadError'),setLoading:set('headerLoading'),setRefreshing:set('headerRefreshing'),sessionScope:'1:owner',setHasStory:set('hasStory'),
+    withoutPrivateMedia,supabase:client,setTabRefreshing:set('refreshing'),setLoadingMorePosts:set('loadingMore'),setTabError:set('error'),setTabLoading:set('loading'),setTabPosts:set('posts'),setTabCounts:set('counts'),setPostsHasMore:set('more'),setTabReposts:set('reposts'),setTabSaved:set('saved'),setTabTagged:set('tagged') };
+  return {state,scope,loaded,client,listeners,refs:globals,cachedPosts:set('posts'),cachedTab:(tab,rows)=>set(tab)(rows),run:callback(source,'loadTabContent',globals),more:callback(source,'loadMorePosts',globals),header:()=>callback(source,'load',globals)(),story:()=>focusCallback(source,'setHasStory',globals)(),
+    account(next){authOwner=next;navScope=next?`${++scopeRevision}:${next}`:null;listeners.forEach(fn=>fn());}};
 }
 for (const tab of ['posts','reposts','saved','tagged']) test(`profile ${tab} publishes authorized metadata while private previews resolve`, async () => {
   const gate=deferred();let received;
@@ -59,7 +80,7 @@ for (const tab of ['posts','reposts','saved','tagged']) test(`profile ${tab} pub
 test('account ABA and superseded loads cannot replace the current profile feed',async()=>{
   const gates=[deferred(),deferred()];let n=0;const h=own(()=>gates[n++].promise);
   const first=h.run('posts');await turn();const second=h.run('posts');await turn();
-  gates[1].resolve([{id:'new',post_media:[]}]);await second;gates[0].resolve([{id:'old',post_media:[]}]);await first;
+  gates[1].resolve([{id:'new',user_id:'owner',post_media:[]}]);await second;gates[0].resolve([{id:'old',user_id:'owner',post_media:[]}]);await first;
   assert.equal(h.state.posts[0].id,'new');
   const gate=deferred(), switched=own(()=>gate.promise); const pending=switched.run('posts');await turn();
   switched.scope.current={userId:'other'}; switched.scope.current={userId:'owner'};
@@ -104,7 +125,7 @@ test('profile focus starts and restarts content without waiting for a header ref
   function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useFocusEffect'&&node.arguments[0]?.getText(ast).includes('loadTabContent(activeTab, contentRevision)'))focused=node.arguments[0];ts.forEachChild(node,visit);}visit(ast);
   assert.ok(focused,'content reads must have their own focus lifecycle');
   const calls=[],tabRequest={current:2},moreRequest={current:3};
-  const run=compile('export const run = '+focused.getText(ast),{useCallback:fn=>fn,userId:'owner',activeTab:'posts',contentRevision:0,loadTabContent:tab=>calls.push(tab),tabRequest,moreRequest}).run;
+  const run=compile('export const run = '+focused.getText(ast),{useCallback:fn=>fn,userId:'owner',sessionScope:'1:owner',activeTab:'posts',contentRevision:0,loadTabContent:tab=>calls.push(tab),tabRequest,moreRequest,tabReadRef:{current:null},moreReadRef:{current:null},moreBusyRef:{current:null},tabRefreshingRef:{current:false}}).run;
   const cleanup=run();assert.deepEqual(calls,['posts']);cleanup();assert.equal(tabRequest.current,3);assert.equal(moreRequest.current,4);
   run();assert.deepEqual(calls,['posts','posts'],'returning from another screen starts a fresh content read even if header RPC is still pending');
 });
@@ -112,10 +133,11 @@ test('profile focus starts and restarts content without waiting for a header ref
 test('reselecting a loaded tab keeps its content visible while media access refreshes', async () => {
   const gate=deferred(), h=own(()=>gate.promise);
   h.loaded.current.posts=true; h.state.loading=true;
+  h.client.rows.posts=[...h.client.rows.posts,{...h.state.posts[0],post_media:[]}];
   const pending=h.run('posts'); await turn();
   assert.equal(h.state.loading,false);
   assert.equal(h.state.posts[0].id,'already-visible');
-  gate.resolve([{id:'updated',post_media:[]}]); await pending;
+  gate.resolve([{id:'updated',user_id:'owner',post_media:[]}]); await pending;
   assert.equal(h.state.posts[0].id,'updated');
 });
 
@@ -152,4 +174,217 @@ test('a consumed profile prefetch cannot hide updated follow or visibility state
  h.client.rpc=async()=>{liveReads++;return{data:{id:'target',can_view_content:false},error:null};};
  await h.run();assert.equal(liveReads,0);assert.equal(h.state.posts[0].id,'post');
  await h.run();assert.equal(liveReads,1);assert.equal(h.state.posts.length,0);
+});
+
+const profileRow = (index, extras = {}) => ({ id: `10000000-0000-4000-8000-${String(index).padStart(12,'0')}`, user_id: 'owner',
+  created_at: new Date(Date.UTC(2026,9,31)-index*60_000).toISOString(), content: 'Post '+index, post_media: [], ...extras });
+const rangeRows = (from,to) => Array.from({length:to-from+1},(_,i)=>profileRow(from+i));
+const idsIn = query => query.filters.find(filter=>filter[0]==='in')?.[2];
+function warmPages(h, rows = rangeRows(1,100)) {
+  h.loaded.current.posts=true;h.cachedPosts(rows.map(normalize));h.refs.scrollOffsets.current.posts=740;
+  const last=rows.filter(row=>row.user_id==='owner').at(-1);
+  h.refs.ownPageRef.current={cursor:{createdAt:last.created_at,id:last.id},pages:2,hasMore:true};
+}
+
+test('warm Profile focus keeps every paged row and scroll, rechecks RLS, and preserves its scanned cursor', async()=>{
+  const page=deferred(),sign=deferred(),held={};let toSign;
+  const h=own(async rows=>{toSign=rows;return sign.promise;},{},held);warmPages(h);
+  const previousCursor=h.refs.ownPageRef.current.cursor,revoked=profileRow(24).id;
+  held.posts=query=>idsIn(query)?Promise.resolve({data:rangeRows(1,100).filter(row=>row.id!==revoked),error:null}):page.promise;
+  const run=h.run('posts');await turn();
+  assert.equal(h.state.posts.length,100);assert.equal(h.state.loading,false);assert.equal(h.refs.scrollOffsets.current.posts,740);
+  page.resolve({data:rangeRows(1,50).map(row=>row.id===profileRow(1).id?{...row,content:'Updated metadata'}:row),error:null});await turn();
+  assert.equal(h.state.posts.length,99,'revoked rows disappear before media signing finishes');
+  assert.ok(h.state.posts.some(row=>row.id===profileRow(100).id),'older pages stay visible');
+  assert.equal(h.refs.ownPageRef.current.cursor,previousCursor);assert.equal(h.refs.ownPageRef.current.pages,2);
+  sign.resolve(toSign);await run;await turn();
+  assert.equal(h.state.posts.length,99);assert.equal(h.state.posts[0].content,'Updated metadata');assert.equal(h.refs.scrollOffsets.current.posts,740);
+  assert.equal(h.state.error,null);assert.equal(h.state.refreshing,false);
+  assert.ok(h.client.queries.filter(q=>q.table==='posts').every(q=>q.headers.Authorization==='Bearer owner-token'));
+});
+
+test('a warm Profile signing outage preserves authorized pages while keeping revoked rows removed',async()=>{
+  const h=own(async()=>{throw Error('Signing unavailable');});warmPages(h);
+  h.client.rows.posts=query=>idsIn(query)?rangeRows(1,100).filter(row=>row.id!==profileRow(24).id):rangeRows(1,50);
+  await h.run('posts');
+  assert.equal(h.state.posts.length,99);assert.ok(h.state.posts.some(row=>row.id===profileRow(100).id));
+  assert.ok(h.state.posts.every(row=>row.id!==profileRow(24).id));assert.match(h.state.error,/Signing unavailable/);
+  assert.equal(h.refs.scrollOffsets.current.posts,740);assert.equal(h.refs.ownPageRef.current.pages,2);assert.equal(h.state.loading,false);
+});
+
+for(const tab of ['reposts','saved','tagged'])test(`warm ${tab} removes revoked previews before a failed signing refresh`,async()=>{
+  const signing=deferred(),h=own(()=>signing.promise);
+  const allowed=profileRow(1,{post_media:[{id:'photo',url:raw,media_type:'image'}]});
+  const revoked=profileRow(2,{post_media:[{id:'old',url:'revoked-private-capability.jpg',media_type:'image'}]});
+  h.loaded.current[tab]=true;
+  h.cachedTab(tab,[normalize({...allowed,post_media:[{id:'photo',url:'authorized-existing-preview.jpg',media_type:'image'}]}),normalize(revoked)]);
+  h.client.rows.posts=[allowed];
+  h.client.rows.post_reposts=h.client.rows.post_bookmarks=[{post_id:allowed.id,created_at:'2026-10-31'},{post_id:revoked.id,created_at:'2026-10-30'}];
+  const refresh=h.run(tab);await turn();
+  assert.equal(h.state[tab].length,1,'RLS or link removal is applied before signing settles');
+  assert.equal(h.state[tab][0].id,allowed.id);assert.equal(h.state[tab][0].media[0].url,'authorized-existing-preview.jpg');
+  assert.equal(h.state.loading,false);
+  signing.reject(Error('Signing unavailable'));await refresh;
+  assert.equal(h.state[tab].length,1);assert.equal(h.state[tab][0].media[0].url,'authorized-existing-preview.jpg');
+  assert.match(h.state.error,/Signing unavailable/);
+});
+
+test('the story indicator pins its session, aborts on same-user ABA, and ignores late data',async()=>{
+  const gate=deferred(),h=own(async rows=>rows,{}, {stories:gate.promise});
+  h.state.hasStory=false;const cleanup=h.story();await turn();
+  assert.equal(h.client.queries[0].table,'stories');assert.equal(h.client.queries[0].headers.Authorization,'Bearer owner-token');
+  h.account('other');h.account('owner');await turn();
+  assert.equal(h.client.queries[0].signal.aborted,true);assert.equal(h.listeners.size,0);
+  gate.resolve({data:[{id:'stale-story'}],error:null});await turn();
+  assert.equal(h.state.hasStory,false);cleanup();
+});
+
+test('the story indicator has a deadline, catches transport errors, and cancels on blur',async()=>{
+  const gate=deferred(),h=own(async rows=>rows,{}, {stories:gate.promise},5);h.state.hasStory=true;
+  const cleanup=h.story();await new Promise(resolve=>setTimeout(resolve,20));
+  assert.equal(h.state.hasStory,false);assert.equal(h.client.queries[0].signal.aborted,true);assert.equal(h.listeners.size,0);
+  gate.resolve({data:[{id:'too-late'}],error:null});await turn();assert.equal(h.state.hasStory,false);cleanup();
+  const pending=deferred(),blur=own(async rows=>rows,{}, {stories:pending.promise});blur.state.hasStory=false;
+  const stop=blur.story();await turn();stop();await turn();assert.equal(blur.client.queries[0].signal.aborted,true);
+  pending.resolve({data:[{id:'late-after-blur'}],error:null});await turn();assert.equal(blur.state.hasStory,false);
+  const rejected=own(async rows=>rows,{stories:Error('Offline')});rejected.state.hasStory=true;const done=rejected.story();await turn();
+  assert.equal(rejected.state.hasStory,false);assert.equal(rejected.listeners.size,0);done();
+});
+
+test('profile header and optional reach use the initiating token without blocking visible metadata',async()=>{
+  const reach=deferred(),h=own(async rows=>rows,{}, {get_profile_reach_28d:reach.promise});
+  h.client.rows.get_profile={id:'owner',full_name:'Current profile',counts:{posts:100,followers:20,following:30}};
+  await h.header();await turn();
+  assert.equal(h.state.profile.full_name,'Current profile');assert.equal(h.state.headerLoading,false);assert.equal(h.state.stats.posts,100);
+  assert.deepEqual(h.client.queries.map(query=>[query.table,query.headers.Authorization]),[['get_profile','Bearer owner-token'],['get_profile_reach_28d','Bearer owner-token']]);
+  h.account('other');h.account('owner');await turn();
+  reach.resolve({data:999,error:null});await turn();assert.notEqual(h.state.stats.reach,999);assert.equal(h.listeners.size,0);
+});
+
+test('header prefetch and metadata deadlines cannot dispatch late or cross-session reach requests',async()=>{
+  const prefetch=deferred(),h=own(async rows=>rows);h.refs.awaitPrefetched=()=>prefetch.promise;
+  const pending=h.header();await turn();h.account('other');h.account('owner');await pending;
+  prefetch.resolve({id:'owner',full_name:'Stale prefetch'});await turn();
+  assert.equal(h.client.queries.length,0);assert.equal(h.state.profile,undefined);
+  const gate=deferred(),slow=own(async rows=>rows,{}, {get_profile:gate.promise},5);
+  await slow.header();assert.match(slow.state.loadError,/too long/);assert.equal(slow.state.headerLoading,false);
+  gate.resolve({data:{id:'owner',full_name:'Too late'},error:null});await turn();
+  assert.equal(slow.client.queries.length,1);assert.equal(slow.state.profile,undefined);assert.equal(slow.listeners.size,0);
+  const switched=own(async rows=>rows);switched.client.rows.get_profile={id:'owner',full_name:'Owner'};
+  switched.refs.setAuthProfile=()=>{switched.account('other');switched.account('owner');};await switched.header();await turn();
+  assert.equal(switched.client.queries.length,1,'a session change while publishing header metadata cannot dispatch a reach RPC');assert.equal(switched.listeners.size,0);
+});
+
+test('a delayed collaborator decoration cannot discard an appended own page or alter its cursor',async()=>{
+  const links=deferred(),h=own(async rows=>rows,{}, {post_collaborators:links.promise});
+  const collaboration=profileRow(1000,{user_id:'other'});
+  h.client.rows.posts=query=>idsIn(query)?[collaboration]:query.filters.some(filter=>filter[0]==='or')?rangeRows(51,100):rangeRows(1,50);
+  await h.run('posts');await turn();assert.equal(h.state.posts.length,50);
+  await h.more();assert.equal(h.state.posts.length,100);const afterPage=h.refs.ownPageRef.current.cursor;
+  links.resolve({data:[{post_id:collaboration.id}],error:null});await turn();await turn();
+  assert.equal(h.state.posts.length,101);assert.equal(h.state.posts.filter(row=>row.user_id==='owner').length,100);
+  assert.equal(h.refs.ownPageRef.current.cursor,afterPage);assert.equal(afterPage.id,profileRow(100).id);
+  const next=h.client.queries.find(query=>query.filters.some(filter=>filter[0]==='or'));
+  assert.ok(next.filters.some(filter=>filter[0]==='or'&&filter[1]===`created_at.lt.${profileRow(50).created_at},and(created_at.eq.${profileRow(50).created_at},id.lt.${profileRow(50).id})`));
+  assert.ok(next.filters.some(filter=>filter[0]==='order'&&filter[1]==='id'));
+});
+
+test('a generally readable former collaboration requires a current accepted link before publication',async()=>{
+  for(const failed of [false,true]) {
+    const ownRow=profileRow(1),collab=profileRow(2,{user_id:'other',_repostLabel:'Collab'});
+    const h=own(async rows=>rows,failed?{post_collaborators:Error('Membership unavailable')}:{});
+    h.loaded.current.posts=true;h.cachedPosts([ownRow,collab].map(normalize));h.refs.scrollOffsets.current.posts=400;
+    h.client.rows.posts=query=>idsIn(query)?[ownRow,collab].filter(row=>idsIn(query).includes(row.id)):[ownRow];
+    h.client.rows.post_collaborators=[];
+    await h.run('posts');await turn();await turn();
+    assert.equal(h.state.posts.length,1);assert.equal(h.state.posts[0].id,ownRow.id);
+    assert.ok(h.client.queries.filter(query=>query.table==='posts'&&idsIn(query)).every(query=>!idsIn(query).includes(collab.id)));
+    if(failed)assert.match(h.state.error,/collaborations could not load/);else assert.equal(h.state.error,null);
+  }
+  const h=own(async rows=>rows,{post_collaborators:Error('Membership unavailable')});
+  h.loaded.current.posts=true;h.cachedPosts([profileRow(1),profileRow(2)].map(normalize));h.refs.scrollOffsets.current.posts=400;
+  h.client.rows.posts=query=>idsIn(query)?[profileRow(1),profileRow(2,{user_id:'other'})]:[profileRow(1)];
+  await h.run('posts');await turn();assert.equal(h.state.posts.length,1,'retained IDs must still belong to the current author');
+});
+
+test('Profile pagination has a synchronous lock, preserves failed-page retry, and ignores a blur cancellation',async()=>{
+  const gate=deferred(),held={posts:gate.promise},h=own(async rows=>rows,{},held);warmPages(h);
+  const before=h.refs.ownPageRef.current.cursor;
+  const first=h.more(),second=h.more();await turn();assert.equal(h.client.queries.length,1);
+  gate.resolve({data:null,error:Error('Page unavailable')});await first;await second;
+  assert.equal(h.state.posts.length,100);assert.equal(h.refs.ownPageRef.current.cursor,before);assert.match(h.state.error,/Page unavailable/);assert.equal(h.refs.moreBusyRef.current,null);
+  const late=deferred();held.posts=late.promise;
+  const retry=h.more();await turn();h.refs.moreRequest.current++;h.refs.moreReadRef.current.abort();
+  await retry;late.resolve({data:rangeRows(101,150),error:null});await turn();
+  assert.equal(h.state.posts.length,100);assert.equal(h.refs.ownPageRef.current.cursor,before);assert.equal(h.refs.moreBusyRef.current,null);
+});
+
+test('Profile refresh blocks pagination only during its active metadata/signing read',async()=>{
+  const gate=deferred(),h=own(async rows=>rows,{}, {posts:gate.promise});warmPages(h);
+  const refreshing=h.run('posts');await turn();const queries=h.client.queries.length;
+  await h.more();assert.equal(h.client.queries.length,queries);assert.equal(h.state.refreshing,true);
+  h.refs.tabReadRef.current.abort();await refreshing;assert.equal(h.refs.tabRefreshingRef.current,false);assert.equal(h.state.refreshing,false);
+});
+
+test('an explicit pull refresh replaces old pages, while ordinary focus preserves them',async()=>{
+  const h=own(async rows=>rows);warmPages(h);h.refs.resetPostsRef.current=true;h.refs.scrollOffsets.current.posts=0;
+  h.client.rows.posts=rangeRows(1,50);await h.run('posts');await turn();
+  assert.equal(h.state.posts.length,50);assert.equal(h.refs.ownPageRef.current.pages,1);assert.equal(h.refs.ownPageRef.current.cursor.id,profileRow(50).id);
+  assert.equal(h.client.queries.filter(query=>query.table==='posts'&&idsIn(query)).length,0,'explicit reset does not re-read discarded pages');
+  assert.equal(h.state.loading,false);
+});
+
+test('the own-page cursor preserves PostgreSQL microseconds and rejects unsafe cursor values',()=>{
+  const h=own(async rows=>rows),rows=rangeRows(1,50);rows[49].created_at='2026-10-30T22:21:20.123456+00:00';
+  const cursor=h.refs.profilePostCursor(rows);assert.equal(cursor.createdAt,rows[49].created_at);assert.equal(cursor.id,rows[49].id);
+  assert.equal(h.refs.profilePostCursor(rows.slice(0,49)),null);
+  assert.throws(()=>h.refs.profilePostCursor([...rows.slice(0,49),{...rows[49],created_at:'2026-10-30T22:21:20Z),id.gt.x'}]),/could not be verified/);
+  assert.throws(()=>h.refs.profilePostCursor([...rows.slice(0,49),{...rows[49],id:'------------------------------------'}]),/could not be verified/);
+});
+
+test('retained Profile reads have at most two100-ID batches and one total deadline',async()=>{
+  const gate=deferred(),h=own(async rows=>rows,{}, {posts:gate.promise},5);
+  const pending=h.refs.profileContentRead('owner','1:owner',new AbortController().signal,reader=>reader.retained(rangeRows(1,450).map(row=>row.id)));
+  await turn();assert.equal(h.client.queries.length,2);assert.ok(h.client.queries.every(q=>idsIn(q).length===100));
+  await assert.rejects(pending,/too long/);assert.ok(h.client.queries.every(q=>q.signal.aborted));assert.equal(h.listeners.size,0);
+  gate.resolve({data:rangeRows(1,100),error:null});await turn();assert.equal(h.client.queries.length,2,'the deadline stops every later batch');
+});
+
+test('a session A-to-B-to-A transition aborts current Profile metadata before React can rerender',async()=>{
+  const gate=deferred(),h=own(async rows=>rows,{}, {posts:gate.promise});warmPages(h);
+  const run=h.run('posts');await turn();h.account('second');h.account('owner');await run;
+  gate.resolve({data:rangeRows(501,550),error:null});await turn();
+  assert.equal(h.state.posts[0].id,profileRow(1).id);assert.equal(h.state.posts.length,100);
+  assert.ok(h.client.queries.every(q=>q.signal.aborted));assert.equal(h.listeners.size,0);
+});
+
+test('private Profile media verification and every signing batch use the initiating token, then stop on account change',async()=>{
+  const gate=deferred(),h=own();const calls=[];
+  h.client.auth={getUser:async token=>{calls.push({kind:'user',token});return{data:{user:{id:'owner'}},error:null};}};
+  h.client.functions={invoke:async(name,options)=>{calls.push({kind:'sign',name,options});return gate.promise;}};
+  const rows=rangeRows(1,65).map(row=>({...row,post_media:[{url:raw,media_type:'image'}]}));
+  const run=h.refs.profileContentRead('owner','1:owner',new AbortController().signal,reader=>reader.sign(rows));await turn();
+  assert.equal(calls[0].token,'owner-token');assert.equal(calls[1].options.headers.Authorization,'Bearer owner-token');
+  assert.equal(calls[1].options.body.references.length,50);assert.equal(calls[1].options.body.delivery,'no-store');
+  h.account('second');h.account('owner');await assert.rejects(run,/cancelled/);
+  gate.resolve({data:{urls:[],expiresAt:Date.now()+60_000},error:null});await turn();
+  assert.equal(calls.length,2,'a late first media batch cannot dispatch the second under another session');
+  assert.equal(calls[1].options.signal.aborted,true);assert.equal(h.listeners.size,0);
+});
+
+test('profile scroll offsets stay separate for each tab and are applied without animation before paint',()=>{
+  const file='src/screens/profile/ProfileScreen.tsx',source=read(file),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+  let restore,scroll;
+  function visit(node){
+    if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useLayoutEffect'&&node.arguments[0]?.getText(ast).includes('scrollRef.current?.scrollTo'))restore=node.arguments[0].getText(ast);
+    if(ts.isJsxOpeningElement(node)&&node.tagName.getText(ast)==='ScrollView'&&node.attributes.properties.some(p=>p.name?.getText(ast)==='key'&&p.initializer?.getText(ast)==='{activeTab}'))scroll=node;
+    ts.forEachChild(node,visit);
+  }visit(ast);assert.ok(restore);assert.ok(scroll);
+  const offsets={current:{posts:740,saved:190,reposts:0,tagged:0}},calls=[],owner={},scope={current:owner};
+  const onScroll=scroll.attributes.properties.find(p=>p.name?.getText(ast)==='onScroll').initializer.expression.getText(ast);
+  const update=compile('export const run = '+onScroll,{scope,renderScope:owner,activeTab:'posts',scrollOffsets:offsets,handleTabBarScroll:()=>{}}).run;
+  update({nativeEvent:{contentOffset:{y:810}}});assert.equal(offsets.current.posts,810);assert.equal(offsets.current.saved,190);
+  for(const tab of ['saved','posts'])compile('export const run = '+restore,{activeTab:tab,scrollOffsets:offsets,scrollRef:{current:{scrollTo:value=>calls.push(value)}}}).run();
+  assert.deepEqual(JSON.parse(JSON.stringify(calls)),[{y:190,animated:false},{y:810,animated:false}]);
+  scope.current={};update({nativeEvent:{contentOffset:{y:999}}});assert.equal(offsets.current.posts,810,'late scroll events cannot write into a new account');
 });

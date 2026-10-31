@@ -8,7 +8,7 @@ import { getFeedCache } from "@/lib/feedCache";
 import { feedPrefetchUrls } from "../../shared/feedSnapshot";
 import { renewFeedMedia } from "../../shared/feedMedia";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -121,7 +121,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const newDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastFeedScroll = useRef(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!state.scrollRestore) return;
     return restoreHomeFeedScroll(controller, () => feedRef.current, state.scrollRestore);
   }, [controller, state.scrollRestore]);
