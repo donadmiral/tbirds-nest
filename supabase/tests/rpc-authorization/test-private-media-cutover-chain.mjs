@@ -36,6 +36,7 @@ before(async()=>{
   oldProtected=await rows("select proname,md5(pg_get_functiondef(oid)) hash from pg_proc where oid in ('public.start_group_call(uuid,boolean)'::regprocedure,'public.sweep_dead_calls()'::regprocedure,'public.delete_user_account(uuid)'::regprocedure,'public.content_media_manifest(jsonb)'::regprocedure) order by proname");
   candidate=await source('supabase/migrations/20261029224813_private_media_cutover_compatibility.sql');
   await db.exec(candidate);
+  await db.exec(await source('supabase/migrations/20261101013831_private_media_readiness_storage_references.sql'));
   await db.exec("select set_config('request.jwt.claim.role','service_role',false),set_config('request.jwt.claims','{\"role\":\"service_role\"}',false)");
   for(const [id,name] of [[owner,'privacy_owner'],[viewer,'privacy_viewer'],[stranger,'privacy_stranger']]) {
     await db.query('insert into auth.users(id,email) values($1,$2)',[id,`${name}@example.test`]);
@@ -159,4 +160,28 @@ test('cutover report is service-only and leaks no object paths or account identi
   const report=await as('service_role',null,'select public.private_media_cutover_readiness()');
   assert.equal(JSON.stringify(report).includes(owner),false);
   assert.equal(JSON.stringify(report).includes(media.path),false);
+});
+test('cutover readiness excludes external URLs from Storage object counts',async()=>{
+  await post({url:'https://images.example.test/qa/external-photo.jpg'});
+  await post({url:'https://example.supabase.co/storage/v1/object/public/avatars/external-avatar.jpg'});
+  const report=await as('service_role',null,'select public.private_media_cutover_readiness()');
+  assert.equal(report.contentReferences,0);
+  assert.equal(report.missingObjects,0);
+  assert.equal(report.unboundReferences,0);
+});
+test('cutover readiness still reports a real missing Storage object alongside external URLs',async()=>{
+  const media=await object();await post(media);
+  await post({url:'https://images.example.test/qa/external-photo.jpg'});
+  await db.query('delete from storage.objects where id=$1',[media.id]);
+  const report=await as('service_role',null,'select public.private_media_cutover_readiness()');
+  assert.equal(report.contentReferences,1);
+  assert.equal(report.missingObjects,1);
+});
+test('cutover readiness preserves actual owned Storage references in mixed content',async()=>{
+  const media=await object();await post(media);
+  await post({url:'https://images.example.test/qa/external-photo.jpg'});
+  const report=await as('service_role',null,'select public.private_media_cutover_readiness()');
+  assert.equal(report.contentReferences,1);
+  assert.equal(report.missingObjects,0);
+  assert.equal(report.unboundReferences,0);
 });

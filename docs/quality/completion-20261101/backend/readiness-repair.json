@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "sourceFiles": [
+    {
+      "path": "supabase/migrations/20261101013831_private_media_readiness_storage_references.sql",
+      "sha256": "e9832d2e138d5267d157bf949000f65741070928b13429ef496d00a130fce073",
+      "bytes": 4857
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs",
+      "sha256": "cbbcacd3ac9ee9601cc541222ca24a4040f072b18e504216ae342a771de49c33",
+      "bytes": 16255
+    },
+    {
+      "path": "supabase/migrations/20261031181428_member_support_atomic_reply.sql",
+      "sha256": "de99b019d678dfc51c5b8d6c8a7e533454f7965642bade94929c3fd5d040f7c1",
+      "bytes": 3982
+    },
+    {
+      "path": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+      "sha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+      "bytes": 7894
+    }
+  ],
+  "readinessRepair": {
+    "semantics": "Exclude NULL regexp_match results. Keep real missing Storage and unbound-reference detection unchanged.",
+    "generatedBy": "Supabase CLI 2.122.0 migration new private_media_readiness_storage_references",
+    "before": {
+      "passed": 14,
+      "failed": 3,
+      "skipped": 0
+    },
+    "after": {
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0
+    },
+    "command": "node supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs",
+    "oldBodyMd5": "d0ece2842505adddcdd7edbf95d4fdf0",
+    "fixedBodyMd5": "6830911bf6c431dab59988eab8e55b43",
+    "hostedApplied": false,
+    "hostedReadOnlyProjection": {
+      "matchingReferences": 13,
+      "actualMissingObjects": 0,
+      "presentObjects": 13
+    },
+    "installedHelperStillReports": {
+      "contentReferences": 25,
+      "missingObjects": 12
+    },
+    "preserves": [
+      "service-only function ACL and ownership",
+      "all bucket flags, policies, asset rows and Storage metadata",
+      "real missing-object detection",
+      "unbound-reference checks",
+      "legacy provenance checks",
+      "limited-view reuse checks"
+    ]
+  },
+  "productionWrites": false,
+  "dependentEdgeDeployments": false
+}

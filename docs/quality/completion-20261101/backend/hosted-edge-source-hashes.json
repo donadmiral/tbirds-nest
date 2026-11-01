@@ -1,0 +1,126 @@
+[
+  {
+    "name": "account-storage-erasure",
+    "status": "ACTIVE",
+    "version": 1,
+    "verifyJwt": false,
+    "files": [
+      {
+        "path": "supabase/functions/account-storage-erasure/index.ts",
+        "hostedSha256": "2d702130678cdd0b6eec1821948f634bb68864b9a5c08fedfff4ca250ca387c6",
+        "candidateSha256": "2d702130678cdd0b6eec1821948f634bb68864b9a5c08fedfff4ca250ca387c6",
+        "matchesCandidate": true
+      },
+      {
+        "path": "supabase/functions/account-storage-erasure/handler.ts",
+        "hostedSha256": "e7025b576abbfc24fe4e3c950cc2e321f4b418583628cdb8c24c93d978151caa",
+        "candidateSha256": "1bc4d4e88886441d70cdb6671077e68166a51e861e0a41af68dfa7371333fee8",
+        "matchesCandidate": false
+      }
+    ]
+  },
+  {
+    "name": "content-media-sign",
+    "status": "ACTIVE",
+    "version": 3,
+    "verifyJwt": false,
+    "files": [
+      {
+        "path": "supabase/functions/content-media-sign/index.ts",
+        "hostedSha256": "99cb4805e16148680ef4c322ce288f84766a72882ccf118ce698d48e85cc7220",
+        "candidateSha256": "99cb4805e16148680ef4c322ce288f84766a72882ccf118ce698d48e85cc7220",
+        "matchesCandidate": true
+      },
+      {
+        "path": "supabase/functions/content-media-sign/handler.ts",
+        "hostedSha256": "e9c82b800e309d3b98fe085e3806eec8b35999ff1b84adacd29279c7b7f3d9df",
+        "candidateSha256": "9fc8a12d93641046a06ec122062e5817e9473f281a7c521e51e9b314781a7d3f",
+        "matchesCandidate": false
+      },
+      {
+        "path": "shared/contentMedia.ts",
+        "hostedSha256": "5ffbff3cb3771058a22a021704acd68820b4161cd0c5dfe1cbed012c530d94ff",
+        "candidateSha256": "a744a17a33a5b0f93be5b84ec943f4a5a05c94059ddd128109077031a2667664",
+        "matchesCandidate": false
+      },
+      {
+        "path": "shared/mediaDelivery.ts",
+        "hostedSha256": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+        "candidateSha256": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+        "matchesCandidate": true
+      }
+    ]
+  },
+  {
+    "name": "media-content",
+    "status": "ACTIVE",
+    "version": 1,
+    "verifyJwt": false,
+    "files": [
+      {
+        "path": "supabase/functions/media-content/index.ts",
+        "hostedSha256": "1f5ab0dd6151589f61d9de231e729e68f65582181acae9bd3853b63dd668ff88",
+        "candidateSha256": "1f5ab0dd6151589f61d9de231e729e68f65582181acae9bd3853b63dd668ff88",
+        "matchesCandidate": true
+      },
+      {
+        "path": "supabase/functions/media-content/handler.ts",
+        "hostedSha256": "609f048486dd0a1740ddc588f3ece883ee80ec06771b8b92dbac064ad68158ee",
+        "candidateSha256": "3ebe70908160a5ded596284d43eb9ffa47f24bb7be277710d89bee95275c672a",
+        "matchesCandidate": false
+      }
+    ]
+  },
+  {
+    "name": "business-signin",
+    "status": "ACTIVE",
+    "version": 17,
+    "verifyJwt": true,
+    "files": [
+      {
+        "path": "supabase/functions/business-signin/index.ts",
+        "hostedSha256": "9a57921ab1ecaa8fd3c7638199348fe83472abee792eb778417b184926555099",
+        "candidateSha256": "9ce1cde6b74e99a5f8545bf3af043160943240c3d1c922b3c5eff7321a4174ba",
+        "matchesCandidate": false
+      }
+    ]
+  },
+  {
+    "name": "send-push-notification",
+    "status": "ACTIVE",
+    "version": 34,
+    "verifyJwt": false,
+    "files": [
+      {
+        "path": "supabase/functions/send-push-notification/index.ts",
+        "hostedSha256": "f16ae9c6f912eb3779bee8b77a8fdc104986c31d798f1cdc7059c35eebb00f3a",
+        "candidateSha256": "f16ae9c6f912eb3779bee8b77a8fdc104986c31d798f1cdc7059c35eebb00f3a",
+        "matchesCandidate": true
+      },
+      {
+        "path": "supabase/functions/_shared/boundedFetch.ts",
+        "hostedSha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+        "candidateSha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+        "matchesCandidate": true
+      },
+      {
+        "path": "supabase/functions/send-push-notification/handler.ts",
+        "hostedSha256": "20efa926fa16bc269576a1764ac311b690e991509f3e8b6fb043858a6082753a",
+        "candidateSha256": "20efa926fa16bc269576a1764ac311b690e991509f3e8b6fb043858a6082753a",
+        "matchesCandidate": true
+      },
+      {
+        "path": "shared/notificationPreferences.ts",
+        "hostedSha256": "c1cce2e3e4e8de3d16a10def3b7d9783507dad753150f776b0343d8b98424abf",
+        "candidateSha256": "c1cce2e3e4e8de3d16a10def3b7d9783507dad753150f776b0343d8b98424abf",
+        "matchesCandidate": true
+      },
+      {
+        "path": "supabase/functions/_shared/pushDelivery.ts",
+        "hostedSha256": "184cfbc43490c00dd267c0c4079ba6e1478996769d9307a454d9c39f50afbafb",
+        "candidateSha256": "184cfbc43490c00dd267c0c4079ba6e1478996769d9307a454d9c39f50afbafb",
+        "matchesCandidate": true
+      }
+    ]
+  }
+]

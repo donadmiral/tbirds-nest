@@ -1,0 +1,172 @@
+{
+  "version": 1,
+  "qaProjectRef": "uaulhuelcfkjwojtymmw",
+  "productionProjectRef": "prlkikhckbifseosbukl",
+  "currentQaBusinessCatalogFingerprint": "2f92a9d038364736fa2413bb6d05a160",
+  "steps": [
+    {
+      "order": 1,
+      "scope": "QA business authentication",
+      "operation": "Resolve the outstanding supported migration request outcome, recheck exact stage 3 fingerprint, then apply remaining unchanged reviewed stages in order with an exact postflight after each. Final activation stays atomic.",
+      "stages": [
+        {
+          "number": 4,
+          "name": "private_member_signin",
+          "path": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+          "bytes": 7894,
+          "sha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+          "expectedBeforeFingerprint": "2f92a9d038364736fa2413bb6d05a160",
+          "expectedAfterFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c"
+        },
+        {
+          "number": 5,
+          "name": "private_owner_access",
+          "path": "supabase/ops/qa/business-auth-staged-20261031/05_private_owner_access.sql",
+          "bytes": 9577,
+          "sha256": "4846f94e377a2927759d25275d459a34c1a927de7385abcf69630565a3ba8416",
+          "expectedBeforeFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+          "expectedAfterFingerprint": "3718506a7cf16a513514502dbf370f89"
+        },
+        {
+          "number": 6,
+          "name": "private_finish_signin",
+          "path": "supabase/ops/qa/business-auth-staged-20261031/06_private_finish_signin.sql",
+          "bytes": 10346,
+          "sha256": "88b3d514f77c54afbff94201faded26bdee31976610c90606b666e63ad8f9213",
+          "expectedBeforeFingerprint": "3718506a7cf16a513514502dbf370f89",
+          "expectedAfterFingerprint": "1eb5ad671173842667ced9e052f232bd"
+        },
+        {
+          "number": 7,
+          "name": "private_revocation",
+          "path": "supabase/ops/qa/business-auth-staged-20261031/07_private_revocation.sql",
+          "bytes": 8926,
+          "sha256": "a9869a35210cf5706eb2473781b9ec6d80c2704626e41d346081a17517f2f982",
+          "expectedBeforeFingerprint": "1eb5ad671173842667ced9e052f232bd",
+          "expectedAfterFingerprint": "070a20dc374c50741b19573e21822048"
+        },
+        {
+          "number": 8,
+          "name": "activate",
+          "path": "supabase/ops/qa/business-auth-staged-20261031/08_activate.sql",
+          "bytes": 11986,
+          "sha256": "c99f71a8a8c6e11e15d87da156832e15f209e39090f9b06c02874108ddd0c34f",
+          "expectedBeforeFingerprint": "070a20dc374c50741b19573e21822048",
+          "expectedAfterFingerprint": "172a1c1313c6c68356021c15a82bf869"
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "scope": "QA original audio and disabled licensed catalogue infrastructure",
+      "operation": "After public business-auth activation and its postflight, install the ordered reviewed music chain. The already-installed market offer serialization is not replayed. No licensed catalogue is enabled.",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+          "bytes": 67268,
+          "sha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11"
+        },
+        {
+          "path": "supabase/migrations/20261030203619_music_catalogue_operations_and_cleanup.sql",
+          "bytes": 30019,
+          "sha256": "36500836cd925af7aade1a6bff7d85e547fab9c00c5306fb0130cbca9ce7d0bd"
+        },
+        {
+          "path": "supabase/migrations/20261030204339_licensed_catalogue_pipeline.sql",
+          "bytes": 29907,
+          "sha256": "25914fee9c333ab9802793c4737ad467d0b7d712e603e71769a384350046a849"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "scope": "QA dependent Edge bundles",
+      "operation": "Deploy exactly recorded bundles in group order only after required database contracts exist. Existing production is not modified.",
+      "groups": [
+        [
+          "business-signin",
+          "business-owner-access",
+          "daily-get-token",
+          "crisp-bridge",
+          "link-preview",
+          "apple-music",
+          "replicate-proxy",
+          "create-business"
+        ],
+        [
+          "music-asset-finalize",
+          "content-media-sign",
+          "media-content",
+          "account-storage-erasure"
+        ],
+        [
+          "music-maintenance",
+          "music-catalogue-ingest"
+        ]
+      ],
+      "reference": "docs/quality/music-operations-20261030/candidate.json"
+    },
+    {
+      "order": 4,
+      "scope": "QA owned-audio acceptance",
+      "operation": "Use disposable synthetic owned audio to verify real Auth, upload, stored-byte finalization, preview, post/story/book attachment, no-store delivery, revocation, cleanup and erasure before enabling original readiness. Catalogue licensing remains disabled.",
+      "reference": "docs/quality/music-operations-20261030/README.md"
+    },
+    {
+      "order": "independent",
+      "scope": "QA atomic support replies",
+      "operation": "Resolve the outstanding supported migration request outcome. If still absent, install the unchanged reviewed source through the normal supported migration path and verify function/trigger/ACLs and one owned request plus exact replay.",
+      "source": {
+        "path": "supabase/migrations/20261031181428_member_support_atomic_reply.sql",
+        "bytes": 3982,
+        "sha256": "de99b019d678dfc51c5b8d6c8a7e533454f7965642bade94929c3fd5d040f7c1"
+      }
+    },
+    {
+      "order": "independent",
+      "scope": "QA metadata-only privacy readiness repair",
+      "operation": "Install the new guarded forward migration through the normal supported tool when the connector can return a definitive outcome. It changes no policy, ownership, bucket flag or user data. Recheck readiness reports 13 storage references and zero missing objects for the observed QA dataset.",
+      "source": {
+        "path": "supabase/migrations/20261101013831_private_media_readiness_storage_references.sql",
+        "bytes": 4857,
+        "sha256": "e9832d2e138d5267d157bf949000f65741070928b13429ef496d00a130fce073"
+      }
+    },
+    {
+      "order": "independent",
+      "scope": "QA notification event dispatch",
+      "operation": "Use the existing reviewed per-event authorization candidate rather than putting a long-lived server credential into provider-readable pg_net tables. It remains uninstalled. Ordinary pushes and call origins are present, event dispatch hooks are absent. Real provider/device acceptance requires installation and activation through its ordinary supported path.",
+      "source": {
+        "path": "supabase/ops/qa/notification-event-dispatch/20261031022749_notification_event_dispatch_capabilities.sql",
+        "bytes": 10807,
+        "sha256": "9a5a7ea2d9acfc9c21185ac5b2654cfebd9d8f5aba29363cd5a5b5616f4bf081"
+      },
+      "reference": "supabase/ops/qa/notification-event-dispatch/README.md"
+    }
+  ],
+  "production": {
+    "mutated": false,
+    "prerequisiteManifest": "supabase/ops/production-rollout-20261029.json",
+    "prerequisiteManifestSha256": "c3023f8dc69ba1b9e6857553c15bc337ede3b3ca0cbe7074632bba5ad14c2136",
+    "order": "Coordinate with root: reviewed production prerequisites and client compatibility must be installed and verified before dependent auth/audio/private-media activation. Do not replay QA repair projections or bulk-push migration directories. Every real production effect requires exact current preflight and postflight.",
+    "status": "Root inspected the current production baseline read-only. This lane made no production write."
+  },
+  "currentProviderBoundary": {
+    "requestState": "Normal Supabase migration calls did not return provider results, and were locally interrupted by coordinator after 1128.1 and 952.0 seconds. Remote outcomes remain unknown.",
+    "automaticReviewRejected": false,
+    "retryOrBypassAttempted": false
+  },
+  "notificationReadOnlyObservation": {
+    "observedAt": "2026-11-01T01:40:33.45471+00:00",
+    "dispatchTriggersAbsent": true,
+    "installedCallDispatchFunctions": [
+      "claim_call_push_dispatch",
+      "call_push_dispatch_allowed",
+      "notification_delivery.record_call_origin"
+    ],
+    "pgNetQueueAndResponseOwner": "supabase_admin",
+    "pgNetQueueAndResponseReadableByAppAndAnon": true,
+    "longLivedCredentialDispatchActivated": false
+  },
+  "limits": "Local tests, worker heartbeat and private ACL checks do not claim actual disposable-user erasure, physical notification receipt or successful uninstalled service contracts."
+}

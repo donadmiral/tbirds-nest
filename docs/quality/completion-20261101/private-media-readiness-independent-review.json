@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T01:41:14.951361+00:00",
+  "reviewer": "independent web/admin completion agent",
+  "outcome": "No blocking findings",
+  "paths": [
+    {
+      "path": "supabase/migrations/20261101013831_private_media_readiness_storage_references.sql",
+      "sha256": "e9832d2e138d5267d157bf949000f65741070928b13429ef496d00a130fce073"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs",
+      "sha256": "cbbcacd3ac9ee9601cc541222ca24a4040f072b18e504216ae342a771de49c33"
+    }
+  ],
+  "semanticComparison": {
+    "oldBodyMd5": "d0ece2842505adddcdd7edbf95d4fdf0",
+    "newBodyMd5": "6830911bf6c431dab59988eab8e55b43",
+    "allOtherFunctionBodyBytesUnchanged": true,
+    "change": "Filter NULL regexp_match results before classifying Storage references"
+  },
+  "preservedChecks": [
+    "Real missing objects remain detected by the same left join and object_id null count",
+    "Owned references and uploader bindings",
+    "Reviewed legacy provenance/version/revocation",
+    "Unbound references",
+    "Chat missing objects and limited/ordinary overlap",
+    "Restrictive Storage policy count",
+    "Metadata-only response without paths/account IDs"
+  ],
+  "independentExecution": {
+    "engine": "Isolated PGlite from repository locked dependency",
+    "ownerAndAclUnchanged": true,
+    "securityDefinerStableAndEmptySearchPathUnchanged": true,
+    "idempotentReapplyPreservesMetadata": true,
+    "anonExecuteGrantDriftRejected": true,
+    "definitionDriftRejected": true,
+    "behaviorCommand": "node supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs",
+    "behaviorTests": 17,
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "report": "private-media-readiness-independent.tap"
+  },
+  "hostedApplyPerformedByReviewer": false,
+  "primaryDocumentation": [
+    "https://www.postgresql.org/docs/current/functions-matching.html",
+    "https://www.postgresql.org/docs/current/sql-createfunction.html"
+  ]
+}

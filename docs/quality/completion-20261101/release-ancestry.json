@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-11-01 01:40:50 UTC",
+  "repository": "donadmiral/tbirds-nest",
+  "productionBranch": "master",
+  "productionHead": "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+  "existingPullRequest": 3,
+  "existingPullRequestBranch": "codex/app-quality-20261029",
+  "existingPullRequestHead": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
+  "checkedCompletionHead": "340fe01b3db1a3072625b27efbae476d8df72d66",
+  "completeGitHistory": true,
+  "productionHeadIsAncestor": true,
+  "existingPullRequestHeadIsAncestor": true,
+  "productionOnlyCommits": 0,
+  "completionOnlyCommits": 75,
+  "changedFilesAgainstProduction": 3114,
+  "mergeConflictResolutionRequired": false,
+  "merged": false,
+  "promoted": false,
+  "boundary": "Read-only release ancestry preparation. Existing review can be advanced without discarding its history after the remaining release gates are satisfied."
+}
