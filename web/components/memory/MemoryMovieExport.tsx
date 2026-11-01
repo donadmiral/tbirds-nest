@@ -5,7 +5,7 @@ import { useCallback,useEffect,useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Check, Download, Film, X } from 'lucide-react';
 import type { MemoryPage } from '../../lib/memoryAlbum';
 import { captureStoryArtwork } from '../../lib/storyVideoExport';
-import { exportMemoryMovie, memoryMovieLimit, MEMORY_MOVIE_WIDTH, MEMORY_MOVIE_HEIGHT, type MemoryMovieCapture, type MemoryMovieProgress } from '../../lib/memoryFilmExport';
+import { exportMemoryMovie, memoryMovieLimit, MemoryMovieFrameTimingError, MEMORY_MOVIE_WIDTH, MEMORY_MOVIE_HEIGHT, type MemoryMovieCapture, type MemoryMovieProgress } from '../../lib/memoryFilmExport';
 import { exportCancelled, exportStep, type LocalExportAudio } from '../../lib/videoExportAudio';
 import { ExportAudioPicker } from '../ExportAudioPicker';
 import { MemoryStoryFrame } from './MemoryStoryFrame';
@@ -65,7 +65,10 @@ export function MemoryMovieExport({ bookId,revision,title, pages, soundtrack, fi
       const url = URL.createObjectURL(movie.blob); downloaded.current = url;
       const name = (title.trim().replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 70) || 'Platinum memories') + '.' + movie.extension;
       setResult({ url, name, duration: movie.duration, memories: movie.memories });
-    }).catch(failure => { if (mounted.current && controller.current === abort) { if (abort.signal.aborted) setCancelled(true); else setError(failure instanceof Error ? failure.message : 'This movie could not be created. Retry.'); }if(accessAbort.current===abort)stopAccess(); }).finally(() => {
+    }).catch(failure => {
+      if (failure instanceof MemoryMovieFrameTimingError) console.warn('memory_movie_frame_gap ' + JSON.stringify(failure.timing));
+      if (mounted.current && controller.current === abort) { if (abort.signal.aborted) setCancelled(true); else setError(failure instanceof Error ? failure.message : 'This movie could not be created. Retry.'); }if(accessAbort.current===abort)stopAccess();
+    }).finally(() => {
       if (controller.current === abort) { controller.current = null; if (mounted.current) { setProgress(null); setArtwork(null); } }
     });
   };

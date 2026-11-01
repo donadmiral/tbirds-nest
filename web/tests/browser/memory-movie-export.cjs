@@ -36,8 +36,16 @@ const pixel=(data,x,y)=>[...data.subarray((Math.floor(y*1280)*720+Math.floor(x*7
  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
  const base=`http://127.0.0.1:${server.address().port}`,browser=await chromium.launch({executablePath:process.env.STORY_QA_CHROME,headless:true,args:['--no-sandbox','--enable-unsafe-swiftshader','--disable-dev-shm-usage']});
  try{
-  const page=await browser.newPage({viewport:{width:1280,height:960}}),errors=[],receipt={browser:await browser.version(),cases:[]};page.on('pageerror',error=>errors.push(error.message));
+  const page=await browser.newPage({viewport:{width:1280,height:960}}),errors=[],timingDiagnostics=[],receipt={browser:await browser.version(),cases:[]};page.on('pageerror',error=>errors.push(error.message));
+  page.on('console',message=>{const prefix='memory_movie_frame_gap ';if(message.type()==='warning'&&message.text().startsWith(prefix))timingDiagnostics.push(JSON.parse(message.text().slice(prefix.length)));});
   await page.addInitScript(()=>{const getContext=HTMLCanvasElement.prototype.getContext;window.qaWebGLRequests=0;HTMLCanvasElement.prototype.getContext=function(kind,...args){if(new URLSearchParams(location.search).get('mode')?.endsWith('_no_webgl')&&['webgl','webgl2','experimental-webgl'].includes(kind)){window.qaWebGLRequests++;return null;}return getContext.call(this,kind,...args);};window.qaAudio=[];window.qaTracks=[];window.qaImageInspectionStarted=false;window.qaImageInspectionAborted=false;const Audio=window.AudioContext,Recorder=window.MediaRecorder,nativeFetch=window.fetch;window.AudioContext=class extends Audio{constructor(...args){super(...args);window.qaAudio.push(this);}};window.MediaRecorder=class extends Recorder{constructor(stream,...args){super(stream,...args);window.qaTracks.push(...stream.getTracks());}};window.fetch=(url,options)=>{if(String(url).includes('/slow-photo.png')){window.qaImageInspectionStarted=true;options?.signal?.addEventListener('abort',()=>{window.qaImageInspectionAborted=true;});}return nativeFetch(url,options);};});
+  await page.addInitScript(()=>{
+   const mode=new URLSearchParams(location.search).get('mode');if(!['frame_gap_first','frame_gap_mid'].includes(mode))return;
+   const Recorder=window.MediaRecorder,frame=window.requestAnimationFrame.bind(window);let recording=false,callbacks=0;
+   const pause=()=>{const until=performance.now()+1150;while(performance.now()<until){/* Deliberate main-thread stall in the synthetic fixture. */}};
+   window.MediaRecorder=class extends Recorder{start(...args){super.start(...args);recording=true;if(mode==='frame_gap_first')pause();}stop(){recording=false;return super.stop();}};
+   window.requestAnimationFrame=callback=>frame(time=>{if(recording&&mode==='frame_gap_mid'&&++callbacks===3)pause();callback(time);});
+  });
   for(const mode of ['original','silent','score','local_once','local_loop','static_images','unadjusted_no_webgl'].filter(runs)){
    await page.goto(base+'/?mode='+mode);await page.getByRole('button',{name:'Create movie',exact:true}).waitFor();
    if(mode.startsWith('local')){await page.locator('input[type=file]').setInputFiles(song);await page.getByText('voiceover.wav',{exact:true}).waitFor();await page.getByRole('spinbutton',{name:'Start at (seconds)'}).fill('.4');if(mode==='local_loop')await page.getByLabel('Loop the selected excerpt until the movie ends').check();}
@@ -76,6 +84,18 @@ const pixel=(data,x,y)=>[...data.subarray((Math.floor(y*1280)*720+Math.floor(x*7
    const sound={before:rms(samples(file,1.0)),original:frequency(samples(file,6.9),880),after:rms(samples(file,8.4))};assert.ok(sound.before<.001&&sound.after<.001&&sound.original>.03,'original audio stays in its automatic scene '+JSON.stringify(sound));
    assert.equal(await page.evaluate(()=>window.qaAudio.every(context=>context.state==='closed')&&window.qaTracks.every(track=>track.readyState==='ended')),true);
    await page.screenshot({path:path.join(output,'automatic-ready.png')});receipt.cases.push({mode:'automatic',duration,dimensions:[video.width,video.height],titlePixels:writing(title),closingPixels:writing(closing),start,photo,timed,clip,text,sound});
+  }
+  for(const mode of ['frame_gap_first','frame_gap_mid'].filter(runs)){
+   const before=timingDiagnostics.length;await page.goto(base+'/?mode='+mode);let downloaded=false;const download=()=>{downloaded=true;};page.on('download',download);
+   await page.getByRole('button',{name:'Create movie',exact:true}).click();await page.getByText('The browser paused movie rendering. Keep this tab active and retry.',{exact:true}).waitFor({timeout:45000});
+   assert.equal(await page.getByRole('button',{name:'Download movie',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Retry movie',exact:true}).count(),1);
+   await page.waitForFunction(()=>window.qaAudio.every(context=>context.state==='closed')&&window.qaTracks.every(track=>track.readyState==='ended'));page.off('download',download);assert.equal(downloaded,false);
+   assert.equal(timingDiagnostics.length,before+1);const timing=timingDiagnostics[before];
+   assert.deepEqual(Object.keys(timing).sort(),['schemaVersion','frameGapMs','elapsedMs','lastDrawMs','lastFrameWorkMs','renderedFrames','sceneIndex','visibility','playingDocumentMedia'].sort(),'diagnostic contains only the explicit content-free timing fields');
+   assert.equal(timing.schemaVersion,1);for(const key of ['frameGapMs','elapsedMs','lastDrawMs','lastFrameWorkMs','renderedFrames','sceneIndex','playingDocumentMedia'])assert.ok(Number.isFinite(timing[key])&&timing[key]>=0,key+' is a finite non-negative measurement');
+   assert.ok(timing.frameGapMs>1000);assert.ok(timing.elapsedMs>=timing.frameGapMs);assert.equal(timing.visibility,'visible');assert.equal(timing.sceneIndex,0);assert.equal(timing.playingDocumentMedia,0);
+   if(mode==='frame_gap_first'){assert.equal(timing.renderedFrames,0);assert.equal(timing.lastFrameWorkMs,0);}else assert.ok(timing.renderedFrames>0,'mid-scene delay follows completed frames');
+   receipt.cases.push({mode,noPartialDownload:true,resourcesClosed:true,timing});
   }
   for(const mode of ['revoked','changed','account_roundtrip'].filter(runs)){
    await page.goto(base+'/?mode='+mode);await page.getByRole('button',{name:'Create movie',exact:true}).click();

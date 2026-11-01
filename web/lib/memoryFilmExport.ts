@@ -15,6 +15,17 @@ export const MEMORY_MOVIE_MAX_PAGES = 80, MEMORY_MOVIE_MAX_SECONDS = 300;
 type ExportPage = MemoryFilmPage & { dual_front_url?: string | null; audio_url?: string | null; audio_title?: string | null };
 export type MemoryMovieProgress = { phase: 'preparing' | 'rendering' | 'finishing'; message: string; percent: number };
 export type MemoryMovieCapture = { item: MemoryMovieTimelineItem; layer: 'background' | 'overlay'; clock: number };
+/** Timing only: never include book content, media URLs, account data, or credentials. */
+export type MemoryMovieFrameTiming = {
+  schemaVersion: 1; frameGapMs: number; elapsedMs: number; lastDrawMs: number; lastFrameWorkMs: number;
+  renderedFrames: number; sceneIndex: number; visibility: DocumentVisibilityState; playingDocumentMedia: number;
+};
+export class MemoryMovieFrameTimingError extends Error {
+  constructor(readonly timing: MemoryMovieFrameTiming) {
+    super('The browser paused movie rendering. Keep this tab active and retry.');
+    this.name = 'MemoryMovieFrameTimingError';
+  }
+}
 type Raster = { image: Blob; start: number; end: number };
 type Scene = { item: MemoryMovieTimelineItem; pageSound: SoundtrackSelection | null; duration: number; start: number; recipe: StoryVideoRecipe | null; background: Blob; layers: Raster[] };
 type ReadyScene = { scene: Scene; pageAudio: {buffer:AudioBuffer;selection:LocalExportAudio}|null; video: HTMLVideoElement | null; renderer: ReturnType<typeof createStoryVideoRenderer> | null; background: ImageBitmap; layers: { image: ImageBitmap; start: number; end: number }[]; gain: GainNode | null; source: MediaElementAudioSourceNode | null; dispose: () => void };
@@ -154,19 +165,21 @@ export async function exportMemoryMovie(options: {
     await prepare(0); if (scenes.length > 1) await prepare(1);
     const canvas = document.createElement('canvas'); canvas.width = MEMORY_MOVIE_WIDTH; canvas.height = MEMORY_MOVIE_HEIGHT;
     const context = canvas.getContext('2d'); if (!context || !canvas.captureStream) throw new Error('This browser cannot record a memory movie.');
+    let lastDrawMs = 0;
     const draw = (item: ReadyScene, time: number) => {
+      const drawStarted = performance.now();
       const visual=memoryMovieVisual(item.scene.item,time/item.scene.duration,options.reduceMotion);
       context.save();context.fillStyle='#000000';context.fillRect(0,0,canvas.width,canvas.height);context.globalAlpha=visual.opacity;
       context.translate(canvas.width/2+visual.x*canvas.width,canvas.height/2+visual.y*canvas.height);context.scale(visual.scale,visual.scale);context.translate(-canvas.width/2,-canvas.height/2);context.drawImage(item.background, 0, 0);
       if (item.renderer) { item.renderer.draw(); context.drawImage(item.renderer.canvas, 0, 0); }
       for (const layer of item.layers) if (time >= layer.start && time < layer.end) context.drawImage(layer.image, 0, 0);
-      context.restore();
+      context.restore(); lastDrawMs = performance.now() - drawStarted;
     };
     draw(ready.get(0)!, 0); stream = canvas.captureStream(30);
     audioDestination?.stream.getAudioTracks().forEach(track => stream!.addTrack(track));
     recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_000_000, audioBitsPerSecond: 160_000 });
     await new Promise<void>((resolve, reject) => {
-      let ended = false, activeIndex = -1, started = 0, previous = 0;
+      let ended = false, activeIndex = -1, started = 0, previous = 0, renderedFrames = 0, lastFrameWorkMs = 0;
       const stop = (error?: Error) => {
         if (error) reject(error);
         if (ended) return; ended = true; recordedSeconds = (performance.now() - started) / 1000;
@@ -193,7 +206,11 @@ export async function exportMemoryMovie(options: {
       const tick = () => {
         try {
           exportCancelled(signal); const now = performance.now(), elapsed = (now - started) / 1000;
-          if (now - previous > 1000) throw new Error('The browser paused movie rendering. Keep this tab active and retry.'); previous = now;
+          if (now - previous > 1000) throw new MemoryMovieFrameTimingError({
+            schemaVersion: 1, frameGapMs: now - previous, elapsedMs: now - started, lastDrawMs, lastFrameWorkMs,
+            renderedFrames, sceneIndex: activeIndex, visibility: document.visibilityState,
+            playingDocumentMedia: Array.from(document.querySelectorAll<HTMLMediaElement>('audio,video')).filter(media => !media.paused && !media.ended).length,
+          }); previous = now;
           if (elapsed >= duration) { stop(); return; }
           let index = activeIndex; while (index + 1 < scenes.length && elapsed >= scenes[index + 1].start) index++;
           activate(Math.max(0, index)); const current = ready.get(activeIndex)!, local = elapsed - current.scene.start;
@@ -202,7 +219,7 @@ export async function exportMemoryMovie(options: {
             const expected = current.scene.recipe.trimStart + local * current.scene.recipe.speed;
             if (local > .5 && Math.abs(current.video.currentTime - expected) / current.scene.recipe.speed > .35) throw new Error('A memory video could not keep up with the movie. Retry on a faster connection.');
           }
-          draw(current, local); options.progress({ phase: 'rendering', message: `Creating movie · Memory ${activeIndex + 1} of ${scenes.length}`, percent: Math.min(99, Math.floor(elapsed / duration * 100)) }); frame = requestAnimationFrame(tick);
+          draw(current, local); renderedFrames++; options.progress({ phase: 'rendering', message: `Creating movie · Memory ${activeIndex + 1} of ${scenes.length}`, percent: Math.min(99, Math.floor(elapsed / duration * 100)) }); lastFrameWorkMs = performance.now() - now; frame = requestAnimationFrame(tick);
         } catch (error) { stop(error instanceof Error ? error : new Error('Movie rendering failed.')); }
       };
       exportCancelled(signal); started = previous = performance.now(); recorder!.start(1000);
