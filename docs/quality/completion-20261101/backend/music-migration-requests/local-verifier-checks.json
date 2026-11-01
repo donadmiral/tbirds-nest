@@ -1,0 +1,110 @@
+{
+  "formatVersion": 1,
+  "isolatedSourceFixtureOnly": true,
+  "hostedRequestMade": false,
+  "positiveChecks": [
+    {
+      "unit": 1,
+      "phase": "preflight",
+      "passed": true
+    },
+    {
+      "unit": 1,
+      "phase": "postflight",
+      "passed": true
+    },
+    {
+      "unit": 2,
+      "phase": "preflight",
+      "passed": true
+    },
+    {
+      "unit": 2,
+      "phase": "postflight",
+      "passed": true
+    },
+    {
+      "unit": 3,
+      "phase": "preflight",
+      "passed": true
+    },
+    {
+      "unit": 3,
+      "phase": "postflight",
+      "passed": true
+    }
+  ],
+  "negativeChecks": [
+    {
+      "case": "missing_storage_policy",
+      "rejected": true,
+      "requiredFailedCheck": "exactSourceCatalog"
+    },
+    {
+      "case": "changed_function_body_or_acl",
+      "rejected": true,
+      "requiredFailedCheck": "exactSourceCatalog"
+    },
+    {
+      "case": "opened_private_execute",
+      "rejected": true,
+      "requiredFailedCheck": "musicPrivateFunctionAccess"
+    },
+    {
+      "case": "unexpected_catalogue_activation",
+      "rejected": true,
+      "requiredFailedCheck": "readinessDisabled"
+    },
+    {
+      "case": "different_applied_source",
+      "rejected": true,
+      "requiredFailedCheck": "exactMusicJournal"
+    },
+    {
+      "case": "public_audio_bucket",
+      "rejected": true,
+      "requiredFailedCheck": "privateAudioBucket"
+    },
+    {
+      "case": "boolean_instead_of_zero_count",
+      "rejected": true,
+      "requiredFailedCheck": "musicPrivateFunctionAccess"
+    },
+    {
+      "case": "boolean_instead_of_singleton_count",
+      "rejected": true,
+      "requiredFailedCheck": "exactInitialTableCounts"
+    },
+    {
+      "case": "number_instead_of_disabled_flag",
+      "rejected": true,
+      "requiredFailedCheck": "readinessDisabled"
+    },
+    {
+      "case": "unexpected_executor",
+      "rejected": true,
+      "requiredFailedCheck": "executor"
+    },
+    {
+      "case": "unexpected_business_journal_name",
+      "rejected": true,
+      "requiredFailedCheck": "exactBusinessStage8Journal"
+    },
+    {
+      "case": "boolean_business_statement_count",
+      "rejected": true,
+      "requiredFailedCheck": "exactBusinessStage8Journal"
+    },
+    {
+      "case": "missing_guarded_story_prerequisite",
+      "rejected": true,
+      "requiredFailedCheck": "exactStoryPrerequisiteJournal"
+    },
+    {
+      "case": "different_story_prerequisite_source",
+      "rejected": true,
+      "requiredFailedCheck": "exactStoryPrerequisiteJournal"
+    }
+  ],
+  "allChecksPassed": true
+}

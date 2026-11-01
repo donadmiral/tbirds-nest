@@ -1,0 +1,98 @@
+{
+  "formatVersion": 1,
+  "isolatedSourceFixtureOnly": true,
+  "hostedRequestMade": false,
+  "positiveChecks": [
+    {
+      "phase": "preflight",
+      "passed": true
+    },
+    {
+      "phase": "postflight",
+      "passed": true
+    }
+  ],
+  "negativeChecks": [
+    {
+      "case": "missing_private_table_catalog",
+      "rejected": true,
+      "requiredFailedCheck": "exactSourceCatalog"
+    },
+    {
+      "case": "public_validator_body_or_acl_drift",
+      "rejected": true,
+      "requiredFailedCheck": "exactSourceCatalog"
+    },
+    {
+      "case": "duplicate_catalog_row",
+      "rejected": true,
+      "requiredFailedCheck": "exactSourceCatalog"
+    },
+    {
+      "case": "opened_private_access",
+      "rejected": true,
+      "requiredFailedCheck": "musicPrivateFunctionAccess"
+    },
+    {
+      "case": "boolean_zero_count",
+      "rejected": true,
+      "requiredFailedCheck": "musicPrivateTableAccess"
+    },
+    {
+      "case": "boolean_singleton_count",
+      "rejected": true,
+      "requiredFailedCheck": "exactInitialTableCounts"
+    },
+    {
+      "case": "already_queued_capability",
+      "rejected": true,
+      "requiredFailedCheck": "exactInitialTableCounts"
+    },
+    {
+      "case": "already_enabled_worker",
+      "rejected": true,
+      "requiredFailedCheck": "readinessDisabled"
+    },
+    {
+      "case": "reusable_credential_present",
+      "rejected": true,
+      "requiredFailedCheck": "readinessDisabled"
+    },
+    {
+      "case": "already_configured_dispatch",
+      "rejected": true,
+      "requiredFailedCheck": "dispatchUnconfigured"
+    },
+    {
+      "case": "public_audio_bucket",
+      "rejected": true,
+      "requiredFailedCheck": "privateAudioBucket"
+    },
+    {
+      "case": "provider_execute_unavailable",
+      "rejected": true,
+      "requiredFailedCheck": "providerQueueApiAvailable"
+    },
+    {
+      "case": "wrong_applied_source",
+      "rejected": true,
+      "requiredFailedCheck": "maintenanceJournal"
+    },
+    {
+      "case": "boolean_statement_count",
+      "rejected": true,
+      "requiredFailedCheck": "maintenanceJournal"
+    },
+    {
+      "case": "missing_music_prerequisite",
+      "rejected": true,
+      "requiredFailedCheck": "exactMusicJournal"
+    },
+    {
+      "case": "wrong_executor",
+      "rejected": true,
+      "requiredFailedCheck": "executor"
+    }
+  ],
+  "allChecksPassed": true
+}

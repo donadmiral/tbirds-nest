@@ -1,0 +1,163 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "tool": "supabase_apply_migration",
+  "requiresVerifiedBusinessStage8": true,
+  "mutationsSubmittedByPackaging": false,
+  "preserveProviderClassification": true,
+  "doNotReplayInstalledMarketOfferMigration": true,
+  "requests": [
+    {
+      "order": 1,
+      "migrationName": "original_music_library_and_delivery",
+      "sourcePath": "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+      "sourceSha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11",
+      "sourceBytes": 67268,
+      "requestPath": "docs/quality/completion-20261101/backend/music-migration-requests/01_original_music_library_and_delivery.json",
+      "requestSha256": "5a78129c36948fce69ea37105e80909635031562433599b0c8a88e8e7f2ad776",
+      "state": "prepared only; root owns normal apply and confirmation",
+      "initialReadiness": "disabled; no provider credential, grant or licence activation",
+      "preflightPath": "docs/quality/completion-20261101/backend/music-migration-requests/01_preflight.sql",
+      "postflightPath": "docs/quality/completion-20261101/backend/music-migration-requests/01_postflight.sql",
+      "expectedPath": "docs/quality/completion-20261101/backend/music-migration-requests/01_expected.json"
+    },
+    {
+      "order": 2,
+      "migrationName": "music_catalogue_operations_and_cleanup",
+      "sourcePath": "supabase/migrations/20261030203619_music_catalogue_operations_and_cleanup.sql",
+      "sourceSha256": "36500836cd925af7aade1a6bff7d85e547fab9c00c5306fb0130cbca9ce7d0bd",
+      "sourceBytes": 30019,
+      "requestPath": "docs/quality/completion-20261101/backend/music-migration-requests/02_music_catalogue_operations_and_cleanup.json",
+      "requestSha256": "de87cca4e3dd42e89f2da6ea8c63a763f1a0d187cec0096565592268f4ce3d28",
+      "state": "prepared only; root owns normal apply and confirmation",
+      "initialReadiness": "disabled; no provider credential, grant or licence activation",
+      "preflightPath": "docs/quality/completion-20261101/backend/music-migration-requests/02_preflight.sql",
+      "postflightPath": "docs/quality/completion-20261101/backend/music-migration-requests/02_postflight.sql",
+      "expectedPath": "docs/quality/completion-20261101/backend/music-migration-requests/02_expected.json"
+    },
+    {
+      "order": 3,
+      "migrationName": "licensed_catalogue_pipeline",
+      "sourcePath": "supabase/migrations/20261030204339_licensed_catalogue_pipeline.sql",
+      "sourceSha256": "25914fee9c333ab9802793c4737ad467d0b7d712e603e71769a384350046a849",
+      "sourceBytes": 29907,
+      "requestPath": "docs/quality/completion-20261101/backend/music-migration-requests/03_licensed_catalogue_pipeline.json",
+      "requestSha256": "012135b2f56d99482f148d524a77dcab7e2b2a7bbdb5506ee43a421a3839e71c",
+      "state": "prepared only; root owns normal apply and confirmation",
+      "initialReadiness": "disabled; no provider credential, grant or licence activation",
+      "preflightPath": "docs/quality/completion-20261101/backend/music-migration-requests/03_preflight.sql",
+      "postflightPath": "docs/quality/completion-20261101/backend/music-migration-requests/03_postflight.sql",
+      "expectedPath": "docs/quality/completion-20261101/backend/music-migration-requests/03_expected.json"
+    }
+  ],
+  "postflightReference": "supabase/ops/check-music-operations-postflight.sql",
+  "allReadinessDisabledDuringDeployment": true,
+  "licensedCatalogueDeferred": true,
+  "verifierPath": "docs/quality/completion-20261101/backend/verify-music-observation.py",
+  "generatorPath": "docs/quality/completion-20261101/backend/prepare-music-postflights.mjs",
+  "generatedCatalogMethod": "Exact before/after catalog deltas from unchanged migrations, with the inspected QA legacy soundtrack column/resolver, creative books, repaired business activation and guarded current publisher installed first; unchanged Auth/media/privacy prerequisites included. Catalog values are hashed in PostgreSQL to preserve canonical serialization.",
+  "localVerification": {
+    "allChecksPassed": true,
+    "fixtureChecks": [
+      {
+        "migrationOrder": 1,
+        "phase": "preflight",
+        "stage": 0,
+        "actualGeneratedSqlExecuted": true,
+        "catalogRows": 35,
+        "allChecksPassed": true
+      },
+      {
+        "migrationOrder": 1,
+        "phase": "postflight",
+        "stage": 1,
+        "actualGeneratedSqlExecuted": true,
+        "catalogRows": 172,
+        "allChecksPassed": true
+      },
+      {
+        "migrationOrder": 2,
+        "phase": "preflight",
+        "stage": 1,
+        "actualGeneratedSqlExecuted": true,
+        "catalogRows": 172,
+        "allChecksPassed": true
+      },
+      {
+        "migrationOrder": 2,
+        "phase": "postflight",
+        "stage": 2,
+        "actualGeneratedSqlExecuted": true,
+        "catalogRows": 297,
+        "allChecksPassed": true
+      },
+      {
+        "migrationOrder": 3,
+        "phase": "preflight",
+        "stage": 2,
+        "actualGeneratedSqlExecuted": true,
+        "catalogRows": 297,
+        "allChecksPassed": true
+      },
+      {
+        "migrationOrder": 3,
+        "phase": "postflight",
+        "stage": 3,
+        "actualGeneratedSqlExecuted": true,
+        "catalogRows": 422,
+        "allChecksPassed": true
+      }
+    ],
+    "changedObjectCounts": [
+      153,
+      132,
+      132
+    ],
+    "catalogCounts": [
+      35,
+      172,
+      297,
+      422
+    ]
+  },
+  "businessActivationPrerequisite": {
+    "number": 8,
+    "name": "activate",
+    "path": "supabase/ops/qa/business-auth-staged-20261031/20261101042334_qa_business_auth_activate_storage_surfaces.sql",
+    "bytes": 16058,
+    "sha256": "d60f5b0e782295d770bb1cf0a4ec066c275b3a90fe0b26364c4226ac55f7b55d",
+    "requiresDestructiveConfirmation": false,
+    "originalStatementIndices": [
+      26,
+      34,
+      36,
+      38,
+      40,
+      7,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50
+    ],
+    "expectedBeforeFingerprint": "070a20dc374c50741b19573e21822048",
+    "expectedAfterFingerprint": "172a1c1313c6c68356021c15a82bf869",
+    "publicActivation": true,
+    "locks": [
+      "public.profiles SHARE ROW EXCLUSIVE",
+      "auth.sessions SHARE ROW EXCLUSIVE"
+    ],
+    "migrationName": "qa_business_auth_08_activate_storage_surfaces_20261101"
+  },
+  "storyPublisherPrerequisite": {
+    "migrationName": "qa_story_music_prerequisite_20261101",
+    "sourcePath": "supabase/ops/qa/20261101044417_qa_story_music_prerequisite.sql",
+    "sourceSha256": "24255e33d3c8f5aeb1f791313d511919a7fa4fde749ebdf8248f796557b3ce19",
+    "sourceBytes": 14170
+  }
+}

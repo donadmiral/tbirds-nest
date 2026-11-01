@@ -1,0 +1,10 @@
+{
+  "formatVersion": 1,
+  "sourcePath": "supabase/ops/qa/20261101050940_qa_account_erasure_containment_provider_api.sql",
+  "sourceSha256": "6d265704d3c01d4ace6da1ac568ea905fea7b330855cfab4035002396bdc2233",
+  "sourceBytes": 4060,
+  "migrationName": "qa_account_erasure_containment_provider_api",
+  "requestPath": "docs/quality/completion-20261101/backend/account-erasure-containment-provider-api-request.json",
+  "originalFailedSourceSha256": "70331fb15db6e1a2e7e4f3b3a69950f83ce68438dc013ef9b04105fe7913cae7",
+  "change": "Use supported cron.alter_job with ordinary SELECT only; positively verify the same exact target and no extra erasure schedule after the API update. No privilege change."
+}

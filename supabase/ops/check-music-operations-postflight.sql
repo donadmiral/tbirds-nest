@@ -3,7 +3,11 @@ select uploads_enabled from music_library.service_state where singleton;
 select ingestion_enabled,playback_enabled from music_library.catalogue_service where singleton;
 select count(*) as provider_credentials,count(*)filter(where enabled)as enabled_provider_credentials from music_library.catalogue_credentials;
 select count(*)as grants,count(*)filter(where hosting_allowed and revoked_at is null and starts_at<=clock_timestamp()and ends_at>clock_timestamp())as current_hosting_grants from music_library.catalogue_grants;
-select enabled,last_seen_at,secret_digest is not null as credential_configured from music_library.maintenance_worker where singleton;
+select w.enabled,w.last_seen_at,w.secret_digest is null as reusable_credential_absent,
+ d.project_origin,d.worker_sha256,d.verified_at is not null as dispatch_configured
+from music_library.maintenance_worker w join music_library.maintenance_dispatch d using(singleton) where w.singleton;
+select state,count(*) as runs,max(extract(epoch from expires_at-created_at)) as maximum_lifetime_seconds
+from music_library.maintenance_runs group by state;
 select 'original' as kind,state,count(*) as jobs from music_library.cleanup_jobs group by state
 union all select 'catalogue',state,count(*)from music_library.catalogue_cleanup_jobs group by state;
 select status,count(*) as uploads from music_library.uploads group by status;

@@ -1,0 +1,219 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "scope": "Read-only unchanged-state check after root445 terminal confirmation expiry",
+  "observation": {
+    "phase": "preflight",
+    "scope": "Catalog and disabled initial-state acceptance only. No member/business identity, upload, erase, provider, delivery or licensing acceptance is implied.",
+    "catalog": [
+      {
+        "k": "column",
+        "n": "public.story_sounds.2",
+        "md5": "4fc4e0c4ee1f9cace9a86620f8b670da"
+      },
+      {
+        "k": "function",
+        "n": "account_erasure.assert_writable(p_user uuid)",
+        "md5": "22de8d85542589fd453af1c041521b0b"
+      },
+      {
+        "k": "function",
+        "n": "account_erasure.guard_actor_write()",
+        "md5": "a33dbedddb1091a1024511b878df1477"
+      },
+      {
+        "k": "function",
+        "n": "account_erasure.review_reason(p_user uuid)",
+        "md5": "27b2714418156b90e6ca7cbca6b4c084"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.cleanup_session()",
+        "md5": "a6772b184a17393e4099ccc72304baab"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.device(p_business uuid, p_device text, p_proof text, p_label text, p_bootstrap boolean)",
+        "md5": "feacd4a888ad27013cf717c01a4dd056"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.owner_allowed(p_user uuid, p_session uuid, p_business uuid)",
+        "md5": "52a9f0b6dbab1c35bbeacbfe6c151f5d"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.rate_limit(p_scope text, p_limit integer)",
+        "md5": "961cf28523baf53d603e48748d0b73c6"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.register_account()",
+        "md5": "ee9a8f572ca4f725472cfa4707be07a4"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.revoke_device_sessions()",
+        "md5": "18b59fe234f0a3a19864308a9f4736e0"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.revoke_member_sessions()",
+        "md5": "e83337b0702549659d5ecc214f5083fc"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.revoke_owner_sessions()",
+        "md5": "1d891ded14577ef7afca2c487327436e"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.session_allowed(p_user uuid, p_session uuid)",
+        "md5": "20ea750ab675aa54551dab5f55b70e28"
+      },
+      {
+        "k": "function",
+        "n": "media_delivery.content_provenance(p_kind text, p_id uuid, p_url text, p_bucket text, p_path text, p_owner text)",
+        "md5": "5257b5ad044b9d900557f01cf875a1b0"
+      },
+      {
+        "k": "function",
+        "n": "media_delivery.issue(p_url text, p_kind text, p_id uuid, p_session uuid)",
+        "md5": "e9fe23c1b549ab222e30f26a8d32fc3f"
+      },
+      {
+        "k": "function",
+        "n": "media_delivery.require_session()",
+        "md5": "ceb587818516fa506d70f64b0a387933"
+      },
+      {
+        "k": "function",
+        "n": "public.business_auth_request_guard()",
+        "md5": "1085ddec430a26fd3feab9117bc89112"
+      },
+      {
+        "k": "function",
+        "n": "public.business_session_allowed()",
+        "md5": "99dfd06a663a5b3dcfd655ff625ba545"
+      },
+      {
+        "k": "function",
+        "n": "public.check_story_sound_rights()",
+        "md5": "1c7fa1b6cf79a405a994cfed5572755f"
+      },
+      {
+        "k": "function",
+        "n": "public.content_media_manifest(p_references jsonb)",
+        "md5": "d2598bd954fa9f4df2630231fe250de2"
+      },
+      {
+        "k": "function",
+        "n": "public.create_memory_book_creative_presentation(p_request_id uuid, p_title text, p_subtitle text, p_cover_color text, p_cover_design text, p_story_ids uuid[], p_cover_story_id uuid, p_cover_artwork jsonb, p_film_settings jsonb)",
+        "md5": "119c08a2aed6b014bc1c7f73ab2dd7f5"
+      },
+      {
+        "k": "function",
+        "n": "public.get_highlight_stories(p_highlight_id uuid)",
+        "md5": "67d141c60a9973b3438fb61571042668"
+      },
+      {
+        "k": "function",
+        "n": "public.get_memory_book(p_album uuid)",
+        "md5": "00296bd84046b74720e427d42b50a059"
+      },
+      {
+        "k": "function",
+        "n": "public.get_memory_book_creative_capabilities()",
+        "md5": "352b126130869b56ecdb5529103da94c"
+      },
+      {
+        "k": "function",
+        "n": "public.get_user_stories(p_user_id uuid)",
+        "md5": "bccb6e97269cecfeec4ca64c2c438441"
+      },
+      {
+        "k": "function",
+        "n": "public.list_playable_sounds(p_use text, p_query text, p_limit integer)",
+        "md5": "a0ea583a73a43864889925d60c60c2b6"
+      },
+      {
+        "k": "function",
+        "n": "public.publish_story_sound(p_story_id uuid, p_rights_attested boolean)",
+        "md5": "3544226e211cd6d02edf16597b898746"
+      },
+      {
+        "k": "function",
+        "n": "public.publish_story_v2(p_expected_user uuid, p_request_id uuid, p_story jsonb)",
+        "md5": "ad6963f5fd9d7acf91c4297a1ab8abc2"
+      },
+      {
+        "k": "function",
+        "n": "public.resolve_media_delivery(p_token text, p_bucket text, p_path text)",
+        "md5": "5733fa50fb00cb3eff1d8f25edeab039"
+      },
+      {
+        "k": "function",
+        "n": "public.resolve_story_soundtrack(p_audio jsonb)",
+        "md5": "fc5e978a5867449372723b9ff5b2e8f9"
+      },
+      {
+        "k": "function",
+        "n": "public.save_memory_book_creative_presentation(p_album uuid, p_expected_revision integer, p_title text, p_subtitle text, p_cover_color text, p_cover_design text, p_audience text, p_cover_story_id uuid, p_cover_artwork jsonb, p_film_settings jsonb)",
+        "md5": "2b1ae91d9b8e37824fd5e14209f8a42c"
+      },
+      {
+        "k": "function",
+        "n": "public.sound_asset_origin_allowed(p_url text)",
+        "md5": "fb4872f518c9d8db484214a27a9bc2c3"
+      },
+      {
+        "k": "function",
+        "n": "public.sound_rights_allow(p_sound_id uuid, p_use text)",
+        "md5": "2a684628299605702dd91dcfd3b8c990"
+      },
+      {
+        "k": "function",
+        "n": "public.validate_soundtrack(p_selection jsonb, p_use text)",
+        "md5": "6ca56b7ec2978087d3ebd528b35050a4"
+      },
+      {
+        "k": "policy",
+        "n": "public.story_sounds.story_sounds_select",
+        "md5": "df7c6ae83aa7424761ff488dd81937bb"
+      }
+    ],
+    "executor": "postgres",
+    "readOnly": true,
+    "readiness": {},
+    "observedAt": "2026-11-01T05:03:55.064089+00:00",
+    "audioBucket": null,
+    "musicJournal": [],
+    "packageStage": 0,
+    "stage8Journal": [
+      {
+        "name": "qa_business_auth_08_activate_storage_surfaces_20261101",
+        "version": "20261101043649",
+        "queryBytes": 16058,
+        "querySha256": "d60f5b0e782295d770bb1cf0a4ec066c275b3a90fe0b26364c4226ac55f7b55d",
+        "statementCount": 1
+      }
+    ],
+    "musicTableCounts": {},
+    "musicSchemaPresent": false,
+    "preparedTransactions": 0,
+    "musicTablesWithoutRls": 0,
+    "musicPrivateTableAccess": 0,
+    "musicPrivateSchemaAccess": 0,
+    "storyPrerequisiteJournal": [
+      {
+        "name": "qa_story_music_prerequisite_20261101",
+        "version": "20261101045330",
+        "queryBytes": 14170,
+        "querySha256": "24255e33d3c8f5aeb1f791313d511919a7fa4fde749ebdf8248f796557b3ce19",
+        "statementCount": 1
+      }
+    ],
+    "musicPrivateFunctionAccess": 0,
+    "otherActiveOrOpenClientTransactions": 0
+  }
+}

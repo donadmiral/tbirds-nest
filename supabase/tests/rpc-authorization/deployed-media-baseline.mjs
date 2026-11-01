@@ -5,7 +5,7 @@ import { loadLiveSchema } from './live-schema-fixture.mjs';
 
 export const root = new URL('../../../', import.meta.url);
 export const source = path => readFile(new URL(path, root), 'utf8');
-export async function loadDeployedMediaBaseline(db) {
+export async function loadDeployedMediaBaseline(db, {qaLegacyBookColumns = false} = {}) {
   await loadLiveSchema(db);
   await db.exec(`alter table auth.users add column if not exists created_at timestamptz default now();
     alter table storage.objects add column if not exists version text;
@@ -21,6 +21,14 @@ export async function loadDeployedMediaBaseline(db) {
   let units = 0;
   for (const path of ['supabase/ops/production-rollout-20261029.json', 'supabase/ops/parity-rollout-20261029.json']) {
     for (const unit of JSON.parse(await source(path)).units) {
+      if (qaLegacyBookColumns && unit.name === '20261029054043_memory_book_visual_presentation') {
+        // QA had already installed these two historical columns before visual
+        // presentation. Preserve their actual attnums in combined QA fixtures.
+        const historical = await source('supabase/migrations/20261028151016_memory_book_design_and_soundtrack.sql');
+        const columns = historical.match(/ALTER TABLE public\.memory_albums ADD COLUMN IF NOT EXISTS[^;]+;/g);
+        assert.equal(columns?.length, 2);
+        await db.exec(columns.join('\n'));
+      }
       const sql = [];
       for (const file of unit.files) {
         const text = await source(file.path);

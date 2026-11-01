@@ -1,0 +1,2429 @@
+{
+  "formatVersion": 1,
+  "sourceBoundIsolatedFixture": true,
+  "observation": {
+    "phase": "postflight",
+    "scope": "Catalog and disabled initial-state acceptance only. No member/business identity, upload, erase, provider, delivery or licensing acceptance is implied.",
+    "catalog": [
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.1",
+        "md5": "43ff34299f77408e80cab5da5f2865a4"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.10",
+        "md5": "5fb86a849f00ed6845e20ce4f941dcd6"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.11",
+        "md5": "c4bf4e9b8ccd40809d53a89a9ae4d609"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.12",
+        "md5": "588202e55fefa735f2e1f058a25889b7"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.13",
+        "md5": "323f652b63e60e9a5b7272c6f40d56d8"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.14",
+        "md5": "b4f986c64d51f7ce35dbdb478df104da"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.15",
+        "md5": "97b49c2afdf2530b3197f179e4e6b021"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.16",
+        "md5": "c3e193d4f0580c28a2a16d100873e7b8"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.2",
+        "md5": "04ddb8c5555d906c3cf034cf199709d8"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.3",
+        "md5": "804ea29876cecdc90d8ba780d8f13244"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.4",
+        "md5": "fb9c2679edf4273697d11f1ffccaac5d"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.5",
+        "md5": "9c1e6886942e968dd346be51ba7e471c"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.6",
+        "md5": "a51722f5312070789eabca1f70c89316"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.7",
+        "md5": "7156b2a41eaa911e82fc8668157bcab3"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.8",
+        "md5": "5c1f3fb07e757fdfc843859728dcaf61"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_assets.9",
+        "md5": "4fbbc6103c51fcffd6d64829ba39911a"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.1",
+        "md5": "43ff34299f77408e80cab5da5f2865a4"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.10",
+        "md5": "b4f986c64d51f7ce35dbdb478df104da"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.11",
+        "md5": "1ec7a973b918c94cda3f2cf62f094048"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.2",
+        "md5": "63251af42c3dc73aa54434c587859baa"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.3",
+        "md5": "c4bf4e9b8ccd40809d53a89a9ae4d609"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.4",
+        "md5": "588202e55fefa735f2e1f058a25889b7"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.5",
+        "md5": "893a90e742195a55027dbd658bce1861"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.6",
+        "md5": "f87e42217704374d33237871acb77158"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.7",
+        "md5": "2bbcac9e0c40899879002f0de2e8effc"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.8",
+        "md5": "c412e34ea5bca8b44b06e32641d8a4e0"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_cleanup_jobs.9",
+        "md5": "83c66c1e03832b8f41dc9cdcf7fb44f1"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_credentials.1",
+        "md5": "804ea29876cecdc90d8ba780d8f13244"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_credentials.2",
+        "md5": "79a1f0029c307557587a40096e7c98f9"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_credentials.3",
+        "md5": "c81b839f8993c9389bc0f85fb04af3ab"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_credentials.4",
+        "md5": "a99315ad469156dbd15eddb8a20f8cf3"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.1",
+        "md5": "741f48d0f8a326efe40c7a4fd664c554"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.10",
+        "md5": "16bda6413008054bea417d6ed3233447"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.11",
+        "md5": "1b53919eff65b794eae12625861711a0"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.12",
+        "md5": "bf444e66195af6e42e911decc1efdead"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.13",
+        "md5": "3867abeee095c828027e99fb6b69a51e"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.14",
+        "md5": "6c8b3ae34b2e65a839bee9f6d3cf8bbe"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.15",
+        "md5": "f20722dec2f2fe49b7b694b293cd30dd"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.16",
+        "md5": "076f0b6a122e574562defe1c888a46cf"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.17",
+        "md5": "9d52e465e37c17f66fd81f350d9420f5"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.2",
+        "md5": "804ea29876cecdc90d8ba780d8f13244"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.3",
+        "md5": "5272508c64d51d4ea49c273a8967be06"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.4",
+        "md5": "ab799e68a12819f9defeaf5eba1eaf80"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.5",
+        "md5": "42bde97ea0a7eb69d8dd0a85412acaf6"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.6",
+        "md5": "70d1845f3e892b9e10429cb577260145"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.7",
+        "md5": "410d0016ef8abad60de06bc152a38601"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.8",
+        "md5": "6ca393c79fe3809eaa2db7c1e638012a"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_grants.9",
+        "md5": "053650e76a391c38b74bc99aade24465"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_imports.1",
+        "md5": "815cd560bf57caf2d41e1e6a066a47d0"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_imports.2",
+        "md5": "804ea29876cecdc90d8ba780d8f13244"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_imports.3",
+        "md5": "945469f238dab3c7194f6020f6157109"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_imports.4",
+        "md5": "613a0c43cff6ecc7c81a072e7e7f2dc0"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_imports.5",
+        "md5": "09b4ab7c032ec6330e659682764b8eda"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_imports.6",
+        "md5": "b4f986c64d51f7ce35dbdb478df104da"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_service.1",
+        "md5": "541740522074243360d81f106efbd4d4"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_service.2",
+        "md5": "9c460d3af16165e92d41688467e1b206"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_service.3",
+        "md5": "a1783afd75c1ffb7f5fb18171e282bc7"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.1",
+        "md5": "741f48d0f8a326efe40c7a4fd664c554"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.10",
+        "md5": "adabb006e4de79fa4a5b738844211583"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.11",
+        "md5": "446459f163ea91e5b81230e32ac5a991"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.12",
+        "md5": "642ba80d259ab4694d6aa5200847fb24"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.13",
+        "md5": "3d02a37fcc3db2c47194db8e573acda0"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.14",
+        "md5": "579558660b8aae1828e22364b60d5d5a"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.15",
+        "md5": "1f4b54b1214a653b3339127e1869468d"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.16",
+        "md5": "b4f986c64d51f7ce35dbdb478df104da"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.17",
+        "md5": "4cbd89c396823ab813c12452afc6f522"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.2",
+        "md5": "804ea29876cecdc90d8ba780d8f13244"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.3",
+        "md5": "9e0f0cd0cbd1af73deccb828d8285e60"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.4",
+        "md5": "ab799e68a12819f9defeaf5eba1eaf80"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.5",
+        "md5": "75d960f3977b5aee096143c55c41f93f"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.6",
+        "md5": "405aa34456f764c639944e3b2dcecc1b"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.7",
+        "md5": "21f50fabbeebf4432fe747e9c4f2421b"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.8",
+        "md5": "78fae9c227a7796ac4ef1ddaeb46c530"
+      },
+      {
+        "k": "column",
+        "n": "music_library.catalogue_tracks.9",
+        "md5": "b370eb198c4d8e82a523e61d332a7eb5"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.1",
+        "md5": "8b0c3ac719928164ee6444f537418075"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.10",
+        "md5": "b4f986c64d51f7ce35dbdb478df104da"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.11",
+        "md5": "1ec7a973b918c94cda3f2cf62f094048"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.2",
+        "md5": "63251af42c3dc73aa54434c587859baa"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.3",
+        "md5": "c4bf4e9b8ccd40809d53a89a9ae4d609"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.4",
+        "md5": "588202e55fefa735f2e1f058a25889b7"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.5",
+        "md5": "893a90e742195a55027dbd658bce1861"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.6",
+        "md5": "f87e42217704374d33237871acb77158"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.7",
+        "md5": "2bbcac9e0c40899879002f0de2e8effc"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.8",
+        "md5": "c412e34ea5bca8b44b06e32641d8a4e0"
+      },
+      {
+        "k": "column",
+        "n": "music_library.cleanup_jobs.9",
+        "md5": "83c66c1e03832b8f41dc9cdcf7fb44f1"
+      },
+      {
+        "k": "column",
+        "n": "music_library.events.1",
+        "md5": "1c20e2f5bff2df0be3b636c06d6a398d"
+      },
+      {
+        "k": "column",
+        "n": "music_library.events.2",
+        "md5": "247bd9b6dcba7147410e0513d628602e"
+      },
+      {
+        "k": "column",
+        "n": "music_library.events.3",
+        "md5": "5fb86a849f00ed6845e20ce4f941dcd6"
+      },
+      {
+        "k": "column",
+        "n": "music_library.events.4",
+        "md5": "802f2f6473bb6795afa3d206bdcac9dd"
+      },
+      {
+        "k": "column",
+        "n": "music_library.events.5",
+        "md5": "e8f1aea648c092123829b5474f66120f"
+      },
+      {
+        "k": "column",
+        "n": "music_library.events.6",
+        "md5": "b4f986c64d51f7ce35dbdb478df104da"
+      },
+      {
+        "k": "column",
+        "n": "music_library.favorites.1",
+        "md5": "dcd046ccbd0237e3fe477741956fe97e"
+      },
+      {
+        "k": "column",
+        "n": "music_library.favorites.2",
+        "md5": "cb18db03ff1568750fbc4b04abc22867"
+      },
+      {
+        "k": "column",
+        "n": "music_library.favorites.3",
+        "md5": "b4f986c64d51f7ce35dbdb478df104da"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.1",
+        "md5": "741f48d0f8a326efe40c7a4fd664c554"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.10",
+        "md5": "002bfa1fd80a040a7d0d5a538a35268c"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.11",
+        "md5": "1f4b54b1214a653b3339127e1869468d"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.12",
+        "md5": "d309fda40b3a80b3152325807f6cdbb3"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.13",
+        "md5": "b4f986c64d51f7ce35dbdb478df104da"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.2",
+        "md5": "804ea29876cecdc90d8ba780d8f13244"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.3",
+        "md5": "5272508c64d51d4ea49c273a8967be06"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.4",
+        "md5": "42bde97ea0a7eb69d8dd0a85412acaf6"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.5",
+        "md5": "6ca393c79fe3809eaa2db7c1e638012a"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.6",
+        "md5": "053650e76a391c38b74bc99aade24465"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.7",
+        "md5": "3867abeee095c828027e99fb6b69a51e"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.8",
+        "md5": "544e3efe9d86a7cbf7538bff4bf5ef88"
+      },
+      {
+        "k": "column",
+        "n": "music_library.license_drafts.9",
+        "md5": "62adbd7eef192f02ff5239b0106afd1e"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_dispatch.1",
+        "md5": "541740522074243360d81f106efbd4d4"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_dispatch.2",
+        "md5": "dd1f5490636efc361295d1ac539430fa"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_dispatch.3",
+        "md5": "17f85675e05803eb0563a601e37367aa"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_dispatch.4",
+        "md5": "011467ee4a56f68aad520aac7c4a972f"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_dispatch.5",
+        "md5": "14f1f58fc50dc0ba90fee672440d91fd"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_runs.1",
+        "md5": "741f48d0f8a326efe40c7a4fd664c554"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_runs.10",
+        "md5": "5c3966d89b6295111ea391bcec92a5b9"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_runs.2",
+        "md5": "c68607e50cccbe4938f76dd10a5c5c6e"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_runs.3",
+        "md5": "c9f55b4a3d4bc7c45d85d263efbc24d5"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_runs.4",
+        "md5": "1de4481a24323a94b05adae47ebfa54b"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_runs.5",
+        "md5": "63251af42c3dc73aa54434c587859baa"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_runs.6",
+        "md5": "47e5233990f255274c4f49a525b3be96"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_runs.7",
+        "md5": "7a31ecd8c9554988dcd4310a8eb4c4aa"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_runs.8",
+        "md5": "c787bd297fcb3182c2b017a06c636468"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_runs.9",
+        "md5": "2b2c2fc0fc05d8b19413b1ba9a6248f5"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_worker.1",
+        "md5": "541740522074243360d81f106efbd4d4"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_worker.2",
+        "md5": "c81b839f8993c9389bc0f85fb04af3ab"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_worker.3",
+        "md5": "f9f56652cbe1c6a6adbdb1d15e305de6"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_worker.4",
+        "md5": "1ef8faa6e201f85e90a48547e236bd1d"
+      },
+      {
+        "k": "column",
+        "n": "music_library.maintenance_worker.5",
+        "md5": "aa327af180172561474c0ccf5d66803c"
+      },
+      {
+        "k": "column",
+        "n": "music_library.providers.1",
+        "md5": "1f712cbdb7be744b68a8320ff668fa5a"
+      },
+      {
+        "k": "column",
+        "n": "music_library.providers.2",
+        "md5": "cf02213fefe85634190684345f57de77"
+      },
+      {
+        "k": "column",
+        "n": "music_library.providers.3",
+        "md5": "1f4b54b1214a653b3339127e1869468d"
+      },
+      {
+        "k": "column",
+        "n": "music_library.providers.4",
+        "md5": "34b24418acb44b6981201cddef398d94"
+      },
+      {
+        "k": "column",
+        "n": "music_library.providers.5",
+        "md5": "e7b578d328633dc463a18898a55d5bb8"
+      },
+      {
+        "k": "column",
+        "n": "music_library.providers.6",
+        "md5": "aa327af180172561474c0ccf5d66803c"
+      },
+      {
+        "k": "column",
+        "n": "music_library.service_state.1",
+        "md5": "541740522074243360d81f106efbd4d4"
+      },
+      {
+        "k": "column",
+        "n": "music_library.service_state.2",
+        "md5": "bc60360e2003096008546329c01d023b"
+      },
+      {
+        "k": "column",
+        "n": "music_library.service_state.3",
+        "md5": "aa327af180172561474c0ccf5d66803c"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.1",
+        "md5": "815cd560bf57caf2d41e1e6a066a47d0"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.10",
+        "md5": "db55ba2f7604869b581a35c7c48c0289"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.11",
+        "md5": "5fb86a849f00ed6845e20ce4f941dcd6"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.12",
+        "md5": "c4bf4e9b8ccd40809d53a89a9ae4d609"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.13",
+        "md5": "588202e55fefa735f2e1f058a25889b7"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.14",
+        "md5": "323f652b63e60e9a5b7272c6f40d56d8"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.15",
+        "md5": "4fbbc6103c51fcffd6d64829ba39911a"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.16",
+        "md5": "b4f986c64d51f7ce35dbdb478df104da"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.17",
+        "md5": "787ec1b91a791d8f7babf3c720d94106"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.18",
+        "md5": "c3e193d4f0580c28a2a16d100873e7b8"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.2",
+        "md5": "4fc4e0c4ee1f9cace9a86620f8b670da"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.3",
+        "md5": "fb9c2679edf4273697d11f1ffccaac5d"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.4",
+        "md5": "9c1e6886942e968dd346be51ba7e471c"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.5",
+        "md5": "75d960f3977b5aee096143c55c41f93f"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.6",
+        "md5": "a51722f5312070789eabca1f70c89316"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.7",
+        "md5": "7156b2a41eaa911e82fc8668157bcab3"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.8",
+        "md5": "5c1f3fb07e757fdfc843859728dcaf61"
+      },
+      {
+        "k": "column",
+        "n": "music_library.uploads.9",
+        "md5": "c9cb107bf74d0b70357bc13fa6d5280a"
+      },
+      {
+        "k": "column",
+        "n": "music_library.usage_events.1",
+        "md5": "1c20e2f5bff2df0be3b636c06d6a398d"
+      },
+      {
+        "k": "column",
+        "n": "music_library.usage_events.10",
+        "md5": "e15f2d8eb698beb16b609a6e85ece0a5"
+      },
+      {
+        "k": "column",
+        "n": "music_library.usage_events.2",
+        "md5": "ee0b2bb9d7148eec63eccac2133cc56f"
+      },
+      {
+        "k": "column",
+        "n": "music_library.usage_events.3",
+        "md5": "fa4274aca7f14e9b6e34b8b1499b2c05"
+      },
+      {
+        "k": "column",
+        "n": "music_library.usage_events.4",
+        "md5": "5fb86a849f00ed6845e20ce4f941dcd6"
+      },
+      {
+        "k": "column",
+        "n": "music_library.usage_events.5",
+        "md5": "804ea29876cecdc90d8ba780d8f13244"
+      },
+      {
+        "k": "column",
+        "n": "music_library.usage_events.6",
+        "md5": "c1fc643a96c3d5cfcb38661234a6317f"
+      },
+      {
+        "k": "column",
+        "n": "music_library.usage_events.7",
+        "md5": "75d960f3977b5aee096143c55c41f93f"
+      },
+      {
+        "k": "column",
+        "n": "music_library.usage_events.8",
+        "md5": "173d313d253801c6db16a6593f7762c9"
+      },
+      {
+        "k": "column",
+        "n": "music_library.usage_events.9",
+        "md5": "ac1759224ec048fcefe42d420d21a7b6"
+      },
+      {
+        "k": "column",
+        "n": "public.story_sounds.2",
+        "md5": "04c7dfa30e458ce52b22eba534763a62"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_byte_size_check",
+        "md5": "8a64d4e27e47da43e7209811a792859a"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_check",
+        "md5": "ad7511fd4fe40c51729716fde03723cb"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_grant_id_fkey",
+        "md5": "50ff8f8c7200c7f1646e6994acac4f59"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_mime_check",
+        "md5": "a26e6be6314a1e1e10d8c2fcfc400d77"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_object_path_key",
+        "md5": "03e86ec6d9b36a915e78462e4f8f28c8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_pkey",
+        "md5": "5c720e90a9340ec29f3ff51e3644f2f7"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_provider_id_fkey",
+        "md5": "331cf1c938260f2dd1cd6901c5555f49"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_sha256_check",
+        "md5": "be0d6fe1cde618278fec63d80d8d42d7"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_sound_id_fkey",
+        "md5": "eeb3ad7592882937015be00811d0d945"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_sound_id_key",
+        "md5": "8a3b21a369c569cf429d761831ef787b"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_status_check",
+        "md5": "29bd7db128de034905797decdc533cb2"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_assets.catalogue_assets_track_id_fkey",
+        "md5": "8b65a54c6f61fe48c909cc594a4beb53"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_cleanup_jobs.catalogue_cleanup_jobs_last_error_check",
+        "md5": "a6fc0199cdf0b042a8144f35c86feda6"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_cleanup_jobs.catalogue_cleanup_jobs_pkey",
+        "md5": "5c720e90a9340ec29f3ff51e3644f2f7"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_cleanup_jobs.catalogue_cleanup_jobs_state_check",
+        "md5": "817f53f8bf45e2f9e9d368822e8cda95"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_cleanup_jobs.catalogue_cleanup_jobs_track_id_fkey",
+        "md5": "ee024ce41d343ca3106f2402f3d7eabc"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_credentials.catalogue_credentials_max_retained_bytes_check",
+        "md5": "91c00fb739fee9e97ba19073f210bd3c"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_credentials.catalogue_credentials_pkey",
+        "md5": "532be8db51388ca86b491818a3718a6f"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_credentials.catalogue_credentials_provider_id_fkey",
+        "md5": "331cf1c938260f2dd1cd6901c5555f49"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_credentials.catalogue_credentials_secret_digest_check",
+        "md5": "646759cfab7c480777a7ece829f235f5"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_credentials.catalogue_credentials_secret_digest_key",
+        "md5": "978d8b79028bf55758bfecb4ede79df7"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_check",
+        "md5": "9618d70e2be8223f445476ea8bdd1551"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_evidence_ref_check",
+        "md5": "0847ae2ad22ce871752a3522b853d709"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_evidence_sha256_check",
+        "md5": "e23a176cc14ec80bc6063ac716223b22"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_licensor_check",
+        "md5": "a64ae456ce838f4fbf921c6accb50c57"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_max_excerpt_sec_check",
+        "md5": "801a181e769863216fd311c804d27b12"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_permitted_uses_check",
+        "md5": "2ca73bb5813558276075d132b615e042"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_pkey",
+        "md5": "b49497afa54e8f80dfdc2b2f87edd1f8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_provider_id_fkey",
+        "md5": "331cf1c938260f2dd1cd6901c5555f49"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_provider_id_reference_revision_key",
+        "md5": "4e6dfe7185d69658407dd9ee131015f2"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_reference_check",
+        "md5": "2d2b27b571b4537c8935f1648b2eb2fc"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_reviewed_by_fkey",
+        "md5": "faf71c58e369ea4b82db0855885af72a"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_revision_check",
+        "md5": "192751104630d50333e6bad05020a455"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_grants.catalogue_grants_territories_check",
+        "md5": "0d6e7529f602ed18244661633c27d7a9"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_imports.catalogue_imports_created_by_fkey",
+        "md5": "ab24f0d8e4bba7eb5712d57a426c02e4"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_imports.catalogue_imports_manifest_sha256_check",
+        "md5": "9c788ef79d8b25250ff9c27194caf0c4"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_imports.catalogue_imports_pkey",
+        "md5": "b49497afa54e8f80dfdc2b2f87edd1f8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_imports.catalogue_imports_provider_id_fkey",
+        "md5": "331cf1c938260f2dd1cd6901c5555f49"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_imports.catalogue_imports_track_count_check",
+        "md5": "778f96286629e93e74c4b16f0f015e3c"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_service.catalogue_service_pkey",
+        "md5": "ff14078a8417cb9dbf1b1a83792a8b10"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_service.catalogue_service_singleton_check",
+        "md5": "bdca2ee205b5473a8210eb0546ba2c58"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_album_check",
+        "md5": "8131c40452c43f754856fb820dcbd3ca"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_artist_check",
+        "md5": "534901f0e9452f50d71a943f560e6b1b"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_asset_ref_check",
+        "md5": "5bf97076267b25296c788a5410848ccb"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_asset_sha256_check",
+        "md5": "eb8862e0001d5511ed5bbd69e98758d7"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_duration_sec_check",
+        "md5": "71cfd5d8891091192df992134c69c454"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_grant_id_fkey",
+        "md5": "50ff8f8c7200c7f1646e6994acac4f59"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_import_id_fkey",
+        "md5": "f2d2fe97dd6aebae43f72e0a858a83a9"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_isrc_check",
+        "md5": "10156c94228ae022604027ff2cfdbdb8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_license_draft_id_fkey",
+        "md5": "23301d84fee1895c9c662f80a7f61a98"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_metadata_sha256_check",
+        "md5": "7b1aae08662758b7bfaa1702b5860f6b"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_pkey",
+        "md5": "b49497afa54e8f80dfdc2b2f87edd1f8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_provider_id_fkey",
+        "md5": "331cf1c938260f2dd1cd6901c5555f49"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_provider_id_provider_track_id_revision_key",
+        "md5": "e00d55db36caf8b391f436fef58da45d"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_provider_track_id_check",
+        "md5": "2285cec683ce21bd42651fd44f2e0ebb"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_revision_check",
+        "md5": "f11a3e5bb9a45cdc86a172c20f930fef"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_status_check",
+        "md5": "1d6c1c4a471c114ee0e0f6f53dbbd779"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.catalogue_tracks.catalogue_tracks_title_check",
+        "md5": "e0d52a3ef3bcfabd5dc4f1ad2fb20694"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.cleanup_jobs.cleanup_jobs_attempts_check",
+        "md5": "9b84df84a3d6da838f51d8ab4174b66b"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.cleanup_jobs.cleanup_jobs_last_error_check",
+        "md5": "3c35d50628e4dd24b73f202e0950dd9e"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.cleanup_jobs.cleanup_jobs_pkey",
+        "md5": "a24e439e77f7c532b778f20100fbcf04"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.cleanup_jobs.cleanup_jobs_state_check",
+        "md5": "817f53f8bf45e2f9e9d368822e8cda95"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.cleanup_jobs.cleanup_jobs_upload_id_fkey",
+        "md5": "79c8c201560d8bb664e916c40c153f7e"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.events.events_actor_id_fkey",
+        "md5": "2e2b303927d43e538f4511a85c81e3a7"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.events.events_pkey",
+        "md5": "b49497afa54e8f80dfdc2b2f87edd1f8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.events.events_sound_id_fkey",
+        "md5": "b07e964669ea7e16b6230d693b7fc627"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.favorites.favorites_pkey",
+        "md5": "7842ca882b6786817aeacf1a99bb5327"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.favorites.favorites_sound_id_fkey",
+        "md5": "8006624bc917429525bf37f8161358da"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.favorites.favorites_user_id_fkey",
+        "md5": "bf5f4a15780a0717a1c9af5d3cd90084"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.license_drafts.license_drafts_check",
+        "md5": "ebda5663d635c9f7ff4778d24d14ee8e"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.license_drafts.license_drafts_licensor_check",
+        "md5": "a64ae456ce838f4fbf921c6accb50c57"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.license_drafts.license_drafts_permitted_uses_check",
+        "md5": "2ca73bb5813558276075d132b615e042"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.license_drafts.license_drafts_pkey",
+        "md5": "b49497afa54e8f80dfdc2b2f87edd1f8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.license_drafts.license_drafts_provider_id_fkey",
+        "md5": "331cf1c938260f2dd1cd6901c5555f49"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.license_drafts.license_drafts_provider_id_reference_key",
+        "md5": "81e3809fd8e1150efbda93f79ea69701"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.license_drafts.license_drafts_reference_check",
+        "md5": "2d2b27b571b4537c8935f1648b2eb2fc"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.license_drafts.license_drafts_status_check",
+        "md5": "e2bf9570d78ede11ff5f50285f7b1618"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.license_drafts.license_drafts_territories_check",
+        "md5": "0d6e7529f602ed18244661633c27d7a9"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_dispatch.maintenance_dispatch_check",
+        "md5": "610b07d0d81c469ed0fc35ebe7cda214"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_dispatch.maintenance_dispatch_pkey",
+        "md5": "ff14078a8417cb9dbf1b1a83792a8b10"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_dispatch.maintenance_dispatch_project_origin_check",
+        "md5": "a17f53bf229196305aa30d9f9d21f37e"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_dispatch.maintenance_dispatch_singleton_check",
+        "md5": "bdca2ee205b5473a8210eb0546ba2c58"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_dispatch.maintenance_dispatch_worker_sha256_check",
+        "md5": "67f864ef3210eff09d0354178b2ed5f6"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_runs.maintenance_runs_check",
+        "md5": "61eab429ed23145efeeb39160e2cf685"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_runs.maintenance_runs_check1",
+        "md5": "72c795b47f5d6a2ddec034139b8a5e98"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_runs.maintenance_runs_check2",
+        "md5": "0229b6a9b325eb4774d722068b568808"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_runs.maintenance_runs_check3",
+        "md5": "6dfc6ad74f9577a9051328d14b58e712"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_runs.maintenance_runs_error_code_check",
+        "md5": "b3cdef966c4c59b8c7d41c7f75db013c"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_runs.maintenance_runs_pkey",
+        "md5": "b49497afa54e8f80dfdc2b2f87edd1f8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_runs.maintenance_runs_purpose_check",
+        "md5": "9aac7aed6b754d3a4b85a2dec18d7131"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_runs.maintenance_runs_state_check",
+        "md5": "07dd1f3180f08da2ef51af8a1bc341a8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_runs.maintenance_runs_token_digest_check",
+        "md5": "94180889017ede0eee145c3fb74e8f8d"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_runs.maintenance_runs_token_digest_key",
+        "md5": "de2d91bba492c1f1271f4847399f29df"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_worker.maintenance_worker_pkey",
+        "md5": "ff14078a8417cb9dbf1b1a83792a8b10"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_worker.maintenance_worker_secret_digest_check",
+        "md5": "646759cfab7c480777a7ece829f235f5"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.maintenance_worker.maintenance_worker_singleton_check",
+        "md5": "bdca2ee205b5473a8210eb0546ba2c58"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.providers.providers_id_check",
+        "md5": "6a1cf82020eeb5d650bcdc48ce7b327f"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.providers.providers_name_check",
+        "md5": "d6e2c5066e49033f3e0911b014d78400"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.providers.providers_pkey",
+        "md5": "b49497afa54e8f80dfdc2b2f87edd1f8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.providers.providers_status_check",
+        "md5": "599b7ed1b39cad8abc4aaf4b4f352f7e"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.service_state.service_state_pkey",
+        "md5": "ff14078a8417cb9dbf1b1a83792a8b10"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.service_state.service_state_singleton_check",
+        "md5": "bdca2ee205b5473a8210eb0546ba2c58"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_byte_size_check",
+        "md5": "8a64d4e27e47da43e7209811a792859a"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_check",
+        "md5": "ad7511fd4fe40c51729716fde03723cb"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_mime_check",
+        "md5": "a26e6be6314a1e1e10d8c2fcfc400d77"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_object_path_key",
+        "md5": "03e86ec6d9b36a915e78462e4f8f28c8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_owner_id_fkey",
+        "md5": "9de93d2567b7253f798b51f5ef6cbb28"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_pkey",
+        "md5": "b49497afa54e8f80dfdc2b2f87edd1f8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_sha256_check",
+        "md5": "be0d6fe1cde618278fec63d80d8d42d7"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_sound_id_fkey",
+        "md5": "8006624bc917429525bf37f8161358da"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_sound_id_key",
+        "md5": "8a3b21a369c569cf429d761831ef787b"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_status_check",
+        "md5": "e34296f8941021e799ad6df5ab6376ad"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.uploads.uploads_title_check",
+        "md5": "e0d52a3ef3bcfabd5dc4f1ad2fb20694"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.usage_events.usage_events_event_key_key",
+        "md5": "2f8f80565f67b2e8c01e9b3f3b97636b"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.usage_events.usage_events_event_type_check",
+        "md5": "34b71327efbbc0b2f7b147900211f8a8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.usage_events.usage_events_pkey",
+        "md5": "b49497afa54e8f80dfdc2b2f87edd1f8"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.usage_events.usage_events_sound_id_fkey",
+        "md5": "8006624bc917429525bf37f8161358da"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.usage_events.usage_events_territory_check",
+        "md5": "48188e475e9af5a762d520102fa8bb81"
+      },
+      {
+        "k": "constraint",
+        "n": "music_library.usage_events.usage_events_use_kind_check",
+        "md5": "2b0c974086db25603e1b28051b8244fc"
+      },
+      {
+        "k": "constraint",
+        "n": "public.story_sounds.original_audio_requires_owner",
+        "md5": "6ae67bbf24bf173399586575733a59d8"
+      },
+      {
+        "k": "function",
+        "n": "account_erasure.assert_writable(p_user uuid)",
+        "md5": "22de8d85542589fd453af1c041521b0b"
+      },
+      {
+        "k": "function",
+        "n": "account_erasure.guard_actor_write()",
+        "md5": "a33dbedddb1091a1024511b878df1477"
+      },
+      {
+        "k": "function",
+        "n": "account_erasure.review_reason(p_user uuid)",
+        "md5": "ffec93774203708801ba2eb4c18e42f0"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.cleanup_session()",
+        "md5": "a6772b184a17393e4099ccc72304baab"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.device(p_business uuid, p_device text, p_proof text, p_label text, p_bootstrap boolean)",
+        "md5": "feacd4a888ad27013cf717c01a4dd056"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.owner_allowed(p_user uuid, p_session uuid, p_business uuid)",
+        "md5": "52a9f0b6dbab1c35bbeacbfe6c151f5d"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.rate_limit(p_scope text, p_limit integer)",
+        "md5": "961cf28523baf53d603e48748d0b73c6"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.register_account()",
+        "md5": "ee9a8f572ca4f725472cfa4707be07a4"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.revoke_device_sessions()",
+        "md5": "18b59fe234f0a3a19864308a9f4736e0"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.revoke_member_sessions()",
+        "md5": "e83337b0702549659d5ecc214f5083fc"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.revoke_owner_sessions()",
+        "md5": "1d891ded14577ef7afca2c487327436e"
+      },
+      {
+        "k": "function",
+        "n": "business_auth.session_allowed(p_user uuid, p_session uuid)",
+        "md5": "20ea750ab675aa54551dab5f55b70e28"
+      },
+      {
+        "k": "function",
+        "n": "media_delivery.content_provenance(p_kind text, p_id uuid, p_url text, p_bucket text, p_path text, p_owner text)",
+        "md5": "3c0df6cc4ced9c601041fe8731f53f3f"
+      },
+      {
+        "k": "function",
+        "n": "media_delivery.content_provenance_before_catalogue(p_kind text, p_id uuid, p_url text, p_bucket text, p_path text, p_owner text)",
+        "md5": "b04845ede55ecb9a794567b6a83f4382"
+      },
+      {
+        "k": "function",
+        "n": "media_delivery.content_provenance_before_music(p_kind text, p_id uuid, p_url text, p_bucket text, p_path text, p_owner text)",
+        "md5": "4d1ec8c0720e7150c28a247136606dd5"
+      },
+      {
+        "k": "function",
+        "n": "media_delivery.issue(p_url text, p_kind text, p_id uuid, p_session uuid)",
+        "md5": "6aa4a6d957f09818ccdc1a26138a7a4f"
+      },
+      {
+        "k": "function",
+        "n": "media_delivery.require_session()",
+        "md5": "ceb587818516fa506d70f64b0a387933"
+      },
+      {
+        "k": "function",
+        "n": "music_library.catalogue_provider_for_token(p_token text)",
+        "md5": "b05d7820e24a7f55a2e588149b99cc23"
+      },
+      {
+        "k": "function",
+        "n": "music_library.catalogue_rights_allow(p_sound uuid, p_use text, p_export boolean)",
+        "md5": "d95bd7ca3e5cf1811fb93ded784bbda4"
+      },
+      {
+        "k": "function",
+        "n": "music_library.cleanup_maintenance_runs(p_limit integer)",
+        "md5": "8c8aff5846bc85043bc42003eaa2dacc"
+      },
+      {
+        "k": "function",
+        "n": "music_library.configure_maintenance_dispatch(p_project_origin text, p_worker_sha256 text)",
+        "md5": "8862f5d86ca4f0fe30b2f8bf196a4db6"
+      },
+      {
+        "k": "function",
+        "n": "music_library.enqueue_maintenance_run()",
+        "md5": "f2ce91217a49820ab3f87ae159e08dad"
+      },
+      {
+        "k": "function",
+        "n": "music_library.guard_catalogue_storage_write()",
+        "md5": "8c4ddce21b812be8ee369c0ff34189be"
+      },
+      {
+        "k": "function",
+        "n": "music_library.immutable_catalogue_grant()",
+        "md5": "afd63b5989b3148ae2728827119da055"
+      },
+      {
+        "k": "function",
+        "n": "music_library.record_attachment()",
+        "md5": "cd5abb1c7a9f0c1e7066ac7cdf76e2f8"
+      },
+      {
+        "k": "function",
+        "n": "music_library.record_usage(p_sound uuid, p_event text, p_use text, p_user uuid, p_key text)",
+        "md5": "e854921444d355c3e18385a237518a4a"
+      },
+      {
+        "k": "function",
+        "n": "music_library.require_admin(p_actor uuid, p_session uuid)",
+        "md5": "c573b5ffbbe6a3778809e135ddc8a01a"
+      },
+      {
+        "k": "function",
+        "n": "music_library.require_user()",
+        "md5": "ecf788d2cefb0ded7fb90a0af93e7326"
+      },
+      {
+        "k": "function",
+        "n": "music_library.reusable(p_sound uuid, p_use text)",
+        "md5": "f4b91019725e4b688cef722dc286ee1b"
+      },
+      {
+        "k": "function",
+        "n": "music_library.trusted_territory(p_user uuid)",
+        "md5": "351882556b299a35f2046757f7918e79"
+      },
+      {
+        "k": "function",
+        "n": "public.ack_catalogue_upload_cleanup(p_track uuid, p_worker uuid)",
+        "md5": "e8f487a88932c122bfaa7a47fe327c8c"
+      },
+      {
+        "k": "function",
+        "n": "public.ack_music_upload_cleanup(p_upload uuid, p_worker uuid)",
+        "md5": "02e20f423dbd4fca9d631fe5cb6686a0"
+      },
+      {
+        "k": "function",
+        "n": "public.admin_music_command(p_actor uuid, p_session uuid, p_action text, p_payload jsonb)",
+        "md5": "a1a7c041622b728ffba28571746bab7f"
+      },
+      {
+        "k": "function",
+        "n": "public.admin_music_operations_snapshot(p_actor uuid, p_session uuid)",
+        "md5": "01f95df41273adcbc7f27ef98003143d"
+      },
+      {
+        "k": "function",
+        "n": "public.admin_music_snapshot(p_actor uuid, p_session uuid)",
+        "md5": "d611118221e6421756d8fbba1f722272"
+      },
+      {
+        "k": "function",
+        "n": "public.admin_music_usage_report(p_actor uuid, p_session uuid, p_start timestamp with time zone, p_end timestamp with time zone)",
+        "md5": "0bb2571018cb39c14a37319a0c57f1e7"
+      },
+      {
+        "k": "function",
+        "n": "public.admin_original_audio_object(p_actor uuid, p_session uuid, p_sound_id uuid)",
+        "md5": "e5ff23ac6e181fc3f77bb6a5f9195eb2"
+      },
+      {
+        "k": "function",
+        "n": "public.admin_stage_music_catalogue(p_actor uuid, p_session uuid, p_request uuid, p_provider text, p_manifest jsonb)",
+        "md5": "e80b0445fb3415b528a0ac73aca965b9"
+      },
+      {
+        "k": "function",
+        "n": "public.authorize_music_audio_export(p_sound_id uuid, p_use text)",
+        "md5": "3c042b96728f3c2aad5bb6217a6fac3a"
+      },
+      {
+        "k": "function",
+        "n": "public.authorize_original_audio_export(p_sound_id uuid, p_use text)",
+        "md5": "e4fdd61b7ea9b63d960b3c8b2a6bcbfe"
+      },
+      {
+        "k": "function",
+        "n": "public.authorize_original_audio_export_before_operations(p_sound_id uuid, p_use text)",
+        "md5": "90873057fa6b3f35273ec3a0bb6e4190"
+      },
+      {
+        "k": "function",
+        "n": "public.business_auth_request_guard()",
+        "md5": "1085ddec430a26fd3feab9117bc89112"
+      },
+      {
+        "k": "function",
+        "n": "public.business_session_allowed()",
+        "md5": "99dfd06a663a5b3dcfd655ff625ba545"
+      },
+      {
+        "k": "function",
+        "n": "public.catalogue_audio_object(p_token text, p_track uuid)",
+        "md5": "597da4d5d2a5049916a7ec60c11c6c62"
+      },
+      {
+        "k": "function",
+        "n": "public.check_catalogue_upload_cleanup(p_track uuid, p_worker uuid)",
+        "md5": "636e7503a47e9960dd9b0f7807173a0f"
+      },
+      {
+        "k": "function",
+        "n": "public.check_memory_book_soundtrack()",
+        "md5": "2355c1678e2b0763e95f440a449445f2"
+      },
+      {
+        "k": "function",
+        "n": "public.check_music_upload_cleanup(p_upload uuid, p_worker uuid)",
+        "md5": "4d05f425abd1a0c6637b9d3087b00d76"
+      },
+      {
+        "k": "function",
+        "n": "public.check_story_sound_rights()",
+        "md5": "d7c88f8e46e9263aa8d7f98617966ba9"
+      },
+      {
+        "k": "function",
+        "n": "public.claim_catalogue_upload_cleanup(p_worker uuid)",
+        "md5": "81f7386aced9e67ff2040f5238f5d4b3"
+      },
+      {
+        "k": "function",
+        "n": "public.claim_music_upload_cleanup(p_worker uuid)",
+        "md5": "dfa88448b835a5cd1d3ec84e2ee61d18"
+      },
+      {
+        "k": "function",
+        "n": "public.content_media_manifest(p_references jsonb)",
+        "md5": "baab309c05dfa2a1205f5c3c31fe05e8"
+      },
+      {
+        "k": "function",
+        "n": "public.content_media_manifest_before_music(p_references jsonb)",
+        "md5": "df59992c5b602c034e47d5974738af5e"
+      },
+      {
+        "k": "function",
+        "n": "public.create_memory_book_creative_presentation(p_request_id uuid, p_title text, p_subtitle text, p_cover_color text, p_cover_design text, p_story_ids uuid[], p_cover_story_id uuid, p_cover_artwork jsonb, p_film_settings jsonb)",
+        "md5": "119c08a2aed6b014bc1c7f73ab2dd7f5"
+      },
+      {
+        "k": "function",
+        "n": "public.fail_catalogue_upload_cleanup(p_track uuid, p_worker uuid)",
+        "md5": "e36f834374dddd2e1b57c24c75912ee3"
+      },
+      {
+        "k": "function",
+        "n": "public.fail_music_upload_cleanup(p_upload uuid, p_worker uuid)",
+        "md5": "c24bcecdbd8ff0a1fae8a796bcb42795"
+      },
+      {
+        "k": "function",
+        "n": "public.finish_catalogue_audio(p_token text, p_track uuid, p_duration numeric, p_sha256 text, p_object_version text)",
+        "md5": "6acce511a9de0e2ed87eb346dba66fa4"
+      },
+      {
+        "k": "function",
+        "n": "public.finish_original_audio_upload(p_request_id uuid, p_owner uuid, p_duration numeric, p_sha256 text, p_object_version text)",
+        "md5": "853cfa85d7d2e0fe512cbc54c4d6fece"
+      },
+      {
+        "k": "function",
+        "n": "public.finish_original_audio_upload_before_operations(p_request_id uuid, p_owner uuid, p_duration numeric, p_sha256 text, p_object_version text)",
+        "md5": "d409faf8330ecbf8a862b8aca0ebb309"
+      },
+      {
+        "k": "function",
+        "n": "public.get_highlight_stories(p_highlight_id uuid)",
+        "md5": "af68042b5873f5df6944830989a15df9"
+      },
+      {
+        "k": "function",
+        "n": "public.get_memory_book(p_album uuid)",
+        "md5": "a967d32618750ee7f7dcebee3d63cb28"
+      },
+      {
+        "k": "function",
+        "n": "public.get_memory_book_before_music(p_album uuid)",
+        "md5": "cb2a99407c84403242d29e87c487861b"
+      },
+      {
+        "k": "function",
+        "n": "public.get_memory_book_creative_capabilities()",
+        "md5": "352b126130869b56ecdb5529103da94c"
+      },
+      {
+        "k": "function",
+        "n": "public.get_original_audio_capabilities()",
+        "md5": "b39a1acc638a87c570d7951c1c1706ce"
+      },
+      {
+        "k": "function",
+        "n": "public.get_original_audio_upload(p_request_id uuid)",
+        "md5": "dfe13ae4c3045e3a57bb5fc348b369b7"
+      },
+      {
+        "k": "function",
+        "n": "public.get_user_stories(p_user_id uuid)",
+        "md5": "0a0103e398c33141ac2c6e11f586ff59"
+      },
+      {
+        "k": "function",
+        "n": "public.list_my_original_audio()",
+        "md5": "b7d3e4c4c778ba94260f36eb62d972f0"
+      },
+      {
+        "k": "function",
+        "n": "public.list_playable_sounds(p_use text, p_query text, p_limit integer)",
+        "md5": "6f4344d20f5aeabef64fd8d633279633"
+      },
+      {
+        "k": "function",
+        "n": "public.list_sound_favorites()",
+        "md5": "72b2ca3de02ccb1236f410285d62e6c5"
+      },
+      {
+        "k": "function",
+        "n": "public.music_upload_permitted(p_path text)",
+        "md5": "70bea807d79a9c77d296dcac49848ae2"
+      },
+      {
+        "k": "function",
+        "n": "public.publish_story_sound(p_story_id uuid, p_rights_attested boolean)",
+        "md5": "e242b05a20727da0565ddd84d7ca098b"
+      },
+      {
+        "k": "function",
+        "n": "public.publish_story_v2(p_expected_user uuid, p_request_id uuid, p_story jsonb)",
+        "md5": "1e231b9ee86fbd83d3dc72948f46ef79"
+      },
+      {
+        "k": "function",
+        "n": "public.reserve_catalogue_audio(p_token text, p_track uuid, p_bytes integer, p_mime text, p_sha256 text, p_origin text)",
+        "md5": "d2b2e96ec392f67944b392a701a28e7d"
+      },
+      {
+        "k": "function",
+        "n": "public.reserve_original_audio(p_request_id uuid, p_expected_user uuid, p_title text, p_mime text, p_bytes integer, p_sha256 text, p_reuse boolean, p_rights_attested boolean)",
+        "md5": "46bdea0bcca4549a6ae1fdee2e311292"
+      },
+      {
+        "k": "function",
+        "n": "public.resolve_media_delivery(p_token text, p_bucket text, p_path text)",
+        "md5": "f5a5300f251289fe1cc637858283b2aa"
+      },
+      {
+        "k": "function",
+        "n": "public.resolve_media_delivery_before_music_operations(p_token text, p_bucket text, p_path text)",
+        "md5": "1cbd2b360f4f3956b2a4c2f668c1afaa"
+      },
+      {
+        "k": "function",
+        "n": "public.resolve_story_soundtrack(p_audio jsonb)",
+        "md5": "29ac22c1b7a90428c5d1440280ac7fc1"
+      },
+      {
+        "k": "function",
+        "n": "public.revoke_original_audio(p_sound_id uuid)",
+        "md5": "83816a8535fc713c7a44c0b19143a994"
+      },
+      {
+        "k": "function",
+        "n": "public.save_memory_book_creative_presentation(p_album uuid, p_expected_revision integer, p_title text, p_subtitle text, p_cover_color text, p_cover_design text, p_audience text, p_cover_story_id uuid, p_cover_artwork jsonb, p_film_settings jsonb)",
+        "md5": "2b1ae91d9b8e37824fd5e14209f8a42c"
+      },
+      {
+        "k": "function",
+        "n": "public.save_memory_book_soundtrack(p_album uuid, p_soundtrack jsonb)",
+        "md5": "2b4c9416f7365131984099fd12d146fa"
+      },
+      {
+        "k": "function",
+        "n": "public.set_music_maintenance_ready(p_ready boolean, p_reason text)",
+        "md5": "c9b4c665f4f57d97d100224ffa2ec823"
+      },
+      {
+        "k": "function",
+        "n": "public.set_original_audio_reuse(p_sound_id uuid, p_allowed boolean)",
+        "md5": "d11799a17aecbc38bafbcf293e02af97"
+      },
+      {
+        "k": "function",
+        "n": "public.set_original_audio_service_ready(p_ready boolean, p_reason text)",
+        "md5": "263dbbc8ce373255514af33ec6af7b52"
+      },
+      {
+        "k": "function",
+        "n": "public.set_sound_favorite(p_sound_id uuid, p_saved boolean)",
+        "md5": "d41f1ec82f74a72e32fb8fbb685857a7"
+      },
+      {
+        "k": "function",
+        "n": "public.sound_asset_origin_allowed(p_url text)",
+        "md5": "1a80a392783d288ce708ac1105435a86"
+      },
+      {
+        "k": "function",
+        "n": "public.sound_metadata_visible(p_sound_id uuid)",
+        "md5": "40e4061c06221c48d822f60ad5cc8a8b"
+      },
+      {
+        "k": "function",
+        "n": "public.sound_rights_allow(p_sound_id uuid, p_use text)",
+        "md5": "b649263a9f809ac66192c110acc5e995"
+      },
+      {
+        "k": "function",
+        "n": "public.sound_rights_allow_before_original_library(p_sound_id uuid, p_use text)",
+        "md5": "7c2576efdfe6c9a177b194f6916af467"
+      },
+      {
+        "k": "function",
+        "n": "public.validate_music_maintenance_worker(p_token text)",
+        "md5": "6e63306e34f89598f89c473c5fa9f710"
+      },
+      {
+        "k": "function",
+        "n": "public.validate_soundtrack(p_selection jsonb, p_use text)",
+        "md5": "d298af8c2d0967005f80c7f8fd0eb93d"
+      },
+      {
+        "k": "function",
+        "n": "public.validate_soundtrack_before_original_library(p_selection jsonb, p_use text)",
+        "md5": "282a42586a92f5a58d7e44489b2c6a2e"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_asset_provider",
+        "md5": "c02f030bc5f9d17d9e5e6e4fd47c8d67"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_assets_object_path_key",
+        "md5": "3d8fde8a1e89cd329101ac4593dd3258"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_assets_pkey",
+        "md5": "4ca541dc57dff27138795f2464ea1bbd"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_assets_sound_id_key",
+        "md5": "be4db5f88dfc15c8c1cc286f2f2d9e1c"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_cleanup_jobs_pkey",
+        "md5": "505425289023f6c36c2edca36870e863"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_credentials_pkey",
+        "md5": "8596da6813752e8856817d738db1b310"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_credentials_secret_digest_key",
+        "md5": "137c23530774320bd1bcd62599f60f29"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_grants_pkey",
+        "md5": "a235ef005c23210b069f1406e2e4419c"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_grants_provider_id_reference_revision_key",
+        "md5": "5965d088a008e5c950687b4cd6956e8b"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_imports_pkey",
+        "md5": "b3c170650530bfc82d67435bf8f554ba"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_service_pkey",
+        "md5": "d8b1bfc96d9b22444f505c3c16983a8c"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_tracks_pkey",
+        "md5": "2a29f3d723ddc5dfef811f378795de7e"
+      },
+      {
+        "k": "index",
+        "n": "music_library.catalogue_tracks_provider_id_provider_track_id_revision_key",
+        "md5": "d6845f49e9e6d1734cfcc056cc91df3d"
+      },
+      {
+        "k": "index",
+        "n": "music_library.cleanup_jobs_pkey",
+        "md5": "1a94a24d4a5ddd4a2d142cbfd96c4a7f"
+      },
+      {
+        "k": "index",
+        "n": "music_library.events_pkey",
+        "md5": "bbfe2c7ce034ba65a90d2f3704002634"
+      },
+      {
+        "k": "index",
+        "n": "music_library.favorites_pkey",
+        "md5": "e16addafef0fa6e9f1dd7e51d531d476"
+      },
+      {
+        "k": "index",
+        "n": "music_library.license_drafts_pkey",
+        "md5": "4998a0e2a831ab8f0128d7fc29b48e75"
+      },
+      {
+        "k": "index",
+        "n": "music_library.license_drafts_provider_id_reference_key",
+        "md5": "15a20d7f8c26389c09ada5fb42fe4532"
+      },
+      {
+        "k": "index",
+        "n": "music_library.maintenance_dispatch_pkey",
+        "md5": "a59dd71eeaecee553c694bff4622bf68"
+      },
+      {
+        "k": "index",
+        "n": "music_library.maintenance_runs_pkey",
+        "md5": "697647110d9b6c0167c0537f41ef7d35"
+      },
+      {
+        "k": "index",
+        "n": "music_library.maintenance_runs_recent",
+        "md5": "7290cb91ea0e168bbcb18d0eba8228e3"
+      },
+      {
+        "k": "index",
+        "n": "music_library.maintenance_runs_retention",
+        "md5": "ba83af4524255fdedff7ade8c9380925"
+      },
+      {
+        "k": "index",
+        "n": "music_library.maintenance_runs_token_digest_key",
+        "md5": "c3f02f7f102009d2dbd2080b1ca44fe5"
+      },
+      {
+        "k": "index",
+        "n": "music_library.maintenance_worker_pkey",
+        "md5": "ff825cf35856f83b29fb91506139c26d"
+      },
+      {
+        "k": "index",
+        "n": "music_library.music_catalogue_provider",
+        "md5": "c12839c2ddf8c751a8726346f5f6e430"
+      },
+      {
+        "k": "index",
+        "n": "music_library.music_cleanup_pending",
+        "md5": "a338099198fb4d317e5facfcb1b527e8"
+      },
+      {
+        "k": "index",
+        "n": "music_library.music_upload_abandoned",
+        "md5": "69bbc0666ea8469c51aea2441b2adc4d"
+      },
+      {
+        "k": "index",
+        "n": "music_library.music_upload_owner",
+        "md5": "9166e1761c5c1ac9b48001f356452e65"
+      },
+      {
+        "k": "index",
+        "n": "music_library.music_usage_report",
+        "md5": "ea7b220a31aef7dac4b6e13c3698ffd8"
+      },
+      {
+        "k": "index",
+        "n": "music_library.providers_pkey",
+        "md5": "0e79b8fdc191e1767c1e67496067e753"
+      },
+      {
+        "k": "index",
+        "n": "music_library.service_state_pkey",
+        "md5": "a1ca783e1bac69de2587b0d8dc1e9be6"
+      },
+      {
+        "k": "index",
+        "n": "music_library.uploads_object_path_key",
+        "md5": "cfbfa70374ba528906324086b8491e8a"
+      },
+      {
+        "k": "index",
+        "n": "music_library.uploads_pkey",
+        "md5": "cf1fdcccca82be78a0737ef0df7c9adc"
+      },
+      {
+        "k": "index",
+        "n": "music_library.uploads_sound_id_key",
+        "md5": "afffeb71aff6626a1d9064ce1e73acae"
+      },
+      {
+        "k": "index",
+        "n": "music_library.usage_events_event_key_key",
+        "md5": "a5f9c9e7d2055137c63ce78b2c6f3405"
+      },
+      {
+        "k": "index",
+        "n": "music_library.usage_events_pkey",
+        "md5": "937657e971a12795a34445cb0d7ba79b"
+      },
+      {
+        "k": "policy",
+        "n": "public.story_sounds.story_sounds_select",
+        "md5": "e54121b59d73f2fd0b2b599744e5be9c"
+      },
+      {
+        "k": "policy",
+        "n": "storage.objects.music_audio_insert_guard",
+        "md5": "85183ab4b319f748e4cc7e09d4580b71"
+      },
+      {
+        "k": "policy",
+        "n": "storage.objects.music_audio_no_direct_delete",
+        "md5": "ea4a46bad89f55d295a4b014d816951a"
+      },
+      {
+        "k": "policy",
+        "n": "storage.objects.music_audio_no_direct_read",
+        "md5": "ec27f342b81195df51ef49e1a274f460"
+      },
+      {
+        "k": "policy",
+        "n": "storage.objects.music_audio_no_overwrite",
+        "md5": "91f5d2cd91474eff840a9cd49c7ee7b4"
+      },
+      {
+        "k": "policy",
+        "n": "storage.objects.music_audio_reserved_insert",
+        "md5": "5e664b7d7869b99a7b3014f391033552"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.catalogue_assets",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.catalogue_cleanup_jobs",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.catalogue_credentials",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.catalogue_grants",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.catalogue_imports",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.catalogue_service",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.catalogue_tracks",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.cleanup_jobs",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.events",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.events_id_seq",
+        "md5": "b55fc3c975eab0f49aaa00319a4fe71c"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.favorites",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.license_drafts",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.maintenance_dispatch",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.maintenance_runs",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.maintenance_worker",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.providers",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.service_state",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.uploads",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.usage_events",
+        "md5": "5b03dc2f467a2baf7db102b165e4fa8d"
+      },
+      {
+        "k": "relation",
+        "n": "music_library.usage_events_id_seq",
+        "md5": "b55fc3c975eab0f49aaa00319a4fe71c"
+      },
+      {
+        "k": "schema",
+        "n": "music_library",
+        "md5": "d8036701339c3efbbd0555acf7a4cae5"
+      },
+      {
+        "k": "sequence",
+        "n": "music_library.events_id_seq",
+        "md5": "54790445e99b2ad76dca4b768afffca9"
+      },
+      {
+        "k": "sequence",
+        "n": "music_library.usage_events_id_seq",
+        "md5": "54790445e99b2ad76dca4b768afffca9"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.catalogue_assets.account_erasure_actor_write",
+        "md5": "7f9518056063c08b7d5b7788cffc6be4"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.catalogue_cleanup_jobs.account_erasure_actor_write",
+        "md5": "5a77ae7ce7cd673a6d0a629afc5368ff"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.catalogue_credentials.account_erasure_actor_write",
+        "md5": "5616a55d92ce0f35c3515673ec25c709"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.catalogue_grants.account_erasure_actor_write",
+        "md5": "39d251e939cdeb46089b5079f6f6c40a"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.catalogue_grants.immutable_catalogue_grant",
+        "md5": "b42b22eeaabb6dad16ef0cd3689a42e0"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.catalogue_imports.account_erasure_actor_write",
+        "md5": "001c1c2a73a2b2cfaaa86ef013645e09"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.catalogue_service.account_erasure_actor_write",
+        "md5": "e91ac964f35d926990f7483d48130afc"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.catalogue_tracks.account_erasure_actor_write",
+        "md5": "64291832d09be2a8dc7938c6464ad654"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.cleanup_jobs.account_erasure_actor_write",
+        "md5": "8f85fb8ec95c34d07a4673dddafa37af"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.events.account_erasure_actor_write",
+        "md5": "1e00292fa967c00c7f3cf573249b8763"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.favorites.account_erasure_actor_write",
+        "md5": "8bb8926a203cd79a603c5df59e68271e"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.license_drafts.account_erasure_actor_write",
+        "md5": "158257ac7c8a355d2dab7ea059080183"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.maintenance_worker.account_erasure_actor_write",
+        "md5": "dd6cd6362701a18e5d2fcf50284514ac"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.providers.account_erasure_actor_write",
+        "md5": "a693ce70b59cf7ea012afce80db2f670"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.service_state.account_erasure_actor_write",
+        "md5": "13d4962a5538225ebfb580ac8ffd045c"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.uploads.account_erasure_actor_write",
+        "md5": "4a24c099e11e6ec6ddc5f52a21b95258"
+      },
+      {
+        "k": "trigger",
+        "n": "music_library.usage_events.account_erasure_actor_write",
+        "md5": "a37534dcd067cfe8431264216dfce302"
+      },
+      {
+        "k": "trigger",
+        "n": "public.memory_albums.music_book_attachment",
+        "md5": "7acd45e359386ce60964ad79fdf00f1f"
+      },
+      {
+        "k": "trigger",
+        "n": "public.memory_albums.music_usage_book",
+        "md5": "a40fb51260f81fae5091645ce7633016"
+      },
+      {
+        "k": "trigger",
+        "n": "public.post_media.music_usage_post",
+        "md5": "28b8bf393cc915550407f2bb70ccfa16"
+      },
+      {
+        "k": "trigger",
+        "n": "public.stories.music_usage_story",
+        "md5": "2e528f10c46b70f8e70459642a3ad8ec"
+      },
+      {
+        "k": "trigger",
+        "n": "storage.objects.music_catalogue_storage_write",
+        "md5": "65b8ada6b5421eac11d93ed54e74092b"
+      }
+    ],
+    "executor": "postgres",
+    "readOnly": true,
+    "readiness": {
+      "uploadsEnabled": false,
+      "maintenanceEnabled": false,
+      "maintenanceLastSeen": null,
+      "cataloguePlaybackEnabled": false,
+      "catalogueIngestionEnabled": false,
+      "maintenanceCredentialConfigured": false
+    },
+    "observedAt": "2026-11-01T11:55:59.418+07:00",
+    "audioBucket": {
+      "id": "music-audio",
+      "name": "music-audio",
+      "public": false,
+      "file_size_limit": 52428800,
+      "allowed_mime_types": [
+        "audio/wav",
+        "audio/mpeg",
+        "audio/mp4"
+      ]
+    },
+    "musicJournal": [
+      {
+        "name": "original_music_library_and_delivery",
+        "version": "fixture-music-1",
+        "queryBytes": 67268,
+        "querySha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11",
+        "statementCount": 1
+      },
+      {
+        "name": "music_catalogue_operations_and_cleanup",
+        "version": "fixture-music-2",
+        "queryBytes": 30019,
+        "querySha256": "36500836cd925af7aade1a6bff7d85e547fab9c00c5306fb0130cbca9ce7d0bd",
+        "statementCount": 1
+      },
+      {
+        "name": "licensed_catalogue_pipeline",
+        "version": "fixture-music-3",
+        "queryBytes": 29907,
+        "querySha256": "25914fee9c333ab9802793c4737ad467d0b7d712e603e71769a384350046a849",
+        "statementCount": 1
+      }
+    ],
+    "packageStage": 4,
+    "stage8Journal": [
+      {
+        "name": "qa_business_auth_08_activate_storage_surfaces_20261101",
+        "version": "fixture-repaired-stage8",
+        "queryBytes": 16058,
+        "querySha256": "d60f5b0e782295d770bb1cf0a4ec066c275b3a90fe0b26364c4226ac55f7b55d",
+        "statementCount": 1
+      }
+    ],
+    "musicTableCounts": {
+      "events": 0,
+      "uploads": 0,
+      "favorites": 0,
+      "providers": 0,
+      "cleanup_jobs": 0,
+      "usage_events": 0,
+      "service_state": 1,
+      "license_drafts": 0,
+      "catalogue_assets": 0,
+      "catalogue_grants": 0,
+      "catalogue_tracks": 0,
+      "maintenance_runs": 0,
+      "catalogue_imports": 0,
+      "catalogue_service": 1,
+      "maintenance_worker": 1,
+      "maintenance_dispatch": 1,
+      "catalogue_credentials": 0,
+      "catalogue_cleanup_jobs": 0
+    },
+    "maintenanceJournal": [
+      {
+        "name": "music_maintenance_one_use_dispatch",
+        "version": "fixture-maintenance-dispatch",
+        "queryBytes": 11155,
+        "querySha256": "ca03884998d29913cee9829be7f31e3d827a5d2f3b8953db7cb0e3f963dfe35b",
+        "statementCount": 1
+      }
+    ],
+    "musicSchemaPresent": true,
+    "netHttpPostAvailable": true,
+    "preparedTransactions": 0,
+    "musicTablesWithoutRls": 0,
+    "netHttpPostExecutable": true,
+    "maintenanceRunsPresent": true,
+    "musicPrivateTableAccess": 0,
+    "musicPrivateSchemaAccess": 0,
+    "storyPrerequisiteJournal": [
+      {
+        "name": "qa_story_music_prerequisite_20261101",
+        "version": "fixture-story-prerequisite",
+        "queryBytes": 14170,
+        "querySha256": "24255e33d3c8f5aeb1f791313d511919a7fa4fde749ebdf8248f796557b3ce19",
+        "statementCount": 1
+      }
+    ],
+    "maintenanceDispatchPresent": true,
+    "musicPrivateFunctionAccess": 0,
+    "maintenanceDispatchConfiguration": {
+      "verifiedAt": null,
+      "workerSha256": null,
+      "projectOrigin": null
+    },
+    "otherActiveOrOpenClientTransactions": 0
+  }
+}

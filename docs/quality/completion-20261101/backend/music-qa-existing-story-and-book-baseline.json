@@ -1,0 +1,125 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "observation": {
+    "executor": "postgres",
+    "readOnly": true,
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "signature": "public.publish_story_v2(uuid,uuid,jsonb)",
+        "definition": "CREATE OR REPLACE FUNCTION public.publish_story_v2(p_expected_user uuid, p_request_id uuid, p_story jsonb)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n u uuid:=auth.uid(); old story_ops.publications; sid uuid:=gen_random_uuid();\n st jsonb; recipients uuid[]; filter text; media text; typ text; aud text;\n origin uuid; origin_sticker text; draft uuid; audio jsonb; mix_value jsonb;\nbegin\n if u is null or u is distinct from p_expected_user then raise exception 'ACCOUNT_CHANGED' using errcode='42501'; end if;\n if p_request_id is null or jsonb_typeof(p_story) is distinct from 'object' then raise exception 'INVALID_STORY'; end if;\n perform pg_advisory_xact_lock(hashtextextended(p_request_id::text,0));\n select * into old from story_ops.publications where request_id=p_request_id;\n if found then\n  if old.user_id<>u or old.payload_hash<>md5(p_story::text) then raise exception 'PUBLICATION_CONFLICT'; end if;\n  return old.story_id;\n end if;\n if p_story ? 'allow_replies' and jsonb_typeof(p_story->'allow_replies') is distinct from 'boolean' then\n  raise exception 'INVALID_REPLY_SETTING' using errcode='22023';\n end if;\n audio:=public.resolve_story_soundtrack(p_story->'audio_draft');\n for mix_value in select value from jsonb_each(coalesce(nullif(p_story#>'{media_transform,mix}','null'::jsonb),'{}'::jsonb)) loop\n  if jsonb_typeof(mix_value)<>'number' or (mix_value#>>'{}')::numeric not between 0 and 100 then raise exception 'INVALID_AUDIO_MIX' using errcode='22023'; end if;\n end loop;\n typ:=p_story->>'media_type'; media:=p_story->>'media_url'; aud:=coalesce(p_story->>'audience','everyone');\n filter:=nullif(p_story->>'filter_id','');\n if typ is null or typ not in ('image','video','text') or aud not in ('everyone','followers','close_friends','only_with')\n or length(coalesce(p_story->>'caption',''))>120 or length(coalesce(filter,''))>50 then raise exception 'INVALID_STORY'; end if;\n if typ<>'text' and (media is null or media !~ '^https://[^/]+/storage/v1/object/public/story-media/' or split_part(media,'/story-media/',2) not like u::text||'/%') then raise exception 'INVALID_STORY_MEDIA'; end if;\n if typ='text' and jsonb_typeof(p_story->'text_background') is distinct from 'object' then raise exception 'TEXT_BACKGROUND_REQUIRED'; end if;\n if coalesce(jsonb_typeof(p_story->'stickers_json'),'array')<>'array' or coalesce(jsonb_array_length(p_story->'stickers_json'),0)>30 then raise exception 'INVALID_STICKERS'; end if;\n if octet_length(p_story::text)>131072 then raise exception 'STORY_TOO_LARGE'; end if;\n if p_story ? 'hidden_mentions' and (jsonb_typeof(p_story->'hidden_mentions') is distinct from 'array'\n  or jsonb_array_length(p_story->'hidden_mentions')>200) then raise exception 'INVALID_HIDDEN_MENTIONS'; end if;\n for st in select value from jsonb_array_elements(coalesce(p_story->'stickers_json','[]')) loop\n  if nullif(st->>'id','') is null or length(st->>'id')>128 or length(coalesce(st->>'text',''))>1000 then raise exception 'INVALID_STICKER'; end if;\n  if st->>'nx' is null or st->>'ny' is null or (st->>'nx')::numeric not between 0 and 1 or (st->>'ny')::numeric not between 0 and 1 then raise exception 'INVALID_STICKER_POSITION'; end if;\n  if st->>'kind'='link' and (st->>'url' is null or st->>'url' !~ '^https?://[^[:space:]]+$') then raise exception 'INVALID_LINK'; end if;\n  if st->>'kind'='quiz' and (jsonb_typeof(st->'quizOptions') is distinct from 'array' or jsonb_array_length(st->'quizOptions') not between 2 and 4) then raise exception 'INVALID_QUIZ'; end if;\n end loop;\n if (select count(*)<>count(distinct value->>'id') from jsonb_array_elements(coalesce(p_story->'stickers_json','[]'))) then raise exception 'DUPLICATE_STICKER'; end if;\n select array_agg(distinct value::uuid) into recipients from jsonb_array_elements_text(coalesce(p_story->'shared_with','[]'));\n if aud='only_with' and coalesce(cardinality(recipients),0)=0 then raise exception 'RECIPIENT_REQUIRED'; end if;\n if coalesce(cardinality(recipients),0)>200 or exists(select 1 from unnest(recipients) r where not exists(select 1 from public.profiles p where p.id=r)) then raise exception 'INVALID_RECIPIENT'; end if;\n draft:=nullif(p_story->>'draft_id','')::uuid;\n if draft is not null and not exists(select 1 from public.story_drafts d where d.id=draft and d.user_id=u) then raise exception 'DRAFT_NOT_FOUND'; end if;\n insert into public.stories(id,user_id,media_url,media_type,caption,audience,filter_id,stickers_json,media_transform,text_background,duration_sec,audio_url,audio_title,audio_source,audio_duration_sec,allow_replies)\n values(sid,u,case when typ='text' then null else media end,typ,nullif(trim(p_story->>'caption'),''),aud,filter,\n coalesce(p_story->'stickers_json','[]'),nullif(p_story->'media_transform','null'::jsonb),nullif(p_story->'text_background','null'::jsonb),\n case when typ='video' then greatest(1,least(60,coalesce((p_story->>'duration_sec')::integer,10))) else null end,\n audio->>'url',audio->>'title',audio->>'source',(audio->>'duration')::integer,coalesce((p_story->>'allow_replies')::boolean,true));\n if (audio->>'publish_sound')::boolean then perform public.publish_story_sound(sid,true); end if;\n if aud='only_with' then insert into public.story_shared_with(story_id,user_id) select sid,r from unnest(recipients) r; end if;\n insert into public.story_mentions(story_id,mentioned_user_id,mentioned_by_user_id,visible,allow_reshare)\n select sid,m.user_id,u,m.visible,coalesce((p_story->>'allow_mention_reshare')::boolean,true)\n from public.story_payload_mentions(p_story) m where m.user_id<>u;\n -- Join the source prompt in the same transaction as the new story.\n for st in select value from jsonb_array_elements(coalesce(p_story->'stickers_json','[]')) where value->>'kind'='addyours' and nullif(value->>'addYoursOriginStoryId','') is not null loop\n  origin:=(st->>'addYoursOriginStoryId')::uuid; origin_sticker:=st->>'addYoursOriginStickerId';\n  perform public.submit_sticker_response(origin,origin_sticker,'addyours',sid::text,null,null);\n end loop;\n if draft is not null then delete from public.story_drafts where id=draft and user_id=u; end if;\n insert into story_ops.publications values(p_request_id,u,md5(p_story::text),sid,now());\n return sid;\nend; $function$\n",
+        "definitionMd5": "f915d1249e96ac5d72ba01b7daecca1a"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "signature": "public.resolve_story_soundtrack(jsonb)",
+        "definition": "CREATE OR REPLACE FUNCTION public.resolve_story_soundtrack(p_audio jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare chosen public.story_sounds; location text[]; duration integer; url text;\nbegin\n if p_audio is null or p_audio='null'::jsonb then return null; end if;\n if auth.uid() is null or coalesce((auth.jwt()->>'is_anonymous')::boolean,false) then raise exception 'Sign in to attach audio' using errcode='42501'; end if;\n if jsonb_typeof(p_audio)<>'object' then raise exception 'INVALID_AUDIO' using errcode='22023'; end if;\n if p_audio->>'kind'='sound' then\n  select * into chosen from public.story_sounds where id=(p_audio->>'soundId')::uuid and rights_status in ('creator_attested','licensed') for share;\n  if not found then raise exception 'SOUND_UNAVAILABLE' using errcode='22023'; end if;\n  return jsonb_build_object('url',chosen.url,'title',chosen.title,'source',chosen.source,'duration',chosen.duration_sec,'publish_sound',false);\n elsif p_audio->>'kind'='voiceover' then\n  if (p_audio->>'rightsAttested')::boolean is distinct from true then raise exception 'AUDIO_RIGHTS_REQUIRED' using errcode='22023'; end if;\n  duration:=(p_audio->>'durationSec')::integer; url:=p_audio->>'url';\n  if duration is null or duration not between 1 and 30 then raise exception 'INVALID_AUDIO_DURATION' using errcode='22023'; end if;\n  location:=regexp_match(url,'^https://[^/]+/storage/v1/object/public/(story-media)/([^?#]+)$');\n  if location is null or location[2] ~ '(%|\\\\|(^|/)\\.\\.?(/|$)|//)' or not exists(\n   select 1 from storage.objects o where o.bucket_id=location[1] and o.name=location[2] and coalesce(o.owner_id,o.owner::text)=auth.uid()::text\n  ) then raise exception 'AUDIO_MUST_BELONG_TO_YOU' using errcode='42501'; end if;\n  return jsonb_build_object('url',url,'title',coalesce(nullif(left(p_audio->>'title',200),''),'Original sound'),'source','voiceover','duration',duration,'publish_sound',coalesce((p_audio->>'addToSounds')::boolean,false));\n end if;\n raise exception 'INVALID_AUDIO_KIND' using errcode='22023';\nend $function$\n",
+        "definitionMd5": "764d56fa35f531e2e047dc8cea9879f9"
+      }
+    ],
+    "observedAt": "2026-11-01T04:38:30.124686+00:00",
+    "memoryColumns": [
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "default": null,
+        "notNull": true,
+        "position": 1
+      },
+      {
+        "name": "title",
+        "type": "text",
+        "default": "'Memories'::text",
+        "notNull": true,
+        "position": 2
+      },
+      {
+        "name": "cover_color",
+        "type": "text",
+        "default": "'blush'::text",
+        "notNull": true,
+        "position": 3
+      },
+      {
+        "name": "audience",
+        "type": "text",
+        "default": "'profile'::text",
+        "notNull": true,
+        "position": 4
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notNull": true,
+        "position": 5
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "default": "gen_random_uuid()",
+        "notNull": true,
+        "position": 6
+      },
+      {
+        "name": "is_default",
+        "type": "boolean",
+        "default": "false",
+        "notNull": true,
+        "position": 7
+      },
+      {
+        "name": "cover_design",
+        "type": "text",
+        "default": "'keepsake'::text",
+        "notNull": true,
+        "position": 8
+      },
+      {
+        "name": "soundtrack",
+        "type": "jsonb",
+        "default": null,
+        "notNull": false,
+        "position": 9
+      },
+      {
+        "name": "subtitle",
+        "type": "text",
+        "default": "''::text",
+        "notNull": true,
+        "position": 10
+      },
+      {
+        "name": "cover_story_id",
+        "type": "uuid",
+        "default": null,
+        "notNull": false,
+        "position": 11
+      },
+      {
+        "name": "cover_artwork",
+        "type": "jsonb",
+        "default": "'{\"photo\": {\"x\": 0.5, \"y\": 0.5, \"scale\": 1}, \"version\": 1, \"postmark\": \"\", \"showDate\": true, \"inscription\": \"\", \"inscriptionStyle\": \"handwritten\", \"inscriptionPosition\": \"bottom\"}'::jsonb",
+        "notNull": true,
+        "position": 12
+      },
+      {
+        "name": "film_settings",
+        "type": "jsonb",
+        "default": "'{\"mode\": \"original\", \"order\": \"book\", \"style\": \"reflective\", \"length\": \"full\", \"version\": 1, \"titleCard\": false, \"originalAudio\": true}'::jsonb",
+        "notNull": true,
+        "position": 13
+      },
+      {
+        "name": "presentation_revision",
+        "type": "integer",
+        "default": "0",
+        "notNull": true,
+        "position": 14
+      }
+    ]
+  }
+}

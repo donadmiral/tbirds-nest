@@ -1,0 +1,22 @@
+✔ scoped worker rejects app tokens, service credentials and wrong methods without database access (26.690673ms)
+✔ valid cleanup deletes only the database-issued object and acknowledges afterwards (3.851802ms)
+✔ false Storage success cannot release quota and schedules retry (1.625619ms)
+✔ absent objects are acknowledged without another Storage deletion (1.187859ms)
+✔ another owner path, invalid identity and injected traversal never reach Storage (4.265726ms)
+✔ invalid worker authentication and an unavailable lease cannot delete anything (1.612539ms)
+✔ changed objects stay for review, and review-only work has a bounded batch (3.214302ms)
+✔ Storage failure retains the lease record for retry without acknowledgement (1.12127ms)
+✔ worker deadline bounds an uncooperative RPC and aborts its signal (0.926596ms)
+✔ storage deadline bounds an uncooperative fetch and cancellation body never blocks success (4.330365ms)
+✔ catalogue cleanup uses its own lease RPCs and the validated provider path (1.246468ms)
+✔ catalogue cleanup rejects provider traversal and cross-track path substitution (0.839986ms)
+✔ a parent deadline reached while checking a lease prevents a new Storage request (0.906766ms)
+✔ a continuous original backlog cannot starve catalogue cleanup in the same bounded batch (1.467851ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 60.431747

@@ -1,0 +1,18 @@
+✔ the actual transaction contains only the exact named cron and invalidates the reusable capability (3649.327119ms)
+✔ pending authorized jobs cause refusal and remain byte-identical (13.156625ms)
+✔ an active authorized lease is preserved and never interrupted (10.705321ms)
+✔ a changed or extra legacy schedule is refused without disabling any job (18.601198ms)
+✔ duplicate target names and unexpected schedule owners are refused (16.003164ms)
+✔ changed validator body or any extra execute grant fails the exact contract guard (20.754763ms)
+✔ already contained and absent provider API states cannot be silently replayed (18.601618ms)
+✔ provider API failure rolls the whole transaction back before credential invalidation (9.768048ms)
+✔ a no-op provider update fails the postcondition and rolls credential state back (9.542668ms)
+✔ a late no-job claim cannot restore a retired capability or readiness (12.33093ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3798.350764

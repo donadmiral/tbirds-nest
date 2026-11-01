@@ -1,0 +1,111 @@
+{
+  "formatVersion": 1,
+  "sourceSha256": "24255e33d3c8f5aeb1f791313d511919a7fa4fde749ebdf8248f796557b3ce19",
+  "focusedTests": {
+    "passed": 12,
+    "failed": 0
+  },
+  "providerMutationMade": false,
+  "files": [
+    {
+      "path": "docs/quality/completion-20261101/backend/music-qa-existing-story-and-book-baseline.json",
+      "bytes": 11738,
+      "sha256": "c8a2f50bb1736fb98048a55709bac5236f8eb7d8d73a444842ff10f7b79f84bf"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-candidate.json",
+      "bytes": 6713,
+      "sha256": "6c59e59efd9640609e870870a11db11ef8fb8a31ec4a4ea764a6213190009da6"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-comparison.json",
+      "bytes": 39690,
+      "sha256": "2ec7a44573966c081b1ae15b234614711684484b2c2efefc11bcaa29fc1638f1"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-generation.txt",
+      "bytes": 494,
+      "sha256": "6271c0f77b2699ed22f8905a3fb1f264fdba125b0612d5269521afb697bfcb7a"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-hosted-baseline.json",
+      "bytes": 25702,
+      "sha256": "30ddb4271316cdb7bef3120dc79ad006574150e3cc1a137f7e8b138de76bf52f"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-local-checked.json",
+      "bytes": 830,
+      "sha256": "7d4b5f5d41a3e8a42fa9417210e1ab8199558b6660be42d58fb2efbd52384ed8"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-local-observation.json",
+      "bytes": 4069,
+      "sha256": "d5378b0e27e9a5717ac600c04e94ae4b8be8ed85e71c4ad5e98a89af55120556"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-local-preflight-checked.json",
+      "bytes": 805,
+      "sha256": "9233d75863c0688324a57baecdf73f010df89b2decb30e66632c911023dd984b"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-local-preflight-observation.json",
+      "bytes": 3795,
+      "sha256": "236cd5862508482bc8827c2d7a4844aa4b6fe43ac59f57f520860acba75b853a"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-local.tap",
+      "bytes": 1227,
+      "sha256": "ebaaf432346e1ed87e84c16acaba457e52fee709f742ee857b4834ef65c4e31e"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-observation.sql",
+      "bytes": 2746,
+      "sha256": "5d57019f105d3e2ce80b99eaeae955d86a8def32629f66434b9cabb63c19c539"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-request.json",
+      "bytes": 14852,
+      "sha256": "0ae2b645cac574d048d217752a14fc7e05702ef1d632079b3f304f90c96d9f0f"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-review.md",
+      "bytes": 3799,
+      "sha256": "8f63b53c6ced4ea6b7aa25e9fa635b052f4d735a360450bdeae308d5b568d6c6"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/prepare-story-music-prerequisite.mjs",
+      "bytes": 9613,
+      "sha256": "b8ba1ff3f5753139b0c2ad96fdebadefe69789215805fc324d0b29d49bd04728"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/verify-story-music-prerequisite.py",
+      "bytes": 3084,
+      "sha256": "8ce7371797481dbf8243fa500edb8ecc5e141e30d457b8f16511ba14b6aa007e"
+    },
+    {
+      "path": "supabase/ops/qa/20261101044417_qa_story_music_prerequisite.sql",
+      "bytes": 14170,
+      "sha256": "24255e33d3c8f5aeb1f791313d511919a7fa4fde749ebdf8248f796557b3ce19"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/business-auth-fixture.mjs",
+      "bytes": 3851,
+      "sha256": "40fd9751d1de0b7ea3569c18d76c899bf39e5351d9e4c24e48d014c28c6c834d"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/deployed-media-baseline.mjs",
+      "bytes": 2731,
+      "sha256": "8600150b4c32028599128f963adb175de86484625deb36adf5b23ead49003467"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/qa-music-prerequisite-fixture.mjs",
+      "bytes": 3502,
+      "sha256": "87650b1592051bd8c65b1b3a1615827fcb0b915aecf86383d294abdb1be0f95c"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-qa-story-music-prerequisite.mjs",
+      "bytes": 6725,
+      "sha256": "9478f729be6a9416bda951db7fb1c8263a2f51ff7e1f7b92ea56d28f451a6925"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+✔ the actual read-only preflight projection matches the inspected old body and empty target journal (4329.545692ms)
+✔ unknown publisher body fails before replacement (8.935499ms)
+✔ execution privilege drift fails instead of replacing unreviewed access (5.198841ms)
+✔ a changed companion function cannot be hidden by the single publisher repair (4.722874ms)
+✔ unverified business activation journal is rejected (5.269437ms)
+✔ an already advanced music schema prevents a late legacy replacement (4.517775ms)
+✔ a new legacy audio row blocks the transition without deleting or rewriting it (11.367322ms)
+✔ the inspected legacy book column position is a mandatory precondition (4.676995ms)
+✔ failure after replacement rolls back the exact function body and privileges (6.687763ms)
+✔ only the current tested publisher body changes and its existing privileges remain exact (15.1833ms)
+✔ a late duplicate cannot roll the publisher back or alter a prior installation (4.958478ms)
+✔ the unchanged three music migrations apply to the actual QA legacy-column and creative-book order (150.519986ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4578.02053

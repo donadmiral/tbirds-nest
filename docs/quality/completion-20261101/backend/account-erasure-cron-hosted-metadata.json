@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "scope": "Cron predicates and digest only; no command text or Vault values read",
+  "observation": {
+    "readOnly": true,
+    "observedAt": "2026-11-01T05:03:40.863011+00:00",
+    "erasureCron": [
+      {
+        "jobId": 2,
+        "active": true,
+        "jobName": "platinum-account-storage-erasure",
+        "schedule": "* * * * *",
+        "username": "postgres",
+        "commandMd5": "d0c0f30abe2c07bdab2eed11ab48e761",
+        "usesProviderHttp": true,
+        "readsDecryptedVault": true,
+        "usesOneUseDispatcher": false,
+        "usesReusableErasureSecretName": true
+      }
+    ],
+    "erasureVaultOriginCount": 1,
+    "erasureVaultSecretCount": 1,
+    "otherErasureHttpCronCount": 0
+  }
+}

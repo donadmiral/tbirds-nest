@@ -1,0 +1,119 @@
+{
+  "formatVersion": 1,
+  "savedAt": "2026-11-01T05:11:43.921846+00:00",
+  "latestScope": "Coordinator relayed the user instruction to stop expanding backend/acceptance work, finish current run/build errors within five minutes, and let the user test.",
+  "providerMutationFromThisLaneDuringThisResumption": false,
+  "businessActivation": {
+    "installed": true,
+    "journal": "20261101043649",
+    "sourceSha256": "d60f5b0e782295d770bb1cf0a4ec066c275b3a90fe0b26364c4226ac55f7b55d"
+  },
+  "storyPrerequisite": {
+    "installed": true,
+    "journal": "20261101045330",
+    "sourceSha256": "24255e33d3c8f5aeb1f791313d511919a7fa4fde749ebdf8248f796557b3ce19",
+    "postflightAllGatesPassed": true
+  },
+  "musicFirstMigration": {
+    "rootRequest": "445",
+    "terminalState": "expired provider confirmation",
+    "installed": false,
+    "afterExpiryObservationAt": "2026-11-01T05:03:55.064089+00:00",
+    "catalogRows": 35,
+    "musicSchemaPresent": false,
+    "musicJournalCount": 0,
+    "sourceBaselineCheckPassed": true,
+    "noRetrySubmitted": true
+  },
+  "activeErasureExposure": {
+    "observedAt": "2026-11-01T05:03:40.863011+00:00",
+    "legacyCronActive": true,
+    "cronJobName": "platinum-account-storage-erasure",
+    "cronCommandMd5": "d0c0f30abe2c07bdab2eed11ab48e761",
+    "schedule": "* * * * *",
+    "workerCredentialConfigured": true,
+    "workerLastSeenAt": "2026-11-01T05:03:01.096962+00:00",
+    "jobCount": 0,
+    "activeLeaseCount": 0,
+    "finding": "The active cron reads the reusable worker credential from Vault and puts it in a provider HTTP queue. Both provider queue tables grant anon/authenticated SELECT and net schema USAGE with RLS disabled. This is database-role access evidence, not a claim that the queue is exposed over REST or that a credential was exploited.",
+    "credentialValuesRead": false,
+    "queueHeadersOrBodiesRead": false,
+    "vaultValuesRead": false,
+    "containmentApplied": true,
+    "currentState": {
+      "observedAt": "2026-11-01T05:10:50+00:00",
+      "source": "coordinator exact normal-apply postflight",
+      "legacyCronActive": false,
+      "workerCredentialConfigured": false,
+      "jobCount": 0,
+      "activeLeaseCount": 0,
+      "journalVersion": "20261101051041"
+    }
+  },
+  "containmentCandidate": {
+    "sourcePath": "supabase/migrations/20261101050506_account_erasure_legacy_dispatch_containment.sql",
+    "sourceSha256": "70331fb15db6e1a2e7e4f3b3a69950f83ce68438dc013ef9b04105fe7913cae7",
+    "sourceBytes": 3642,
+    "localActualSqlTests": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    },
+    "independentReviewComplete": false,
+    "providerRequestSubmitted": true,
+    "effectIfNormallyApplied": "Under exact RPC/ACL, cron-name/hash and zero-job guards, disable only the legacy cron with the supported cron.alter_job API and null the worker digest/heartbeat; preserve all job, object, Auth and Vault rows.",
+    "originalRootAttempt": {
+      "cell": "455",
+      "terminalState": "failed and rolled back",
+      "sqlstate": "42501",
+      "reason": "permission denied for table job at direct SELECT FOR UPDATE"
+    },
+    "correctedQaSource": {
+      "sourcePath": "supabase/ops/qa/20261101050940_qa_account_erasure_containment_provider_api.sql",
+      "sourceSha256": "6d265704d3c01d4ace6da1ac568ea905fea7b330855cfab4035002396bdc2233",
+      "sourceBytes": 4060,
+      "localActualSqlTests": {
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0
+      },
+      "providerAclReproducer": "Original permission failure reproduced with non-superuser postgres and SELECT-only provider cron table; corrected supported API succeeds.",
+      "coordinatorReviewed": true,
+      "terminalState": "success",
+      "journalName": "qa_account_erasure_containment_provider_api",
+      "journalVersion": "20261101051041",
+      "runtimeErasureAcceptancePerformed": false
+    }
+  },
+  "musicMaintenanceCandidate": {
+    "state": "frozen local candidate, unapplied and unactivated",
+    "manifestPath": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-package.json",
+    "manifestSha256": "b9bda876940be3ac84031980ecec96c1df03342996cde0872ebc0f1551e05b16",
+    "files": 23,
+    "localSqlPassed": 14,
+    "unchangedHandlerPassed": 14,
+    "positiveVerifierCases": 2,
+    "rejectedNegativeVerifierCases": 16
+  },
+  "phase1Auth": {
+    "publishedSource": "5effa5fc675fa9e87fc4c2ac49b19252f4f455b8",
+    "providerBlock": "Vercel 402 daily deployment quota (100 per day), reported by coordinator",
+    "fixtureCreated": false,
+    "quotaWorkaroundAttempted": false
+  },
+  "stoppedWork": [
+    "Full erasure one-use replacement implementation",
+    "Additional music or notification provider requests",
+    "Additional Auth/interaction/erasure acceptance expansion",
+    "Further independent review cycles"
+  ],
+  "interactionMetadata": {
+    "observedAt": "2026-11-01T05:03:34.93212+00:00",
+    "marketAlertCount": 0,
+    "knownSourceTriggerCatalogExact": true,
+    "triggerCount": 25,
+    "noDirectNetworkOrWebhookTrigger": true,
+    "limits": "No hosted interaction performed. The source comparison intentionally records music-dependent review_reason not yet advanced and the existing make_offer grant difference; neither is relabeled as a completed repair."
+  },
+  "scopeAfterContainment": "The reusable erasure dispatch path is disabled and its capability invalidated. The complete erasure feature remains paused pending its future replacement; no job or identity was erased. The user narrowed the active task to current run/build fixes and their own testing."
+}

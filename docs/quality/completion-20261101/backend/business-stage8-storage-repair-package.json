@@ -1,0 +1,173 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "originalSourcePath": "supabase/ops/qa/business-auth-staged-20261031/08_activate.sql",
+  "originalSourceSha256": "c99f71a8a8c6e11e15d87da156832e15f209e39090f9b06c02874108ddd0c34f",
+  "sourcePath": "supabase/ops/qa/business-auth-staged-20261031/20261101042334_qa_business_auth_activate_storage_surfaces.sql",
+  "sourceSha256": "d60f5b0e782295d770bb1cf0a4ec066c275b3a90fe0b26364c4226ac55f7b55d",
+  "sourceBytes": 16058,
+  "createdBy": "supabase@2.122.0 migration new qa_business_auth_activate_storage_surfaces; moved into QA-only ops package",
+  "excludedProviderMetadata": [
+    {
+      "name": "migrations",
+      "owner": "supabase_storage_admin",
+      "rls": true,
+      "acl": null,
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "notNull": true
+        },
+        {
+          "name": "name",
+          "type": "character varying(100)",
+          "notNull": true
+        },
+        {
+          "name": "hash",
+          "type": "character varying(40)",
+          "notNull": true
+        },
+        {
+          "name": "executed_at",
+          "type": "timestamp without time zone",
+          "notNull": false
+        }
+      ]
+    },
+    {
+      "name": "buckets_vectors",
+      "owner": "supabase_storage_admin",
+      "rls": true,
+      "acl": "{supabase_storage_admin=arwdDxtm/supabase_storage_admin,service_role=r/supabase_storage_admin,anon=r/supabase_storage_admin,authenticated=r/supabase_storage_admin}",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "type",
+          "type": "storage.buckettype",
+          "notNull": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notNull": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "notNull": true
+        }
+      ]
+    },
+    {
+      "name": "vector_indexes",
+      "owner": "supabase_storage_admin",
+      "rls": true,
+      "acl": "{supabase_storage_admin=arwdDxtm/supabase_storage_admin,service_role=r/supabase_storage_admin,anon=r/supabase_storage_admin,authenticated=r/supabase_storage_admin}",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "bucket_id",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "data_type",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "dimension",
+          "type": "integer",
+          "notNull": true
+        },
+        {
+          "name": "distance_metric",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "metadata_configuration",
+          "type": "jsonb",
+          "notNull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notNull": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "notNull": true
+        }
+      ]
+    }
+  ],
+  "expectedObservedCoverage": 190,
+  "unchangedStageGuard": true,
+  "unchangedAtomicActivationStatements": true,
+  "noHostedMutation": true,
+  "normalSupportedToolRequired": true,
+  "requestPath": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-request.json",
+  "preflightPath": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-preflight.sql",
+  "postflightPath": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-postflight.sql",
+  "expectedPath": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-expected.json",
+  "verifierPath": "docs/quality/completion-20261101/backend/verify-business-stage8-storage-repair.py",
+  "migrationName": "qa_business_auth_08_activate_storage_surfaces_20261101",
+  "preflightRequired": {
+    "allGatesPassed": true,
+    "eligible_policy_table_count": 190,
+    "policy_authority_missing": 0,
+    "excluded_provider_metadata_policy_count": 0
+  },
+  "files": [
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-request.json",
+      "sha256": "f0736336734d483fa5694e04edf8102e582eb4b53d1a29d4120a692814154635",
+      "bytes": 16572
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-preflight.sql",
+      "sha256": "4936b758b8c1b5448b69c18f85721643c62dbe04e7fadcd3a0300fde7c1c93bd",
+      "bytes": 14994
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-postflight.sql",
+      "sha256": "a66f8347f733c42332f37a0f44644a5ffcef65020d16870bed159c43944019c5",
+      "bytes": 7620
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-expected.json",
+      "sha256": "5a4be1f483e683eef492949479d112b4b33e7296c2ca8c384cfbd7a870596897",
+      "bytes": 128336
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/verify-business-stage8-storage-repair.py",
+      "sha256": "accaaaff2711af25e34ede5c2d566e840515a1c78dadf223d9da0957417f5de5",
+      "bytes": 5991
+    }
+  ],
+  "localVerification": {
+    "testFile": "supabase/tests/rpc-authorization/test-business-storage-activation.mjs",
+    "testsPassed": 13,
+    "testsFailed": 0,
+    "tapPath": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-local.tap",
+    "actualProjectionChecked": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-local-checked.json"
+  },
+  "reviewPath": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-review.md"
+}

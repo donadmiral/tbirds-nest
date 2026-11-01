@@ -1,0 +1,56 @@
+✔ the actual transaction contains only the exact named cron and invalidates the reusable capability (3659.17679ms)
+✔ pending authorized jobs cause refusal and remain byte-identical (13.595876ms)
+✔ an active authorized lease is preserved and never interrupted (11.160957ms)
+✔ a changed or extra legacy schedule is refused without disabling any job (18.073222ms)
+✔ duplicate target names and unexpected schedule owners are refused (17.158965ms)
+✔ changed validator body or any extra execute grant fails the exact contract guard (20.198744ms)
+✔ already contained and absent provider API states cannot be silently replayed (18.259743ms)
+✔ provider API failure rolls the whole transaction back before credential invalidation (9.903062ms)
+✔ a no-op provider update fails the postcondition and rolls credential state back (10.470898ms)
+✔ a late no-job claim cannot restore a retired capability or readiness (12.325161ms)
+✖ SELECT-only provider cron table rejects the original direct row lock and accepts the supported API correction (8.161347ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3818.504992
+
+✖ failing tests:
+
+test at supabase/tests/rpc-authorization/test-account-erasure-containment-provider-api.mjs:89:1
+✖ SELECT-only provider cron table rejects the original direct row lock and accepts the supported API correction (8.161347ms)
+  error: permission denied to alter role
+      at pe.Oe (file:///workspace/scratch/f9638ed3020b/platinum-circles/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/chunk-3OMHRXTA.js:1:18162)
+      at pe.tt (file:///workspace/scratch/f9638ed3020b/platinum-circles/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/chunk-3OMHRXTA.js:1:15548)
+      at pe.parse (file:///workspace/scratch/f9638ed3020b/platinum-circles/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/chunk-3OMHRXTA.js:1:14222)
+      at p.D_ (file:///workspace/scratch/f9638ed3020b/platinum-circles/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.js:6:1759)
+      at file:///workspace/scratch/f9638ed3020b/platinum-circles/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.js:6:1151
+      at wasm://wasm/0280c65e:wasm-function[10964]:0x58cc19
+      at wasm://wasm/0280c65e:wasm-function[3606]:0x2792af
+      at wasm://wasm/0280c65e:wasm-function[3648]:0x2807ba
+      at wasm://wasm/0280c65e:wasm-function[3658]:0x2809ef
+      at wasm://wasm/0280c65e:wasm-function[9946]:0x5393b2 {
+    length: 143,
+    severity: 'ERROR',
+    code: '0A000',
+    detail: 'The bootstrap superuser must have the SUPERUSER attribute.',
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'user.c',
+    line: '871',
+    routine: 'AlterRole',
+    query: 'create role fixture_cron_owner;alter table cron.job owner to fixture_cron_owner;alter function cron.alter_job(bigint,text,text,text,text,boolean)owner to fixture_cron_owner;grant usage on schema cron to fixture_cron_owner,postgres;revoke all on cron.job from public,postgres;grant select on cron.job to postgres;revoke all on function cron.alter_job(bigint,text,text,text,text,boolean)from public;grant execute on function cron.alter_job(bigint,text,text,text,text,boolean)to postgres;alter role postgres nosuperuser;',
+    params: undefined,
+    queryOptions: undefined
+  }

@@ -1,19 +1,18 @@
--- Requires pg_cron, pg_net, a deployed worker and reviewed readiness activation.
--- Set music_maintenance_project_url in Vault to this project's exact https URL.
+-- Requires pg_cron, pg_net, the one-use dispatch migration, verified exact Edge
+-- source configuration, and reviewed readiness activation. No secret is stored
+-- in this command; each execution creates one expiring, single-use capability.
 begin;
-do $$ declare existing bigint; endpoint text; begin
- if (select count(*) from vault.secrets where name='music_maintenance_project_url')<>1 then raise exception 'Set the project URL in Vault first';end if;
- if (select count(*) from vault.secrets where name='music_maintenance_worker_secret')<>1 then raise exception 'Set up worker credential first';end if;
- select decrypted_secret into endpoint from vault.decrypted_secrets where name='music_maintenance_project_url';
- if endpoint !~ '^https://[a-z0-9]+[.]supabase[.]co$' then raise exception 'Invalid project URL';end if;
- if not exists(select 1 from music_library.maintenance_worker where enabled and secret_digest is not null) then raise exception 'Verify and activate music maintenance first';end if;
- select jobid into existing from cron.job where jobname='platinum-music-maintenance';
- if existing is not null then perform cron.unschedule(existing);end if;
- perform cron.schedule('platinum-music-maintenance','*/5 * * * *',$cron$
-  select net.http_post(
-   url:=(select decrypted_secret from vault.decrypted_secrets where name='music_maintenance_project_url')||'/functions/v1/music-maintenance',
-   headers:=jsonb_build_object('Authorization','Bearer '||(select decrypted_secret from vault.decrypted_secrets where name='music_maintenance_worker_secret'),'Content-Type','application/json'),
-   body:='{}'::jsonb,timeout_milliseconds:=50000);
- $cron$);
+do $$ declare existing record; expected text:='select music_library.enqueue_maintenance_run();'; begin
+ if current_user<>'postgres' then raise exception 'MUSIC_DISPATCH_POSTGRES_REQUIRED';end if;
+ if to_regprocedure('music_library.enqueue_maintenance_run()') is null then raise exception 'MUSIC_ONE_USE_DISPATCH_REQUIRED';end if;
+ if not exists(select 1 from music_library.maintenance_worker w join music_library.maintenance_dispatch d using(singleton)
+  where w.enabled and w.secret_digest is null and d.project_origin is not null and d.worker_sha256 is not null and d.verified_at is not null)then
+  raise exception 'MUSIC_VERIFIED_DISPATCH_READINESS_REQUIRED';
+ end if;
+ select * into existing from cron.job where jobname='platinum-music-maintenance';
+ if found and(existing.command<>expected or existing.username<>'postgres' or existing.database<>current_database())then
+  raise exception 'MUSIC_EXISTING_CRON_REVIEW_REQUIRED';
+ end if;
+ perform cron.schedule('platinum-music-maintenance','*/5 * * * *',expected);
 end $$;
 commit;

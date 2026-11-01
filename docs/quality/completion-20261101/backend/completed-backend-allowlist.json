@@ -1,0 +1,566 @@
+{
+  "formatVersion": 1,
+  "frozenAt": "2026-11-01T05:11:43.928180+00:00",
+  "scope": "Completed reviewed/tested backend source and evidence only. No full erasure replacement or phase-2 harness expansion. Root adds its own provider terminal receipts.",
+  "files": [
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-containment-candidate.json",
+      "bytes": 697,
+      "sha256": "8490306b319e943d839c766cb3f4de1792d0a8262f1c31bbb1a4aaba10e110de"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-containment-local.tap",
+      "bytes": 1051,
+      "sha256": "6800ea682fe4e626c9a38dcc63527df008dcc5364fd5ce5086d176fd457811aa"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-containment-observation.sql",
+      "bytes": 3016,
+      "sha256": "afb86f72d1c8a49968633924067980f0a55f7b4fe623b420ba609dd0c37d65d2"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-containment-provider-api-bootstrap-fixture-failure.tap",
+      "bytes": 3625,
+      "sha256": "c17ca7609b42d84d85a7855826054906b1daddda741ec5ff507957d99325ff5e"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-containment-provider-api-candidate.json",
+      "bytes": 697,
+      "sha256": "92d0259cc729d16576ab7b3e0a92043ba67e5362b4e34b07923afc3480755ff9"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-containment-provider-api-local.tap",
+      "bytes": 1182,
+      "sha256": "edfff6739779de7a1664f08a2b9cc6cfd42dd5e5509ebb93e6c17b296f9cbd5d"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-containment-provider-api-observation.sql",
+      "bytes": 3016,
+      "sha256": "082f30c513fef750b62e2ee69cd585033dee34045aed7892d304affa75dcf3aa"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-containment-provider-api-request.json",
+      "bytes": 4232,
+      "sha256": "b7a6bd5ddcca3f5cd96d559c0d8e7aad1c427863aabe513218fd9451fecbc5a3"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-containment-request.json",
+      "bytes": 3810,
+      "sha256": "001b207219d50c8e36a01f13e121176f9961c3cb16748ad5c6bb771a2a5681a7"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-containment-root-verified.json",
+      "bytes": 6328,
+      "sha256": "d125d410ce5aca29db8c47e82a61a3a4d762eee1371b451688cdde7c9ccacbbd"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-cron-hosted-metadata.json",
+      "bytes": 774,
+      "sha256": "87fda9f6c006d777ebbb8434392df6b174601cdfed7859957cd49677cd4e8606"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-cron-metadata.sql",
+      "bytes": 1380,
+      "sha256": "6be25b5b6c49ac9be255adbe4643f5777764b94ec801c12d40857dc964c06ed6"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-dispatch-hosted-metadata.json",
+      "bytes": 20259,
+      "sha256": "24b7587832143b3aad7967321635273a2db0069c3b76b4c0efa1bc0a311b20b3"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/account-erasure-dispatch-metadata.sql",
+      "bytes": 4434,
+      "sha256": "ba84a99bc30a37767f3c753b153c5a0091e45d4f04c5eb55f4f7bf4c4a654914"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-expected.json",
+      "bytes": 128336,
+      "sha256": "5a4be1f483e683eef492949479d112b4b33e7296c2ca8c384cfbd7a870596897"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-package.json",
+      "bytes": 5905,
+      "sha256": "260315faba29b3c85d255b852bad4ab076d7c0888ca394d285112f89609f836e"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-postflight.sql",
+      "bytes": 7620,
+      "sha256": "a66f8347f733c42332f37a0f44644a5ffcef65020d16870bed159c43944019c5"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-preflight.sql",
+      "bytes": 14994,
+      "sha256": "4936b758b8c1b5448b69c18f85721643c62dbe04e7fadcd3a0300fde7c1c93bd"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage8-storage-repair-request.json",
+      "bytes": 16572,
+      "sha256": "f0736336734d483fa5694e04edf8102e582eb4b53d1a29d4120a692814154635"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/check-music-maintenance-dispatch-verifier.py",
+      "bytes": 4090,
+      "sha256": "21e3c312584a6c7d1df8c1f9a0a1545edbc958f919d4e99d86a024e7abda2048"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/check-music-postflight-verifier.py",
+      "bytes": 4992,
+      "sha256": "7d4f0b52c385ce0d28443b6beec55b2477240b36fe634c5ca9c892b380940029"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-candidate.json",
+      "bytes": 959,
+      "sha256": "d20c8ea8afb0b8b041d9a38f7bc9a47007fbca70f27bef8dc45d533aa645a8c2"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-expected.json",
+      "bytes": 141598,
+      "sha256": "a68a6ddb37cf127d12d3eb58a4679326f727304cbc44f553580c7b9a8ca05f8b"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-generation.txt",
+      "bytes": 365,
+      "sha256": "046b018e545bc4e6eccdc8d4b3cfa1eef000985ccb0592307fb7b7bb9f6cf788"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-local-postflight-checked.json",
+      "bytes": 1616,
+      "sha256": "29ab8cf314f64c6b7c5ecaa7820af140dc19877617124056460f1060da70f2f8"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-local-postflight.json",
+      "bytes": 75335,
+      "sha256": "c57b8eab73f675b858daca8577c823d69abed5596839b3b3a23c188a4a5319ed"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-local-preflight-checked.json",
+      "bytes": 1614,
+      "sha256": "c945476f283a073136e9a424e781c1ccf33d949204129c12f88ca4953eb1a545"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-local-preflight.json",
+      "bytes": 68700,
+      "sha256": "0510c92fe87515ab7ce7d9d9e15f590435a228b389c258c3dbf0c772f4867686"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-local-verifier-checks.json",
+      "bytes": 2372,
+      "sha256": "04844575a760bf70ec342cce376cefc9b6ed1b5241540eb146ae0bf05b58ad29"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-local.tap",
+      "bytes": 1677,
+      "sha256": "8e9fe7d79beb24cd9855b7abd0ab2480bdc7d232688a9197d4f832cbe97f7963"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-package.json",
+      "bytes": 5066,
+      "sha256": "b9bda876940be3ac84031980ecec96c1df03342996cde0872ebc0f1551e05b16"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-postflight.sql",
+      "bytes": 36117,
+      "sha256": "d30b15dce4946459a8860728cbc15349953b83e0c9d09f48416f8ded8756b5ef"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-preflight.sql",
+      "bytes": 35797,
+      "sha256": "3eff7d62c384c9916bda79db0e08367d61b8878a21f8e77bc0bf2f2231c31aaf"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-request.json",
+      "bytes": 11430,
+      "sha256": "bc8c1002e7d152e0427950e0e734811cbf52ab7c5ec426e4bdc2fae925bbcdf1"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-dispatch-review.md",
+      "bytes": 6764,
+      "sha256": "f3fb3a0255fc67404f8b8351f4f437990ac556e3d4d4f1f791015f66dae320ba"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-maintenance-handler-unchanged.tap",
+      "bytes": 1444,
+      "sha256": "16e1d993f1d1fdc4037967683ce028053c7861a4b415f25b901d3579337926b2"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_expected.json",
+      "bytes": 68382,
+      "sha256": "eb3337f50cbc0172ff2a630404b8387e02484e2b283b9e42afd7650e8beb1e96"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_hosted-after-confirmation-expiry-checked.json",
+      "bytes": 1478,
+      "sha256": "6655df4b046258a68fa0df95f1d3d6e383aa68f908a19392b5c7a607ba0c403b"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_hosted-after-confirmation-expiry.json",
+      "bytes": 7425,
+      "sha256": "5bd5163b3b39ceb8353d1d69e22a84422747cc4a7f22e499ba91a1864f280312"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_hosted-current-preflight-checked.json",
+      "bytes": 1470,
+      "sha256": "87b7d57271395d7dd5fe41c43470fa620b12963d21571b000ab7e2f0296c447a"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_hosted-current-preflight.json",
+      "bytes": 7399,
+      "sha256": "1248ec4cfd4627f62ff5ce5c4ad0c783f727c6afc59d4edd5f6d0d8b5070bc04"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_local-postflight-checked.json",
+      "bytes": 1511,
+      "sha256": "992089cdf71287528e70176d54e73531c0a3c11baa52e00992f3c5cd4bc6b8cb"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_local-postflight.json",
+      "bytes": 28394,
+      "sha256": "8f35f1a899722951cd411764b629f7cef93d8d6349df3f1a283f635f73152f4b"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_local-preflight-checked.json",
+      "bytes": 1507,
+      "sha256": "c88bb65962ae815e1d2024c895caa260d729bbad6cfdfada5cbadfdc08ef17ce"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_local-preflight.json",
+      "bytes": 7352,
+      "sha256": "322751972e9e97180032216cd1553b730bce42bcafe3a918085b0e004620472a"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_original_music_library_and_delivery.json",
+      "bytes": 68182,
+      "sha256": "5a78129c36948fce69ea37105e80909635031562433599b0c8a88e8e7f2ad776"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_postflight.sql",
+      "bytes": 33627,
+      "sha256": "8c741d0dce3231751b4faf3d042ea78a6c9e8bf87cddcef1fb018ac08ea15915"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_preflight.sql",
+      "bytes": 33156,
+      "sha256": "0f11ddb64c03b05bfd1d7962871939d0819f8a56f3692e57d52bcac5c5d9bd10"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_expected.json",
+      "bytes": 104153,
+      "sha256": "0e3374367a1296da61a4e87a816c43e79bfd844dd050337295b9b16faf166c7e"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_local-postflight-checked.json",
+      "bytes": 1514,
+      "sha256": "3e0e732c9fd124a8cf0cae791fb802de44552d0b3705ebbd1aaf8611e072cb0d"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_local-postflight.json",
+      "bytes": 48271,
+      "sha256": "6036474460b2096277794e88a5bb76391acf0d01e2ab4a15ef6acc47b5e9651d"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_local-preflight-checked.json",
+      "bytes": 1512,
+      "sha256": "1645ca53d34c525de80a48a8463367473d1138a490fc1ec9d522c36ae75d638c"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_local-preflight.json",
+      "bytes": 28393,
+      "sha256": "9cabd4e815283578d77adb4696f0e846b4c91917cc7c03aae31628d8b2487712"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_music_catalogue_operations_and_cleanup.json",
+      "bytes": 30490,
+      "sha256": "de87cca4e3dd42e89f2da6ea8c63a763f1a0d187cec0096565592268f4ce3d28"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_postflight.sql",
+      "bytes": 34295,
+      "sha256": "01c49c217275d1d1bcff65ad71e4ba196efe76eaa8fc48a1214c74fdbe963f98"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_preflight.sql",
+      "bytes": 33625,
+      "sha256": "69f89734530ac29ee52ba0af8a290d38632d4e4445a6fa86313745a04cbe267e"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_expected.json",
+      "bytes": 143714,
+      "sha256": "2f1bec77c2d737094da5c46424a15343d762e17c6aa71a5b88c841f686faa501"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_licensed_catalogue_pipeline.json",
+      "bytes": 30313,
+      "sha256": "012135b2f56d99482f148d524a77dcab7e2b2a7bbdb5506ee43a421a3839e71c"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_local-postflight-checked.json",
+      "bytes": 1503,
+      "sha256": "bbcf96188db9f7ff005473280146211c841aed0cb31a6c3f44e3449fc9a42681"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_local-postflight.json",
+      "bytes": 68478,
+      "sha256": "8350d29479a76f4f476481173329f985fbf18dd087acc3c071f1fbea45e7dac5"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_local-preflight-checked.json",
+      "bytes": 1501,
+      "sha256": "7faba9f469ab47d2a30666ea9e5c94156d2525a0339371c491610641d0e5c2ff"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_local-preflight.json",
+      "bytes": 48270,
+      "sha256": "e2d04ac502856ccd08e488358b9f881b3f0738d882def8f3f2ff9f875dd7116e"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_postflight.sql",
+      "bytes": 34898,
+      "sha256": "f780cefa0709af4727ede283184b4eba26df22afd87853782f9d3a90dcc2e38f"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_preflight.sql",
+      "bytes": 34293,
+      "sha256": "a4f6e37ec466780f2809125f9a69e30568a9bb9a3b01a6526ca8f81c5f73504c"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/index.json",
+      "bytes": 6713,
+      "sha256": "59f758b126f9438339677c7ca3cb35f61c2e3c824e5ea83a82435b5c350a5ff4"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/local-final-projection.json",
+      "bytes": 68478,
+      "sha256": "4a20b5bce39f126438df75e3268b84c4333f2f4133585936e0b9144411a6ed1b"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/local-verifier-checks.json",
+      "bytes": 2556,
+      "sha256": "0ba56614bdf173b2f39f1a0f2c50caa2d446b2270e5f1069591744ab10caf1d9"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/package-integrity.json",
+      "bytes": 8760,
+      "sha256": "113a071e6986f0eed32749a5caf1092473b9c1a520b824a21c46ac6694d354a7"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/repaired-prerequisite-generation.txt",
+      "bytes": 870,
+      "sha256": "ceb02ccb2cfff9a340aeff87a0e874e250dcca5da9b21d30acc489590a7560a7"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-qa-existing-story-and-book-baseline.json",
+      "bytes": 11738,
+      "sha256": "c8a2f50bb1736fb98048a55709bac5236f8eb7d8d73a444842ff10f7b79f84bf"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-candidate.json",
+      "bytes": 6713,
+      "sha256": "6c59e59efd9640609e870870a11db11ef8fb8a31ec4a4ea764a6213190009da6"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-comparison.json",
+      "bytes": 39690,
+      "sha256": "2ec7a44573966c081b1ae15b234614711684484b2c2efefc11bcaa29fc1638f1"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-generation.txt",
+      "bytes": 494,
+      "sha256": "6271c0f77b2699ed22f8905a3fb1f264fdba125b0612d5269521afb697bfcb7a"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-hosted-baseline.json",
+      "bytes": 25702,
+      "sha256": "30ddb4271316cdb7bef3120dc79ad006574150e3cc1a137f7e8b138de76bf52f"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-installed-checked.json",
+      "bytes": 821,
+      "sha256": "7d6f201bf3b8b818ce87c294b12b1eac5693614c0010b53c628ed657595406cf"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-installed-observation.json",
+      "bytes": 4084,
+      "sha256": "803ac23bda283c8f02d70cac653baded9bc1857d91811c8155c23f8c97849d43"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-local-checked.json",
+      "bytes": 830,
+      "sha256": "7d4b5f5d41a3e8a42fa9417210e1ab8199558b6660be42d58fb2efbd52384ed8"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-local-observation.json",
+      "bytes": 4069,
+      "sha256": "d5378b0e27e9a5717ac600c04e94ae4b8be8ed85e71c4ad5e98a89af55120556"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-local-preflight-checked.json",
+      "bytes": 805,
+      "sha256": "9233d75863c0688324a57baecdf73f010df89b2decb30e66632c911023dd984b"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-local-preflight-observation.json",
+      "bytes": 3795,
+      "sha256": "236cd5862508482bc8827c2d7a4844aa4b6fe43ac59f57f520860acba75b853a"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-local.tap",
+      "bytes": 1227,
+      "sha256": "ebaaf432346e1ed87e84c16acaba457e52fee709f742ee857b4834ef65c4e31e"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-observation.sql",
+      "bytes": 2746,
+      "sha256": "5d57019f105d3e2ce80b99eaeae955d86a8def32629f66434b9cabb63c19c539"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-package.json",
+      "bytes": 4476,
+      "sha256": "20491260062cd5e3939acceaa039417810ab7089240a32c1c5985b10298d9c61"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-request.json",
+      "bytes": 14852,
+      "sha256": "0ae2b645cac574d048d217752a14fc7e05702ef1d632079b3f304f90c96d9f0f"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-review.md",
+      "bytes": 3799,
+      "sha256": "8f63b53c6ced4ea6b7aa25e9fa635b052f4d735a360450bdeae308d5b568d6c6"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/prepare-music-maintenance-dispatch.mjs",
+      "bytes": 8824,
+      "sha256": "bc88c4240c9471be4619e0e6044d27ddea534b9d2820fe333ae393f4cc60917c"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/prepare-music-postflights.mjs",
+      "bytes": 18192,
+      "sha256": "6985705e90756a9cd88a24681029ce0baf5eea170b0b1e5aa168dbf5b07043d9"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/prepare-story-music-prerequisite.mjs",
+      "bytes": 9613,
+      "sha256": "b8ba1ff3f5753139b0c2ad96fdebadefe69789215805fc324d0b29d49bd04728"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/scoped-stop-state-20261101.json",
+      "bytes": 5574,
+      "sha256": "df7b5fd4f0d6eaa069bb93bee0b741a10eb821b13b60f871d0f4d8c71e35cb56"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/verify-business-stage8-storage-repair.py",
+      "bytes": 5991,
+      "sha256": "accaaaff2711af25e34ede5c2d566e840515a1c78dadf223d9da0957417f5de5"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/verify-music-maintenance-dispatch.py",
+      "bytes": 5690,
+      "sha256": "78552fbda09c8572e19a0859460e4a8f82f105eb6fa03a852670868a82fbf723"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/verify-music-observation.py",
+      "bytes": 6040,
+      "sha256": "c04524e1c0dfdc2c33991f2ec4fec598eda9daa49694253f5771f267b67a58ca"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/verify-story-music-prerequisite.py",
+      "bytes": 3084,
+      "sha256": "8ce7371797481dbf8243fa500edb8ecc5e141e30d457b8f16511ba14b6aa007e"
+    },
+    {
+      "path": "supabase/migrations/20261101043002_music_maintenance_one_use_dispatch.sql",
+      "bytes": 11155,
+      "sha256": "ca03884998d29913cee9829be7f31e3d827a5d2f3b8953db7cb0e3f963dfe35b"
+    },
+    {
+      "path": "supabase/migrations/20261101050506_account_erasure_legacy_dispatch_containment.sql",
+      "bytes": 3642,
+      "sha256": "70331fb15db6e1a2e7e4f3b3a69950f83ce68438dc013ef9b04105fe7913cae7"
+    },
+    {
+      "path": "supabase/ops/check-music-operations-postflight.sql",
+      "bytes": 2646,
+      "sha256": "efc8b356df86ad867b8054fa62a59329c14fefa7c9c948840d9e214aba609dc2"
+    },
+    {
+      "path": "supabase/ops/install-music-maintenance-cron.sql",
+      "bytes": 1281,
+      "sha256": "67c2355406996adf9e54fc31c21e0f205450d1a5676cca4d4089929d6c52c5ea"
+    },
+    {
+      "path": "supabase/ops/qa/20261101044417_qa_story_music_prerequisite.sql",
+      "bytes": 14170,
+      "sha256": "24255e33d3c8f5aeb1f791313d511919a7fa4fde749ebdf8248f796557b3ce19"
+    },
+    {
+      "path": "supabase/ops/qa/20261101050940_qa_account_erasure_containment_provider_api.sql",
+      "bytes": 4060,
+      "sha256": "6d265704d3c01d4ace6da1ac568ea905fea7b330855cfab4035002396bdc2233"
+    },
+    {
+      "path": "supabase/ops/setup-music-maintenance-credential.sql",
+      "bytes": 297,
+      "sha256": "516ca1cace95715aaa03c0f579cd3c1a84cd8eb2892bcd396e7624daf3ad5429"
+    },
+    {
+      "path": "supabase/ops/setup-music-maintenance-dispatch.sql",
+      "bytes": 514,
+      "sha256": "ef0cae68ad2846452b334a30782a6a8f200c1b237a49909f01ec454c13a6bdaf"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/account-erasure-legacy-cron.sql",
+      "bytes": 415,
+      "sha256": "6d2ccf76a5d694ce6caaf99f331a43b3708eeebbc707d3755faeee6b40573a4a"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/business-auth-fixture.mjs",
+      "bytes": 3851,
+      "sha256": "40fd9751d1de0b7ea3569c18d76c899bf39e5351d9e4c24e48d014c28c6c834d"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/deployed-media-baseline.mjs",
+      "bytes": 2731,
+      "sha256": "8600150b4c32028599128f963adb175de86484625deb36adf5b23ead49003467"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/qa-music-prerequisite-fixture.mjs",
+      "bytes": 3502,
+      "sha256": "87650b1592051bd8c65b1b3a1615827fcb0b915aecf86383d294abdb1be0f95c"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/run-all.mjs",
+      "bytes": 4362,
+      "sha256": "2468bcf9cf5f4701af9ee83eeea2c580c00987e503ddfd497c713154ec247d1b"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-account-erasure-containment-provider-api.mjs",
+      "bytes": 11075,
+      "sha256": "d43e127a3485f2ad01f8923441e8b122d54b72305130ebe7c65b6e503f598420"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-account-erasure-containment.mjs",
+      "bytes": 8752,
+      "sha256": "57ba8feaf95e9d35e03d02fd0d612aa56d1a106270c6f3df40e6f1cd5df34419"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-music-maintenance-dispatch.mjs",
+      "bytes": 17122,
+      "sha256": "d3a665162b712e68f5d5adaea0b94d14221ddedb57f278fc26ce957f9ceab50c"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-qa-story-music-prerequisite.mjs",
+      "bytes": 6725,
+      "sha256": "9478f729be6a9416bda951db7fb1c8263a2f51ff7e1f7b92ea56d28f451a6925"
+    }
+  ],
+  "historicalFailureSource": "supabase/migrations/20261101050506_account_erasure_legacy_dispatch_containment.sql",
+  "historicalFailureRule": "Preserve these original failed bytes as evidence; only the corrected QA ops source was installed. Do not treat the failed source as an applied or approved production migration.",
+  "excludedUnfinishedPreparation": [
+    "prepare-account-erasure-dispatch-baseline.mjs",
+    "account-erasure-dispatch-local-baseline.json",
+    "account-erasure-dispatch-baseline-generation.txt",
+    "account-erasure-interaction-source-check.json"
+  ],
+  "noFurtherChangesPlanned": true
+}

@@ -1,0 +1,13 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "migrationName": "account_erasure_legacy_dispatch_containment",
+  "sourcePath": "supabase/migrations/20261101050506_account_erasure_legacy_dispatch_containment.sql",
+  "sourceSha256": "70331fb15db6e1a2e7e4f3b3a69950f83ce68438dc013ef9b04105fe7913cae7",
+  "sourceBytes": 3642,
+  "requestPath": "docs/quality/completion-20261101/backend/account-erasure-containment-request.json",
+  "observationPath": "docs/quality/completion-20261101/backend/account-erasure-containment-observation.sql",
+  "cronCommandMd5": "d0c0f30abe2c07bdab2eed11ab48e761",
+  "generatedThroughPinnedSupabaseCli": "2.122.0",
+  "providerMutationSubmitted": false
+}

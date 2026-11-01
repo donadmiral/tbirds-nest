@@ -1,0 +1,43 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "migrationOrder": 3,
+  "migrationName": "licensed_catalogue_pipeline",
+  "phase": "postflight",
+  "sourceSha256": "25914fee9c333ab9802793c4737ad467d0b7d712e603e71769a384350046a849",
+  "observedAt": "2026-11-01T11:49:33.145+07:00",
+  "observationPath": "/workspace/scratch/d6c5cb891d7b/platinum-circles/docs/quality/completion-20261101/backend/music-migration-requests/03_local-postflight.json",
+  "checks": {
+    "unchangedSource1": true,
+    "unchangedSource2": true,
+    "unchangedSource3": true,
+    "readOnly": true,
+    "executor": true,
+    "phaseAndStage": true,
+    "schemaPresence": true,
+    "exactSourceCatalog": true,
+    "musicPrivateTableAccess": true,
+    "musicPrivateFunctionAccess": true,
+    "musicPrivateSchemaAccess": true,
+    "musicTablesWithoutRls": true,
+    "preparedTransactions": true,
+    "exactInitialTableCounts": true,
+    "readinessDisabled": true,
+    "privateAudioBucket": true,
+    "noConcurrentClientTransaction": true,
+    "exactBusinessStage8Journal": true,
+    "exactStoryPrerequisiteJournal": true,
+    "exactMusicJournal": true
+  },
+  "details": {
+    "catalog": {
+      "expectedRows": 422,
+      "observedRows": 422,
+      "missing": [],
+      "extra": [],
+      "different": []
+    }
+  },
+  "allChecksPassed": true,
+  "scope": "Exact catalog, source journal, private ACL and disabled initial-state checks only; no live identity, upload, cleanup, provider or licence acceptance is claimed."
+}

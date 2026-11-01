@@ -4,8 +4,8 @@ import {readCandidate} from './migration-source.mjs';
 // Same deployed baseline and reviewed forward migrations used by the Studio
 // regression suite. This fixture intentionally starts before business sessions
 // exist; upgrading installed business clients is an explicit rollout gate.
-export async function loadBusinessAuthBaseline(db,qaMode=false,completeMusicDependencies=false){
- await loadDeployedMediaBaseline(db);await db.exec(await readCandidate());
+export async function loadBusinessAuthBaseline(db,qaMode=false,completeMusicDependencies=false,options={}){
+ await loadDeployedMediaBaseline(db,options);await db.exec(await readCandidate());
  await db.exec(await source('supabase/migrations/20261029224550_admin_operations_completion.sql'));
  if(qaMode){
   // The legacy QA catalog includes music wrappers. Most business tests need

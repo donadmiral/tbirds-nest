@@ -1,0 +1,22 @@
+✔ installation rejects active, credentialed, previously used or drifted workers before DDL (3080.755169ms)
+✔ installation stays disabled with no reusable credential, capability, queue request or heartbeat (9.317211ms)
+✔ private tables and operator functions deny anon, members and service role while validation is service-only (33.650741ms)
+✔ configuration requires a paused worker and valid public origin/source identity without enabling readiness (14.936349ms)
+✔ readable queue carries only one short-lived capability for the fixed maintenance endpoint (15.505927ms)
+✔ atomic validation consumes one capability once and records a heartbeat without accepting wrong credentials (18.111223ms)
+✔ expired capabilities cannot be consumed or renew the heartbeat (7.322445ms)
+✔ pause revokes queued capabilities and a changed source revision cannot revive old tokens (18.272116ms)
+✔ a token bound to a different dispatch revision or purpose cannot run another scope (6.69566ms)
+✔ enqueue retry returns the original request before and after consumption within the schedule window (7.868097ms)
+✔ a queue error rolls back its request, leaves a sanitized failed receipt and permits a fresh retry (8.395051ms)
+✔ bounded retention removes only old capability receipts and preserves recent receipts and media (10.888529ms)
+✔ legacy credential setup refuses execution and scheduling contains no bearer or Vault lookup (2.549692ms)
+✔ the actual cron operation requires readiness, is idempotent and refuses an unrelated existing job (13.557652ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3265.613205

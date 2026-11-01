@@ -1,0 +1,209 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "migrationName": "qa_story_music_prerequisite_20261101",
+  "sourcePath": "supabase/ops/qa/20261101044417_qa_story_music_prerequisite.sql",
+  "sourceSha256": "24255e33d3c8f5aeb1f791313d511919a7fa4fde749ebdf8248f796557b3ce19",
+  "sourceBytes": 14170,
+  "sourceCreatedBy": "Pinned supabase@2.122.0 migration new; moved to QA-only ops",
+  "beforeFunctions": [
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.get_story_for_reshare(uuid)",
+      "definitionMd5": "6d0f8034c4e07ebbd2eb83cfb9ce5800",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.guard_and_notify_media_tag()",
+      "definitionMd5": "5f2928b1fd88da9ee597f94431be5734",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.guard_story_mention_identity()",
+      "definitionMd5": "6b33213f3580e6a0972b20481aab643f",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.guard_story_reference_cards()",
+      "definitionMd5": "a4f66bf3486959d65691e81548eff2a4",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.mark_story_reshared(uuid)",
+      "definitionMd5": "2238445bcca82773913b98a8afe5ead8",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.publish_story_v2(uuid,uuid,jsonb)",
+      "definitionMd5": "f915d1249e96ac5d72ba01b7daecca1a",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.story_payload_mentions(jsonb)",
+      "definitionMd5": "294fe0309a8481c5b132c83c89207b5c",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.trg_story_mention_notify()",
+      "definitionMd5": "71149fbf529296eb94b3e08f53f94d07",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.viewer_can_see_story(uuid)",
+      "definitionMd5": "9b7dad58cef5e338dd10e1c4889a7464",
+      "securityDefiner": true
+    }
+  ],
+  "afterFunctions": [
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.get_story_for_reshare(uuid)",
+      "definitionMd5": "6d0f8034c4e07ebbd2eb83cfb9ce5800",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.guard_and_notify_media_tag()",
+      "definitionMd5": "5f2928b1fd88da9ee597f94431be5734",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.guard_story_mention_identity()",
+      "definitionMd5": "6b33213f3580e6a0972b20481aab643f",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.guard_story_reference_cards()",
+      "definitionMd5": "a4f66bf3486959d65691e81548eff2a4",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.mark_story_reshared(uuid)",
+      "definitionMd5": "2238445bcca82773913b98a8afe5ead8",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.publish_story_v2(uuid,uuid,jsonb)",
+      "definitionMd5": "a45f9673c681b1da88e2d790c652c7e0",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.story_payload_mentions(jsonb)",
+      "definitionMd5": "294fe0309a8481c5b132c83c89207b5c",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.trg_story_mention_notify()",
+      "definitionMd5": "71149fbf529296eb94b3e08f53f94d07",
+      "securityDefiner": true
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "public.viewer_can_see_story(uuid)",
+      "definitionMd5": "9b7dad58cef5e338dd10e1c4889a7464",
+      "securityDefiner": true
+    }
+  ],
+  "changedFunctions": [
+    "public.publish_story_v2(uuid,uuid,jsonb)"
+  ],
+  "unchangedFunctionCount": 8,
+  "existingPrivilegesRetained": true,
+  "existingTriggersAndPolicyUntouched": true,
+  "existingTablesAndRowsUntouched": true,
+  "actualMusicMigrationsUnchanged": true,
+  "prerequisiteBusinessJournal": {
+    "name": "qa_business_auth_08_activate_storage_surfaces_20261101",
+    "statementCount": 1,
+    "queryBytes": 16058,
+    "querySha256": "d60f5b0e782295d770bb1cf0a4ec066c275b3a90fe0b26364c4226ac55f7b55d"
+  },
+  "capturedAt": "2026-11-01T04:41:56.008467+00:00",
+  "hostedMutationMade": false
+}

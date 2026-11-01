@@ -1,0 +1,3447 @@
+{
+  "formatVersion": 1,
+  "source": {
+    "path": "supabase/ops/qa/business-auth-staged-20261031/20261101042334_qa_business_auth_activate_storage_surfaces.sql",
+    "sha256": "d60f5b0e782295d770bb1cf0a4ec066c275b3a90fe0b26364c4226ac55f7b55d",
+    "bytes": 16058,
+    "name": "qa_business_auth_08_activate_storage_surfaces_20261101"
+  },
+  "localFixtureFingerprint": "172a1c1313c6c68356021c15a82bf869",
+  "compareNonBusinessPolicyRowsExactly": true,
+  "expectedBusinessPolicyValue": [
+    false,
+    "*",
+    [
+      "authenticated"
+    ],
+    "( SELECT public.business_session_allowed() AS business_session_allowed)",
+    "( SELECT public.business_session_allowed() AS business_session_allowed)"
+  ],
+  "actualHostedEligiblePolicyTablesMustBeEnumerated": true,
+  "scope": "Local source-derived expectation only. Hosted policy table count may differ; this is not an installation receipt.",
+  "rows": [
+    {
+      "k": "column",
+      "n": "accounts.1",
+      "v": [
+        "business_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "accounts.2",
+      "v": [
+        "created_at",
+        "timestamp with time zone",
+        true,
+        "",
+        "",
+        "clock_timestamp()"
+      ]
+    },
+    {
+      "k": "column",
+      "n": "accounts.3",
+      "v": [
+        "bootstrapped_at",
+        "timestamp with time zone",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "attempts.1",
+      "v": [
+        "scope_hash",
+        "text",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "attempts.2",
+      "v": [
+        "window_at",
+        "timestamp with time zone",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "attempts.3",
+      "v": [
+        "attempts",
+        "integer",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "device_keys.1",
+      "v": [
+        "device_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "device_keys.2",
+      "v": [
+        "proof_hash",
+        "text",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "device_keys.3",
+      "v": [
+        "revoked_at",
+        "timestamp with time zone",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "device_keys.4",
+      "v": [
+        "created_at",
+        "timestamp with time zone",
+        true,
+        "",
+        "",
+        "clock_timestamp()"
+      ]
+    },
+    {
+      "k": "column",
+      "n": "events.1",
+      "v": [
+        "id",
+        "uuid",
+        true,
+        "",
+        "",
+        "gen_random_uuid()"
+      ]
+    },
+    {
+      "k": "column",
+      "n": "events.2",
+      "v": [
+        "business_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "events.3",
+      "v": [
+        "member_id",
+        "uuid",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "events.4",
+      "v": [
+        "device_id",
+        "uuid",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "events.5",
+      "v": [
+        "principal_user_id",
+        "uuid",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "events.6",
+      "v": [
+        "action",
+        "text",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "events.7",
+      "v": [
+        "created_at",
+        "timestamp with time zone",
+        true,
+        "",
+        "",
+        "clock_timestamp()"
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.1",
+      "v": [
+        "id",
+        "uuid",
+        true,
+        "",
+        "",
+        "gen_random_uuid()"
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.10",
+      "v": [
+        "expires_at",
+        "timestamp with time zone",
+        true,
+        "",
+        "",
+        "(clock_timestamp() + '00:02:00'::interval)"
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.11",
+      "v": [
+        "consumed_session_id",
+        "uuid",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.12",
+      "v": [
+        "consumed_at",
+        "timestamp with time zone",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.2",
+      "v": [
+        "business_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.3",
+      "v": [
+        "member_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.4",
+      "v": [
+        "device_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.5",
+      "v": [
+        "proof_hash",
+        "text",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.6",
+      "v": [
+        "credential_hash",
+        "text",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.7",
+      "v": [
+        "principal_user_id",
+        "uuid",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.8",
+      "v": [
+        "principal_session_id",
+        "uuid",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "grants.9",
+      "v": [
+        "created_at",
+        "timestamp with time zone",
+        true,
+        "",
+        "",
+        "clock_timestamp()"
+      ]
+    },
+    {
+      "k": "column",
+      "n": "owner_seats.1",
+      "v": [
+        "business_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "owner_seats.2",
+      "v": [
+        "user_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "owner_seats.3",
+      "v": [
+        "member_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "sessions.1",
+      "v": [
+        "session_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "sessions.2",
+      "v": [
+        "business_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "sessions.3",
+      "v": [
+        "member_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "sessions.4",
+      "v": [
+        "device_id",
+        "uuid",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "sessions.5",
+      "v": [
+        "credential_hash",
+        "text",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "sessions.6",
+      "v": [
+        "principal_user_id",
+        "uuid",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "sessions.7",
+      "v": [
+        "principal_session_id",
+        "uuid",
+        false,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "column",
+      "n": "sessions.8",
+      "v": [
+        "created_at",
+        "timestamp with time zone",
+        true,
+        "",
+        "",
+        "clock_timestamp()"
+      ]
+    },
+    {
+      "k": "column",
+      "n": "sessions.9",
+      "v": [
+        "expires_at",
+        "timestamp with time zone",
+        true,
+        "",
+        "",
+        null
+      ]
+    },
+    {
+      "k": "constraint",
+      "n": "accounts.accounts_pkey",
+      "v": "PRIMARY KEY (business_id)"
+    },
+    {
+      "k": "constraint",
+      "n": "attempts.attempts_attempts_check",
+      "v": "CHECK ((attempts > 0))"
+    },
+    {
+      "k": "constraint",
+      "n": "attempts.attempts_pkey",
+      "v": "PRIMARY KEY (scope_hash)"
+    },
+    {
+      "k": "constraint",
+      "n": "device_keys.device_keys_device_id_fkey",
+      "v": "FOREIGN KEY (device_id) REFERENCES public.business_devices(id) ON DELETE CASCADE"
+    },
+    {
+      "k": "constraint",
+      "n": "device_keys.device_keys_pkey",
+      "v": "PRIMARY KEY (device_id)"
+    },
+    {
+      "k": "constraint",
+      "n": "device_keys.device_keys_proof_hash_check",
+      "v": "CHECK ((proof_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "k": "constraint",
+      "n": "events.events_pkey",
+      "v": "PRIMARY KEY (id)"
+    },
+    {
+      "k": "constraint",
+      "n": "grants.grants_business_id_fkey",
+      "v": "FOREIGN KEY (business_id) REFERENCES business_auth.accounts(business_id)"
+    },
+    {
+      "k": "constraint",
+      "n": "grants.grants_check",
+      "v": "CHECK (((principal_user_id IS NULL) = (principal_session_id IS NULL)))"
+    },
+    {
+      "k": "constraint",
+      "n": "grants.grants_device_id_fkey",
+      "v": "FOREIGN KEY (device_id) REFERENCES public.business_devices(id) ON DELETE CASCADE"
+    },
+    {
+      "k": "constraint",
+      "n": "grants.grants_member_id_fkey",
+      "v": "FOREIGN KEY (member_id) REFERENCES public.business_access_members(id) ON DELETE CASCADE"
+    },
+    {
+      "k": "constraint",
+      "n": "grants.grants_pkey",
+      "v": "PRIMARY KEY (id)"
+    },
+    {
+      "k": "constraint",
+      "n": "owner_seats.owner_seats_business_id_fkey",
+      "v": "FOREIGN KEY (business_id) REFERENCES business_auth.accounts(business_id)"
+    },
+    {
+      "k": "constraint",
+      "n": "owner_seats.owner_seats_member_id_fkey",
+      "v": "FOREIGN KEY (member_id) REFERENCES public.business_access_members(id) ON DELETE CASCADE"
+    },
+    {
+      "k": "constraint",
+      "n": "owner_seats.owner_seats_member_id_key",
+      "v": "UNIQUE (member_id)"
+    },
+    {
+      "k": "constraint",
+      "n": "owner_seats.owner_seats_pkey",
+      "v": "PRIMARY KEY (business_id, user_id)"
+    },
+    {
+      "k": "constraint",
+      "n": "owner_seats.owner_seats_user_id_fkey",
+      "v": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "k": "constraint",
+      "n": "sessions.sessions_business_id_fkey",
+      "v": "FOREIGN KEY (business_id) REFERENCES business_auth.accounts(business_id)"
+    },
+    {
+      "k": "constraint",
+      "n": "sessions.sessions_check",
+      "v": "CHECK (((principal_user_id IS NULL) = (principal_session_id IS NULL)))"
+    },
+    {
+      "k": "constraint",
+      "n": "sessions.sessions_device_id_fkey",
+      "v": "FOREIGN KEY (device_id) REFERENCES public.business_devices(id) ON DELETE CASCADE"
+    },
+    {
+      "k": "constraint",
+      "n": "sessions.sessions_member_id_fkey",
+      "v": "FOREIGN KEY (member_id) REFERENCES public.business_access_members(id) ON DELETE CASCADE"
+    },
+    {
+      "k": "constraint",
+      "n": "sessions.sessions_pkey",
+      "v": "PRIMARY KEY (session_id)"
+    },
+    {
+      "k": "constraint",
+      "n": "sessions.sessions_session_id_fkey",
+      "v": "FOREIGN KEY (session_id) REFERENCES auth.sessions(id) ON DELETE CASCADE"
+    },
+    {
+      "k": "function",
+      "n": "business_auth.cleanup_session()",
+      "v": [
+        "CREATE OR REPLACE FUNCTION business_auth.cleanup_session()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n delete from auth.sessions where id in(select session_id from business_auth.sessions where principal_session_id=old.id and session_id<>old.id);\n delete from public.studio_session_members where session_id=old.id::text;\n return old;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "business_auth.device(p_business uuid, p_device text, p_proof text, p_label text, p_bootstrap boolean)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION business_auth.device(p_business uuid, p_device text, p_proof text, p_label text, p_bootstrap boolean DEFAULT false)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare d public.business_devices%rowtype;k business_auth.device_keys%rowtype;\nbegin\n if p_device is null or p_device !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n  or p_proof is null or p_proof !~ '^[0-9a-f]{64}$' or length(coalesce(p_label,''))>100 then\n  return jsonb_build_object('allowed',false,'error','ACCESS_REJECTED');end if;\n select * into d from public.business_devices where business_id=p_business and device_id=p_device for update;\n if found then\n  select * into k from business_auth.device_keys where device_id=d.id;\n  -- A legacy registration or changed browser secret requires explicit review;\n  -- knowledge of a device ID is never enough to take over that registration.\n  if k.device_id is null or k.proof_hash<>p_proof then return jsonb_build_object('allowed',false,'error','ACCESS_REJECTED');end if;\n  if k.revoked_at is not null then return jsonb_build_object('allowed',false,'error','DEVICE_BLOCKED');end if;\n  if d.status<>'approved' then return jsonb_build_object('allowed',false,'error','DEVICE_APPROVAL_REQUIRED');end if;\n else\n  if (select count(*) from public.business_devices where business_id=p_business)>=200 then return jsonb_build_object('allowed',false,'error','DEVICE_LIMIT');end if;\n  insert into public.business_devices(business_id,device_id,label,status,approved_at)\n   values(p_business,p_device,nullif(btrim(p_label),''),case when p_bootstrap then 'approved' else 'pending' end,case when p_bootstrap then clock_timestamp() end)\n   returning * into d;\n  insert into business_auth.device_keys(device_id,proof_hash) values(d.id,p_proof);\n  insert into business_auth.events(business_id,device_id,action) values(p_business,d.id,case when p_bootstrap then 'owner_device_bootstrapped' else 'device_approval_requested' end);\n  if not p_bootstrap then return jsonb_build_object('allowed',false,'error','DEVICE_APPROVAL_REQUIRED');end if;\n end if;\n return jsonb_build_object('allowed',true,'device_id',d.id);\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "business_auth.owner_allowed(p_user uuid, p_session uuid, p_business uuid)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION business_auth.owner_allowed(p_user uuid, p_session uuid, p_business uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select exists(select 1 from auth.sessions s join auth.users u on u.id=s.user_id\n  join public.profiles p on p.id=u.id join public.business_members m on m.member_id=p.id and m.business_id=p_business and m.role='owner'\n  where s.id=p_session and s.user_id=p_user and (s.not_after is null or s.not_after>now())\n   and u.deleted_at is null and (u.banned_until is null or u.banned_until<=now())\n   and p.deactivated_at is null and p.account_type<>'business'\n   and not exists(select 1 from admin_ops.staff_social_shells where user_id=p_user)\n   and not exists(select 1 from account_erasure.jobs where user_id=p_user and state<>'completed'));\n$function$\n",
+        "postgres",
+        "{postgres=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "business_auth.rate_limit(p_scope text, p_limit integer)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION business_auth.rate_limit(p_scope text, p_limit integer)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare n integer;h text:=encode(extensions.digest(p_scope,'sha256'),'hex');\nbegin\n insert into business_auth.attempts(scope_hash,window_at,attempts) values(h,clock_timestamp(),1)\n on conflict(scope_hash) do update set\n  window_at=case when business_auth.attempts.window_at<clock_timestamp()-interval '10 minutes' then clock_timestamp() else business_auth.attempts.window_at end,\n  attempts=case when business_auth.attempts.window_at<clock_timestamp()-interval '10 minutes' then 1 else least(business_auth.attempts.attempts+1,10000) end\n returning attempts into n;\n return n<=p_limit;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "business_auth.register_account()",
+      "v": [
+        "CREATE OR REPLACE FUNCTION business_auth.register_account()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n if new.account_type='business' then insert into business_auth.accounts(business_id) values(new.id) on conflict do nothing;end if;\n return new;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "business_auth.revoke_device_sessions()",
+      "v": [
+        "CREATE OR REPLACE FUNCTION business_auth.revoke_device_sessions()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n if tg_op='DELETE' or new.status<>'approved' then\n  delete from auth.sessions where id in(select session_id from business_auth.sessions where device_id=old.id);\n  update business_auth.grants set expires_at=least(expires_at,clock_timestamp()) where device_id=old.id;\n  update business_auth.device_keys set revoked_at=coalesce(revoked_at,clock_timestamp()) where device_id=old.id;\n else update business_auth.device_keys set revoked_at=null where device_id=old.id;end if;\n return case when tg_op='DELETE' then old else new end;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "business_auth.revoke_member_sessions()",
+      "v": [
+        "CREATE OR REPLACE FUNCTION business_auth.revoke_member_sessions()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n if tg_op='DELETE' or not new.active or new.code_hash is distinct from old.code_hash then\n  delete from auth.sessions where id in(select session_id from business_auth.sessions where member_id=old.id);\n  update business_auth.grants set expires_at=least(expires_at,clock_timestamp()) where member_id=old.id;\n end if;\n return case when tg_op='DELETE' then old else new end;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "business_auth.revoke_owner_sessions()",
+      "v": [
+        "CREATE OR REPLACE FUNCTION business_auth.revoke_owner_sessions()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n if old.role='owner' and (tg_op='DELETE' or new.role<>'owner' or new.business_id<>old.business_id or new.member_id<>old.member_id) then\n  delete from auth.sessions where id in(select session_id from business_auth.sessions where business_id=old.business_id and principal_user_id=old.member_id);\n  update public.business_access_members set active=false where id in(select member_id from business_auth.owner_seats where business_id=old.business_id and user_id=old.member_id);\n  update business_auth.grants set expires_at=least(expires_at,clock_timestamp()) where business_id=old.business_id and principal_user_id=old.member_id;\n end if;\n return case when tg_op='DELETE' then old else new end;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "business_auth.session_allowed(p_user uuid, p_session uuid)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION business_auth.session_allowed(p_user uuid, p_session uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select exists(select 1 from business_auth.sessions b\n  join auth.sessions s on s.id=b.session_id and s.user_id=b.business_id\n  join auth.users u on u.id=b.business_id\n  join public.profiles p on p.id=b.business_id and p.account_type='business' and p.deactivated_at is null\n  join public.business_access_members m on m.id=b.member_id and m.business_id=b.business_id and m.active\n  join public.business_devices d on d.id=b.device_id and d.business_id=b.business_id and d.status='approved'\n  join business_auth.device_keys k on k.device_id=d.id and k.revoked_at is null\n  join public.studio_session_members sm on sm.session_id=s.id::text and sm.business_id=b.business_id and sm.member_id=m.id\n  where b.session_id=p_session and b.business_id=p_user and b.expires_at>now()\n   and (s.not_after is null or s.not_after>now()) and u.deleted_at is null and (u.banned_until is null or u.banned_until<=now())\n   and (b.credential_hash is null or upper(b.credential_hash)=upper(m.code_hash))\n   and (b.principal_user_id is null or business_auth.owner_allowed(b.principal_user_id,b.principal_session_id,b.business_id))\n   and not exists(select 1 from account_erasure.jobs where user_id=b.business_id and state<>'completed'));\n$function$\n",
+        "postgres",
+        "{postgres=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.business_auth_request_guard()",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.business_auth_request_guard()\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n if not public.business_session_allowed() then\n  raise exception 'BUSINESS_SESSION_REQUIRED: Sign in again through business access.' using errcode='42501';end if;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.business_session_allowed()",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.business_session_allowed()\n RETURNS boolean\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare uid uuid:=auth.uid();sid uuid;\nbegin\n if uid is null then return true;end if;\n if not exists(select 1 from business_auth.accounts where business_id=uid)\n  and not exists(select 1 from public.profiles where id=uid and account_type='business') then return true;end if;\n begin sid:=(auth.jwt()->>'session_id')::uuid;exception when others then return false;end;\n return business_auth.session_allowed(uid,sid);\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.resolve_media_delivery(p_token text, p_bucket text, p_path text)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.resolve_media_delivery(p_token text, p_bucket text, p_path text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare g media_delivery.tickets%rowtype; allowed boolean:=false;\n old_sub text:=coalesce(current_setting('request.jwt.claim.sub',true),'');\n old_role text:=coalesce(current_setting('request.jwt.claim.role',true),'');\n old_claims text:=coalesce(current_setting('request.jwt.claims',true),'');\nbegin\n if p_token is null or p_token !~ '^[0-9a-f]{64}$' then return null;end if;\n select * into g from media_delivery.tickets where token_digest=extensions.digest(p_token,'sha256')\n  and bucket_id=p_bucket and object_path=p_path and expires_at>clock_timestamp();\n if not found or not exists(select 1 from auth.sessions s join auth.users u on u.id=s.user_id where s.id=g.session_id and s.user_id=g.user_id\n  and (s.not_after is null or s.not_after>clock_timestamp()) and u.deleted_at is null and (u.banned_until is null or u.banned_until<=clock_timestamp()))\n  or not exists(select 1 from storage.objects o where o.id=g.object_id and o.bucket_id=g.bucket_id and o.name=g.object_path\n   and o.version=g.object_version and coalesce(o.owner_id,o.owner::text) is not distinct from g.object_owner) then return null;end if;\n perform set_config('request.jwt.claim.sub',g.user_id::text,true),set_config('request.jwt.claim.role','authenticated',true),\n  set_config('request.jwt.claims',jsonb_build_object('sub',g.user_id,'role','authenticated','session_id',g.session_id,'is_anonymous',false)::text,true);\n if g.source_kind='upload' then\n  select exists(select 1 from public.content_upload_manifest(jsonb_build_array(g.source_url)) m where m.media_url=g.source_url) into allowed;\n elsif g.source_kind='chat' then\n  select exists(select 1 from public.chat_media_manifest(array[g.source_id]) m where m.view_limit is null and g.source_url in(m.media_url,m.thumbnail_url)) into allowed;\n elsif g.source_kind='chat_object' then\n  allowed:=g.object_owner=g.user_id::text or (public.chat_locator_unrestricted(g.bucket_id||'/'||g.object_path)\n   and (public.can_read_chat_object(g.bucket_id,g.object_path) or public.can_read_legacy_chat_object(g.bucket_id,g.object_path)));\n else\n  select exists(select 1 from public.content_media_manifest(jsonb_build_array(jsonb_build_object('kind',g.source_kind,'id',g.source_id))) m where m.media_url=g.source_url) into allowed;\n end if;\n perform set_config('request.jwt.claim.sub',old_sub,true),set_config('request.jwt.claim.role',old_role,true),set_config('request.jwt.claims',old_claims,true);\n if not coalesce(allowed,false) or (exists(select 1 from business_auth.accounts where business_id=g.user_id) and not business_auth.session_allowed(g.user_id,g.session_id)) then return null;end if;\n return jsonb_build_object('bucket',g.bucket_id,'path',g.object_path,'version',g.object_version,'expiresAt',g.expires_at);\nexception when others then\n perform set_config('request.jwt.claim.sub',old_sub,true),set_config('request.jwt.claim.role',old_role,true),set_config('request.jwt.claims',old_claims,true);\n return null;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,service_role=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.studio_bind_member(p_code text)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.studio_bind_member(p_code text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare a studio_workflow.actor:=studio_workflow.context();m public.business_access_members%rowtype;\nbegin\n if not a.is_business or a.member_id is null or length(coalesce(p_code,'')) not between 4 and 200 then\n  raise exception 'BUSINESS_SIGNIN_REQUIRED' using errcode='42501';end if;\n select * into m from public.business_access_members where id=a.member_id and business_id=a.user_id and active\n  and upper(code_hash)=upper(encode(extensions.digest(upper(btrim(p_code)),'sha256'),'hex'));\n if not found then raise exception 'BUSINESS_SEAT_SWITCH_REQUIRES_SIGNIN' using errcode='42501';end if;\n return jsonb_build_object('member_id',m.id,'role',m.role,'display_name',m.display_name);\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,authenticated=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.studio_role()",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.studio_role()\n RETURNS text\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare uid uuid:=auth.uid();sid uuid;is_business boolean;r text;\nbegin\n if uid is null or coalesce(auth.jwt()->>'is_anonymous','false')<>'false' then return null;end if;\n if not public.business_session_allowed() then return null;end if;\n begin sid:=(auth.jwt()->>'session_id')::uuid;exception when others then return null;end;\n if not exists(select 1 from auth.sessions s join auth.users u on u.id=s.user_id where s.id=sid and s.user_id=uid\n  and (s.not_after is null or s.not_after>now()) and u.deleted_at is null and (u.banned_until is null or u.banned_until<=now()))\n  or exists(select 1 from account_erasure.jobs where user_id=uid and state<>'completed')\n  or exists(select 1 from admin_ops.staff_social_shells where user_id=uid) then return null;end if;\n select coalesce(account_type='business',false) into is_business from public.profiles where id=uid and deactivated_at is null;\n if not found then return null;end if;\n if not is_business or not exists(select 1 from public.business_access_members where business_id=uid) then return 'owner';end if;\n select m.role into r from public.studio_session_members s join public.business_access_members m on m.id=s.member_id and m.business_id=s.business_id\n  where s.session_id=sid::text and s.business_id=uid and m.active;\n return case when r in ('owner','admin','editor','recruiter','support') then r else null end;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,authenticated=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.studio_set_device(p_device uuid, p_action text)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.studio_set_device(p_device uuid, p_action text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare a studio_workflow.actor;d public.business_devices%rowtype;\nbegin\n if auth.uid() is null then raise exception 'WORKFLOW_ACTIVE_SESSION_REQUIRED' using errcode='42501';end if;\n perform account_erasure.assert_writable(auth.uid());\n perform pg_advisory_xact_lock(hashtextextended('studio-access:'||auth.uid()::text,0));\n a:=studio_workflow.context();\n perform studio_workflow.require_roles(a,array['owner','admin']);\n if p_action not in ('approve','remove') then raise exception 'WORKFLOW_INVALID_ACTION';end if;\n select * into d from public.business_devices where id=p_device and business_id=a.user_id for update;\n if not found then raise exception 'WORKFLOW_DEVICE_UNAVAILABLE';end if;\n -- Keep a rejected registration as pending. Deleting the last registration\n -- could cause an old sign-in flow to trust it as a new first device again.\n update public.business_devices set status=case when p_action='approve' then 'approved' else 'pending' end,\n  approved_at=case when p_action='approve' then clock_timestamp() end where id=d.id;\n insert into studio_workflow.access_events(owner_id,actor_member_id,target_id,action,before_state,after_state)\n values(a.user_id,a.member_id,d.id,'device_'||p_action,jsonb_build_object('status',d.status),\n  jsonb_build_object('status',case when p_action='approve' then 'approved' else 'pending' end));\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,authenticated=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.triniti_admin_provision(p_actor_id uuid, p_session_id uuid, p_key uuid, p_kind text, p_payload jsonb, p_phase text)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.triniti_admin_provision(p_actor_id uuid, p_session_id uuid, p_key uuid, p_kind text, p_payload jsonb, p_phase text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare j admin_ops.provisions%rowtype; application public.business_applications%rowtype;\n email_value text; username_value text; new_id uuid; snapshot_value jsonb:='{}'::jsonb;\n role_value text; result_value jsonb; auth_user auth.users%rowtype;\nbegin\n perform pg_advisory_xact_lock(77123,1);\n perform admin_ops.require_session(p_actor_id,p_session_id,case p_kind when 'staff' then 'staff_manage' when 'business' then 'business_manage' else '' end);\n if p_key is null or p_kind not in ('staff','business') or p_phase not in ('reserve','finish') or p_phase is null\n  or jsonb_typeof(p_payload) is distinct from 'object' or octet_length(p_payload::text)>4096 then raise exception 'INVALID_PROVISION'; end if;\n if p_kind='staff' then\n  if (select count(*) from jsonb_object_keys(p_payload))<>3 or not p_payload ?& array['email','role','password_digest']\n   or exists(select 1 from jsonb_each(p_payload) v where jsonb_typeof(v.value)<>'string') then raise exception 'INVALID_PROVISION'; end if;\n  email_value:=lower(btrim(p_payload->>'email')); role_value:=p_payload->>'role';\n  if email_value is null or length(email_value)>254 or email_value !~ '^[^[:space:]@]+@[^[:space:]@]+\\.[^[:space:]@]+$'\n   or p_payload->>'password_digest' !~ '^[0-9a-f]{64}$' then raise exception 'INVALID_PROVISION'; end if;\n  if role_value is null or role_value not in ('super_admin','platform_admin','trust_safety','support_agent','ops_engineer','market_reviewer','jobs_reviewer','verification_reviewer','finance_admin','analyst','auditor_readonly') then raise exception 'INVALID_STAFF_ROLE'; end if;\n else\n  if (select count(*) from jsonb_object_keys(p_payload))<>1 or jsonb_typeof(p_payload->'id') is distinct from 'string' then raise exception 'INVALID_PROVISION'; end if;\n end if;\n select * into j from admin_ops.provisions where command_key=p_key for update;\n if found then\n  if j.actor_id<>p_actor_id or j.kind<>p_kind or j.payload<>p_payload then raise exception 'COMMAND_KEY_REUSED'; end if;\n else\n  if p_phase<>'reserve' then raise exception 'PROVISION_NOT_RESERVED'; end if;\n  if p_kind='business' then\n   select * into application from public.business_applications where id=(p_payload->>'id')::uuid for update;\n   if not found then raise exception 'TARGET_NOT_FOUND'; end if;\n   if application.status<>'submitted' then raise exception 'APPLICATION_NOT_PENDING'; end if;\n   if application.applicant_id is null or not exists(select 1 from public.profiles p join auth.users u on u.id=p.id where p.id=application.applicant_id\n    and p.deactivated_at is null and u.deleted_at is null and (u.banned_until is null or u.banned_until<=now()) for share of p,u) then raise exception 'BUSINESS_OWNER_REQUIRED'; end if;\n   username_value:=lower(btrim(application.desired_username));\n   if app_routes.is_reserved_username(username_value) then raise exception 'USERNAME_ALREADY_IN_USE';end if;\n   if username_value !~ '^[a-z0-9_]{3,32}$' then raise exception 'INVALID_BUSINESS_USERNAME'; end if;\n   if exists(select 1 from public.profiles where lower(username)=username_value) then raise exception 'USERNAME_ALREADY_IN_USE'; end if;\n   snapshot_value:=jsonb_build_object('applicant_id',application.applicant_id,'company_name',application.company_name,'desired_username',username_value,'category',application.category,'description',application.description,'contact_email',lower(btrim(application.contact_email)));\n   -- Business identities are delegated, not extra passwords for the owner's email.\n   -- Their contact email stays on the application; the non-deliverable identity\n   -- cannot consume or take over an existing personal login.\n   new_id:=gen_random_uuid(); email_value:='business+'||new_id::text||'@accounts.platinumcircles.invalid';\n  else\n   if exists(select 1 from auth.users where lower(email)=email_value) then raise exception 'EMAIL_ALREADY_IN_USE'; end if;\n   new_id:=gen_random_uuid();\n  end if;\n  insert into admin_ops.provisions(command_key,actor_id,kind,payload,auth_user_id,email,application_id,snapshot)\n  values(p_key,p_actor_id,p_kind,p_payload,new_id,email_value,case when p_kind='business' then application.id else null end,snapshot_value) returning * into j;\n  if p_kind='staff' then\n   -- The server generated this fresh UUID; never convert an existing identity.\n   if exists(select 1 from auth.users where id=j.auth_user_id)\n    or exists(select 1 from public.profiles where id=j.auth_user_id) then\n    raise exception 'STAFF_SHELL_IDENTITY_EXISTS';\n   end if;\n   insert into admin_ops.staff_social_shells(user_id,command_key,provision_id)\n   values(j.auth_user_id,j.command_key,j.provision_id);\n  end if;\n end if;\n result_value:=jsonb_build_object('success',true,'command_key',p_key,'provision_id',j.provision_id,'auth_user_id',j.auth_user_id,'email',j.email,'complete',j.completed_at is not null);\n if j.completed_at is not null or p_phase='reserve' then return result_value; end if;\n select * into auth_user from auth.users where id=j.auth_user_id for update;\n if not found or auth_user.raw_app_meta_data->>'triniti_provision_id' is distinct from j.provision_id::text\n  or lower(auth_user.email) is distinct from j.email or auth_user.deleted_at is not null\n  or (j.kind='staff' and auth_user.banned_until>now()) then raise exception 'PROVISION_IDENTITY_MISMATCH'; end if;\n if j.kind='staff' then\n  insert into public.profiles(id,email,full_name,account_type) values(j.auth_user_id,j.email,'','personal') on conflict(id) do nothing;\n  if exists(select 1 from admin_ops.staff_social_shells where user_id=j.auth_user_id and provision_id=j.provision_id) then\n   update public.profiles set deactivated_at=coalesce(deactivated_at,clock_timestamp()),\n    profile_visibility='private',push_token=null where id=j.auth_user_id;\n  end if;\n  insert into public.admin_users(user_id,role,created_by) values(j.auth_user_id,j.payload->>'role',p_actor_id);\n else\n  select * into application from public.business_applications where id=j.application_id for update;\n  if application.status<>'submitted' then raise exception 'APPLICATION_NOT_PENDING'; end if;\n  if application.applicant_id::text is distinct from j.snapshot->>'applicant_id'\n   or lower(btrim(application.desired_username)) is distinct from j.snapshot->>'desired_username'\n   or application.company_name is distinct from j.snapshot->>'company_name'\n   or application.category is distinct from j.snapshot->>'category'\n   or application.description is distinct from j.snapshot->>'description'\n   or lower(btrim(application.contact_email)) is distinct from j.snapshot->>'contact_email' then raise exception 'APPLICATION_CHANGED'; end if;\n  if not exists(select 1 from public.profiles p join auth.users u on u.id=p.id where p.id=application.applicant_id\n    and p.deactivated_at is null and u.deleted_at is null and (u.banned_until is null or u.banned_until<=now()) for share of p,u) then raise exception 'BUSINESS_OWNER_REQUIRED'; end if;\n  insert into public.profiles(id,email,full_name,username,bio,account_type,account_class,is_verified,verified_tier,verified_category)\n  values(j.auth_user_id,j.email,j.snapshot->>'company_name',j.snapshot->>'desired_username',j.snapshot->>'description','business','organization',true,'business',j.snapshot->>'category')\n  on conflict(id) do update set full_name=excluded.full_name,username=excluded.username,bio=excluded.bio,account_type='business',account_class='organization',is_verified=true,verified_tier='business',verified_category=excluded.verified_category,updated_at=now();\n  insert into public.business_members(business_id,member_id,role) values(j.auth_user_id,application.applicant_id,'owner');\n  update public.business_applications set status='approved',decided_by=p_actor_id,decided_at=now(),decision_reason=null where id=application.id;\n  -- A business account is controlled through delegated membership, not sign-in.\n  -- The random-password, non-deliverable business identity opens only through a bound member/device session. Existing banned identities are never enabled here.\n end if;\n insert into public.admin_audit_log(admin_id,action,target_kind,target_id,after)\n values(p_actor_id,case when j.kind='staff' then 'inviteStaff' else 'approveBusinessApplication' end,j.kind,j.auth_user_id::text,\n  jsonb_build_object('provision_id',j.provision_id,'application_id',j.application_id,'role',j.payload->>'role'));\n update admin_ops.provisions set completed_at=now() where command_key=p_key;\n return result_value||jsonb_build_object('complete',true);\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,service_role=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.triniti_business_cancel_signin(p_grant_id uuid, p_business_id uuid, p_session_id uuid)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.triniti_business_cancel_signin(p_grant_id uuid, p_business_id uuid, p_session_id uuid)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare g business_auth.grants%rowtype;\nbegin\n select * into g from business_auth.grants where id=p_grant_id and business_id=p_business_id for update;\n if not found then return false;end if;\n if exists(select 1 from auth.sessions where id=p_session_id and user_id=g.business_id and created_at>=g.created_at-interval '2 seconds')\n  and not exists(select 1 from business_auth.sessions where session_id=p_session_id and (member_id<>g.member_id or device_id<>g.device_id)) then\n  delete from auth.sessions where id=p_session_id and user_id=g.business_id;\n  insert into business_auth.events(business_id,member_id,device_id,action) values(g.business_id,g.member_id,g.device_id,'failed_signin_revoked');\n end if;\n update business_auth.grants set expires_at=least(expires_at,clock_timestamp()) where id=g.id;\n return true;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,service_role=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.triniti_business_finish_signin(p_grant_id uuid, p_business_id uuid, p_session_id uuid, p_proof_hash text)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.triniti_business_finish_signin(p_grant_id uuid, p_business_id uuid, p_session_id uuid, p_proof_hash text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare g business_auth.grants%rowtype;m public.business_access_members%rowtype;expires timestamptz;created timestamptz;\nbegin\n select * into g from business_auth.grants where id=p_grant_id;\n if not found or g.business_id<>p_business_id or g.proof_hash is distinct from p_proof_hash then raise exception 'BUSINESS_GRANT_REJECTED' using errcode='42501';end if;\n perform account_erasure.assert_writable(g.business_id);\n perform pg_advisory_xact_lock(hashtextextended('studio-access:'||g.business_id::text,0));\n select * into g from business_auth.grants where id=p_grant_id for update;\n if g.expires_at<=clock_timestamp() or (g.consumed_session_id is not null and g.consumed_session_id<>p_session_id) then raise exception 'BUSINESS_GRANT_EXPIRED' using errcode='42501';end if;\n if not exists(select 1 from auth.users u join public.profiles p on p.id=u.id where u.id=g.business_id and u.deleted_at is null\n  and (u.banned_until is null or u.banned_until<=clock_timestamp()) and p.account_type='business' and p.deactivated_at is null) then raise exception 'BUSINESS_ACCOUNT_UNAVAILABLE' using errcode='42501';end if;\n select * into m from public.business_access_members where id=g.member_id and business_id=g.business_id and active for update;\n if not found or (g.credential_hash is not null and upper(g.credential_hash)<>upper(m.code_hash)) then raise exception 'BUSINESS_MEMBER_REVOKED' using errcode='42501';end if;\n if not exists(select 1 from public.business_devices d join business_auth.device_keys k on k.device_id=d.id where d.id=g.device_id\n  and d.business_id=g.business_id and d.status='approved' and k.revoked_at is null and k.proof_hash=g.proof_hash for share of d,k) then raise exception 'BUSINESS_DEVICE_REVOKED' using errcode='42501';end if;\n if g.principal_user_id is not null then\n  perform 1 from auth.sessions where id=g.principal_session_id and user_id=g.principal_user_id for share;\n  perform 1 from public.business_members where business_id=g.business_id and member_id=g.principal_user_id and role='owner' for share;\n  if not business_auth.owner_allowed(g.principal_user_id,g.principal_session_id,g.business_id) then raise exception 'BUSINESS_OWNER_REVOKED' using errcode='42501';end if;\n end if;\n select created_at,least(coalesce(not_after,'infinity'::timestamptz),clock_timestamp()+interval '24 hours') into created,expires\n  from auth.sessions where id=p_session_id and user_id=g.business_id for update;\n if not found or created is null or created<g.created_at-interval '2 seconds' or expires<=clock_timestamp() then raise exception 'BUSINESS_SESSION_MISMATCH' using errcode='42501';end if;\n if g.principal_user_id is not null then select least(expires,coalesce(not_after,'infinity'::timestamptz)) into expires from auth.sessions where id=g.principal_session_id;end if;\n if exists(select 1 from business_auth.sessions where session_id=p_session_id and (business_id<>g.business_id or member_id<>g.member_id or device_id<>g.device_id)) then raise exception 'BUSINESS_SESSION_MISMATCH' using errcode='42501';end if;\n insert into business_auth.sessions(session_id,business_id,member_id,device_id,credential_hash,principal_user_id,principal_session_id,expires_at)\n  values(p_session_id,g.business_id,g.member_id,g.device_id,g.credential_hash,g.principal_user_id,g.principal_session_id,expires)\n  on conflict(session_id) do nothing;\n insert into public.studio_session_members(session_id,business_id,member_id) values(p_session_id::text,g.business_id,g.member_id)\n  on conflict(session_id) do update set business_id=excluded.business_id,member_id=excluded.member_id,bound_at=clock_timestamp();\n update auth.sessions set not_after=least(coalesce(not_after,'infinity'::timestamptz),expires) where id=p_session_id;\n if g.consumed_at is null then\n  update public.business_access_members set last_sign_in_at=clock_timestamp() where id=m.id;\n  insert into public.business_signin_log(business_id,member_id,member_name,device_id)\n   select g.business_id,m.id,m.display_name,device_id from public.business_devices where id=g.device_id;\n  insert into business_auth.events(business_id,member_id,device_id,principal_user_id,action) values(g.business_id,m.id,g.device_id,g.principal_user_id,'session_bound');\n  update business_auth.grants set consumed_session_id=p_session_id,consumed_at=clock_timestamp() where id=g.id;\n end if;\n if not business_auth.session_allowed(g.business_id,p_session_id) then raise exception 'BUSINESS_BINDING_REJECTED' using errcode='42501';end if;\n return jsonb_build_object('success',true,'business_id',g.business_id,'member_id',m.id,'role',m.role,'session_id',p_session_id);\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,service_role=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.triniti_business_owner_access(p_user_id uuid, p_session_id uuid, p_application_id uuid, p_device text, p_proof_hash text, p_label text, p_bootstrap_owner boolean, p_business_id uuid)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.triniti_business_owner_access(p_user_id uuid, p_session_id uuid, p_application_id uuid, p_device text, p_proof_hash text, p_label text, p_bootstrap_owner boolean DEFAULT false, p_business_id uuid DEFAULT NULL::uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare biz uuid;m public.business_access_members%rowtype;d jsonb;g uuid;bootstrap_device boolean;name_value text;\nbegin\n if (p_application_id is null)=(p_business_id is null) then return jsonb_build_object('allowed',false,'error','ACCESS_REJECTED');end if;\n if p_application_id is not null then\n  select j.auth_user_id into biz from admin_ops.provisions j join public.business_applications a on a.id=j.application_id\n   where j.application_id=p_application_id and j.kind='business' and j.completed_at is not null and a.status='approved';\n else biz:=p_business_id;end if;\n if biz is null or not business_auth.owner_allowed(p_user_id,p_session_id,biz) then\n  return jsonb_build_object('allowed',false,'error','ACTIVE_OWNER_SESSION_REQUIRED');end if;\n perform account_erasure.assert_writable(p_user_id);perform account_erasure.assert_writable(biz);\n perform pg_advisory_xact_lock(hashtextextended('studio-access:'||biz::text,0));\n perform 1 from auth.sessions where id=p_session_id and user_id=p_user_id for share;\n perform 1 from public.business_members where business_id=biz and member_id=p_user_id and role='owner' for share;\n if not business_auth.owner_allowed(p_user_id,p_session_id,biz) then return jsonb_build_object('allowed',false,'error','ACTIVE_OWNER_SESSION_REQUIRED');end if;\n if not exists(select 1 from public.profiles p join auth.users u on u.id=p.id where p.id=biz and p.account_type='business' and p.deactivated_at is null\n  and u.deleted_at is null and (u.banned_until is null or u.banned_until<=clock_timestamp())) then\n  return jsonb_build_object('allowed',false,'error','BUSINESS_ACCOUNT_UNAVAILABLE');end if;\n if not business_auth.rate_limit('owner:'||p_user_id::text||':'||biz::text,30) then return jsonb_build_object('allowed',false,'error','TRY_LATER');end if;\n select b.* into m from business_auth.owner_seats o join public.business_access_members b on b.id=o.member_id and b.business_id=o.business_id\n  where o.business_id=biz and o.user_id=p_user_id for update of b;\n if not found then\n  if not coalesce(p_bootstrap_owner,false) then return jsonb_build_object('allowed',false,'error','OWNER_BOOTSTRAP_REQUIRED','requires_owner_bootstrap',true);end if;\n  if (select count(*) from public.business_access_members where business_id=biz)>=500 then return jsonb_build_object('allowed',false,'error','MEMBER_LIMIT');end if;\n  select left(coalesce(nullif(btrim(full_name),''),'Business owner'),100) into name_value from public.profiles where id=p_user_id;\n  insert into public.business_access_members(business_id,display_name,role,code_hash)\n   values(biz,name_value,'owner',encode(extensions.digest(extensions.gen_random_bytes(32),'sha256'),'hex')) returning * into m;\n  insert into business_auth.owner_seats(business_id,user_id,member_id) values(biz,p_user_id,m.id);\n  insert into business_auth.events(business_id,member_id,principal_user_id,action) values(biz,m.id,p_user_id,'owner_seat_created');\n elsif not m.active then return jsonb_build_object('allowed',false,'error','ACCESS_REJECTED');end if;\n select coalesce(p_bootstrap_owner,false) and bootstrapped_at is null into bootstrap_device from business_auth.accounts where business_id=biz for update;\n d:=business_auth.device(biz,p_device,p_proof_hash,p_label,bootstrap_device);\n if not (d->>'allowed')::boolean then return d;end if;\n update business_auth.accounts set bootstrapped_at=coalesce(bootstrapped_at,clock_timestamp()) where business_id=biz;\n insert into business_auth.grants(business_id,member_id,device_id,proof_hash,principal_user_id,principal_session_id)\n  values(biz,m.id,(d->>'device_id')::uuid,p_proof_hash,p_user_id,p_session_id) returning id into g;\n return jsonb_build_object('allowed',true,'grant_id',g,'business_id',biz,'member_id',m.id);\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,service_role=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "public.triniti_business_signin_check(p_handle text, p_code_hash text, p_device text, p_proof_hash text, p_label text)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION public.triniti_business_signin_check(p_handle text, p_code_hash text, p_device text, p_proof_hash text, p_label text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare biz uuid;m public.business_access_members%rowtype;d jsonb;g uuid;h text:=lower(btrim(p_handle));\nbegin\n if h is null or h !~ '^[a-z0-9_]{3,32}$' or p_code_hash is null or p_code_hash !~ '^[0-9a-f]{64}$'\n  or length(coalesce(p_device,''))>100 then return jsonb_build_object('allowed',false,'error','ACCESS_REJECTED');end if;\n delete from business_auth.attempts where window_at<clock_timestamp()-interval '1 day';\n delete from business_auth.grants where expires_at<clock_timestamp()-interval '1 day';\n if not business_auth.rate_limit('business:'||h,100) or not business_auth.rate_limit('device:'||h||':'||coalesce(p_device,''),12) then\n  return jsonb_build_object('allowed',false,'error','TRY_LATER');end if;\n select p.id into biz from public.profiles p join auth.users u on u.id=p.id\n  where lower(p.username)=h and p.account_type='business' and p.deactivated_at is null and u.deleted_at is null\n   and (u.banned_until is null or u.banned_until<=clock_timestamp());\n if biz is null then return jsonb_build_object('allowed',false,'error','ACCESS_REJECTED');end if;\n perform account_erasure.assert_writable(biz);\n perform pg_advisory_xact_lock(hashtextextended('studio-access:'||biz::text,0));\n select * into m from public.business_access_members where business_id=biz and active and upper(code_hash)=upper(p_code_hash) for update;\n if not found then return jsonb_build_object('allowed',false,'error','ACCESS_REJECTED');end if;\n -- Personal-owner seats only open through that owner's verified personal Auth\n -- session. Their internal random code is never a second reusable credential.\n if exists(select 1 from business_auth.owner_seats where member_id=m.id) then return jsonb_build_object('allowed',false,'error','OWNER_SIGNIN_REQUIRED');end if;\n d:=business_auth.device(biz,p_device,p_proof_hash,p_label,false);\n if not (d->>'allowed')::boolean then return d;end if;\n insert into business_auth.grants(business_id,member_id,device_id,proof_hash,credential_hash)\n  values(biz,m.id,(d->>'device_id')::uuid,p_proof_hash,m.code_hash) returning id into g;\n return jsonb_build_object('allowed',true,'grant_id',g,'business_id',biz,'member_id',m.id);\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres,service_role=X/postgres}"
+      ]
+    },
+    {
+      "k": "function",
+      "n": "studio_workflow.context(p_expected_user uuid)",
+      "v": [
+        "CREATE OR REPLACE FUNCTION studio_workflow.context(p_expected_user uuid DEFAULT NULL::uuid)\n RETURNS studio_workflow.actor\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare a studio_workflow.actor; member_row record;\nbegin\n a.user_id:=auth.uid();\n if a.user_id is null or (p_expected_user is not null and p_expected_user<>a.user_id)\n  or coalesce(auth.jwt()->>'is_anonymous','false')<>'false' then\n  raise exception 'WORKFLOW_ACTIVE_SESSION_REQUIRED' using errcode='42501';\n end if;\n if not public.business_session_allowed() then raise exception 'WORKFLOW_ACTIVE_SESSION_REQUIRED' using errcode='42501';end if;\n perform account_erasure.assert_writable(a.user_id);\n begin a.session_id:=(auth.jwt()->>'session_id')::uuid; exception when others then a.session_id:=null; end;\n perform 1 from auth.sessions s join auth.users u on u.id=s.user_id\n  where s.id=a.session_id and s.user_id=a.user_id and (s.not_after is null or s.not_after>clock_timestamp())\n   and u.deleted_at is null and (u.banned_until is null or u.banned_until<=clock_timestamp()) for share of s,u;\n if not found then raise exception 'WORKFLOW_ACTIVE_SESSION_REQUIRED' using errcode='42501'; end if;\n select coalesce(p.account_type='business',false) into a.is_business from public.profiles p where p.id=a.user_id and p.deactivated_at is null for share;\n if not found then raise exception 'WORKFLOW_ACCOUNT_UNAVAILABLE' using errcode='42501'; end if;\n perform pg_advisory_xact_lock_shared(hashtextextended('studio-access:'||a.user_id::text,0));\n if a.is_business and exists(select 1 from public.business_access_members m where m.business_id=a.user_id) then\n  select m.id,m.role into member_row from public.studio_session_members s\n   join public.business_access_members m on m.id=s.member_id and m.business_id=s.business_id\n   where s.session_id=a.session_id::text and s.business_id=a.user_id and m.active for share of s,m;\n  if not found or member_row.role not in ('owner','admin','editor','recruiter','support') then\n   raise exception 'WORKFLOW_MEMBER_ACCESS_REQUIRED' using errcode='42501';\n  end if;\n  a.member_id:=member_row.id;a.role:=member_row.role;\n else a.role:='owner';end if;\n a.actor_id:=coalesce(a.member_id,a.user_id);\n return a;\nend $function$\n",
+        "postgres",
+        "{postgres=X/postgres}"
+      ]
+    },
+    {
+      "k": "hook",
+      "n": "authenticator:ALL",
+      "v": "pgrst.db_pre_request=public.business_auth_request_guard"
+    },
+    {
+      "k": "index",
+      "n": "accounts_pkey",
+      "v": "CREATE UNIQUE INDEX accounts_pkey ON business_auth.accounts USING btree (business_id)"
+    },
+    {
+      "k": "index",
+      "n": "attempts_pkey",
+      "v": "CREATE UNIQUE INDEX attempts_pkey ON business_auth.attempts USING btree (scope_hash)"
+    },
+    {
+      "k": "index",
+      "n": "business_auth_events_business",
+      "v": "CREATE INDEX business_auth_events_business ON business_auth.events USING btree (business_id, created_at DESC, id)"
+    },
+    {
+      "k": "index",
+      "n": "business_grants_expiry",
+      "v": "CREATE INDEX business_grants_expiry ON business_auth.grants USING btree (expires_at)"
+    },
+    {
+      "k": "index",
+      "n": "business_sessions_business",
+      "v": "CREATE INDEX business_sessions_business ON business_auth.sessions USING btree (business_id)"
+    },
+    {
+      "k": "index",
+      "n": "business_sessions_device",
+      "v": "CREATE INDEX business_sessions_device ON business_auth.sessions USING btree (device_id)"
+    },
+    {
+      "k": "index",
+      "n": "business_sessions_member",
+      "v": "CREATE INDEX business_sessions_member ON business_auth.sessions USING btree (member_id)"
+    },
+    {
+      "k": "index",
+      "n": "business_sessions_principal",
+      "v": "CREATE INDEX business_sessions_principal ON business_auth.sessions USING btree (principal_session_id)"
+    },
+    {
+      "k": "index",
+      "n": "device_keys_pkey",
+      "v": "CREATE UNIQUE INDEX device_keys_pkey ON business_auth.device_keys USING btree (device_id)"
+    },
+    {
+      "k": "index",
+      "n": "events_pkey",
+      "v": "CREATE UNIQUE INDEX events_pkey ON business_auth.events USING btree (id)"
+    },
+    {
+      "k": "index",
+      "n": "grants_pkey",
+      "v": "CREATE UNIQUE INDEX grants_pkey ON business_auth.grants USING btree (id)"
+    },
+    {
+      "k": "index",
+      "n": "owner_seats_member_id_key",
+      "v": "CREATE UNIQUE INDEX owner_seats_member_id_key ON business_auth.owner_seats USING btree (member_id)"
+    },
+    {
+      "k": "index",
+      "n": "owner_seats_pkey",
+      "v": "CREATE UNIQUE INDEX owner_seats_pkey ON business_auth.owner_seats USING btree (business_id, user_id)"
+    },
+    {
+      "k": "index",
+      "n": "sessions_pkey",
+      "v": "CREATE UNIQUE INDEX sessions_pkey ON business_auth.sessions USING btree (session_id)"
+    },
+    {
+      "k": "policy",
+      "n": "creator_finance.balances.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "creator_finance.enrollments.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "creator_finance.ledger.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "creator_finance.payout_accounts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "creator_finance.payouts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "creator_finance.program.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "creator_finance.providers.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "creator_finance.receipts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "creator_finance.subscription_periods.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "marketplace_ops.events.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "marketplace_ops.orders.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "marketplace_ops.publishing_requests.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "marketplace_ops.studio_draft_requests.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.ad_events.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.admin_audit_log.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.admin_users.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.announcements.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.app_events.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.article_blocks.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.article_revisions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.articles.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.blocked_email_domains.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.blocked_users.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.blocked_words.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.bookmark_collections.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.business_access_members.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.business_applications.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.business_devices.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.business_dm_settings.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.business_members.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.business_posts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.business_profiles.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.business_reviews.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.business_saved_replies.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.business_signin_log.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.call_participants.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.call_provider_revocations.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.call_sessions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.channel_members.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.channel_message_reactions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.channel_messages.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.channel_poll_options.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.channel_poll_votes.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.channel_polls.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.channel_replies.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.channels.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.chat_media_view_grants.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.chat_payments.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.client_errors.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.close_friends.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.club_members.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.clubs.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.comment_reactions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.communities.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.community_announcements.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.community_bans.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.community_invite_links.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.community_invites.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.community_join_requests.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.community_members.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.content_media_bindings.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.conversation_members.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.conversation_settings.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.conversation_typing.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.conversations.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.daily_stats.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.fact_check_votes.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.fact_checks.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.feature_flags.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.follow_requests.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.follows.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.health_incidents.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.health_runs.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.hidden_posts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.job_application_events.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.job_applications.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.job_recommendations.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.job_referrals.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.job_saves.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.jobs.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.kyc_documents.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.kyc_submissions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.link_previews.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.listing_offers.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.listing_reports.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.market_alerts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.marketplace_listings.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.media_assets.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.member_strikes.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.memory_album_access.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.memory_albums.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.memory_pages.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.message_deletions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.message_mentions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.message_reactions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.message_reads.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.message_views.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.messages.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.music_asset_origins.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.music_rights_events.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.muted_authors.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.muted_stories.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.notifications.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.org_audit_log.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.org_delegations.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.org_memberships.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.org_role_permissions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.org_surfaces.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.organizations.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_bookmarks.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_collaborators.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_comment_pins.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_comments.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_likes.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_media.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_media_tags.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_mentions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_poll_options.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_poll_votes.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_polls.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_products.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_reports.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_reposts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_seen.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_shares.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.post_video_views.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.posts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.profile_views.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.profiles.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.promoted_posts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.saved_listings.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.saved_messages.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.search_events.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.seller_review_reports.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.seller_reviews.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.starred_messages.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.stories.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_drafts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_hidden_from.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_highlight_items.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_highlights.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_mentions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_poll_options.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_poll_votes.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_polls.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_reactions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_shared_with.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_sounds.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_sticker_responses.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.story_views.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_applicant_notes.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_applicant_tags.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_auto_replies.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_campaigns.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_contact_labels.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_daily_stats.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_leads.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_review_replies.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_saved_replies.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_scheduled_posts.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_session_members.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_storefront.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.studio_thread_state.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.support_messages.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.support_tickets.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.support_transactions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.trend_dismissals.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.trending_snapshot.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.user_app_settings.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.user_interests.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.user_presence.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.user_push_tokens.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.user_reports.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.user_restrictions.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.users.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.verification_applications.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "public.verification_referrals.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "policy",
+      "n": "storage.objects.business_session_required",
+      "v": [
+        false,
+        "*",
+        [
+          "authenticated"
+        ],
+        "( SELECT public.business_session_allowed() AS business_session_allowed)",
+        "( SELECT public.business_session_allowed() AS business_session_allowed)"
+      ]
+    },
+    {
+      "k": "relation",
+      "n": "accounts",
+      "v": [
+        "r",
+        true,
+        false,
+        "postgres",
+        "{postgres=arwdDxtm/postgres}"
+      ]
+    },
+    {
+      "k": "relation",
+      "n": "attempts",
+      "v": [
+        "r",
+        true,
+        false,
+        "postgres",
+        "{postgres=arwdDxtm/postgres}"
+      ]
+    },
+    {
+      "k": "relation",
+      "n": "device_keys",
+      "v": [
+        "r",
+        true,
+        false,
+        "postgres",
+        "{postgres=arwdDxtm/postgres}"
+      ]
+    },
+    {
+      "k": "relation",
+      "n": "events",
+      "v": [
+        "r",
+        true,
+        false,
+        "postgres",
+        "{postgres=arwdDxtm/postgres}"
+      ]
+    },
+    {
+      "k": "relation",
+      "n": "grants",
+      "v": [
+        "r",
+        true,
+        false,
+        "postgres",
+        "{postgres=arwdDxtm/postgres}"
+      ]
+    },
+    {
+      "k": "relation",
+      "n": "owner_seats",
+      "v": [
+        "r",
+        true,
+        false,
+        "postgres",
+        "{postgres=arwdDxtm/postgres}"
+      ]
+    },
+    {
+      "k": "relation",
+      "n": "sessions",
+      "v": [
+        "r",
+        true,
+        false,
+        "postgres",
+        "{postgres=arwdDxtm/postgres}"
+      ]
+    },
+    {
+      "k": "schema",
+      "n": "business_auth",
+      "v": [
+        "postgres",
+        "{postgres=UC/postgres}"
+      ]
+    },
+    {
+      "k": "trigger",
+      "n": "auth.sessions.business_auth_cleanup_session",
+      "v": [
+        "CREATE TRIGGER business_auth_cleanup_session BEFORE DELETE ON auth.sessions FOR EACH ROW EXECUTE FUNCTION business_auth.cleanup_session()",
+        "O"
+      ]
+    },
+    {
+      "k": "trigger",
+      "n": "public.business_access_members.business_auth_revoke_member",
+      "v": [
+        "CREATE TRIGGER business_auth_revoke_member BEFORE DELETE OR UPDATE OF active, code_hash ON public.business_access_members FOR EACH ROW EXECUTE FUNCTION business_auth.revoke_member_sessions()",
+        "O"
+      ]
+    },
+    {
+      "k": "trigger",
+      "n": "public.business_devices.business_auth_revoke_device",
+      "v": [
+        "CREATE TRIGGER business_auth_revoke_device BEFORE DELETE OR UPDATE OF status ON public.business_devices FOR EACH ROW EXECUTE FUNCTION business_auth.revoke_device_sessions()",
+        "O"
+      ]
+    },
+    {
+      "k": "trigger",
+      "n": "public.business_members.business_auth_revoke_owner",
+      "v": [
+        "CREATE TRIGGER business_auth_revoke_owner BEFORE DELETE OR UPDATE ON public.business_members FOR EACH ROW EXECUTE FUNCTION business_auth.revoke_owner_sessions()",
+        "O"
+      ]
+    },
+    {
+      "k": "trigger",
+      "n": "public.profiles.business_auth_register_account",
+      "v": [
+        "CREATE TRIGGER business_auth_register_account AFTER INSERT OR UPDATE OF account_type ON public.profiles FOR EACH ROW EXECUTE FUNCTION business_auth.register_account()",
+        "O"
+      ]
+    }
+  ],
+  "excludedProviderMetadata": [
+    {
+      "name": "buckets_vectors",
+      "owner": "supabase_storage_admin",
+      "rls": true,
+      "acl": "{supabase_storage_admin=arwdDxtm/supabase_storage_admin,service_role=r/supabase_storage_admin,anon=r/supabase_storage_admin,authenticated=r/supabase_storage_admin}",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "type",
+          "type": "storage.buckettype",
+          "notNull": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notNull": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "notNull": true
+        }
+      ]
+    },
+    {
+      "name": "migrations",
+      "owner": "supabase_storage_admin",
+      "rls": true,
+      "acl": null,
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "notNull": true
+        },
+        {
+          "name": "name",
+          "type": "character varying(100)",
+          "notNull": true
+        },
+        {
+          "name": "hash",
+          "type": "character varying(40)",
+          "notNull": true
+        },
+        {
+          "name": "executed_at",
+          "type": "timestamp without time zone",
+          "notNull": false
+        }
+      ]
+    },
+    {
+      "name": "vector_indexes",
+      "owner": "supabase_storage_admin",
+      "rls": true,
+      "acl": "{supabase_storage_admin=arwdDxtm/supabase_storage_admin,service_role=r/supabase_storage_admin,anon=r/supabase_storage_admin,authenticated=r/supabase_storage_admin}",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "bucket_id",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "data_type",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "dimension",
+          "type": "integer",
+          "notNull": true
+        },
+        {
+          "name": "distance_metric",
+          "type": "text",
+          "notNull": true
+        },
+        {
+          "name": "metadata_configuration",
+          "type": "jsonb",
+          "notNull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notNull": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "notNull": true
+        }
+      ]
+    }
+  ],
+  "originalExpectedCatalogReference": "business-stage8-expected-catalog.json",
+  "sameStaticCatalogAndPolicyValuesAsOriginal": true
+}

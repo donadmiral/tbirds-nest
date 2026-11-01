@@ -1,0 +1,541 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "scope": "Metadata only; no credential values or queue headers read",
+  "observation": {
+    "scope": "Metadata only. Queue ACLs do not by themselves assert REST exposure. No credential, queued header, user data, worker invocation or outbound message is read or sent.",
+    "worker": [
+      {
+        "singleton": true,
+        "lastSeenAt": "2026-11-01T05:03:01.096962+00:00",
+        "credentialConfigured": true
+      }
+    ],
+    "executor": "postgres",
+    "readOnly": true,
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=public"
+        ],
+        "bodyMd5": "850932016696eb1b9e6bc516cd0d2ccd",
+        "signature": "account_erasure.erase_app_records(p_user_id uuid)",
+        "volatility": "v",
+        "anonExecute": false,
+        "definitionMd5": "11e28f9cf649a4239e8e453786825c15",
+        "memberExecute": false,
+        "serviceExecute": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "87931a42b75d02a4212614734501573e",
+        "signature": "account_erasure.review_reason(p_user uuid)",
+        "volatility": "s",
+        "anonExecute": false,
+        "definitionMd5": "cf09e2b49af05cbfa42f2889b80dd841",
+        "memberExecute": false,
+        "serviceExecute": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "052d07ccea3bcb007497078250e8996d",
+        "signature": "public.account_erasure_status(p_request_id uuid, p_receipt_token text)",
+        "volatility": "s",
+        "anonExecute": true,
+        "definitionMd5": "140c0dfa8b22a82c0aea049ca2d774a0",
+        "memberExecute": true,
+        "serviceExecute": true,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "e65b0bb611c6e290915660ee2e27d538",
+        "signature": "public.ack_account_erasure_object(p_job uuid, p_worker uuid, p_object uuid)",
+        "volatility": "v",
+        "anonExecute": false,
+        "definitionMd5": "965b1b73dac94e866fe7e3621850ebb0",
+        "memberExecute": false,
+        "serviceExecute": true,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "8b2ebe82e15834cef8c228ceb6bef1a1",
+        "signature": "public.check_account_erasure_object(p_job uuid, p_worker uuid, p_object uuid)",
+        "volatility": "v",
+        "anonExecute": false,
+        "definitionMd5": "ac6c0de9b178931fb61a06416647fcfd",
+        "memberExecute": false,
+        "serviceExecute": true,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "3c720864cb3b0b65f16830792920c341",
+        "signature": "public.claim_account_erasure(p_worker uuid)",
+        "volatility": "v",
+        "anonExecute": false,
+        "definitionMd5": "00465dfc941e88890ced197456900f65",
+        "memberExecute": false,
+        "serviceExecute": true,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "d30e01de3b3cf0d217c70bcef2f4a9e2",
+        "signature": "public.finish_account_erasure(p_job uuid, p_worker uuid, p_error text)",
+        "volatility": "v",
+        "anonExecute": false,
+        "definitionMd5": "c2a6e055c00b6f280c9bc126e20be504",
+        "memberExecute": false,
+        "serviceExecute": true,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=public"
+        ],
+        "bodyMd5": "8b88ecb041abcd10c5b2e16df3c55e99",
+        "signature": "public.make_offer(p_listing_id uuid, p_amount numeric)",
+        "volatility": "v",
+        "anonExecute": true,
+        "definitionMd5": "0a40428fa71488df090548ba106ff4c4",
+        "memberExecute": true,
+        "serviceExecute": true,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "0ddaee6415ee86544d71a3a597235baa",
+        "signature": "public.offer_response_capabilities()",
+        "volatility": "v",
+        "anonExecute": false,
+        "definitionMd5": "202d112edf91ae9c8967cc8ed82e6977",
+        "memberExecute": true,
+        "serviceExecute": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "773bf9d690204a20ef7184af0908f082",
+        "signature": "public.prepare_account_erasure_identity(p_job uuid, p_worker uuid)",
+        "volatility": "v",
+        "anonExecute": false,
+        "definitionMd5": "f8cb2e94555cb8bd2590065e89ee55bf",
+        "memberExecute": false,
+        "serviceExecute": true,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "32b6ca5fad7b2c6bcc1aff2f89e3588e",
+        "signature": "public.request_account_erasure(p_request_id uuid, p_receipt_token text)",
+        "volatility": "v",
+        "anonExecute": false,
+        "definitionMd5": "0d6f7d4f0e0c0da3401ed1269ffdb349",
+        "memberExecute": true,
+        "serviceExecute": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "f4b33ccd5af1182be5b5f94a0e82828b",
+        "signature": "public.respond_offer(p_offer_id uuid, p_action text, p_counter_amount numeric)",
+        "volatility": "v",
+        "anonExecute": false,
+        "definitionMd5": "b02ab340f83ec2ab2946a0a94047bcd8",
+        "memberExecute": true,
+        "serviceExecute": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "b2c1c98f33f5f2b6f0dfc6332946b233",
+        "signature": "public.triniti_admin_erasure_review(p_actor_id uuid, p_session_id uuid, p_key uuid, p_source text, p_request_id uuid, p_version text, p_action text, p_note text, p_confirm text)",
+        "volatility": "v",
+        "anonExecute": false,
+        "definitionMd5": "3f3aa2286501469f53fdf2a4d94f875e",
+        "memberExecute": false,
+        "serviceExecute": true,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "4f14082ef9e61c34036a2e12b9a6df73",
+        "signature": "public.validate_account_erasure_worker(p_token text)",
+        "volatility": "s",
+        "anonExecute": false,
+        "definitionMd5": "58a8622fc7564d129d6c2ec76ab41162",
+        "memberExecute": false,
+        "serviceExecute": true,
+        "securityDefiner": true
+      }
+    ],
+    "jobCounts": {},
+    "observedAt": "2026-11-01T05:03:34.93212+00:00",
+    "queueRelations": [
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "_http_response",
+        "owner": "supabase_admin",
+        "schema": "net",
+        "anonRead": true,
+        "memberRead": true,
+        "serviceRead": true,
+        "anonSchemaUsage": true,
+        "memberSchemaUsage": true
+      },
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "http_request_queue",
+        "owner": "supabase_admin",
+        "schema": "net",
+        "anonRead": true,
+        "memberRead": true,
+        "serviceRead": true,
+        "anonSchemaUsage": true,
+        "memberSchemaUsage": true
+      }
+    ],
+    "activeLeaseCount": 0,
+    "marketAlertCount": 0,
+    "dispatchInstalled": false,
+    "interactionTriggers": [
+      {
+        "enabled": "O",
+        "trigger": "account_erasure_actor_write",
+        "function": "account_erasure.guard_actor_write",
+        "relation": "public.conversation_members",
+        "argumentCount": 0,
+        "definitionMd5": "5984a89680934826533ae4e5648f8d00",
+        "functionDefinitionMd5": "046547d7e04b40a1a9f8a1aca382066d",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "removed_chat_member_calls",
+        "function": "public.revoke_removed_chat_member_calls",
+        "relation": "public.conversation_members",
+        "argumentCount": 0,
+        "definitionMd5": "3c139dd06be6e8d491a199f5d2b48022",
+        "functionDefinitionMd5": "42eed9a8160628250dbe52680a356da7",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "trg_member_addition",
+        "function": "public.notify_member_addition",
+        "relation": "public.conversation_members",
+        "argumentCount": 0,
+        "definitionMd5": "02acb0f98dea00f1c0becc756143f5c1",
+        "functionDefinitionMd5": "1c729814d0d8cab336a0229a5ee5aef6",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "trg_member_departure",
+        "function": "public.notify_member_departure",
+        "relation": "public.conversation_members",
+        "argumentCount": 0,
+        "definitionMd5": "88c6cbc23c56386d2679b8066d64f118",
+        "functionDefinitionMd5": "fc684eee692411292bb36229435df99d",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "account_erasure_actor_write",
+        "function": "account_erasure.guard_actor_write",
+        "relation": "public.conversations",
+        "argumentCount": 0,
+        "definitionMd5": "b5345cd8d6870b157e66e3e9353a8a4e",
+        "functionDefinitionMd5": "046547d7e04b40a1a9f8a1aca382066d",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "group_private_reference_guard",
+        "function": "public.guard_legacy_chat_reference",
+        "relation": "public.conversations",
+        "argumentCount": 0,
+        "definitionMd5": "e267d2fe24cb73bcdeaa1be28071948c",
+        "functionDefinitionMd5": "840c6972959bd893b7b6d568036398c2",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "account_erasure_actor_write",
+        "function": "account_erasure.guard_actor_write",
+        "relation": "public.listing_offers",
+        "argumentCount": 0,
+        "definitionMd5": "7e7146b5881877dd1e7cf36e5ba32b19",
+        "functionDefinitionMd5": "046547d7e04b40a1a9f8a1aca382066d",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "account_erasure_actor_write",
+        "function": "account_erasure.guard_actor_write",
+        "relation": "public.marketplace_listings",
+        "argumentCount": 0,
+        "definitionMd5": "47e8fd50864eec4604ba8cb65813bdf9",
+        "functionDefinitionMd5": "046547d7e04b40a1a9f8a1aca382066d",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "admin_removed_listing_guard",
+        "function": "admin_ops.guard_removed_content",
+        "relation": "public.marketplace_listings",
+        "argumentCount": 0,
+        "definitionMd5": "ad29802610c972f51671383e3aa8d5cc",
+        "functionDefinitionMd5": "3746a7ec876c1c4d4a4ef8a101d90654",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "trg_listings_search_tsv",
+        "function": "public.listings_search_tsv_fn",
+        "relation": "public.marketplace_listings",
+        "argumentCount": 0,
+        "definitionMd5": "3a19ac0e44976077d0b4d14578e9bd34",
+        "functionDefinitionMd5": "2d98c13aed8366103ed279a5ebeefc42",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "trg_notify_market_alerts",
+        "function": "public.notify_market_alerts",
+        "relation": "public.marketplace_listings",
+        "argumentCount": 0,
+        "definitionMd5": "b17d70e513d32141ab1e44d1c7726c71",
+        "functionDefinitionMd5": "ef1f9178529fcf155d50ed557b257577",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": true
+      },
+      {
+        "enabled": "O",
+        "trigger": "ab_message_restrict",
+        "function": "public.tg_message_restrict",
+        "relation": "public.messages",
+        "argumentCount": 0,
+        "definitionMd5": "f9bca0ea306aa3823d7697b9cb9d3534",
+        "functionDefinitionMd5": "5f40f8b134689f6b6318932f44d7fd5e",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "account_erasure_actor_write",
+        "function": "account_erasure.guard_actor_write",
+        "relation": "public.messages",
+        "argumentCount": 0,
+        "definitionMd5": "f38f8704fdcc2d1bc654db9145d511c8",
+        "functionDefinitionMd5": "046547d7e04b40a1a9f8a1aca382066d",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "chat_limited_object_reuse_guard",
+        "function": "public.guard_limited_chat_object_reuse",
+        "relation": "public.messages",
+        "argumentCount": 0,
+        "definitionMd5": "dfcc4439279e66f2fc327c71c46c738a",
+        "functionDefinitionMd5": "23f7c0e5a50179c1e4ac408d17783fe8",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "chat_media_reference_guard",
+        "function": "public.guard_chat_media_reference",
+        "relation": "public.messages",
+        "argumentCount": 0,
+        "definitionMd5": "4ad0ca317badbd4f1652c93a494d0f66",
+        "functionDefinitionMd5": "dae7322aa05fc19f6fd0b0fbc87b184f",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "guard_payment_receipt_message",
+        "function": "public.guard_payment_receipt_message",
+        "relation": "public.messages",
+        "argumentCount": 0,
+        "definitionMd5": "23527c39c140d50e30ba7d97fb141c44",
+        "functionDefinitionMd5": "e32bb3284b8c967ac7c4db2ae2938cf5",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "trg_business_away_reply",
+        "function": "public.business_away_reply",
+        "relation": "public.messages",
+        "argumentCount": 0,
+        "definitionMd5": "fbc3914406dbe5a797622a2bb65a788a",
+        "functionDefinitionMd5": "d2e48ed28e8fd3428df963c01c220d7c",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "trg_notify_new_message",
+        "function": "public.notify_on_new_message",
+        "relation": "public.messages",
+        "argumentCount": 0,
+        "definitionMd5": "5a4677d5e4c6b899be767ce6fe2bd5f1",
+        "functionDefinitionMd5": "73159d897a67e63e0ff3bfa2f5189eef",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": true
+      },
+      {
+        "enabled": "O",
+        "trigger": "trg_sync_conversation_preview",
+        "function": "public.sync_conversation_preview",
+        "relation": "public.messages",
+        "argumentCount": 0,
+        "definitionMd5": "d8880ff6f8e7055be9b67796836a48f9",
+        "functionDefinitionMd5": "ba543cc03c2456f27dc381b51cd9b66f",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "trg_sync_message_mentions",
+        "function": "public.sync_message_mentions",
+        "relation": "public.messages",
+        "argumentCount": 0,
+        "definitionMd5": "0c8475dbf0b02254b16f93cdbc60498c",
+        "functionDefinitionMd5": "bbdcc110ae2631851030257c3bae8e34",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": true
+      },
+      {
+        "enabled": "O",
+        "trigger": "aa_notification_restrict",
+        "function": "public.tg_notification_restrict",
+        "relation": "public.notifications",
+        "argumentCount": 0,
+        "definitionMd5": "b4e12d6846316d547552f023494a4dab",
+        "functionDefinitionMd5": "f3ad8f1ee698f65d2b9fb96ed6ded98c",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "account_erasure_actor_write",
+        "function": "account_erasure.guard_actor_write",
+        "relation": "public.notifications",
+        "argumentCount": 0,
+        "definitionMd5": "c42241e3821f4301d815283ac35a2ab5",
+        "functionDefinitionMd5": "046547d7e04b40a1a9f8a1aca382066d",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "trg_stamp_notification_account_type",
+        "function": "public.stamp_notification_account_type",
+        "relation": "public.notifications",
+        "argumentCount": 0,
+        "definitionMd5": "44a9545e80dcbc870239d55373ad7c6d",
+        "functionDefinitionMd5": "10b104674ac3fcf42950cae8ef653639",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "account_erasure_actor_write",
+        "function": "account_erasure.guard_actor_write",
+        "relation": "public.support_messages",
+        "argumentCount": 0,
+        "definitionMd5": "e8a67d6b2993d270b978c7dd76843087",
+        "functionDefinitionMd5": "046547d7e04b40a1a9f8a1aca382066d",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      },
+      {
+        "enabled": "O",
+        "trigger": "account_erasure_actor_write",
+        "function": "account_erasure.guard_actor_write",
+        "relation": "public.support_tickets",
+        "argumentCount": 0,
+        "definitionMd5": "f8d9de183017bc6842687a21f512ccfe",
+        "functionDefinitionMd5": "046547d7e04b40a1a9f8a1aca382066d",
+        "sourceContainsNetworkCall": false,
+        "sourceMentionsPushOrNotification": false
+      }
+    ],
+    "cronJobCatalogPresent": true,
+    "cronScheduleApiPresent": true,
+    "providerHttpApiPresent": true,
+    "otherActiveOrOpenClientTransactions": 0
+  }
+}

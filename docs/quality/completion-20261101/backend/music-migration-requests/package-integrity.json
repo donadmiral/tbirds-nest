@@ -1,0 +1,200 @@
+{
+  "formatVersion": 2,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "mutationsSubmitted": false,
+  "priorPackageSha256": "145eca117ecb98059d41b0b8c911c3117ca55010218a5df68584202591ba515e",
+  "prerequisiteCorrection": "Binds repaired stage8 and guarded single-publisher transition; actual QA legacy soundtrack column order and resolver restored in isolated fixture. Three original music SQL requests are unchanged.",
+  "localChecks": {
+    "actualSqlStates": 6,
+    "positiveVerifierCases": 6,
+    "negativeVerifierCases": 14,
+    "allPassed": true
+  },
+  "files": [
+    {
+      "path": "docs/quality/completion-20261101/backend/check-music-postflight-verifier.py",
+      "bytes": 4992,
+      "sha256": "7d4f0b52c385ce0d28443b6beec55b2477240b36fe634c5ca9c892b380940029"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_expected.json",
+      "bytes": 68382,
+      "sha256": "eb3337f50cbc0172ff2a630404b8387e02484e2b283b9e42afd7650e8beb1e96"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_local-postflight-checked.json",
+      "bytes": 1511,
+      "sha256": "992089cdf71287528e70176d54e73531c0a3c11baa52e00992f3c5cd4bc6b8cb"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_local-postflight.json",
+      "bytes": 28394,
+      "sha256": "8f35f1a899722951cd411764b629f7cef93d8d6349df3f1a283f635f73152f4b"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_local-preflight-checked.json",
+      "bytes": 1507,
+      "sha256": "c88bb65962ae815e1d2024c895caa260d729bbad6cfdfada5cbadfdc08ef17ce"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_local-preflight.json",
+      "bytes": 7352,
+      "sha256": "322751972e9e97180032216cd1553b730bce42bcafe3a918085b0e004620472a"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_original_music_library_and_delivery.json",
+      "bytes": 68182,
+      "sha256": "5a78129c36948fce69ea37105e80909635031562433599b0c8a88e8e7f2ad776"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_postflight.sql",
+      "bytes": 33627,
+      "sha256": "8c741d0dce3231751b4faf3d042ea78a6c9e8bf87cddcef1fb018ac08ea15915"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/01_preflight.sql",
+      "bytes": 33156,
+      "sha256": "0f11ddb64c03b05bfd1d7962871939d0819f8a56f3692e57d52bcac5c5d9bd10"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_expected.json",
+      "bytes": 104153,
+      "sha256": "0e3374367a1296da61a4e87a816c43e79bfd844dd050337295b9b16faf166c7e"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_local-postflight-checked.json",
+      "bytes": 1514,
+      "sha256": "3e0e732c9fd124a8cf0cae791fb802de44552d0b3705ebbd1aaf8611e072cb0d"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_local-postflight.json",
+      "bytes": 48271,
+      "sha256": "6036474460b2096277794e88a5bb76391acf0d01e2ab4a15ef6acc47b5e9651d"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_local-preflight-checked.json",
+      "bytes": 1512,
+      "sha256": "1645ca53d34c525de80a48a8463367473d1138a490fc1ec9d522c36ae75d638c"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_local-preflight.json",
+      "bytes": 28393,
+      "sha256": "9cabd4e815283578d77adb4696f0e846b4c91917cc7c03aae31628d8b2487712"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_music_catalogue_operations_and_cleanup.json",
+      "bytes": 30490,
+      "sha256": "de87cca4e3dd42e89f2da6ea8c63a763f1a0d187cec0096565592268f4ce3d28"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_postflight.sql",
+      "bytes": 34295,
+      "sha256": "01c49c217275d1d1bcff65ad71e4ba196efe76eaa8fc48a1214c74fdbe963f98"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/02_preflight.sql",
+      "bytes": 33625,
+      "sha256": "69f89734530ac29ee52ba0af8a290d38632d4e4445a6fa86313745a04cbe267e"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_expected.json",
+      "bytes": 143714,
+      "sha256": "2f1bec77c2d737094da5c46424a15343d762e17c6aa71a5b88c841f686faa501"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_licensed_catalogue_pipeline.json",
+      "bytes": 30313,
+      "sha256": "012135b2f56d99482f148d524a77dcab7e2b2a7bbdb5506ee43a421a3839e71c"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_local-postflight-checked.json",
+      "bytes": 1503,
+      "sha256": "bbcf96188db9f7ff005473280146211c841aed0cb31a6c3f44e3449fc9a42681"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_local-postflight.json",
+      "bytes": 68478,
+      "sha256": "8350d29479a76f4f476481173329f985fbf18dd087acc3c071f1fbea45e7dac5"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_local-preflight-checked.json",
+      "bytes": 1501,
+      "sha256": "7faba9f469ab47d2a30666ea9e5c94156d2525a0339371c491610641d0e5c2ff"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_local-preflight.json",
+      "bytes": 48270,
+      "sha256": "e2d04ac502856ccd08e488358b9f881b3f0738d882def8f3f2ff9f875dd7116e"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_postflight.sql",
+      "bytes": 34898,
+      "sha256": "f780cefa0709af4727ede283184b4eba26df22afd87853782f9d3a90dcc2e38f"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/03_preflight.sql",
+      "bytes": 34293,
+      "sha256": "a4f6e37ec466780f2809125f9a69e30568a9bb9a3b01a6526ca8f81c5f73504c"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/index.json",
+      "bytes": 6713,
+      "sha256": "59f758b126f9438339677c7ca3cb35f61c2e3c824e5ea83a82435b5c350a5ff4"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/local-final-projection.json",
+      "bytes": 68478,
+      "sha256": "4a20b5bce39f126438df75e3268b84c4333f2f4133585936e0b9144411a6ed1b"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/local-verifier-checks.json",
+      "bytes": 2556,
+      "sha256": "0ba56614bdf173b2f39f1a0f2c50caa2d446b2270e5f1069591744ab10caf1d9"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-migration-requests/repaired-prerequisite-generation.txt",
+      "bytes": 870,
+      "sha256": "ceb02ccb2cfff9a340aeff87a0e874e250dcca5da9b21d30acc489590a7560a7"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-qa-existing-story-and-book-baseline.json",
+      "bytes": 11738,
+      "sha256": "c8a2f50bb1736fb98048a55709bac5236f8eb7d8d73a444842ff10f7b79f84bf"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/music-story-prerequisite-candidate.json",
+      "bytes": 6713,
+      "sha256": "6c59e59efd9640609e870870a11db11ef8fb8a31ec4a4ea764a6213190009da6"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/prepare-music-postflights.mjs",
+      "bytes": 18192,
+      "sha256": "6985705e90756a9cd88a24681029ce0baf5eea170b0b1e5aa168dbf5b07043d9"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/verify-music-observation.py",
+      "bytes": 6040,
+      "sha256": "c04524e1c0dfdc2c33991f2ec4fec598eda9daa49694253f5771f267b67a58ca"
+    },
+    {
+      "path": "supabase/ops/qa/20261101044417_qa_story_music_prerequisite.sql",
+      "bytes": 14170,
+      "sha256": "24255e33d3c8f5aeb1f791313d511919a7fa4fde749ebdf8248f796557b3ce19"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/business-auth-fixture.mjs",
+      "bytes": 3851,
+      "sha256": "40fd9751d1de0b7ea3569c18d76c899bf39e5351d9e4c24e48d014c28c6c834d"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/deployed-media-baseline.mjs",
+      "bytes": 2731,
+      "sha256": "8600150b4c32028599128f963adb175de86484625deb36adf5b23ead49003467"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/qa-music-prerequisite-fixture.mjs",
+      "bytes": 3502,
+      "sha256": "87650b1592051bd8c65b1b3a1615827fcb0b915aecf86383d294abdb1be0f95c"
+    }
+  ]
+}
