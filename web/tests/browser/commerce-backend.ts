@@ -39,7 +39,7 @@ const session = () => owner ? { user: user(), access_token: 'synthetic-only-no-l
 const jobSaves: FixtureRow[] = [{ user_id: OWNER, job_id: jobs[2].id }], listingSaves: FixtureRow[] = [{ user_id: OWNER, listing_id: listings[1].id }], alerts: FixtureRow[] = [];
 const requests = new Map<string, Order>();
 const receipt: FixtureRow[] = [];
-const faults = { jobsRead: false, jobSave: false, applicationsRead: false, applicationWrite: false, upload: false, marketRead: false, orderLostOnce: false, orderAction: false, offer: false, dm: false, alertsRead: false, alertsWrite: false, auth: false, delayWrite: 0 };
+const faults = { jobsRead: false, jobSave: false, applicationsRead: false, applicationWrite: false, upload: false, marketRead: false, orderLostOnce: false, orderAction: false, offer: false, offerAcknowledgement: 'valid' as 'valid' | 'empty' | 'malformed', dm: false, alertsRead: false, alertsWrite: false, auth: false, delayWrite: 0 };
 let jobsReadHold: { promise: Promise<void>; release: () => void } | null = null;
 let jobWriteHold: { promise: Promise<void>; release: () => void } | null = null;
 export const fixture = { receipt, faults, jobs, listings, applications, orders, owner: () => owner,
@@ -142,7 +142,7 @@ async function rpc(name: string, args: FixtureRow) {
   else if (name === 'market_order_action') { if (faults.orderAction) error = { message: 'Synthetic order update failure' }; else { const order = orders.find(row => row.id === args.p_id); if (order && order.version === args.p_version) { order.status = args.p_action === 'complete' ? 'completed' : args.p_action === 'cancel' ? 'cancelled' : String(args.p_action); order.version++; data = { ...order }; } else error = { message: 'ORDER_CHANGED_REFRESH' }; } }
   else if (name === 'get_market_order') { const order = orders.find(row => row.id === args.p_id); data = order ? { ...order, events: [{ id: 1, kind: 'order_requested', note: 'Synthetic order request', created_at: date }, { id: 2, kind: 'seller_confirmed', note: '', created_at: date }] } : null; }
   else if (name === 'start_dm_ctx') { data = args.p_context + '-conversation'; if (faults.dm) error = { message: 'Synthetic conversation failure' }; }
-  else if (name === 'make_offer') { if (faults.delayWrite) await new Promise(resolve => setTimeout(resolve, faults.delayWrite)); data = 'offer-fixture'; if (faults.offer) error = { message: 'Synthetic offer failure' }; }
+  else if (name === 'make_offer') { if (faults.delayWrite) await new Promise(resolve => setTimeout(resolve, faults.delayWrite)); data = faults.offerAcknowledgement === 'empty' ? null : faults.offerAcknowledgement === 'malformed' ? 'offer-fixture' : '50000000-0000-4000-8000-000000000001'; if (faults.offer) error = { message: 'Synthetic offer failure' }; }
   else if (name === 'seller_review_page') data = { rows: [], summary: { avg_rating: 0, review_count: 0 }, eligible_orders: [], has_more: false, next_cursor: null };
   else if (name === 'get_seller_rating') data = { avg_rating: 0, review_count: 0 };
   else if (name === 'report_market_listing') data = 'report-fixture';
