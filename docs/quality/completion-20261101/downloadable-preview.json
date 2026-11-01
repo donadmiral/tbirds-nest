@@ -1,0 +1,42 @@
+{
+  "observedAt": "2026-11-01T05:38:15.278870+00:00",
+  "requestedDeliverable": "Full installable iPhone Expo preview",
+  "applicationName": "Platinum QA",
+  "backendEnvironment": "qa",
+  "sourceCommit": "c86e1c9e6ac5d9f816dbfbaf02a9d7b3686db5df",
+  "developmentServerRequired": false,
+  "iphonePreviewComplete": true,
+  "builds": [
+    {
+      "id": "97ca7e06-73af-40c1-9257-d54c28f9d15f",
+      "platform": "IOS",
+      "status": "FINISHED",
+      "buildProfile": "preview",
+      "appIdentifier": "app.platinumcircles.mobile.qa",
+      "appVersion": "1.1.0",
+      "appBuildVersion": "8",
+      "gitCommitHash": "c86e1c9e6ac5d9f816dbfbaf02a9d7b3686db5df",
+      "createdAt": "2026-11-01T05:15:03.160Z",
+      "completedAt": "2026-11-01T05:21:41.903Z",
+      "isForIosSimulator": false,
+      "buildPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/97ca7e06-73af-40c1-9257-d54c28f9d15f",
+      "installArtifact": "https://expo.dev/artifacts/eas/sTFr2cxHiIOR_PAZUN5Nvfrj7Jwydhj7hGPHYT6upXc.ipa"
+    },
+    {
+      "id": "d84e999e-9dcf-4184-8c4b-d06929623409",
+      "platform": "ANDROID",
+      "status": "IN_PROGRESS",
+      "buildProfile": "preview",
+      "appIdentifier": "app.platinumcircles.mobile.qa",
+      "appVersion": "1.1.0",
+      "appBuildVersion": "4",
+      "gitCommitHash": "c86e1c9e6ac5d9f816dbfbaf02a9d7b3686db5df",
+      "createdAt": "2026-11-01T05:15:17.017Z",
+      "completedAt": null,
+      "isForIosSimulator": false,
+      "buildPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/d84e999e-9dcf-4184-8c4b-d06929623409",
+      "installArtifact": null
+    }
+  ],
+  "scope": "No app source changes, production deployment, store submission, or additional acceptance campaign. The additional Android build is owned by Expo and its exact status is recorded separately."
+}
