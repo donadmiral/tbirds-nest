@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "status": "PASSED_RETAINED_ANDROID_SAVE_AND_READBACK",
+  "runId": 41257566964,
+  "jobId": 124703881569,
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41257566964",
+  "consumerCommit": "a20a492e7f1402ff6e9205ac77ea8ff664c9f1f1",
+  "applicationSourceCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+  "artifact": {
+    "id": 13063744154,
+    "bytes": 541232,
+    "sha256": "3caeeba39e9531ac06ea00649615f5da7763af45988eaa462c79372aa234aebd",
+    "downloadedAndVerified": true
+  },
+  "apk": {
+    "packageId": "app.platinumcircles.mobile.qa",
+    "installedApkSha256": "9897c6328030bde3bf2bdbf4553012f5431362d4f7a0e53960821301daa14298",
+    "matchesProducer": true
+  },
+  "case": {
+    "id": "memory-cover-settings",
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "durationSeconds": 69.465,
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 29,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0,
+      "memorySave": {
+        "passed": true,
+        "saveRequestCount": 1,
+        "committedSaveCount": 1,
+        "savedRevision": 1,
+        "readbacksAfterSave": 1
+      }
+    }
+  },
+  "observedUi": {
+    "enteredExactTitle": true,
+    "harmlessHeadingDismissedKeyboardWithoutClosingSettings": true,
+    "saveTappedExactlyOnce": true,
+    "savedCoverVisible": true,
+    "settingsReopened": true,
+    "exactTitleCopiedAndAssertedAfterReopen": true,
+    "cancelClosedSettingsWithoutSecondSave": true,
+    "screenshotVisuallyInspected": true
+  },
+  "persistence": {
+    "owner": "10000000-0000-4000-8000-000000000001",
+    "book": "a0000000-0000-4000-8000-000000000002",
+    "savedTitle": "AUDIT BOOK TITLE",
+    "baselineRevision": 0,
+    "savedRevision": 1,
+    "saveRequestIndex": 23,
+    "readbackRequestIndex": 25,
+    "successfulSaveCount": 1,
+    "matchingReadbackCount": 1,
+    "unhandledRequests": 0,
+    "reportedClientErrors": 0,
+    "forwardedNetwork": false
+  },
+  "runtime": "Android35 x86_64 AOSP emulator, exact retained Release APK, synthetic QA transport",
+  "newAppBuild": false,
+  "rebundle": false,
+  "resign": false,
+  "otherRepairsDeviceVerified": false,
+  "currentAppSourceDeviceVerified": false,
+  "hostedPersistenceVerified": false,
+  "evidenceRoot": "/workspace/scratch/a8c1175db866/android-save/run-41257566964",
+  "screenshot": "/workspace/scratch/a8c1175db866/android-save/memory-save-passed.png"
+}

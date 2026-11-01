@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: existing simulator selection is exact, bounded and preserves cleanup ownership
+ok 1 - existing simulator selection is exact, bounded and preserves cleanup ownership
+  ---
+  duration_ms: 69.332264
+  type: 'test'
+  ...
+# Subtest: direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes
+ok 2 - direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes
+  ---
+  duration_ms: 106.922061
+  type: 'test'
+  ...
+# Subtest: d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering
+ok 3 - d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering
+  ---
+  duration_ms: 245.63144
+  type: 'test'
+  ...
+# Subtest: prepared d46 workflow selects one separately counted reader diagnostic without rebuilding
+ok 4 - prepared d46 workflow selects one separately counted reader diagnostic without rebuilding
+  ---
+  duration_ms: 10.277207
+  type: 'test'
+  ...
+# Subtest: actual d46 case selector preserves order and rejects invalid or out-of-group subsets without changing the manifest
+ok 5 - actual d46 case selector preserves order and rejects invalid or out-of-group subsets without changing the manifest
+  ---
+  duration_ms: 51.746134
+  type: 'test'
+  ...
+# Subtest: actual warm diagnostic preserves its original flow and requires real fixture/JUnit success separately from the original case
+ok 6 - actual warm diagnostic preserves its original flow and requires real fixture/JUnit success separately from the original case
+  ---
+  duration_ms: 74.243535
+  type: 'test'
+  ...
+# Subtest: warm reader executes the original single tab journey with unique page content and both book pages
+ok 7 - warm reader executes the original single tab journey with unique page content and both book pages
+  ---
+  duration_ms: 10.410456
+  type: 'test'
+  ...
+# Subtest: warm diagnostic fails closed, captures exact failed processes once, and never counts as original acceptance
+ok 8 - warm diagnostic fails closed, captures exact failed processes once, and never counts as original acceptance
+  ---
+  duration_ms: 98.851009
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 703.979423

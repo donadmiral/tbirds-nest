@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="platinum_retained_save" tests="1" failures="0" time="61.103" timestamp="2026-11-01T00:41:04">
+    <testcase id="Retained Android book save and readback" name="Retained Android book save and readback" classname="Retained Android book save and readback" file="tests/native/audit/flows/retained-memory-cover-settings.yaml" time="61.076" timestamp="2026-11-01T00:41:04" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

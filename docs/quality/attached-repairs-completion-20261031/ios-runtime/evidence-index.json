@@ -1,0 +1,104 @@
+[
+  {
+    "path": "runtime-acceptance.json",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139-review.json",
+    "bytes": 8925,
+    "sha256": "d02cb8934d902ee17f1702490bc42533d5f132f917c514f9285f5f3b796d9f8c"
+  },
+  {
+    "path": "recovery-provenance.json",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/recovery-provenance.json",
+    "bytes": 8085,
+    "sha256": "534ea5c120261c3f31d7f1c6ef0cbda68954441488ae28d0939bce48413e1eb2"
+  },
+  {
+    "path": "source.json",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/source.json",
+    "bytes": 74153,
+    "sha256": "cb2d155446c9bf3148089fec50757fa982574735c90ded43c53387e5f3aa9168"
+  },
+  {
+    "path": "binary-manifest.json",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/binary-manifest.json",
+    "bytes": 2621,
+    "sha256": "c0d9df2f3265ba0f387565ad4e28e87758bac57f594450242f410dcdc353cfec"
+  },
+  {
+    "path": "verified-producer-binding.json",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/verified-producer-binding.json",
+    "bytes": 810,
+    "sha256": "3775b6b5fd3bd4e3d0fd2ac5674943aa8ddd71fc8b849c06f7ad24f78bae1310"
+  },
+  {
+    "path": "warm-reader-controls-diagnostic.yaml",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/warm-reader-controls-diagnostic.yaml",
+    "bytes": 2324,
+    "sha256": "044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f"
+  },
+  {
+    "path": "result.json",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/diagnostic-warm-reader-controls/result.json",
+    "bytes": 1433,
+    "sha256": "35f5862056672bf0a566d6ab08f9831c6c39b9d980275ca5d659f97e61fb8622"
+  },
+  {
+    "path": "native-ui-receipt.json",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/diagnostic-warm-reader-controls/native-ui-receipt.json",
+    "bytes": 19614,
+    "sha256": "9755263039db76075d42749a60d8f7c71f67987ac7b246c8718a8cf21ea7cdb4"
+  },
+  {
+    "path": "junit.xml",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/diagnostic-warm-reader-controls/junit.xml",
+    "bytes": 589,
+    "sha256": "7f8d226a149632828f1666f7fcb4ffc460f388373115e4f8c532203928c67d88"
+  },
+  {
+    "path": "commands.json",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/diagnostic-warm-reader-controls/maestro/2026-11-01_003940/Diagnostic original tabs to saved memory reader controls/commands.json",
+    "bytes": 50305,
+    "sha256": "2fe148589f8bc0577c81778923825d15b9c477452c50581232f6377711dad777"
+  },
+  {
+    "path": "command-review.json",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139-command-review.json",
+    "bytes": 8589,
+    "sha256": "1cddf1d09b686b54ba6874304ffa45e2ffdbf76343cf5baf7c7b989f3832009c"
+  },
+  {
+    "path": "validation.json",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139-validation.json",
+    "bytes": 2124,
+    "sha256": "568820080b6f17a3a4445ee25208fbf3eb46b047c9b9deeaa3dc66940ce6c112"
+  },
+  {
+    "path": "iphone-warm-jobs.png",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/iphone-warm-jobs.png",
+    "bytes": 227260,
+    "sha256": "c92386cf493e7f7d2b722f4048cb650a18bbaa725652802fbe8eb8a35b0d25ae"
+  },
+  {
+    "path": "iphone-warm-messages.png",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/iphone-warm-messages.png",
+    "bytes": 187036,
+    "sha256": "2fd545edcaeb41a4481ffb4dfa3a1e607418d671aa86fc0b86cc0738f3e90cb0"
+  },
+  {
+    "path": "iphone-warm-profile.png",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/iphone-warm-profile.png",
+    "bytes": 352221,
+    "sha256": "c69c1b14acdd4776b518b33639d3930078942f15d7016e84dd4091c9c0240426"
+  },
+  {
+    "path": "iphone-warm-memory-shelf.png",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/iphone-warm-memory-shelf.png",
+    "bytes": 312247,
+    "sha256": "eae0cbdc0f8f5b599537b049ce808ffca6d6eb7f410b8ebe4f606c9fa7a140ea"
+  },
+  {
+    "path": "iphone-warm-reader-controls.png",
+    "sourcePath": "/workspace/scratch/a8c1175db866/ios-runner/iphone-warm-reader-controls.png",
+    "bytes": 401014,
+    "sha256": "b817d957028d03de7a36bd75db7a52747d7f3c69cb7a7f88fee158fb1d13477d"
+  }
+]

@@ -1,0 +1,47 @@
+{
+  "id": "diagnostic-warm-reader-controls",
+  "kind": "original-navigation-reader-diagnostic-only",
+  "name": "Diagnostic original tabs to saved memory reader controls",
+  "countedInBaseline85": false,
+  "fixtureCaseId": "navigation-warm-tabs",
+  "flow": "tests/native/diagnostics/ios-warm-reader-controls.yaml",
+  "flowSha256": "044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f",
+  "signIn": {
+    "reference": "../../../../baseline/tests/native/audit/flows/_signin.yaml",
+    "baselinePath": "tests/native/audit/flows/_signin.yaml",
+    "sha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+    "resolvedBeforeMaestro": true
+  },
+  "timeoutSeconds": 600,
+  "watchdogScope": "Entire Maestro CLI including driver startup, original sign-in and controls",
+  "readerRequirementMs": 15000,
+  "navigationCycles": 1,
+  "pageAssertionsUnchanged": true,
+  "attempts": 1,
+  "startedAtEpochMs": 1793493525485,
+  "exitCode": 0,
+  "collection": [
+    {
+      "file": "native-ui-receipt.json",
+      "collected": true,
+      "bytes": 19614
+    },
+    {
+      "file": "native-ui-auth-diagnostics.json",
+      "collected": true,
+      "bytes": 161006
+    }
+  ],
+  "fixture": {
+    "passed": true,
+    "requestCount": 185,
+    "auditRequestCount": 0,
+    "auditMutationCount": 0
+  },
+  "junit": {
+    "passed": true,
+    "executedDiagnostics": 1
+  },
+  "passed": true,
+  "finishedAtEpochMs": 1793493859752
+}

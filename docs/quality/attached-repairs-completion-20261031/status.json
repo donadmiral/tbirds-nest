@@ -1,5 +1,5 @@
 {
-  "status": "source-corrections-verified-retained-device-checks-running",
+  "status": "source-corrections-complete-retained-android-save-and-iphone-original-journey-functionally-verified",
   "sourceBase": "6667a1f4edd0c3fa9cd4c7241c9816d769cce6c8",
   "fixes": [
     "Four native appearance modes with serialized preference persistence; native and admin display Dim and Lights out.",
@@ -19,7 +19,8 @@
     "latestIntegratedIosRunner": {
       "passed": 8,
       "failed": 0,
-      "note": "Includes six earlier runner cases plus two new warm-journey cases."
+      "note": "Includes six earlier runner cases plus two new warm-journey cases.",
+      "evidence": "final-ios-consumer-checks.tap"
     },
     "androidRetainedConsumer": {
       "passed": 7,
@@ -34,6 +35,23 @@
       "native": 0,
       "web": 0,
       "admin": 0
+    },
+    "androidSaveRuntime": {
+      "passed": 1,
+      "failed": 0,
+      "correctedFlowAgainstRetainedPackage": true,
+      "committedSaveAndReadbackVerified": true
+    },
+    "iphoneOriginalJourneyRuntime": {
+      "passed": 1,
+      "failed": 0,
+      "completedCommands": 56,
+      "bothPagesAndCaptionsVerified": true,
+      "functionalAcceptance": true,
+      "fullTimingPerformanceAcceptance": false,
+      "readerTapThroughReadinessMs": 3984,
+      "messagesAssertionElapsedMs": 20619,
+      "evidence": "ios-runtime/runtime-acceptance.json"
     }
   },
   "deviceRuns": [
@@ -41,25 +59,48 @@
       "purpose": "Retained iPhone direct reader and both pages",
       "run": 41256973276,
       "consumer": "fe58468531341fbcb4713139e680fa2771fada5f",
-      "state": "in_progress"
+      "state": "completed",
+      "conclusion": "failure",
+      "appAssertionsAttempted": false,
+      "boundary": "Maestro iOS driver startup timeout before app launch"
     },
     {
       "purpose": "Retained iPhone original tabs through reader and both pages",
       "run": 41257372139,
       "consumer": "9d993024a15b181bd514fb439ccb6468516da9ce",
-      "state": "in_progress"
+      "state": "completed",
+      "conclusion": "success",
+      "acceptedDiagnostics": 1,
+      "evidence": "ios-runtime/runtime-acceptance.json",
+      "applicationSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e"
     },
     {
       "purpose": "Retained Android corrected Save and persisted readback",
       "run": 41257566964,
       "consumer": "a20a492e7f1402ff6e9205ac77ea8ff664c9f1f1",
-      "state": "in_progress"
+      "state": "completed",
+      "conclusion": "success",
+      "acceptedCases": 1,
+      "evidence": "android-save/runtime/runtime-acceptance.json"
     }
   ],
   "constraints": {
     "newAppBuild": false,
     "deployment": false,
     "retainedApplicationsContainNewSourceFixes": false,
-    "historicalInstruction": "User review before new builds or releases remains in the prior task handoff."
+    "historicalInstruction": "User review before new builds or releases remains in the prior task handoff.",
+    "noFurtherRunsRequiredForTheseTwoJourneys": true,
+    "wholeAppComplete": false,
+    "fullPerformanceAcceptance": false
+  },
+  "recordedAtUtc": "2026-11-01T00:50:09.898774+00:00",
+  "productSourceCommit": "e1b1752b042df8a16031c19fa3ad64a5710defa1",
+  "sourceBranch": "codex/reader-recoverability-20261031",
+  "futureRunnerReliability": {
+    "setting": "MAESTRO_DRIVER_STARTUP_TIMEOUT=180000",
+    "reason": "Earlier direct reader diagnostic stopped during iOS driver startup before app launch. The original journey subsequently passed.",
+    "appliedToSuccessfulRuntimeRun": false,
+    "localChecksPassed": 8,
+    "newDispatch": false
   }
 }

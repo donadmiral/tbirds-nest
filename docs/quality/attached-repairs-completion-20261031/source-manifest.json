@@ -6,8 +6,8 @@
   },
   {
     "path": ".github/workflows/native-audit-ios-d46-recovery.yml",
-    "sha256": "9ad10ebb6a536605dcafde529e9c15ffdf4a71e41b578d352958be2e2f93c5b5",
-    "bytes": 3567
+    "sha256": "168a8a6067f506dff565c12b925e00603ade6ac05556f2bf1b6e03306a6c55e0",
+    "bytes": 3614
   },
   {
     "path": "admin-web/components/ThemeControls.tsx",
@@ -81,8 +81,8 @@
   },
   {
     "path": "tests/quality/native-ios-d46-recovery.cjs",
-    "sha256": "55a694832b5a748bc5d304c78c6e856260bcbd828be7ee25ab3245e844697fd3",
-    "bytes": 36739
+    "sha256": "8afe1536809c4784de6da18ed820b786930fe8e336ef00189ade00bb400e2b6f",
+    "bytes": 36805
   },
   {
     "path": "tests/quality/native-ios-warm-reader-controls.cjs",

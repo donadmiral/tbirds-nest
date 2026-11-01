@@ -1,0 +1,99 @@
+{
+  "fixture": {
+    "passed": true,
+    "requestCount": 185,
+    "auditRequestCount": 0,
+    "auditMutationCount": 0
+  },
+  "junit": {
+    "passed": true,
+    "executedDiagnostics": 1
+  },
+  "sourceIdentitiesAndHashes": "verified",
+  "unhandled": 0,
+  "rejected": 0,
+  "reportedDiagnostics": 0,
+  "droppedDiagnostics": 0,
+  "bookReads": [
+    {
+      "id": "a0000000-0000-4000-8000-000000000002",
+      "owner": "10000000-0000-4000-8000-000000000001",
+      "revision": 0,
+      "title": "THE SMALL ADVENTURES",
+      "cover_color": "cream",
+      "cover_design": "keepsake",
+      "cover_artwork": {
+        "version": 1,
+        "inscription": "",
+        "inscriptionStyle": "handwritten",
+        "inscriptionPosition": "bottom",
+        "postmark": "",
+        "showDate": true,
+        "photo": {
+          "x": 0.5,
+          "y": 0.5,
+          "scale": 1
+        }
+      },
+      "film_settings": {
+        "version": 1,
+        "mode": "automatic",
+        "style": "reflective",
+        "length": "full",
+        "order": "book",
+        "titleCard": true,
+        "originalAudio": true
+      }
+    }
+  ],
+  "readerResponseBoundaries": [
+    {
+      "sequence": 1,
+      "id": 1,
+      "kind": "book",
+      "phase": "response-ready",
+      "bodyObserved": true,
+      "status": 200,
+      "atUnixMs": 1793493823515
+    },
+    {
+      "sequence": 2,
+      "id": 1,
+      "kind": "book",
+      "phase": "body-start",
+      "atUnixMs": 1793493823516
+    },
+    {
+      "sequence": 3,
+      "id": 1,
+      "kind": "book",
+      "phase": "body-complete",
+      "fulfilled": true,
+      "atUnixMs": 1793493823516
+    },
+    {
+      "sequence": 4,
+      "id": 2,
+      "kind": "reactions",
+      "phase": "response-ready",
+      "bodyObserved": true,
+      "status": 200,
+      "atUnixMs": 1793493823609
+    },
+    {
+      "sequence": 5,
+      "id": 2,
+      "kind": "reactions",
+      "phase": "body-start",
+      "atUnixMs": 1793493823609
+    },
+    {
+      "sequence": 6,
+      "id": 2,
+      "kind": "reactions",
+      "phase": "body-complete",
+      "fulfilled": true,
+      "atUnixMs": 1793493823611
+    }
+  ]
+}

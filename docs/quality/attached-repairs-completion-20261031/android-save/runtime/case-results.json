@@ -1,0 +1,47 @@
+[
+  {
+    "id": "memory-cover-settings",
+    "group": "memory",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793493656953,
+    "status": "passed",
+    "timeoutSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 6080
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 29580
+      },
+      {
+        "directory": "memory-capture",
+        "collected": false
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 29,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0,
+      "memorySave": {
+        "passed": true,
+        "saveRequestCount": 1,
+        "committedSaveCount": 1,
+        "savedRevision": 1,
+        "readbacksAfterSave": 1
+      }
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793493726418
+  }
+]

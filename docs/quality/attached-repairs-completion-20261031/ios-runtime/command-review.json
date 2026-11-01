@@ -1,0 +1,353 @@
+[
+  {
+    "sequence": 23,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493733771,
+    "durationMs": 804,
+    "visible": "A quiet morning in the desert. Small moments worth keeping.",
+    "timeoutMs": 15000
+  },
+  {
+    "sequence": 24,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493734576,
+    "durationMs": 10280,
+    "selector": {
+      "textRegex": "Latest",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 25,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493744857,
+    "durationMs": 701,
+    "visible": "A quiet morning in the desert. Small moments worth keeping.",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 26,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493745558,
+    "durationMs": 10368,
+    "selector": {
+      "textRegex": "For You",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 27,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493755927,
+    "durationMs": 748,
+    "visible": "A quiet morning in the desert. Small moments worth keeping.",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 28,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493756676,
+    "durationMs": 5770,
+    "selector": {
+      "idRegex": "main-tab-market",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 29,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493762446,
+    "durationMs": 2174,
+    "visible": "View listing: Travel journal",
+    "timeoutMs": 15000
+  },
+  {
+    "sequence": 30,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493764621,
+    "durationMs": 6544,
+    "selector": {
+      "idRegex": "main-tab-feed",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 31,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493771166,
+    "durationMs": 787,
+    "visible": "A quiet morning in the desert. Small moments worth keeping.",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 32,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493771954,
+    "durationMs": 6998,
+    "selector": {
+      "idRegex": "main-tab-jobs",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 33,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493778952,
+    "durationMs": 786,
+    "visible": "(?s)^(?:Product designer|(?:.*?, )?Product designer, (?:.*?, )?Desert Studio(?:, .*)?)$",
+    "timeoutMs": 15000
+  },
+  {
+    "sequence": 34,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493779739,
+    "durationMs": 655,
+    "visible": "Search jobs by title, keyword, or company",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 35,
+    "command": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493780395,
+    "durationMs": 158,
+    "screenshot": "diagnostic-warm-jobs"
+  },
+  {
+    "sequence": 36,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493780554,
+    "durationMs": 2189,
+    "selector": {
+      "idRegex": "main-tab-messages",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 37,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493782743,
+    "durationMs": 20619,
+    "visible": "(?s)^(?:Ready for our next adventure\\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\\?(?:, .*)?)$",
+    "timeoutMs": 15000
+  },
+  {
+    "sequence": 38,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493803363,
+    "durationMs": 653,
+    "visible": "Search messages",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 39,
+    "command": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493804017,
+    "durationMs": 180,
+    "screenshot": "diagnostic-warm-messages"
+  },
+  {
+    "sequence": 40,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493804197,
+    "durationMs": 3614,
+    "selector": {
+      "idRegex": "main-tab-profile",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 41,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493807812,
+    "durationMs": 880,
+    "visible": "Alex Rivera",
+    "timeoutMs": 15000
+  },
+  {
+    "sequence": 42,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493808692,
+    "durationMs": 922,
+    "visible": "(?s)^(?:.*?, )?Edit profile$",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 43,
+    "command": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493809615,
+    "durationMs": 211,
+    "screenshot": "diagnostic-warm-profile"
+  },
+  {
+    "sequence": 44,
+    "command": "scrollUntilVisible",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493809826,
+    "durationMs": 4342
+  },
+  {
+    "sequence": 45,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493814169,
+    "durationMs": 4414,
+    "selector": {
+      "textRegex": "View all memory books",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 46,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493818583,
+    "durationMs": 2322,
+    "selector": {
+      "textRegex": "Private",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 47,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493820907,
+    "durationMs": 556,
+    "visible": "THE SMALL ADVENTURES, 2 memories",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 48,
+    "command": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493821464,
+    "durationMs": 150,
+    "screenshot": "diagnostic-warm-memory-shelf"
+  },
+  {
+    "sequence": 49,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493821614,
+    "durationMs": 3308,
+    "selector": {
+      "textRegex": "THE SMALL ADVENTURES, 2 memories",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 50,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493824923,
+    "durationMs": 675,
+    "visible": "Edit memory book",
+    "timeoutMs": 15000
+  },
+  {
+    "sequence": 51,
+    "command": "scrollUntilVisible",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493825599,
+    "durationMs": 595
+  },
+  {
+    "sequence": 52,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493826194,
+    "durationMs": 2144,
+    "selector": {
+      "textRegex": "Open book",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 53,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493828338,
+    "durationMs": 546,
+    "visible": "Page 1 of 2",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 54,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493828884,
+    "durationMs": 540,
+    "visible": "WE TOOK THE LONG WAY HOME",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 55,
+    "command": "tapOnElement",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493829425,
+    "durationMs": 2885,
+    "selector": {
+      "textRegex": "Next memory",
+      "optional": false
+    },
+    "retryIfNoChange": false
+  },
+  {
+    "sequence": 56,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493832310,
+    "durationMs": 678,
+    "visible": "Page 2 of 2",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 57,
+    "command": "assertConditionCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493832988,
+    "durationMs": 613,
+    "visible": "THE STORIES WE KEEP",
+    "timeoutMs": null
+  },
+  {
+    "sequence": 58,
+    "command": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "startedAtEpochMs": 1793493833602,
+    "durationMs": 170,
+    "screenshot": "diagnostic-warm-reader-controls"
+  }
+]

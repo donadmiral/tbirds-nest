@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "acceptedScope": "Functional original single-cycle tab journey into the retained memory reader, with both page labels and captions verified.",
+  "functionalPassed": true,
+  "fullTimingPerformanceAcceptance": false,
+  "reviewedAtUtc": "2026-11-01T00:47:58.158255+00:00",
+  "run": {
+    "id": 41257372139,
+    "jobId": 124703300369,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41257372139",
+    "attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "consumerCommit": "9d993024a15b181bd514fb439ccb6468516da9ce",
+    "createdAt": "2026-11-01T00:35:00Z",
+    "updatedAt": "2026-11-01T00:44:37Z"
+  },
+  "artifact": {
+    "id": 13064325138,
+    "name": "native-audit-ios-d46-memory-recovery-results",
+    "bytes": 12898247,
+    "sha256": "93fe2fbc304f6665db21f3034cada35443764db31c23cb451914b86e58597458",
+    "zip": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139.zip",
+    "extractedRoot": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results",
+    "expiresAt": "2026-11-08T00:44:29Z"
+  },
+  "application": {
+    "sourceCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "sourceTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+    "binarySha256": "485540b05dc964f8602c7e7d83b03c53e0d78c5bec15da9d1ffaa82f160d6774",
+    "device": "iPhone 16 simulator",
+    "runtime": "iOS 18.5",
+    "udid": "565DED02-59D6-4021-88CA-21B8BEF5F415",
+    "rebuilt": false,
+    "rebundled": false,
+    "resigned": false,
+    "transport": "isolated synthetic native UI transport; no network forwarding"
+  },
+  "consumer": {
+    "scriptSha256": "ce86171bcd424adaa1d1488dc97e982c9404f0517e1050e0dfbcf529793a207f",
+    "workflowSha256": "9ad10ebb6a536605dcafde529e9c15ffdf4a71e41b578d352958be2e2f93c5b5",
+    "flowSha256": "044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f",
+    "originalSignInSha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+    "originalSignInReference": "../../../../baseline/tests/native/audit/flows/_signin.yaml",
+    "originalRunnerSha256": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352"
+  },
+  "journey": [
+    "Original synthetic sign-in",
+    "Feed seeded post",
+    "Latest then seeded post",
+    "For You then seeded post",
+    "Market and Travel journal listing",
+    "Feed and seeded post",
+    "Jobs and seeded Product designer / Desert Studio, plus unique search field",
+    "Messages and seeded Jordan Ellis / Ready for our next adventure?, plus unique search field",
+    "Profile and Alex Rivera / Edit profile",
+    "View all memory books, Private, THE SMALL ADVENTURES / 2 memories",
+    "Edit memory book readiness",
+    "Open book, Page 1 of 2, WE TOOK THE LONG WAY HOME",
+    "Next memory, Page 2 of 2, THE STORIES WE KEEP"
+  ],
+  "checks": {
+    "fixtureValidator": {
+      "passed": true,
+      "requestCount": 185,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "junitValidator": {
+      "passed": true,
+      "executedDiagnostics": 1
+    },
+    "rawCommandsCompleted": 56,
+    "rawCommandsSkipped": 3,
+    "skipReason": "Only Android-conditional commands skipped on iOS. Every iOS journey command completed.",
+    "noRepeatedJourneyOrTapRetries": true,
+    "unhandled": 0,
+    "rejected": 0,
+    "reportedClientDiagnostics": 0,
+    "droppedClientDiagnostics": 0,
+    "expectedBookReads": 1,
+    "bookAndReactionBodyResponsesCompleted": true,
+    "flowBytesMatchReviewedCandidate": true,
+    "provenanceAndSourceHashesMatch": true,
+    "allFiveScreenshotsVisuallyInspected": true
+  },
+  "timing": {
+    "wholeDiagnosticWatchdogSeconds": 600,
+    "wholeDiagnosticElapsedMs": 334267,
+    "originalExplicitAppWaitTimeoutMs": 15000,
+    "readerReadinessAssertionElapsedMs": 675,
+    "bookTapStartThroughReaderReadinessMs": 3984,
+    "messagesContentAssertionElapsedMs": 20619,
+    "messagesTimingCaveat": "The original Messages assertion remained configured for 15000 ms and Maestro marked it completed, but the actual command elapsed 20619 ms. This run is functional evidence, not proof of a strict 15-second Messages wall-time requirement or full performance acceptance."
+  },
+  "counting": {
+    "separateDiagnosticsPassed": 1,
+    "original85CasesExecuted": 0,
+    "countedInBaseline85": false
+  },
+  "limitations": [
+    "This verifies the retained d46 application binary, not a rebuilt binary from the later e1b1752 source commit.",
+    "This single completed journey does not establish that every intermittent native stall is eliminated.",
+    "The earlier direct run 41256973276 stopped during Maestro driver startup before application execution; this successful original journey includes the reader controls, so no extra direct run was dispatched."
+  ],
+  "futureRunnerReliability": {
+    "oneLinePatch": "/workspace/scratch/a8c1175db866/ios-runner/driver-startup/driver-startup.patch",
+    "setting": "MAESTRO_DRIVER_STARTUP_TIMEOUT=180000",
+    "appliedToThisRun": false,
+    "twoShardVariantApplied": false,
+    "newRunDispatched": false
+  },
+  "evidence": [
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/recovery-provenance.json",
+      "bytes": 8085,
+      "sha256": "534ea5c120261c3f31d7f1c6ef0cbda68954441488ae28d0939bce48413e1eb2"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/source.json",
+      "bytes": 74153,
+      "sha256": "cb2d155446c9bf3148089fec50757fa982574735c90ded43c53387e5f3aa9168"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/binary-manifest.json",
+      "bytes": 2621,
+      "sha256": "c0d9df2f3265ba0f387565ad4e28e87758bac57f594450242f410dcdc353cfec"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/verified-producer-binding.json",
+      "bytes": 810,
+      "sha256": "3775b6b5fd3bd4e3d0fd2ac5674943aa8ddd71fc8b849c06f7ad24f78bae1310"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/warm-reader-controls-diagnostic.yaml",
+      "bytes": 2324,
+      "sha256": "044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/diagnostic-warm-reader-controls/result.json",
+      "bytes": 1433,
+      "sha256": "35f5862056672bf0a566d6ab08f9831c6c39b9d980275ca5d659f97e61fb8622"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/diagnostic-warm-reader-controls/native-ui-receipt.json",
+      "bytes": 19614,
+      "sha256": "9755263039db76075d42749a60d8f7c71f67987ac7b246c8718a8cf21ea7cdb4"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/diagnostic-warm-reader-controls/junit.xml",
+      "bytes": 589,
+      "sha256": "7f8d226a149632828f1666f7fcb4ffc460f388373115e4f8c532203928c67d88"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/diagnostic-warm-reader-controls/maestro/2026-11-01_003940/Diagnostic original tabs to saved memory reader controls/commands.json",
+      "bytes": 50305,
+      "sha256": "2fe148589f8bc0577c81778923825d15b9c477452c50581232f6377711dad777"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139-command-review.json",
+      "bytes": 8589,
+      "sha256": "1cddf1d09b686b54ba6874304ffa45e2ffdbf76343cf5baf7c7b989f3832009c"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139-validation.json",
+      "bytes": 2124,
+      "sha256": "568820080b6f17a3a4445ee25208fbf3eb46b047c9b9deeaa3dc66940ce6c112"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/iphone-warm-jobs.png",
+      "bytes": 227260,
+      "sha256": "c92386cf493e7f7d2b722f4048cb650a18bbaa725652802fbe8eb8a35b0d25ae"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/iphone-warm-messages.png",
+      "bytes": 187036,
+      "sha256": "2fd545edcaeb41a4481ffb4dfa3a1e607418d671aa86fc0b86cc0738f3e90cb0"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/iphone-warm-profile.png",
+      "bytes": 352221,
+      "sha256": "c69c1b14acdd4776b518b33639d3930078942f15d7016e84dd4091c9c0240426"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/iphone-warm-memory-shelf.png",
+      "bytes": 312247,
+      "sha256": "eae0cbdc0f8f5b599537b049ce808ffca6d6eb7f410b8ebe4f606c9fa7a140ea"
+    },
+    {
+      "path": "/workspace/scratch/a8c1175db866/ios-runner/iphone-warm-reader-controls.png",
+      "bytes": 401014,
+      "sha256": "b817d957028d03de7a36bd75db7a52747d7f3c69cb7a7f88fee158fb1d13477d"
+    }
+  ]
+}

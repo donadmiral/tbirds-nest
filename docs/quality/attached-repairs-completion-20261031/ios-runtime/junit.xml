@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="iPhone 16 - iOS 18.5 - 565DED02-59D6-4021-88CA-21B8BEF5F415" tests="1" failures="0" time="222.621" timestamp="2026-11-01T00:40:18">
+    <testcase id="Diagnostic original tabs to saved memory reader controls" name="Diagnostic original tabs to saved memory reader controls" classname="Diagnostic original tabs to saved memory reader controls" file="tests/native/diagnostics/ios-warm-reader-controls.yaml" time="222.574" timestamp="2026-11-01T00:40:18" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

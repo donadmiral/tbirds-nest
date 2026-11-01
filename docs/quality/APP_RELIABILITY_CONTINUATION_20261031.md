@@ -1,5 +1,20 @@
 # App reliability and performance continuation
 
+## Latest focused outcome — 1 November 2026
+
+The authorized focused repairs and retained-binary checks are complete. Product source is preserved at [`e1b1752b042df8a16031c19fa3ad64a5710defa1`](https://github.com/donadmiral/tbirds-nest/commit/e1b1752b042df8a16031c19fa3ad64a5710defa1). No new application build or deployment was performed; the user's review and release holds remain in force. No further test runs are planned.
+
+- **iPhone:** [run 41257372139](https://github.com/donadmiral/tbirds-nest/actions/runs/41257372139), consumer `9d993024a15b181bd514fb439ccb6468516da9ce`, completed the original single-cycle warm tab and private-shelf journey through both reader pages and exact captions on the retained `d46c50f0` app. All 56 applicable commands passed, with zero fixture errors. Reader readiness took 3.984 seconds. The Messages command took 20.619 seconds despite a configured 15-second wait, so this is **functional acceptance only**, with no timing or performance claim. [Runtime evidence](attached-repairs-completion-20261031/ios-runtime/runtime-acceptance.json).
+- **Android Save:** [run 41257566964](https://github.com/donadmiral/tbirds-nest/actions/runs/41257566964) passed the one corrected Save case on the exact retained APK. Evidence confirms one committed Save, revision 0 to 1, a later matching readback, and the exact title after reopening settings. The missing persistence-receipt gate has been restored and was enforced by this run. [Runtime evidence](attached-repairs-completion-20261031/android-save/runtime/runtime-acceptance.json).
+
+Both native and web offer handlers also now require a valid returned UUID and no RPC error before clearing the amount or closing. Missing, null and malformed acknowledgements preserve the draft; all 46 focused local checks pass. [Repair evidence](attached-repairs-completion-20261031/reader-review/offer-acknowledgement-review.json).
+
+The separate direct iPhone run `41256973276` failed during driver startup before app execution. Earlier run `41256168598` failed on an unresolved sign-in include path, which has been corrected. Neither is counted as an app failure or reader pass; the successful warm run above supplies the functional result.
+
+These retained packages contain the original `d46c50f0` source, not the newer repaired source. The historical Android full-suite result remains 79/85; these focused checks are not a new full suite, whole-app or all-button acceptance, capacity test, physical-device check, or hosted persistence verification. Hosted authentication, migrations and release boundaries below remain unchanged. The historical iPhone stall's root cause and a cure attributable to the newer source are not established.
+
+**Earlier sections below preserve historical observations. Their active, pending and missing-proof descriptions are superseded by this latest outcome for the iPhone warm journey, Android Save and restored Save receipt gate.** Current structured handoff: [user-review-handoff.json](full-platform-audit-20261031/user-review-handoff.json).
+
 ## Focused repairs and interruption recovery, 31 October 2026
 
 The user's subsequent individual repair requests authorize source/test work. New application builds and deployments remain held for user review. The previous stop checkpoint below is historical.

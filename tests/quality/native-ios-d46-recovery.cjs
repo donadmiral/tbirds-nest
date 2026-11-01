@@ -271,6 +271,7 @@ test('prepared d46 workflow selects one separately counted reader diagnostic wit
   const job = workflow.jobs['recover-ios'];
   assert.equal(job['runs-on'], 'macos-15-intel'); assert.equal(job['timeout-minutes'], 25);
   assert.equal(job.strategy['fail-fast'], false);
+  assert.equal(job.env.MAESTRO_DRIVER_STARTUP_TIMEOUT, '180000');
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'tests/native/audit/manifest.json')));
   assert.deepEqual(job.strategy.matrix.include, [{ shard: 'memory', groups: 'memory' }]);
   assert.equal(manifest.cases.length, 85, 'other original scenarios remain declared, not reported as executed');

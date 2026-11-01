@@ -33,6 +33,7 @@ jobs:
       EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
       EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
       MAESTRO_CLI_NO_ANALYTICS: 'true'
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: '180000'
       DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
     steps:
       - name: Check out the reviewed consumer tools

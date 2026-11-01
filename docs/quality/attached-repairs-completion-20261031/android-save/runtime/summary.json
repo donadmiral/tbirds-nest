@@ -1,0 +1,19 @@
+{
+  "kind": "retained-android-save-verification",
+  "applicationSourceCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+  "consumerCommit": "a20a492e7f1402ff6e9205ac77ea8ff664c9f1f1",
+  "platform": "android",
+  "attempted": 1,
+  "passed": 1,
+  "failed": 0,
+  "selectedCases": [
+    "memory-cover-settings"
+  ],
+  "binaryUnchangedAfterTest": true,
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false,
+  "currentApplicationRepairsIncluded": false,
+  "otherRepairsDeviceVerified": false,
+  "allControlsAccepted": false
+}
