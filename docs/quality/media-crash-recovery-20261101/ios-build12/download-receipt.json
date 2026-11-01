@@ -1,0 +1,13 @@
+{
+  "archiveFormat": "ZIP / IPA",
+  "buildId": "43f06ff4-6fd0-4f90-85e7-0939753656ff",
+  "cliExitCode": 1,
+  "completedAt": "2026-11-01T22:07:45.459889+00:00",
+  "downloadResult": "The official CLI downloaded the IPA successfully then attempted simulator tar extraction. Its intact original ZIP was copied unchanged for offline package inspection.",
+  "downloadedBytes": 27923039,
+  "ipaSha256": "43cd8e652cd6b7eb2d545a482255a7ec6fe221e79f7e6f5a46920ad9a1a42384",
+  "method": "Official authenticated EAS CLI build:download --build-id ID --non-interactive --json",
+  "signedDownloadUrlsRetainedInPublicEvidence": false,
+  "startedAt": "2026-11-01T22:07:41.931875+00:00",
+  "unchangedCopyVerified": true
+}

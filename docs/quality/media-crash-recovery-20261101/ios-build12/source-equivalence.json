@@ -1,0 +1,24 @@
+{
+  "allExactMatches": true,
+  "buildId": "43f06ff4-6fd0-4f90-85e7-0939753656ff",
+  "buildSource": "a814234b39a9f1a687c9c978e0896ef1662d7b73",
+  "checkedAt": "2026-11-01T22:08:36.368340+00:00",
+  "files": [
+    {
+      "path": "modules/boomerang/ios/StoryVideoView.swift",
+      "sameAsSimulator": true,
+      "simulatorTestedSha256": "76c79b46401b53318d24dc900884567ff470877a1c49a53420df47511e7b9b50",
+      "sourceSha256": "76c79b46401b53318d24dc900884567ff470877a1c49a53420df47511e7b9b50"
+    },
+    {
+      "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+      "sameAsSimulator": true,
+      "simulatorTestedSha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+      "sourceSha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07"
+    }
+  ],
+  "limits": "Git blob equivalence to the simulator-tested Swift files. EAS per-file fingerprint source could not be retrieved by the official CLI; this is not a recovered-source proof from the executable.",
+  "schemaVersion": 1,
+  "simulatorRun": 41353338768,
+  "simulatorSource": "908ef58b3dfdfd2aa1222c2c37b70dc5a473a031"
+}

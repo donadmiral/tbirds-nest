@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-11-01T22:27:41.841058+00:00",
+  "platform": "ANDROID",
+  "build": {
+    "id": "d5f66ef1-587c-46a2-afa6-02db99ea08bc",
+    "status": "FINISHED",
+    "completedAt": "2026-11-01T22:26:35.067Z",
+    "sourceCommit": "a814234b39a9f1a687c9c978e0896ef1662d7b73",
+    "sourceIdentityBasis": "Authenticated EAS build metadata matched the requested published commit."
+  },
+  "application": {
+    "applicationId": "app.platinumcircles.mobile.qa",
+    "versionCode": "7",
+    "versionName": "1.1.0"
+  },
+  "artifact": {
+    "format": "APK",
+    "sha256": "f3561ab245e7254420f15724c9633414a4bee20dd97531776bc28294c3da429a",
+    "bytes": 270400279
+  },
+  "verification": {
+    "passed": true,
+    "requiredGateCount": 8,
+    "passedGateCount": 8,
+    "gates": {
+      "easBuildIdentityMatchesRequested": true,
+      "manifestIdentityMatchesEasBuild": true,
+      "zipIntegrityPassed": true,
+      "requiredNativeLibrariesPresent": true,
+      "productionClassDefinitionsPassed": true,
+      "expoModuleRegistrationPassed": true,
+      "packagedMedia3AbiPassed": true,
+      "apkSignatureVerified": true
+    },
+    "manifestIdentityMatchesEasBuild": true,
+    "zipIntegrityPassed": true,
+    "requiredNativeLibrariesPresent": true,
+    "productionClassDefinitions": {
+      "passed": true,
+      "count": 11,
+      "classes": [
+        "Lexpo/modules/ExpoModulesPackageList$LazyHolder;",
+        "Lexpo/modules/ExpoModulesPackageList;",
+        "Lexpo/modules/boomerang/BoomerangModule;",
+        "Lexpo/modules/boomerang/MemoryMovieComposition;",
+        "Lexpo/modules/boomerang/ReactLayerEffect;",
+        "Lexpo/modules/boomerang/ReactVideoComposition;",
+        "Lexpo/modules/boomerang/StoryCanvasEffect;",
+        "Lexpo/modules/boomerang/StoryVideoComposition;",
+        "Lexpo/modules/video/VideoModule;",
+        "Lexpo/modules/video/VideoView;",
+        "Lexpo/modules/video/player/VideoPlayer;"
+      ]
+    },
+    "expoModuleRegistration": {
+      "passed": true,
+      "registeredClasses": [
+        "Lexpo/modules/boomerang/BoomerangModule;",
+        "Lexpo/modules/video/VideoModule;"
+      ]
+    },
+    "packagedMedia3Abi": {
+      "passed": true,
+      "abstractMethodsChecked": 1,
+      "expoOverridesChecked": 10,
+      "requiredSignatures": [
+        [
+          "getAllocator",
+          [
+            "Landroidx/media3/exoplayer/analytics/PlayerId;"
+          ],
+          "Landroidx/media3/exoplayer/upstream/Allocator;"
+        ],
+        [
+          "shouldContinuePreloading",
+          [
+            "Landroidx/media3/exoplayer/analytics/PlayerId;",
+            "Landroidx/media3/common/Timeline;",
+            "Landroidx/media3/exoplayer/source/MediaSource$MediaPeriodId;",
+            "J"
+          ],
+          "Z"
+        ]
+      ]
+    },
+    "apkSignatureVerified": true
+  },
+  "androidStoryPlayback": {
+    "player": "expo-video VideoView and VideoPlayer",
+    "nativeStoryExport": "Boomerang StoryVideoComposition",
+    "platformNote": "The custom StoryVideoView.swift playback view is iOS-only. Android story playback uses the verified Expo video classes."
+  },
+  "scope": "Static inspection of the actual signed EAS APK, including compiled DEX definitions and Expo module registration.",
+  "limitations": [
+    "No Android installation, playback, export, or physical-device acceptance was performed by this postflight.",
+    "Packaged ABI inspection does not prove local node_modules patches were applied in the cloud build."
+  ]
+}

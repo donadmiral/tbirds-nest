@@ -1,0 +1,332 @@
+{
+  "application": {
+    "CFBundleExecutable": "PlatinumQA",
+    "CFBundleIdentifier": "app.platinumcircles.mobile.qa",
+    "CFBundlePackageType": "APPL",
+    "CFBundleShortVersionString": "1.1.0",
+    "CFBundleSupportedPlatforms": [
+      "iPhoneOS"
+    ],
+    "CFBundleVersion": "12",
+    "MinimumOSVersion": "15.1"
+  },
+  "artifact": {
+    "bytes": 27923039,
+    "downloadMethod": "Official authenticated EAS CLI build:download, exact requested build ID",
+    "format": "IPA ZIP",
+    "sha256": "43cd8e652cd6b7eb2d545a482255a7ec6fe221e79f7e6f5a46920ad9a1a42384"
+  },
+  "build": {
+    "appBuildVersion": "12",
+    "appVersion": "1.1.0",
+    "buildProfile": "preview",
+    "completedAt": "2026-11-01T22:07:19.172Z",
+    "createdAt": "2026-11-01T21:59:57.738Z",
+    "distribution": "INTERNAL",
+    "gitCommitHash": "a814234b39a9f1a687c9c978e0896ef1662d7b73",
+    "id": "43f06ff4-6fd0-4f90-85e7-0939753656ff",
+    "platform": "IOS",
+    "status": "FINISHED"
+  },
+  "checkCount": 38,
+  "checks": [
+    {
+      "actual": "43f06ff4-6fd0-4f90-85e7-0939753656ff",
+      "expected": "43f06ff4-6fd0-4f90-85e7-0939753656ff",
+      "name": "eas_build_id",
+      "passed": true
+    },
+    {
+      "actual": "FINISHED",
+      "expected": "FINISHED",
+      "name": "eas_build_finished",
+      "passed": true
+    },
+    {
+      "actual": "IOS",
+      "expected": "IOS",
+      "name": "eas_platform",
+      "passed": true
+    },
+    {
+      "actual": "a814234b39a9f1a687c9c978e0896ef1662d7b73",
+      "expected": "a814234b39a9f1a687c9c978e0896ef1662d7b73",
+      "name": "eas_source_commit",
+      "passed": true
+    },
+    {
+      "actual": "1.1.0",
+      "expected": "1.1.0",
+      "name": "eas_app_version",
+      "passed": true
+    },
+    {
+      "actual": "12",
+      "expected": "12",
+      "name": "eas_build_version",
+      "passed": true
+    },
+    {
+      "actual": "preview",
+      "expected": "preview",
+      "name": "eas_preview_profile",
+      "passed": true
+    },
+    {
+      "actual": [
+        {
+          "name": "qa-preview",
+          "source": "updateChannel.name"
+        }
+      ],
+      "expected": "qa-preview",
+      "name": "eas_preview_channel",
+      "passed": true
+    },
+    {
+      "actual": 0,
+      "expected": "No duplicate ZIP member names",
+      "name": "zip_unique_members",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "expected": "All member CRCs valid",
+      "name": "zip_integrity",
+      "passed": true
+    },
+    {
+      "actual": 1,
+      "expected": 1,
+      "name": "one_main_app",
+      "passed": true
+    },
+    {
+      "actual": "app.platinumcircles.mobile.qa",
+      "expected": "app.platinumcircles.mobile.qa",
+      "name": "ipa_app_identifier",
+      "passed": true
+    },
+    {
+      "actual": "1.1.0",
+      "expected": "1.1.0",
+      "name": "ipa_app_version",
+      "passed": true
+    },
+    {
+      "actual": "12",
+      "expected": "12",
+      "name": "ipa_build_version",
+      "passed": true
+    },
+    {
+      "actual": true,
+      "expected": "Payload/PlatinumQA.app/Expo.plist",
+      "name": "ipa_updates_configuration_present",
+      "passed": true
+    },
+    {
+      "actual": false,
+      "expected": "Explicit Boolean EXUpdatesEnabled",
+      "name": "ipa_updates_enabled_flag",
+      "passed": true
+    },
+    {
+      "actual": "PlatinumQA",
+      "expected": "One filename within the main app",
+      "name": "native_executable_name",
+      "passed": true
+    },
+    {
+      "actual": true,
+      "expected": "Payload/PlatinumQA.app/PlatinumQA",
+      "name": "native_executable_present",
+      "passed": true
+    },
+    {
+      "actual": "cffaedfe",
+      "expected": "Nonempty Mach-O or universal Mach-O executable",
+      "name": "native_executable_macho",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "provisioning_profile_present",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "provisioning_cms_signature_integrity",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "provisioning_bundle_matches",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "provisioning_not_expired",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "provisioning_ios_platform",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "provisioning_ad_hoc_device_list_present",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "provisioning_release_debugging_disabled",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "main_executable_arm64_macho",
+      "passed": true
+    },
+    {
+      "actual": 2,
+      "name": "main_executable_ios_device_platform",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "main_code_signature_load_command_present",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "main_code_signature_superblob_valid",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "main_code_directory_present",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "main_code_directory_supported_hash",
+      "passed": true
+    },
+    {
+      "actual": {
+        "algorithm": "sha256",
+        "passedPages": 4749,
+        "totalPages": 4749
+      },
+      "name": "main_executable_code_page_hashes",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "main_code_signature_cms_present",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "main_code_signature_cms_integrity",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "main_code_entitlements_bundle_matches",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "main_code_entitlements_release_debugging_disabled",
+      "passed": true
+    },
+    {
+      "actual": null,
+      "name": "main_code_entitlements_match_profile_app",
+      "passed": true
+    }
+  ],
+  "inspectedAt": "2026-11-01T22:08:36.368340+00:00",
+  "limits": {
+    "appleCertificateTrustChainVerified": false,
+    "expoNativeRegistrationExecuted": false,
+    "fullReactNativeAppScreenOpeningVerified": false,
+    "note": "OpenSSL checks CMS cryptographic integrity without Apple trust verification. Executable page hashes cover the main code directory; this is not macOS codesign verification or proof of device execution.",
+    "physicalDeviceRuntimeVerified": false,
+    "positiveAuthorizedLiveMediaPlaybackVerified": false,
+    "sourceBinding": "EAS build metadata binds the artifact request to the commit. Matching that commit\u2019s Git blobs with simulator receipt hashes does not independently extract Swift source from the IPA.",
+    "wholeBundleAppleCodesignVerificationPerformed": false
+  },
+  "nativeExecutable": {
+    "bytes": 19619248,
+    "interpretation": "Presence of compiled names is packaging evidence, not proof of native registration or runtime execution.",
+    "names": {
+      "BoomerangModule": {
+        "literalCount": 2,
+        "literalObserved": true
+      },
+      "ReactVideoComposition": {
+        "literalCount": 2,
+        "literalObserved": true
+      },
+      "ReactVideoCompositor": {
+        "literalCount": 1,
+        "literalObserved": true
+      },
+      "StoryVideoView": {
+        "literalCount": 3,
+        "literalObserved": true
+      },
+      "StoryVideoWarmPool": {
+        "literalCount": 4,
+        "literalObserved": true
+      },
+      "clearStoryVideoWarmPool": {
+        "literalCount": 1,
+        "literalObserved": true
+      },
+      "composeReactVideo": {
+        "literalCount": 1,
+        "literalObserved": true
+      },
+      "warmStoryVideo": {
+        "literalCount": 0,
+        "literalObserved": false
+      }
+    },
+    "sha256": "2a54a26a8c5d3ecd21cc2781dd6da4a76a094a8f9644ffd0143cd7530ea3c241",
+    "shortWarmMethodNameScan": {
+      "interpretation": "The 14-character Swift string may be encoded in instruction immediates. The same contiguous-literal scan was negative in build 11. Present StoryVideoView/StoryVideoWarmPool type names and source equivalence support packaging evidence; native callable registration was not executed in this IPA inspection.",
+      "literal": "warmStoryVideo",
+      "observedAsContiguousLiteral": false,
+      "status": "inconclusive"
+    }
+  },
+  "packageChecksPassed": true,
+  "passedCheckCount": 38,
+  "privacy": "No signed URLs, device identifiers, certificate identities, provisioning payloads, environment values or session credentials are included.",
+  "profileAndMainSignatureIntegrityChecksPassed": true,
+  "qaChannel": "qa-preview",
+  "schemaVersion": 1,
+  "sourceProvenance": {
+    "easFingerprintHash": "39aa546d600753ccfd463541404e13867eec4b1d",
+    "easReportedGitCommit": "a814234b39a9f1a687c9c978e0896ef1662d7b73",
+    "fingerprintLimitation": "Official EAS fingerprint:compare reported uploaded source files expired or invalid. No direct fingerprint-byte comparison was available.",
+    "perFileUploadedFingerprintAvailable": false,
+    "swiftGitBlobsMatchSimulatorTestedSources": true
+  },
+  "updates": {
+    "checkOnLaunch": "ALWAYS",
+    "enabled": false,
+    "requestHeaderChannel": null,
+    "runtimeChannelApplicable": false,
+    "runtimeChannelCheck": {
+      "reason": "The actual IPA explicitly sets EXUpdatesEnabled=false. Runtime EAS Update channel routing is disabled; the EAS build channel association is still a required separate check.",
+      "status": "not_applicable"
+    },
+    "runtimeVersion": null
+  }
+}

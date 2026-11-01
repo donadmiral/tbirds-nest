@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "a814234b39a9f1a687c9c978e0896ef1662d7b73",
+  "sourceTree": "adede8b853703843738f4f7fc7c505c717c07c3a",
+  "regressionManifest": "regressions.json",
+  "mainRegressionCases": 153,
+  "additionalChatRegression": {
+    "file": "tests/chat-quality.test.cjs",
+    "passed": true,
+    "tests": 13,
+    "pass": 13,
+    "fail": 0,
+    "sourceSha256": "1412d52865ff46e47d6b122cfdebbc1cb9c47b5decd3bbaa9e5fee68f2f558cd",
+    "outputSha256": "25216fcf6282b56be621cc92d536f7a65c3402bc8121e5f46bc98294e1454866"
+  },
+  "totalFocusedCases": 166,
+  "nativeSimulatorCases": 8,
+  "nativeComparison": "ios-runtime-41353338768/comparison.json",
+  "nativeTypecheck": "passed",
+  "webTypecheck": "passed",
+  "iosProductionBundle": "passed (2926 modules)",
+  "backendProject": "uaulhuelcfkjwojtymmw",
+  "backendFunction": "media-content",
+  "backendVersion": 2,
+  "backendPostflight": "qa-media-content/postflight-summary.json",
+  "builds": [
+    {
+      "platform": "ios",
+      "id": "43f06ff4-6fd0-4f90-85e7-0939753656ff",
+      "version": "1.1.0",
+      "build": "12",
+      "status": "FINISHED",
+      "completedAt": "2026-11-01T22:07:19.172Z",
+      "artifactSha256": "43cd8e652cd6b7eb2d545a482255a7ec6fe221e79f7e6f5a46920ad9a1a42384",
+      "artifactBytes": 27923039,
+      "packageChecks": 38,
+      "packagePostflight": "ios-build12/postflight.json",
+      "url": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/43f06ff4-6fd0-4f90-85e7-0939753656ff"
+    },
+    {
+      "platform": "android",
+      "id": "d5f66ef1-587c-46a2-afa6-02db99ea08bc",
+      "version": "1.1.0",
+      "build": "7",
+      "status": "FINISHED",
+      "completedAt": "2026-11-01T22:26:35.067Z",
+      "artifactSha256": "f3561ab245e7254420f15724c9633414a4bee20dd97531776bc28294c3da429a",
+      "artifactBytes": 270400279,
+      "packageGateGroups": 8,
+      "requiredClassDefinitions": 11,
+      "moduleRegistrations": 2,
+      "packagePostflight": "android-build7/release-receipt.json",
+      "url": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/d5f66ef1-587c-46a2-afa6-02db99ea08bc"
+    }
+  ],
+  "limits": [
+    "No physical-device or complete React Native bridge acceptance has been observed.",
+    "Authorized hosted media GET/HEAD/range streaming was not probed because no configured QA session was available.",
+    "No end-to-end startup-time or zero-buffering performance claim."
+  ],
+  "updatedAt": "2026-11-01T22:28:02.610759+00:00"
+}
