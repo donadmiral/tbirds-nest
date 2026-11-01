@@ -1,3 +1,4 @@
+import { ensureMediaLibraryPermission } from '../../services/devicePermissions';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {ActivityIndicator,AppState,Modal,Platform,StyleSheet,Text,TouchableOpacity,useWindowDimensions,View} from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
@@ -61,7 +62,7 @@ export default function MemoryMovieExport({bookId,expected,originalAudio,scoreVo
  const save=async()=>{
   const prepared=result.current,abort=scope.current;if(dismissal.isDismissing()||!prepared||!abort||busy.current||abort.signal.aborted)return;busy.current=true;setSaving(true);setError('');
   try{
-   await prepared.assertRights();permissionPrompt.current=true;let permission:Awaited<ReturnType<typeof MediaLibrary.requestPermissionsAsync>>;try{permission=await MediaLibrary.requestPermissionsAsync(true);}finally{permissionPrompt.current=false;}
+   await prepared.assertRights();permissionPrompt.current=true;let permission:Awaited<ReturnType<typeof MediaLibrary.requestPermissionsAsync>>;try{permission=await ensureMediaLibraryPermission({ writeOnly: true });}finally{permissionPrompt.current=false;}
    if(!permission.granted)throw new Error('Allow Photos access to save this memory movie.');
    await prepared.assertRights();if(result.current!==prepared||scope.current!==abort||abort.signal.aborted)throw new Error('Memory movie export was cancelled.');
    await MediaLibrary.saveToLibraryAsync(prepared.result.uri);

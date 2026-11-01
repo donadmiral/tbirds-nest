@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
+import { CameraView } from "expo-camera";
+import { useCameraPermissions } from "../../hooks/useDevicePermissions";
 import * as FileSystem from "expo-file-system/legacy";
 import { WebView } from "react-native-webview";
 import { preparePrivateCameraRuntime } from "../../services/privateCameraModel";

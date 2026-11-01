@@ -1,3 +1,4 @@
+import { ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import { themedSheet, useTheme } from '../../theme/useTheme';
@@ -282,7 +283,7 @@ export default function CommunityScreen() {
   };
 
   const pickPhoto = async () => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
       preferredAssetRepresentationMode: 'compatible' as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
@@ -398,7 +399,7 @@ export default function CommunityScreen() {
 
   const pickIcon = async () => {
     if (!me?.id) return;
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!perm.granted) return;
     const result = await ImagePicker.launchImageLibraryAsync({
       preferredAssetRepresentationMode: 'compatible' as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,

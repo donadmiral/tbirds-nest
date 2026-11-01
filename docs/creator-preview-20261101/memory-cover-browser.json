@@ -1,0 +1,19 @@
+{
+  "browser": "156.0.8078.80",
+  "scope": "Actual web UI; synthetic local persistence. SQL RPC roundtrip tested separately.",
+  "passed": [
+    "distinct authorized thumbnail collage",
+    "local cursive font",
+    "paper and title colors",
+    "pointer drawing",
+    "undo and redo",
+    "create and edit persist strokes",
+    "same cover pixels after reload",
+    "mobile editor fits",
+    "text-first books seed photo collages",
+    "long and non-Latin cursive titles fit"
+  ],
+  "strokePoints": 37,
+  "reloadCoverSha256": "2d06d32199bb5e92e73d246eeae56596c95bcd64a4a0c54173e84a31b4b0f0ab",
+  "consoleErrors": []
+}

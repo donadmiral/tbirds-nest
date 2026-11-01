@@ -2,7 +2,7 @@ import { storyMentionIds, storyHandles, currentTextMentions } from '../../../sha
 /**
  * usePublishOrchestrator.ts
  *
- * Owns: publishing flag, upload pipeline, per-draft state transitions, exit animation.
+ * Owns: publishing flag, upload pipeline, per-draft state transitions, confirmed exit.
  * Does NOT own: draft creation or editing (receives drafts + setDrafts).
  * Does NOT own: bloom state (receives closeBloom as stable callback).
  *
@@ -13,14 +13,14 @@ import { storyMentionIds, storyHandles, currentTextMentions } from '../../../sha
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Animated } from 'react-native';
+import { Alert, type Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { showMessage } from 'react-native-flash-message';
 import { storiesService, type StoryUploadCache } from '../../services/storiesService';
 import { supabase } from '../../services/supabase';
-import { duration } from '../../constants/tokens';
 import { PublicationAttempt } from '../../utils/publication';
 import { authorId as currentAuthorId } from '../../stores/actorStore';
+import { returnToFeed } from '../../navigation/returnToFeed';
 
 interface Draft {
   id: string;
@@ -76,12 +76,13 @@ function draftContent(draft: Draft): string {
 export function usePublishOrchestrator(input: PublishOrchestratorInput): PublishOrchestratorOutput {
   const {
     drafts, setDrafts, myId, navigation,
-    closeBloom, mediaOpacity, mediaScale, onPublished,
+    closeBloom, onPublished,
   } = input;
 
   const [publishing, setPublishing] = useState(false);
   const mountedRef = useRef(true);
   const publishingRef = useRef(false);
+  const completedRef = useRef(false);
   const uploadCache = useRef<StoryUploadCache>(new Map());
   const latestDrafts = useRef(drafts);
   latestDrafts.current = drafts;
@@ -93,10 +94,10 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
     return () => { mountedRef.current = false; };
   }, []);
 
-  const canPublish = drafts.some((d) => d.uploadState !== 'done' && !attempts.current.get(d.id)?.progress.uncertain) && !publishing;
+  const canPublish = !!myId && !completedRef.current && drafts.some((d) => d.uploadState !== 'done' && !attempts.current.get(d.id)?.progress.uncertain) && !publishing;
 
   const publishAll = useCallback(async () => {
-    if (!myId || publishingRef.current || drafts.length === 0) return;
+    if (!myId || publishingRef.current || completedRef.current || drafts.length === 0) return;
     publishingRef.current = true;
     setPublishing(true);
 
@@ -247,24 +248,19 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
     setPublishing(false);
 
     if (failCount === 0) {
+      completedRef.current = true;
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      if (onPublished) {
-        const ids = [...attempts.current.values()].map(attempt => attempt.progress.postId).filter((id): id is string => !!id);
-        onPublished([...new Set(ids)]);
-        return;
-      }
-      Animated.parallel([
-        Animated.timing(mediaOpacity, { toValue: 0, duration: duration.medium, useNativeDriver: true }),
-        Animated.timing(mediaScale, { toValue: 0.96, duration: duration.medium, useNativeDriver: true }),
-      ]).start(() => {
-        if (mountedRef.current) { showMessage({ message: 'Story shared', type: 'success', duration: 1800 }); const nav: any = navigation; try { const st = nav.getState?.(); console.log('[Publish] exit from', JSON.stringify((st?.routes || []).map((r: any) => r.name))); if ((st?.routes?.length || 0) > 1 && typeof nav.popToTop === 'function') nav.popToTop(); else if (nav.canGoBack?.()) nav.goBack(); } catch (e: any) { console.log('[Publish] exit failed', e?.message); } }
-      });
+      const ids = [...new Set([...attempts.current.values()].map(attempt => attempt.progress.postId).filter((id): id is string => !!id))];
+      showMessage({ message: ids.length > 1 ? 'Stories shared' : 'Story shared', type: 'success', duration: 2400 });
+      // Confirmation is not blocked by an optional follow-up sheet or animation.
+      // Returning to FeedMain focuses its rail and reloads the published story.
+      try { onPublished?.(ids); } finally { returnToFeed(navigation, { publishedStoryIds: ids, storyRefreshKey: Date.now() }); }
     } else if (successCount === 0) {
       Alert.alert('Sharing incomplete', 'Your drafts are kept. Review each story’s error before trying again.');
     } else {
       Alert.alert('Partial upload', `${successCount} uploaded, ${failCount} failed.`);
     }
-  }, [myId, drafts, setDrafts, navigation, closeBloom, mediaOpacity, mediaScale, publishing, onPublished]);
+  }, [myId, drafts, setDrafts, navigation, closeBloom, onPublished]);
 
   return {
     publishing,

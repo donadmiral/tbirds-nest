@@ -21,6 +21,7 @@ import { MemoryStoryPreview } from './memory/MemoryStoryPreview';
 import { MemoryPageImage } from './memory/MemoryPageImage';
 import { MemoryFilm } from './memory/MemoryFilm';
 import {MemoryCoverControls,MemoryFilmControls} from './memory/MemoryCreativeControls';
+import {MemoryCoverEditor} from './memory/MemoryCoverEditor';
 import {memoryCoverArtwork,memoryFilmSettings,memoryCreativeSaveError} from '../../shared/memoryBookCreative';
 import {saveMemoryCreativeBook} from '../../shared/memoryBookPersistence';
 import {MemoryPageTurn,MemoryTurnPreview,type MemoryPageTurnHandle} from './memory/MemoryPageTurn';
@@ -247,7 +248,7 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
       {mutationError&&<p role="alert" className="mb-3 text-sm text-danger">{mutationError}</p>}
       {view === "cover" ? (
         <section className="mx-auto flex max-w-[360px] flex-col items-center px-5 pb-8 pt-8 sm:pt-10">
-          <button type="button" aria-label={'Open '+album.title} onClick={openBook} className="w-full max-w-[300px] text-left transition-transform hover:-translate-y-1"><ResponsiveMemoryBookCover artwork={album.cover_artwork} title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))}/></button>
+          <button type="button" aria-label={'Open '+album.title} onClick={openBook} className="w-full max-w-[300px] text-left transition-transform hover:-translate-y-1"><ResponsiveMemoryBookCover coverPages={album.cover_pages??pages} artwork={album.cover_artwork} title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))}/></button>
           {album.subtitle&&<p className="mt-7 text-center font-display text-[23px] leading-tight text-ink">{album.subtitle}</p>}
           <p className="mt-3 text-sm text-muted">{pages.length} {pages.length===1?'memory':'memories'}</p>
           <button onClick={openBook} className="mt-7 min-h-12 w-full rounded-2xl bg-[#142642] px-6 py-3 font-display text-[23px] text-[#FFFFFF]">Open book</button>
@@ -453,9 +454,7 @@ function ManageAlbum({ album, ownerId, onClose }: { album: MemoryAlbum; ownerId:
           className="mb-4 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
 
         <label htmlFor={`${editorId}-subtitle`} className="block text-xs font-semibold text-muted">Subtitle</label><input id={`${editorId}-subtitle`} value={subtitle} onChange={e=>setSubtitle(e.target.value)} maxLength={120} placeholder="A small line to remember it by" className="mb-4 mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-transparent px-3 py-2 text-sm text-ink"/>
-        <div className="mx-auto mb-6 w-[174px]"><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...memoryCoverMedia(memoryCoverPage(album.pages,coverStoryId))} width={174} height={228}/></div>
-        <p className="mb-2 text-xs font-semibold uppercase text-muted">Cover memory</p>
-        {album.pages.length ? <div className="mb-5 flex gap-2 overflow-x-auto pb-2">{album.pages.map((pg,i)=><button key={pg.id} aria-label={'Use memory '+(i+1)+' on the cover'} aria-pressed={coverStoryId===pg.story_id} onClick={()=>setCoverStoryId(pg.story_id??null)} className={'relative h-[88px] w-[70px] shrink-0 overflow-hidden rounded-lg border-2 '+(coverStoryId===pg.story_id?'border-ink':'border-transparent')}><MemoryStoryPreview story={{...pg,stickers_json:pg.stickers}}/>{coverStoryId===pg.story_id&&<span className="absolute bottom-1 right-1 rounded-full bg-ink p-1 text-white"><Check size={12}/></span>}</button>)}</div> : <p className="mb-4 text-sm text-muted">Add memories to choose a photo or video cover.</p>}
+        <MemoryCoverEditor value={coverArtwork} onChange={setCoverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...draftCoverMedia} coverPages={album.pages} selectedCoverId={coverStoryId??memoryCoverPage(album.pages,coverStoryId)?.story_id} onSelectCover={setCoverStoryId} disabled={busy}/>
         <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Paper tint</p>
         <div className="mb-4 flex flex-wrap gap-2">
           {Object.entries(COVER_COLORS).map(([key, c]) => (
@@ -468,7 +467,7 @@ function ManageAlbum({ album, ownerId, onClose }: { album: MemoryAlbum; ownerId:
         </div>
 
         <p className="mb-2 text-xs font-semibold uppercase text-muted">Cover design</p>
-        <div className="mb-4 flex gap-4 overflow-x-auto p-2">{MEMORY_DESIGNS.map(d=><button key={d.id} aria-label={`${d.label} cover design`} aria-pressed={design===d.id} onClick={()=>setDesign(d.id)} className={design===d.id?'':'opacity-45'}><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={d.id} {...memoryCoverMedia(memoryCoverPage(album.pages,coverStoryId))} width={74} height={97}/><span className="mt-2 block whitespace-nowrap text-xs">{d.label}</span></button>)}</div>
+        <div className="mb-4 flex gap-4 overflow-x-auto p-2">{MEMORY_DESIGNS.map(d=><button key={d.id} aria-label={`${d.label} cover design`} aria-pressed={design===d.id} onClick={()=>setDesign(d.id)} className={design===d.id?'':'opacity-45'}><MemoryBookCover coverPages={album.pages} artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={d.id} {...memoryCoverMedia(memoryCoverPage(album.pages,coverStoryId))} width={74} height={97}/><span className="mt-2 block whitespace-nowrap text-xs">{d.label}</span></button>)}</div>
         <MemoryCoverControls value={coverArtwork} onChange={setCoverArtwork} hasPhoto={!!(draftCoverMedia.photoUrl||draftCoverMedia.videoUrl)} disabled={busy}/><MemoryFilmControls value={filmSettings} onChange={setFilmSettings} disabled={busy}/>
         <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Who can open it</p>
         <div className="mb-4 flex flex-col gap-1.5">

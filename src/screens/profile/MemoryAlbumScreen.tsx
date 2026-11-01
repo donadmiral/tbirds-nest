@@ -32,6 +32,7 @@ import { useCallContext } from '../../contexts/CallContext';
 import { useIsFocused,type ParamListBase } from '@react-navigation/native';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import MemoryBookCover from '../../components/memory/MemoryBookCover';
+import MemoryCoverEditor from '../../components/memory/MemoryCoverEditor';
 import {MemoryCoverControls,MemoryFilmControls} from '../../components/memory/MemoryCreativeControls';
 import {memoryCoverArtwork,memoryFilmSettings,memoryCreativeSaveError} from '../../../shared/memoryBookCreative';
 import {saveMemoryCreativeBook} from '../../../shared/memoryBookPersistence';
@@ -444,7 +445,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
         <ScrollView style={{flex:1}} contentContainerStyle={{flexGrow:1,alignItems:'center',justifyContent:'center',paddingTop:16,paddingBottom:24}}>
           <Animated.View style={{ transform: [{ scale: coverScale }], opacity: coverFade }}>
             <TouchableOpacity activeOpacity={0.92} onPress={openBook}>
-              <MemoryBookCover artwork={album.cover_artwork} title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))} width={bookW} height={bookH} />
+              <MemoryBookCover coverPages={album.cover_pages??pages} artwork={album.cover_artwork} title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))} width={bookW} height={bookH} />
             </TouchableOpacity>
           </Animated.View>
           <Text style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:21,color:t.ink.primary,marginTop:22}}>{ownerName?'By '+ownerName:album.subtitle||album.title}</Text><Text style={{color:t.ink.secondary,fontSize:13,marginTop:7}}>{pages.length} {pages.length===1?'memory':'memories'}</Text><TouchableOpacity accessibilityRole="button" onPress={openBook} style={{width:bookW,marginTop:22,backgroundColor:'#142642',borderRadius:18,alignItems:'center',padding:15}}><Text style={{color:'#FFF',fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:20}}>Open book</Text></TouchableOpacity>
@@ -605,9 +606,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
             <ScrollView scrollEnabled={!framing} style={{ flexGrow: 0 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <TextInput accessibilityLabel="Book title" value={title} onChangeText={setTitle} placeholder="Memories" placeholderTextColor={t.ink.muted} keyboardAppearance={isDark ? "dark" : "light"} style={st.input} maxLength={30} />
               <TextInput accessibilityLabel="Book subtitle" value={subtitle} onChangeText={setSubtitle} placeholder="A small line to remember it by" placeholderTextColor={t.ink.muted} keyboardAppearance={isDark ? "dark" : "light"} style={st.input} maxLength={120} />
-              <View style={{alignItems:'center',paddingVertical:18}}><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...draftCoverMedia} width={168} height={220}/></View>
-              <Text style={st.lbl}>Cover memory</Text>
-              {pages.length ? <ScrollView horizontal contentContainerStyle={{gap:10,paddingVertical:6}}>{pages.map((pg,i)=><TouchableOpacity key={pg.id} accessibilityLabel={'Use memory '+(i+1)+' on the cover'} accessibilityState={{selected:coverStoryId===pg.story_id}} onPress={()=>setCoverStoryId(pg.story_id??null)} style={{width:68,height:86,borderWidth:coverStoryId===pg.story_id?3:1,borderColor:coverStoryId===pg.story_id?t.ink.primary:t.surface.hairline,borderRadius:8,overflow:'hidden'}}><MemoryStoryTile story={pg}/></TouchableOpacity>)}</ScrollView> : <Text style={{color:t.ink.secondary,fontSize:13}}>Add memories to choose a photo or video cover.</Text>}
+              <MemoryCoverEditor key={settings?'editing':'closed'} value={coverArtwork} onChange={setCoverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...draftCoverMedia} coverPages={pages} selectedCoverId={coverStoryId??memoryCoverPage(pages,coverStoryId)?.story_id} onSelectCover={setCoverStoryId} disabled={settingsBusy} onDragStateChange={setFraming}/>
               <Text style={st.lbl}>Paper tint</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                 {Object.keys(COVER_COLORS).map(k => (
@@ -625,7 +624,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
               <MemoryCoverControls value={coverArtwork} onChange={setCoverArtwork} hasPhoto={!!(draftCoverMedia.photoUrl||draftCoverMedia.videoUrl)} disabled={settingsBusy} onDragStateChange={setFraming}/><MemoryFilmControls value={filmSettings} onChange={setFilmSettings} disabled={settingsBusy}/>
               <MemoryAudienceEditor ownerId={ownerId} />
               <Text style={st.lbl}>Cover design</Text>
-              <ScrollView horizontal contentContainerStyle={{gap:14,padding:7}}>{MEMORY_DESIGNS.map(d=><TouchableOpacity key={d.id} accessibilityRole="button" accessibilityLabel={`${d.label} cover design`} accessibilityState={{selected:design===d.id}} onPress={()=>setDesign(d.id)} style={{opacity:design===d.id?1:.45}}><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={d.id} {...draftCoverMedia} width={70} height={92}/><Text style={{color:t.ink.primary,fontSize:10,marginTop:6}}>{d.label}</Text></TouchableOpacity>)}</ScrollView>
+              <ScrollView horizontal contentContainerStyle={{gap:14,padding:7}}>{MEMORY_DESIGNS.map(d=><TouchableOpacity key={d.id} accessibilityRole="button" accessibilityLabel={`${d.label} cover design`} accessibilityState={{selected:design===d.id}} onPress={()=>setDesign(d.id)} style={{opacity:design===d.id?1:.45}}><MemoryBookCover coverPages={pages} artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={d.id} {...draftCoverMedia} width={70} height={92}/><Text style={{color:t.ink.primary,fontSize:10,marginTop:6}}>{d.label}</Text></TouchableOpacity>)}</ScrollView>
               {!!mutationError&&<Text style={{color:t.ink.secondary,marginVertical:8}}>{mutationError}</Text>}
             </ScrollView>
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 18, marginTop: 14 }}>

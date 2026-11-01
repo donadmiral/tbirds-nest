@@ -5,10 +5,12 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {Feather} from '@expo/vector-icons';
 import Svg,{Defs,Pattern,Rect,Path,Circle,Text as SvgText} from 'react-native-svg';
 import VideoThumb from '../VideoThumb';
-import {memoryArtwork,memoryDesign,memoryCoverDate} from '../../../shared/memoryBookDesign';
+import {memoryArtwork,memoryDesign,memoryCoverDate,type MemoryCoverPage} from '../../../shared/memoryBookDesign';
 import {memoryCoverArtwork,memoryCoverPhotoPosition,type MemoryCoverArtwork} from '../../../shared/memoryBookCreative';
 import {memoryCoverParagraph,memoryCoverWritingLayout,memoryCoverWritingTitleSize} from '../../../shared/memoryCoverWriting';
-type Props={artwork?:MemoryCoverArtwork|null;title:string;subtitle?:string|null;color?:string;design?:string;photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;takenAt?:string;width?:number;height?:number};
+import {memoryCoverCollageCells,memoryCoverScaledStrokes,memoryCoverSources} from '../../../shared/memoryCoverPersonalization';
+import {DrawingLayer} from '../stories/DrawLayer';
+export type MemoryBookCoverProps={artwork?:MemoryCoverArtwork|null;title:string;subtitle?:string|null;color?:string;design?:string;coverPages?:readonly MemoryCoverPage[];photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;takenAt?:string;width?:number;height?:number};
 type Position={left:`${number}%`;top:`${number}%`};
 const serif=Platform.OS==='ios'?'Didot':'serif';
 const absolute={position:'absolute',left:0,right:0,top:0,bottom:0} as const;
@@ -28,12 +30,21 @@ function Weave({id,cloth=false,scale}:{id:string;cloth?:boolean;scale:number}){
 }
 
 /** These six layouts use the book's own authorized cover, including its real date. */
-export default function MemoryBookCover({artwork:rawArtwork,title,subtitle,color,design,photoUrl,fallbackPhotoUrl,videoUrl,takenAt,width=144,height=188}:Props){
- const d=memoryDesign(design),a=memoryArtwork(design,color),u=width/200,typeSize=memoryCoverWritingTitleSize(title,design,height/u)*u,artwork=memoryCoverArtwork(rawArtwork),date=artwork.showDate?memoryCoverDate(takenAt):null,id=useId().replace(/:/g,''),longPostcard=title.trim().length>12;
+export default function MemoryBookCover({artwork:rawArtwork,title,subtitle,color,design,coverPages=[],photoUrl,fallbackPhotoUrl,videoUrl,takenAt,width=144,height=188}:MemoryBookCoverProps){
+ const d=memoryDesign(design),base=memoryArtwork(design,color),u=width/200,artwork=memoryCoverArtwork(rawArtwork),typeSize=memoryCoverWritingTitleSize(title,design,height/u,artwork.version===2&&artwork.titleStyle==='handwritten')*u,date=artwork.showDate?memoryCoverDate(takenAt):null,id=useId().replace(/:/g,''),longPostcard=title.trim().length>12;
+ const a=artwork.version===2?{...base,paper:artwork.paperColor??base.paper,ink:artwork.inkColor??base.ink,accent:artwork.inkColor??base.accent}:base;
+ const titleFont=artwork.version===2&&artwork.titleStyle==='handwritten'?'Caveat_600SemiBold':artwork.version===2&&artwork.titleStyle==='sans'?(Platform.OS==='ios'?'Arial':'sans-serif'):serif;
+ const selectedSources=memoryCoverSources(artwork,coverPages),sources=selectedSources.length?selectedSources:[{photoUrl,fallbackPhotoUrl,videoUrl}];
+ let auxiliaryIndex=0;
  const dark=d.id==='editorial'||d.id==='night_film';
  const writing=memoryCoverWritingLayout(artwork,design,title,width,height);
- const photo=(style:ViewStyle,position:Position={left:'50%',top:'50%'},auxiliary=false,monochrome=false)=>{const crop=memoryCoverPhotoPosition(artwork,parseFloat(position.left),parseFloat(position.top));return <View style={[{position:'absolute',overflow:'hidden',backgroundColor:dark?'#343632':'#D5CDBA'},style]}><CoverPhoto photoUrl={photoUrl} fallbackPhotoUrl={fallbackPhotoUrl} videoUrl={auxiliary?undefined:videoUrl} ink={a.ink} scale={u} position={{left:`${crop.x}%`,top:`${crop.y}%`}} zoom={artwork.photo.scale} monochrome={monochrome}/></View>;};
- const type={position:'absolute',fontFamily:serif,fontSize:typeSize,paddingBottom:typeSize*.18,color:a.ink,includeFontPadding:false} as const;
+ const photo=(style:ViewStyle,position:Position={left:'50%',top:'50%'},auxiliary=false,monochrome=false)=>{
+  const crop=memoryCoverPhotoPosition(artwork,parseFloat(position.left),parseFloat(position.top));
+  const shown=artwork.version===2&&artwork.layout==='collage'&&!auxiliary?sources:[sources[auxiliary?++auxiliaryIndex%sources.length:0]];
+  const cells=memoryCoverCollageCells(shown.length);
+  return <View style={[{position:'absolute',overflow:'hidden',backgroundColor:dark?'#343632':'#D5CDBA'},style]}>{shown.map((source,index)=><View key={index} style={{position:'absolute',left:`${cells[index].left}%`,top:`${cells[index].top}%`,width:`${cells[index].width}%`,height:`${cells[index].height}%`,overflow:'hidden',borderWidth:shown.length>1?u:0,borderColor:a.paper}}><CoverPhoto {...source} ink={a.ink} scale={u} position={{left:`${crop.x}%`,top:`${crop.y}%`}} zoom={artwork.photo.scale} monochrome={monochrome}/></View>)}</View>;
+ };
+ const type={position:'absolute',fontFamily:titleFont,fontSize:typeSize,paddingBottom:typeSize*.18,color:a.ink,includeFontPadding:false} as const;
  const small={position:'absolute',includeFontPadding:false} as const;
  return <View accessible accessibilityLabel={`${d.label} book cover: ${title}${subtitle?'. '+subtitle:''}${artwork.inscription?'. '+artwork.inscription:''}${artwork.postmark?'. '+artwork.postmark:''}`} style={{width,height,borderRadius:2*u,backgroundColor:a.paper,shadowColor:'#2C251B',shadowOpacity:.22,shadowRadius:7*u,shadowOffset:{width:2,height:5*u},elevation:5}}>
   <View style={{position:'absolute',left:0,top:0,bottom:0,width:12.4*u,backgroundColor:a.spine,borderTopLeftRadius:2*u,borderBottomLeftRadius:2*u,overflow:'hidden'}}><Weave id={id+'cloth'} cloth scale={u}/><LinearGradient colors={['#00000020','#ffffff20','#00000000','#00000035']} locations={[0,.24,.55,1]} start={{x:0,y:0}} end={{x:1,y:0}} style={absolute}/><View style={{position:'absolute',left:4*u,top:0,bottom:0,width:.7*u,backgroundColor:'#FFFFFF',opacity:.16}}/></View>
@@ -54,7 +65,7 @@ export default function MemoryBookCover({artwork:rawArtwork,title,subtitle,color
     {photo({left:38*u,right:32*u,top:'17%',height:'51%',borderWidth:2*u,borderColor:'#C7BAA1'})}
     <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={.8} style={[type,{left:16*u,right:16*u,top:'74%',lineHeight:typeSize*1.04,textAlign:'center'}]}>{title}</Text>{!!subtitle&&<Text numberOfLines={2} style={[small,{left:16*u,right:16*u,bottom:12*u,fontFamily:serif,fontSize:7*u,color:a.accent,textAlign:'center'}]}>{subtitle}</Text>}
    </>:d.id==='field_notes'?<>
-    <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={.75} style={[type,{left:15*u,right:12*u,top:20*u,fontFamily:Platform.OS==='ios'?'Arial':'sans-serif',fontWeight:'800',fontSize:typeSize,letterSpacing:-.6*u,lineHeight:typeSize*1.04}]}>{title}</Text><Text style={[small,{left:16*u,top:61*u,fontSize:5*u,letterSpacing:1*u,color:a.ink}]}>A COLLECTION OF MOMENTS</Text>
+    <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={.75} style={[type,{left:15*u,right:12*u,top:20*u,fontFamily:artwork.version===2&&artwork.titleStyle!=='design'?titleFont:Platform.OS==='ios'?'Arial':'sans-serif',fontWeight:artwork.version===2&&artwork.titleStyle==='handwritten'?'400':'800',fontSize:typeSize,letterSpacing:-.6*u,lineHeight:typeSize*1.04}]}>{title}</Text><Text style={[small,{left:16*u,top:61*u,fontSize:5*u,letterSpacing:1*u,color:a.ink}]}>A COLLECTION OF MOMENTS</Text>
     {photo({left:0,right:0,top:'27.5%',height:'42%'})}{photo({right:14*u,bottom:15*u,width:49*u,height:51*u,borderWidth:1*u,borderColor:'#EEE3BB'},{left:'90%',top:'95%'},true)}
     <Text numberOfLines={4} style={[small,{left:17*u,right:74*u,bottom:28*u,fontSize:5.8*u,letterSpacing:.8*u,lineHeight:8.7*u,color:a.ink,textTransform:'uppercase'}]}>{subtitle||'Out into the world'}{date?'\n'+date.month+' '+date.year:''}</Text>
    </>:d.id==='night_film'?<>
@@ -70,5 +81,6 @@ export default function MemoryBookCover({artwork:rawArtwork,title,subtitle,color
    {writing.note&&<Text style={{position:'absolute',...writing.note.style,paddingVertical:6*u,paddingHorizontal:8*u,backgroundColor:'#FFF8E7F0',color:'#322D25',fontFamily:artwork.inscriptionStyle==='handwritten'?'Caveat_600SemiBold':artwork.inscriptionStyle==='serif'?serif:Platform.OS==='ios'?'Arial':'sans-serif',textAlign:'center',transform:[{rotate:'-2deg'}],includeFontPadding:false}}>{writing.note.text}</Text>}
    <LinearGradient pointerEvents="none" colors={['#00000022','#ffffff07','#00000000']} locations={[0,.045,.12]} start={{x:0,y:0}} end={{x:1,y:0}} style={absolute}/><View style={[absolute,{borderColor:'#FFF9E530',borderWidth:.6*u}]}/>
   </View>
+  {artwork.version===2&&artwork.strokes.length>0&&<View pointerEvents="none" style={[absolute,{overflow:'hidden'}]}><DrawingLayer strokes={memoryCoverScaledStrokes(artwork.strokes,width)} width={width} height={height}/></View>}
  </View>;
 }

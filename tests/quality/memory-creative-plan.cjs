@@ -123,9 +123,9 @@ const accessLib=load('shared/memoryMovieAccess.ts');
 const nativeMovie=load('shared/memoryMovieComposition.ts');
 const owner='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',bookId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',storyId='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 const draft=()=>({title:'Our days',subtitle:'A little book',color:'cream',design:'postcard',coverStoryId:storyId,artwork:creative.memoryCoverArtwork(),film:settings()});
-function clientFixture(){
+function clientFixture(capabilities={version:1,supported:true}){
  const calls=[];let user=owner,listener=null,onWrite=()=>{},ack={id:bookId,presentation_revision:4,cover_artwork:creative.memoryCoverArtwork(),film_settings:settings()};
- return {calls,setUser:value=>{user=value;},emit:value=>{user=value;listener?.('SIGNED_IN',{user:{id:value}});},onWrite:callback=>{onWrite=callback;},setAck:value=>{ack=value;},client:{auth:{getUser:async()=>({data:{user:{id:user}},error:null}),getSession:async()=>({data:{session:{user:{id:user},access_token:'fixture-only'}},error:null}),onAuthStateChange:callback=>{listener=callback;return{data:{subscription:{unsubscribe(){listener=null;}}}};}},rpc:(name,args)=>{const call={name,args,headers:{},signal:null};calls.push(call);const request={setHeader(name,value){call.headers[name]=value;return request;},abortSignal(signal){call.signal=signal;return request;},then(resolve,reject){return Promise.resolve().then(()=>{if(name!=='get_memory_book_creative_capabilities')onWrite();return{data:name==='get_memory_book_creative_capabilities'?{version:1,supported:true}:ack,error:null};}).then(resolve,reject);}};return request;}}};
+ return {calls,setUser:value=>{user=value;},emit:value=>{user=value;listener?.('SIGNED_IN',{user:{id:value}});},onWrite:callback=>{onWrite=callback;},setAck:value=>{ack=value;},client:{auth:{getUser:async()=>({data:{user:{id:user}},error:null}),getSession:async()=>({data:{session:{user:{id:user},access_token:'fixture-only'}},error:null}),onAuthStateChange:callback=>{listener=callback;return{data:{subscription:{unsubscribe(){listener=null;}}}};}},rpc:(name,args)=>{const call={name,args,headers:{},signal:null};calls.push(call);const request={setHeader(name,value){call.headers[name]=value;return request;},abortSignal(signal){call.signal=signal;return request;},then(resolve,reject){return Promise.resolve().then(()=>{if(name!=='get_memory_book_creative_capabilities')onWrite();return{data:name==='get_memory_book_creative_capabilities'?capabilities:ack,error:null};}).then(resolve,reject);}};return request;}}};
 }
 test('creative saves send one atomic owner-checked revision and exact documents',async()=>{
  const f=clientFixture();const result=await persistence.saveMemoryCreativeBook(f.client,{ownerId:owner,albumId:bookId,revision:3,audience:'only_me',draft:draft(),isCurrent:()=>true});
@@ -194,4 +194,36 @@ test('native movie contract binds total scenes, finite source edits and the cont
 test('native movie acknowledgement verifies actual timeline, dimensions, scene count, bytes and audio',()=>{
  const r=nativeRequest(),good={uri:r.outputUri,width:720,height:1280,duration:4.03,bytes:20000,sceneCount:1,soundtrackMixed:false};assert.equal(nativeMovie.validateMemoryMovieResult(r,good).bytes,20000);
  for(const patch of [{duration:8},{width:1080},{uri:'file:///foreign.mp4'},{sceneCount:0},{bytes:0},{soundtrackMixed:true}])assert.throws(()=>nativeMovie.validateMemoryMovieResult(r,{...good,...patch}),/could not be verified/);
+});
+
+const personalizedCover=()=>({...creative.personalizeMemoryCover(creative.memoryCoverArtwork()),titleStyle:'handwritten',layout:'collage',storyIds:[storyId,owner],paperColor:'#E4EEE2',inkColor:'#142642',strokes:[{tool:'pen',color:'#932535',width:2.5,points:[{x:.1,y:.2},{x:.7,y:.8}]}]});
+test('v2 personalized cover fields survive parsing and do not mutate legacy documents',()=>{
+ const legacy=creative.memoryCoverArtwork(),snapshot=JSON.stringify(legacy),personalized=personalizedCover();
+ assert.deepEqual(plain(creative.parseMemoryCoverArtwork(personalized)),plain(personalized));
+ assert.equal(JSON.stringify(legacy),snapshot);assert.equal(legacy.version,1);
+ for(const patch of [{storyIds:[storyId,storyId]},{paperColor:'red'},{strokes:[{...personalized.strokes[0],points:[{x:NaN,y:.5}]}]},{strokes:Array(65).fill(personalized.strokes[0])},{photoUrl:'https://untrusted.invalid/photo'},{titleStyle:'unknown'}])assert.equal(creative.parseMemoryCoverArtwork({...personalized,...patch}),null);
+});
+test('personalized saves require an explicit backend v2 capability and preserve the draft when unavailable',async()=>{
+ const f=clientFixture(),artwork=personalizedCover(),original=JSON.stringify(artwork);
+ await assert.rejects(persistence.saveMemoryCreativeBook(f.client,{ownerId:owner,albumId:bookId,revision:3,audience:'profile',draft:{...draft(),artwork},isCurrent:()=>true}),/Personalized cover saving is unavailable/);
+ assert.deepEqual(f.calls.map(call=>call.name),['get_memory_book_creative_capabilities']);assert.equal(JSON.stringify(artwork),original);
+});
+test('v2 save acknowledgement must retain the exact collage, palette and drawing',async()=>{
+ const artwork=personalizedCover(),f=clientFixture({version:1,supported:true,coverArtworkVersions:[1,2]});
+ f.setAck({id:bookId,presentation_revision:4,cover_artwork:artwork,film_settings:settings()});
+ const options={ownerId:owner,albumId:bookId,revision:3,audience:'only_me',draft:{...draft(),artwork},isCurrent:()=>true};
+ const saved=await persistence.saveMemoryCreativeBook(f.client,options);
+ assert.deepEqual(plain(saved.cover_artwork),plain(artwork));assert.deepEqual(plain(f.calls[1].args.p_cover_artwork),plain(artwork));
+ for(const returned of [creative.memoryCoverArtwork(),{...artwork,strokes:[]},{...artwork,storyIds:[storyId]}]){
+  f.setAck({id:bookId,presentation_revision:4,cover_artwork:returned,film_settings:settings()});
+  await assert.rejects(persistence.saveMemoryCreativeBook(f.client,options),/could not be confirmed/);
+ }
+});
+const coverLayout=load('shared/memoryCoverPersonalization.ts');
+test('collage rendering resolves only returned book pages in saved order and uses distinct cells',()=>{
+ const artwork=personalizedCover(),pages=[{story_id:owner,media_type:'image',media_url:'authorized:first'},{story_id:storyId,media_type:'image',media_url:'authorized:second'},{story_id:bookId,media_type:'image',media_url:'unselected'}];
+ assert.deepEqual(plain(coverLayout.memoryCoverSources(artwork,pages).map(source=>source.photoUrl)),['authorized:second','authorized:first']);
+ assert.deepEqual(plain(coverLayout.memoryCoverSources({...artwork,storyIds:[bookId]},pages.slice(0,2))),[]);
+ for(const count of [1,2,3,4]){const cells=coverLayout.memoryCoverCollageCells(count);assert.equal(cells.length,count);assert.equal(cells.reduce((area,cell)=>area+cell.width*cell.height,0),10000);}
+ const scaled=coverLayout.memoryCoverScaledStrokes(artwork.strokes,100);assert.equal(scaled[0].width,1.25);assert.equal(artwork.strokes[0].width,2.5);
 });

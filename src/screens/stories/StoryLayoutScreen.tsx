@@ -1,3 +1,4 @@
+import { ensureCameraPermission } from '../../services/devicePermissions';
 /**
  * Layout: a slot-driven compositor, the way Instagram's Layout works.
  *
@@ -114,7 +115,7 @@ export default function StoryLayoutScreen() {
     if (pickerLock.current || exportLock.current || !focusRef.current) return;
     pickerLock.current = true; setPicking(true); const run = generation.current;
     try {
-      const permission = await ImagePicker.requestCameraPermissionsAsync(); if (!current(run)) return;
+      const permission = await ensureCameraPermission(); if (!current(run)) return;
       if (!permission.granted) { Alert.alert('Camera access needed', 'Allow camera access to take a photo for this layout.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Open settings', onPress: () => { void Linking.openSettings(); } }]); return; }
       const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 1 });
       if (current(run) && !result.canceled && result.assets?.[0]?.uri) setSlot(i, result.assets[0].uri);

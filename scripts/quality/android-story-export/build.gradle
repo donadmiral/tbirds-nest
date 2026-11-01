@@ -30,12 +30,12 @@ android {
   testOptions { animationsDisabled true }
 }
 
-// Android's Java source exclusion does not exclude Kotlin sources. Copy the three
+// Android's Java source exclusion does not exclude Kotlin sources. Copy the
 // production engine files byte-for-byte so the fixture cannot accidentally
 // compile the unrelated Expo wrapper or a test replacement of the renderer.
 tasks.register('copyProductionRenderer', Sync) {
   from '../../../modules/boomerang/android/src/main/java/expo/modules/boomerang'
-  include 'StoryVideoComposition.kt', 'StoryVideoEffects.kt', 'MemoryMovieComposition.kt'
+  include 'StoryVideoComposition.kt', 'StoryVideoEffects.kt', 'MemoryMovieComposition.kt', 'ReactVideoComposition.kt', 'ReactVideoEffects.kt'
   into layout.buildDirectory.dir('generated/production-renderer/expo/modules/boomerang')
 }
 tasks.named('preBuild').configure { dependsOn 'copyProductionRenderer' }
@@ -52,6 +52,7 @@ dependencies {
   implementation 'androidx.media3:media3-transformer:1.11.1'
   implementation 'androidx.media3:media3-effect:1.11.1'
   implementation 'androidx.media3:media3-common:1.11.1'
+  implementation 'com.google.mlkit:segmentation-selfie:16.0.0-beta6'
   androidTestImplementation 'androidx.test:runner:1.6.2'
   androidTestImplementation 'androidx.test.ext:junit:1.2.1'
   androidTestImplementation 'junit:junit:4.13.2'

@@ -92,10 +92,11 @@ function harness(options = {}) {
     '../../services/supabase': { supabase: client },
     '../../constants/tokens': { duration: { medium: 1 } },
     '../../utils/publication': publication, '../../stores/actorStore': actors,
+    '../../navigation/returnToFeed': load('src/navigation/returnToFeed.ts', {}),
   }).usePublishOrchestrator;
   const render = () => {
     slot = 0;
-    output = hook({ onPublished: options.onPublished, drafts, myId: userId, setDrafts: (update) => { drafts = typeof update === 'function' ? update(drafts) : update; render(); }, navigation: { canGoBack: () => true, goBack: () => navigations.push('back') }, closeBloom() {}, mediaOpacity: {}, mediaScale: {} });
+    output = hook({ onPublished: options.onPublished, drafts, myId: userId, setDrafts: (update) => { drafts = typeof update === 'function' ? update(drafts) : update; render(); }, navigation: options.navigation || { canGoBack: () => true, goBack: () => navigations.push('back'), getState: () => ({ routes: [{ name: 'Main' }, { name: 'StoryComposer' }] }), navigate: (...args) => navigations.push(args) }, closeBloom() {}, mediaOpacity: {}, mediaScale: {} });
     return output;
   };
   render();
@@ -237,12 +238,25 @@ test('simultaneous sticker transforms merge against the current draft after reor
   assert.equal(locked[1], drafts[1]);
 });
 
-test('book picker receives only confirmed publication IDs and does not navigate away first', async () => {
+test('confirmed publication visibly succeeds and returns to the feed even with a follow-up callback', async () => {
   const confirmed=[];
   const h=harness({onPublished: ids=>confirmed.push(Array.from(ids))});
   await h.render().publishAll();
   assert.equal(confirmed.length,1);assert.equal(confirmed[0][0],tableCalls(h,'stories')[0] && 'story-1');
-  assert.equal(h.navigations.length,0);
+  assert.equal(h.success.length,1); assert.equal(h.success[0].message,'Story shared');
+  assert.equal(h.navigations.length,1);
+  assert.equal(h.navigations[0][0],'Main');
+  assert.equal(h.navigations[0][1].screen,'Feed');
+  assert.equal(h.navigations[0][1].params.screen,'FeedMain');
+  assert.deepEqual(Array.from(h.navigations[0][1].params.params.publishedStoryIds),['story-1']);
+});
+
+test('a stale publish handler remains locked after confirmation and cannot repeat success or navigation', async () => {
+  const h = harness(); const publish = h.render().publishAll;
+  await publish(); await publish(); await h.render().publishAll();
+  assert.equal(tableCalls(h,'stories').length,1);
+  assert.equal(h.success.length,1); assert.equal(h.navigations.length,1);
+  assert.equal(h.render().canPublish,false);
 });
 test('typed story mentions exclude deleted handles and do not mistake email addresses for tags', () => {
   const {storyHandles,currentTextMentions,storyMentionIds}=load('shared/storyMentions.ts',{});

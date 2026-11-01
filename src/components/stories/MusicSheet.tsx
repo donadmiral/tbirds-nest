@@ -1,3 +1,4 @@
+import { ensureMicrophonePermission } from '../../services/devicePermissions';
 /** Original recording/reuse and Apple Music sharing use separate rights paths. */
 import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -279,7 +280,7 @@ function EnabledMusicSheet({ visible, onClose, current, onSelect, onRemove, disa
     try {
       await stopPreview();
       if (!canUseAudio(mine)) return;
-      const permission = await Audio.requestPermissionsAsync();
+      const permission = await ensureMicrophonePermission();
       if (!canUseAudio(mine)) return;
       if (!permission.granted) throw new Error('Enable microphone access in your phone settings to record a voiceover.');
       await setSheetAudioMode({ allowsRecordingIOS: true, playsInSilentModeIOS: true });

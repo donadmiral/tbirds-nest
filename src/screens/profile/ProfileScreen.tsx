@@ -1,3 +1,4 @@
+import { ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import React, { useRef , useCallback, useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { Pressable , View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Alert, Share, useWindowDimensions } from 'react-native';
@@ -352,7 +353,7 @@ export default function ProfileScreen() {
 
   const changePhoto = async () => {
     if (!userId) return;
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!perm.granted) { Alert.alert('Permission needed','Allow photo access in your device settings.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
         preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode, mediaTypes: ['images'] as ImagePicker.MediaType[], allowsEditing: true, aspect: [1,1], quality: 0.85 });

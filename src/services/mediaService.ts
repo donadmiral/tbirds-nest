@@ -1,3 +1,4 @@
+import { ensureCameraPermission, ensureImagePickerLibraryPermission } from './devicePermissions';
 // src/services/mediaService.ts
 import * as ImagePicker from 'expo-image-picker';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -75,7 +76,7 @@ export async function pickFromLibrary(opts?: {
   quality?: number;
   includeBase64?: boolean;
 }): Promise<PickedMedia[]> {
-  const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const perm = await ensureImagePickerLibraryPermission();
   if (!perm.granted) throw new Error('Photo library permission denied');
 
   const mediaTypes = (opts?.allowVideos
@@ -139,7 +140,7 @@ export async function pickFromCamera(opts?: {
   quality?: number;
   includeBase64?: boolean;
 }): Promise<PickedMedia | null> {
-  const perm = await ImagePicker.requestCameraPermissionsAsync();
+  const perm = await ensureCameraPermission();
   if (!perm.granted) throw new Error('Camera permission denied');
   const result = await ImagePicker.launchCameraAsync({
     // Data saver halves upload weight; explicit quality from callers wins.

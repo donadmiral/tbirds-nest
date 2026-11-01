@@ -1,3 +1,9 @@
+import type { ReactExport } from '../../../shared/reactVideoComposition';
+import { acknowledgePendingReactCapture, peekPendingReactCapture, subscribePendingReactCapture } from '../../utils/reactCaptureBridge';
+import { reactDraftAttribution, reactCaptureAppendStatus, reactCapturePendingMessage } from '../../../shared/reactDraftHandoff';
+import { navigationScope } from '../../lib/navigationCache';
+import { prepareReactPostSource, assertReactSourceAccess } from '../../services/reactSourceAccess';
+import { ensureCameraPermission, ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 import { loadConversationTargets } from '../../../shared/conversationTargets';
 import { createFeedTabCache } from '../../../shared/feedTabCache';
 import { uniqueCollaborators, collaborationName } from '../../../shared/collaborationPeople';
@@ -34,7 +40,7 @@ import TrendingStoriesRail from '../../components/TrendingStoriesRail';
 import MarketplaceShelf from '../../components/market/MarketplaceShelf';
 import { isMarketplacePost, MARKETPLACE_SHELF_AFTER, readMarketplaceRecommendations, type MarketplaceRecommendation } from '../../../shared/marketplaceRecommendations';
 import * as ExpoLinking from 'expo-linking';
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { storiesService } from '../../services/storiesService';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Linking,
@@ -109,7 +115,7 @@ type Post = {
 type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null; is_verified?: boolean | null; verified_tier?: string | null };
 type ProfileMap = Record<string, ProfileLite>;
 type CommentPreview = { body: string; authorName: string; likes?: number };
-type LocalMedia = { uri: string; type: 'image' | 'video'; ext: string; width?: number; height?: number; fileSize?: number; thumbnail?: string; edit?: PostMediaEdit | null; };
+type LocalMedia = { uri: string; type: 'image' | 'video'; ext: string; width?: number; height?: number; fileSize?: number; thumbnail?: string; edit?: PostMediaEdit | null; reactSource?: ReactExport['source']; };
 
 function scorePost(p: Omit<Post, 'score'>): number {
   const h = (Date.now() - new Date(p.created_at || Date.now()).getTime()) / 3600000;
@@ -371,6 +377,8 @@ export default function FeedScreen({ navigation }: any) {
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerMedia, setComposerMedia] = useState<LocalMedia[]>([]);
   const composerMediaRef = useRef(composerMedia); composerMediaRef.current = composerMedia;
+  const reactDraftScope = useRef(navigationScope()).current;
+  const pendingReactCapture = useSyncExternalStore(subscribePendingReactCapture, peekPendingReactCapture, () => null);
   const [editMediaIdx, setEditMediaIdx] = useState<number | null>(null);
   const [selectedComposerMedia,setSelectedComposerMedia]=useState(0);
   const [composerReview,setComposerReview]=useState(false);
@@ -382,11 +390,11 @@ export default function FeedScreen({ navigation }: any) {
   const [publicationLocked, setPublicationLocked] = useState(false);
   const publicationBusy = useRef(false);
   const publicationAttempt = useRef<{ owner: string; postId: string; started: boolean; run: () => Promise<void> } | null>(null);
-  const canEditPostDraft = () => {
+  const canEditPostDraft = useCallback(() => {
     if (!publicationBusy.current && !publicationAttempt.current) return true;
     Keyboard.dismiss(); setComposerOpen(true);
     return false;
-  };
+  }, []);
   const [postCategory, setPostCategory] = useState<string | null>(null);
   const [innoField, setInnoField] = useState<string | null>(null);
   const [innoStage, setInnoStage] = useState<string | null>(null);
@@ -483,6 +491,21 @@ export default function FeedScreen({ navigation }: any) {
   const sendGeneration = useRef(0);
   useEffect(() => { const generation = sendGeneration; generation.current++; setSendPost(null); setSendConvs([]); setSendGroups([]); setSendCommunities([]); return () => { generation.current++; }; }, [userId]);
   const [quotingPost, setQuotingPost] = useState<Post | null>(null);
+  const quotingPostRef = useRef(quotingPost); quotingPostRef.current = quotingPost;
+  const composerAttribution = reactDraftAttribution(composerMedia, quotingPost?.id);
+  const pendingReactMessage = pendingReactCapture
+    ? reactCapturePendingMessage(reactCaptureAppendStatus(composerMedia, pendingReactCapture, quotingPost?.id, posting || publicationLocked))
+    : null;
+  const openQuote = useCallback((post: Post) => {
+    if (!canEditPostDraft()) return;
+    const original = reactDraftAttribution(composerMediaRef.current);
+    if (original.conflict || (original.postId && original.postId !== post.id)) {
+      Alert.alert('One original per post', 'This draft already credits the original in your React video. Finish this post before quoting another.');
+      setComposerOpen(true);
+      return;
+    }
+    setQuotingPost(post); setComposerOpen(true);
+  }, [canEditPostDraft]);
   const [threadingPost, setThreadingPost] = useState<Post | null>(null);
   const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null }>>({});
   const [unreadNotifs, setUnreadNotifs] = useState(0);
@@ -1510,7 +1533,7 @@ export default function FeedScreen({ navigation }: any) {
   const pickMedia = async (only?: 'images' | 'videos') => {
     if (!canEditPostDraft()) return;
     const onlyKind = only === 'images' || only === 'videos' ? only : null;
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!canEditPostDraft()) return;
     if (!perm.granted) { Alert.alert('Permission required'); return; }
     try {
@@ -1566,6 +1589,35 @@ export default function FeedScreen({ navigation }: any) {
 
   const funCamNav = useNavigation<any>();
   const resumeCameraDraft = useRef(false);
+  const reactLaunchBusy = useRef(false);
+  useFocusEffect(useCallback(function appendPendingReactCapture() {
+    const reaction = peekPendingReactCapture();
+    const scope = navigationScope();
+    if (!reaction || !scope || scope !== reactDraftScope) return;
+    let alive = true;
+    const canAppend = (items: LocalMedia[]) => alive && navigationScope() === scope
+      && peekPendingReactCapture()?.uri === reaction.uri
+      && reactCaptureAppendStatus(items, reaction, quotingPostRef.current?.id, publicationBusy.current || !!publicationAttempt.current) === 'ready';
+    if (!canAppend(composerMediaRef.current)) return;
+    void (async () => {
+      let thumbnail: string | undefined;
+      try { thumbnail = (await VideoThumbnails.getThumbnailAsync(reaction.uri, { time: 0, quality: .8 })).uri; } catch {}
+      if (!canAppend(composerMediaRef.current)) return;
+      // The updater rechecks the latest draft; another picker or publication
+      // may have started while the thumbnail was being prepared.
+      setComposerMedia(items => canAppend(items) ? [...items, {
+        uri: reaction.uri, type: 'video', ext: 'mp4', width: reaction.width, height: reaction.height, thumbnail,
+        edit: { aspectRatio: 9 / 16, fit: 'contain' }, reactSource: reaction.source,
+      }] : items);
+    })();
+    return () => { alive = false; };
+  }, [pendingReactCapture, composerMedia, quotingPost?.id, posting, publicationLocked, reactDraftScope]));
+  useEffect(function confirmReactCaptureAppend() {
+    if (!pendingReactCapture || !reactDraftScope || navigationScope() !== reactDraftScope) return;
+    const index = composerMedia.findIndex(item => item.uri === pendingReactCapture.uri && item.reactSource);
+    if (index < 0 || !acknowledgePendingReactCapture(pendingReactCapture.uri)) return;
+    setSelectedComposerMedia(index); setComposerReview(false); setComposerOpen(true);
+  }, [composerMedia, pendingReactCapture, reactDraftScope]);
   useFocusEffect(useCallback(() => {
     const cm = takePendingCapture('feed');
     if (resumeCameraDraft.current) { resumeCameraDraft.current = false; if (canEditPostDraft()) setComposerOpen(true); }
@@ -1598,38 +1650,25 @@ export default function FeedScreen({ navigation }: any) {
     setTimeout(()=>{ if (canEditPostDraft()) funCamNav.navigate('StoryFunCamera', { returnTo: 'feed', feedParams: {} }); },300);
   };
 
-  const reactToVideo = async (post: Post) => {
-    if (!canEditPostDraft()) return;
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!canEditPostDraft()) return;
-    if (!perm.granted) { Alert.alert('Permission required'); return; }
-    try {
-      const result = await ImagePicker.launchCameraAsync({
-        quality: 1,
-        mediaTypes: ['videos'] as ImagePicker.MediaType[],
-        allowsEditing: false,
-        videoMaxDuration: 60,
-      });
-      if (result.canceled || !result.assets?.[0]) return;
-      const a = result.assets[0];
-      const rawExt = safeExtFromUri(a.uri, 'mp4');
-      const ext = ['mov', 'mp4', 'webm'].includes(rawExt) ? rawExt : 'mp4';
-
-      let thumbnail: string | undefined;
-      try {
-        const thumbResult = await VideoThumbnails.getThumbnailAsync(a.uri, { time: 0, quality: 0.7 });
-        thumbnail = thumbResult.uri;
-      } catch (e) {
-        console.log('[REACT_THUMB_ERR]', e);
-      }
-
-      if (!canEditPostDraft()) return;
-      setQuotingPost(post);
-      setComposerMedia([{ uri: a.uri, type: 'video', ext, width: a.width ?? undefined, height: a.height ?? undefined, thumbnail }]);
-      setComposerOpen(true);
-    } catch (e: any) {
-      console.log('[REACT_CAMERA_ERR]', e?.message || e);
+  const openReact = async (post?: Pick<Post, 'id'>) => {
+    if (reactLaunchBusy.current || !canEditPostDraft()) return;
+    const scope = navigationScope();
+    if (!scope || scope !== reactDraftScope) return;
+    if (peekPendingReactCapture()) { setComposerOpen(true); return; }
+    if (composerMediaRef.current.length >= 10) { Alert.alert('Post is full', 'Remove one item before adding a reaction.'); return; }
+    const original = reactDraftAttribution(composerMediaRef.current, quotingPostRef.current?.id);
+    if (post && original.postId && original.postId !== post.id) {
+      Alert.alert('One original per post', 'Finish this post before recording a reaction to a different original.');
+      setComposerOpen(true); return;
     }
+    reactLaunchBusy.current = true;
+    try {
+      const source = post ? await prepareReactPostSource({ postId: post.id, uri: '', kind: 'image' }) : undefined;
+      if (navigationScope() !== scope || !canEditPostDraft()) return;
+      Keyboard.dismiss(); setComposerOpen(false);
+      navigation.navigate('ReactCapture', { source });
+    } catch (error: any) { if (navigationScope() === scope) Alert.alert('React unavailable', error?.message || 'This post could not be opened. Try again.'); }
+    finally { reactLaunchBusy.current = false; }
   };
 
   const handleComposerChange = (text: string) => {
@@ -1656,6 +1695,8 @@ export default function FeedScreen({ navigation }: any) {
       if (!publicationAttempt.current) {
         const owner = userId, author = currentAuthorId(owner), postId = Crypto.randomUUID();
         const media = composerMedia.map(m => ({ ...m, id: Crypto.randomUUID() }));
+        const original = reactDraftAttribution(media, quotingPost?.id);
+        if (original.conflict) throw new Error('Each post can credit one original. Remove the React video from a different original before posting.');
         const completed = new Set<string>();
         const uploaded: any[] = [];
         const tags = media.flatMap(m => (m.edit?.tags ?? []).map(t => ({ id: Crypto.randomUUID(), post_id: postId, media_id: m.id, user_id: t.user_id, nx: t.nx, ny: t.ny })));
@@ -1699,13 +1740,17 @@ export default function FeedScreen({ navigation }: any) {
           ...(innovationPost && innoStage ? { innovation_stage: innoStage } : {}),
           ...(postCategory ? { category: postCategory } : {}),
           ...(innovationPost && articleTitle.trim() ? { article_title: articleTitle.trim(), read_minutes: Math.max(1, Math.round(composerText.trim().split(/\s+/).length / 200)) } : {}),
-          ...(quotingPost ? { quoted_post_id: quotingPost.id } : {}),
+          ...(original.postId ? { quoted_post_id: original.postId } : {}),
           ...(threadingPost ? { thread_parent_id: threadingPost.id } : {}),
           ...(composerPreview?.url && composerPreview.url === currentLink ? { link_url: composerPreview.url } : {}),
         };
         publicationAttempt.current = {
           owner, postId, started: false,
           run: async () => {
+            const checkReactSources = async () => {
+              for (const item of media) if (item.reactSource?.postId) await assertReactSourceAccess({ ...item.reactSource, uri: item.uri, kind: 'video' });
+            };
+            await checkReactSources();
             for (let i = 0; i < media.length; i++) await step(`upload-${i}`, async () => {
               const m = media[i], video = m.type === 'video';
               setPostProgress({completed:i,total:media.length,label:`Uploading ${video?'video':'photo'} ${i+1} of ${media.length}`});
@@ -1724,6 +1769,7 @@ export default function FeedScreen({ navigation }: any) {
               uploaded[i] = { id: m.id, post_id: postId, url, media_type: m.type, sort_order: i, width: m.width ?? null, height: m.height ?? null, edit: Object.keys(edit).length ? edit : null, is_sensitive: composerSensitive };
             });
             setPostProgress({completed:media.length,total:media.length,label:"Publishing your post"});
+            await checkReactSources();
             publicationAttempt.current!.started = true;
             await step('post', () => saveRows('posts', [{ ...post, ...(uploaded[0] ? { media_url: uploaded[0].url } : {}) }]));
             await step('media', () => saveRows('post_media', uploaded));
@@ -2226,7 +2272,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             <Text style={s.pillTxt}>{post.comments_count > 0 ? fmtCount(post.comments_count) : ''}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={s.pill} onPress={() => { if (isReposted) { toggleRepost(post.id); } else { Alert.alert('Repost this?', '', [{ text: 'Repost', onPress: () => toggleRepost(post.id) }, { text: 'Quote', onPress: () => { if (!canEditPostDraft()) return; setQuotingPost(post); setComposerOpen(true); } }, { text: 'Cancel', style: 'cancel' }]); } }} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
+          <TouchableOpacity style={s.pill} onPress={() => { if (isReposted) { toggleRepost(post.id); } else { Alert.alert('Repost this?', '', [{ text: 'Repost', onPress: () => toggleRepost(post.id) }, { text: 'Quote', onPress: () => openQuote(post) }, { text: 'Cancel', style: 'cancel' }]); } }} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
             <Feather name="repeat" size={20} color={isReposted ? getTheme().status.success : getTheme().ink.muted} />
             <TouchableOpacity onPress={() => openLikers(post, 'reposts')} hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }} activeOpacity={0.7}><Text style={[s.pillTxt, isReposted && s.pillTxtReposted]}>{(post.reposts_count + (post.quotes_count ?? 0)) > 0 ? fmtCount(post.reposts_count + (post.quotes_count ?? 0)) : ''}</Text></TouchableOpacity>
           </TouchableOpacity>
@@ -2276,7 +2322,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       </View>
     );
   }, [
-    t, NAVY, collabs, expandedPosts, heartAnim, navigation, openHashtag, openLikers, openMention, openPostViewers, pollPosts, postRings, requestedIds, userId, viewer,
+    t, NAVY, collabs, expandedPosts, heartAnim, navigation, openHashtag, openLikers, openMention, openPostViewers, openQuote, pollPosts, postRings, requestedIds, userId, viewer,
     marketplaceItems,
     TILE_W,
     activePostId,
@@ -2465,6 +2511,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             <KeyboardAvoidingView style={[s.composerContainer,{paddingTop:insets.top,paddingBottom:Math.max(insets.bottom,12)}]} behavior={Platform.OS==='ios'?'padding':'height'}>
               <View style={s.cHeader}><TouchableOpacity disabled={posting} style={s.cHeaderCancel} onPress={()=>{if(composerReview&&!publicationLocked)setComposerReview(false);else{setComposerOpen(false);Keyboard.dismiss();}}}><Text style={s.cHeaderCancelText}>{composerReview&&!publicationLocked?'Edit':'Cancel'}</Text></TouchableOpacity><Text style={s.cHeaderTitle}>{posting?'Sharing your moment':composerReview?'Review post':'New post'}</Text><TouchableOpacity accessibilityRole="button" disabled={posting||(!composerText.trim()&&!composerMedia.length)} onPress={()=>{Keyboard.dismiss();if(composerReview||publicationLocked)void createPost();else setComposerReview(true);}} style={[s.postBtn,(posting||(!composerText.trim()&&!composerMedia.length))&&s.postBtnOff]}>{posting?<ActivityIndicator color={t.ink.inverse}/>:<Text style={s.postBtnTxt}>{publicationLocked?'Retry':composerReview?'Post':'Review'}</Text>}</TouchableOpacity></View>
               {composerReview&&!posting?<View style={s.cReviewHint}><Text style={s.cReviewHintText}>Ready to share with {AUD_META[postAudience].label.toLowerCase()}? Check your media and caption, then tap Post.</Text></View>:null}
+              {pendingReactMessage ? <View accessibilityLiveRegion="polite" style={s.cReviewHint}><Text style={s.cReviewHintText}>{pendingReactMessage}</Text></View> : null}
               {posting?<View accessibilityLiveRegion="polite" style={s.cProgress}><View style={{flexDirection:'row',justifyContent:'space-between',gap:12}}><Text style={s.cProgressTitle}>{postProgress.label||'Preparing your post'}</Text>{postProgress.total>0?<Text style={s.cProgressTitle}>{postProgress.completed}/{postProgress.total}</Text>:null}</View><View style={s.cProgressTrack}><View style={[s.cProgressFill,{width:`${postProgress.total?postProgress.completed/postProgress.total*100:0}%`}]}/></View><ScrollView style={{maxHeight:150}} contentContainerStyle={{gap:8}}>{composerMedia.map((media,index)=><View key={media.uri} style={s.cUploadRow}><Image source={{uri:media.type==='video'?(media.edit?.coverLocalUri||media.thumbnail||media.uri):media.uri}} style={s.cUploadThumb}/><Text style={[s.cProgressTitle,{flex:1}]}>{media.type==='video'?'Video':'Photo'} {index+1}</Text>{index<postProgress.completed?<Feather name="check-circle" color="#496B51" size={18}/>:index===postProgress.completed?<ActivityIndicator size="small" color="#775D32"/>:<Feather name="clock" color="#716856" size={17}/>}<Text style={s.cProgressText}>{index<postProgress.completed?'Uploaded':index===postProgress.completed?'Uploading':'Waiting'}</Text></View>)}</ScrollView><Text style={[s.cProgressText,{marginTop:10}]}>Keep Platinum open on this feed until your post is confirmed.</Text><TouchableOpacity accessibilityRole="button" onPress={()=>{Keyboard.dismiss();setComposerOpen(false);}} style={s.cContinue}><Text style={s.cProgressTitle}>Continue browsing this feed</Text><Feather name="arrow-right" size={17} color={t.ink.primary}/></TouchableOpacity></View>:null}
               {threadingPost && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: getTheme().surface.canvas, borderColor: getTheme().surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
@@ -2474,12 +2521,12 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   </TouchableOpacity>
                 </View>
               )}
-              {quotingPost && (
+              {composerAttribution.postId && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: getTheme().surface.canvas, borderColor: getTheme().surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: getTheme().ink.secondary }}>Quoting {profilesMap[quotingPost.user_id]?.full_name || profilesMap[quotingPost.user_id]?.username || 'post'}</Text>
-                  <TouchableOpacity onPress={() => { if (canEditPostDraft()) setQuotingPost(null); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: getTheme().ink.secondary }}>{composerAttribution.source ? 'Reacting to' : 'Quoting'} {composerAttribution.source?.creatorName || profilesMap[composerAttribution.source?.creatorId || quotingPost?.user_id || '']?.full_name || profilesMap[composerAttribution.source?.creatorId || quotingPost?.user_id || '']?.username || 'original post'}</Text>
+                  {!composerAttribution.source ? <TouchableOpacity onPress={() => { if (canEditPostDraft()) setQuotingPost(null); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                     <Feather name="x" size={13} color={getTheme().ink.muted} />
-                  </TouchableOpacity>
+                  </TouchableOpacity> : null}
                 </View>
               )}
               {mentionActive && mentionResults.length > 0 && (
@@ -2499,10 +2546,13 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   {profile?.avatar_url?<Image source={{uri:profile.avatar_url}} style={s.cAvatar}/>:<View style={s.cAvatarFb}><Text style={s.cAvatarTxt}>{initials(profile?.full_name||profile?.username)}</Text></View>}
                   <View style={{flex:1,gap:5}}><View style={{flexDirection:'row',alignItems:'center',gap:4}}><TierName userId={profile?.id} baseStyle={s.cName} text={profile?.full_name||profile?.username||'You'} numberOfLines={1}/><VerifiedBadge userId={profile?.id} size={13}/></View><TouchableOpacity style={[s.audChip,{alignSelf:'flex-start'}]} onPress={pickAudience}><Feather name={AUD_META[postAudience].icon} size={12} color={NAVY}/><Text style={s.audChipTxt}>{AUD_META[postAudience].label}</Text><Feather name="chevron-down" size={12} color={NAVY}/></TouchableOpacity></View>
                 </View>
-                {!composerReview ?                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.kindRow} keyboardShouldPersistTaps="always">
+                {!composerReview ?                 <ScrollView horizontal style={s.kindScroll} showsHorizontalScrollIndicator={false} contentContainerStyle={s.kindRow} keyboardShouldPersistTaps="always">
                   <TouchableOpacity style={[s.kindChip, !innovationPost && s.kindChipOn]} onPress={() => setInnovationPost(false)} accessibilityLabel="Regular post">
                     <Feather name="edit-3" size={15} color={!innovationPost ? t.ink.inverse : t.ink.secondary} />
                     <Text numberOfLines={1} style={[s.kindTxt, !innovationPost && s.kindTxtOn]}>Post</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={s.kindChip} onPress={() => { void openReact(); }} accessibilityLabel="Create a React video">
+                    <Feather name="video" size={15} color={t.ink.secondary} /><Text numberOfLines={1} style={s.kindTxt}>React</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={s.kindChip} onPress={() => { setComposerOpen(false); navigation.navigate('ArticleCompose'); }} accessibilityLabel="Write an article">
                     <Feather name="file-text" size={15} color={t.ink.secondary} />
@@ -2520,7 +2570,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 <ScrollView style={{ flex: 1 }} contentContainerStyle={{paddingBottom:12}} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}>{/* composer middle scrolls */}
                 <TextInput ref={composerRef} editable={!composerReview} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="Write a caption…" placeholderTextColor={getTheme().ink.secondary} multiline autoFocus maxLength={2000} />
                 {pollOpts ? (
-                <View style={{ marginTop: 10, gap: 8 }}>
+                <View style={{ marginTop: 0, marginBottom: 12, gap: 8 }}>
                 {pollOpts.map((o, i) => (
                 <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <TextInput value={o} onChangeText={(v) => setPollOpts(p => { const n = [...(p || [])]; n[i] = v; return n; })} accessibilityLabel={'Poll option ' + (i + 1)} placeholder={'Option ' + (i + 1)} placeholderTextColor={getTheme().ink.secondary} maxLength={40}
@@ -2558,7 +2608,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   </View>
                 )}
                 {innovationPost && (
-                  <View style={{ marginBottom: 8 }}>
+                  <View style={{ flexGrow:0,flexShrink:0,marginBottom:8 }}>
                     <Text style={{ fontSize: 10.5, fontWeight: '700', letterSpacing: 1.4, color: 'rgba(11,30,61,0.45)', marginBottom: 6 }}>FIELD</Text>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                       {['Agritech', 'Health', 'Energy', 'Fintech', 'Education', 'Other'].map((f) => (
@@ -2579,7 +2629,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     </View>
                   </View>
                 )}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }} contentContainerStyle={{ gap: 6 }} keyboardShouldPersistTaps="handled">
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow:0,flexShrink:0,marginBottom:8 }} contentContainerStyle={{ gap: 6 }} keyboardShouldPersistTaps="handled">
                   {CATEGORIES.filter(c => c.key !== 'innovation').map(c => (
                     <TouchableOpacity key={c.key} onPress={() => setPostCategory(postCategory === c.key ? null : c.key)}
                       style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: postCategory === c.key ? t.ink.primary : t.surface.hairline, backgroundColor: postCategory === c.key ? t.brand.tintBg : 'transparent' }}>
@@ -2613,8 +2663,14 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             </Modal>
           )}
 
-          {!composerOpen && (posting||publicationLocked||postConfirmed) ? <TouchableOpacity accessibilityRole="button" accessibilityLabel={postConfirmed?'Post shared. Dismiss confirmation.':'View post upload progress'} onPress={()=>postConfirmed?setPostConfirmed(false):setComposerOpen(true)} style={[s.cUploadBanner,{bottom:insets.bottom+TAB_BAR_CLEARANCE}]}>{posting?<ActivityIndicator color={t.ink.primary}/>:<Feather name={postConfirmed?'check-circle':'alert-circle'} color={t.ink.primary} size={22}/>}<View style={{flex:1}}><Text style={{color:t.ink.primary,fontWeight:'700'}}>{postConfirmed?'Your post has been shared':posting?(postProgress.label||'Preparing your post'):'Your post needs attention'}</Text><Text style={{color:t.ink.secondary,fontSize:12,marginTop:3}}>{postConfirmed?'Tap to dismiss':posting?'Keep Platinum open · Tap for progress':'Tap to review and finish the same post'}</Text></View><Feather name={postConfirmed?'x':'chevron-up'} color={t.ink.primary} size={19}/></TouchableOpacity> : null}
-          {!composerOpen && !posting && !publicationLocked && !postConfirmed && (
+          {!composerOpen && (posting || publicationLocked || postConfirmed || pendingReactMessage) ? (
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={pendingReactMessage ? 'Open draft with pending React video' : postConfirmed ? 'Post shared. Dismiss confirmation.' : 'View post upload progress'} onPress={() => postConfirmed && !pendingReactMessage ? setPostConfirmed(false) : setComposerOpen(true)} style={[s.cUploadBanner, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}>
+              {posting ? <ActivityIndicator color={t.ink.primary} /> : <Feather name={postConfirmed ? 'check-circle' : pendingReactMessage ? 'video' : 'alert-circle'} color={t.ink.primary} size={22} />}
+              <View style={{ flex: 1 }}><Text style={{ color: t.ink.primary, fontWeight: '700' }}>{postConfirmed ? 'Your post has been shared' : posting ? (postProgress.label || 'Preparing your post') : publicationLocked ? 'Your post needs attention' : 'Your React video is ready'}</Text><Text style={{ color: t.ink.secondary, fontSize: 12, marginTop: 3 }}>{pendingReactMessage || (postConfirmed ? 'Tap to dismiss' : posting ? 'Keep Platinum open · Tap for progress' : 'Tap to review and finish the same post')}</Text></View>
+              <Feather name={postConfirmed && !pendingReactMessage ? 'x' : 'chevron-up'} color={t.ink.primary} size={19} />
+            </TouchableOpacity>
+          ) : null}
+          {!composerOpen && !posting && !publicationLocked && !postConfirmed && !pendingReactMessage && (
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Create a post" activeOpacity={0.85} onPress={() => setComposerOpen(true)} style={[s.fabRing, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}>
               <View style={s.fabDisc}>
                 <Feather name="edit-3" size={22} color={t.ink.inverse} />
@@ -2683,17 +2739,17 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
             <Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary, paddingHorizontal: 4, paddingBottom: 6 }}>Share</Text>
-            {sharePostTarget && isVideoPost(sharePostTarget) ? (
-              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) reactToVideo(p); }, 350); }}>
+            {sharePostTarget ? (
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) void openReact(p); }, 350); }}>
                 <Feather name="video" size={18} color={getTheme().ink.primary} />
-                <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>React to video</Text><Text style={s.menuOptionSub}>Record your reaction and post it as a reply</Text></View>
+                <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>React</Text><Text style={s.menuOptionSub}>Record beside this post, photo or video</Text></View>
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) addPostToStory(p); }, 350); }}>
               <Feather name="plus-square" size={18} color={getTheme().ink.primary} />
               <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Add to your story</Text><Text style={s.menuOptionSub}>Share this post as a card on your story</Text></View>
             </TouchableOpacity>
-            <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); if (p && canEditPostDraft()) { setQuotingPost(p); setComposerOpen(true); } }}>
+            <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); if (p) openQuote(p); }}>
               <Feather name="corner-down-right" size={18} color={getTheme().ink.primary} />
               <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Add to thread</Text><Text style={s.menuOptionSub}>Quote this post with your own words</Text></View>
             </TouchableOpacity>
@@ -3155,11 +3211,11 @@ const s = themedSheet((t) => ({
   cAvatarFb: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.status.linkBg, alignItems: 'center', justifyContent: 'center' },
   cAvatarTxt: { fontSize: 13, fontWeight: '700', color: t.status.link },
   cName: { fontSize: 14, fontWeight: '700', color: t.ink.primary },
-  cInput: { minHeight: 88, maxHeight: 180, fontSize: 16, color: t.ink.primary, textAlignVertical: 'top', lineHeight: 25, marginBottom: 12 },
+  cInput: { minHeight: 44, maxHeight: 180, fontSize: 16, color: t.ink.primary, textAlignVertical: 'top', lineHeight: 24, paddingTop: 8, paddingBottom: 8, marginBottom: 8 },
   charCount: { fontSize: 12, color: t.status.danger, textAlign: 'right', marginBottom: 4 },
   exclusiveBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.status.linkBg, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 8 },
   exclusiveBannerTxt: { fontSize: 12, color: t.status.link, fontWeight: '500', flex: 1 },
-  cMediaScroll: { marginBottom: 10 },
+  cMediaScroll: { flexGrow: 0, flexShrink: 0, marginBottom: 10 },
   cThumb: { width: 70, height: 80, borderRadius: 12,borderWidth:2,borderColor:'transparent', overflow: 'hidden' },
   cThumbImg: { width: '100%', height: '100%' },
   cVideoOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.25)' },
@@ -3170,7 +3226,8 @@ const s = themedSheet((t) => ({
   cAddMoreTxt: { fontSize: 28, color: t.ink.primary, fontWeight: '300' },
   cToolbar: { flexDirection: 'row', alignItems: 'center', marginTop: 8,paddingTop:12,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:t.surface.hairline,gap: 8 },
   cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0, overflow: 'hidden' },
-  kindRow: { flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' },
+  kindScroll: { flexGrow: 0, flexShrink: 0, maxHeight: 48 },
+    kindRow: { flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' },
   kindChip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 34, paddingHorizontal: 12, borderRadius: 12, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, flexShrink: 0 },
   kindChipOn: { backgroundColor: t.ink.primary, borderColor: t.ink.primary },
   kindChipGold: { backgroundColor: 'rgba(201,191,176,0.30)', borderColor: t.brand.warm },

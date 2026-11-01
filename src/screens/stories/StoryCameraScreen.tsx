@@ -1,3 +1,5 @@
+import { useCameraPermissions as useKnownCameraPermissions, useMicrophonePermissions as useKnownMicrophonePermissions } from '../../hooks/useDevicePermissions';
+import { ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 import { normalizeStoryCapture, STORY_CAPTURE_VIDEO_QUALITY, STORY_CAPTURE_VIDEO_BITRATE } from '../../../shared/storyCapture';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useCameraLife } from '../../hooks/useCameraLife';
@@ -25,8 +27,8 @@ let cameraAvailable = false;
 try {
   const mod = require('expo-camera');
   CameraView = mod.CameraView;
-  useCameraPermissions = mod.useCameraPermissions;
-  useMicrophonePermissions = mod.useMicrophonePermissions;
+  useCameraPermissions = useKnownCameraPermissions;
+  useMicrophonePermissions = useKnownMicrophonePermissions;
   cameraAvailable = !!CameraView;
 } catch {
   cameraAvailable = false;
@@ -82,7 +84,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
   const micPerm = micPair[0];
   const requestMicPerm = micPair[1];
   useEffect(() => {
-    if (micPerm && !micPerm.granted && micPerm.canAskAgain && requestMicPerm) requestMicPerm();
+    if (micPerm?.status === 'undetermined' && micPerm.canAskAgain && requestMicPerm) requestMicPerm();
   }, [micPerm, requestMicPerm]);
   const [facing, setFacing] = useState<'front' | 'back'>('back');
   const [flash, setFlash] = useState<'off' | 'on'>('off');
@@ -181,7 +183,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
   const doubleTapRef = useRef<any>(null);
 
   useEffect(() => {
-    if (permission && !permission.granted && permission.canAskAgain) {
+    if (permission?.status === 'undetermined' && permission.canAskAgain) {
       requestPermission();
     }
   }, [permission, requestPermission]);
@@ -370,7 +372,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
   // ── Gallery shortcut ──
   const openGallery = useCallback(async () => {
     const generation = captureGeneration.current;
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!mountedRef.current || generation !== captureGeneration.current) return;
     if (!perm.granted) {
       Alert.alert('Permission required', 'Allow photo library access in Settings.');

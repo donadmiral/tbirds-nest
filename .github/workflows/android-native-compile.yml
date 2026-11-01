@@ -18,7 +18,7 @@ on:
       - 'scripts/quality/android-media-dependencies.init.gradle'
       - '.github/workflows/android-native-compile.yml'
   push:
-    branches: [master, 'codex/completion-20261101']
+    branches: [master, 'codex/completion-20261101', 'codex/creator-preview-20261101']
     paths:
       - 'modules/**'
       - 'plugins/**'

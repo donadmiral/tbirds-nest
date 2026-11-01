@@ -27,7 +27,7 @@ function rpc(name:string,args:Record<string,unknown>={}){
  const row:Row={name,args:structuredClone(args),authorization:null};let signal:AbortSignal|undefined,pending:Promise<{data:unknown;error:unknown}>|null=null;
  const execute=async()=>{
   requests.push(row);
-  if(name==='get_memory_book_creative_capabilities')return {data:{version:1,supported:true},error:null};
+  if(name==='get_memory_book_creative_capabilities')return {data:{version:1,supported:true,coverArtworkVersions:[1,2]},error:null};
   if(name==='get_memory_book')return {data:savedBook(),error:null};
   if(!name.endsWith('_memory_book_creative_presentation'))return {data:null,error:null};
   if(hold)await new Promise<void>((resolve,reject)=>{const abort=()=>reject(new Error('Synthetic request aborted'));release=()=>{signal?.removeEventListener('abort',abort);resolve();};signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort();});
@@ -39,6 +39,7 @@ function rpc(name:string,args:Record<string,unknown>={}){
   if(args.p_cover_story_id&&!ids.includes(String(args.p_cover_story_id)))return {data:null,error:{message:'Cover is not a book member'}};
   const pages:MemoryPage[]=ids.map((id,index)=>{const story=stories.find(value=>value.id===id)!;return {...story,id:`page-${index}`,story_id:id,sort_order:index,taken_at:story.created_at};});
   const book:MemoryAlbum={id:String(args.p_request_id??args.p_album),user_id:OWNER,is_owner:true,can_view:true,title:String(args.p_title),subtitle:String(args.p_subtitle),cover_color:String(args.p_cover_color),cover_design:String(args.p_cover_design),cover_story_id:args.p_cover_story_id as string|null,audience:String(args.p_audience??'profile'),count:pages.length,pages,presentation_revision:name==='create_memory_book_creative_presentation'?0:old!.presentation_revision!+1,cover_artwork:args.p_cover_artwork as MemoryAlbum['cover_artwork'],film_settings:args.p_film_settings as MemoryAlbum['film_settings']};
+  if(book.cover_artwork?.version===2)book.cover_pages=book.cover_artwork.storyIds.map(id=>pages.find(page=>page.story_id===id)).filter((page):page is MemoryPage=>!!page);
   store(book);return {data:acknowledgement(book),error:null};
  };
  const request={setHeader(_name:string,value:string){row.authorization=value;return request;},abortSignal(value:AbortSignal){signal=value;return request;},then(onFulfilled?:((value:{data:unknown;error:unknown})=>unknown)|null,onRejected?:((reason:unknown)=>unknown)|null){pending??=execute();return pending.then(onFulfilled,onRejected);}};

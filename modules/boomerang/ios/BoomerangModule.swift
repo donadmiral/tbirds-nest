@@ -10,6 +10,12 @@ public class BoomerangModule: Module {
 
     Constant("storyVideoVersion") { 1 }
     Constant("storyAudioExportVersion") { 1 }
+    Constant("reactVideoVersion") { 1 }
+    Constant("reactCutoutVersion") { 1 }
+    AsyncFunction("composeReactVideo") { (request: [String: Any]) async throws -> [String: Any] in
+      try await ReactVideoComposition.make(request)
+    }
+    AsyncFunction("cancelReactVideo") { (id: String) in ReactVideoComposition.cancel(id) }
     // Activated only after the whole-book generated-file acceptance gate passes.
     Constant("memoryMovieVersion") { 0 }
     AsyncFunction("composeMemoryMovie") { (request: [String: Any]) async throws -> [String: Any] in

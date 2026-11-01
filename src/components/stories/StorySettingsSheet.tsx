@@ -1,3 +1,4 @@
+import { ensureMediaLibraryPermission } from '../../services/devicePermissions';
 /**
  * StorySettingsSheet - per-story controls for the owner.
  */
@@ -45,7 +46,7 @@ export default function StorySettingsSheet({
     saveBusy.current = true; setSaving(true);
     let localUri: string | null = null;
     try {
-      const perm = await MediaLibrary.requestPermissionsAsync();
+      const perm = await ensureMediaLibraryPermission({ writeOnly: true });
       if (scope.current !== version) return;
       if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo library access in Settings.'); return; }
       const name = 'story_' + Date.now() + (mediaUrl.includes('.mp4') ? '.mp4' : '.jpg');

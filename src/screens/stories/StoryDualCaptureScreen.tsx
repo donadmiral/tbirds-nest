@@ -17,7 +17,8 @@ import { useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
+import { CameraView } from 'expo-camera';
+import { useCameraPermissions, useMicrophonePermissions } from '../../hooks/useDevicePermissions';
 import { LinearGradient } from 'expo-linear-gradient';
 import { prepareDualAsset } from '../../components/stories/DualCameraComposerBridge';
 import { DEFAULT_LAYOUT } from '../../components/stories/dual/dualCaptureTypes';
@@ -104,7 +105,7 @@ export default function StoryDualCaptureScreen() {
   }, []);
 
   useEffect(() => {
-    if (permission && !permission.granted && permission.canAskAgain) void requestPermission();
+    if (permission?.status === 'undetermined' && permission.canAskAgain) void requestPermission();
   }, [permission]);
 
   useEffect(() => {

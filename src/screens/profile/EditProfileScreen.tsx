@@ -1,3 +1,4 @@
+import { ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 /**
  * EditProfileScreen
  *
@@ -103,7 +104,7 @@ export default function EditProfileScreen({ navigation }: any) {
     const owner = userId, ownerScope = identity.current;
     uploadLock.current = true;
     try {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
         preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,

@@ -1,3 +1,4 @@
+import { ensureNotificationPermission } from './devicePermissions';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
@@ -153,13 +154,7 @@ export async function registerForPushNotifications(userId: string) {
   await ensureCallCategory();
   await registerIncomingCallTask();
 
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
+  const { status: finalStatus } = await ensureNotificationPermission();
 
   console.log(finalStatus === 'granted' ? '[push] Permission granted' : '[push] Permission not granted');
   if (finalStatus !== 'granted') {

@@ -1,0 +1,44 @@
+✔ private installation stages cannot expose an incomplete creative RPC (music none) (3741.633229ms)
+✔ existing books and installed legacy creation retain original playback and exact presentation (38.757494ms)
+✔ the creative migration leaves existing catalogue data, schema and rights functions unchanged (1.6064ms)
+✔ cover inscription, stamp, crop, film preferences and page order persist in real RPC acknowledgements/readers (19.579125ms)
+✔ every existing design and color remains compatible with creative saves (59.564006ms)
+✔ strict cover validation rejects unknown/missing keys, nulls, wrong types and URL fields atomically (33.540703ms)
+✔ strict film validation rejects unknown/missing keys, null enums and malformed booleans (29.196662ms)
+✔ Unicode limits count codepoints and preserve multiline text while rejecting C0 controls and DEL (23.765518ms)
+✔ crop numbers enforce finite typed bounds and canonical numeric retries (24.698199ms)
+✔ foreign stories, invalid selected covers and duplicate/null/excessive page lists leave no partial book (14.165767ms)
+✔ the maximum 80 distinct owned pages retain their exact requested order (79.740133ms)
+✔ a lost create response can be retried exactly without duplicate books, pages or requests (7.543079ms)
+✔ a request reused for another payload or owner returns an explicit conflict (10.349334ms)
+✔ retrying the original creation after an edit confirms the original result without overwriting the book (11.220973ms)
+✔ a deleted book retains a private request tombstone and cannot be recreated by retry (10.924193ms)
+✔ revision-checked saves advance once, including confirmed no-op saves (9.203161ms)
+✔ stale, missing, negative and future revisions cannot overwrite a newer save (14.144605ms)
+✔ legacy title/design/audience writers advance the shared presentation revision (12.887283ms)
+✔ direct writes cannot spoof revisions, bypass document validation or lose confirmed revision changes (13.755867ms)
+✔ removing the selected cover page clears the reference and invalidates an open editor revision (19.6416ms)
+✔ another owner cannot save a book or select a cover outside its owned pages (9.627673ms)
+✔ anonymous and service callers cannot invoke the application creative contract or private implementation (9.978323ms)
+✔ profile erasure removes the private creation record through its owner cascade (72.900739ms)
+✔ revoked sessions cannot read, create, save, directly update or delete creative books (15.975844ms)
+✔ expired or foreign sessions cannot authorize the creative contract (3.6824ms)
+✔ deactivated profiles and banned Auth identities cannot mutate creative books (6.294752ms)
+✔ private book docs and revisions never leak into another viewer’s book, shelf or default album (18.936944ms)
+✔ current follows, blocks and per-book audience still control creative metadata projection (18.567555ms)
+✔ default-album and optional music wrappers preserve creative documents without enabling licensing (7.886969ms)
+✔ unbound business sessions fail closed with or without the business installation (2.477878ms)
+﹣ a current exact business binding supports creative persistence and revoked devices stop it (0.075474ms) # Paired combined-music fixture exercises actual business issuance.
+✔ personalized collage, cursive, palette and real drawing survive atomic create, shelf, save and reopen (20.212834ms)
+✔ v2 cover parser and database agree on bounded shapes and normalized drawing coordinates (605.721518ms)
+✔ collage sources must belong to this book and remain hidden with its existing audience (17.694785ms)
+✔ deleting a collage page removes only its reference and retains the remaining photo, ink and writing (13.644959ms)
+✔ deferred collage membership rejects direct owner writes outside the book without changing public grants (13.183151ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 5038.807631

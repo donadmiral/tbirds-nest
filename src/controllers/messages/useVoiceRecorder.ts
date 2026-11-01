@@ -1,3 +1,4 @@
+import { ensureMicrophonePermission } from '../../services/devicePermissions';
 /**
  * useVoiceRecorder
  *
@@ -84,7 +85,7 @@ export function useVoiceRecorder() {
     setError(null);
     let prepareAttempted = false;
     try {
-      const permission = await AudioModule.requestRecordingPermissionsAsync();
+      const permission = await ensureMicrophonePermission();
       if (!current()) return false;
       if (!permission.granted) { setError('Microphone access is needed to record a voice message.'); return false; }
       await AudioModule.setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });

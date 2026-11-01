@@ -1,3 +1,4 @@
+import { ensureForegroundLocationPermission } from '../../services/devicePermissions';
 import React, {useEffect, useRef, useState} from 'react';
 import {Modal, View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, ScrollView, Platform} from 'react-native';
 import * as Location from 'expo-location';
@@ -9,7 +10,7 @@ export function ShareDetailsSheet({kind,onClose,onSend}: {kind:'contact'|'locati
   const [location,setLocation]=useState<ChatAttachmentCard|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const live=useRef(true),pending=useRef(false),locationTimer=useRef<ReturnType<typeof setTimeout>|null>(null); useEffect(()=>{live.current=true;return()=>{live.current=false;if(locationTimer.current)clearTimeout(locationTimer.current);};},[]);
   const locate=async()=>{ if(pending.current)return;pending.current=true;setBusy(true);setError('');try {
-    const permission=await Location.requestForegroundPermissionsAsync(); if(!live.current)return;
+    const permission=await ensureForegroundLocationPermission(); if(!live.current)return;
     if(!permission.granted)throw Error('Allow location access to select your current location.');
     const position=await Promise.race([Location.getCurrentPositionAsync({accuracy:Location.Accuracy.Balanced}), new Promise<never>((_,reject)=>locationTimer.current=setTimeout(()=>reject(Error("Location took too long. Please retry.")),15000))]); if(!live.current)return;
     setLocation({pcAttachment:1,kind:'location',latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy:position.coords.accuracy??undefined,capturedAt:new Date(position.timestamp).toISOString()});

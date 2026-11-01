@@ -33,9 +33,9 @@ export function memoryStoryStickers(value: unknown): any[] {
 }
 
 /** Decode legacy layer JSON before the authorized media manifest is collected. */
-export function memoryAlbumStoryLayers<T extends { pages?: unknown; cover_page?: unknown }>(album: T): T {
+export function memoryAlbumStoryLayers<T extends { pages?: unknown; cover_page?: unknown; cover_pages?: unknown }>(album: T): T {
   const page = (value: any) => value && typeof value === 'object' ? { ...value, stickers: memoryStoryStickers(value.stickers) } : value;
-  return { ...album, pages: Array.isArray(album.pages) ? album.pages.map(page) : album.pages, cover_page: page(album.cover_page) };
+  return { ...album, pages: Array.isArray(album.pages) ? album.pages.map(page) : album.pages, cover_page: page(album.cover_page), cover_pages: Array.isArray(album.cover_pages) ? album.cover_pages.map(page) : album.cover_pages };
 }
 
 export function memoryStoryLayerVisible(sticker: any, clock: number | null) {

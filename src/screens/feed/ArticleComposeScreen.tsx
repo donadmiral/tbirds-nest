@@ -1,3 +1,4 @@
+import { ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 /**
  * ArticleComposeScreen - long-form publishing. Title, optional cover,
  * the piece itself; read minutes computed from the words. Publishes
@@ -133,7 +134,7 @@ export default function ArticleComposeScreen() {
   };
 
   const insertImage = async () => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!perm.granted) { Alert.alert('Photos', 'Allow photo access to add an image.'); return; }
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.85 });
     if (res.canceled || !res.assets?.[0]?.uri || !profile?.id) return;
@@ -154,7 +155,7 @@ export default function ArticleComposeScreen() {
   };
 
   const pickCover = async () => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!perm.granted) { Alert.alert('Photos', 'Allow photo access to add a cover.'); return; }
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.85 });
     if (!res.canceled && res.assets?.[0]?.uri) {

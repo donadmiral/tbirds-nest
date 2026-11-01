@@ -9,7 +9,7 @@ export type MemoryBookPage=MemoryFilmPage & {
 };
 export type MemoryBookSummary={
   id:string;user_id?:string;title:string;subtitle?:string|null;cover_color:string;cover_design?:string;
-  cover_story_id?:string|null;cover_page?:MemoryCoverPage|null;audience:string;count:number;
+  cover_story_id?:string|null;cover_page?:MemoryCoverPage|null;cover_pages?:MemoryCoverPage[];audience:string;count:number;
   is_default?:boolean;is_owner?:boolean;can_view?:boolean;
   cover_artwork?:MemoryCoverArtwork;film_settings?:MemoryFilmSettings;presentation_revision?:number;
 };

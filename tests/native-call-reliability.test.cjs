@@ -46,10 +46,12 @@ function provider(options = {}) {
     maybeSingle: async () => ({ data: { provider_identity: 'membership' } }) };
   const { CallProvider } = load('src/contexts/CallContext.tsx', {
     react, 'react-native': { Platform: { OS: options.platform ?? 'ios' }, Alert: { alert: (...args) => alerts.push(args) },
-      PermissionsAndroid: { PERMISSIONS: { RECORD_AUDIO: 'mic', CAMERA: 'cam' }, RESULTS: { GRANTED: 'granted' }, request: async () => options.cameraDenied ? 'denied' : 'granted', requestMultiple: async () => ({ mic: options.denied ? 'denied' : 'granted', cam: 'granted' }) },
       AppState: { addEventListener: () => ({ remove() {} }) },
     },
-    'expo-camera': { Camera: { requestMicrophonePermissionsAsync: async () => ({ granted: !options.denied }), requestCameraPermissionsAsync: async () => ({ granted: !options.cameraDenied, status: options.cameraDenied ? 'denied' : 'granted' }) } },
+    '../services/devicePermissions': {
+      ensureMicrophonePermission: async () => ({ granted: !options.denied, status: options.denied ? 'denied' : 'granted' }),
+      ensureCameraPermission: async () => ({ granted: !options.cameraDenied, status: options.cameraDenied ? 'denied' : 'granted' }),
+    },
     '@daily-co/react-native-daily-js': { createCallObject: () => { calls.push(['create']); return call; } },
     '../services/callService': { callService: svc },
     '../services/audioService': { audioService: { stopAll: async () => {}, resetSession: async () => {}, stopAndSwitchToVoiceChat: async () => {}, playRingback: async () => {} } },

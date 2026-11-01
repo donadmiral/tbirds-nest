@@ -217,6 +217,9 @@ function StoryStrip({ mode = 'all' }: Props) {
   const navigation = useNavigation<any>();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
+  const loadGeneration = useRef(0);
+  const ownerRef = useRef(myId); ownerRef.current = myId;
+  useEffect(() => () => { loadGeneration.current++; }, []);
 
   const [catchup, setCatchup] = useState<CatchupUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -228,8 +231,11 @@ function StoryStrip({ mode = 'all' }: Props) {
   const viewerOpenedForRef = useRef<Set<string> | null>(null);
 
   const load = useCallback(async () => {
+    const request = ++loadGeneration.current;
+    const current = () => request === loadGeneration.current && ownerRef.current === myId;
     try {
       const rows = await storiesService.getCatchupFeed(mode, 30);
+      if (!current()) return;
       setCatchup(rows);
       setMyHasStories(!!myId && rows.some(r => r.user_id === myId));
       // Spotlight: public stories from people you don't follow, ranked by
@@ -237,6 +243,7 @@ function StoryStrip({ mode = 'all' }: Props) {
       // Everyone is eligible on its own.
       try {
         const { data: hot } = await supabase.rpc('get_trending_stories', { p_limit: 12 });
+        if (!current()) return;
         const known = new Set<string>(rows.map(r => r.user_id));
         if (myId) known.add(myId);
         setSpotlight(((hot ?? []) as any[]).filter(h => h?.user_id && !known.has(h.user_id)));
@@ -244,7 +251,7 @@ function StoryStrip({ mode = 'all' }: Props) {
     } catch (e) {
       console.log('[StoryStrip.load]', e);
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
   }, [mode, myId]);
 
@@ -269,6 +276,7 @@ function StoryStrip({ mode = 'all' }: Props) {
 
       // Then fetch fresh data from the server to reconcile
       load();
+      return () => { loadGeneration.current++; };
     }, [load])
   );
 

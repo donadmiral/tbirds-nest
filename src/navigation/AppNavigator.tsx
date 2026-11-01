@@ -1,3 +1,4 @@
+import ReactCaptureScreen from '../screens/feed/ReactCaptureScreen';
 import LaunchVeil from '../components/LaunchVeil';
 import ProfileRestore from '../components/ProfileRestore';
 import MutedStoriesScreen from '../screens/profile/MutedStoriesScreen';
@@ -653,6 +654,7 @@ export default function AppNavigator() {
 
               {/* Phase 8: Story creation cinematic realm — dark atmospheric fade entry */}
               <RootStack.Group screenOptions={{ presentation: 'fullScreenModal', animation: 'fade' }}>
+                <RootStack.Screen name="ReactCapture" component={ReactCaptureScreen} />
                 <RootStack.Screen name="StoryCreationMenu"    component={StoryCreationMenuScreen} />
                 <RootStack.Screen name="StoryComposer"        component={StoryComposerScreen} />
                 <RootStack.Screen name="StoryCamera"          component={StoryCameraScreen} />

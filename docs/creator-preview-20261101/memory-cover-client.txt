@@ -1,0 +1,35 @@
+✔ legacy books retain original timing while explicit new settings enable automatic movies (1.265858ms)
+✔ cover settings reject delivery URLs, unknown keys, unbounded framing and hostile enum objects (0.672328ms)
+✔ film settings require the complete versioned contract and actual booleans (0.400311ms)
+✔ save acknowledgement must identify the expected book and carry a valid revision and documents (0.598808ms)
+✔ original cut preserves every authored trim, speed, original gain and page order (0.992849ms)
+✔ short automatic cuts deterministically spread through the book and retain its first and last memories (1.644766ms)
+✔ full automatic movies keep all eighty memories and fit the five-minute bound (1.455473ms)
+✔ chronological cuts sort real dates stably and keep undated memories last (0.32693ms)
+✔ unmeasured videos stay explicitly estimated and measured trims cannot outlast the source (0.351728ms)
+✔ plans contain no playback URLs and reject empty, duplicate, oversized or changed books (1.028943ms)
+✔ creative saves send one atomic owner-checked revision and exact documents (1.342773ms)
+✔ creative mutations reject wrong owners and stale account scopes before a write (0.715754ms)
+✔ a mutation acknowledgement cannot confirm another book, unchanged revision or missing documents (0.807882ms)
+✔ create retries preserve a caller-owned request UUID and exact story order (0.884436ms)
+✔ an account round trip during a successful write prevents its UI acknowledgement (0.376725ms)
+✔ creative create and save pin the starting JWT and reject sticky account round trips (0.745548ms)
+✔ title cards, timing and movement are the same explicit preview/export timeline (0.488022ms)
+✔ saved excerpt duration never pretends to be measured source-video duration (0.210857ms)
+✔ book access accepts fresh delivery capabilities for the same immutable object (2.149002ms)
+✔ book revocation, revision changes and edited pages stop an export (1.82035ms)
+✔ an account round trip permanently invalidates the active movie access session (0.546459ms)
+✔ native movie contract binds total scenes, finite source edits and the continuous soundtrack envelope (0.710375ms)
+✔ native movie acknowledgement verifies actual timeline, dimensions, scene count, bytes and audio (0.507561ms)
+✔ v2 personalized cover fields survive parsing and do not mutate legacy documents (0.664337ms)
+✔ personalized saves require an explicit backend v2 capability and preserve the draft when unavailable (0.358758ms)
+✔ v2 save acknowledgement must retain the exact collage, palette and drawing (1.329133ms)
+✔ collage rendering resolves only returned book pages in saved order and uses distinct cells (0.34642ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 110.605544

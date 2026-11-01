@@ -1,3 +1,4 @@
+import { ensureMediaLibraryPermission } from '../../services/devicePermissions';
 import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 /**
  * MediaViewer.tsx
@@ -78,7 +79,7 @@ export default function MediaViewer({ visible, items, initialIndex, onClose }: P
     if (!current) return;
     setSaving(true);
     try {
-      const perm = await MediaLibrary.requestPermissionsAsync();
+      const perm = await ensureMediaLibraryPermission({ writeOnly: true });
       if (!perm.granted) {
         Alert.alert('Permission required', 'Allow photo library access to save.');
         return;

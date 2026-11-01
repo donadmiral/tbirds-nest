@@ -2,11 +2,13 @@
 import NextImage from "next/image";
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {ImageIcon,Plane} from 'lucide-react';
-import {memoryArtwork,memoryDesign,memoryCoverDate} from '../../../shared/memoryBookDesign';
+import {memoryArtwork,memoryDesign,memoryCoverDate,type MemoryCoverPage} from '../../../shared/memoryBookDesign';
 import {memoryCoverArtwork,memoryCoverPhotoPosition,type MemoryCoverArtwork} from '../../../shared/memoryBookCreative';
 import {memoryCoverParagraph,memoryCoverWritingLayout,memoryCoverWritingTitleSize} from '../../../shared/memoryCoverWriting';
 import styles from './MemoryBookCover.module.css';
-type Props={artwork?:MemoryCoverArtwork|null;title:string;subtitle?:string|null;color?:string;design?:string;photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;takenAt?:string;width?:number;height?:number};
+import {memoryCoverCollageCells,memoryCoverSources} from '../../../shared/memoryCoverPersonalization';
+import {MemoryCoverInk} from './MemoryCoverInk';
+export type MemoryBookCoverProps={artwork?:MemoryCoverArtwork|null;title:string;subtitle?:string|null;color?:string;design?:string;coverPages?:readonly MemoryCoverPage[];photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;takenAt?:string;width?:number;height?:number};
 function CoverPhoto({photoUrl,fallbackPhotoUrl,videoUrl,position='50% 50%',zoom=1,monochrome=false}:{photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;position?:string;zoom?:number;monochrome?:boolean}){
  const [failed,setFailed]=useState<string[]>([]),video=useRef<HTMLVideoElement>(null);
  const src=[photoUrl,fallbackPhotoUrl].find(url=>url&&!failed.includes(url));
@@ -16,12 +18,16 @@ function CoverPhoto({photoUrl,fallbackPhotoUrl,videoUrl,position='50% 50%',zoom=
  if(videoUrl&&!failed.includes(videoUrl))return <video ref={video} src={videoUrl} muted playsInline preload="metadata" style={style} onLoadedMetadata={()=>{if(video.current&&Number.isFinite(video.current.duration))video.current.currentTime=Math.min(.1,video.current.duration/2);}} onError={()=>fail(videoUrl)}/>;
  return <span className={styles.empty}><ImageIcon size="18%"/><span style={{fontSize:'.6em'}}>{photoUrl||videoUrl?'Open to view':'Your memories'}</span></span>;
 }
-export function MemoryBookCover({artwork:rawArtwork,title,subtitle,color,design,photoUrl,fallbackPhotoUrl,videoUrl,takenAt,width=144,height=188}:Props){
- const d=memoryDesign(design),a=memoryArtwork(design,color),u=width/200,typeSize=memoryCoverWritingTitleSize(title,design,height/u)*u,artwork=memoryCoverArtwork(rawArtwork),date=artwork.showDate?memoryCoverDate(takenAt):null;
+export function MemoryBookCover({artwork:rawArtwork,title,subtitle,color,design,coverPages=[],photoUrl,fallbackPhotoUrl,videoUrl,takenAt,width=144,height=188}:MemoryBookCoverProps){
+ const d=memoryDesign(design),base=memoryArtwork(design,color),u=width/200,artwork=memoryCoverArtwork(rawArtwork),typeSize=memoryCoverWritingTitleSize(title,design,height/u,artwork.version===2&&artwork.titleStyle==='handwritten')*u,date=artwork.showDate?memoryCoverDate(takenAt):null;
+ const a=artwork.version===2?{...base,paper:artwork.paperColor??base.paper,ink:artwork.inkColor??base.ink,accent:artwork.inkColor??base.accent}:base;
+ const titleFont=artwork.version===2&&artwork.titleStyle==='handwritten'?'Memory Cover Handwriting,Brush Script MT,Segoe Script,cursive':artwork.version===2&&artwork.titleStyle==='sans'?'Arial,sans-serif':undefined;
+ const selectedSources=memoryCoverSources(artwork,coverPages),sources=selectedSources.length?selectedSources:[{photoUrl,fallbackPhotoUrl,videoUrl}];
+ let auxiliaryIndex=0;
  const longPostcard=title.trim().length>12;
  const writing=memoryCoverWritingLayout(artwork,design,title,width,height);
- const photo=(style:CSSProperties,position='50% 50%',auxiliary=false,monochrome=false)=>{const [x,y]=position.split(' ').map(parseFloat),crop=memoryCoverPhotoPosition(artwork,x,y);return <span className={styles.photo} style={style}><CoverPhoto photoUrl={photoUrl} fallbackPhotoUrl={fallbackPhotoUrl} videoUrl={auxiliary?undefined:videoUrl} position={`${crop.x}% ${crop.y}%`} zoom={artwork.photo.scale} monochrome={monochrome}/></span>;};
- const text=(style:CSSProperties,lines=2)=>({...style,color:a.ink,fontSize:typeSize,lineHeight:1.04,paddingBottom:'.18em',WebkitLineClamp:lines});
+ const photo=(style:CSSProperties,position='50% 50%',auxiliary=false,monochrome=false)=>{const [x,y]=position.split(' ').map(parseFloat),crop=memoryCoverPhotoPosition(artwork,x,y),shown=artwork.version===2&&artwork.layout==='collage'&&!auxiliary?sources:[sources[auxiliary?++auxiliaryIndex%sources.length:0]],cells=memoryCoverCollageCells(shown.length);return <span className={styles.photo} style={style}>{shown.map((source,index)=><span key={index} style={{position:'absolute',left:`${cells[index].left}%`,top:`${cells[index].top}%`,width:`${cells[index].width}%`,height:`${cells[index].height}%`,overflow:'hidden',border:shown.length>1?`${u}px solid ${a.paper}`:undefined}}><CoverPhoto {...source} position={`${crop.x}% ${crop.y}%`} zoom={artwork.photo.scale} monochrome={monochrome}/></span>)}</span>;};
+ const text=(style:CSSProperties,lines=2)=>({...style,color:a.ink,fontFamily:titleFont,fontSize:typeSize,lineHeight:1.04,paddingBottom:'.18em',WebkitLineClamp:lines});
  return <span role="img" aria-label={`${d.label} book cover: ${title}${subtitle?'. '+subtitle:''}${artwork.inscription?'. '+artwork.inscription:''}${artwork.postmark?'. '+artwork.postmark:''}`} className={styles.cover} style={{width,height,background:a.paper,fontSize:14*u,boxShadow:`${2*u}px ${6*u}px ${10*u}px #31271930,0 ${1*u}px ${1*u}px #45371930`}}>
   <span className={styles.cloth} style={{backgroundColor:a.spine}}/>
   <span className={styles.surface} style={{backgroundColor:a.paper}}><span className={styles.paper}/>
@@ -40,7 +46,7 @@ export function MemoryBookCover({artwork:rawArtwork,title,subtitle,color,design,
     {photo({left:38*u,right:32*u,top:'17%',height:'51%',border:`${2*u}px solid #c7baa1`,boxShadow:`0 0 0 ${1*u}px #fff7e599`})}
     <span className={styles.type+' '+styles.clamp} style={text({left:16*u,right:16*u,top:'74%',lineHeight:1.02,textAlign:'center'})}>{title}</span>{subtitle&&<span className={styles.small+' '+styles.clamp} style={{left:16*u,right:16*u,bottom:12*u,fontSize:7*u,color:a.accent,textAlign:'center',WebkitLineClamp:2}}>{subtitle}</span>}
    </>:d.id==='field_notes'?<>
-    <span className={styles.clamp} style={{position:'absolute',left:15*u,right:12*u,top:20*u,fontSize:typeSize,color:a.ink,fontFamily:'Arial,sans-serif',fontWeight:800,letterSpacing:-.6*u,lineHeight:1.04,paddingBottom:'.18em',WebkitLineClamp:2}}>{title}</span><span className={styles.small} style={{left:16*u,top:61*u,fontSize:5*u,letterSpacing:1*u,color:a.ink}}>A COLLECTION OF MOMENTS</span>
+    <span className={styles.clamp} style={{position:'absolute',left:15*u,right:12*u,top:20*u,fontSize:typeSize,color:a.ink,fontFamily:artwork.version===2&&artwork.titleStyle==='serif'?'Georgia,serif':titleFont??'Arial,sans-serif',fontWeight:artwork.version===2&&artwork.titleStyle==='handwritten'?400:800,letterSpacing:-.6*u,lineHeight:1.04,paddingBottom:'.18em',WebkitLineClamp:2}}>{title}</span><span className={styles.small} style={{left:16*u,top:61*u,fontSize:5*u,letterSpacing:1*u,color:a.ink}}>A COLLECTION OF MOMENTS</span>
     {photo({left:0,right:0,top:'27.5%',height:'42%'})}{photo({right:14*u,bottom:15*u,width:49*u,height:51*u,border:`${1*u}px solid #eee3bb`},'90% 95%',true)}
     <span className={styles.small+' '+styles.clamp} style={{left:17*u,right:74*u,bottom:28*u,fontSize:5.8*u,letterSpacing:.8*u,lineHeight:1.5,color:a.ink,textTransform:'uppercase',WebkitLineClamp:4}}>{subtitle||'Out into the world'}{date&&<><br/>{date.month} {date.year}</>}</span>
    </>:d.id==='night_film'?<>
@@ -50,15 +56,16 @@ export function MemoryBookCover({artwork:rawArtwork,title,subtitle,color,design,
    </>:<>
     <span className={styles.type+' '+styles.clamp} style={text({left:9*u,width:115*u,top:8*u,lineHeight:.85},2)}>{title}</span><span style={{position:'absolute',right:9*u,top:14*u,width:28*u,height:28*u,borderRadius:'50%',background:'#ED542F',display:'flex',alignItems:'center',justifyContent:'center',textAlign:'center',fontSize:5.6*u,lineHeight:1.3,letterSpacing:.5*u,color:'#FFF7E5'}}>{date?<>{date.month}<br/>{date.year}</>:'GOOD DAYS'}</span>
     {photo({left:7*u,width:103*u,top:'40%',bottom:'7%'},'15% 65%')}{photo({right:7*u,width:66*u,top:'23%',bottom:'22%'},'88% 30%',true)}
-    <span className={styles.small+' '+styles.clamp} style={{right:10*u,width:64*u,bottom:14*u,fontFamily:'Brush Script MT,Segoe Script,cursive',fontSize:20*u,fontStyle:'italic',transform:'rotate(-11deg)',color:'#4E4C23',WebkitLineClamp:1}}>{date?.signature||'Kept'}</span>{subtitle&&<span className={styles.small+' '+styles.clamp} style={{left:8*u,width:102*u,bottom:5*u,fontSize:5.3*u,color:a.ink,WebkitLineClamp:1}}>{subtitle}</span>}
+    <span className={styles.small+' '+styles.clamp} style={{right:10*u,width:64*u,bottom:14*u,fontFamily:'Memory Cover Handwriting,Brush Script MT,Segoe Script,cursive',fontSize:20*u,fontStyle:'italic',transform:'rotate(-11deg)',color:'#4E4C23',WebkitLineClamp:1}}>{date?.signature||'Kept'}</span>{subtitle&&<span className={styles.small+' '+styles.clamp} style={{left:8*u,width:102*u,bottom:5*u,fontSize:5.3*u,color:a.ink,WebkitLineClamp:1}}>{subtitle}</span>}
    </>}
    {writing.stamp&&<span className={styles.small} style={{...writing.stamp.style,lineHeight:`${writing.stamp.style.lineHeight}px`,padding:`${3*u}px ${5*u}px`,background:'#F7EEDBEE',color:'#764538',transform:'rotate(-3deg)',border:`${.5*u}px solid #76453866`,overflowWrap:'anywhere'}}>{writing.stamp.text}</span>}
-   {writing.note&&<span className={styles.inscription} style={{...writing.note.style,lineHeight:`${writing.note.style.lineHeight}px`,padding:`${6*u}px ${8*u}px`,fontFamily:artwork.inscriptionStyle==='handwritten'?'Brush Script MT,Segoe Script,cursive':artwork.inscriptionStyle==='serif'?'Georgia,serif':'Arial,sans-serif',fontStyle:artwork.inscriptionStyle==='handwritten'?'italic':'normal'}}>{writing.note.text}</span>}
+   {writing.note&&<span className={styles.inscription} style={{...writing.note.style,lineHeight:`${writing.note.style.lineHeight}px`,padding:`${6*u}px ${8*u}px`,fontFamily:artwork.inscriptionStyle==='handwritten'?'Memory Cover Handwriting,Brush Script MT,Segoe Script,cursive':artwork.inscriptionStyle==='serif'?'Georgia,serif':'Arial,sans-serif',fontStyle:artwork.inscriptionStyle==='handwritten'?'italic':'normal'}}>{writing.note.text}</span>}
    <span className={styles.foil}/>
   </span>
+  {artwork.version===2&&artwork.strokes.length>0&&<MemoryCoverInk strokes={artwork.strokes} width={width} height={height}/>}
  </span>;
 }
-export function ResponsiveMemoryBookCover(props:Omit<Props,'width'|'height'>){
+export function ResponsiveMemoryBookCover(props:Omit<MemoryBookCoverProps,'width'|'height'>){
  const ref=useRef<HTMLSpanElement>(null),[width,setWidth]=useState(180);
  useEffect(()=>{const node=ref.current;if(!node)return;const resize=new ResizeObserver(entries=>{const next=entries[0]?.contentRect.width;if(next>0)setWidth(next);});resize.observe(node);return()=>resize.disconnect();},[]);
  return <span ref={ref} className={styles.responsive}><span className={styles.responsiveInner}><MemoryBookCover {...props} width={width} height={width*1.31}/></span></span>;

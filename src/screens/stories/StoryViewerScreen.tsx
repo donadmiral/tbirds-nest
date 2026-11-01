@@ -1,8 +1,9 @@
-import StoryPixelImage, { StoryPhotoLookContext } from '../../components/stories/StoryPixelImage';
+import StoryPixelImage, { StoryPhotoLookContext, StoryPhotoReadinessContext } from '../../components/stories/StoryPixelImage';
 import { countdownReminderId, setStoryCountdownReminder } from '../../../shared/storyCountdownReminder';
 import { storyPhotoSpatialAdjust } from '../../../shared/storyColorMatrix';
 import { memoryStoryRecipe } from '../../../shared/memoryStoryPresentation';
 import * as ImagePicker from 'expo-image-picker';
+import { ensureCameraPermission } from '../../services/devicePermissions';
 import AddYoursThreadSheet from '../../components/stories/AddYoursThreadSheet';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -21,7 +22,7 @@ import * as Haptics from 'expo-haptics';
 import { palette } from '../../constants/tokens';
 import ReAnimated, {
   useSharedValue, useAnimatedStyle, withTiming, withSequence, withSpring, interpolate,
-  Easing as REasing, cancelAnimation, runOnJS,
+  Easing as REasing, cancelAnimation,
 } from 'react-native-reanimated';
 import {
   storiesService, StoryRow, StoryViewer, StoryTextSticker,
@@ -38,7 +39,6 @@ import ZoomableMedia from '../../components/stories/ZoomableMedia';
 import PollCard from '../../components/stories/PollCard';
 import SaveToMemorySheet from '../../components/stories/SaveToMemorySheet';
 import { POST_CARD_W, POST_CARD_EST_H } from '../../components/stories/PostStoryCard';
-import { Image as ExpoImage } from 'expo-image';
 import * as Notifications from 'expo-notifications';
 import StickerResponsesSheet from '../../components/stories/StickerResponsesSheet';
 import EnvironmentLayer from '../../components/stories/EnvironmentLayer';
@@ -48,6 +48,9 @@ import StoryProgressBar from '../../components/stories/StoryProgressBar';
 import { FilterLayer } from '../../components/stories/StoryFilters';
 import { storyVideoPreviewAvailable } from '../../../modules/boomerang/storyComposition';
 import { useCallContext } from '../../contexts/CallContext';
+import { useStoryPlayback } from '../../hooks/useStoryPlayback';
+import { returnToFeed } from '../../navigation/returnToFeed';
+import { withStoryTimeout, storyPrefetchUrls } from '../../../shared/storyPlayback';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
 import { useStoryInteractionScope } from '../../hooks/useStoryInteractionScope';
 import { DrawingLayer } from '../../components/stories/DrawLayer';
@@ -59,21 +62,16 @@ import ImmersiveReplyField from '../../components/stories/ImmersiveReplyField';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const IMAGE_DURATION_MS = 5000;
-const VIDEO_MAX_MS = 30000;
 const LONG_PRESS_MS = 160;
 const BOTTOM_CONTROLS_HEIGHT = 120;
 const CROSSFADE_MS = 200;
 const CROSSFADE_USER_MS = 320;
-const PROGRESS_SEED = 0.02;
 const DISMISS_VELOCITY_THRESHOLD = 0.5;
 const DISMISS_DISTANCE_FAST = 50;
 const DISMISS_DISTANCE_SLOW = 120;
 const RUBBER_BAND_FACTOR = 0.3;
 const TAP_SCALE_DOWN = 0.97;
 const TAP_SCALE_DURATION = 90;
-const TIMEOUT_PRELOADED_MS = 150;
-const TIMEOUT_DEFAULT_MS = 500;
-const TIMEOUT_VIDEO_MS = 800;
 
 const NAVY = palette.navy;
 // scope (School / Global) was the school-era concept. audience is the real one.
@@ -164,21 +162,27 @@ export default function StoryViewerScreen() {
   const viewerRef = useRef(myId); viewerRef.current = myId;
   const loadGeneration = useRef(0);
   const [loadedViewer, setLoadedViewer] = useState<string | null>(null);
+  const [loadedUser, setLoadedUser] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [mediaRetry, setMediaRetry] = useState(0);
+  const closingRef = useRef(false);
   const [engagementError, setEngagementError] = useState(false);
   const [engagementRetry, setEngagementRetry] = useState(0);
 
   const params = route.params as RouteParams;
   const [linkedStory, setLinkedStory] = useState<{ id: string; viewer: string; owner: string } | null>(null);
+  const [linkedError, setLinkedError] = useState(false);
+  const [linkedRetry, setLinkedRetry] = useState(0);
   useEffect(() => {
     let cancelled = false;
     if (!params?.storyId || !myId) return;
     const id = params.storyId, viewer = myId;
-    setLinkedStory(null);
-    void storiesService.getStoryOwner(id).then(owner => { if (!cancelled) setLinkedStory({ id, viewer, owner }); }, () => {
-      if (!cancelled) Alert.alert('Story unavailable', 'This story has expired or is not shared with you.', [{ text: 'Close', onPress: () => navigation.goBack() }]);
+    setLinkedStory(null); setLinkedError(false);
+    void withStoryTimeout(storiesService.getStoryOwner(id)).then(owner => { if (!cancelled) setLinkedStory({ id, viewer, owner }); }, () => {
+      if (!cancelled) setLinkedError(true);
     });
     return () => { cancelled = true; };
-  }, [params?.storyId, myId, navigation]);
+  }, [params?.storyId, myId, linkedRetry]);
   const linkedOwner = linkedStory?.id === params?.storyId && linkedStory?.viewer === myId ? linkedStory?.owner : null;
   // Accept both shapes: the strip sends { userIds, startUserId }; profile and
   // feed rings send a single { userId }.
@@ -208,20 +212,13 @@ export default function StoryViewerScreen() {
   const [loading, setLoading] = useState(true);
   const [paused, setPaused] = useState(false);
   const [viewerMuted, setViewerMuted] = useState(false);
-  const viewerMutedRef = useRef(false); viewerMutedRef.current = viewerMuted;
-  const playbackBlockedRef = useRef(false);
-  playbackBlockedRef.current = paused || !appActive || !['idle', 'ended'].includes(callState);
-  const [mediaReady, setMediaReady] = useState(false);
   const [clockSec, setClockSec] = useState<number | null>(null);
-  const [mediaError, setMediaError] = useState(false);
   const [mediaSize, setMediaSize] = useState({ w: SCREEN_W, h: SCREEN_H });
 
   const [holdoverMedia, setHoldoverMedia] = useState<HoldoverMedia>(null);
   const mediaOpacitySV = useSharedValue(1);
-  const mediaReadyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdoverCleanupRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstStoryRef = useRef(true);
-  const progressStartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const storiesViewedRef = useRef(0);
   const lastTapTimestampRef = useRef(0);
   const isUserSwitchRef = useRef(false);
@@ -321,7 +318,7 @@ export default function StoryViewerScreen() {
   const nextUserCache = useRef<Map<string, { stories: StoryRow[]; profile: any }>>(new Map());
   const preloadStatus = useRef<Map<string, 'pending' | 'done' | 'failed'>>(new Map());
 
-  useEffect(() => { return () => { nextUserCache.current.clear(); if (mediaReadyTimeoutRef.current) clearTimeout(mediaReadyTimeoutRef.current); if (holdoverCleanupRef.current) clearTimeout(holdoverCleanupRef.current); if (replyFocusTimerRef.current) clearTimeout(replyFocusTimerRef.current); if (progressStartTimerRef.current) clearTimeout(progressStartTimerRef.current); }; }, []);
+  useEffect(() => { return () => { nextUserCache.current.clear(); if (holdoverCleanupRef.current) clearTimeout(holdoverCleanupRef.current); if (replyFocusTimerRef.current) clearTimeout(replyFocusTimerRef.current); }; }, []);
   useEffect(() => { const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'; const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'; const showSub = Keyboard.addListener(showEvent, (e) => { setKeyboardHeight(e.endCoordinates.height); }); const hideSub = Keyboard.addListener(hideEvent, () => { setKeyboardHeight(0); }); return () => { showSub.remove(); hideSub.remove(); }; }, []);
   useEffect(() => { myReactionsRef.current = myReactions; }, [myReactions]);
 
@@ -330,7 +327,6 @@ export default function StoryViewerScreen() {
     const s = interpolate(progressSV.value, [0, 1], [1.02, 1.0]);
     return { transform: [{ scale: s }] };
   });
-  const progressDurationRef = useRef(IMAGE_DURATION_MS);
   const translateY = useRef(new Animated.Value(0)).current;
   const pinchScale = useRef(new Animated.Value(1)).current;
   const pinchTX = useRef(new Animated.Value(0)).current;
@@ -343,14 +339,14 @@ export default function StoryViewerScreen() {
   useEffect(() => { storyIndexRef.current = storyIndex; }, [storyIndex]);
   useEffect(() => { userIndexRef.current = userIndex; }, [userIndex]);
 
-  const currentStory = loadedViewer === myId ? stories[storyIndex] : undefined;
+  const currentStory = !loading && loadedViewer === myId && loadedUser === currentUserId ? stories[storyIndex] : undefined;
+  const mediaSessionKey = currentStory ? `${myId}:${currentUserId}:${currentStory.id}:${currentStory.media_url}:${mediaRetry}` : '';
   const currentStoryId = currentStory?.id;
   const currentStoryOwner = currentStory?.user_id;
   const captureInteraction = useStoryInteractionScope(myId, currentStoryId);
   const isVideo = currentStory?.media_type === 'video';
   const isText = currentStory?.media_type === 'text';
   const videoPlayer = useVideoPlayer(isVideo && !isText && currentStory ? currentStory.media_url : null, (player) => { if (player) { player.loop = false; player.muted = false; } });
-  useEffect(() => { const u = isVideo && !isText ? currentStory?.media_url : null; if (!u) return; const p: any = videoPlayer; let sub: any = null; let alive = true; let timer: ReturnType<typeof setTimeout> | undefined; try { if (p?.replaceAsync) void Promise.resolve(p.replaceAsync(u)).catch(() => { if (alive) setMediaError(true); }); else p?.replace?.(u); sub = p?.addListener?.('statusChange', (s2: any) => { if (!alive) return; const stt = s2?.status ?? s2; if (stt === 'error' || s2?.error) setMediaError(true); if (stt === 'readyToPlay') { try { const mtx: any = (storiesRef.current[storyIndexRef.current] as any)?.media_transform; const t0 = Number(mtx?.trimStart) || 0; if (t0 > 0.05) { try { p.currentTime = t0; } catch {} } const ov = mtx?.mix?.orig; const vol = typeof ov === 'number' ? Math.max(0, Math.min(1, ov / 100)) : 1; try { p.muted = viewerMutedRef.current || vol <= 0.001; p.volume = vol; } catch {} try { p.playbackRate = Number(mtx?.speed) || 1; } catch {} } catch {} try { if (!playbackBlockedRef.current) p?.play?.(); } catch {} } }); timer = setTimeout(() => { if (alive) { try { if (!playbackBlockedRef.current) p?.play?.(); } catch {} } }, 60); } catch { if (alive) setMediaError(true); } return () => { alive = false; if (timer) clearTimeout(timer); try { sub?.remove?.(); } catch {} }; }, [isVideo, isText, currentStory?.media_url, videoPlayer]);
   // Dual viewer swap state (viewer-only, does not persist)
   const [dualSwapped, setDualSwapped] = useState(false);
   const dualSwapOpacity = useSharedValue(1);
@@ -367,36 +363,80 @@ export default function StoryViewerScreen() {
 
 
   const captureHoldover = useCallback(() => { const cur = storiesRef.current[storyIndexRef.current]; if (!cur || !cur.media_url) { setHoldoverMedia(null); return; } setHoldoverMedia({ url: cur.media_url, type: cur.media_type === 'video' ? 'video' : 'image', transform: parseMediaTransform((cur as any).media_transform) }); }, []);
-  const prepareCrossfade = useCallback(() => { cancelAnimation(mediaOpacitySV); if (holdoverCleanupRef.current) { clearTimeout(holdoverCleanupRef.current); holdoverCleanupRef.current = null; } if (mediaReadyTimeoutRef.current) { clearTimeout(mediaReadyTimeoutRef.current); mediaReadyTimeoutRef.current = null; } mediaOpacitySV.value = 0; }, [mediaOpacitySV]);
+  const prepareCrossfade = useCallback(() => { cancelAnimation(mediaOpacitySV); if (holdoverCleanupRef.current) { clearTimeout(holdoverCleanupRef.current); holdoverCleanupRef.current = null; } mediaOpacitySV.value = 0; }, [mediaOpacitySV]);
   const executeCrossfade = useCallback(() => { const tapInterval = Date.now() - lastTapTimestampRef.current; const isRapid = tapInterval < 800; const baseDuration = isUserSwitchRef.current ? CROSSFADE_USER_MS : CROSSFADE_MS; const fadeDuration = isRapid ? 100 : baseDuration; cancelAnimation(mediaOpacitySV); mediaOpacitySV.value = withTiming(1, { duration: fadeDuration, easing: REasing.out(REasing.ease) }); if (holdoverCleanupRef.current) clearTimeout(holdoverCleanupRef.current); holdoverCleanupRef.current = setTimeout(() => { setHoldoverMedia(null); holdoverCleanupRef.current = null; }, fadeDuration + 50); }, [mediaOpacitySV]);
 
   const stopProgress = useCallback(() => { cancelAnimation(progressSV); }, [progressSV]);
   const resetProgress = useCallback(() => { cancelAnimation(progressSV); progressSV.value = 0; }, [progressSV]);
-  const saveAndGoBack = useCallback(() => { lastViewerPosition = { sessionKey, userIndex: userIndexRef.current, storyIndex: storyIndexRef.current, timestamp: Date.now() }; navigation.goBack(); }, [sessionKey, navigation]);
+  const saveAndGoBack = useCallback(() => {
+    if (closingRef.current) return;
+    closingRef.current = true; stopProgress();
+    try { videoPlayer.pause(); } catch {}
+    lastViewerPosition = { sessionKey, userIndex: userIndexRef.current, storyIndex: storyIndexRef.current, timestamp: Date.now() };
+    if (navigation.canGoBack?.()) navigation.goBack(); else returnToFeed(navigation);
+  }, [sessionKey, navigation, stopProgress, videoPlayer]);
   const fireTapFeedback = useCallback(() => { cancelAnimation(tapScaleSV); tapScaleSV.value = withSequence(withTiming(TAP_SCALE_DOWN, { duration: TAP_SCALE_DURATION, easing: REasing.out(REasing.ease) }), withTiming(1, { duration: TAP_SCALE_DURATION, easing: REasing.in(REasing.ease) })); }, [tapScaleSV]);
 
   const advanceForward = useCallback(() => {
+    if (closingRef.current) return;
+    const curStories = storiesRef.current, curStoryIdx = storyIndexRef.current, curUserIdx = userIndexRef.current;
+    // Finish before changing opacity: a viewer with no back route must still
+    // show its last frame while the feed fallback is dispatched.
+    if (curStoryIdx >= curStories.length - 1 && curUserIdx >= userIds.length - 1) { saveAndGoBack(); return; }
     lastTapTimestampRef.current = Date.now(); captureHoldover(); prepareCrossfade(); resetProgress(); storiesViewedRef.current += 1;
-    const curStories = storiesRef.current; const curStoryIdx = storyIndexRef.current; const curUserIdx = userIndexRef.current;
-    if (curStoryIdx < curStories.length - 1) { isUserSwitchRef.current = false; progressSV.value = PROGRESS_SEED; const next = curStoryIdx + 1; storyIndexRef.current = next; setStoryIndex(next); }
-    else if (curUserIdx < userIds.length - 1) { isUserSwitchRef.current = true; contentScale.setValue(0.96); Animated.spring(contentScale, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }).start(); progressSV.value = PROGRESS_SEED; const next = curUserIdx + 1; userIndexRef.current = next; setUserIndex(next); }
-    else { saveAndGoBack(); }
-  }, [resetProgress, userIds.length, saveAndGoBack, contentScale, captureHoldover, prepareCrossfade, progressSV]);
+    if (curStoryIdx < curStories.length - 1) {
+      isUserSwitchRef.current = false;
+      const next = curStoryIdx + 1; storyIndexRef.current = next; setStoryIndex(next);
+    } else {
+      isUserSwitchRef.current = true; contentScale.setValue(0.96);
+      Animated.spring(contentScale, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }).start();
+      const next = curUserIdx + 1; userIndexRef.current = next; setUserIndex(next);
+    }
+  }, [resetProgress, userIds.length, saveAndGoBack, contentScale, captureHoldover, prepareCrossfade]);
 
   const advanceBackward = useCallback(() => {
+    if (closingRef.current) return;
+    const curStoryIdx = storyIndexRef.current, curUserIdx = userIndexRef.current;
+    if (curStoryIdx === 0 && curUserIdx === 0) return;
     lastTapTimestampRef.current = Date.now(); captureHoldover(); prepareCrossfade(); resetProgress();
-    const curStoryIdx = storyIndexRef.current; const curUserIdx = userIndexRef.current;
-    if (curStoryIdx > 0) { isUserSwitchRef.current = false; progressSV.value = PROGRESS_SEED; const next = curStoryIdx - 1; storyIndexRef.current = next; setStoryIndex(next); }
-    else if (curUserIdx > 0) { isUserSwitchRef.current = true; contentScale.setValue(0.96); Animated.spring(contentScale, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }).start(); progressSV.value = PROGRESS_SEED; const next = curUserIdx - 1; userIndexRef.current = next; setUserIndex(next); }
-  }, [resetProgress, contentScale, captureHoldover, prepareCrossfade, progressSV]);
+    if (curStoryIdx > 0) {
+      isUserSwitchRef.current = false;
+      const next = curStoryIdx - 1; storyIndexRef.current = next; setStoryIndex(next);
+    } else {
+      isUserSwitchRef.current = true; contentScale.setValue(0.96);
+      Animated.spring(contentScale, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }).start();
+      const next = curUserIdx - 1; userIndexRef.current = next; setUserIndex(next);
+    }
+  }, [resetProgress, contentScale, captureHoldover, prepareCrossfade]);
 
-  const startProgress = useCallback((durationMs: number, fromValue = 0) => { cancelAnimation(progressSV); progressDurationRef.current = durationMs; const effectiveFrom = Math.max(fromValue, PROGRESS_SEED); const remainingMs = durationMs * (1 - effectiveFrom); progressSV.value = effectiveFrom; progressSV.value = withTiming(1, { duration: remainingMs, easing: REasing.linear }, (finished) => { if (finished) { runOnJS(advanceForward)(); } }); }, [progressSV, advanceForward]);
+  const imageDurationMs = useMemo(() => {
+    if (!currentStory) return IMAGE_DURATION_MS;
+    const postVideo = (currentStory.stickers_json || []).some(sticker => sticker.kind === 'post' && sticker.postMediaType === 'video');
+    let value = postVideo ? 15000 : IMAGE_DURATION_MS;
+    if (currentStory.caption) value = Math.min(value + Math.ceil(currentStory.caption.length / 20) * 1000, postVideo ? 15000 : 8000);
+    const audioSec = currentStory.audio_duration_sec;
+    if (ORIGINAL_AUDIO_ENABLED && audioSec && audioSec > 0) value = Math.min(Math.max(value, audioSec * 1000), 30000);
+    return value;
+  }, [currentStory]);
+  const playbackPaused = paused || !appActive || !['idle', 'ended'].includes(callState) || loading;
+  const { mediaReady, mediaError, buffering, onReady: handleMediaReady, onError: handleMediaError, reportMedia } = useStoryPlayback({
+    storyKey: mediaSessionKey, mediaType: currentStory?.media_type, durationSec: currentStory?.duration_sec,
+    mediaTransform: currentStory?.media_transform, imageDurationMs, player: videoPlayer,
+    paused: playbackPaused, muted: viewerMuted, progress: progressSV, onComplete: advanceForward,
+  });
+  const revealedSession = useRef('');
+  useEffect(() => {
+    if (!mediaReady || !mediaSessionKey || revealedSession.current === mediaSessionKey) return;
+    revealedSession.current = mediaSessionKey;
+    if (isFirstStoryRef.current) { isFirstStoryRef.current = false; mediaOpacitySV.value = 1; setHoldoverMedia(null); }
+    else executeCrossfade();
+  }, [mediaReady, mediaSessionKey, mediaOpacitySV, executeCrossfade]);
 
-  const loadForCurrentUser = useCallback(async () => {
+  const loadForCurrentUser = useCallback(async (requestedStoryId?: string) => {
     const request = ++loadGeneration.current, viewer = myId;
     const current = () => loadGeneration.current === request && viewerRef.current === viewer;
     if (!currentUserId || !viewer) { setStories([]); setLoadedViewer(null); setLoading(false); return; }
-    setMediaReady(false); setLoading(true); setMediaError(false);
+    setLoading(true); setLoadError(false);
     try {
       const cacheKey = viewer + ':' + currentUserId;
       const cached = highlightId ? undefined : nextUserCache.current.get(cacheKey);
@@ -405,13 +445,14 @@ export default function StoryViewerScreen() {
         const expiry = (story as StoryRow & { _mediaExpiresAt?: number })._mediaExpiresAt;
         return Date.parse(story.expires_at) > Date.now() && (!expiry || expiry > Date.now() + 60000);
       });
-      const [userStories, profileRes] = fresh ? [cached!.stories, { data: cached!.profile }] : await Promise.all([
+      const [userStories, profileRes] = fresh ? [cached!.stories, { data: cached!.profile }] : await withStoryTimeout(Promise.all([
         highlightId ? storiesService.getHighlightStories(highlightId) : storiesService.getUserStories(currentUserId),
         supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', currentUserId).maybeSingle(),
-      ]);
+      ]));
       if (!current()) return;
-      const targetStory = startStoryId && currentUserId === startUserId ? userStories.findIndex(s => s.id === startStoryId) : undefined;
-      setStories(targetStory === -1 ? [] : userStories); setLoadedViewer(viewer); setStoryUser(profileRes.data || null);
+      const targetId = requestedStoryId || (startStoryId && (currentUserId === startUserId || params?.storyId) ? startStoryId : undefined);
+      const targetStory = targetId ? userStories.findIndex(s => s.id === targetId) : undefined;
+      setStories(targetStory === -1 ? [] : userStories); setLoadedViewer(viewer); setLoadedUser(currentUserId); setStoryUser(profileRes.data || null);
       if (targetStory !== undefined) {
         setStoryIndex(Math.max(0, targetStory));
       } else if (!highlightId && !resumeConsumedRef.current && resumeStoryIndex >= 0 && resumeStoryIndex < userStories.length) {
@@ -420,15 +461,48 @@ export default function StoryViewerScreen() {
         const firstUnseen = highlightId ? 0 : userStories.findIndex(s => !s.is_viewed);
         setStoryIndex(firstUnseen >= 0 ? firstUnseen : 0);
       }
-    } catch { if (current()) { setStories([]); setMediaError(true); } }
+    } catch { if (current()) { setStories([]); setLoadError(true); } }
     finally { if (current()) setLoading(false); }
-  }, [currentUserId, myId, highlightId, resumeStoryIndex, startStoryId, startUserId]);
+  }, [currentUserId, myId, highlightId, resumeStoryIndex, startStoryId, startUserId, params?.storyId]);
   useEffect(() => { void loadForCurrentUser(); return () => { loadGeneration.current++; }; }, [loadForCurrentUser]);
   useEffect(() => { activityRequest.current += 1; nextUserCache.current.clear(); preloadStatus.current.clear(); setHoldoverMedia(null); setViewers([]); setViewersOpen(false); setReplyText(''); }, [myId]);
 
-  useEffect(() => { let cancelled = false; const preloadUser = async (userId: string) => { const cacheKey = myId + ':' + userId; if (!myId || !userId || nextUserCache.current.has(cacheKey)) return; try { const [userStories, profileRes] = await Promise.all([storiesService.getUserStories(userId), supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', userId).maybeSingle()]); if (cancelled) return; if (nextUserCache.current.size >= 3) { const firstKey = nextUserCache.current.keys().next().value; if (firstKey) nextUserCache.current.delete(firstKey); } nextUserCache.current.set(cacheKey, { stories: userStories, profile: profileRes.data || null }); if (userStories.length > 0) { const first = userStories[0]; const firstPoster = (first as any).thumbnail_url as string | undefined; if (first.media_type !== 'image' && firstPoster) { ExpoImage.prefetch(firstPoster).catch(() => {}); } if (first.media_type === 'image' && first.media_url) { preloadStatus.current.set(first.media_url, 'pending'); ExpoImage.prefetch(first.media_url).then((ok: any) => { if (!cancelled) preloadStatus.current.set(first.media_url!, ok === false ? 'failed' : 'done'); }).catch(() => { if (!cancelled) preloadStatus.current.set(first.media_url!, 'failed'); }); } } } catch (e) { console.log('[StoryViewer.preloadUser]', e); } }; const n1Id = userIds[userIndex + 1]; const n2Id = userIds[userIndex + 2]; (async () => { if (n1Id) await preloadUser(n1Id); if (cancelled) return; if (n2Id) await preloadUser(n2Id); })(); return () => { cancelled = true; }; }, [userIndex, userIds, myId]);
-
-  useEffect(() => { const prefetchStory = (story: StoryRow | undefined) => { if (story && story.media_type !== 'image' && (story as any).thumbnail_url) { const poster = (story as any).thumbnail_url as string; if (preloadStatus.current.get(poster) !== 'done') { preloadStatus.current.set(poster, 'pending'); ExpoImage.prefetch(poster).then((ok: any) => { preloadStatus.current.set(poster, ok === false ? 'failed' : 'done'); }).catch(() => { preloadStatus.current.set(poster, 'failed'); }); } } if (story && story.media_type === 'image' && story.media_url) { const url = story.media_url; if (preloadStatus.current.get(url) === 'done') return; preloadStatus.current.set(url, 'pending'); ExpoImage.prefetch(url).then((ok: any) => { preloadStatus.current.set(url, ok === false ? 'failed' : 'done'); }).catch(() => { preloadStatus.current.set(url, 'failed'); }); } }; prefetchStory(stories[storyIndex + 1]); prefetchStory(stories[storyIndex + 2]); }, [storyIndex, stories]);
+  const prefetchStory = useCallback((story: StoryRow | undefined) => {
+    const viewer = myId;
+    for (const url of storyPrefetchUrls(story)) {
+      if (preloadStatus.current.has(url) && preloadStatus.current.get(url) !== 'failed') continue;
+      preloadStatus.current.set(url, 'pending');
+      void Image.prefetch(url).then(ok => { if (viewerRef.current === viewer) preloadStatus.current.set(url, ok ? 'done' : 'failed'); })
+        .catch(() => { if (viewerRef.current === viewer) preloadStatus.current.set(url, 'failed'); });
+    }
+  }, [myId]);
+  useEffect(() => {
+    let cancelled = false;
+    const preloadUser = async (userId: string) => {
+      const cacheKey = myId + ':' + userId;
+      if (!myId || !userId || nextUserCache.current.has(cacheKey)) return;
+      try {
+        const [userStories, profileRes] = await withStoryTimeout(Promise.all([
+          storiesService.getUserStories(userId),
+          supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', userId).maybeSingle(),
+        ]));
+        if (cancelled || viewerRef.current !== myId) return;
+        if (nextUserCache.current.size >= 3) {
+          const firstKey = nextUserCache.current.keys().next().value;
+          if (firstKey) nextUserCache.current.delete(firstKey);
+        }
+        nextUserCache.current.set(cacheKey, { stories: userStories, profile: profileRes.data || null });
+        const first = userStories.find(story => !story.is_viewed) || userStories[0];
+        prefetchStory(first);
+      } catch { /* Prefetch is optional; the active loader has retry controls. */ }
+    };
+    const nextUser = userIds[userIndex + 1];
+    if (nextUser && !highlightId) void preloadUser(nextUser);
+    return () => { cancelled = true; };
+  }, [userIndex, userIds, myId, prefetchStory, highlightId]);
+  useEffect(() => {
+    prefetchStory(stories[storyIndex + 1]); prefetchStory(stories[storyIndex + 2]);
+  }, [storyIndex, stories, prefetchStory]);
 
   const refreshReactions = useCallback(async (reportFailure = false) => {
     if (!currentStoryId || !myId || currentStoryOwner === myId) return false;
@@ -526,8 +600,8 @@ export default function StoryViewerScreen() {
   }, [currentStory?.id, currentStory?.expires_at, params?.highlightId, pauseFor]);
 
   useEffect(() => { try { videoPlayer.muted = viewerMuted || (((currentStory as any)?.media_transform?.mix?.orig ?? 100) <= 0); } catch {} }, [viewerMuted, videoPlayer, currentStory?.id]);
-  const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !paused, viewerMuted ? 0 : musicVol, currentStory?.audio_duration_sec, Number(currentStory?.media_transform?.audioStartSec)||0, currentStory?.audio_sound_id || currentStory?.media_transform?.audioSoundId);
-  useEffect(() => { if (storyAudio.error) setMediaError(true); }, [storyAudio.error]);
+  const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !playbackPaused, viewerMuted ? 0 : musicVol, currentStory?.audio_duration_sec, Number(currentStory?.media_transform?.audioStartSec)||0, currentStory?.audio_sound_id || currentStory?.media_transform?.audioSoundId);
+  useEffect(() => { if (storyAudio.error) handleMediaError(); }, [storyAudio.error, handleMediaError]);
   // Creative engine: playback clock for timed stickers + trim-end guard
   useEffect(() => {
     if (!isVideo || !mediaReady || paused) { if (!isVideo) setClockSec(null); return; }
@@ -543,25 +617,6 @@ export default function StoryViewerScreen() {
     return () => clearInterval(id);
   }, [isVideo, mediaReady, paused, currentStory?.id, videoPlayer]);
   useEffect(() => { const stickerList = (currentStory?.stickers_json || []) as StoryTextSticker[]; const ox = mediaOriginRef.current.x; const oy = mediaOriginRef.current.y; const rects = stickerList.filter(s => s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag' || s.kind === 'post' || s.kind === 'countdown' || (s as any).kind === 'entity' || (Array.isArray((s as any).mentions) && (s as any).mentions.length > 0)).map(s => { const w = s.kind === 'post' ? POST_CARD_W : ((s as any).kind === 'entity' ? 260 : (s.kind === 'countdown' ? 236 : ((s.kind === 'mention' || s.kind === 'link') ? 170 : (Array.isArray((s as any).mentions) ? 240 : 150)))); const hEst = s.kind === 'post' ? POST_CARD_EST_H : ((s as any).kind === 'entity' ? 84 : (s.kind === 'countdown' ? 150 : (Array.isArray((s as any).mentions) ? 48 : 36))); const cx = ox + s.nx * mediaSize.w; const cy = oy + s.ny * mediaSize.h; const hw = (w * s.scale) / 2 + 10; const hh = (hEst * s.scale) / 2 + 10; return { left: cx - hw, right: cx + hw, top: cy - hh, bottom: cy + hh }; }); tappableStickerRectsRef.current = rects; }, [currentStory?.stickers_json, mediaSize]);
-
-  useEffect(() => { if (!currentStory) return; if (!mediaReady) return; if (mediaReadyTimeoutRef.current) { clearTimeout(mediaReadyTimeoutRef.current); mediaReadyTimeoutRef.current = null; } const isFirstStory = isFirstStoryRef.current; if (isFirstStoryRef.current) { isFirstStoryRef.current = false; mediaOpacitySV.value = 1; setHoldoverMedia(null); } else { executeCrossfade(); } if (paused) { stopProgress(); if (isVideo && videoPlayer) { try { videoPlayer.pause(); } catch {} } return; } let durationMs: number; if (isVideo) { const mtx: any = (currentStory as any)?.media_transform; const tS = typeof mtx?.trimStart === 'number' ? mtx.trimStart : null; const tE = typeof mtx?.trimEnd === 'number' ? mtx.trimEnd : null; const d = tE != null ? Math.max(1, (tE - (tS || 0))) * 1000 : (currentStory.duration_sec ? currentStory.duration_sec * 1000 : VIDEO_MAX_MS); durationMs = Math.min(d, VIDEO_MAX_MS); if (videoPlayer) { try { videoPlayer.play(); } catch {} } } else { const postVid = ((currentStory.stickers_json || []) as any[]).some((sx: any) => sx?.kind === 'post' && sx?.postMediaType === 'video'); durationMs = postVid ? 15000 : IMAGE_DURATION_MS; if (currentStory.caption) { const readingMs = Math.ceil(currentStory.caption.length / 20) * 1000; durationMs = Math.min(durationMs + readingMs, 8000); } const audioSec = (currentStory as any).audio_duration_sec as number | null; if (ORIGINAL_AUDIO_ENABLED && audioSec && audioSec > 0) { durationMs = Math.min(Math.max(durationMs, audioSec * 1000), 30000); } } if (isVideo && videoPlayer) {
-      // Video stories: the bar follows the player's own clock. If the video
-      // buffers or stalls, the bar stalls with it and the story never advances
-      // ahead of the picture. End of the trim window (or playToEnd) advances.
-      stopProgress();
-      const mtx2: any = (currentStory as any)?.media_transform;
-      const tS2 = typeof mtx2?.trimStart === 'number' ? mtx2.trimStart : 0;
-      const winSec = Math.max(0.5, durationMs / 1000);
-      const p: any = videoPlayer; let subT: any = null; let subE: any = null; let ended = false;
-      try { p.timeUpdateEventInterval = 0.05; } catch {}
-      const finish = () => { if (ended) return; ended = true; progressSV.value = 1; advanceForward(); };
-      try { subT = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (typeof t !== 'number') return; const pd = typeof p.duration === 'number' && Number.isFinite(p.duration) ? p.duration : 0; const win = pd > 0.3 ? Math.max(0.3, Math.min(winSec, pd - tS2)) : winSec; const frac = Math.max(PROGRESS_SEED, Math.min(1, (t - tS2) / win)); progressSV.value = frac; if (t - tS2 >= win - 0.06) finish(); }); } catch {}
-      try { subE = p.addListener?.('playToEnd', () => finish()); } catch {}
-      return () => { try { subT?.remove?.(); } catch {} try { subE?.remove?.(); } catch {} };
-    }
-    const tapInterval = Date.now() - lastTapTimestampRef.current; const isRapid = tapInterval < 800; const progressDelay = isFirstStory ? 0 : (isRapid ? 50 : 100); if (progressStartTimerRef.current) clearTimeout(progressStartTimerRef.current); if (progressDelay > 0) { progressStartTimerRef.current = setTimeout(() => { startProgress(durationMs, progressSV.value); progressStartTimerRef.current = null; }, progressDelay); } else { startProgress(durationMs, progressSV.value); } return () => { stopProgress(); if (progressStartTimerRef.current) { clearTimeout(progressStartTimerRef.current); progressStartTimerRef.current = null; } }; }, [mediaReady, paused, currentStory, isVideo, videoPlayer, startProgress, stopProgress, executeCrossfade, mediaOpacitySV, progressSV, advanceForward]);
-
-  useEffect(() => { setMediaReady(false); setMediaError(false); if (progressSV.value < PROGRESS_SEED) { progressSV.value = PROGRESS_SEED; } if (mediaReadyTimeoutRef.current) clearTimeout(mediaReadyTimeoutRef.current); const cur = storiesRef.current[storyIndexRef.current]; if (cur && cur.media_type === 'text') { setMediaReady(true); return; } let timeoutMs = TIMEOUT_DEFAULT_MS; if (cur) { if (cur.media_type === 'video') { timeoutMs = TIMEOUT_VIDEO_MS; } else if (cur.media_url && preloadStatus.current.get(cur.media_url) === 'done') { timeoutMs = TIMEOUT_PRELOADED_MS; } } mediaReadyTimeoutRef.current = setTimeout(() => { setMediaReady(prev => { if (!prev) return true; return prev; }); mediaReadyTimeoutRef.current = null; }, timeoutMs); }, [storyIndex, userIndex, progressSV]);
 
   const pressStartTimestamp = useRef(0); const pressStartX = useRef(0); const longPressTimer = useRef<any>(null); const didLongPress = useRef(false); const didSwipe = useRef(false); const lastTapTime = useRef(0);
 
@@ -820,7 +875,7 @@ export default function StoryViewerScreen() {
     Alert.alert('Share to your story', 'Choose a background', [
       { text: 'Text on a colour', onPress: () => openWith(null) },
       { text: 'Choose a photo', onPress: async () => { let picked: any = null; try { const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] as any, quality: 0.9, allowsMultipleSelection: false }); picked = res?.assets?.[0] || null; } catch {} if (picked) openWith(picked); else resumeFrom('share'); } },
-      { text: 'Take a photo', onPress: async () => { let picked: any = null; try { const perm = await ImagePicker.requestCameraPermissionsAsync(); if (perm.granted) { const res = await ImagePicker.launchCameraAsync({ quality: 0.9 }); picked = res?.assets?.[0] || null; } } catch {} if (picked) openWith(picked); else resumeFrom('share'); } },
+      { text: 'Take a photo', onPress: async () => { let picked: any = null; try { const perm = await ensureCameraPermission(); if (perm.granted) { const res = await ImagePicker.launchCameraAsync({ quality: 0.9 }); picked = res?.assets?.[0] || null; } } catch {} if (picked) openWith(picked); else resumeFrom('share'); } },
       { text: 'Cancel', style: 'cancel', onPress: () => resumeFrom('share') },
     ]);
   }, [saveAndGoBack, navigation, pauseFor, resumeFrom]);
@@ -943,8 +998,17 @@ export default function StoryViewerScreen() {
 
   const isSplitMode = dualMode === 'split_vertical' || dualMode === 'split_horizontal';
 
-  if (loading) { return (<View style={s.rootLoading}><StatusBar hidden /><ActivityIndicator color="rgba(245,240,235,0.3)" size="small" /></View>); }
-  if (!currentStory) { return (<View style={s.rootLoading}><StatusBar hidden /><Text style={s.emptyTxt}>No moments here</Text><TouchableOpacity style={{ marginTop: 24 }} onPress={() => saveAndGoBack()}><Text style={{ color: 'rgba(245,240,235,0.45)', fontSize: 14, letterSpacing: 0.3 }}>Return</Text></TouchableOpacity></View>); }
+  const retryStory = () => { setMediaRetry(value => value + 1); storyAudio.retry(); if (params?.storyId && !linkedOwner) setLinkedRetry(value => value + 1); else void loadForCurrentUser(currentStory?.id); };
+  if (loading || (params?.storyId && !linkedOwner && !linkedError)) {
+    return <View style={s.rootLoading}><StatusBar hidden /><ActivityIndicator color="#F5F0EB" /><Text style={s.recoveryText}>Loading story…</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Close story viewer" style={s.recoveryButton} onPress={saveAndGoBack}><Text style={s.recoveryButtonText}>Close</Text></TouchableOpacity></View>;
+  }
+  if (!currentStory) {
+    return <View style={s.rootLoading}><StatusBar hidden /><Text accessibilityRole="alert" style={s.emptyTxt}>{loadError || linkedError ? 'This story could not load' : 'No moments here'}</Text>
+      {loadError || linkedError ? <TouchableOpacity accessibilityRole="button" style={s.recoveryButton} onPress={retryStory}><Text style={s.recoveryButtonText}>Retry</Text></TouchableOpacity> : null}
+      {userIndex < userIds.length - 1 ? <TouchableOpacity accessibilityRole="button" style={s.recoveryButton} onPress={advanceForward}><Text style={s.recoveryButtonText}>Next story</Text></TouchableOpacity> : null}
+      <TouchableOpacity accessibilityRole="button" style={s.recoveryButton} onPress={saveAndGoBack}><Text style={s.recoveryButtonText}>Close</Text></TouchableOpacity>
+    </View>;
+  }
 
   const stickers = (currentStory.stickers_json || []) as StoryTextSticker[];
   const heartActive = myReactions.has('\u2764\uFE0F');
@@ -962,7 +1026,7 @@ export default function StoryViewerScreen() {
     const secondaryStyle = isVertical ? { position: 'absolute' as const, left: (SCREEN_W + SPLIT_GAP) / 2, top: 0, width: (SCREEN_W - SPLIT_GAP) / 2, height: SCREEN_H } : { position: 'absolute' as const, left: 0, top: (SCREEN_H + SPLIT_GAP) / 2, width: SCREEN_W, height: (SCREEN_H - SPLIT_GAP) / 2 };
     return (
       <ReAnimated.View style={[StyleSheet.absoluteFill, { zIndex: 1 }, dualSwapAnimStyle]}>
-        <View style={[primaryStyle, { overflow: 'hidden' }]}><StoryPixelImage uri={effectivePrimaryUrl || ''} style={{ width: SCREEN_W, height: SCREEN_H }} fit="cover" onLoad={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></View>
+        <View style={[primaryStyle, { overflow: 'hidden' }]}><StoryPixelImage uri={effectivePrimaryUrl || ''} style={{ width: SCREEN_W, height: SCREEN_H }} fit="cover" onLoad={handleMediaReady} onError={handleMediaError} /></View>
         <View style={[secondaryStyle, { overflow: 'hidden' }]}><TouchableOpacity activeOpacity={0.9} onPress={handleDualSwapTap} style={{ flex: 1 }}><StoryPixelImage uri={effectiveSecondaryUrl || ''} style={{ width: SCREEN_W, height: SCREEN_H }} fit="cover" /></TouchableOpacity></View>
         {isVertical && <View style={{ position: 'absolute', left: (SCREEN_W - SPLIT_GAP) / 2, top: 0, width: SPLIT_GAP, height: SCREEN_H, backgroundColor: '#020408' }} />}
         {!isVertical && <View style={{ position: 'absolute', left: 0, top: (SCREEN_H - SPLIT_GAP) / 2, width: SCREEN_W, height: SPLIT_GAP, backgroundColor: '#020408' }} />}
@@ -982,7 +1046,7 @@ export default function StoryViewerScreen() {
   };
 
   return (
-    <StoryPhotoLookContext.Provider value={{ filterId: currentStory?.filter_id, filterAmt: mediaMt?.filterAmt, adjust: mediaMt?.adjust }}><Animated.View style={[s.root, { transform: [{ translateY }, { scale: translateY.interpolate({ inputRange: [-SCREEN_H * 0.3, 0, SCREEN_H], outputRange: [1, 1, 0.92], extrapolate: 'clamp' }) }] }]} {...panResponder.panHandlers}
+    <StoryPhotoReadinessContext.Provider key={mediaSessionKey} value={reportMedia}><StoryPhotoLookContext.Provider value={{ filterId: currentStory?.filter_id, filterAmt: mediaMt?.filterAmt, adjust: mediaMt?.adjust }}><Animated.View style={[s.root, { transform: [{ translateY }, { scale: translateY.interpolate({ inputRange: [-SCREEN_H * 0.3, 0, SCREEN_H], outputRange: [1, 1, 0.92], extrapolate: 'clamp' }) }] }]} {...panResponder.panHandlers}
       onTouchStart={beginSurfaceHold} onTouchEnd={endSurfaceHold} onTouchCancel={endSurfaceHold}
       onTouchMove={event => { if ((event.nativeEvent.touches?.length ?? 1) !== 1 || Math.hypot(event.nativeEvent.pageX - surfaceHold.current.x, event.nativeEvent.pageY - surfaceHold.current.y) > 12) endSurfaceHold(); }}>
       <StatusBar hidden />
@@ -997,8 +1061,8 @@ export default function StoryViewerScreen() {
           <ZoomableMedia onZoomChange={(z) => { if (z) pauseFor('zoom'); else resumeFrom('zoom'); }}>
           <ReAnimated.View style={[StyleSheet.absoluteFill, activeMediaAnimStyle, { zIndex: 1 }]}>
             {isText ? ((() => { if (mediaMt?.bg) return <BackgroundLayer bg={mediaMt.bg} mediaUrl={stickers.find(s => s.kind === 'post' && s.postMediaType !== 'video')?.postMediaUrl || null} />; const sharedPhoto = stickers.find(s => s.kind === 'post' && s.postMediaType !== 'video' && s.postMediaUrl)?.postMediaUrl; if (sharedPhoto) return <View style={s.media}><Image source={{ uri: sharedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={32} /><View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,.48)' }]} /></View>; const bg = (currentStory as any)?.text_background; if (bg?.kind === 'gradient' && bg.colors?.length === 2) { return (<LinearGradient colors={bg.colors} start={bg.direction === 'diagonal' ? { x: 0, y: 0 } : { x: 0.5, y: 0 }} end={bg.direction === 'diagonal' ? { x: 1, y: 1 } : { x: 0.5, y: 1 }} style={s.media} />); } const solidColor = bg?.kind === 'solid' && bg.color ? bg.color : '#0B1E3D'; return <View style={[s.media, { backgroundColor: solidColor }]} />; })()
-            ) : isVideo ? (<>{mediaFitMode === 'contain' && (<View key={'vbg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={null} /></View>)}<VideoView pointerEvents="none" key={'v-' + currentStory.id} style={[s.media, mediaHasTransform && mediaMt ? { transform: [{ translateX: mediaMt.translateNX * mediaSize.w }, { translateY: mediaMt.translateNY * mediaSize.h }, { scale: mediaMt.scale }] } : undefined] as any} look={{ filterId: (currentStory as any)?.filter_id, filterAmt: (mediaMt as any)?.filterAmt, adjust: (mediaMt as any)?.adjust }} player={videoPlayer} contentFit={mediaFitMode} nativeControls={false} onFirstFrameRender={() => setMediaReady(true)} /></>
-            ) : (<>{mediaFitMode === 'contain' && currentStory.media_url && (<View key={'bg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={currentStory.media_url} /></View>)}<StoryPixelImage key={'m-' + currentStory.id} uri={(hasDual && effectivePrimaryUrl ? effectivePrimaryUrl : currentStory.media_url) || ''} style={[s.media, mediaHasTransform && !hasDual ? { transform: [{ translateX: mediaMt!.translateNX * mediaSize.w }, { translateY: mediaMt!.translateNY * mediaSize.h }, { scale: mediaMt!.scale }] } : undefined]} fit={mediaFitMode} onLoad={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></>)}
+            ) : isVideo ? (<>{mediaFitMode === 'contain' && (<View key={'vbg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={null} /></View>)}<VideoView pointerEvents="none" key={'v-' + mediaSessionKey} style={[s.media, mediaHasTransform && mediaMt ? { transform: [{ translateX: mediaMt.translateNX * mediaSize.w }, { translateY: mediaMt.translateNY * mediaSize.h }, { scale: mediaMt.scale }] } : undefined] as any} look={{ filterId: (currentStory as any)?.filter_id, filterAmt: (mediaMt as any)?.filterAmt, adjust: (mediaMt as any)?.adjust }} player={videoPlayer} contentFit={mediaFitMode} nativeControls={false} onFirstFrameRender={handleMediaReady} /></>
+            ) : (<>{mediaFitMode === 'contain' && currentStory.media_url && (<View key={'bg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={currentStory.media_url} /></View>)}<StoryPixelImage key={'m-' + mediaSessionKey} uri={(hasDual && effectivePrimaryUrl ? effectivePrimaryUrl : currentStory.media_url) || ''} style={[s.media, mediaHasTransform && !hasDual ? { transform: [{ translateX: mediaMt!.translateNX * mediaSize.w }, { translateY: mediaMt!.translateNY * mediaSize.h }, { scale: mediaMt!.scale }] } : undefined]} fit={mediaFitMode} onLoad={handleMediaReady} onError={handleMediaError} /></>)}
           </ReAnimated.View>
           </ZoomableMedia>
         )}
@@ -1008,12 +1072,22 @@ export default function StoryViewerScreen() {
         <AdjustLayer adjust={isText || isVideo && !storyVideoPreviewAvailable ? mediaMt?.adjust || null : storyPhotoSpatialAdjust(mediaMt?.adjust)} zIndex={2} />
         <DrawingLayer strokes={(((stickers.find(sx => (sx as any).kind === 'drawing') as any)?.strokes) || null) as any} width={mediaSize.w} height={mediaSize.h} zIndex={3} />
         {renderPipDual()}
-        {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><TouchableOpacity accessibilityRole="button" onPress={() => { storyAudio.retry(); void loadForCurrentUser(); }}><Text style={{ color: '#FFFFFF', fontSize: 14, marginTop: 14 }}>Media unavailable. Tap to retry.</Text></TouchableOpacity></View>)}
-        <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onHashtagTap={(tag) => { saveAndGoBack(); setTimeout(() => navigation.navigate('Search' as never, { query: '#' + tag } as never), 280); }} onMentionTap={(userId) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId }); }} onPostTap={(postId) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('PostTop', { postId }); }} onPostProfileTap={(uid: string) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId: uid }); }} onStoryTap={(uid: string, sid: string) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('StoryViewer', { userId: uid, startStoryId: sid }); }} onPostHoldStart={() => pauseFor('cardHold')} onPostHoldEnd={() => resumeFrom('cardHold')} storyPaused={paused} clockSec={clockSec} onEntityTap={(st: any) => { const et = st?.entityType; const id = st?.entityId; if (!id) return; if (et === 'profile') { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId: id }); } else if (et === 'job') { pauseFor('deepnav'); supabase.from('jobs').select('*').eq('id', id).maybeSingle().then(({ data }) => { if (!data) { resumeFrom('deepnav'); return; } const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('JobDetail', { job: data }); }); } else if (et === 'article') { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('PostTop', { postId: id }); } else if (et === 'listing') { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('ListingDetail', { listingId: id }), 280); } }} onStickerLayout={(id: string, r: any) => { measuredStickerRectsRef.current[id] = r; }} engagementProps={engagementProps} />
+        <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onHashtagTap={(tag) => { saveAndGoBack(); setTimeout(() => navigation.navigate('Search' as never, { query: '#' + tag } as never), 280); }} onMentionTap={(userId) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId }); }} onPostTap={(postId) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('PostTop', { postId }); }} onPostProfileTap={(uid: string) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId: uid }); }} onStoryTap={(uid: string, sid: string) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('StoryViewer', { userId: uid, startStoryId: sid }); }} onPostHoldStart={() => pauseFor('cardHold')} onPostHoldEnd={() => resumeFrom('cardHold')} storyPaused={playbackPaused || mediaError} clockSec={clockSec} onEntityTap={(st: any) => { const et = st?.entityType; const id = st?.entityId; if (!id) return; if (et === 'profile') { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId: id }); } else if (et === 'job') { pauseFor('deepnav'); supabase.from('jobs').select('*').eq('id', id).maybeSingle().then(({ data }) => { if (!data) { resumeFrom('deepnav'); return; } const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('JobDetail', { job: data }); }); } else if (et === 'article') { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('PostTop', { postId: id }); } else if (et === 'listing') { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('ListingDetail', { listingId: id }), 280); } }} onStickerLayout={(id: string, r: any) => { measuredStickerRectsRef.current[id] = r; }} engagementProps={engagementProps} />
       </Animated.View>{/* wrap */}
       </Animated.View>
       </ReAnimated.View>
 
+      {!mediaReady && <View style={s.mediaRecovery} pointerEvents="box-none">
+        <View style={s.recoveryCard}>
+          {mediaError ? <Feather name="alert-circle" size={26} color="#FFF" /> : <ActivityIndicator color="#FFF" />}
+          <Text accessibilityRole={mediaError ? 'alert' : 'text'} style={s.recoveryText}>{mediaError ? 'This story could not play' : buffering ? 'Buffering story…' : 'Loading story…'}</Text>
+          {mediaError ? <TouchableOpacity accessibilityRole="button" style={s.recoveryButton} onPress={retryStory}><Text style={s.recoveryButtonText}>Retry</Text></TouchableOpacity> : null}
+          <View style={s.recoveryActions}>
+            <TouchableOpacity accessibilityRole="button" style={s.recoveryButton} onPress={advanceForward}><Text style={s.recoveryButtonText}>{storyIndex < stories.length - 1 || userIndex < userIds.length - 1 ? 'Next story' : 'Finish'}</Text></TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" style={s.recoveryButton} onPress={saveAndGoBack}><Text style={s.recoveryButtonText}>Close</Text></TouchableOpacity>
+          </View>
+        </View>
+      </View>}
       <EnvironmentLayer chromeOpacity={chromeOpacity} isPaused={paused} isOwn={isOwn ?? false} />
       {poll && (() => { const clampedTop = Math.max(insets.top + 90, Math.min(poll.ny * SCREEN_H - 100, SCREEN_H - 360)); const clampedLeft = (poll.nx * SCREEN_W) - (SCREEN_W * 0.4); return (<View style={[s.pollOverlay, { top: clampedTop, left: clampedLeft, transform: [{ scale: poll.scale || 1 }] }]} pointerEvents="auto" onLayout={(e) => { const layout = e.nativeEvent.layout; pollLayoutRef.current = { top: clampedTop, bottom: clampedTop + layout.height, left: clampedLeft, right: clampedLeft + layout.width }; }}><PollCard poll={poll} isOwn={isOwn} votingOptionId={votingOptionId} onVote={handlePollVote} onOpenVoters={openPollVoters} onShareResults={handlePollShareResults} /></View>); })()}
       {engagementError || pollReadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { setEngagementRetry(value => value + 1); setPollRetry(value => value + 1); }} style={{ position: 'absolute', top: insets.top + 80, alignSelf: 'center', zIndex: 10, backgroundColor: '#0B1E3D', padding: 10, borderRadius: 10 }}><Text style={{ color: '#FFF' }}>Responses could not load. Tap to retry.</Text></TouchableOpacity> : null}
@@ -1130,7 +1204,7 @@ export default function StoryViewerScreen() {
       </Modal>
       <AddYoursThreadSheet visible={!!addYoursThread} prompt={addYoursThread?.prompt || ''} originStoryId={addYoursThread?.originStoryId || null} originStickerId={addYoursThread?.originStickerId || null} onClose={() => { setAddYoursThread(null); resumeFrom('thread'); }} onOpen={(uid) => { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('StoryViewer', { userId: uid }), 200); }} />
       {responsesSheet.open && (<StickerResponsesSheet visible={responsesSheet.open} onShareResponse={handleShareResponse} onMessageResponder={handleMessageResponder} onShareResults={handleShareResults} onClose={() => { dispatchResponsesSheet({ type: 'CLOSE' }); resumeFrom('responsesSheet'); }} storyId={currentStory.id} stickerId={responsesSheet.stickerId} responseType={responsesSheet.type} title={responsesSheet.title} quizOptions={responsesSheet.quizOptions} />)}
-    </Animated.View></StoryPhotoLookContext.Provider>
+    </Animated.View></StoryPhotoLookContext.Provider></StoryPhotoReadinessContext.Provider>
   );
 }
 
@@ -1186,6 +1260,12 @@ const s = StyleSheet.create({
   pollVotersSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 10, maxHeight: '60%' },
   pollVotersHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   pollVotersTitle: { fontSize: 16, fontWeight: '700', color: '#000' },
+  mediaRecovery: { ...StyleSheet.absoluteFillObject, zIndex: 20, alignItems: 'center', justifyContent: 'center' },
+  recoveryCard: { minWidth: 220, alignItems: 'center', backgroundColor: 'rgba(8,12,18,.9)', padding: 22, borderRadius: 20 },
+  recoveryText: { color: '#F5F0EB', fontSize: 15, marginTop: 14, textAlign: 'center' },
+  recoveryActions: { flexDirection: 'row', gap: 12, marginTop: 4 },
+  recoveryButton: { minHeight: 44, paddingHorizontal: 20, justifyContent: 'center', borderRadius: 22, backgroundColor: 'rgba(255,255,255,.12)', marginTop: 14 },
+  recoveryButtonText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
   caughtUpOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(2,4,8,0.9)' },
   caughtUpContent: { alignItems: 'center' },
   caughtUpRing: { width: 72, height: 72, borderRadius: 36, borderWidth: 1, borderColor: 'rgba(196,184,168,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 18 },

@@ -1,0 +1,15 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "sourceMigration": "20261101181618_memory_cover_personalization_v2.sql",
+  "providerJournalVersion": "20261101182254",
+  "applied": true,
+  "postflight": {
+    "installationStage": 3,
+    "coverArtworkVersion2": true,
+    "normalizedCollageAndInk": true,
+    "privateHelperPublicAccess": false,
+    "authenticatedCapabilityAccess": true,
+    "deferredSourceMembership": true
+  },
+  "productionModified": false
+}

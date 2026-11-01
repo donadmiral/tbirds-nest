@@ -72,7 +72,7 @@ with tarfile.open(root / 'node_modules/expo/template.tgz') as archive:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(archive.extractfile(member).read())
 sources = [root / 'modules/boomerang/android/src/main/java/expo/modules/boomerang' / name
-           for name in ('StoryVideoComposition.kt', 'StoryVideoEffects.kt', 'MemoryMovieComposition.kt')]
+           for name in ('StoryVideoComposition.kt', 'StoryVideoEffects.kt', 'MemoryMovieComposition.kt', 'ReactVideoComposition.kt', 'ReactVideoEffects.kt')]
 if not all(path.is_file() for path in sources):
     raise SystemExit('The actual production encoder sources are required.')
 fixtures = sorted((root / 'scripts/quality/android-story-export/src/androidTest').rglob('*'))
@@ -219,6 +219,16 @@ memory_measured = json.loads(memory_receipt.read_text())
 memory_cases = memory_measured.get('cases', [])
 if memory_measured.get('media3Version') != '1.11.1' or len(memory_cases) != len(expected_memory) or {c.get('case') for c in memory_cases} != expected_memory or any(c.get('passed') is not True for c in memory_cases):
     raise SystemExit('The retained memory measurements do not exactly cover the declared cases.')
+react_source = harness_source.with_name('ReactVideoExportTest.kt')
+expected_react = set(re.findall(r'@Test\s+fun\s+(\w+)\s*\(', react_source.read_text()))
+observed_react = {case['name'] for case in tests if case['class'] == 'expo.modules.boomerang.ReactVideoExportTest'}
+react_receipt = evidence / 'device/react-receipt.json'
+if len(expected_react) < 8 or expected_react != observed_react or not react_receipt.is_file():
+    raise SystemExit('The complete reaction encoder acceptance suite did not execute.')
+react_measured = json.loads(react_receipt.read_text())
+react_cases = react_measured.get('cases', [])
+if {case.get('case') for case in react_cases} != expected_react or any(case.get('passed') is not True for case in react_cases):
+    raise SystemExit('Reaction encoder measurements do not cover the declared cases.')
 preflight = json.loads((evidence / 'preflight.json').read_text())
 for name, expected in preflight['acceptanceSources'].items():
     if hashlib.sha256(Path(name).read_bytes()).hexdigest() != expected:
@@ -251,6 +261,7 @@ receipt = {
     'emulatorBuild': (evidence / 'emulator-build.log').read_text().strip(),
     'instrumentationTests': tests, 'measuredReceipt': measured,
     'memoryMeasuredReceipt': memory_measured,
+    'reactMeasuredReceipt': react_measured,
     'movies': [{'name': p.name, 'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in movies],
     'normalizedImages': [{'name': p.name, 'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in images],
     'physicalDeviceAcceptance': False, 'installedProductAcceptance': False,

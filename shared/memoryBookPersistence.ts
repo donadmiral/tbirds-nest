@@ -16,9 +16,10 @@ export type MemoryCreativeDraft={
 };
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function requireMemoryCreativeBackend(client:MemoryCreativeClient):Promise<void>{
+export async function requireMemoryCreativeBackend(client:MemoryCreativeClient,coverVersion:1|2=1):Promise<void>{
   const {data,error}=await client.rpc('get_memory_book_creative_capabilities');
   if(!memoryBookCreativeAvailable(data,error))throw new Error('Creative book saving is unavailable. Your draft is kept. Retry after reconnecting.');
+  if(coverVersion===2&&!(data&&typeof data==='object'&&'coverArtworkVersions' in data&&Array.isArray(data.coverArtworkVersions)&&data.coverArtworkVersions.includes(2)))throw new Error('Personalized cover saving is unavailable. Your draft is kept. Retry after reconnecting.');
 }
 async function requireOwner(client:MemoryCreativeClient,ownerId:string,isCurrent:()=>boolean){
   if(!uuid.test(ownerId)||!isCurrent())throw new Error('The book session changed. Reopen the book before saving.');
@@ -35,7 +36,8 @@ async function mutate(client:MemoryCreativeClient,ownerId:string,isCurrent:()=>b
  const bound=<T,>(work:PromiseLike<T>)=>Promise.race([Promise.resolve(work),new Promise<never>((_,reject)=>{const stop=()=>reject(new Error(changed?'The book session changed. Reopen the book before saving.':'The book save could not be confirmed. Your draft is kept; reload before retrying.'));controller.signal.addEventListener('abort',stop,{once:true});if(controller.signal.aborted)stop();})]);
  try{
   timeout=setTimeout(()=>controller.abort(),30000);
-  await bound(requireMemoryCreativeBackend(client));const token=await bound(requireOwner(client,ownerId,current));
+  const coverVersion=(args.p_cover_artwork as MemoryCoverArtwork).version;
+  await bound(requireMemoryCreativeBackend(client,coverVersion));const token=await bound(requireOwner(client,ownerId,current));
   if(!current())throw new Error('The book session changed. Reopen the book before saving.');
   const {data,error}=await bound(client.rpc(name,args).setHeader('Authorization',`Bearer ${token}`).abortSignal(controller.signal));
   if(!current())throw new Error('The book session changed. Reopen the book before saving.');if(error)throw error;
@@ -53,7 +55,7 @@ export async function saveMemoryCreativeBook(client:MemoryCreativeClient,options
   const args={...payload(draft),p_album:albumId,p_expected_revision:revision,p_audience:audience};
   return mutate(client,ownerId,isCurrent,'save_memory_book_creative_presentation',args,data=>{
   const result=parseMemoryCreativeSaveResult(data,albumId);
-  if(!result||result.presentation_revision<=revision)throw new Error('The book save could not be confirmed. Reload the saved book before retrying. Your draft is kept.');
+  if(!result||result.presentation_revision<=revision||JSON.stringify(result.cover_artwork)!==JSON.stringify(args.p_cover_artwork))throw new Error('The book save could not be confirmed. Reload the saved book before retrying. Your draft is kept.');
   return result;});
 }
 export async function createMemoryCreativeBook(client:MemoryCreativeClient,options:{ownerId:string;requestId:string;storyIds:string[];draft:MemoryCreativeDraft;isCurrent:()=>boolean}):Promise<MemoryCreativeSaveResult>{
@@ -62,6 +64,6 @@ export async function createMemoryCreativeBook(client:MemoryCreativeClient,optio
   const args={...payload(draft),p_request_id:requestId,p_story_ids:[...storyIds]};
   return mutate(client,ownerId,isCurrent,'create_memory_book_creative_presentation',args,data=>{
   const result=parseMemoryCreativeSaveResult(data,requestId);
-  if(!result)throw new Error('The book save could not be confirmed. Your draft is kept; retry to confirm it.');
+  if(!result||JSON.stringify(result.cover_artwork)!==JSON.stringify(args.p_cover_artwork))throw new Error('The book save could not be confirmed. Your draft is kept; retry to confirm it.');
   return result;});
 }

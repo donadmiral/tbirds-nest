@@ -1,3 +1,4 @@
+import { ensureImagePickerLibraryPermission, ensureMediaLibraryPermission } from '../../services/devicePermissions';
 import { messagesBack } from '../../navigation/messagesNavigation';
 import { ChatSkeleton } from '../../components/skeletons';
 import { useTheme, themedSheet } from '../../theme/useTheme';
@@ -1235,7 +1236,7 @@ const insertMention = useCallback((username: string) => {
     if (!url || savingToDevice) return;
     setSavingToDevice(true);
     try {
-      const perm = await MediaLibrary.requestPermissionsAsync();
+      const perm = await ensureMediaLibraryPermission({ writeOnly: true });
       if (!perm.granted) { Alert.alert('Permission needed', 'Allow access to save to your gallery.'); return; }
       const cleanUrl = url.split('?')[0];
       const ext = cleanUrl.split('.').pop()?.toLowerCase() || (kind === 'video' ? 'mp4' : 'jpg');
@@ -1455,7 +1456,7 @@ const chooseAndSendImage = useCallback(async (img: { uri: string; width: number;
 
   const pickAndSendMedia = useCallback(async () => {
     const scope = attachmentScopeRef.current;
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (attachmentScopeRef.current !== scope || !mountedRef.current) return;
     if (!perm.granted) { Alert.alert('Permission required'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({

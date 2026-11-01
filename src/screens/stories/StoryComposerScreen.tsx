@@ -8,7 +8,6 @@ import { storyLayerWindow } from '../../../shared/storyPresentation';
 import StoryTimingPanel from '../../components/stories/StoryTimingPanel';
 import StoryTextEditorToolbar from '../../components/stories/StoryTextEditorToolbar';
 import { storyHandles } from '../../../shared/storyMentions';
-import SaveToMemorySheet from '../../components/stories/SaveToMemorySheet';
 import StoryAudienceSheet from '../../components/stories/StoryAudienceSheet';
 import { updateDraftStickers, type StickerChange } from '../../controllers/stories/stickerDraftUpdates';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -56,6 +55,7 @@ import { EXTRA_TEXT_STYLES, EXTRA_TEXT_LABELS, composedTextStyle, TEXT_ANIMS, fe
 import GifPickerLite from '../../components/GifPickerLite';
 import PollDragWrap from '../../components/stories/PollDragWrap';
 import * as ImagePicker from 'expo-image-picker';
+import { ensureCameraPermission, ensureMediaLibraryPermission, ensureForegroundLocationPermission } from '../../services/devicePermissions';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
@@ -356,20 +356,11 @@ export default function StoryComposerScreen() {
   // Sync refs so bloom/bubble read current values via their internal ref tracking
   useEffect(() => { arrangementOpenRef.current = arrangement.arrangementOpen; }, [arrangement.arrangementOpen]);
 
-  const [publishedStoryIds, setPublishedStoryIds] = useState<string[]>([]);
-  const onPublished = useCallback((ids: string[]) => setPublishedStoryIds(ids), []);
-  const finishPublishing = useCallback(() => {
-    setPublishedStoryIds([]);
-    const nav: any = navigation;
-    if (typeof nav.popToTop === 'function') nav.popToTop();
-    else if (nav.canGoBack?.()) nav.goBack();
-  }, [navigation]);
-
   // ── CONTROLLER: Publish (depends on bloom.closeBloom, mediaOpacity/Scale) ──
   const publish = usePublishOrchestrator({
     drafts, setDrafts, myId, navigation,
     closeBloom: bloom.closeBloom,
-    mediaOpacity, mediaScale, onPublished,
+    mediaOpacity, mediaScale,
   });
 
   // Sync publishing ref so bloom/bubble read current value
@@ -656,7 +647,7 @@ export default function StoryComposerScreen() {
   }, [setCellPhoto]);
   const fillCellFromCamera = useCallback(async (id: string) => {
     try {
-      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      const perm = await ensureCameraPermission();
       if (!perm.granted) { Alert.alert('Camera off', 'Allow camera access to shoot a photo for this cell.'); return; }
       const res = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'] as any, quality: 0.85 });
       const a = res?.assets?.[0]; if (a?.uri) setCellPhoto(id, a.uri);
@@ -673,7 +664,7 @@ export default function StoryComposerScreen() {
   }, [fillCellFromLibrary, fillCellFromCamera, setCellPhoto, active, updateStickers]);
   const addWeatherSticker = useCallback(async () => {
     let lat: number | null = null, lon: number | null = null;
-    try { const Loc = require('expo-location'); const perm = await Loc.requestForegroundPermissionsAsync(); if (perm?.granted) { const pos = await Loc.getLastKnownPositionAsync({}) || await Loc.getCurrentPositionAsync({ accuracy: 3 }); lat = pos?.coords?.latitude ?? null; lon = pos?.coords?.longitude ?? null; } } catch {}
+    try { const Loc = require('expo-location'); const perm = await ensureForegroundLocationPermission(); if (perm?.granted) { const pos = await Loc.getLastKnownPositionAsync({}) || await Loc.getCurrentPositionAsync({ accuracy: 3 }); lat = pos?.coords?.latitude ?? null; lon = pos?.coords?.longitude ?? null; } } catch {}
     if (lat == null || lon == null) { try { const r = await fetch('https://ipapi.co/json/'); const j = await r.json(); lat = Number(j?.latitude); lon = Number(j?.longitude); } catch {} }
     if (lat == null || lon == null || Number.isNaN(lat)) { addSimpleSticker({ kind: 'weather', infoStyle: 0 }); return; }
     const w = await fetchWeatherNow(lat, lon);
@@ -736,7 +727,7 @@ export default function StoryComposerScreen() {
         if (!storyVideoCompositionAvailable) throw new Error(storyNativeEditingUnavailable(Platform.OS, active.audio ? 'audio' : 'video'));
         const limit = storyVideoExportLimit(active.stickers || [], !!active.audio, storyAudioCompositionAvailable, Platform.OS); if (limit) throw new Error(limit);
       }
-      const perm = await MediaLibrary.requestPermissionsAsync(true);
+      const perm = await ensureMediaLibraryPermission({ writeOnly: true });
       ensure();
       if (!perm.granted) { Alert.alert('Allow Photos access', 'Enable photo library access in Settings to save.'); return; }
       if (active.mediaType === 'video' || active.audio) {
@@ -1076,7 +1067,6 @@ export default function StoryComposerScreen() {
     return (
       <SafeAreaView style={st.safe} edges={['top', 'bottom']}>
         <StatusBar barStyle="light-content" />
-      {myId && <SaveToMemorySheet visible={publishedStoryIds.length > 0} storyIds={publishedStoryIds} userId={myId} onClose={finishPublishing} />}
         <View style={st.emptyFallback}>
           <Feather name="image" size={40} color={accent.warmMuted} />
           <Text style={st.emptyFallbackTitle}>No media selected</Text>

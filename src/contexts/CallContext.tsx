@@ -28,8 +28,8 @@
 import React, {
   createContext, useCallback, useContext, useEffect, useRef, useState,
 } from 'react';
-import { Alert, AppState, Platform, PermissionsAndroid } from 'react-native';
-import { Camera } from 'expo-camera';
+import { Alert, AppState, Platform } from 'react-native';
+import { ensureCameraPermission, ensureMicrophonePermission } from '../services/devicePermissions';
 import Daily, {
   DailyCall, DailyEvent, DailyEventObjectParticipant, DailyParticipant,
 } from '@daily-co/react-native-daily-js';
@@ -423,20 +423,12 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     };
     try {
       // Ask before ringing the other person or accepting their invitation.
-      if (Platform.OS === 'android') {
-        const perms = [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO];
-        if (params.isVideo) perms.push(PermissionsAndroid.PERMISSIONS.CAMERA);
-        const result = await PermissionsAndroid.requestMultiple(perms);
-        if (!isCurrent()) return;
-        if (perms.some(permission => result[permission] !== PermissionsAndroid.RESULTS.GRANTED)) {
-          throw new Error(params.isVideo ? 'Allow microphone and camera access in Settings to make a video call.' : 'Allow microphone access in Settings to make a call.');
-        }
-      } else if (Platform.OS === 'ios') {
-        const mic = await Camera.requestMicrophonePermissionsAsync();
+      if (Platform.OS === 'android' || Platform.OS === 'ios') {
+        const mic = await ensureMicrophonePermission();
         if (!isCurrent()) return;
         if (!mic.granted) throw new Error('Allow microphone access in Settings to make a call.');
         if (params.isVideo) {
-          const camera = await Camera.requestCameraPermissionsAsync();
+          const camera = await ensureCameraPermission();
           if (!isCurrent()) return;
           if (!camera.granted) throw new Error('Allow camera access in Settings to make a video call.');
         }
@@ -857,9 +849,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       const intent = mediaIntentRef.current;
       const nowOff = !intent.videoOff;
       if (!nowOff) {
-        const permission = Platform.OS === 'android'
-          ? await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA)
-          : (await Camera.requestCameraPermissionsAsync()).status;
+        const permission = (await ensureCameraPermission()).status;
         if (callObjRef.current !== call) return;
         if (permission !== 'granted') {
           Alert.alert('Camera access needed', 'Allow camera access in Settings to turn on your video.');

@@ -14,12 +14,16 @@ on:
       - 'scripts/quality/compile-ios-simulator.sh'
       - 'scripts/quality/test-ios-story-audio.sh'
       - 'scripts/quality/StoryAudioExportHarness.swift'
+      - 'scripts/quality/test-ios-react-video.sh'
+      - 'scripts/quality/ReactVideoExportHarness.swift'
       - 'scripts/quality/test-ios-memory-movie.sh'
       - 'scripts/quality/MemoryMovieExportHarness.swift'
+      - 'scripts/quality/test-ios-react-video.sh'
+      - 'scripts/quality/ReactVideoExportHarness.swift'
       - 'scripts/quality/android-story-export/src/androidTest/assets/memory-animated.*'
       - '.github/workflows/ios-native-compile.yml'
   push:
-    branches: [master, 'codex/completion-20261101']
+    branches: [master, 'codex/completion-20261101', 'codex/creator-preview-20261101']
     paths:
       - 'modules/**'
       - 'plugins/**'
@@ -32,8 +36,12 @@ on:
       - 'scripts/quality/compile-ios-simulator.sh'
       - 'scripts/quality/test-ios-story-audio.sh'
       - 'scripts/quality/StoryAudioExportHarness.swift'
+      - 'scripts/quality/test-ios-react-video.sh'
+      - 'scripts/quality/ReactVideoExportHarness.swift'
       - 'scripts/quality/test-ios-memory-movie.sh'
       - 'scripts/quality/MemoryMovieExportHarness.swift'
+      - 'scripts/quality/test-ios-react-video.sh'
+      - 'scripts/quality/ReactVideoExportHarness.swift'
       - 'scripts/quality/android-story-export/src/androidTest/assets/memory-animated.*'
       - '.github/workflows/ios-native-compile.yml'
   workflow_dispatch:
@@ -46,6 +54,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  simulator-react-export:
+    name: Verify React video composition on iOS Simulator
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Read source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Encode and inspect actual source holds camera video and microphone audio
+        run: bash scripts/quality/test-ios-react-video.sh
+      - name: Keep React video runtime evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-react-video-export
+          path: native-react-logs/
+          if-no-files-found: ignore
+          retention-days: 7
+
   simulator-memory-export:
     name: Verify full memory movies on iOS Simulator
     runs-on: macos-15

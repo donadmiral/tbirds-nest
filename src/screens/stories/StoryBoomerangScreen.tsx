@@ -1,3 +1,4 @@
+import { useCameraPermissions as useKnownCameraPermissions } from '../../hooks/useDevicePermissions';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as FileSystem from 'expo-file-system/legacy';
 import { makeBoomerang } from '../../../modules/boomerang';
@@ -15,7 +16,7 @@ const RING_R = 36;
 const RING_C = 2 * Math.PI * (RING_R + 5);
 let CameraView: any = null;
 let useCameraPermissions: any = () => [null, async () => ({ granted: false })];
-try { const camera = require('expo-camera'); CameraView = camera.CameraView; useCameraPermissions = camera.useCameraPermissions; } catch {}
+try { const camera = require('expo-camera'); CameraView = camera.CameraView; useCameraPermissions = useKnownCameraPermissions; } catch {}
 
 async function bounded<T>(work: Promise<T>, ms: number, message: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;

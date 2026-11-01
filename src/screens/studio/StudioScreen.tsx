@@ -1,3 +1,4 @@
+import { ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
@@ -346,7 +347,7 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
     const current = () => mounted.current && currentOwner.current === meId && editorVersion.current === editor;
     setBusy(true);
     try {
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const perm = await ensureImagePickerLibraryPermission();
       if (!current()) return;
       if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
       const result = await ImagePicker.launchImageLibraryAsync({

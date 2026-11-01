@@ -16,7 +16,8 @@ class BoomerangModule : Module() {
     // The exact production renderer passed all 23 encoded-audio, pixel,
     // cancellation and bounded-input emulator cases. New binaries expose this
     // contract; physical-device acceptance remains a separate check.
-    Constants("storyVideoVersion" to 1, "storyAudioExportVersion" to 1, "memoryMovieVersion" to 0)
+    Constants("storyVideoVersion" to 1, "storyAudioExportVersion" to 1, "memoryMovieVersion" to 0,
+      "reactVideoVersion" to 1, "reactCutoutVersion" to 1)
 
     AsyncFunction("composeStory") { request: Map<String, Any?>, promise: Promise ->
       val context = appContext.reactContext
@@ -46,8 +47,16 @@ class BoomerangModule : Module() {
       }
     }
     AsyncFunction("cancelMemoryMovie") { id: String -> MemoryMovieComposition.cancel(id) }
-    OnActivityEntersBackground { StoryVideoComposition.cancelAll(); MemoryMovieComposition.cancelAll() }
-    OnDestroy { StoryVideoComposition.cancelAll(); MemoryMovieComposition.cancelAll() }
+    AsyncFunction("composeReactVideo") { request: Map<String, Any?>, promise: Promise ->
+      val context = appContext.reactContext
+      if (context == null) promise.reject(CodedException("E_CONTEXT", "The application is no longer active.", null))
+      else ReactVideoComposition.compose(context, request) { result ->
+        result.fold({ promise.resolve(it) }, { promise.reject(CodedException("E_REACT_EXPORT", it.message ?: "Reaction export failed.", it)) })
+      }
+    }
+    AsyncFunction("cancelReactVideo") { id: String -> ReactVideoComposition.cancel(id) }
+    OnActivityEntersBackground { StoryVideoComposition.cancelAll(); MemoryMovieComposition.cancelAll(); ReactVideoComposition.cancelAll() }
+    OnDestroy { StoryVideoComposition.cancelAll(); MemoryMovieComposition.cancelAll(); ReactVideoComposition.cancelAll() }
 
     AsyncFunction("make") { input: String, output: String, loops: Int, promise: Promise ->
       promise.reject(CodedException("E_UNSUPPORTED", "Boomerang encoding is not available on Android yet", null))

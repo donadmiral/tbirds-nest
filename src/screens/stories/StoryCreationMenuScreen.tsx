@@ -1,3 +1,4 @@
+import { ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 /**
  * StoryCreationMenuScreen — Creative space entry
  *
@@ -147,7 +148,7 @@ export default function StoryCreationMenuScreen() {
   };
 
   const openPhotoGallery = async () => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!perm.granted) {
       Alert.alert('Permission required', 'Allow photo library access in Settings.');
       return;
@@ -177,7 +178,7 @@ export default function StoryCreationMenuScreen() {
   };
 
   const openVideoGallery = async () => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!perm.granted) {
       Alert.alert('Permission required', 'Allow photo library access in Settings.');
       return;

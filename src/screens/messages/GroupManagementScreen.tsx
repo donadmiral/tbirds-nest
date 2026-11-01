@@ -1,3 +1,4 @@
+import { ensureImagePickerLibraryPermission, ensureMediaLibraryPermission } from '../../services/devicePermissions';
 import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -243,7 +244,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
 
   const saveMediaDirectly = useCallback(async (m: MediaMsg) => {
     try {
-      const perm = await MediaLibrary.requestPermissionsAsync();
+      const perm = await ensureMediaLibraryPermission({ writeOnly: true });
       if (!perm.granted) {
         Alert.alert('Permission required', 'Allow photo library access to save.');
         return;
@@ -321,7 +322,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
   const pickGroupAvatar = async () => {
     if (!canEditInfo) { Alert.alert('Admins only', 'Only admins can change the group photo.'); return; }
     if (!myId) return;
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!perm.granted) { Alert.alert('Permission required', 'Allow photo access.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
         preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,

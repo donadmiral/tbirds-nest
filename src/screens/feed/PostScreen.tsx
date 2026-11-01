@@ -1,3 +1,5 @@
+import { prepareReactPostSource } from '../../services/reactSourceAccess';
+import { navigationScope } from '../../lib/navigationCache';
 import { useAfterTransition } from '../../lib/screenTransition';
 import { PostSkeleton } from '../../components/skeletons';
 import PollCard from '../../components/PollCard';
@@ -74,6 +76,7 @@ export default function PostScreen({ route, navigation }: any) {
   const identityRef = useRef({ postId, userId });
   identityRef.current = { postId, userId };
   const loadEpoch = useRef(0);
+  const reactOpening = useRef(false);
   const likeLock = useRef<number | null>(null);
 
   const [post, setPost] = useState<Post | null>(null);
@@ -380,6 +383,16 @@ export default function PostScreen({ route, navigation }: any) {
             <Ionicons name={likedPost ? 'heart' : 'heart-outline'} size={18} color={likedPost ? '#FF3040' : t.ink.muted} />
             <Text style={[s.actionTxt, likedPost && { color: '#FF3B30', fontWeight: '700' }]}>Like</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={s.actionBtn} accessibilityRole="button" accessibilityLabel="React to this post" onPress={async () => {
+            if (reactOpening.current) return;
+            reactOpening.current = true;
+            try {
+              const owner = useAuthStore.getState().session?.user.id;
+              const scope = navigationScope();
+              const source = await prepareReactPostSource({ postId, uri: '', kind: 'image' });
+              if (navigationScope() === scope && useAuthStore.getState().session?.user.id === owner && identityRef.current.postId === postId && navigation.isFocused()) navigation.navigate('ReactCapture', { source });
+            } catch (error: any) { Alert.alert('React unavailable', error?.message || 'Try again.'); } finally { reactOpening.current = false; }
+          }} activeOpacity={0.7}><Feather name="video" size={16} color={t.ink.muted}/><Text style={s.actionTxt}>React</Text></TouchableOpacity>
           <TouchableOpacity style={s.actionBtn} onPress={() => panelRef.current?.focusInput()} activeOpacity={0.7}>
             <Feather name="message-circle" size={16} color={t.ink.muted} />
             <Text style={s.actionTxt}>Comment</Text>

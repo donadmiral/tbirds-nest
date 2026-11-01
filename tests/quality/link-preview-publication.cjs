@@ -18,6 +18,8 @@ const visit = node => {
 visit(ast);
 assert.ok(previewStart && previewEnd && dismiss && publish, 'Load the actual native preview effect, dismiss control, and publisher');
 const compile = text => ts.transpileModule(text, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+const handoff = {};
+vm.runInNewContext(compile(fs.readFileSync(path.resolve(__dirname, '../../shared/reactDraftHandoff.ts'), 'utf8')), { exports: handoff });
 
 function previewFixture(text = 'Read https://example.com/page') {
   let preview = null, cursor = 0, timerId = 0, cleanup, dependencies, authenticatedOwner = 'owner';
@@ -133,6 +135,7 @@ function publicationFixture(text, preview) {
     articleTitle: '', quotingPost: null, threadingPost: null, composerSensitive: false, collabPicks: [], pollOpts: null,
     pollDays: 1, composerProducts: [], MUSIC_CATALOG_ENABLED: false, currentAuthorId: owner => owner,
     uniqueCollaborators: () => [], Crypto: { randomUUID: () => `fixture-${++id}` },
+    reactDraftAttribution: handoff.reactDraftAttribution,
     useAuthStore: { getState: () => ({ profile: { id: 'owner' } }) },
     supabase: {
       auth: { getSession: async () => ({ data: { session: { user: { id: 'owner' }, access_token: 'fixture-token' } } }) },
@@ -166,5 +169,36 @@ test('native publication preserves the current link without depending on a cache
   assert.equal(h.posts.length, 1);
   assert.equal(h.posts[0].link_url, 'https://example.com/current');
   assert.deepEqual(h.calls, ['posts']);
+  assert.equal(h.context.publicationAttempt.current, null);
+});
+
+test('native React publication persists the same original shown by the composer media', async () => {
+  const h = publicationFixture('My reaction', null), checked = [];
+  const media = { uri: 'reaction.mp4', type: 'video', ext: 'mp4', width: 720, height: 1280, reactSource: { postId: 'original-a', creatorId: 'creator-a', creatorName: 'Original creator' } };
+  Object.assign(h.context, {
+    composerMedia: [media], ORIGINAL_AUDIO_ENABLED: false,
+    assertReactSourceAccess: async source => { checked.push(source.postId); },
+    ensureUploadSafe: async (uri, type) => ({ uri, mime: type === 'video' ? 'video/mp4' : 'image/jpeg', ext: type === 'video' ? 'mp4' : 'jpg' }),
+    VideoThumbnails: { getThumbnailAsync: async () => ({ uri: 'thumb.jpg' }) },
+    safeExtFromUri: (_uri, fallback) => fallback,
+    FormData: class { append() {} }, AbortController,
+    process: { env: { EXPO_PUBLIC_SUPABASE_URL: 'https://fixture.invalid', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'fixture' } },
+    fetch: async () => ({ ok: true }),
+  });
+  const displayed = handoff.reactDraftAttribution(h.context.composerMedia, null);
+  await h.context.publish();
+  assert.equal(h.errors.length, 0);
+  assert.equal(h.posts[0].quoted_post_id, displayed.postId);
+  assert.deepEqual(checked, ['original-a', 'original-a']);
+});
+
+test('native publication rejects conflicting React and manual quote sources before any write', async () => {
+  const h = publicationFixture('My reaction', null);
+  h.context.composerMedia = [{ uri: 'reaction.mp4', type: 'video', ext: 'mp4', reactSource: { postId: 'original-a' } }];
+  h.context.quotingPost = { id: 'original-b' };
+  await h.context.publish();
+  assert.equal(h.errors.length, 1);
+  assert.match(h.errors[0][1], /one original/);
+  assert.deepEqual(h.calls, []);
   assert.equal(h.context.publicationAttempt.current, null);
 });

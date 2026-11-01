@@ -90,6 +90,7 @@ before(async()=>{
  await assert.rejects(db.exec(await source(`supabase/migrations/${units[2]}.sql`)),/MEMORY_COVER_GUARD_REQUIRED/);
  await db.exec('rollback');assert.equal(await value('select stage from memory_creative.installation'),2);
  await db.exec(await source(`supabase/migrations/${units[2]}.sql`));
+ await db.exec(await source('supabase/migrations/20261101181618_memory_cover_personalization_v2.sql'));
  musicAfter=await captureMusicState(db);
  if(order==='after')await installMusic();
 });
@@ -97,7 +98,7 @@ beforeEach(()=>db.exec('begin'));afterEach(()=>db.exec('rollback'));after(()=>db
 
 test(`private installation stages cannot expose an incomplete creative RPC (music ${order})`,async()=>{
  assert.deepEqual(intermediate,{atOne:{stage:1,capability:null,privateCallable:0},atTwo:{stage:2,capability:null,privateCallable:0}});
- assert.deepEqual(await as('owner','select public.get_memory_book_creative_capabilities()'),{version:1,supported:true});
+ assert.deepEqual(await as('owner','select public.get_memory_book_creative_capabilities()'),{version:1,supported:true,coverArtworkVersions:[1,2]});
  assert.equal(await value('select stage from memory_creative.installation'),3);
 });
 test('existing books and installed legacy creation retain original playback and exact presentation',async()=>{
@@ -264,4 +265,55 @@ test('a current exact business binding supports creative persistence and revoked
  const created=await as('business','select public.create_memory_book_creative_presentation($1,$2,$3,$4,$5,$6,$7,$8,$9)',args,'authenticated',bound.session);assert.equal(created.id,request);
  await q("update public.business_devices set status='pending' where business_id=$1 and device_id=$2",[ids.business,bound.device]);
  await assert.rejects(as('business','select public.get_memory_book($1)',[request],'authenticated',bound.session),/SESSION/);
+});
+
+const personalized=overrides=>({...client.personalizeMemoryCover(art()),titleStyle:'handwritten',layout:'collage',storyIds:[stories.two,stories.one],paperColor:'#FBE3EA',inkColor:'#142642',strokes:[{tool:'pen',color:'#932535',width:2.5,points:[{x:.1,y:.2},{x:.4,y:.6},{x:.8,y:.2}]}],...overrides});
+test('personalized collage, cursive, palette and real drawing survive atomic create, shelf, save and reopen',async()=>{
+ const artwork=personalized(),created=await create({art:artwork});
+ assert.deepEqual(created.cover_artwork,artwork);
+ assert.deepEqual(created.cover_pages.map(page=>page.story_id),[stories.two,stories.one]);
+ assert.deepEqual((await read(created.id)).cover_artwork,artwork);
+ const entry=(await shelf()).books.find(book=>book.id===created.id);
+ assert.deepEqual(entry.cover_artwork,artwork);assert.deepEqual(entry.cover_pages.map(page=>page.story_id),artwork.storyIds);
+ const edited=personalized({inscription:'Written by us',strokes:[...artwork.strokes,{tool:'marker',color:'#225071',width:5,points:[{x:.2,y:.9},{x:.8,y:.9}]}]});
+ const saved=await save(created.id,created.presentation_revision,{title:'Our own cover',art:edited});
+ const reopened=await read(saved.id);assert.equal(reopened.title,'Our own cover');assert.deepEqual(reopened.cover_artwork,edited);
+ assert.ok(client.parseMemoryCreativeSaveResult(saved,saved.id));
+ await db.exec('set constraints memory_cover_source_membership immediate');
+});
+test('v2 cover parser and database agree on bounded shapes and normalized drawing coordinates',async()=>{
+ const valid=personalized({strokes:[{tool:'pen',color:'#abcdef',width:2.123456,points:[{x:.123456,y:.654321}]}]});
+ const created=await create({art:valid});assert.deepEqual(created.cover_artwork,client.parseMemoryCoverArtwork(valid));
+ const invalid=[{...personalized(),storyIds:[stories.one,stories.one.toUpperCase()]},{...personalized(),url:'https://foreign.invalid/picture'},
+  {...personalized(),paperColor:'url(https://foreign.invalid)'},{...personalized(),titleStyle:null},
+  {...personalized(),strokes:Array(65).fill(personalized().strokes[0])},
+  {...personalized(),strokes:[{...personalized().strokes[0],points:Array(513).fill({x:.5,y:.5})}]},
+  {...personalized(),strokes:Array(17).fill({...personalized().strokes[0],points:Array(512).fill({x:.5,y:.5})})},
+  {...personalized(),strokes:[{...personalized().strokes[0],width:20}]},
+  {...personalized(),strokes:[{...personalized().strokes[0],points:[{x:-.1,y:.5}]}]}];
+ for(const artwork of invalid){assert.equal(client.parseMemoryCoverArtwork(artwork),null);await assert.rejects(save(created.id,created.presentation_revision,{art:artwork}),/INVALID_MEMORY_COVER_ARTWORK/);}
+ assert.equal((await read(created.id)).presentation_revision,created.presentation_revision);
+});
+test('collage sources must belong to this book and remain hidden with its existing audience',async()=>{
+ await assert.rejects(create({art:personalized({storyIds:[stories.foreign]})}),/COVER_NOT_SELECTED/);
+ const created=await create({art:personalized()});
+ await assert.rejects(save(created.id,created.presentation_revision,{art:personalized({storyIds:[stories.foreign]})}),/COVER_NOT_IN_OWNED_BOOK/);
+ await assert.rejects(save(created.id,created.presentation_revision,{art:personalized()},'other'),/BOOK_NOT_OWNED/);
+ const saved=await save(created.id,created.presentation_revision,{audience:'only_me',art:personalized()});
+ const denied=await read(saved.id,'viewer');assert.equal(denied.can_view,false);assert.equal(Object.hasOwn(denied,'cover_pages'),false);
+ assert.equal(JSON.stringify(await shelf(ids.owner,'viewer')).includes(stories.one),false);
+});
+test('deleting a collage page removes only its reference and retains the remaining photo, ink and writing',async()=>{
+ const artwork=personalized(),created=await create({art:artwork}),book=await read(created.id),removed=book.pages.find(page=>page.story_id===stories.two);
+ await as('owner','delete from public.memory_pages where id=$1 returning id',[removed.id]);
+ const reopened=await read(created.id);
+ assert.deepEqual(reopened.cover_artwork,{...artwork,storyIds:[stories.one]});assert.deepEqual(reopened.cover_pages.map(page=>page.story_id),[stories.one]);
+ assert.ok(reopened.presentation_revision>created.presentation_revision);
+ await db.exec('set constraints memory_cover_source_membership immediate');
+});
+test('deferred collage membership rejects direct owner writes outside the book without changing public grants',async()=>{
+ const created=await create({art:personalized()});
+ await db.exec('set constraints memory_cover_source_membership immediate');
+ await assert.rejects(as('owner','update public.memory_albums set cover_artwork=$1 where id=$2 returning id',[JSON.stringify(personalized({storyIds:[stories.foreign]})),created.id]),/COVER_NOT_IN_OWNED_BOOK/);
+ assert.equal(await value("select count(*)::int from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='memory_creative' and (has_function_privilege('anon',p.oid,'execute') or has_function_privilege('authenticated',p.oid,'execute') or has_function_privilege('service_role',p.oid,'execute'))"),0);
 });

@@ -1,3 +1,4 @@
+import { useCameraPermissions as useKnownCameraPermissions, useMicrophonePermissions as useKnownMicrophonePermissions } from '../../hooks/useDevicePermissions';
 // src/screens/stories/StoryFunCameraScreen.tsx
 // FUN mode. Two tabs now: Filters (2D looks, live via FilterLayer, unchanged
 // from before) and Lenses (real AR via CameraKitLensView, backed by a real
@@ -40,8 +41,8 @@ let cameraAvailable = false;
 try {
   const mod = require('expo-camera');
   CameraView = mod.CameraView;
-  useCameraPermissions = mod.useCameraPermissions;
-  useMicrophonePermissions = mod.useMicrophonePermissions;
+  useCameraPermissions = useKnownCameraPermissions;
+  useMicrophonePermissions = useKnownMicrophonePermissions;
   cameraAvailable = !!CameraView;
 } catch {
   cameraAvailable = false;

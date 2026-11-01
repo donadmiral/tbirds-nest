@@ -1,3 +1,4 @@
+import { ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, AppState } from 'react-native';
@@ -177,7 +178,7 @@ export default function ChannelScreen() {
     const run=scope.current;if (!uid || actionLock.current || !valid(run)) return;
     actionLock.current=true;
     try {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await ensureImagePickerLibraryPermission();
     if (!valid(run)) return;
     if (!perm.granted) { actionLock.current=false;Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({

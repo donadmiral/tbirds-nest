@@ -8,13 +8,15 @@ const source = fs.readFileSync(path.join(__dirname, '../../src/screens/stories/S
 const start = source.indexOf('  const loadForCurrentUser = useCallback(');
 const end = source.indexOf('\n  useEffect(() => { void loadForCurrentUser()', start);
 const compiled = ts.transpileModule(source.slice(start, end) + '\nthis.load = loadForCurrentUser;', { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+const playback = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../../shared/storyPlayback.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { exports: playback, setTimeout, clearTimeout });
 function scenario({ cache = new Map(), fetchStories = async () => [{ id: 'fresh' }], startStoryId, startUserId } = {}) {
   const updates = { stories: [], viewers: [] };
   let fetches = 0;
   const context = {
-    useCallback: fn => fn, currentUserId: 'author', myId: 'viewer', highlightId: null, resumeStoryIndex: -1, startStoryId, startUserId,
+    useCallback: fn => fn, currentUserId: 'author', myId: 'viewer', highlightId: null, resumeStoryIndex: -1, startStoryId, startUserId, params: {}, withStoryTimeout: playback.withStoryTimeout,
     viewerRef: { current: 'viewer' }, loadGeneration: { current: 0 }, nextUserCache: { current: cache }, resumeConsumedRef: { current: false },
-    setMediaReady() {}, setLoading() {}, setMediaError() {}, setStoryUser() {}, setStoryIndex: value => updates.index = value,
+    setLoadedUser() {}, setLoading() {}, setLoadError: value => updates.error = value, setStoryUser() {}, setStoryIndex: value => updates.index = value,
     setStories: value => updates.stories.push(value), setLoadedViewer: value => updates.viewers.push(value),
     storiesService: { getUserStories: async () => { fetches++; return fetchStories(); } },
     supabase: { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: 'author' } }) }) }) }) },

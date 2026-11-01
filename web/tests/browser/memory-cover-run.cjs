@@ -21,7 +21,7 @@ async function designer(page){
  await page.getByRole('button',{name:'A summer morning. Not selected',exact:true}).click();
  await page.getByRole('button',{name:'The evening walk. Not selected',exact:true}).click();
  await page.getByRole('button',{name:'Next',exact:true}).click();
- await page.getByRole('button',{name:'Use The evening walk as the cover',exact:true}).click();
+ await page.getByRole('button',{name:'Cover photo 2: The evening walk',exact:true}).click();
  await page.getByLabel('Writing on the cover',{exact:true}).fill('A little note\nto keep with these days.');
  await page.getByLabel('Postcard stamp',{exact:true}).fill('SUMMER WITH OUR PEOPLE');
  await page.getByRole('button',{name:'Simple',exact:true}).click();
@@ -50,6 +50,7 @@ async function gallery(page,base,receipt){
 (async()=>{
  const beforeSource=sourceHashes();
  await compile({entry:path.join(__dirname,'memory-cover-fixture.tsx'),output:fixture,aliases:{'@/lib/supabase/client':adapter,[path.join(root,'web/lib/supabase/client.ts')]:adapter,'@/lib/memoryAlbum':adapter,[path.join(root,'web/lib/memoryAlbum.ts')]:adapter},title:'Actual memory book cover verification'});
+ fs.cpSync(path.join(root,'web/public/fonts'),path.join(fixture,'fonts'),{recursive:true});
  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
  const browser=await chromium.launch({executablePath:process.env.STORY_QA_CHROME,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']}),base=`http://127.0.0.1:${server.address().port}`;
  const receipt={browser:await browser.version(),scope:'Actual web cover, designer and editor components. Auth/RPC and persistence use a test-only localStorage adapter; this is not hosted Supabase acceptance.',gallery:[],cases:[]},errors=[];
@@ -67,7 +68,7 @@ async function gallery(page,base,receipt){
   assert.equal(digest(before),digest(after),'Reload must preserve actual cover pixels and photo framing');receipt.cases.push({name:'actual designer creates the chosen owned photo and complete creative documents',bookId:book.id,revision:0,pinnedAuthorization:true,reloadCoverSha256:digest(after)});
   await page.getByRole('button',{name:'Album settings',exact:true}).click();const editor=page.getByRole('dialog',{name:'Book editor',exact:true});
   for(const label of ['Photo horizontal position','Photo vertical position','Photo zoom'])assert.equal(await editor.getByLabel(label,{exact:true}).count(),1,'A photo cover must retain '+label);
-  await editor.getByLabel('Title',{exact:true}).fill('Our next chapter');await editor.getByRole('button',{name:'Keepsake cover design',exact:true}).click();await editor.getByRole('button',{name:'Use memory 1 on the cover',exact:true}).click();
+  await editor.getByLabel('Title',{exact:true}).fill('Our next chapter');await editor.getByRole('button',{name:'Keepsake cover design',exact:true}).click();await editor.getByRole('button',{name:/^Cover photo 1(?:$|:)/}).click();
   const note=Array.from({length:24},(_,index)=>`Line ${index}`).join('\n').slice(0,160);await editor.getByLabel('Writing on the cover',{exact:true}).fill(note);await editor.getByRole('button',{name:'Book type',exact:true}).click();await editor.getByRole('button',{name:'Lower photo',exact:true}).click();
   await editor.getByRole('button',{name:'Original timing',exact:true}).click();await editor.getByLabel('Show the memory’s date',{exact:true}).uncheck();await editor.getByRole('button',{name:'Only me',exact:true}).click();
   await editor.getByRole('button',{name:'Save book',exact:true}).click();await editor.waitFor({state:'detached'});await page.getByRole('img',{name:/Keepsake book cover: Our next chapter/}).waitFor();

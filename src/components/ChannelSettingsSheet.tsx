@@ -1,3 +1,4 @@
+import { ensureImagePickerLibraryPermission } from '../services/devicePermissions';
 import VerifiedBadge from './VerifiedBadge';
 import TierName from './TierName';
 import { themedSheet, useTheme } from '../theme/useTheme';
@@ -112,7 +113,7 @@ export default function ChannelSettingsSheet({ visible, onClose, channelId, myRo
     if (!isOwner || !meId || !current(run) || locks.current.has('icon')) return;
     locks.current.add('icon'); setIconBusy(true);
     try {
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const perm = await ensureImagePickerLibraryPermission();
       if (!current(run)) return;
       if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
       const result = await ImagePicker.launchImageLibraryAsync({

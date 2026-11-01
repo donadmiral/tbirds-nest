@@ -24,6 +24,7 @@
         "NSCameraUsageDescription": "Take photos, make video calls, and optionally detect cameras during private viewing on your device.",
         "NSFaceIDUsageDescription": "PlatinumCircles uses Face ID to unlock the app and approve payments.",
         "NSPhotoLibraryUsageDescription": "PlatinumCircles needs photo access to share images in your conversations and stories.",
+        "PHPhotoLibraryPreventAutomaticLimitedAccessAlert": true,
         "NSPhotoLibraryAddUsageDescription": "PlatinumCircles needs permission to save photos and videos you receive.",
         "UIBackgroundModes": [
           "audio",

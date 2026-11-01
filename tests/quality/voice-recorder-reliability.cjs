@@ -22,9 +22,10 @@ function scenario(options={}) {
   useCallback:(fn,deps)=>{const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={value:fn,deps};return slots[i].value;},
   useEffect:(fn,deps)=>{const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))effects.push(()=>{slots[i]?.cleanup?.();slots[i]={deps,cleanup:fn()};});},
  };
- const audio={AudioModule:{requestRecordingPermissionsAsync:async()=>{counts.permission++;return options.permission?await options.permission():{granted:true};},setAudioModeAsync:async mode=>{modes.push(mode);if(options.mode)await options.mode(mode);}},AudioQuality:{MAX:127},IOSOutputFormat:{MPEG4AAC:'aac'},RecordingPresets:{HIGH_QUALITY:{android:{},ios:{}}},useAudioRecorder:()=>recorder,useAudioRecorderState:()=>({metering:-20})};
+ const permissions={ensureMicrophonePermission:async()=>{counts.permission++;return options.permission?await options.permission():{granted:true};}};
+ const audio={AudioModule:{setAudioModeAsync:async mode=>{modes.push(mode);if(options.mode)await options.mode(mode);}},AudioQuality:{MAX:127},IOSOutputFormat:{MPEG4AAC:'aac'},RecordingPresets:{HIGH_QUALITY:{android:{},ios:{}}},useAudioRecorder:()=>recorder,useAudioRecorderState:()=>({metering:-20})};
  const exports={};
- const context={exports,require:name=>{if(name==='react')return react;if(name==='expo-audio')return audio;throw Error(name);},Date:{now:()=>now},setInterval:fn=>{const id=++sequence;timers.set(id,fn);return id;},clearInterval:id=>timers.delete(id)};
+ const context={exports,require:name=>{if(name==='react')return react;if(name==='expo-audio')return audio;if(name==='../../services/devicePermissions')return permissions;throw Error(name);},Date:{now:()=>now},setInterval:fn=>{const id=++sequence;timers.set(id,fn);return id;},clearInterval:id=>timers.delete(id)};
  vm.runInNewContext(source,context);
  const render=()=>{cursor=0;const api=exports.useVoiceRecorder();while(effects.length)effects.shift()();return api;};
  render();

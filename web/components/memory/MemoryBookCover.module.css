@@ -1,3 +1,4 @@
+@font-face { font-family: "Memory Cover Handwriting"; src: url("/fonts/Caveat-SemiBold.ttf") format("truetype"); font-style: normal; font-weight: 600; font-display: swap; }
 .cover { position: relative; display: block; flex-shrink: 0; border-radius: 2px; isolation: isolate; }
 .surface { position: absolute; inset: 0 0 0 6.2%; overflow: hidden; border: 1px solid #493d2928; }
 .paper { position: absolute; inset: 0; pointer-events: none; opacity: .5; background-image: repeating-linear-gradient(0deg,#4933190b 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,#fffbec30 0 1px,transparent 1px 2px),radial-gradient(#56381e28 .5px,transparent .8px); background-size:auto,auto,4px 5px; }

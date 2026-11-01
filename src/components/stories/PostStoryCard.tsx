@@ -1,13 +1,14 @@
-/** Shared posts retain their original proportions, with the caption above and a
- * small author / View post footer below, as in the approved viewing reference. */
-import StoryPixelImage from './StoryPixelImage';
-import React, { useEffect, useState } from 'react';
+/** Shared media retains its proportions and source footer. Text belongs to
+ * text-only cards; the story author can add their own caption separately. */
+import StoryPixelImage, { StoryPhotoReadinessContext } from './StoryPixelImage';
+import React, { useContext, useEffect, useId, useRef, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Pressable, StyleSheet, Dimensions, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { normalizePostPlayback, applyPostPlayback } from '../../../shared/postVoiceEffects';
 import { postTrimWindow } from '../../../shared/postMediaEditing';
 import { sharedPostFrame } from '../../../shared/storyPresentation';
+import { STORY_STALL_NOTICE_MS } from '../../../shared/storyPlayback';
 import VerifiedBadge from '../VerifiedBadge';
 
 export const POST_CARD_W = Math.min(Dimensions.get('window').width * .9, 440);
@@ -20,6 +21,9 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
 }) {
   const window = useWindowDimensions();
   const isVideo = sticker.postMediaType === 'video' && !!sticker.postMediaUrl;
+  const report = useContext(StoryPhotoReadinessContext), mediaId = useId();
+  const videoFrameReady = useRef(false);
+  const pausedRef = useRef(paused); pausedRef.current = paused;
   const [size, setSize] = useState({ width: Number(sticker.postMediaWidth) || 0, height: Number(sticker.postMediaHeight) || 0 });
   const [muted, setMuted] = useState(true);
   const playback = normalizePostPlayback(sticker.postMediaPlayback);
@@ -31,22 +35,44 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
     }
     return () => { current = false; };
   }, [sticker.postMediaUrl, sticker.postMediaWidth, sticker.postMediaHeight, isVideo]);
-  const frame = sharedPostFrame({ stageWidth: stageWidth || window.width, stageHeight: stageHeight || window.height, mediaWidth: size.width, mediaHeight: size.height, caption: sticker.postText, title: sticker.postArticleTitle, hasMedia: !!sticker.postMediaUrl });
+  const hasMedia = !!sticker.postMediaUrl;
+  const frame = sharedPostFrame({ stageWidth: stageWidth || window.width, stageHeight: stageHeight || window.height, mediaWidth: size.width, mediaHeight: size.height, caption: hasMedia ? null : sticker.postText, title: hasMedia ? null : sticker.postArticleTitle, hasMedia });
   const player = useVideoPlayer(isVideo ? sticker.postMediaUrl : null, p => { if (p) { p.loop = true; p.muted = true; applyPostPlayback(p,playback); try { p.currentTime=playback.trimStart??0; } catch {} if (!paused) try { p.play(); } catch {} } });
   useEffect(() => { if (isVideo) try { if (paused) player.pause(); else player.play(); } catch {} }, [paused, isVideo, player]);
   useEffect(()=>{if(!isVideo)return;try{applyPostPlayback(player,playback);player.muted=muted||!!playback.muted;player.timeUpdateEventInterval=.1;}catch{}},[player,isVideo,muted,playback.speed,playback.voiceEffect,playback.muted]);
   useEffect(()=>{if(!isVideo)return;const subscription=player.addListener('timeUpdate',()=>{const window=postTrimWindow(player.duration,playback.trimStart,playback.trimEnd);if(window.duration&&(player.currentTime<window.start||player.currentTime>=window.end))player.currentTime=window.start;});return()=>subscription.remove();},[player,isVideo,playback.trimStart,playback.trimEnd]);
+  useEffect(() => {
+    if (!isVideo || !report) return;
+    let active = true;
+    let lastTime = player.currentTime, lastMovement = Date.now();
+    videoFrameReady.current = false; report(mediaId, 'loading');
+    const subscription = player.addListener('statusChange', event => {
+      if (!active) return;
+      if (event.status === 'error') report(mediaId, 'error');
+      else if (event.status === 'loading') report(mediaId, 'loading');
+      else if (event.status === 'readyToPlay' && videoFrameReady.current) report(mediaId, 'ready');
+    });
+    const clock = setInterval(() => {
+      if (!active || !videoFrameReady.current || player.status === 'error') return;
+      const now = Date.now(), position = player.currentTime;
+      if (pausedRef.current) { lastMovement = now; lastTime = position; return; }
+      if (Math.abs(position - lastTime) > .005) { lastMovement = now; report(mediaId, 'ready'); }
+      else if (now - lastMovement >= STORY_STALL_NOTICE_MS) report(mediaId, 'loading');
+      lastTime = position;
+    }, 250);
+    return () => { active = false; clearInterval(clock); subscription.remove(); report(mediaId, 'removed'); };
+  }, [player, isVideo, report, mediaId]);
   const openPost = onOpenPost || onPress;
   const go = (fn?: () => void) => fn ? () => { try { player?.pause(); } catch {} fn(); } : undefined;
   const hold = { onLongPress: onHoldStart, onPressOut: onHoldEnd, delayLongPress: 160 };
   const mediaCount = Math.max(1, Number(sticker.postMediaCount) || 1);
   const inner = <View style={[st.card, { width: frame.width }]}>
-    {sticker.postArticleTitle || sticker.postText ? <Pressable {...hold} disabled={!interactive || !openPost} onPress={go(openPost)} style={[st.caption, !sticker.postMediaUrl && st.textCard, { minHeight: frame.captionHeight }]}>
+    {!hasMedia && (sticker.postArticleTitle || sticker.postText) ? <Pressable {...hold} disabled={!interactive || !openPost} onPress={go(openPost)} style={[st.caption, st.textCard, { minHeight: frame.captionHeight }]}>
       {sticker.postArticleTitle ? <Text style={st.title} numberOfLines={2}>{sticker.postArticleTitle}</Text> : null}
       {sticker.postText ? <Text style={st.body} numberOfLines={sticker.postMediaUrl ? 3 : 8}>{sticker.postText}</Text> : null}
     </Pressable> : null}
     {sticker.postMediaUrl ? <View style={[st.mediaWrap, { height: frame.mediaHeight }]}>
-      {isVideo ? <VideoView pointerEvents="none" player={player} style={st.media} contentFit="contain" nativeControls={false} /> : <StoryPixelImage uri={sticker.postMediaUrl} style={st.media} fit="contain" />}
+      {isVideo ? <VideoView pointerEvents="none" player={player} style={st.media} contentFit="contain" nativeControls={false} onFirstFrameRender={() => { videoFrameReady.current = true; report?.(mediaId, 'ready'); }} /> : <StoryPixelImage uri={sticker.postMediaUrl} style={st.media} fit="contain" />}
       {interactive ? <Pressable {...hold} accessibilityRole="button" accessibilityLabel="Open shared post" style={StyleSheet.absoluteFill} onPress={go(openPost)} /> : null}
       {mediaCount > 1 ? <View pointerEvents="none" style={st.carousel}><Feather name="layers" size={17} color="#FFFFFF" /><Text style={st.carouselText}>1/{mediaCount}</Text></View> : null}
       {isVideo && !playback.muted ? <Pressable {...hold} accessibilityRole="button" disabled={!interactive} accessibilityLabel={muted ? 'Unmute shared video' : 'Mute shared video'} style={st.soundChip} onPress={() => setMuted(value => { const next = !value; try { player.muted = next; } catch {} return next; })}><Feather name={muted ? 'volume-x' : 'volume-2'} size={17} color="#FFF" /></Pressable> : null}
