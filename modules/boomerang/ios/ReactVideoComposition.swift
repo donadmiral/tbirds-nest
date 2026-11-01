@@ -244,8 +244,9 @@ enum ReactVideoComposition {
           if !audible.isEmpty {
             let offset = CMTimeAdd(outputRange.start, CMTimeSubtract(audible.start, inputRange.start))
             try sourceAudioTrack.insertTimeRange(audible, of: sourceAudio, at: offset)
-            sourceAudioParameters?.setVolume(Float(segment.volume), at: outputRange.start)
-            sourceAudioParameters?.setVolume(0, at: CMTimeRangeGetEnd(outputRange))
+            // Explicit constant windows avoid AVAudioMix interpolating between
+            // endpoint volume events. Holds are already empty audio-track gaps.
+            sourceAudioParameters?.setVolumeRamp(fromStartVolume: Float(segment.volume), toEndVolume: Float(segment.volume), timeRange: outputRange)
           }
         }
       } else if let generator {

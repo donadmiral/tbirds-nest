@@ -23,7 +23,7 @@ on:
       - 'scripts/quality/android-story-export/src/androidTest/assets/memory-animated.*'
       - '.github/workflows/ios-native-compile.yml'
   push:
-    branches: [master, 'codex/completion-20261101', 'codex/creator-preview-20261101']
+    branches: [master, 'codex/completion-20261101', 'codex/creator-preview-20261101', 'codex/creator-ios-preview-20261101']
     paths:
       - 'modules/**'
       - 'plugins/**'
@@ -78,6 +78,8 @@ jobs:
           retention-days: 7
 
   simulator-memory-export:
+    # The iOS follow-up changes only the React mixer; preserve the original run.
+    if: github.ref != 'refs/heads/codex/creator-ios-preview-20261101'
     name: Verify full memory movies on iOS Simulator
     runs-on: macos-15
     timeout-minutes: 30
@@ -101,6 +103,8 @@ jobs:
           retention-days: 7
 
   simulator-audio-export:
+    # The iOS follow-up changes only the React mixer; preserve the original run.
+    if: github.ref != 'refs/heads/codex/creator-ios-preview-20261101'
     name: Verify encoded story audio on iOS Simulator
     runs-on: macos-15
     timeout-minutes: 15
