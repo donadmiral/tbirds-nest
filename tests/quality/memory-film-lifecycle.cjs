@@ -106,6 +106,9 @@ for (const failure of ['stall', 'provider error']) {
     try {
       await h.settle();
       const player = h.players[0];
+      assert.equal(h.ready, 0, 'metadata alone is not a displayed video');
+      h.nodes().find(node => node.type === 'VideoView').props.onFirstFrameRender();
+      await h.settle();
       if (failure === 'stall') await h.tick(20000);
       else player.emit('statusChange', { status: 'error' });
       await h.settle();

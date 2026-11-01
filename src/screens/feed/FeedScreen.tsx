@@ -85,7 +85,8 @@ import PostMediaViewer from '../../components/PostMediaViewer';
 import FullscreenVideo from '../../components/FullscreenVideo';
 import VideoFeedModal from '../../components/VideoFeedModal';
 import CommentsSheet from '../../components/feed/CommentsSheet';
-import { seekWhenClaimed } from '../../lib/videoEngine';
+import { seekWhenClaimed, prefetchFeedVideos } from '../../lib/videoEngine';
+import { upcomingFeedVideos } from '../../../shared/videoReadiness';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CATEGORIES } from '../../constants/categories';
 import { FeedSkeleton } from '../../components/Skeleton';
@@ -272,6 +273,7 @@ export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [feedOwner, setFeedOwner] = useState(userId);
   const dataSaver = useSettingsStore(state => state.uploadQuality === 'data-saver');
+  const autoplayVideos = useSettingsStore(state => state.autoplayVideos);
   const [profilesMap, setProfilesMap] = useState<ProfileMap>({});
   const [postRings, setPostRings] = useState<Record<string, boolean>>({});
   useFocusEffect(useCallback(() => {
@@ -1936,6 +1938,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
   useEffect(() => {
     if (!screenFocused || AppState.currentState !== 'active' || dataSaver) return;
     const activeIndex = Math.max(0, displayPosts.findIndex(post => post.id === activePostId));
+    prefetchFeedVideos(upcomingFeedVideos(displayPosts, activeIndex + 1, autoplayVideos));
     const urls = feedPrefetchUrls(displayPosts, activeIndex + 1, dataSaver)
       .filter(url => !prefetchedImagesRef.current.has(url));
     if (!urls.length) return;
@@ -1944,7 +1947,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     void ExpoImage.prefetch(urls).catch(() => {
       urls.forEach(url => prefetchedImagesRef.current.delete(url));
     });
-  }, [displayPosts, activePostId, dataSaver, screenFocused, appActive]);
+  }, [displayPosts, activePostId, dataSaver, autoplayVideos, screenFocused, appActive]);
 
   const videoPosts = useMemo(() => displayPosts
     .filter((p: any) => Array.isArray(p.media) && p.media.some((m: any) => m.media_type === 'video'))

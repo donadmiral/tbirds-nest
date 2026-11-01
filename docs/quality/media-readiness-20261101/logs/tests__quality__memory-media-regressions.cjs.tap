@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: web album loader commits authorized media
+ok 1 - web album loader commits authorized media
+  ---
+  duration_ms: 7.237864
+  type: 'test'
+  ...
+# Subtest: web late album read cannot restore an old account's media
+ok 2 - web late album read cannot restore an old account's media
+  ---
+  duration_ms: 4.057912
+  type: 'test'
+  ...
+# Subtest: web failed album authorization clears media and offers retry
+ok 3 - web failed album authorization clears media and offers retry
+  ---
+  duration_ms: 6.743505
+  type: 'test'
+  ...
+# Subtest: native album loader commits authorized media
+ok 4 - native album loader commits authorized media
+  ---
+  duration_ms: 33.465097
+  type: 'test'
+  ...
+# Subtest: native late album read cannot restore an old account's media
+ok 5 - native late album read cannot restore an old account's media
+  ---
+  duration_ms: 18.442722
+  type: 'test'
+  ...
+# Subtest: native failed album authorization clears media and offers retry
+ok 6 - native failed album authorization clears media and offers retry
+  ---
+  duration_ms: 19.107228
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 101.383287

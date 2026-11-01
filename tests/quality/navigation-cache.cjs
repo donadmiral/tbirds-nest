@@ -143,11 +143,11 @@ test('the actual App session callback clears React Query and cancels an old igno
   assert.equal(queryClient.getQueryData(['pending']),undefined);assert.deepEqual(owners,[null,'b',null,'a']);queryClient.clear();
 });
 
-function inboxHarness() {
+function inboxHarness({ sign } = {}) {
   let currentSession=session('a','s'); const native=nativeHarness(),calls=[];let reply;
   const client={from:table=>query(table),rpc:name=>query(name)};
   function query(table){const call={table,filters:{},header:null,signal:null};const q={setHeader(name,value){call.header=[name,value];return q;},abortSignal(value){call.signal=value;return q;},then(ok,bad){calls.push(call);return Promise.resolve().then(()=>reply(call)).then(ok,bad);}};for(const method of ['select','or','order'])q[method]=()=>q;for(const method of ['eq','in'])q[method]=(key,value)=>{call.filters[key]=value;return q;};return q;}
-  const service=load('src/services/navigationInbox.ts',{'../../shared/messageReceipts':load('shared/messageReceipts.ts'),'../lib/navigationCache':native.native,'../stores/authStore':{useAuthStore:{getState:()=>({session:currentSession})}},'./supabase':{supabase:client},'./chatMediaService':{signGroupAvatars:async rows=>rows}});
+  const service=load('src/services/navigationInbox.ts',{'../../shared/messageReceipts':load('shared/messageReceipts.ts'),'../lib/navigationCache':native.native,'../stores/authStore':{useAuthStore:{getState:()=>({session:currentSession})}},'./supabase':{supabase:client},'./chatMediaService':{isChatMediaUrl:url=>typeof url==='string'&&url.startsWith('private-'),signGroupAvatars:sign|| (async rows=>rows)}});
   return {...native,calls,service,setReply:fn=>{reply=fn;},change(value){currentSession=value;native.change(value);}};
 }
 const inboxRows = call => {
@@ -179,4 +179,46 @@ test('native inbox aborts first-stage transport and never starts another-account
   h.change(session('b','b'));h.change(session('a','s'));await rejected;gate.resolve();await turn();
   assert.equal(h.calls.length,4);assert.ok(h.calls.every(call=>call.signal.aborted));
   assert.equal(h.native.navigationCache.read(h.native.navigationScope(),'inbox:personal'),null);
+});
+
+test('native inbox profile and group reads run while unrelated unread counts are still pending',async()=>{
+  const gate=deferred(),h=inboxHarness();
+  h.setReply(call=>call.table==='get_unread_counts'?gate.promise:inboxRows(call));
+  const work=h.service.refreshNavigationInbox('a');await turn();
+  assert.ok(h.calls.some(call=>call.table==='profiles'));
+  assert.ok(h.calls.some(call=>call.table==='conversations'&&call.filters.is_group));
+  gate.resolve({data:[],error:null});await work;
+});
+
+const privateInboxRows=call=>{
+  const result=inboxRows(call);
+  if(call.table==='conversations'&&call.filters.is_group)result.data[0].group_avatar_url='private-group-avatar';
+  return result;
+};
+test('slow private group photos do not block conversations and later grants preserve newer inbox state',async()=>{
+  const gate=deferred(),h=inboxHarness({sign:()=>gate.promise}),events=[];
+  h.setReply(privateInboxRows);h.service.subscribeNavigationInboxAvatars((scope,avatars)=>events.push({scope,avatars}));
+  const rows=await h.service.refreshNavigationInbox('a'),scope=h.native.navigationScope();
+  const group=rows.find(row=>row.id==='group');
+  assert.equal(group.group_avatar_url,null);assert.equal(group.other_avatar,null);assert.equal(events.length,0);
+  h.native.navigationCache.save(scope,'inbox:personal',rows.map(row=>row.id==='group'?{...row,last_message:'New realtime message',unread_count:3}:row));
+  gate.resolve([{id:'group',group_avatar_url:'authorized-photo'}]);await turn();
+  const enriched=h.native.navigationCache.read(scope,'inbox:personal').find(row=>row.id==='group');
+  assert.equal(enriched.group_avatar_url,'authorized-photo');assert.equal(enriched.other_avatar,'authorized-photo');
+  assert.equal(enriched.last_message,'New realtime message');assert.equal(enriched.unread_count,3);assert.equal(events.length,1);
+});
+test('late inbox avatar grants cannot cross an account roundtrip or overwrite a newer refresh',async()=>{
+  const first=deferred(),second=deferred();let calls=0;
+  const h=inboxHarness({sign:()=>++calls===1?first.promise:second.promise}),events=[];
+  h.setReply(privateInboxRows);h.service.subscribeNavigationInboxAvatars((scope,avatars)=>events.push({scope,avatars}));
+  await h.service.refreshNavigationInbox('a');await h.service.refreshNavigationInbox('a');
+  second.resolve([{id:'group',group_avatar_url:'new-photo'}]);await turn();
+  first.resolve([{id:'group',group_avatar_url:'old-photo'}]);await turn();
+  assert.equal(h.native.navigationCache.read(h.native.navigationScope(),'inbox:personal').find(row=>row.id==='group').group_avatar_url,'new-photo');
+  assert.equal(events.length,1);
+  const late=deferred(),account=inboxHarness({sign:()=>late.promise});let updates=0;
+  account.setReply(privateInboxRows);account.service.subscribeNavigationInboxAvatars(()=>updates++);
+  await account.service.refreshNavigationInbox('a');account.change(session('b','b'));account.change(session('a','s'));
+  late.resolve([{id:'group',group_avatar_url:'previous-session-photo'}]);await turn();
+  assert.equal(updates,0);assert.equal(account.native.navigationCache.read(account.native.navigationScope(),'inbox:personal'),null);
 });

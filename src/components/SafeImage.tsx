@@ -1,7 +1,9 @@
 // src/components/SafeImage.tsx
 import { themedSheet } from '../theme/useTheme';
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleProp, ImageStyle } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleProp, ImageStyle } from 'react-native';
+import { Image } from 'expo-image';
+import { privateImageCachePolicy } from '../../shared/mediaDelivery';
 import { Feather } from '@expo/vector-icons';
 
 type Props = {
@@ -21,10 +23,9 @@ export default function SafeImage({
   showFallbackLabel = true,
   fallbackLabel = 'Image unavailable',
 }: Props) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => { setFailed(false); }, [uri]);
+  const [failedUri, setFailedUri] = useState<string | null>(null);
 
-  if (!uri || failed) {
+  if (!uri || failedUri === uri) {
     return (
       <View style={[s.fallback, style as any]}>
         <Feather name="image" size={22} color="#C7C7CC" />
@@ -35,12 +36,16 @@ export default function SafeImage({
 
   return (
     <Image
-      source={{ uri, cache: 'reload' }}
+      key={uri}
+      recyclingKey={uri}
+      source={{ uri }}
+      cachePolicy={privateImageCachePolicy(uri)}
+      transition={0}
       style={style as any}
-      resizeMode={resizeMode}
+      contentFit={resizeMode === 'stretch' ? 'fill' : resizeMode === 'center' ? 'scale-down' : resizeMode}
       onError={(e: any) => {
         console.log(`[${logPrefix}]`, uri, e?.nativeEvent?.error || 'download failed');
-        setFailed(true);
+        setFailedUri(uri);
       }}
     />
   );

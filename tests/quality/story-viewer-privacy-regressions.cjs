@@ -14,7 +14,7 @@ function scenario({ cache = new Map(), fetchStories = async () => [{ id: 'fresh'
   const updates = { stories: [], viewers: [] };
   let fetches = 0;
   const context = {
-    useCallback: fn => fn, currentUserId: 'author', myId: 'viewer', highlightId: null, resumeStoryIndex: -1, startStoryId, startUserId, params: {}, withStoryTimeout: playback.withStoryTimeout,
+    useCallback: fn => fn, currentUserId: 'author', myId: 'viewer', highlightId: null, resumeStoryIndex: -1, startStoryId, startUserId, params: {}, withStoryTimeout: playback.withStoryTimeout, takeStoryEntry: async () => null,
     viewerRef: { current: 'viewer' }, loadGeneration: { current: 0 }, nextUserCache: { current: cache }, resumeConsumedRef: { current: false },
     setLoadedUser() {}, setLoading() {}, setLoadError: value => updates.error = value, setStoryUser() {}, setStoryIndex: value => updates.index = value,
     setStories: value => updates.stories.push(value), setLoadedViewer: value => updates.viewers.push(value),
@@ -40,6 +40,7 @@ test('a late native story read cannot repopulate media after an account switch',
   let resolve;
   const h = scenario({ fetchStories: () => new Promise(done => { resolve = done; }) });
   const pending = h.load();
+  await new Promise(setImmediate);
   h.viewerRef.current = 'next-viewer';
   resolve([{ id: 'private-previous-viewer' }]);
   await pending;
@@ -61,4 +62,11 @@ test('native trending tile opens the exact selected story', async () => {
 test('expired native trending target does not open an unrelated story', async () => {
   const h = scenario({ startStoryId: 'missing', startUserId: 'author' });
   await h.load(); assert.equal(h.updates.stories.at(-1).length, 0);
+});
+
+test('an unavailable author-profile query does not block ready story media', async () => {
+  const h = scenario();
+  h.supabase.from = () => ({ select: () => ({ eq: () => ({ maybeSingle: () => new Promise(() => {}) }) }) });
+  await h.load();
+  assert.equal(h.updates.stories.at(-1)[0].id, 'fresh');
 });

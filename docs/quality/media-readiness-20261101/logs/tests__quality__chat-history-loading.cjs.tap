@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: authorized chat history displays while all independent decorations are still pending
+ok 1 - authorized chat history displays while all independent decorations are still pending
+  ---
+  duration_ms: 16.709558
+  type: 'test'
+  ...
+# Subtest: media authorization remains mandatory before history can appear
+ok 2 - media authorization remains mandatory before history can appear
+  ---
+  duration_ms: 10.96904
+  type: 'test'
+  ...
+# Subtest: an enrichment failure never hides already authorized and published messages
+ok 3 - an enrichment failure never hides already authorized and published messages
+  ---
+  duration_ms: 9.892221
+  type: 'test'
+  ...
+# Subtest: stale metadata cannot start signing or decorations after a conversation or account change
+ok 4 - stale metadata cannot start signing or decorations after a conversation or account change
+  ---
+  duration_ms: 26.580067
+  type: 'test'
+  ...
+# Subtest: stale signed responses cannot publish messages or release a newer loading state
+ok 5 - stale signed responses cannot publish messages or release a newer loading state
+  ---
+  duration_ms: 23.053359
+  type: 'test'
+  ...
+# Subtest: late enrichment failure cannot modify the next history request
+ok 6 - late enrichment failure cannot modify the next history request
+  ---
+  duration_ms: 9.451203
+  type: 'test'
+  ...
+# Subtest: messages arriving while history is signed survive its publication
+ok 7 - messages arriving while history is signed survive its publication
+  ---
+  duration_ms: 13.465869
+  type: 'test'
+  ...
+# Subtest: authorized text messages display while a separate private attachment still awaits its grant
+ok 8 - authorized text messages display while a separate private attachment still awaits its grant
+  ---
+  duration_ms: 12.133042
+  type: 'test'
+  ...
+# Subtest: private thumbnails and view-once content stay withheld during text-first rendering
+ok 9 - private thumbnails and view-once content stay withheld during text-first rendering
+  ---
+  duration_ms: 6.666429
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 134.069393

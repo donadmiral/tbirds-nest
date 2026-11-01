@@ -1,5 +1,5 @@
 import { navigationCache, navigationScope } from '../../lib/navigationCache';
-import { refreshNavigationInbox, type Conversation } from '../../services/navigationInbox';
+import { applyNavigationInboxAvatars, refreshNavigationInbox, subscribeNavigationInboxAvatars, type Conversation } from '../../services/navigationInbox';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { TapTopFlatList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
@@ -87,6 +87,10 @@ export default function ConversationsScreen({ navigation }: any) {
   const initialLoadDoneRef = useRef(initialInbox !== null);
   const accountRef = useRef(userId); accountRef.current = userId;
   const inboxScope = useRef(navigationScope());
+  useEffect(() => subscribeNavigationInboxAvatars((scope, avatars) => {
+    if (scope !== navigationScope() || scope !== inboxScope.current) return;
+    setConversations(rows => applyNavigationInboxAvatars(rows, avatars));
+  }), []);
   useEffect(() => {
     const next = navigationScope();
     if (inboxScope.current === next) return;
@@ -142,7 +146,7 @@ useEffect(() => {
     if (!initialLoadDoneRef.current) setLoading(true);
     try {
       const list = await refreshNavigationInbox(userId);
-      if (current()) setConversations(list);
+      if (current()) setConversations(navigationCache.read<Conversation[]>(inboxScope.current, 'inbox:personal') ?? list);
     } catch { if (current()) setLoadError('Your conversations could not be refreshed. Please try again.'); }
     finally {
       if (current()) { setLoading(false); initialLoadDoneRef.current = true; }

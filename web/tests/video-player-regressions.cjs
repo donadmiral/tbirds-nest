@@ -31,7 +31,7 @@ const event = (key, selector = '') => ({ key, defaultPrevented: false, target: {
   preventDefault() { this.defaultPrevented = true; }, stopPropagation() { this.stopped = true; } });
 
 function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, duration = 100 } = {}) {
-  let currentHooks, ioCallback;
+  let currentHooks, ioCallback, warmCallback;
   const listeners = new Map();
   const add = (type, callback) => { const set = listeners.get(type) || new Set(); set.add(callback); listeners.set(type, set); };
   const remove = (type, callback) => listeners.get(type)?.delete(callback);
@@ -65,7 +65,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
   function moduleFor(code) {
     const module = { exports: {} };
     vm.runInNewContext(code, { module, exports: module.exports, require: requireModule, window, document, crypto: { randomUUID: () => 'test-session' },
-      IntersectionObserver: class { constructor(callback) { ioCallback = callback; } observe() {} disconnect() {} },
+      IntersectionObserver: class { constructor(callback, options) { if (options?.rootMargin) warmCallback = callback; else ioCallback = callback; } observe() {} disconnect() {} },
       ResizeObserver: class { observe() {} disconnect() {} }, setTimeout, clearTimeout });
     return module.exports;
   }
@@ -146,6 +146,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
   return { mount, document, storage,
     visibility(value) { document.hidden = value; [...(listeners.get('visibilitychange') || [])].forEach(fn => fn()); },
     intersect(ratio) { ioCallback?.([{ intersectionRatio: ratio }]); },
+    approach(near) { warmCallback?.([{ isIntersecting: near }]); },
     dispatch(e) { [...(listeners.get('keydown') || [])].forEach(fn => fn(e)); },
     resize() { [...(listeners.get('resize') || [])].forEach(fn => fn()); },
   };
@@ -518,4 +519,15 @@ test('viewer speed multiplies the saved creator pace instead of replacing it',()
  const screen=scenario({prefs:{speed:2}}).mount({edit:{speed:1.5,voiceEffect:'deep'}});
  screen.videoEvent('onLoadedMetadata');assert.equal(screen.element.playbackRate,2.25);assert.equal(screen.element.preservesPitch,false);
  screen.key('<');assert.equal(screen.element.playbackRate,1.5*.75*1.75);assert.equal(screen.element.preservesPitch,false);screen.unmount();
+});
+
+
+test('nearby feed videos buffer before entering the viewport without starting playback', () => {
+  const s = scenario(), screen = s.mount();
+  assert.equal(screen.find(n => n.type === 'video').props.preload, 'none');
+  s.approach(true); screen.render();
+  assert.equal(screen.find(n => n.type === 'video').props.preload, 'auto');
+  assert.equal(screen.element.playCalls, 0);
+  s.approach(false); screen.render();
+  assert.equal(screen.find(n => n.type === 'video').props.preload, 'none');
 });

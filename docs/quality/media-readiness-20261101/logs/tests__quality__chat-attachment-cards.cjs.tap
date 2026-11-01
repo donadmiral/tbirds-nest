@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: contacts become bounded structured cards with safe phone/email actions
+ok 1 - contacts become bounded structured cards with safe phone/email actions
+  ---
+  duration_ms: 1.549075
+  type: 'test'
+  ...
+# Subtest: unstructured text, wrong versions, oversized payloads and unsafe contacts are rejected
+ok 2 - unstructured text, wrong versions, oversized payloads and unsafe contacts are rejected
+  ---
+  duration_ms: 0.48222
+  type: 'test'
+  ...
+# Subtest: location cards accept coordinate boundaries and produce an HTTPS map link
+ok 3 - location cards accept coordinate boundaries and produce an HTTPS map link
+  ---
+  duration_ms: 0.448509
+  type: 'test'
+  ...
+# Subtest: locations reject out-of-range, missing, nonnumeric or invalid date payloads
+ok 4 - locations reject out-of-range, missing, nonnumeric or invalid date payloads
+  ---
+  duration_ms: 0.26371
+  type: 'test'
+  ...
+# Subtest: untrusted optional accuracy values are omitted rather than displayed as GPS precision
+ok 5 - untrusted optional accuracy values are omitted rather than displayed as GPS precision
+  ---
+  duration_ms: 0.229488
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14.305641

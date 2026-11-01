@@ -10,6 +10,7 @@ import { storiesService, CatchupUser } from '../../services/storiesService';
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
 import { flagsService } from '../../services/flagsService';
+import { prefetchStoryEntry, invalidateStoryEntries } from '../../services/storyReadiness';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -238,6 +239,10 @@ function StoryStrip({ mode = 'all' }: Props) {
       if (!current()) return;
       setCatchup(rows);
       setMyHasStories(!!myId && rows.some(r => r.user_id === myId));
+      // The first unseen ring is the likely next tap. Warm one author without
+      // competing with the feed for every ring's videos at startup.
+      const next = rows.find(row => row.has_unseen && row.user_id !== myId) || rows[0];
+      if (next) void prefetchStoryEntry(next.user_id, next);
       // Spotlight: public stories from people you don't follow, ranked by
       // engagement, after your own and followed rings. A story posted to
       // Everyone is eligible on its own.
@@ -286,7 +291,7 @@ function StoryStrip({ mode = 'all' }: Props) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'stories' },
-        () => load()
+        () => { invalidateStoryEntries(); void load(); }
       )
       .subscribe();
     return () => {
@@ -319,6 +324,7 @@ function StoryStrip({ mode = 'all' }: Props) {
       <TouchableOpacity
         style={s.bubble}
         activeOpacity={0.75}
+        onPressIn={() => { if (myHasStories && myId) void prefetchStoryEntry(myId, myCatchup); }}
         onPress={() => {
           if (myHasStories && myId) {
             openViewer(myId);
@@ -378,6 +384,7 @@ function StoryStrip({ mode = 'all' }: Props) {
         key={user.user_id}
         style={s.bubble}
         activeOpacity={0.75}
+        onPressIn={() => { void prefetchStoryEntry(user.user_id, user); }}
         onPress={() => openViewer(user.user_id)}
         onLongPress={() => muteUser(user)}
         delayLongPress={450}
@@ -432,6 +439,7 @@ function StoryStrip({ mode = 'all' }: Props) {
             <View style={s.spotDivider} accessibilityLabel="Spotlight"><View style={s.spotLine} /><Text style={s.spotFlameTxt}>{'\u{1F525}'}</Text><View style={s.spotLine} /></View>
             {spotlight.map(h => (
               <TouchableOpacity key={'spot-' + h.user_id} style={s.bubble} activeOpacity={0.75}
+                onPressIn={() => { void prefetchStoryEntry(h.user_id, h); }}
                 onPress={() => { viewerOpenedForRef.current = new Set([h.user_id]); navigation.navigate('StoryViewer', { userIds: spotlight.map(x => x.user_id), startUserId: h.user_id }); }}>
                 <View style={s.ringContainer}>
                   <PlatinumRing userId={h.user_id} />

@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: a warmed upcoming video is the exact same buffered player when scrolled into view
+ok 1 - a warmed upcoming video is the exact same buffered player when scrolled into view
+  ---
+  duration_ms: 4.981437
+  type: 'test'
+  ...
+# Subtest: rapid A to B scrolling cannot show A in the B player even if A resolves last
+ok 2 - rapid A to B scrolling cannot show A in the B player even if A resolves last
+  ---
+  duration_ms: 1.723047
+  type: 'test'
+  ...
+# Subtest: preload work has a three-player ceiling and never evicts the active player
+ok 3 - preload work has a three-player ceiling and never evicts the active player
+  ---
+  duration_ms: 2.354262
+  type: 'test'
+  ...
+# Subtest: expired standby media is replaced instead of reusing its authorized buffer
+ok 4 - expired standby media is replaced instead of reusing its authorized buffer
+  ---
+  duration_ms: 0.415939
+  type: 'test'
+  ...
+# Subtest: clearing on account change releases every player and rejects late readiness
+ok 5 - clearing on account change releases every player and rejects late readiness
+  ---
+  duration_ms: 0.498404
+  type: 'test'
+  ...
+# Subtest: failed preparation is retryable and a late timed-out completion stays failed
+ok 6 - failed preparation is retryable and a late timed-out completion stays failed
+  ---
+  duration_ms: 15.778342
+  type: 'test'
+  ...
+# Subtest: data saver, sensitive and view-once attachments are not speculatively fetched
+ok 7 - data saver, sensitive and view-once attachments are not speculatively fetched
+  ---
+  duration_ms: 0.520508
+  type: 'test'
+  ...
+# Subtest: source replacement must reach native readiness and native decode errors remain recoverable
+ok 8 - source replacement must reach native readiness and native decode errors remain recoverable
+  ---
+  duration_ms: 2.215502
+  type: 'test'
+  ...
+# Subtest: retrying a missing first frame creates a new native surface identity
+ok 9 - retrying a missing first frame creates a new native surface identity
+  ---
+  duration_ms: 3.322747
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 37.044786

@@ -112,12 +112,28 @@ export function MemoryFilm({ bookId,revision,title, pages, soundtrack, filmSetti
 
 function FilmVideo({ item, active, muted, onMetadata, onReady, onError, onProgress, onEnd }: { item: MemoryFilmItem; active: boolean; muted: boolean; onMetadata?:(duration:number)=>void; onReady: () => void; onError: () => void; onProgress: (value: number) => void; onEnd: () => void }) {
   const ref = useRef<HTMLVideoElement>(null), done = useRef(false), initialized = useRef(false);
+  const firstFrame = useRef(false), frameCallback = useRef<number|null>(null);
   const progressGuard = useRef(createMemoryFilmProgressGuard());
   const [clock, setClock] = useState(0), [blocked, setBlocked] = useState(false);
   const state = useRef({ active, onEnd, onReady, onError, onProgress }); useLayoutEffect(()=>{state.current = { active, onEnd, onReady, onError, onProgress };},[active,onEnd,onReady,onError,onProgress]);
   const allowed = useCallback(() => !!ref.current?.isConnected && !done.current && state.current.active && !document.hidden && document.documentElement.dataset.platinumCallActive !== 'true', []);
   const play = useCallback(() => { const video = ref.current; if (!video) return; if (!allowed() || done.current) { video.pause(); return; } void video.play().then(() => { if (!allowed()) video.pause(); else setBlocked(false); }).catch(error => { if (allowed()) { if (error?.name === 'NotAllowedError') setBlocked(true); else if (error?.name !== 'AbortError') state.current.onError(); } }); }, [allowed]);
-  const configure = () => { const video = ref.current; if (!video) return; onMetadata?.(video.duration); const window = memoryFilmVideoWindow(item.page, video.duration); video.playbackRate = window.speed; video.volume = window.volume; video.muted = muted || window.volume === 0; if (!initialized.current) { video.currentTime = window.start; initialized.current = true; setClock(window.start); progressGuard.current.reset(); progressGuard.current.stalled(video.currentTime, Date.now(), allowed()); } state.current.onReady(); play(); };
+  const observeFrame = () => {
+    const video = ref.current;
+    if (!video || done.current || firstFrame.current || frameCallback.current !== null) return;
+    if (typeof video.requestVideoFrameCallback === 'function') {
+      frameCallback.current = video.requestVideoFrameCallback((_now, metadata) => {
+        frameCallback.current = null;
+        if (ref.current !== video || !video.isConnected || done.current) return;
+        const start = memoryFilmVideoWindow(item.page, video.duration).start;
+        if (video.seeking || metadata.mediaTime < start - .05) { observeFrame(); return; }
+        firstFrame.current = true; state.current.onReady();
+      });
+    } else if (video.readyState >= 2 && !video.seeking) {
+      firstFrame.current = true; state.current.onReady();
+    }
+  };
+  const configure = () => { const video = ref.current; if (!video) return; onMetadata?.(video.duration); const window = memoryFilmVideoWindow(item.page, video.duration); video.playbackRate = window.speed; video.volume = window.volume; video.muted = muted || window.volume === 0; if (!initialized.current) { video.currentTime = window.start; initialized.current = true; setClock(window.start); progressGuard.current.reset(); progressGuard.current.stalled(video.currentTime, Date.now(), allowed()); } observeFrame(); play(); };
   const finish = () => { if (!allowed() || done.current) return; done.current = true; ref.current?.pause(); state.current.onProgress(1); state.current.onEnd(); };
   useEffect(() => {
     play(); const node = ref.current, guard=progressGuard.current;
@@ -129,7 +145,7 @@ function FilmVideo({ item, active, muted, onMetadata, onReady, onError, onProgre
         done.current = true; node.pause(); state.current.onError();
       }
     }, 500);
-    return () => { clearInterval(watchdog); guard.reset(); document.removeEventListener('visibilitychange', stop); node?.pause(); };
+    return () => { clearInterval(watchdog); guard.reset(); document.removeEventListener('visibilitychange', stop); node?.pause(); if(frameCallback.current!==null){node?.cancelVideoFrameCallback?.(frameCallback.current);frameCallback.current=null;} };
   }, [active, blocked, play, allowed]);
-  return <MemoryStoryFrame page={item.page as MemoryPage} clock={clock}>{style => <><video ref={ref} src={item.uri!} poster={item.poster || undefined} preload="auto" playsInline muted={muted} onLoadedMetadata={configure} onCanPlay={configure} onError={onError} onPlay={event => { if (!allowed()) event.currentTarget.pause(); }} onTimeUpdate={event => { if (!allowed() || done.current) return; const video = event.currentTarget, window = memoryFilmVideoWindow(item.page, video.duration); setClock(video.currentTime); onProgress(memoryFilmProgress(video.currentTime, window.start, window.end)); if (window.end != null && video.currentTime >= window.end - .025) finish(); }} onEnded={finish} style={style} className={s.video} />{blocked && <button type="button" className={s.videoPlay} onClick={play}><Play size={20} /> Play this memory</button>}</>}</MemoryStoryFrame>;
+  return <MemoryStoryFrame page={item.page as MemoryPage} clock={clock}>{style => <><video ref={ref} src={item.uri!} poster={item.poster || undefined} preload="auto" playsInline muted={muted} onLoadedMetadata={configure} onCanPlay={configure} onLoadedData={observeFrame} onPlaying={observeFrame} onSeeked={observeFrame} onError={onError} onPlay={event => { if (!allowed()) event.currentTarget.pause(); }} onTimeUpdate={event => { if (!allowed() || done.current) return; const video = event.currentTarget, window = memoryFilmVideoWindow(item.page, video.duration); setClock(video.currentTime); onProgress(memoryFilmProgress(video.currentTime, window.start, window.end)); if (window.end != null && video.currentTime >= window.end - .025) finish(); }} onEnded={finish} style={style} className={s.video} />{blocked && <button type="button" className={s.videoPlay} onClick={play}><Play size={20} /> Play this memory</button>}</>}</MemoryStoryFrame>;
 }

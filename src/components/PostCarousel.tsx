@@ -25,7 +25,8 @@ import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, ViewToken, Animated } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-import { VideoView } from 'expo-video';
+import { VideoView, type VideoPlayer } from 'expo-video';
+import VideoThumb from './VideoThumb';
 import { useSharedVideo } from '../lib/videoEngine';
 import { useMediaTags, TagLayer, PinchInspect } from './MediaRenderer';
 import { FilterLayer } from './stories/StoryFilters';
@@ -68,7 +69,8 @@ const HEIGHT_RATIO = 5 / 4; // 1.25
 let sessionMuted = true;
 
 function CarouselImage({ uri, width, height, edit, fullFrame }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit']; fullFrame?: boolean }) {
-  const [loaded, setLoaded] = useState(false);
+  const [loadedUri, setLoadedUri] = useState<string | null>(null);
+  const [failedUri, setFailedUri] = useState<string | null>(null);
   const fit = edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover';
   const hasXform = !!(edit?.scale && edit.scale !== 1) || !!edit?.translateNX || !!edit?.translateNY || !!edit?.rotation || !!edit?.flipX;
   const xform = hasXform ? [{ translateX: (edit?.translateNX || 0) * width }, { translateY: (edit?.translateNY || 0) * height }, { scale: edit?.scale || 1 },{rotate: `${edit?.rotation || 0}deg`},{scaleX:edit?.flipX?-1:1}] : undefined;
@@ -76,21 +78,23 @@ function CarouselImage({ uri, width, height, edit, fullFrame }: { uri: string; w
   const image = (
     <View style={{ width, height, backgroundColor: '#F0F0F0' }}>
       <ExpoImage
+        key={uri}
+        recyclingKey={uri}
         source={{ uri }}
         style={{ width: '100%', height: '100%', transform: xform as any }}
         contentFit={fit}
         contentPosition="center"
         cachePolicy={privateImageCachePolicy(uri)}
         priority="high"
-        transition={200}
-        onLoad={() => setLoaded(true)}
-        onError={(e: any) => console.log('[CAROUSEL_IMG_ERR]', uri, e?.error)}
+        transition={0}
+        onLoad={() => setLoadedUri(uri)}
+        onError={() => setFailedUri(uri)}
       />
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
-      {!loaded && (
+      {loadedUri !== uri && (
         <View style={st.loadingOverlay}>
-          <ActivityIndicator color="#C7C7CC" size="small" />
+          <>{failedUri === uri ? <Text style={{ color: '#6B7280' }}>Image could not load</Text> : <ActivityIndicator color="#C7C7CC" size="small" />}</>
         </View>
       )}
     </View>
@@ -110,16 +114,21 @@ function CarouselVideo({
 // expo-video hands you a player object rather than a component ref, so
   // seeking and muting are property writes instead of async calls.
   // One engine for the app: this surface owns it while it is on screen and in front.
+  const screenFocused = useIsFocused();
   const voicePlayback = postPlaybackSettings(edit);
-  const { player, owns } = useSharedVideo({ uri, visible: isVisible, screenActive: isScreenActive, postId: postId ?? null, rate: voicePlayback.rate, preservesPitch: voicePlayback.preservesPitch, muted: sessionMuted || !!(edit as any)?.muted });
+  const { player, owns, sourceReady, failed, canHold, version, retry } = useSharedVideo({ uri, visible: isVisible, screenActive: isScreenActive && screenFocused, postId: postId ?? null, rate: voicePlayback.rate, preservesPitch: voicePlayback.preservesPitch, muted: sessionMuted || !!(edit as any)?.muted, startAt: edit?.trimStart ?? 0 });
+  const [paintedPlayer, setPaintedPlayer] = useState<VideoPlayer | null>(null);
+  const hasFrame = !!player && paintedPlayer === player;
+  const currentPlayer = useRef(player); currentPlayer.current = player;
+  const [frameFailedPlayer, setFrameFailedPlayer] = useState<VideoPlayer | null>(null);
+  const frameFailed = !!player && frameFailedPlayer === player;
   // Data saver: with autoplay off, videos hold at their poster until tapped.
   const [paused, setPaused] = useState(false);
   // Data saver: reactive — flipping the setting applies to every card at once.
   const autoplayOn = useSettingsStore(st => st.autoplayVideos);
   const [userPlayed, setUserPlayed] = useState(false);
   useEffect(() => { setUserPlayed(false); }, [uri]); // recycled cards forget the old tap
-  // Navigation focus: leaving the tab MUST silence the video.
-  const screenFocused = useIsFocused();
+  // Navigation focus releases ownership as well as pausing playback.
   const postedMuted = !!(edit as any)?.muted;
   const [muted, setMuted] = useState(sessionMuted);
   const [progress, setProgress] = useState(0);
@@ -128,14 +137,20 @@ function CarouselVideo({
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controlsOpacity = useRef(new Animated.Value(0)).current;
 
-  const shouldPlay = isVisible && isScreenActive && screenFocused && !paused && (autoplayOn || userPlayed);
+  const shouldPlay = isVisible && isScreenActive && screenFocused && !paused && !frameFailed && (autoplayOn || userPlayed);
+
+  useEffect(() => {
+    if (!owns || !player || !shouldPlay || hasFrame || failed) return;
+    const deadline = setTimeout(() => { if (currentPlayer.current === player) { player.pause(); setFrameFailedPlayer(player); } }, 12000);
+    return () => clearTimeout(deadline);
+  }, [owns, player, shouldPlay, hasFrame, failed]);
 
   // shouldPlay was a prop on expo-av's Video. On a player object it is an effect.
   // Only the card that owns the engine drives it; every other card leaves the player alone.
-  useEffect(() => { if (!owns) return; if (shouldPlay) player.play(); else player.pause(); }, [owns, shouldPlay, player]);
-  useEffect(() => { if (!owns) return; player.muted = muted || postedMuted; player.volume = soundtrack?.originalVolume ?? 1; }, [owns, muted, postedMuted, player, soundtrack?.originalVolume]);
+  useEffect(() => { if (!owns || !player || !sourceReady) return; if (shouldPlay) player.play(); else player.pause(); }, [owns, sourceReady, shouldPlay, player]);
+  useEffect(() => { if (!owns || !player) return; player.muted = muted || postedMuted; player.volume = soundtrack?.originalVolume ?? 1; }, [owns, muted, postedMuted, player, soundtrack?.originalVolume]);
   useEffect(() => {
-    if (!owns) { setProgress(0); return; }
+    if (!owns || !player || !sourceReady) { setProgress(0); setMusicClock(c => ({ ...c, playing: false })); return; }
     const sub = player.addListener('timeUpdate', (e: any) => {
       const d = player.duration;
       const start=edit?.trimStart||0,end=edit?.trimEnd||d;
@@ -146,7 +161,7 @@ function CarouselVideo({
     const changes=player.addListener('playingChange',(e)=>setMusicClock(c=>({...c,playing:e.isPlaying&&player.status==='readyToPlay'})));
     const status=player.addListener('statusChange', e=>setMusicClock(c=>({...c,playing:e.status==='readyToPlay'&&player.playing})));
     return () => { sub.remove(); changes.remove(); status.remove(); };
-  }, [owns, player, edit?.trimStart, edit?.trimEnd, voicePlayback.rate]);
+  }, [owns, sourceReady, player, edit?.trimStart, edit?.trimEnd, voicePlayback.rate]);
 
   // Auto-hide controls after 3 seconds
   const scheduleHide = useCallback(() => {
@@ -192,7 +207,7 @@ function CarouselVideo({
   const skipForward = async () => {
     try {
       // Seconds now, not milliseconds.
-      if (player.duration > 0) {
+      if (owns && player && player.duration > 0) {
         player.currentTime = Math.min(player.currentTime + 10, player.duration);
       }
     } catch (e) {
@@ -203,7 +218,7 @@ function CarouselVideo({
 
   const skipBackward = async () => {
     try {
-      player.currentTime = Math.max(player.currentTime - 10, 0);
+      if (owns && player) player.currentTime = Math.max(player.currentTime - 10, 0);
     } catch (e) {
       console.log('[SKIP_BACK_ERR]', e);
     }
@@ -216,8 +231,9 @@ function CarouselVideo({
       activeOpacity={1}
       onPress={onTapOverride ? () => { let at = 0; try { at = Number((player as any).currentTime) || 0; } catch {} onTapOverride(at); } : toggleControls}
     >
-      {owns || holdView ? <VideoView style={{ width: '100%', height: '100%', transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} player={player} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
-      {poster && !owns && !holdView ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height,transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} /> : null}
+      {player && (owns || (holdView && canHold)) && sourceReady ? <VideoView key={`${uri}:${version}`} style={{ width: '100%', height: '100%', transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} player={player} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} onFirstFrameRender={() => { if (currentPlayer.current === player) setPaintedPlayer(player); }} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
+      {!hasFrame || !(owns || (holdView && canHold)) ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, width, height }}><VideoThumb uri={uri} posterUri={poster} fill chip={false} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} /></View> : null}
+      {failed || frameFailed ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry video" onPress={() => { setFrameFailedPlayer(null); retry(); }} style={[st.loadingOverlay, { backgroundColor: 'rgba(0,0,0,0.65)' }]}><Text style={{ color: '#FFFFFF' }}>Video could not load. Tap to retry.</Text></TouchableOpacity> : null}
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
       <PostCaption captions={edit?.captions} time={musicClock.time + (edit?.trimStart ?? 0)} />
@@ -329,6 +345,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
       return (
         <View>
           <CarouselVideo
+            key={`${item.id}:${item.url}`}
             uri={item.url}
             postId={postId ?? null}
             holdView={!!holdView}
@@ -350,6 +367,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
       <View>
         <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(index)} disabled={!onMediaPress}>
           <CarouselImage
+            key={`${item.id}:${item.url}`}
             uri={item.url}
             width={containerWidth}
             height={slideHeight}
@@ -386,6 +404,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
           {item.media_type === 'video' ? (
             <View>
               <CarouselVideo
+            key={`${item.id}:${item.url}`}
                 uri={item.url}
                 postId={postId ?? null}
                 holdView={!!holdView}
@@ -405,6 +424,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             <View>
               <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(0)} disabled={!onMediaPress}>
                 <CarouselImage
+            key={`${item.id}:${item.url}`}
                   uri={item.url}
                   width={containerWidth}
                   height={slideHeight}
@@ -430,7 +450,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
           ref={listRef}
           key={containerWidth}
           data={media}
-          keyExtractor={(item) => item.id || String(item.sort_order)}
+          keyExtractor={(item) => `${item.id || item.sort_order}:${item.url}`}
           renderItem={renderItem}
           horizontal
           pagingEnabled

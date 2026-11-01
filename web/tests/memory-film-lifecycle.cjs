@@ -127,3 +127,34 @@ test('web stalled video stays stopped across foreground and active changes until
   } finally { h.dispose(); }
   assert.equal(h.timerCount, 0);
 });
+
+test('web memory video waits for an actual decoded frame after metadata and trim seek',async()=>{
+ const h=createFilmHarness(ts,'web',{component:'video'});
+ try{
+  await h.settle();h.videoNode.readyState=1;
+  const props=h.nodes().find(node=>node.type==='video').props;
+  props.onLoadedMetadata();await h.settle();assert.equal(h.ready,0);
+  h.videoNode.readyState=2;h.videoNode.seeking=true;props.onLoadedData();assert.equal(h.ready,0);
+  h.videoNode.seeking=false;props.onSeeked();await h.settle();assert.equal(h.ready,1);
+  props.onCanPlay();assert.equal(h.ready,1);
+ }finally{h.dispose();}
+});
+
+test('web memory video uses a real frame callback and rejects its late unmounted callback',async()=>{
+ const h=createFilmHarness(ts,'web',{component:'video'});let frame,cancelled;
+ try{
+  await h.settle();h.videoNode.requestVideoFrameCallback=callback=>{frame=callback;return 7;};h.videoNode.cancelVideoFrameCallback=id=>{cancelled=id;};
+  h.nodes().find(node=>node.type==='video').props.onLoadedMetadata();await h.settle();assert.equal(h.ready,0);assert.equal(typeof frame,'function');
+  h.dispose();assert.equal(cancelled,7);frame();assert.equal(h.ready,0);
+ }finally{h.dispose();}
+});
+
+test('web frame readiness rejects a prerendered frame before the saved trim',async()=>{
+ const h=createFilmHarness(ts,'web',{component:'video'});let frame;
+ try{
+  await h.settle();h.videoNode.requestVideoFrameCallback=callback=>{frame=callback;return 7;};h.videoNode.cancelVideoFrameCallback=()=>{};
+  h.nodes().find(node=>node.type==='video').props.onLoadedMetadata();await h.settle();
+  frame(0,{mediaTime:0});assert.equal(h.ready,0);
+  frame(1,{mediaTime:2});assert.equal(h.ready,1);
+ }finally{h.dispose();}
+});

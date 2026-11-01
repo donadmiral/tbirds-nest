@@ -25,8 +25,10 @@ function fixture({ read, sign, detail } = {}) {
  const set = key => value => { state[key] = typeof value === 'function' ? value(state[key]) : value; };
  const globals = {
   conversationId: 'conversation', accountScopeRef: { current: 0 }, historyRequest: { current: 0 }, mountedRef: { current: true }, activeConversation: { current: 'conversation' }, historyLoadedRef: { current: false }, historyCursor: { current: null },
+  messagesRef: { get current() { return state.messages; } },
   setMessages: set('messages'), setLoading: set('loading'), setHistoryError: set('error'), setHasOlder: set('hasOlder'),
   ...history, useCallback: fn => fn,
+  isChatMediaUrl: uri => uri === 'private-locator',
   signChatMedia: rows => { signs.push(rows); return sign ? sign(rows) : Promise.resolve(rows.map(item => ({ ...item, media_url: 'authorized-capability' }))); },
   supabase: { from(table) {
    const query = { table, filters: [], order: [] }; reads.push(query);
@@ -72,8 +74,8 @@ test('late enrichment failure cannot modify the next history request', async () 
  const details = deferred(), nextRead = deferred(); let request = 0;
  const h = fixture({ read: () => ++request === 1 ? Promise.resolve({ data: [row()], error: null }) : nextRead.promise, detail: () => details.promise });
  const first = h.load(); await turn(); assert.equal(h.state.loading, false);
- const second = h.load(); assert.equal(h.state.loading, true); details.reject(Error('Old details failed')); await first;
- assert.equal(h.state.loading, true); assert.equal(h.state.error, null);
+ const second = h.load(); assert.equal(h.state.loading, false); details.reject(Error('Old details failed')); await first;
+ assert.equal(h.state.loading, false); assert.equal(h.state.messages.length, 1); assert.equal(h.state.error, null);
  nextRead.resolve({ data: [], error: null }); await second;
  assert.equal(h.state.loading, false);
 });
@@ -82,4 +84,21 @@ test('messages arriving while history is signed survive its publication', async 
  h.state.messages = [{ ...row('new-message'), created_at: '2026-10-31T03:01:00Z', media_url: null }];
  gate.resolve([{ ...row(), media_url: 'authorized-capability' }]); await work;
  assert.deepEqual(Array.from(h.state.messages, item => item.id), ['new-message', 'message-1']);
+});
+test('authorized text messages display while a separate private attachment still awaits its grant', async () => {
+ const gate = deferred(),text = {...row('text-message'),media_url:null},attachment=row('private-message');
+ const h = fixture({read:()=>Promise.resolve({data:[text,attachment],error:null}),sign:()=>gate.promise});
+ const work=h.load();await turn();
+ assert.deepEqual(Array.from(h.state.messages,item=>item.id),['text-message']);assert.equal(h.state.loading,false);
+ assert.equal(h.globals.historyLoadedRef.current,false,'Do not acknowledge unread attachments before full authorized history is ready');
+ gate.resolve([text,{...attachment,media_url:'authorized-capability'}]);await work;
+ assert.equal(h.state.messages.length,2);assert.equal(h.state.messages.find(item=>item.id==='private-message').media_url,'authorized-capability');
+ assert.equal(h.globals.historyLoadedRef.current,true);
+});
+test('private thumbnails and view-once content stay withheld during text-first rendering', async () => {
+ const gate=deferred(),text={...row('text-message'),media_url:null};
+ const privateRows=[{...row('thumb-only'),media_url:null,thumbnail_url:'private-locator'},{...row('view-once'),media_url:null,view_limit:1},{...row('cached-locator'),media_url:null,_private_media_url:'private-locator'}];
+ const h=fixture({read:()=>Promise.resolve({data:[text,...privateRows],error:null}),sign:()=>gate.promise});
+ const work=h.load();await turn();assert.deepEqual(Array.from(h.state.messages,item=>item.id),['text-message']);
+ gate.reject(Error('Grant unavailable'));await work;assert.equal(h.state.messages.length,1);
 });

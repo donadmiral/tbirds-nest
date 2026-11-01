@@ -34,20 +34,32 @@ export function isContentCapability(value: string, base: string): boolean {
 export function contentReferences(rows: unknown[], kind: ContentKind): ContentReference[] {
   const refs = new Map<string, ContentReference>();
   const add = (type: ContentKind, id: unknown) => { if (typeof id === 'string' && CONTENT_UUID.test(id)) refs.set(`${type}:${id}`, { kind: type, id }); };
-  const nested = (value: unknown, depth = 0) => {
+  const nested = (value: unknown, albumStories: ReadonlySet<string>, depth = 0) => {
     if (!value || typeof value !== 'object' || depth > 15) return;
-    if (Array.isArray(value)) { value.forEach(child => nested(child, depth + 1)); return; }
+    if (Array.isArray(value)) { value.forEach(child => nested(child, albumStories, depth + 1)); return; }
     const object = value as Record<string, unknown>;
     // Embedded post authorization is separate from its containing story/card.
     for (const key of ['postId', 'post_id', 'linked_post_id', 'quoted_post_id']) add('post', object[key]);
-    for (const key of ['storyId', 'story_id']) add('story', object[key]);
-    Object.values(object).forEach(child => nested(child, depth + 1));
+    for (const key of ['storyId', 'story_id']) if (!albumStories.has(String(object[key]))) add('story', object[key]);
+    Object.values(object).forEach(child => nested(child, albumStories, depth + 1));
   };
   for (const row of rows) {
     if (!row || typeof row !== 'object') continue;
     const object = row as Record<string, unknown>;
     add(kind, kind === 'post' ? object.linked_post_id ?? object.post_id ?? object.id : object.id);
-    nested(row);
+    // The album manifest already authorizes every retained page's story media.
+    // Repeating each page as a story issued the same capabilities again and
+    // made large books wait for multiple signing round trips. Embedded posts
+    // and unrelated story references still need their own authorization.
+    const albumStories = new Set<string>();
+    if (kind === 'memory_album' && typeof object.id === 'string' && CONTENT_UUID.test(object.id)) {
+      const pages = [object.cover_page, ...(Array.isArray(object.cover_pages) ? object.cover_pages : []), ...(Array.isArray(object.pages) ? object.pages : [])];
+      for (const page of pages) {
+        const id = page && typeof page === 'object' ? (page as Record<string, unknown>).story_id : null;
+        if (typeof id === 'string' && CONTENT_UUID.test(id)) albumStories.add(id);
+      }
+    }
+    nested(row, albumStories);
   }
   return [...refs.values()];
 }
@@ -159,7 +171,11 @@ async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, 
     if (auth.user.id !== viewerId) throw new Error('Your account changed. Reload this content.');
     const capabilities = new Map<string, string>();
     let expiry = Infinity;
-    for (const body of batches) {
+    let nextBatch = 0;
+    let failed = false;
+    const signBatch = async () => {
+     while (!failed && nextBatch < batches.length) {
+      const body = batches[nextBatch++];
       assertCurrent();
       // Sign for the same verified identity even if the shared client changes
       // accounts while the request is in flight. The server still authorizes
@@ -174,7 +190,15 @@ async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, 
         const object = typeof item.url === 'string' ? contentObject(item.url, base) : null;
         if (object && object.key === item.key && isContentCapability(item.url, base)) capabilities.set(item.key, item.url);
       }
-    }
+     }
+    };
+    // Each request has the same verified bearer and independent references.
+    // Bound concurrency so large feeds/books do not serialize every batch or
+    // saturate the connection needed by the currently visible media.
+    const workers = Array.from({ length: Math.min(3, batches.length) }, () => signBatch().catch(error => { failed = true; throw error; }));
+    const results = await Promise.allSettled(workers);
+    const rejection = results.find((result): result is PromiseRejectedResult => result.status === 'rejected');
+    if (rejection) throw rejection.reason;
     const { data: session, error: sessionError } = await bounded(client.auth.getSession());
     assertCurrent();
     if (sessionError || session.session?.user.id !== viewerId) throw new Error('Your account changed. Reload this content.');

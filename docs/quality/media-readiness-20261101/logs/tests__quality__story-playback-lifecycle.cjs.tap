@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: a delayed photo gets its full display duration after its pixels load
+ok 1 - a delayed photo gets its full display duration after its pixels load
+  ---
+  duration_ms: 125.891716
+  type: 'test'
+  ...
+# Subtest: embedded media readiness and buffering preserve the remaining image clock
+ok 2 - embedded media readiness and buffering preserve the remaining image clock
+  ---
+  duration_ms: 56.801452
+  type: 'test'
+  ...
+# Subtest: hold/background pause resumes the same photo instead of consuming viewing time
+ok 3 - hold/background pause resumes the same photo instead of consuming viewing time
+  ---
+  duration_ms: 37.492453
+  type: 'test'
+  ...
+# Subtest: late image events and animation completion cannot affect the next story
+ok 4 - late image events and animation completion cannot affect the next story
+  ---
+  duration_ms: 37.611525
+  type: 'test'
+  ...
+# Subtest: loading has a deadline and retry starts a fresh scoped clock
+ok 5 - loading has a deadline and retry starts a fresh scoped clock
+  ---
+  duration_ms: 48.046972
+  type: 'test'
+  ...
+# Subtest: video progress follows actual trim position, waits for first frame and does not restart after buffering
+ok 6 - video progress follows actual trim position, waits for first frame and does not restart after buffering
+  ---
+  duration_ms: 38.687592
+  type: 'test'
+  ...
+# Subtest: a stalled video exposes buffering then a bounded error without auto-skipping
+ok 7 - a stalled video exposes buffering then a bounded error without auto-skipping
+  ---
+  duration_ms: 16.822035
+  type: 'test'
+  ...
+# Subtest: a stale video end event cannot close its successor and unmount removes timers/listeners
+ok 8 - a stale video end event cannot close its successor and unmount removes timers/listeners
+  ---
+  duration_ms: 16.560976
+  type: 'test'
+  ...
+# Subtest: next-story prefetch includes photo cards and posters without fetching a full video as an image
+ok 9 - next-story prefetch includes photo cards and posters without fetching a full video as an image
+  ---
+  duration_ms: 6.381746
+  type: 'test'
+  ...
+# Subtest: a timed-out story read never resolves later and clears its timer
+ok 10 - a timed-out story read never resolves later and clears its timer
+  ---
+  duration_ms: 12.789209
+  type: 'test'
+  ...
+# Subtest: returning to the feed uses the real nested routes, including a viewer with no back history
+ok 11 - returning to the feed uses the real nested routes, including a viewer with no back history
+  ---
+  duration_ms: 4.634261
+  type: 'test'
+  ...
+# Subtest: reshared image/video cards omit inherited captions while preserving attribution and tap-through
+ok 12 - reshared image/video cards omit inherited captions while preserving attribution and tap-through
+  ---
+  duration_ms: 98.034255
+  type: 'test'
+  ...
+# Subtest: text-only shared posts retain their original text
+ok 13 - text-only shared posts retain their original text
+  ---
+  duration_ms: 38.206183
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 554.577306

@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: installed SDK reproduces the old lock stall: getUser() blocks unrelated profile queries before fetch
+ok 1 - installed SDK reproduces the old lock stall: getUser() blocks unrelated profile queries before fetch
+  ---
+  duration_ms: 23.190676
+  type: 'test'
+  ...
+# Subtest: post and album media verification run concurrently without holding session or database reads
+ok 2 - post and album media verification run concurrently without holding session or database reads
+  ---
+  duration_ms: 16.377202
+  type: 'test'
+  ...
+# Subtest: failed server verification cannot reach the signer or return raw media
+ok 3 - failed server verification cannot reach the signer or return raw media
+  ---
+  duration_ms: 2.244936
+  type: 'test'
+  ...
+# Subtest: A to B to A account changes during signing invalidate the original capability result
+ok 4 - A to B to A account changes during signing invalidate the original capability result
+  ---
+  duration_ms: 5.307746
+  type: 'test'
+  ...
+# Subtest: a request cancelled before transport does not start network work
+ok 5 - a request cancelled before transport does not start network work
+  ---
+  duration_ms: 77.81906
+  type: 'test'
+  ...
+# Subtest: transport removes its caller abort listener after success and failure
+ok 6 - transport removes its caller abort listener after success and failure
+  ---
+  duration_ms: 89.570234
+  type: 'test'
+  ...
+# Subtest: a profile read deadline includes the SDK pre-fetch wait and cancels late transport
+ok 7 - a profile read deadline includes the SDK pre-fetch wait and cancels late transport
+  ---
+  duration_ms: 56.414957
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 300.510103

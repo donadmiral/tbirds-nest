@@ -27,6 +27,16 @@ export type ReactNativeResult = { uri: string; duration: number; width: number; 
 const finite = (value: unknown, min: number, max: number): value is number => typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, Number.isFinite(value) ? value : min));
 
+/** iOS view-shot returns an absolute filesystem path. Expo and the native
+ * compositor use file URIs. Convert only that local path form, keeping URI
+ * escapes intact and leaving native app-directory checks authoritative. */
+export function reactLocalFileUri(value: string): string {
+  if (typeof value !== 'string' || value.includes('\0')) throw new Error('React needs a local photo or video file.');
+  if (value.startsWith('/') && !value.startsWith('//')) return `file://${value.split('/').map(encodeURIComponent).join('/')}`;
+  if (/^file:\/\/\/[^?#]+$/.test(value)) return value;
+  throw new Error('React needs a local photo or video file.');
+}
+
 export function reactRects(layout: ReactLayout, face: ReactRect = { x: .65, y: .56, width: .3, height: .38 }): { source: ReactRect; face: ReactRect } {
   if (layout === 'side-by-side') return { source: { x: 0, y: 0, width: .5, height: 1 }, face: { x: .5, y: 0, width: .5, height: 1 } };
   if (layout === 'top-bottom') return { source: { x: 0, y: 0, width: 1, height: .5 }, face: { x: 0, y: .5, width: 1, height: .5 } };

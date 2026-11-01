@@ -97,11 +97,21 @@ test('actual photo sticker uses the same nonfading capture path and keeps its in
   image.props.onLoad(); assert.equal(reports.at(-1)[1], 'ready'); h.dispose();
 });
 
-test('ordinary photo playback keeps the native fade default and caller callbacks', () => {
+test('ordinary photo playback displays decoded pixels immediately and retains caller callbacks', () => {
   const h = componentHarness(); let loaded = 0;
   const image = walk(h.render({ uri: 'file:///playback/photo.png', onLoad: () => loaded++ })).find(node => node.type === 'NativeImage');
-  assert.equal(image.props.fadeDuration, undefined);
+  assert.equal(image.props.fadeDuration, 0);
   image.props.onLoad(); assert.equal(loaded, 1); h.dispose();
+});
+
+test('a delayed callback from a replaced photo cannot mark the new photo ready or failed', () => {
+  const h = componentHarness(), reports = [], loaded = [], errors = [];
+  h.contexts.set(h.image.StoryPhotoReadinessContext, (...event) => reports.push(event));
+  const first = walk(h.render({ uri: 'https://media/first.jpg', onLoad: () => loaded.push('first'), onError: () => errors.push('first') })).find(node => node.type === 'NativeImage');
+  const second = walk(h.render({ uri: 'https://media/second.jpg', onLoad: () => loaded.push('second'), onError: () => errors.push('second') })).find(node => node.type === 'NativeImage');
+  first.props.onLoad(); first.props.onError();
+  assert.equal(reports.at(-1)[1], 'loading'); assert.deepEqual(loaded, []); assert.deepEqual(errors, []);
+  second.props.onLoad(); assert.equal(reports.at(-1)[1], 'ready'); assert.deepEqual(loaded, ['second']); h.dispose();
 });
 
 test('graded captures retain the existing Skia path and its readiness callbacks', () => {

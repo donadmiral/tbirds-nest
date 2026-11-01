@@ -1,0 +1,97 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const ts = require('typescript');
+const root = path.resolve(__dirname, '../..');
+const flushPromises = () => new Promise(setImmediate);
+
+function harness() {
+  let context, cursor = 0, dirty = true, effects = [], scopeChange, appChange, timerId = 0;
+  const mounted = [], players = [], timers = new Map();
+  const same = (a, b) => a && b && a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
+  const react = {
+    useRef(value) { const i = cursor++; return context.hooks[i] ??= { current: value }; },
+    useEffect(effect, deps) { const i = cursor++, old = context.hooks[i], owner = context; if (!same(old?.deps, deps)) { owner.hooks[i] = { deps }; effects.push(() => { old?.cleanup?.(); owner.hooks[i].cleanup = effect(); }); } },
+  };
+  const app = { currentState: 'active', addEventListener(_name, fn) { appChange = fn; return { remove() {} }; } };
+  function createStore(initializer) {
+    let state;
+    const set = patch => { state = { ...state, ...(typeof patch === 'function' ? patch(state) : patch) }; dirty = true; };
+    state = initializer(set);
+    const useStore = () => state;
+    useStore.getState = () => state;
+    return useStore;
+  }
+  function player() {
+    const listeners = new Map(); let resolveSource;
+    const p = {
+      status: 'idle', currentTime: 0, released: false, pauses: 0, sources: [],
+      replaceAsync(source) { p.sources.push(source); p.status = 'loading'; return new Promise(resolve => { resolveSource = resolve; }); },
+      pause() { p.pauses++; }, release() { p.released = true; },
+      addListener(name, callback) { const events = listeners.get(name) || new Set(); events.add(callback); listeners.set(name, events); return { remove() { events.delete(callback); } }; },
+      ready() { p.status = 'readyToPlay'; for (const fn of [...listeners.get('statusChange') || []]) fn({ status: p.status }); resolveSource?.(); },
+      fail() { p.status = 'error'; for (const fn of [...listeners.get('statusChange') || []]) fn({ status: p.status }); },
+    };
+    players.push(p); return p;
+  }
+  function load(file, imports) {
+    const exports = {};
+    vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText,
+      { exports, require(name) { if (!(name in imports)) throw Error(name); return imports[name]; }, Date, Math, setTimeout(fn) { timers.set(++timerId, fn); return timerId; }, clearTimeout(id) { timers.delete(id); } });
+    return exports;
+  }
+  const pool = load('shared/videoReadiness.ts', {});
+  const engine = load('src/lib/videoEngine.ts', { react, 'react-native': { AppState: app }, 'expo-video': { createVideoPlayer: player }, zustand: { create: createStore }, '../../shared/videoReadiness': pool, './navigationCache': { subscribeNavigationScope(fn) { scopeChange = fn; } } });
+  function render() {
+    for (let pass = 0; dirty; pass++) {
+      if (pass >= 30) throw Error('Video ownership render loop');
+      dirty = false;
+      for (const item of mounted) { context = item; cursor = 0; item.output = engine.useSharedVideo(item.config); }
+      const pending = effects; effects = []; pending.forEach(fn => fn());
+    }
+  }
+  return { engine, players, render,
+    mount(uri, active = true) { const item = { config: { uri, visible: active, screenActive: true }, hooks: [] }; mounted.push(item); dirty = true; render(); return item; },
+    update(item, patch) { item.config = { ...item.config, ...patch }; dirty = true; render(); },
+    async flush() { await flushPromises(); render(); },
+    app(state) { app.currentState = state; appChange(state); render(); },
+    scope() { scopeChange(); render(); },
+    dispose() { mounted.forEach(item => item.hooks.forEach(hook => hook?.cleanup?.())); engine.clearVideoEngine(); },
+  };
+}
+
+test('the actual feed owner hook keeps late source events out of the next visible card', async () => {
+  const h = harness(), first = h.mount('https://media/first.mp4'); await h.flush();
+  const old = h.players[0];
+  const next = h.mount('https://media/next.mp4', false);
+  h.update(first, { visible: false }); h.update(next, { visible: true }); await h.flush();
+  const current = h.players[1];
+  old.ready(); await h.flush();
+  assert.equal(next.output.player, current); assert.equal(next.output.sourceReady, false);
+  assert.equal(first.output.owns, false); assert.equal(first.output.player, null);
+  current.ready(); await h.flush();
+  assert.equal(next.output.sourceReady, true); assert.equal(current.sources[0].uri, 'https://media/next.mp4');
+  assert.equal(old.sources.length, 1); assert.equal(current.sources.length, 1); h.dispose();
+});
+test('backgrounding releases native players and foregrounding reacquires the visible source', async () => {
+  const h = harness(), card = h.mount('https://media/clip.mp4'); await h.flush();
+  h.players[0].ready(); await h.flush(); const first = card.output.player;
+  h.app('background'); assert.equal(first.released, true); assert.equal(card.output.player, null); assert.equal(card.output.owns, false);
+  h.app('active'); await h.flush();
+  const replacement = h.players[1]; assert.notEqual(replacement, first); assert.equal(card.output.player, replacement);
+  replacement.ready(); await h.flush(); assert.equal(card.output.sourceReady, true); h.dispose();
+});
+test('evicting a held inactive source clears its rendered player before release', async () => {
+  const h = harness(), card = h.mount('https://media/held.mp4'); await h.flush(); h.players[0].ready(); await h.flush();
+  const held = card.output.player; h.update(card, { visible: false }); assert.equal(card.output.canHold, true);
+  h.engine.prefetchFeedVideos([{ uri: 'https://media/one.mp4' }, { uri: 'https://media/two.mp4' }]);
+  h.engine.prefetchFeedVideos([{ uri: 'https://media/three.mp4' }]); await h.flush();
+  assert.equal(held.released, true); assert.equal(card.output.player, null); assert.equal(card.output.sourceReady, false); h.dispose();
+});
+test('a native error after source attachment becomes a recoverable active-card error', async () => {
+  const h = harness(), card = h.mount('https://media/clip.mp4'); await h.flush(); h.players[0].ready(); await h.flush();
+  h.players[0].fail(); h.render();
+  assert.equal(card.output.failed, true); assert.equal(card.output.sourceReady, false); h.dispose();
+});

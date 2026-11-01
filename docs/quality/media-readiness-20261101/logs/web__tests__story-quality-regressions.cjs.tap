@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: viewer arrow keys edit replies and only navigate outside editing controls
+ok 1 - viewer arrow keys edit replies and only navigate outside editing controls
+  ---
+  duration_ms: 171.510235
+  type: 'test'
+  ...
+# Subtest: loading time does not consume an image story duration
+ok 2 - loading time does not consume an image story duration
+  ---
+  duration_ms: 111.679289
+  type: 'test'
+  ...
+# Subtest: buffering or paused video follows its media clock rather than wall time
+ok 3 - buffering or paused video follows its media clock rather than wall time
+  ---
+  duration_ms: 43.962322
+  type: 'test'
+  ...
+# Subtest: resuming a paused video does not fall back to wall time or leak another timer
+ok 4 - resuming a paused video does not fall back to wall time or leak another timer
+  ---
+  duration_ms: 71.533295
+  type: 'test'
+  ...
+# Subtest: story recipient search ignores older results and clears results when empty
+ok 5 - story recipient search ignores older results and clears results when empty
+  ---
+  duration_ms: 66.337314
+  type: 'test'
+  ...
+# Subtest: failed story recipient search is handled with a recoverable message
+ok 6 - failed story recipient search is handled with a recoverable message
+  ---
+  duration_ms: 52.441621
+  type: 'test'
+  ...
+# Subtest: story replies reject duplicate same-tick sends
+ok 7 - story replies reject duplicate same-tick sends
+  ---
+  duration_ms: 12.135329
+  type: 'test'
+  ...
+# Subtest: failed durable save keeps the story reply visible and does not claim it was sent
+ok 8 - failed durable save keeps the story reply visible and does not claim it was sent
+  ---
+  duration_ms: 9.920639
+  type: 'test'
+  ...
+# Subtest: uncertain story reply stays in the outbox instead of inviting another send
+ok 9 - uncertain story reply stays in the outbox instead of inviting another send
+  ---
+  duration_ms: 10.477001
+  type: 'test'
+  ...
+# Subtest: rejected story reply points to the saved message without a false sent toast
+ok 10 - rejected story reply points to the saved message without a false sent toast
+  ---
+  duration_ms: 8.127527
+  type: 'test'
+  ...
+# Subtest: account switching before the reply insert prevents sending from the wrong account
+ok 11 - account switching before the reply insert prevents sending from the wrong account
+  ---
+  duration_ms: 4.268999
+  type: 'test'
+  ...
+# Subtest: a repeated reaction tap sends only one toggle until its result arrives
+ok 12 - a repeated reaction tap sends only one toggle until its result arrives
+  ---
+  duration_ms: 7.53546
+  type: 'test'
+  ...
+# Subtest: a late reaction response cannot replace the next story reaction state
+ok 13 - a late reaction response cannot replace the next story reaction state
+  ---
+  duration_ms: 7.819832
+  type: 'test'
+  ...
+# Subtest: parallel different emoji responses preserve both reactions
+ok 14 - parallel different emoji responses preserve both reactions
+  ---
+  duration_ms: 4.439838
+  type: 'test'
+  ...
+# Subtest: a rejected reaction restores state and surfaces its failure
+ok 15 - a rejected reaction restores state and surfaces its failure
+  ---
+  duration_ms: 7.917188
+  type: 'test'
+  ...
+# Subtest: an account change prevents a story reaction write
+ok 16 - an account change prevents a story reaction write
+  ---
+  duration_ms: 5.454933
+  type: 'test'
+  ...
+# Subtest: Back on the first story does not stop its playback timer
+ok 17 - Back on the first story does not stop its playback timer
+  ---
+  duration_ms: 2.980209
+  type: 'test'
+  ...
+# Subtest: advancing a story clears its private reply and viewer sheet
+ok 18 - advancing a story clears its private reply and viewer sheet
+  ---
+  duration_ms: 31.681472
+  type: 'test'
+  ...
+# Subtest: a saved private story never silently drops unavailable selected recipients
+ok 19 - a saved private story never silently drops unavailable selected recipients
+  ---
+  duration_ms: 54.785367
+  type: 'test'
+  ...
+# Subtest: a saved private story restores its complete selected audience
+ok 20 - a saved private story restores its complete selected audience
+  ---
+  duration_ms: 66.94594
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 768.799115

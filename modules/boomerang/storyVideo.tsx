@@ -1,12 +1,21 @@
 import React, { useContext, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { requireNativeViewManager } from 'expo-modules-core';
+import { requireNativeViewManager, requireOptionalNativeModule } from 'expo-modules-core';
 import { VideoView as ExpoVideoView, useVideoPlayer as useExpoVideoPlayer, type VideoPlayer } from 'expo-video';
 import { storyVideoPreviewAvailable } from './storyComposition';
 import { StoryPhotoLookContext } from '../../src/components/stories/StoryPixelImage';
 import { storyPhotoColorMatrix, type StoryPhotoLook } from '../../shared/storyColorMatrix';
 
 const NativeView: any = storyVideoPreviewAvailable ? requireNativeViewManager('Boomerang') : null;
+const nativeWarmPool = storyVideoPreviewAvailable ? requireOptionalNativeModule('Boomerang') as any : null;
+export function prewarmStoryVideo(uri: string | null | undefined, scope: string | null, expiresAt?: number) {
+  if (!scope || !uri || !/^https:\/\//.test(uri) || (expiresAt && expiresAt <= Date.now() + 5000)) return;
+  // Older installed builds keep their normal loading path until rebuilt.
+  void nativeWarmPool?.warmStoryVideo?.(uri, scope, expiresAt || 0)?.catch(() => {});
+}
+export function clearStoryVideoWarmPool() {
+  void nativeWarmPool?.clearStoryVideoWarmPool?.()?.catch(() => {});
+}
 type Listener = (event: any) => void;
 /** The small player interface used by story clocks and trim controls. No second audio player. */
 export class StoryVideoController {

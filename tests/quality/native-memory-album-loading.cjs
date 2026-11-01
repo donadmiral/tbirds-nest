@@ -64,6 +64,7 @@ function harness({ heldAuth = false, heldMedia = false, heldBody = false, actual
   class AnimatedValue { setValue() {} stopAnimation() {} interpolate() { return 1; } }
   const native = Object.fromEntries(['View', 'Text', 'TouchableOpacity', 'Modal', 'TextInput', 'FlatList', 'ActivityIndicator', 'StatusBar', 'ScrollView', 'KeyboardAvoidingView'].map(name => [name, name]));
   Object.assign(native, {
+    Image: { prefetch: async () => true },
     AppState: appState, Alert: { alert() {} }, Platform: { OS: platform },
     StyleSheet: { create: value => value, absoluteFill: {}, hairlineWidth: 1 },
     useWindowDimensions: () => ({ width: 393, height: 852 }),
@@ -124,6 +125,7 @@ function harness({ heldAuth = false, heldMedia = false, heldBody = false, actual
     react, 'react/jsx-runtime': { jsx, jsxs: jsx, Fragment: 'Fragment' }, 'react-native': native,
     '@react-navigation/native': { useIsFocused: () => true }, '@expo/vector-icons': { Feather: 'Feather' }, 'expo-image': { Image: 'ExpoImage' },
     'src/services/supabase': { supabase },
+    'src/lib/navigationCache': { navigationScope: () => owner ? `test:${owner}` : null },
     'src/services/contentMedia': {
       hydrateMemoryAlbumMedia: rows => {
         if (actualMedia) return load('shared/contentMedia.ts').hydrateContentMedia({
@@ -143,7 +145,7 @@ function harness({ heldAuth = false, heldMedia = false, heldBody = false, actual
     'src/components/memory/MemoryPageTurn': { __esModule: true, default: 'MemoryPageTurn', MemoryTurnPreview: 'MemoryTurnPreview' },
     'src/hooks/useMemoryPlayback': { useMemoryPlayback: () => 0 },
     'src/hooks/useSoundtrackPlayer': { useSoundtrackPlayer: () => ({ error: null, loading: false }) },
-    'modules/boomerang/storyVideo': { StoryVideoView: 'VideoView', useStoryVideoPlayer() { throw Error('Text-only loading cases must not instantiate a video player'); } },
+    'modules/boomerang/storyVideo': { StoryVideoView: 'VideoView', prewarmStoryVideo() {}, useStoryVideoPlayer() { throw Error('Text-only loading cases must not instantiate a video player'); } },
   };
   const cache = new Map();
   function load(file) {

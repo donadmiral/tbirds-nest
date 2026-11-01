@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: zero initial volume can unmute without recreating or restarting the soundtrack
+ok 1 - zero initial volume can unmute without recreating or restarting the soundtrack
+  ---
+  duration_ms: 9.802691
+  type: 'test'
+  ...
+# Subtest: pause and foreground recovery preserve the same audio instance
+ok 2 - pause and foreground recovery preserve the same audio instance
+  ---
+  duration_ms: 2.930804
+  type: 'test'
+  ...
+# Subtest: late old story audio unloads without playing over the next story
+ok 3 - late old story audio unloads without playing over the next story
+  ---
+  duration_ms: 1.960286
+  type: 'test'
+  ...
+# Subtest: playback load failures expose recovery and retry creates a new attempt
+ok 4 - playback load failures expose recovery and retry creates a new attempt
+  ---
+  duration_ms: 1.883189
+  type: 'test'
+  ...
+# Subtest: native selecting a reusable sound refreshes authorization but stores no playback token
+ok 5 - native selecting a reusable sound refreshes authorization but stores no playback token
+  ---
+  duration_ms: 16.123514
+  type: 'test'
+  ...
+# Subtest: native late sound selection cannot attach after closing the picker
+ok 6 - native late sound selection cannot attach after closing the picker
+  ---
+  duration_ms: 8.225705
+  type: 'test'
+  ...
+# Subtest: native revoked sound selection keeps the draft unchanged and releases its lock
+ok 7 - native revoked sound selection keeps the draft unchanged and releases its lock
+  ---
+  duration_ms: 7.510283
+  type: 'test'
+  ...
+# Subtest: restored native sound drafts resolve by ID and renew without persisting capabilities
+ok 8 - restored native sound drafts resolve by ID and renew without persisting capabilities
+  ---
+  duration_ms: 17.788994
+  type: 'test'
+  ...
+# Subtest: native sound preview fences old account results and clears denied sound on renewal
+ok 9 - native sound preview fences old account results and clears denied sound on renewal
+  ---
+  duration_ms: 11.232044
+  type: 'test'
+  ...
+# Subtest: incoming calls pause story audio and block a late load from starting
+ok 10 - incoming calls pause story audio and block a late load from starting
+  ---
+  duration_ms: 1.673111
+  type: 'test'
+  ...
+# Subtest: story audio loops at the licensed excerpt boundary rather than the full asset duration
+ok 11 - story audio loops at the licensed excerpt boundary rather than the full asset duration
+  ---
+  duration_ms: 1.282481
+  type: 'test'
+  ...
+# Subtest: native original starts and loops at the persisted excerpt offset
+ok 12 - native original starts and loops at the persisted excerpt offset
+  ---
+  duration_ms: 1.154536
+  type: 'test'
+  ...
+# Subtest: revocation pauses a warmed native sound and retry cannot restart it
+ok 13 - revocation pauses a warmed native sound and retry cannot restart it
+  ---
+  duration_ms: 3.663392
+  type: 'test'
+  ...
+# Subtest: native story commit rechecks the edited range before attaching it
+ok 14 - native story commit rechecks the edited range before attaching it
+  ---
+  duration_ms: 8.962359
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 109.27041

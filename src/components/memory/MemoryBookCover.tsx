@@ -10,6 +10,7 @@ import {memoryCoverArtwork,memoryCoverPhotoPosition,type MemoryCoverArtwork} fro
 import {memoryCoverParagraph,memoryCoverWritingLayout,memoryCoverWritingTitleSize} from '../../../shared/memoryCoverWriting';
 import {memoryCoverCollageCells,memoryCoverScaledStrokes,memoryCoverSources} from '../../../shared/memoryCoverPersonalization';
 import {DrawingLayer} from '../stories/DrawLayer';
+import {privateImageCachePolicy} from '../../../shared/mediaDelivery';
 export type MemoryBookCoverProps={artwork?:MemoryCoverArtwork|null;title:string;subtitle?:string|null;color?:string;design?:string;coverPages?:readonly MemoryCoverPage[];photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;takenAt?:string;width?:number;height?:number};
 type Position={left:`${number}%`;top:`${number}%`};
 const serif=Platform.OS==='ios'?'Didot':'serif';
@@ -18,7 +19,7 @@ const absolute={position:'absolute',left:0,right:0,top:0,bottom:0} as const;
 function CoverPhoto({photoUrl,fallbackPhotoUrl,videoUrl,ink,scale,position={left:'50%',top:'50%'},zoom=1,monochrome=false}:{photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;ink:string;scale:number;position?:Position;zoom?:number;monochrome?:boolean}){
  const [failed,setFailed]=useState<string[]>([]),src=[photoUrl,fallbackPhotoUrl].find(url=>url&&!failed.includes(url));
  return <View style={{width:'100%',height:'100%',transform:[{scale:zoom}],transformOrigin:[position.left,position.top,0]}}>
-  {src?<Image source={{uri:src}} contentFit="cover" contentPosition={position} style={{width:'100%',height:'100%'}} onError={()=>setFailed(prev=>[...prev.slice(-3),src])}/>:videoUrl?<VideoThumb uri={videoUrl} fill chip={false} contentPosition={position}/>:<View style={{flex:1,alignItems:'center',justifyContent:'center',borderWidth:1,borderColor:ink+'30',margin:5*scale}}><Feather name="image" size={25*scale} color={ink+'80'}/><Text style={{fontFamily:serif,fontSize:9*scale,color:ink+'A0',marginTop:5*scale}}>{photoUrl?'Open to view':'Your memories'}</Text></View>}
+  {src?<Image key={src} source={{uri:src}} recyclingKey={src} cachePolicy={privateImageCachePolicy(src)} transition={0} priority="high" contentFit="cover" contentPosition={position} style={{width:'100%',height:'100%'}} onError={()=>setFailed(prev=>[...prev.slice(-3),src])}/>:videoUrl?<VideoThumb key={videoUrl} uri={videoUrl} fill chip={false} contentPosition={position}/>:<View style={{flex:1,alignItems:'center',justifyContent:'center',borderWidth:1,borderColor:ink+'30',margin:5*scale}}><Feather name="image" size={25*scale} color={ink+'80'}/><Text style={{fontFamily:serif,fontSize:9*scale,color:ink+'A0',marginTop:5*scale}}>{photoUrl?'Open to view':'Your memories'}</Text></View>}
   {monochrome&&<View pointerEvents="none" style={[absolute,{backgroundColor:'#888888',mixBlendMode:'saturation'}]}/>}
  </View>;
 }

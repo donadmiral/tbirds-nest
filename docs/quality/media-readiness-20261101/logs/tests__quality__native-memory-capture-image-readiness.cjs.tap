@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: actual capture photo disables the native fade while retaining readiness and errors
+ok 1 - actual capture photo disables the native fade while retaining readiness and errors
+  ---
+  duration_ms: 171.422806
+  type: 'test'
+  ...
+# Subtest: actual photo sticker uses the same nonfading capture path and keeps its independent color look
+ok 2 - actual photo sticker uses the same nonfading capture path and keeps its independent color look
+  ---
+  duration_ms: 75.223825
+  type: 'test'
+  ...
+# Subtest: ordinary photo playback displays decoded pixels immediately and retains caller callbacks
+ok 3 - ordinary photo playback displays decoded pixels immediately and retains caller callbacks
+  ---
+  duration_ms: 34.601377
+  type: 'test'
+  ...
+# Subtest: a delayed callback from a replaced photo cannot mark the new photo ready or failed
+ok 4 - a delayed callback from a replaced photo cannot mark the new photo ready or failed
+  ---
+  duration_ms: 35.482225
+  type: 'test'
+  ...
+# Subtest: graded captures retain the existing Skia path and its readiness callbacks
+ok 5 - graded captures retain the existing Skia path and its readiness callbacks
+  ---
+  duration_ms: 34.575698
+  type: 'test'
+  ...
+# Subtest: retained Android captures show a partial image fade while the sticker border stays opaque
+ok 6 - retained Android captures show a partial image fade while the sticker border stays opaque
+  ---
+  duration_ms: 154.089592
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 521.415376

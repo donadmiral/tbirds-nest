@@ -1,0 +1,202 @@
+TAP version 13
+# Subtest: web/lib/chatMedia.ts: same account reuses media until the short one-minute cache expiry
+ok 1 - web/lib/chatMedia.ts: same account reuses media until the short one-minute cache expiry
+  ---
+  duration_ms: 54.882701
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: a changed canonical locator cannot reuse the same message's URL
+ok 2 - web/lib/chatMedia.ts: a changed canonical locator cannot reuse the same message's URL
+  ---
+  duration_ms: 19.884383
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: account switching and sign-out while idle clear old capabilities
+ok 3 - web/lib/chatMedia.ts: account switching and sign-out while idle clear old capabilities
+  ---
+  duration_ms: 13.511869
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: pending account switch discards both cached hits and late results
+ok 4 - web/lib/chatMedia.ts: pending account switch discards both cached hits and late results
+  ---
+  duration_ms: 12.925327
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: signing out and back in during a batch fences the old session
+ok 5 - web/lib/chatMedia.ts: signing out and back in during a batch fences the old session
+  ---
+  duration_ms: 23.378457
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: a switch during the second batch also discards completed first-batch results
+ok 6 - web/lib/chatMedia.ts: a switch during the second batch also discards completed first-batch results
+  ---
+  duration_ms: 22.005334
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: a rejected stale request cannot return earlier cached hits
+ok 7 - web/lib/chatMedia.ts: a rejected stale request cannot return earlier cached hits
+  ---
+  duration_ms: 22.997028
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: an obsolete getSession result cannot restore the previous account
+ok 8 - web/lib/chatMedia.ts: an obsolete getSession result cannot restore the previous account
+  ---
+  duration_ms: 10.731201
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: initial-session delivery during getSession keeps valid first loads working
+ok 9 - web/lib/chatMedia.ts: initial-session delivery during getSession keeps valid first loads working
+  ---
+  duration_ms: 11.958659
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: getSession also detects a changed account when no event has arrived
+ok 10 - web/lib/chatMedia.ts: getSession also detects a changed account when no event has arrived
+  ---
+  duration_ms: 28.219168
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: null sessions and Auth failures never expose public-form private locators
+ok 11 - web/lib/chatMedia.ts: null sessions and Auth failures never expose public-form private locators
+  ---
+  duration_ms: 19.646494
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: returned signing failure retains partial success without a public fallback
+ok 12 - web/lib/chatMedia.ts: returned signing failure retains partial success without a public fallback
+  ---
+  duration_ms: 15.528651
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: thrown signing failure retains partial success without a public fallback
+ok 13 - web/lib/chatMedia.ts: thrown signing failure retains partial success without a public fallback
+  ---
+  duration_ms: 22.249838
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: empty and public non-chat media do not create an Auth subscription
+ok 14 - web/lib/chatMedia.ts: empty and public non-chat media do not create an Auth subscription
+  ---
+  duration_ms: 22.879497
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: one listener per client; replacement unsubscribes and fences old work
+ok 15 - web/lib/chatMedia.ts: one listener per client; replacement unsubscribes and fences old work
+  ---
+  duration_ms: 28.032135
+  type: 'test'
+  ...
+# Subtest: web/lib/chatMedia.ts: only requested, string-valued response URLs enter the cache
+ok 16 - web/lib/chatMedia.ts: only requested, string-valued response URLs enter the cache
+  ---
+  duration_ms: 33.635835
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: same account reuses media until the short one-minute cache expiry
+ok 17 - src/services/chatMediaService.ts: same account reuses media until the short one-minute cache expiry
+  ---
+  duration_ms: 21.238823
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: a changed canonical locator cannot reuse the same message's URL
+ok 18 - src/services/chatMediaService.ts: a changed canonical locator cannot reuse the same message's URL
+  ---
+  duration_ms: 8.090905
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: account switching and sign-out while idle clear old capabilities
+ok 19 - src/services/chatMediaService.ts: account switching and sign-out while idle clear old capabilities
+  ---
+  duration_ms: 14.776564
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: pending account switch discards both cached hits and late results
+ok 20 - src/services/chatMediaService.ts: pending account switch discards both cached hits and late results
+  ---
+  duration_ms: 10.080426
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: signing out and back in during a batch fences the old session
+ok 21 - src/services/chatMediaService.ts: signing out and back in during a batch fences the old session
+  ---
+  duration_ms: 13.22201
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: a switch during the second batch also discards completed first-batch results
+ok 22 - src/services/chatMediaService.ts: a switch during the second batch also discards completed first-batch results
+  ---
+  duration_ms: 20.994233
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: a rejected stale request cannot return earlier cached hits
+ok 23 - src/services/chatMediaService.ts: a rejected stale request cannot return earlier cached hits
+  ---
+  duration_ms: 9.28401
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: an obsolete getSession result cannot restore the previous account
+ok 24 - src/services/chatMediaService.ts: an obsolete getSession result cannot restore the previous account
+  ---
+  duration_ms: 15.092812
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: initial-session delivery during getSession keeps valid first loads working
+ok 25 - src/services/chatMediaService.ts: initial-session delivery during getSession keeps valid first loads working
+  ---
+  duration_ms: 14.594428
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: getSession also detects a changed account when no event has arrived
+ok 26 - src/services/chatMediaService.ts: getSession also detects a changed account when no event has arrived
+  ---
+  duration_ms: 12.383892
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: null sessions and Auth failures never expose public-form private locators
+ok 27 - src/services/chatMediaService.ts: null sessions and Auth failures never expose public-form private locators
+  ---
+  duration_ms: 8.337068
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: returned signing failure retains partial success without a public fallback
+ok 28 - src/services/chatMediaService.ts: returned signing failure retains partial success without a public fallback
+  ---
+  duration_ms: 8.759106
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: thrown signing failure retains partial success without a public fallback
+ok 29 - src/services/chatMediaService.ts: thrown signing failure retains partial success without a public fallback
+  ---
+  duration_ms: 11.229716
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: empty and public non-chat media do not create an Auth subscription
+ok 30 - src/services/chatMediaService.ts: empty and public non-chat media do not create an Auth subscription
+  ---
+  duration_ms: 15.22427
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: one listener per client; replacement unsubscribes and fences old work
+ok 31 - src/services/chatMediaService.ts: one listener per client; replacement unsubscribes and fences old work
+  ---
+  duration_ms: 7.861317
+  type: 'test'
+  ...
+# Subtest: src/services/chatMediaService.ts: only requested, string-valued response URLs enter the cache
+ok 32 - src/services/chatMediaService.ts: only requested, string-valued response URLs enter the cache
+  ---
+  duration_ms: 10.06364
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 578.754831

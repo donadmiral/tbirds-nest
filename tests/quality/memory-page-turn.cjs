@@ -141,3 +141,11 @@ test('web tap and keyboard requests share a lock, and reduced motion commits wit
  const h=webHarness();h.ref.current.turn(1);h.ref.current.turn(1);h.ref.current.turn(-1);assert.equal(h.frames.size,1);h.step(600);assert.deepEqual(h.commits,[1]);h.render({index:1});h.ref.current.turn(1);h.ref.current.cancel();h.step(600);assert.deepEqual(h.commits,[1]);
  const r=webHarness(true);r.ref.current.turn(1);assert.equal(r.frames.size,0);assert.deepEqual(r.commits,[1]);r.ref.current.turn(1);assert.deepEqual(r.commits,[1]);r.render({index:1});r.ref.current.turn(1);assert.deepEqual(r.commits,[1,2]);
 });
+
+test('shared-video covers use the authorized poster before needing a video frame',()=>{
+ const source={story_id:'story',media_type:'text',stickers:[{kind:'post',postMediaType:'video',postMediaUrl:'authorized:video',postThumbnailUrl:'authorized:poster'}]};
+ assert.equal(design.memoryCoverMedia(source).photoUrl,'authorized:poster');
+ assert.equal(design.memoryCoverMedia(source).videoUrl,'authorized:video');
+ assert.equal(design.memoryCoverMedia({...source,thumbnail_url:'selected:cover'}).photoUrl,'selected:cover');
+ assert.equal(design.memoryCoverMedia({media_type:'text',stickers:[{kind:'post',postMediaType:'video',postMediaUrl:null}]}).photoUrl,undefined);
+});

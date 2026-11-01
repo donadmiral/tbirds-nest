@@ -47,6 +47,7 @@ import { messageStatusService } from '../../services/messageStatusService';
 import '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
 import { signChatMedia, signChatMediaMap, isChatMediaUrl, signGroupAvatars } from '../../services/chatMediaService';
+import { navigationScope } from '../../lib/navigationCache';
 import { useVoiceRecorder, formatVoiceDuration } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
 import { ShareDetailsSheet } from '../../components/messages/ShareDetailsSheet';
@@ -434,10 +435,14 @@ export default function ChatScreen() {
   const [convMeta, setConvMeta] = useState<any>(null);
   useEffect(() => {
     let current = true;
+    const scope = navigationScope();
     setConvMeta(null);
     if (!conversationId || !currentUserId) return;
     supabase.from('conversations').select('is_group, group_name, group_emoji, group_avatar_url, group_type, group_ref_id').eq('id', conversationId).maybeSingle().then(async ({ data }) => {
-      if (data) { const [signed] = await signGroupAvatars([data]); if (current) setConvMeta(signed); }
+      if (!data || !current || navigationScope() !== scope) return;
+      setConvMeta({ ...data, group_avatar_url: isChatMediaUrl(data.group_avatar_url) ? null : data.group_avatar_url });
+      const [signed] = await signGroupAvatars([data]);
+      if (current && navigationScope() === scope) setConvMeta(signed);
     }, () => {});
     return () => { current = false; };
   }, [conversationId, currentUserId]);
@@ -489,6 +494,7 @@ export default function ChatScreen() {
   const [hasOlder, setHasOlder] = useState(false);
   const historyCursor = useRef<MessageCursor | null>(null);
   const historyRequest = useRef(0);
+  const historyOwner = useRef<{ scope: number; conversationId: string | null } | null>(null);
   const olderPending = useRef(false);
   const activeConversation = useRef(conversationId);
   activeConversation.current = conversationId;
@@ -582,7 +588,7 @@ export default function ChatScreen() {
   const voiceScopeRef = useRef(voiceScope); voiceScopeRef.current = voiceScope;
   const attachmentScope = `${session?.user.id || ''}:${currentUserId || ''}:${route.params?.conversationId || passedUserId || conversationId || ''}`;
   const attachmentScopeRef = useRef(attachmentScope); attachmentScopeRef.current = attachmentScope;
-  const accountScope = `${session?.user.id || ''}:${currentUserId || ''}`;
+  const accountScope = `${navigationScope() || ''}:${session?.user.id || ''}:${currentUserId || ''}`;
   const accountScopeValue = useRef(accountScope), accountScopeRef = useRef(0);
   if (accountScopeValue.current !== accountScope) { accountScopeValue.current = accountScope; accountScopeRef.current++; }
   useEffect(() => {
@@ -920,13 +926,23 @@ export default function ChatScreen() {
     const current = () => mountedRef.current && scope === accountScopeRef.current && activeConversation.current === convId && historyRequest.current === request;
     historyLoadedRef.current = false;
     setHistoryError(null);
-    setLoading(true);
+    setLoading(!messagesRef.current.some(row => row.conversation_id === convId));
     try {
       const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', convId)
         .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(MESSAGE_PAGE_SIZE);
       if (error) throw error;
       if (!current()) return;
       const rows = (data || []) as MessageItem[];
+      // The history query already authorized these text rows. A private
+      // attachment in the same page must not hold every readable message behind
+      // its separate delivery grant. Keep attachment rows hidden until signed.
+      const readyRows = rows.filter(row => !isChatMediaUrl(row.media_url) && !isChatMediaUrl(row.thumbnail_url)
+        && !(row as any)._private_media_url && !(row as any)._private_thumbnail_url && !row.view_limit);
+      if (readyRows.length) {
+        const readyIds = new Set(readyRows.map(message => message.id));
+        setMessages(prev => mergeMessagePage(readyRows, prev.filter(m => m.conversation_id === convId && (!m._optimistic || !readyIds.has(m.id)))));
+        setLoading(false);
+      }
       const msgs = await signChatMedia(rows);
       if (!current()) return;
       const confirmedIds = new Set(msgs.map(message => message.id));
@@ -1012,8 +1028,12 @@ export default function ChatScreen() {
 
   useEffect(() => {
     mountedRef.current = true;
-    historyLoadedRef.current = false; atLatestRef.current = true; lastRead.current = '';
-    setMessages([]); historyCursor.current = null; setHasOlder(false); setLoadingOlder(false); olderPending.current = false;
+    const sameHistory = historyOwner.current?.scope === accountScopeRef.current && historyOwner.current?.conversationId === conversationId;
+    historyOwner.current = { scope: accountScopeRef.current, conversationId };
+    if (!sameHistory) {
+      historyLoadedRef.current = false; atLatestRef.current = true; lastRead.current = '';
+      messagesRef.current = []; setMessages([]); historyCursor.current = null; setHasOlder(false); setLoadingOlder(false); olderPending.current = false;
+    }
     fetchMessages();
     fetchTyping();
     if (!conversationId) return () => { mountedRef.current = false; };

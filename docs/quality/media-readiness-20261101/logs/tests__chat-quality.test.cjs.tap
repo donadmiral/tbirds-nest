@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: native history opens latest bounded page and preserves realtime arrivals
+ok 1 - native history opens latest bounded page and preserves realtime arrivals
+  ---
+  duration_ms: 19.444277
+  type: 'test'
+  ...
+# Subtest: native failed history can retry and stale response never changes destination chat
+ok 2 - native failed history can retry and stale response never changes destination chat
+  ---
+  duration_ms: 24.878702
+  type: 'test'
+  ...
+# Subtest: native older page uses cursor, coalesces duplicate taps, and keeps current edits
+ok 3 - native older page uses cursor, coalesces duplicate taps, and keeps current edits
+  ---
+  duration_ms: 14.575919
+  type: 'test'
+  ...
+# Subtest: confirmed history replaces a queued optimistic copy with the same message ID
+ok 4 - confirmed history replaces a queued optimistic copy with the same message ID
+  ---
+  duration_ms: 8.01104
+  type: 'test'
+  ...
+# Subtest: an older page finishing after a conversation switch cannot unlock the new request
+ok 5 - an older page finishing after a conversation switch cannot unlock the new request
+  ---
+  duration_ms: 9.967405
+  type: 'test'
+  ...
+# Subtest: camera/gallery shared video send awaits upload and preserves explicit failure
+ok 6 - camera/gallery shared video send awaits upload and preserves explicit failure
+  ---
+  duration_ms: 27.717828
+  type: 'test'
+  ...
+# Subtest: native reaction failure reports error and duplicate taps cannot race writes
+ok 7 - native reaction failure reports error and duplicate taps cannot race writes
+  ---
+  duration_ms: 17.285691
+  type: 'test'
+  ...
+# Subtest: native sent and received bubble text remains paired in dark mode
+ok 8 - native sent and received bubble text remains paired in dark mode
+  ---
+  duration_ms: 53.788695
+  type: 'test'
+  ...
+# Subtest: private video uploads never generate thumbnails or retain inline preview bytes
+ok 9 - private video uploads never generate thumbnails or retain inline preview bytes
+  ---
+  duration_ms: 7.44704
+  type: 'test'
+  ...
+# Subtest: old-account media upload completions cannot send or release a new operation lock
+ok 10 - old-account media upload completions cannot send or release a new operation lock
+  ---
+  duration_ms: 21.056416
+  type: 'test'
+  ...
+# Subtest: edited private photos are fenced at the chooser and after upload
+ok 11 - edited private photos are fenced at the chooser and after upload
+  ---
+  duration_ms: 5.623
+  type: 'test'
+  ...
+# Subtest: late native history and typing from another account cannot repopulate the same chat
+ok 12 - late native history and typing from another account cannot repopulate the same chat
+  ---
+  duration_ms: 10.411468
+  type: 'test'
+  ...
+# Subtest: native sealed image/video bubbles never mount ordinary thumbnails, image viewers or playback
+ok 13 - native sealed image/video bubbles never mount ordinary thumbnails, image viewers or playback
+  ---
+  duration_ms: 77.140135
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 316.977365

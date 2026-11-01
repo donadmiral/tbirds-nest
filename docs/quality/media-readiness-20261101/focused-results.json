@@ -1,0 +1,845 @@
+{
+  "schema_version": 1,
+  "scope": "Focused source/component tests for media readiness and messaging. Controlled transports and native/browser mocks where specified in each test. This report does not verify physical-device playback, deployed behavior, or application/network performance.",
+  "started_at": "2026-11-01T19:29:36.364344+00:00",
+  "finished_at": "2026-11-01T19:29:45.806547+00:00",
+  "wall_duration_ms": 9442.206,
+  "node_version": "v24.22.1",
+  "base_commit": "73dfcd56b12c2d31f273c74d128c9169fbd73431",
+  "branch": "codex/media-readiness-20261101",
+  "worktree_diff_sha256_before": "59ae5e47b37487d7a966a27fcac0c5c7e23b7bf9811fbebbbd0ca3b888b1e4d7",
+  "worktree_diff_sha256_after": "59ae5e47b37487d7a966a27fcac0c5c7e23b7bf9811fbebbbd0ca3b888b1e4d7",
+  "max_parallel_files": 4,
+  "file_count": 29,
+  "passed_file_count": 29,
+  "failed_file_count": 0,
+  "case_counts": {
+    "tests": 422,
+    "suites": 0,
+    "pass": 422,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "excluded_for_root_integration": [
+    "tests/quality/video-thumb-lifecycle.cjs",
+    "tests/quality/feed-video-owner-lifecycle.cjs"
+  ],
+  "all_files_parsed": true,
+  "results": [
+    {
+      "file": "tests/video-readiness.test.cjs",
+      "sha256": "3970237060d7055708c314b78a27f8afcd077a3a7a1ad16eb3178e2708fe111a",
+      "started_at": "2026-11-01T19:29:36.390057+00:00",
+      "finished_at": "2026-11-01T19:29:36.723650+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/video-readiness.test.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 333.612,
+      "node_test_duration_ms": 37.044786,
+      "cases": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__video-readiness.test.cjs.tap",
+      "log_sha256": "f658137a865a14aa49b5a6c197a1d87e74720d1fc903e6b619f12e407a417fba",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/react-video-composition.test.cjs",
+      "sha256": "c70ec4052393960402b99a978898edf729715e3fc45de94da9a14c8ba165281c",
+      "started_at": "2026-11-01T19:29:36.390262+00:00",
+      "finished_at": "2026-11-01T19:29:36.766548+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/react-video-composition.test.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 376.306,
+      "node_test_duration_ms": 28.792,
+      "cases": {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__react-video-composition.test.cjs.tap",
+      "log_sha256": "7bbe897649779085503514da4da823485a0ac0afb9b6cbc4cd6286baed911d86",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/react-source-access.test.cjs",
+      "sha256": "bb62ab70ac8718ae7dc79658bdd8f889ef729a252c7aa6d748a1f7623c0a349a",
+      "started_at": "2026-11-01T19:29:36.390714+00:00",
+      "finished_at": "2026-11-01T19:29:36.981901+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/react-source-access.test.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 591.205,
+      "node_test_duration_ms": 212.338199,
+      "cases": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__react-source-access.test.cjs.tap",
+      "log_sha256": "a65cfa8ab88951bcf2f9e696b93e87956bbcf191c6a081b9cb8917fbbc9d7c00",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/react-video-export.test.cjs",
+      "sha256": "b78c19b8507019729aafa95bc97aebf48ac3c19ccff3d4cf8174175863ec6ce1",
+      "started_at": "2026-11-01T19:29:36.391386+00:00",
+      "finished_at": "2026-11-01T19:29:37.151875+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/react-video-export.test.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 760.507,
+      "node_test_duration_ms": 391.210422,
+      "cases": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__react-video-export.test.cjs.tap",
+      "log_sha256": "8747b11c237f8ff622489a8cca6bbd767688cb5878f8453cefafa392270d10c0",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/react-capture-handoff.cjs",
+      "sha256": "a0bb1d200bc0f6beaddd798240fe5b288916de252caa78831f43395b55bd9ac1",
+      "started_at": "2026-11-01T19:29:36.723917+00:00",
+      "finished_at": "2026-11-01T19:29:37.436670+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/react-capture-handoff.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 712.771,
+      "node_test_duration_ms": 259.115815,
+      "cases": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__react-capture-handoff.cjs.tap",
+      "log_sha256": "0ef92e45e0b9afde543d1d0c679a24d00858874c95b961cb17bbfa2cbe24753e",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/story-readiness.cjs",
+      "sha256": "09c8371fc735b6026ad318c0727ababa7871f193cfe3bcb12b7144f8b4867fd4",
+      "started_at": "2026-11-01T19:29:36.766780+00:00",
+      "finished_at": "2026-11-01T19:29:37.392532+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/story-readiness.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 625.772,
+      "node_test_duration_ms": 374.997349,
+      "cases": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__story-readiness.cjs.tap",
+      "log_sha256": "03320e5c975953966e1b82711058a19c736ea56da0baf4798573cc1331c3f446",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/story-playback-lifecycle.cjs",
+      "sha256": "626d2d0abd36cc5af43490712a17cc4fd6ba9ce618f26c0f505435893a5cb06e",
+      "started_at": "2026-11-01T19:29:36.982128+00:00",
+      "finished_at": "2026-11-01T19:29:37.807709+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/story-playback-lifecycle.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 825.597,
+      "node_test_duration_ms": 554.577306,
+      "cases": {
+        "tests": 13,
+        "suites": 0,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__story-playback-lifecycle.cjs.tap",
+      "log_sha256": "77c5e1c506716f4b675214f86423789c6fa4108b6d4ca74ff3a87dc7c70b6288",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/story-viewer-privacy-regressions.cjs",
+      "sha256": "6c36f4158127a278aacc7f3398758606161eeab1430a12acb5e5c269224a9549",
+      "started_at": "2026-11-01T19:29:37.152110+00:00",
+      "finished_at": "2026-11-01T19:29:37.535447+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/story-viewer-privacy-regressions.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 383.359,
+      "node_test_duration_ms": 17.952621,
+      "cases": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__story-viewer-privacy-regressions.cjs.tap",
+      "log_sha256": "4ef41bce348af42adeabe16c3d5a2ef3b380e95e5317e16ecb44aeec49e4871a",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/story-photo-pixels.cjs",
+      "sha256": "ef6e2810b829596fd6f43a8d697c316a94cf47a3047f7c0154ba913915558c71",
+      "started_at": "2026-11-01T19:29:37.392816+00:00",
+      "finished_at": "2026-11-01T19:29:37.838151+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/story-photo-pixels.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 445.354,
+      "node_test_duration_ms": 91.203044,
+      "cases": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__story-photo-pixels.cjs.tap",
+      "log_sha256": "222b1efb503410bb239181fb5086e536229050c75d03b0a57def3f0250740be0",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/story-audio-playback-regressions.cjs",
+      "sha256": "4225f8bf91806670378299981a8f83da326d1c70f38326b7688edea71fe4e54a",
+      "started_at": "2026-11-01T19:29:37.436902+00:00",
+      "finished_at": "2026-11-01T19:29:37.904180+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/story-audio-playback-regressions.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 467.295,
+      "node_test_duration_ms": 109.27041,
+      "cases": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__story-audio-playback-regressions.cjs.tap",
+      "log_sha256": "4f999bb7bf90f3bc6dd1866a3851b643c51e82183c8342abb217a5ed8267525b",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/story-video-composition.cjs",
+      "sha256": "ededbaec50b4720cb49c3e0adad5823578f29e0e1eef9f180b1b32925acd1a01",
+      "started_at": "2026-11-01T19:29:37.535712+00:00",
+      "finished_at": "2026-11-01T19:29:39.280127+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/story-video-composition.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 1744.433,
+      "node_test_duration_ms": 1319.279137,
+      "cases": {
+        "tests": 16,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__story-video-composition.cjs.tap",
+      "log_sha256": "dce450f983d87af05d9ae91fbc5b082de7d52ae36ffe8690efd4a4c3dc59bd74",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "web/tests/story-controls-regressions.cjs",
+      "sha256": "4ebc2ba11479a5060c67dca61d67d5071297cb59651d32e5329539be1d380bdb",
+      "started_at": "2026-11-01T19:29:37.807928+00:00",
+      "finished_at": "2026-11-01T19:29:39.040872+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/story-controls-regressions.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 1232.964,
+      "node_test_duration_ms": 648.86411,
+      "cases": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/web__tests__story-controls-regressions.cjs.tap",
+      "log_sha256": "05e74c2a1bcadd0f48957016f5cdba08ae4dd9444af3e5b67570d1d7150734cb",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "web/tests/story-quality-regressions.cjs",
+      "sha256": "569e40bd30a76bcff39419c701f375c2716d122ada5991d738d548a0206a5c70",
+      "started_at": "2026-11-01T19:29:37.838368+00:00",
+      "finished_at": "2026-11-01T19:29:38.884451+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/story-quality-regressions.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 1046.103,
+      "node_test_duration_ms": 768.799115,
+      "cases": {
+        "tests": 20,
+        "suites": 0,
+        "pass": 20,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/web__tests__story-quality-regressions.cjs.tap",
+      "log_sha256": "0db9e2ba88c34bddfbafd279c1a8f8b1de79de8686779f6308af285bd998662d",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/content-media-concurrency.cjs",
+      "sha256": "0b90503220a1a1479d65eb780a278bfa15970e306fb90c27f8b8caf78c2996b2",
+      "started_at": "2026-11-01T19:29:37.904431+00:00",
+      "finished_at": "2026-11-01T19:29:38.694744+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/content-media-concurrency.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 790.336,
+      "node_test_duration_ms": 300.510103,
+      "cases": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__content-media-concurrency.cjs.tap",
+      "log_sha256": "a56b0effdbf56e40dee59d661fd7fc4c238bac5b4445f81ce1eed38dbd549e32",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/content-media-regressions.cjs",
+      "sha256": "63bb4723f697f4ec67ecedc188e5208dce67e1bf58a1c744f39dc73aacb97729",
+      "started_at": "2026-11-01T19:29:38.695018+00:00",
+      "finished_at": "2026-11-01T19:29:39.206892+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/content-media-regressions.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 511.895,
+      "node_test_duration_ms": 56.931013,
+      "cases": {
+        "tests": 19,
+        "suites": 0,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__content-media-regressions.cjs.tap",
+      "log_sha256": "4e08e058b84bba67f6a5eaa5a5e6ac3fb174ad21bed01e51673152a0876d104b",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/native-memory-album-loading.cjs",
+      "sha256": "f37a1f1b3829f5b31eaee1e405e7cb86b2645a530455c7e355eb1446700c434a",
+      "started_at": "2026-11-01T19:29:38.884689+00:00",
+      "finished_at": "2026-11-01T19:29:45.805836+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/native-memory-album-loading.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 6921.164,
+      "node_test_duration_ms": 6645.051377,
+      "cases": {
+        "tests": 51,
+        "suites": 0,
+        "pass": 51,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__native-memory-album-loading.cjs.tap",
+      "log_sha256": "7ce600f0bb74bccff03a743095c0325dbe9f13e1e9c9b4f98a77ff13f5c110e8",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/memory-media-regressions.cjs",
+      "sha256": "2f4a59c647a757429ecae7357a74edb1e26e93b68b577fbd5436af822c5da7e7",
+      "started_at": "2026-11-01T19:29:39.041167+00:00",
+      "finished_at": "2026-11-01T19:29:39.566720+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/memory-media-regressions.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 525.572,
+      "node_test_duration_ms": 101.383287,
+      "cases": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__memory-media-regressions.cjs.tap",
+      "log_sha256": "8e999943301b7d43c1f62cd28e20b830c8665d9e7c6dd38f534570036529e9c0",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/memory-film.cjs",
+      "sha256": "a951436f313cbe276aeaad4363e39ca0bb285072e5a31a9d77f1d364cec4582f",
+      "started_at": "2026-11-01T19:29:39.208097+00:00",
+      "finished_at": "2026-11-01T19:29:41.890466+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/memory-film.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 2682.387,
+      "node_test_duration_ms": 2420.56033,
+      "cases": {
+        "tests": 16,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__memory-film.cjs.tap",
+      "log_sha256": "1e140007f1b175df2bea71d77157f4f831d5b6eea27b40f31fa0cb729280f85e",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/memory-film-lifecycle.cjs",
+      "sha256": "09a432e5d3cd98c5f5e5ae52f1899023c1a94ce2dc406bd55f1f61ef1ef1fd22",
+      "started_at": "2026-11-01T19:29:39.280430+00:00",
+      "finished_at": "2026-11-01T19:29:40.998468+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/memory-film-lifecycle.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 1718.062,
+      "node_test_duration_ms": 1449.01431,
+      "cases": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__memory-film-lifecycle.cjs.tap",
+      "log_sha256": "e57d43d789605c45013cd41062a2dad3c4f4dcd1f67d69b2fb1874885a4b4242",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/memory-page-turn.cjs",
+      "sha256": "3cb87644946b63c299bcad1c1269683bdd59ae376cfb41bd6c72ae837726da9b",
+      "started_at": "2026-11-01T19:29:39.566984+00:00",
+      "finished_at": "2026-11-01T19:29:40.760030+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/memory-page-turn.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 1193.064,
+      "node_test_duration_ms": 814.853713,
+      "cases": {
+        "tests": 31,
+        "suites": 0,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__memory-page-turn.cjs.tap",
+      "log_sha256": "718be9b17b3ec52947f0dbb1d14fa3441b6809af6b982112c2f09bcc38a33903",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/native-memory-capture-image-readiness.cjs",
+      "sha256": "ad81397a862255571d6959947fd69f88f65210cc7652095816488a6e7bd35870",
+      "started_at": "2026-11-01T19:29:40.760264+00:00",
+      "finished_at": "2026-11-01T19:29:41.556550+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/native-memory-capture-image-readiness.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 796.305,
+      "node_test_duration_ms": 521.415376,
+      "cases": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__native-memory-capture-image-readiness.cjs.tap",
+      "log_sha256": "da6ee839e5ffe7097c8db7c0ac1ca47f7cd8cd58df5cc7657f37593590cc4799",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "web/tests/memory-film.cjs",
+      "sha256": "d1841f580d849958fa2a37d3eacb760804dcbccc6b96acff310c1bfc466e0ec8",
+      "started_at": "2026-11-01T19:29:40.998754+00:00",
+      "finished_at": "2026-11-01T19:29:42.502853+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/memory-film.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 1504.116,
+      "node_test_duration_ms": 1257.94063,
+      "cases": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/web__tests__memory-film.cjs.tap",
+      "log_sha256": "991d90ec305dd59b06a522ef567be6578450d5616e76a5be1bd287a269e7f5c0",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "web/tests/memory-film-lifecycle.cjs",
+      "sha256": "581a2659ddbb6a6504295b354b6a99c729a4f6524c746af59d5b74d30f2702d4",
+      "started_at": "2026-11-01T19:29:41.556780+00:00",
+      "finished_at": "2026-11-01T19:29:42.960730+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/memory-film-lifecycle.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 1403.976,
+      "node_test_duration_ms": 1139.050289,
+      "cases": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/web__tests__memory-film-lifecycle.cjs.tap",
+      "log_sha256": "0e92e0237401e31082fca1438243815728d25e51c2e820a39093d5138306dbaa",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "web/tests/video-player-regressions.cjs",
+      "sha256": "4064905af4bfa6fa4b8b55da338b08612657d421c81a9a037cc6b503638b678f",
+      "started_at": "2026-11-01T19:29:41.890680+00:00",
+      "finished_at": "2026-11-01T19:29:43.315956+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/video-player-regressions.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 1425.295,
+      "node_test_duration_ms": 792.580548,
+      "cases": {
+        "tests": 43,
+        "suites": 0,
+        "pass": 43,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/web__tests__video-player-regressions.cjs.tap",
+      "log_sha256": "6c8b16793c29e6085d08e8b12b37ff82e833351f7515bf7af359982c34599a52",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/navigation-cache.cjs",
+      "sha256": "552a7b3a2082b5dc1629fddf335dc8e2160da7bab762a0618d26fcba44cd6a4b",
+      "started_at": "2026-11-01T19:29:42.503062+00:00",
+      "finished_at": "2026-11-01T19:29:43.247379+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/navigation-cache.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 744.334,
+      "node_test_duration_ms": 408.963093,
+      "cases": {
+        "tests": 19,
+        "suites": 0,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__navigation-cache.cjs.tap",
+      "log_sha256": "655b3a556e3f3be109af7e17bfee1cc386dee38caf3b1ceada1d2d74ec09e06c",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/chat-history-loading.cjs",
+      "sha256": "6a87adebba4fdbc36a6e1f5d144d2bb945e86f915308a8ad493f5ab9af77ae4b",
+      "started_at": "2026-11-01T19:29:42.961008+00:00",
+      "finished_at": "2026-11-01T19:29:43.529267+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/chat-history-loading.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 568.277,
+      "node_test_duration_ms": 134.069393,
+      "cases": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__chat-history-loading.cjs.tap",
+      "log_sha256": "50c7fc389b6b919b7e445be609abc1da955f47a9bc7dfec7bdfa754df09da5b6",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/chat-quality.test.cjs",
+      "sha256": "1412d52865ff46e47d6b122cfdebbc1cb9c47b5decd3bbaa9e5fee68f2f558cd",
+      "started_at": "2026-11-01T19:29:43.247745+00:00",
+      "finished_at": "2026-11-01T19:29:43.944465+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/chat-quality.test.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 696.741,
+      "node_test_duration_ms": 316.977365,
+      "cases": {
+        "tests": 13,
+        "suites": 0,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__chat-quality.test.cjs.tap",
+      "log_sha256": "ff27bad2db03df16ad2f610a98d82c3d355fe25d36f4d6ab7b960f0d2d81c205",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/chat-media-cache.test.cjs",
+      "sha256": "21ee736b4f3cb746e6096088356464d4506b5b1058355cc4228cc14b290a520e",
+      "started_at": "2026-11-01T19:29:43.316206+00:00",
+      "finished_at": "2026-11-01T19:29:44.142874+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/chat-media-cache.test.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 826.688,
+      "node_test_duration_ms": 578.754831,
+      "cases": {
+        "tests": 32,
+        "suites": 0,
+        "pass": 32,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__chat-media-cache.test.cjs.tap",
+      "log_sha256": "3944134394309c60bdf60898339fbe3cf429c40ebe6d3ec5b53220808f4d31a6",
+      "file_changed_during_run": false
+    },
+    {
+      "file": "tests/quality/chat-attachment-cards.cjs",
+      "sha256": "318e2aa390fb4aa5a21afaa49759e15608c3834d7e51a0b2dd927d88722125f3",
+      "started_at": "2026-11-01T19:29:43.529513+00:00",
+      "finished_at": "2026-11-01T19:29:43.890817+00:00",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "tests/quality/chat-attachment-cards.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "timed_out": false,
+      "wall_duration_ms": 361.322,
+      "node_test_duration_ms": 14.305641,
+      "cases": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "docs/quality/media-readiness-20261101/logs/tests__quality__chat-attachment-cards.cjs.tap",
+      "log_sha256": "f91513a9ed20b43d43fbba00c73ee0cf4150109e5db0e29c627144d89d15c603",
+      "file_changed_during_run": false
+    }
+  ],
+  "status": "passed"
+}

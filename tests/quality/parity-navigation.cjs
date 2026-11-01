@@ -89,7 +89,7 @@ test('the expanded native carousel retains mixed attachment order and opens the 
     react: hooks, '../theme/useTheme': { themedSheet: fn => fn(palette), useTheme: () => ({ t: palette, isDark: true }) },
     'react-native': { View: 'View', Text: 'Text', FlatList: 'FlatList', TouchableOpacity: 'Button', ActivityIndicator: 'Spinner', Animated: {}, StyleSheet: {} },
     'expo-image': {}, 'expo-video': {}, '../lib/videoEngine': {},
-    './MediaRenderer': { useMediaTags: () => ({}) }, './stories/StoryFilters': {}, './stories/storyPanels': {},
+    './VideoThumb': { default: 'VideoThumb' }, './MediaRenderer': { useMediaTags: () => ({}) }, './stories/StoryFilters': {}, './stories/storyPanels': {},
     '@react-navigation/native': {}, '../stores/settingsStore': {}, './PostCaption': {}, './PostSoundtrack': {},
     '../../shared/soundtrack': { readSoundtrack: () => null }, '@expo/vector-icons': {},
   }).default;

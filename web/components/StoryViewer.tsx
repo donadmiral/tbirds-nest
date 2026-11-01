@@ -207,21 +207,24 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const user = users[userIdx];
   const story = stories[itemIdx];
   const storyId=story?.id,storyUserId=story?.user_id;
+  const mediaKey = story ? `${uid}:${story.id}:${story.media_url || ''}:${mediaRetry}` : '';
+  const currentMediaRef = useRef(mediaKey);
+  useLayoutEffect(() => { currentMediaRef.current = mediaKey; }, [mediaKey]);
   const currentStoryRef = useRef(story?.id);
   useLayoutEffect(()=>{currentStoryRef.current = story?.id;},[story?.id]);
   const inputFocusedRef = useRef(false);
   const overlayPausedRef = useRef(false);
   useLayoutEffect(()=>{overlayPausedRef.current = viewersOpen || moreOpen || memoryOpen || emojiOpen || !!replyText.trim();},[viewersOpen,moreOpen,memoryOpen,emojiOpen,replyText]);
-  const mediaReady = !story?.media_url || loadedStoryId === story.id;
+  const mediaReady = !story?.media_url || loadedStoryId === mediaKey;
 
   // Reset on every advance, otherwise the previous story's ready flag hides the
   // shimmer for the next one and it flashes black again.
-  useEffect(() => {
+  useLayoutEffect(() => {
     let live = true;
     readyStoryRef.current = null;
+    setLoadedStoryId(null);
     queueMicrotask(() => {
     if (!live) return;
-    setLoadedStoryId(null);
     setFailedStoryId(null);
     setActionError(null);
     setReplyText("");
@@ -240,11 +243,11 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       live = false;
       if (holdRef.current) clearTimeout(holdRef.current);
     };
-  }, [storyId]);
+  }, [mediaKey]);
   const onMediaReady = () => {
-    if (currentStoryRef.current !== story?.id) return;
-    readyStoryRef.current = story?.id ?? null;
-    setLoadedStoryId(story?.id ?? null);
+    if (currentMediaRef.current !== mediaKey || readyStoryRef.current === mediaKey) return;
+    readyStoryRef.current = mediaKey;
+    setLoadedStoryId(mediaKey);
     setFailedStoryId(null);
     startedAt.current = Date.now();
   };
@@ -258,11 +261,11 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       if (!next?.media_url) return;
       const poster = (next as { thumbnail_url?: string | null }).thumbnail_url;
       if (poster) { const pi = new Image(); pi.src = poster; }
-      if (next.media_type === "video") { if (i === 0) { const v = document.createElement("video"); v.preload = "metadata"; v.src = next.media_url; videos.push(v); } }
+      if (next.media_type === "video") { if (i === 0) { const v = document.createElement("video"); v.preload = "auto"; v.muted = true; v.playsInline = true; v.src = next.media_url; v.load(); videos.push(v); } }
       else { const img = new Image(); img.src = next.media_url; }
     });
     return () => { videos.forEach(video => { video.removeAttribute("src"); video.load(); }); };
-  }, [stories, itemIdx]);
+  }, [stories, itemIdx, uid]);
   const [revokedAudioStory,setRevokedAudioStory]=useState<string|null>(null);
   const storySoundId = story?.audio_sound_id || story?.media_transform?.audioSoundId;
   const storyAudioUrl = ORIGINAL_AUDIO_ENABLED && story?.id !== revokedAudioStory ? story?.audio_url ?? null : null;
@@ -334,7 +337,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     stopTimer();
     startedAt.current = Date.now() - pausedAtRef.current * durRef.current;
     timerRef.current = setInterval(() => {
-      if (story?.media_url && readyStoryRef.current !== story.id) { startedAt.current = Date.now(); return; }
+      if (story?.media_url && readyStoryRef.current !== mediaKey) { startedAt.current = Date.now(); return; }
       const el = videoRef.current;
       if (story?.media_type === "video" && el) {
         const t0 = Number((story?.media_transform as StoryMediaTransform | undefined)?.trimStart) || 0; const win = durRef.current / 1000;
@@ -347,8 +350,8 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       else setProgress(p);
     }, 50);
     videoRef.current?.play().catch(() => {});
-    if (readyStoryRef.current === story?.id || !story?.media_url) audioRef.current?.play().catch(() => {});
-  }, [advance, story, stopTimer]);
+    if (readyStoryRef.current === mediaKey || !story?.media_url) audioRef.current?.play().catch(() => {});
+  }, [advance, story, stopTimer, mediaKey]);
 
   const togglePlayback = useCallback(() => {
     if (playbackPausedRef.current) {
@@ -518,7 +521,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     startedAt.current = Date.now();
     if (document.hidden || callActive() || playbackPausedRef.current) { pauseNow(); return()=>{live=false;stopTimer();}; }
     timerRef.current = setInterval(() => {
-      if (story.media_url && readyStoryRef.current !== story.id) { startedAt.current = Date.now(); return; }
+      if (story.media_url && readyStoryRef.current !== mediaKey) { startedAt.current = Date.now(); return; }
       if (isVideo && videoRef.current) {
         // Video: the bar follows the player's own clock, so buffering stalls the bar instead of advancing past the picture.
         const el = videoRef.current; const t0 = Number(mtx.trimStart) || 0; const win = durRef.current / 1000;
@@ -531,7 +534,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       else setProgress(p);
     }, 50);
     return()=>{live=false;stopTimer();};
-  }, [story, advance, stopTimer, pauseNow]);
+  }, [story, advance, stopTimer, pauseNow, mediaKey]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -694,15 +697,16 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             {story.media_type === "video" && story.media_url ? (
               <StoryPixelGrade className="h-full w-full"><video
                 ref={videoRef}
-                key={story.id + "-" + mediaRetry}
+                key={mediaKey}
                 src={story.media_url}
+                poster={story.thumbnail_url || undefined}
                 autoPlay={!playbackPaused && !callActive()}
                 onPlay={() => { if (playbackPausedRef.current || document.hidden || callActive()) videoRef.current?.pause(); }}
                 playsInline
                 preload="auto"
                 muted={muted}
-                onLoadedData={onMediaReady}
-                onError={() => { if (currentStoryRef.current === story.id) { readyStoryRef.current = null; setFailedStoryId(story.id); } }}
+                onLoadedData={event => { const video = event.currentTarget; if (typeof video.requestVideoFrameCallback === 'function') video.requestVideoFrameCallback(onMediaReady); else onMediaReady(); }}
+                onError={() => { if (currentMediaRef.current === mediaKey) { readyStoryRef.current = null; setFailedStoryId(story.id); } }}
                 onLoadedMetadata={(e) => { const m = (story.media_transform || {}) as StoryMediaTransform; try { (e.target as HTMLVideoElement).playbackRate = Number(m.speed) || 1; } catch {} const t0 = Number(m.trimStart) || 0; if (t0 > 0.05) { try { (e.target as HTMLVideoElement).currentTime = t0; } catch {} } }}
                 onTimeUpdate={(e) => { const el = e.target as HTMLVideoElement; const m = (story.media_transform || {}) as StoryMediaTransform; setClock(el.currentTime); const t1 = Number(m.trimEnd) || 0; if (t1 > 0 && el.currentTime >= t1) advance(); }}
                 className="h-full w-full object-contain"
@@ -710,11 +714,11 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
               /></StoryPixelGrade>
             ) : story.media_url ? (
               <StoryPixelGrade className="h-full w-full"><NextImage unoptimized width={1080} height={1920}
-                key={story.id + "-" + mediaRetry}
+                key={mediaKey}
                 src={story.media_url}
                 alt=""
                 onLoad={onMediaReady}
-                onError={() => { if (currentStoryRef.current === story.id) { readyStoryRef.current = null; setFailedStoryId(story.id); } }}
+                onError={() => { if (currentMediaRef.current === mediaKey) { readyStoryRef.current = null; setFailedStoryId(story.id); } }}
                 className="h-full w-full"
                 style={mediaStyle(story.media_transform)}
               /></StoryPixelGrade>

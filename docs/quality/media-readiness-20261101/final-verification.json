@@ -1,0 +1,63 @@
+{
+  "source_commit": "df5c6ace6aeb400a9d1929f0fea142937c0ad362",
+  "consolidated_cases": 422,
+  "additional_observed_passing_cases": 12,
+  "typechecks": [
+    {
+      "target": "native",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--pretty",
+        "false",
+        "--incremental",
+        "false"
+      ],
+      "working_directory": ".",
+      "observed_exit_code": 0,
+      "observation": "Completed successfully in root tool history; empty stdout/stderr log retained.",
+      "log": "docs/quality/media-readiness-20261101/logs/native-typescript.log"
+    },
+    {
+      "target": "web",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--pretty",
+        "false",
+        "--incremental",
+        "false"
+      ],
+      "working_directory": "web",
+      "observed_exit_code": 0,
+      "observation": "Completed successfully in root tool history; empty stdout/stderr log retained.",
+      "log": "docs/quality/media-readiness-20261101/logs/web-typescript.log"
+    }
+  ],
+  "additional_targeted_checks": [
+    {
+      "file": "tests/quality/video-thumb-lifecycle.cjs",
+      "pass": 8,
+      "fail": 0,
+      "tool_chunk": "833c1c",
+      "provenance": "Historical completed tool output, attested by reaction_export agent. Raw TAP not retained.",
+      "current_test_source_sha256": "4041d63e9ae66157934b868de2270c321522d51abadf51784ffb599feb982ec3"
+    },
+    {
+      "file": "tests/quality/feed-video-owner-lifecycle.cjs",
+      "pass": 4,
+      "fail": 0,
+      "tool_chunk": "7f53e2",
+      "provenance": "Historical completed tool output, attested by story_readiness agent. Raw TAP not retained. This run preceded final source freeze.",
+      "current_test_source_sha256": "ed5fbcd821c2df7ff9b3c36cf565133bc49bb706988a54b9c6a033c9b3a030b3"
+    }
+  ],
+  "delivery_status": "Local source only; public Git push rejected by automatic approval review. New QA builds and device verification pending.",
+  "limitations": [
+    "No actual native Swift compilation in this environment.",
+    "No physical-device startup or buffering measurements.",
+    "Controlled native/browser mocks and transports are used where specified in each test."
+  ]
+}

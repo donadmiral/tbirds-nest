@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: native story cache is scoped to the signed-in viewer
+ok 1 - native story cache is scoped to the signed-in viewer
+  ---
+  duration_ms: 2.325128
+  type: 'test'
+  ...
+# Subtest: native story cache refreshes expired capabilities instead of rendering them
+ok 2 - native story cache refreshes expired capabilities instead of rendering them
+  ---
+  duration_ms: 0.932381
+  type: 'test'
+  ...
+# Subtest: a late native story read cannot repopulate media after an account switch
+ok 3 - a late native story read cannot repopulate media after an account switch
+  ---
+  duration_ms: 5.6772
+  type: 'test'
+  ...
+# Subtest: native story cache refreshes expired stories even while signed media is still valid
+ok 4 - native story cache refreshes expired stories even while signed media is still valid
+  ---
+  duration_ms: 1.149689
+  type: 'test'
+  ...
+# Subtest: native trending tile opens the exact selected story
+ok 5 - native trending tile opens the exact selected story
+  ---
+  duration_ms: 0.882275
+  type: 'test'
+  ...
+# Subtest: expired native trending target does not open an unrelated story
+ok 6 - expired native trending target does not open an unrelated story
+  ---
+  duration_ms: 0.615481
+  type: 'test'
+  ...
+# Subtest: an unavailable author-profile query does not block ready story media
+ok 7 - an unavailable author-profile query does not block ready story media
+  ---
+  duration_ms: 0.690915
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17.952621

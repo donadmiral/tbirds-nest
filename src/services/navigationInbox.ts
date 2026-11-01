@@ -2,7 +2,7 @@ import { conversationUnreadCounts } from '../../shared/messageReceipts';
 import { navigationCache, navigationScope } from '../lib/navigationCache';
 import { useAuthStore } from '../stores/authStore';
 import { supabase } from './supabase';
-import { signGroupAvatars } from './chatMediaService';
+import { isChatMediaUrl, signGroupAvatars } from './chatMediaService';
 
 export type Conversation = {
   id: string;
@@ -24,35 +24,75 @@ export type Conversation = {
   is_archived: boolean;
 };
 
+type InboxAvatar = { id: string; url: string | null };
+const avatarListeners = new Set<(scope: string, avatars: InboxAvatar[]) => void>();
+const avatarJobs = new WeakSet<Promise<Conversation[]>>();
+let avatarVersion = 0;
+
+export function subscribeNavigationInboxAvatars(listener: (scope: string, avatars: InboxAvatar[]) => void) {
+  avatarListeners.add(listener);
+  return () => { avatarListeners.delete(listener); };
+}
+
+/** Avatar grants may finish after realtime has updated previews or unread
+ * counts. Patch only the photos so that enrichment cannot roll back those rows. */
+export function applyNavigationInboxAvatars(rows: Conversation[], avatars: InboxAvatar[]): Conversation[] {
+  const urls = new Map(avatars.map(value => [value.id, value.url]));
+  return rows.map(row => row.is_group && urls.has(row.id)
+    ? { ...row, other_avatar: urls.get(row.id)!, group_avatar_url: urls.get(row.id)! }
+    : row);
+}
+
 /** The same bounded read serves tab intent, initial rendering and background refresh. */
 export function refreshNavigationInbox(userId: string): Promise<Conversation[]> {
   const scope = navigationScope();
   const session = useAuthStore.getState().session;
   if (!scope || session?.user.id !== userId) return Promise.reject(new Error('Sign in to load conversations.'));
   const accessToken = session.access_token;
-  return navigationCache.load(scope, 'inbox:personal', async signal => {
+  let groupsToSign: { id: string; group_avatar_url: string | null }[] = [], version = 0;
+  const work = navigationCache.load(scope, 'inbox:personal', async signal => {
+    version = ++avatarVersion;
     const pin = (query: any) => query.setHeader('Authorization', `Bearer ${accessToken}`).abortSignal(signal);
-    const [dm, members, settings, unread] = await Promise.all([
-      pin(supabase.from('conversations').select('*').or(`user_1.eq.${userId},user_2.eq.${userId}`).eq('is_group', false).order('last_message_time', { ascending: false })),
-      pin(supabase.from('conversation_members').select('conversation_id').eq('user_id', userId)),
+    const current = () => {
+      if (signal.aborted || navigationScope() !== scope) throw new Error('The account changed.');
+    };
+    const direct = async () => {
+      const dm = await pin(supabase.from('conversations').select('*').or(`user_1.eq.${userId},user_2.eq.${userId}`).eq('is_group', false).order('last_message_time', { ascending: false }));
+      if (dm.error) throw new Error('Conversations could not be refreshed. Please try again.');
+      current();
+      const rows = dm.data ?? [];
+      const ids = [...new Set(rows.map((row: any) => row.user_1 === userId ? row.user_2 : row.user_1).filter(Boolean))];
+      const profiles = ids.length ? await pin(supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').in('id', ids)) : { data: [], error: null };
+      if (profiles.error) throw new Error('Conversation details could not be refreshed. Please try again.');
+      current();
+      return { rows, profiles: profiles.data ?? [] };
+    };
+    const group = async () => {
+      const members = await pin(supabase.from('conversation_members').select('conversation_id').eq('user_id', userId));
+      if (members.error) throw new Error('Conversations could not be refreshed. Please try again.');
+      current();
+      const ids = [...new Set((members.data ?? []).map((row: any) => row.conversation_id))];
+      const groups = ids.length ? await pin(supabase.from('conversations').select('*').in('id', ids).eq('is_group', true).order('last_message_time', { ascending: false })) : { data: [], error: null };
+      if (groups.error) throw new Error('Conversation details could not be refreshed. Please try again.');
+      current();
+      return groups.data ?? [];
+    };
+    // Each detail query starts as soon as its own identifiers arrive. A slow
+    // unread count or settings read no longer delays profile/group retrieval.
+    const [dm, groups, settings, unread] = await Promise.all([
+      direct(), group(),
       pin(supabase.from('conversation_settings').select('conversation_id, is_pinned, is_muted, is_archived, is_deleted, manually_unread').eq('user_id', userId)),
       pin(supabase.rpc('get_unread_counts')),
     ]);
-    if ([dm, members, settings, unread].some(result => result.error)) throw new Error('Conversations could not be refreshed. Please try again.');
-    if (signal.aborted || navigationScope() !== scope) throw new Error('The account changed.');
-    const dmConvs = dm.data ?? [];
-    const groupIds = (members.data ?? []).map((row: any) => row.conversation_id);
-    const dmOtherIds = [...new Set(dmConvs.map((row: any) => row.user_1 === userId ? row.user_2 : row.user_1).filter(Boolean))];
-    const [groups, profiles] = await Promise.all([
-      groupIds.length ? pin(supabase.from('conversations').select('*').in('id', groupIds).eq('is_group', true).order('last_message_time', { ascending: false })) : { data: [], error: null },
-      dmOtherIds.length ? pin(supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').in('id', dmOtherIds)) : { data: [], error: null },
-    ]);
-    if (groups.error || profiles.error) throw new Error('Conversation details could not be refreshed. Please try again.');
-    if (signal.aborted || navigationScope() !== scope) throw new Error('The account changed.');
-    const allConvs = [...dmConvs, ...await signGroupAvatars(groups.data ?? [])];
+    if (settings.error || unread.error) throw new Error('Conversations could not be refreshed. Please try again.');
+    current();
+    groupsToSign = groups.filter((row: any) => isChatMediaUrl(row.group_avatar_url));
+    const allConvs = [...dm.rows, ...groups.map((row: any) => ({ ...row,
+      ...(isChatMediaUrl(row.group_avatar_url) ? { group_avatar_url: null } : {}),
+    }))];
     const settingsMap: Record<string, any> = {}, profileMap: Record<string, any> = {};
     (settings.data ?? []).forEach((row: any) => { settingsMap[row.conversation_id] = row; });
-    (profiles.data ?? []).forEach((row: any) => { profileMap[row.id] = row; });
+    dm.profiles.forEach((row: any) => { profileMap[row.id] = row; });
     const unreadMap = conversationUnreadCounts(unread.data);
       const list: Conversation[] = allConvs
         .filter((c: any) => !(settingsMap[c.id]?.is_deleted))
@@ -95,4 +135,19 @@ export function refreshNavigationInbox(userId: string): Promise<Conversation[]> 
 
     return list;
   });
+  // Membership-authorized conversation text is ready now. Private group photos
+  // keep their existing grant check and fill in separately, without gating DMs.
+  if (!avatarJobs.has(work)) {
+    avatarJobs.add(work);
+    void work.then(async () => {
+      if (!groupsToSign.length || navigationScope() !== scope || version !== avatarVersion) return;
+      const signed = await signGroupAvatars(groupsToSign);
+      if (navigationScope() !== scope || version !== avatarVersion) return;
+      const avatars = signed.map(row => ({ id: row.id, url: row.group_avatar_url || null }));
+      const cached = navigationCache.read<Conversation[]>(scope, 'inbox:personal');
+      if (cached) navigationCache.save(scope, 'inbox:personal', applyNavigationInboxAvatars(cached, avatars));
+      avatarListeners.forEach(listener => listener(scope, avatars));
+    }).catch(() => { /* The visible initials remain usable if a photo fails. */ });
+  }
+  return work;
 }

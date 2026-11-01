@@ -14,7 +14,7 @@ export type MemoryBookSummary={
   cover_artwork?:MemoryCoverArtwork;film_settings?:MemoryFilmSettings;presentation_revision?:number;
 };
 export type MemoryBook=MemoryBookSummary & {
-  is_owner:boolean;can_view:boolean;pages:MemoryBookPage[];soundtrack?:SoundtrackSelection|null;
+  is_owner:boolean;can_view:boolean;pages:MemoryBookPage[];soundtrack?:SoundtrackSelection|null;_mediaExpiresAt?:number|null;
 };
 export type MemoryBookshelf={is_owner:boolean;books:MemoryBookSummary[]};
 export type MemoryBookNavigation={

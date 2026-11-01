@@ -1,11 +1,11 @@
 import { readSoundtrack } from '../../../shared/soundtrack';
 import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Animated, AppState, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Animated, AppState, Modal, StyleSheet, Text, TouchableOpacity, View, Image as NativeImage } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Audio } from 'expo-av';
-import { StoryVideoView as VideoView, useStoryVideoPlayer as useVideoPlayer } from '../../../modules/boomerang/storyVideo';
+import { StoryVideoView as VideoView, useStoryVideoPlayer as useVideoPlayer, prewarmStoryVideo } from '../../../modules/boomerang/storyVideo';
 import { useSafeAreaInsets } from '../SafeArea';
 import { useCallContext } from '../../contexts/CallContext';
 import { useMemoryPlayback } from '../../hooks/useMemoryPlayback';
@@ -17,10 +17,11 @@ import { MEMORY_SCORE_DESCRIPTION, MEMORY_SCORE_DUCK, MEMORY_SCORE_TITLE, MEMORY
 import {planMemoryMovie,memoryMovieTimeline,memoryMovieVisual,type MemoryMovieTimelineItem} from '../../../shared/memoryMoviePlan';
 import {memoryFilmSettings} from '../../../shared/memoryBookCreative';
 import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
+import { navigationScope } from '../../lib/navigationCache';
 
 /** A dedicated continuous film. The editable book remains a separate reading surface. */
-export default function MemoryFilm({ bookId,revision,title, pages, soundtrack, filmSettings, active, reduceMotion, onClose, onReadBook, onRetry, onPost }: {
-  bookId?:string;revision?:number;title: string; pages: MemoryFilmPage[]; soundtrack?: unknown; filmSettings?:unknown; active: boolean; reduceMotion: boolean;
+export default function MemoryFilm({ bookId,revision,title, pages, soundtrack, filmSettings, active, mediaExpiresAt, reduceMotion, onClose, onReadBook, onRetry, onPost }: {
+  bookId?:string;revision?:number;title: string; pages: MemoryFilmPage[]; soundtrack?: unknown; filmSettings?:unknown; active: boolean; mediaExpiresAt?:number; reduceMotion: boolean;
   onClose: () => void; onReadBook: () => void; onRetry: () => void; onPost: (id: string) => void;
 }) {
   const savedMusic=readSoundtrack(soundtrack);
@@ -84,12 +85,18 @@ export default function MemoryFilm({ bookId,revision,title, pages, soundtrack, f
     return () => clearTimeout(timer);
   }, [key, ready, error, item, allowed]);
   useEffect(() => {
+    if (!active || !foreground || callState !== 'idle' || !dismissal.visible) return;
     const next = items[(index + 1) % Math.max(1, items.length)];
-    const uri = next?.kind === 'image' ? next.uri : next?.poster;
+    if (next?.kind === 'video' && next.id !== item?.id) {
+      const scope = navigationScope();
+      if (scope) prewarmStoryVideo(next.uri, scope, mediaExpiresAt);
+    }
+    const uri = next?.kind === 'image' ? next.uri : null;
     // Expo prefetch always caches. Private capabilities must be read only by
     // the visible image with cachePolicy="none", never stored ahead of time.
-    if (uri && privateImageCachePolicy(uri) !== 'none') void Image.prefetch(uri).catch(() => {});
-  }, [items, index]);
+    if (uri && privateImageCachePolicy(uri) !== 'none') void NativeImage.prefetch(uri).catch(() => {});
+    if (next?.poster && privateImageCachePolicy(next.poster) !== 'none') void Image.prefetch(next.poster).catch(() => {});
+  }, [items, index, item?.id, active, foreground, callState, dismissal.visible, mediaExpiresAt]);
   useEffect(() => {
     const animation = Animated.timing(scale, { toValue: visual.scale, duration: reduceMotion ? 0 : 120, useNativeDriver: true });
     animation.start(); return () => animation.stop();
@@ -141,11 +148,13 @@ export default function MemoryFilm({ bookId,revision,title, pages, soundtrack, f
 }
 
 function FilmVideo({ item, active, muted, onMetadata, onReady, onError, onProgress, onEnd }: { item: MemoryFilmItem; active: boolean; muted: boolean; onMetadata?:(duration:number)=>void; onReady: () => void; onError: () => void; onProgress: (value: number) => void; onEnd: () => void }) {
-  const player = useVideoPlayer(item.uri!, p => { p.loop = false; p.muted = muted; p.timeUpdateEventInterval = .05; });
+  const player = useVideoPlayer(item.uri!, p => { p.loop = false; p.muted = muted; p.timeUpdateEventInterval = .05; p.currentTime = memoryFilmVideoWindow(item.page, 0).start; });
   const progressGuard = useRef(createMemoryFilmProgressGuard());
   const terminal = useRef(false);
   const state = useRef({ active, muted, onMetadata, onReady, onError, onProgress, onEnd }); state.current = { active, muted, onMetadata, onReady, onError, onProgress, onEnd };
   const [clock, setClock] = useState(0);
+  const [firstFrame, setFirstFrame] = useState(false);
+  const frameReady = useRef(false);
   useEffect(() => {
     let live = true, initialized = false;const guard=progressGuard.current;
     terminal.current = false;
@@ -156,7 +165,7 @@ function FilmVideo({ item, active, muted, onMetadata, onReady, onError, onProgre
     const configure = () => { if (!live || terminal.current) return; try {
       state.current.onMetadata?.(player.duration);recipe = memoryFilmVideoWindow(item.page, player.duration); player.playbackRate = recipe.speed; player.volume = recipe.volume; player.muted = state.current.muted || recipe.volume === 0;
       if (!initialized) { player.currentTime = recipe.start; initialized = true; setClock(recipe.start); }
-      state.current.onReady(); sync();
+      sync();
     } catch { fail(); } };
     const finish = () => { if (!allowed() || terminal.current) return; terminal.current = true; player.pause(); state.current.onProgress(1); state.current.onEnd(); };
     const status = player.addListener('statusChange', event => { if (!live) return; if (event.status === 'readyToPlay') configure(); else if (event.status === 'error') fail(); });
@@ -170,7 +179,13 @@ function FilmVideo({ item, active, muted, onMetadata, onReady, onError, onProgre
     return () => { live = false; terminal.current = true; clearInterval(watchdog); guard.reset(); status.remove(); time.remove(); ended.remove(); app.remove(); try { player.pause(); } catch {} };
   }, [player, item.page]);
   useEffect(() => { progressGuard.current.reset(); progressGuard.current.stalled(player.currentTime, Date.now(), active && !terminal.current && AppState.currentState === 'active'); try { const recipe = memoryFilmVideoWindow(item.page, player.duration); player.muted = muted || recipe.volume === 0; if (active && !terminal.current && AppState.currentState === 'active') player.play(); else player.pause(); } catch {} }, [player, active, muted, item.page]);
-  return <MemoryStoryFrame page={item.page} clock={clock}>{({ fit, style }) => <VideoView player={player} style={style} contentFit={fit} nativeControls={false} />}</MemoryStoryFrame>;
+  return <MemoryStoryFrame page={item.page} clock={clock}>{({ fit, style }) => <View style={style}>
+    <VideoView player={player} style={StyleSheet.absoluteFill} contentFit={fit} nativeControls={false} onFirstFrameRender={() => {
+      if (terminal.current || frameReady.current) return;
+      frameReady.current = true; setFirstFrame(true); state.current.onReady();
+    }} />
+    {!firstFrame && item.poster && <Image key={item.poster} source={{uri:item.poster}} recyclingKey={item.poster} cachePolicy={privateImageCachePolicy(item.poster)} transition={0} contentFit={fit} style={StyleSheet.absoluteFill} />}
+  </View>}</MemoryStoryFrame>;
 }
 
 function useMemoryScore(active: boolean, volume: number) {

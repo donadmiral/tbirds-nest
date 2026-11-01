@@ -25,21 +25,22 @@ test('native film pauses music on calls and releases a soundtrack loaded after u
 test('native film media deadline is actionable and does not silently skip a failed page',async()=>{
  const h=createFilmHarness(ts,'native');await h.settle();await h.tick(20000);assert.match(h.words(),/taking too long/);assert.match(h.words(),/1 \/ 2/);const retry=h.nodes().find(n=>n.type==='TouchableOpacity'&&n.props.children?.props?.children==='Retry');retry.props.onPress();await h.settle();assert.equal(h.retries,1);assert.doesNotMatch(h.words(),/taking too long/);h.dispose();
 });
-test('native film private backdrops are uncached and its prefetch effect skips private capabilities',async()=>{
- const root=path.resolve(__dirname,'../..'),source=fs.readFileSync(path.join(root,'src/components/memory/MemoryFilm.tsx'),'utf8');
- const ast=ts.createSourceFile('MemoryFilm.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let effect;
- const visit=node=>{if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useEffect'&&node.arguments[0]?.getText(ast).includes('Image.prefetch'))effect=node.arguments[0].getText(ast);ts.forEachChild(node,visit);};visit(ast);assert.ok(effect);
+test('native film private backdrops are uncached and the actual prefetch path skips private images',async()=>{
  const privateUrls=['https://example.test/functions/v1/media-content/post-media/member/photo.jpg?token='+'a'.repeat(64),'https://example.test/storage/v1/object/sign/story-media/member/photo.jpg?token=fixture','https://example.test/functions/v1/limited-media-file?token=fixture'];
  for(const uri of privateUrls){
-  const h=createFilmHarness(ts,'native',{pages:[{id:'one',media_type:'image',media_url:uri}]});await h.settle();
-  const background=h.nodes().find(node=>node.props.blurRadius===38);assert.equal(background.props.cachePolicy,'none');
-  const calls=[],module={exports:{}};
-  require('node:vm').runInNewContext(ts.transpileModule('const effect = '+effect+'; effect();',{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,items:[{kind:'image',uri}],index:0,privateImageCachePolicy:h.load('shared/mediaDelivery.ts').privateImageCachePolicy,Image:{prefetch:async value=>{calls.push(value);}}});
-  assert.equal(calls.length,0);h.dispose();
+  const h=createFilmHarness(ts,'native',{pages:[{id:'one',media_type:'image',media_url:uri}]});
+  try{await h.settle();const background=h.nodes().find(node=>node.props.blurRadius===38);assert.equal(background.props.cachePolicy,'none');assert.equal(h.imageWarmups.length,0);}finally{h.dispose();}
  }
- const h=createFilmHarness(ts,'native'),calls=[];
- require('node:vm').runInNewContext(ts.transpileModule('const effect = '+effect+'; effect();',{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,{items:[{kind:'image',uri:'https://public.example.test/photo.jpg'}],index:0,privateImageCachePolicy:h.load('shared/mediaDelivery.ts').privateImageCachePolicy,Image:{prefetch:async value=>{calls.push(value);}}});
- assert.deepEqual(calls,['https://public.example.test/photo.jpg']);h.dispose();
+ const uri='https://public.example.test/photo.jpg',h=createFilmHarness(ts,'native',{pages:[{id:'one',media_type:'image',media_url:uri}]});
+ try{await h.settle();assert.deepEqual(h.imageWarmups,[uri]);}finally{h.dispose();}
+});
+test('native film prepares the next authorized video in memory and stops preparing when backgrounded',async()=>{
+ const h=createFilmHarness(ts,'native',{pages:[{id:'one',media_type:'image',media_url:'public:photo'},{id:'two',media_type:'video',media_url:'https://example.test/functions/v1/media-content/story-media/next.mp4?token='+'a'.repeat(64)}]});
+ try{await h.settle();assert.equal(h.warmups.length,1);assert.equal(h.warmups[0][1],'1:owner');h.setForeground(false);await h.settle();h.setPages([{id:'one',media_type:'image',media_url:'public:photo'},{id:'two',media_type:'video',media_url:'changed:video'}]);await h.settle();assert.equal(h.warmups.length,1);}finally{h.dispose();}
+});
+test('native film keeps its exact poster until a first rendered frame, independent of metadata',async()=>{
+ const h=createFilmHarness(ts,'native',{component:'video',videoPage:{id:'video',media_type:'video',media_url:'signed:clip',thumbnail_url:'signed:poster'}});
+ try{await h.settle();assert.equal(h.ready,0);assert.ok(h.nodes().some(node=>node.props.recyclingKey==='signed:poster'));const view=h.nodes().find(node=>node.type==='VideoView');view.props.onFirstFrameRender();view.props.onFirstFrameRender();await h.settle();assert.equal(h.ready,1);assert.ok(!h.nodes().some(node=>node.props.recyclingKey==='signed:poster'));}finally{h.dispose();}
 });
 test('native film video honors trim/speed and advances once at the real media boundary',async()=>{
  const h=createFilmHarness(ts,'native',{component:'video'});await h.settle();const p=h.players[0];assert.equal(p.currentTime,2);assert.equal(p.playbackRate,2);assert.equal(p.loop,false);p.emit('timeUpdate',{currentTime:3.5});assert.equal(h.progress.at(-1),.5);p.emit('timeUpdate',{currentTime:5});p.emit('playToEnd',{});assert.equal(h.ended,1);assert.equal(p.playing,false);h.dispose();
@@ -48,7 +49,7 @@ test('native film video cannot complete or continue playback while backgrounded 
  const h=createFilmHarness(ts,'native',{component:'video'});await h.settle();const p=h.players[0];h.setForeground(false);await h.settle();assert.equal(p.playing,false);p.emit('timeUpdate',{currentTime:5});assert.equal(h.ended,0);h.setForeground(true);h.setActive(false);await h.settle();p.emit('playToEnd',{});assert.equal(h.ended,0);h.dispose();
 });
 test('native film gives stalled video an error instead of remaining stuck after initial readiness',async()=>{
- const h=createFilmHarness(ts,'native',{component:'video'});await h.settle();assert.equal(h.ready,1);
+ const h=createFilmHarness(ts,'native',{component:'video'});await h.settle();assert.equal(h.ready,0);h.nodes().find(node=>node.type==='VideoView').props.onFirstFrameRender();await h.settle();assert.equal(h.ready,1);
  await h.tick(20000);assert.equal(h.failed,1);assert.equal(h.players[0].playing,false);
  await h.tick(20000);assert.equal(h.failed,1);assert.equal(h.ended,0);h.dispose();assert.equal(h.timerCount,0);
 });

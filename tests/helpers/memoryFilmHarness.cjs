@@ -6,7 +6,7 @@ const words=node=>!node?'':Array.isArray(node)?node.map(words).join(' '):typeof 
 function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',media_url:'signed:first'},{id:'two',media_type:'image',media_url:'signed:second'}],deferredAudio=false,component='film',os='ios',bookId='book-a',videoPage={id:'video',media_type:'video',media_url:'signed:clip',media_transform:{trimStart:2,trimEnd:5,speed:2}}}={}){
  const slots=[],timers=new Map(),effects=[],appListeners=new Set(),windowListeners=new Map(),documentListeners=new Map(),players=[],sounds=[];
  let cursor=0,dirty=true,tree,now=0,nextTimer=0,active=true,callState='idle',closed=0,read=0,retries=0,audioResolve,unloaded=false;
- let renderedPages=pages,renderedBookId=bookId,sessionScope='1:owner',progress=[],ended=0,ready=0,failed=0;const posts=[];
+ let renderedPages=pages,renderedBookId=bookId,sessionScope='1:owner',progress=[],ended=0,ready=0,failed=0;const posts=[],warmups=[],imageWarmups=[];
  const equal=(a,b)=>a&&b&&a.length===b.length&&a.every((x,i)=>Object.is(x,b[i]));
  const hooks={
   useRef(value){const i=cursor++;return slots[i]||(slots[i]={current:value});},
@@ -16,7 +16,7 @@ function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',medi
   useMemo(fn,deps){const i=cursor++;if(!slots[i]||!equal(slots[i].deps,deps))slots[i]={deps,value:fn()};return slots[i].value;},
  };
  hooks.useLayoutEffect=hooks.useEffect;
- const createMedia=()=>({isConnected:true,paused:true,muted:true,volume:1,duration:10,currentTime:0,playbackRate:1,status:'readyToPlay',playCalls:0,pauseCalls:0,playReject:null,playPending:null,
+ const createMedia=()=>({isConnected:true,paused:true,muted:true,volume:1,duration:10,currentTime:0,playbackRate:1,readyState:2,seeking:false,status:'readyToPlay',playCalls:0,pauseCalls:0,playReject:null,playPending:null,
   play(){this.playCalls++;if(this.playReject)return Promise.reject(this.playReject);this.paused=false;return this.playPending??Promise.resolve();},pause(){this.pauseCalls++;this.paused=true;},load(){},
  });
  const audioNode=createMedia(),videoNode=createMedia();
@@ -31,10 +31,10 @@ function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',medi
  function load(file){file=path.resolve(root,file);if(cache.has(file))return cache.get(file);const module={exports:{}};cache.set(file,module.exports);let source=fs.readFileSync(file,'utf8');if(file.endsWith('/MemoryFilm.tsx'))source+='\nexport const __TestFilmVideo = FilmVideo;';
   const localRequire=name=>{
    if(name==='react')return {...hooks,default:hooks};if(name==='react/jsx-runtime')return runtime;
-   if(name==='react-native')return{Platform:{OS:os},Modal:'Modal',View:'View',Text:'Text',TouchableOpacity:'TouchableOpacity',ActivityIndicator:'ActivityIndicator',StyleSheet:{create:value=>value,absoluteFill:{},absoluteFillObject:{}},Animated:{Value:class{constructor(value){this.value=value;}setValue(value){this.value=value;}},View:'AnimatedView',timing:()=>({start(){},stop(){}})},AppState:app,AccessibilityInfo:{isScreenReaderEnabled:async()=>false,addEventListener:()=>({remove(){}})}};
+   if(name==='react-native')return{Image:{prefetch:async uri=>{imageWarmups.push(uri);return true;}},Platform:{OS:os},Modal:'Modal',View:'View',Text:'Text',TouchableOpacity:'TouchableOpacity',ActivityIndicator:'ActivityIndicator',StyleSheet:{create:value=>value,absoluteFill:{},absoluteFillObject:{}},Animated:{Value:class{constructor(value){this.value=value;}setValue(value){this.value=value;}},View:'AnimatedView',timing:()=>({start(){},stop(){}})},AppState:app,AccessibilityInfo:{isScreenReaderEnabled:async()=>false,addEventListener:()=>({remove(){}})}};
    if(name==='expo-image')return{Image:Object.assign('Image',{prefetch:async()=>true})};
    if(name==='expo-av')return{Audio:audioAPI};
-   if(name.endsWith('modules/boomerang/storyVideo')) { const api=localRequire('expo-video'); return {StoryVideoView:api.VideoView,useStoryVideoPlayer:api.useVideoPlayer}; }
+   if(name.endsWith('modules/boomerang/storyVideo')) { const api=localRequire('expo-video'); return {StoryVideoView:api.VideoView,useStoryVideoPlayer:api.useVideoPlayer,prewarmStoryVideo:(...args)=>warmups.push(args)}; }
    if(name==='expo-video')return{VideoView:'VideoView',useVideoPlayer:(_url,setup)=>{const holder=hooks.useRef(null);if(!holder.current){const listeners=new Map(),p={duration:10,currentTime:0,volume:1,muted:true,status:'readyToPlay',playing:false,play(){p.playing=true;},pause(){p.playing=false;},addListener(event,fn){if(!listeners.has(event))listeners.set(event,new Set());listeners.get(event).add(fn);return{remove:()=>listeners.get(event).delete(fn)};},emit(event,value){for(const fn of listeners.get(event)??[])fn(value);}};setup(p);holder.current=p;players.push(p);}return holder.current;}};
    if(name.endsWith('useSoundtrackPlayer'))return load('src/hooks/useSoundtrackPlayer.ts');
    if(name.endsWith('soundtrackService'))return{getSoundtrack:async()=>{throw Error('No fixture selection');}};
@@ -61,7 +61,7 @@ function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',medi
  function allNodes(){const nodes=walk(tree);for(const node of [...nodes])if(node.type==='MemoryStoryFrame'&&typeof node.props.children==='function')nodes.push(...walk(node.props.children(platform==='native'?{fit:'contain',style:{}}:{})));return nodes;}
  function render(){let guard=0;while(dirty&&!unloaded){if(++guard>40)throw Error('render loop');dirty=false;cursor=0;tree=Component(component==='video'?{item:load('shared/memoryFilm.ts').memoryFilmItems([videoPage])[0],active,muted:true,onReady:()=>ready++,onError:()=>failed++,onProgress:value=>progress.push(value),onEnd:()=>ended++}:{bookId:renderedBookId,title:'Our moments',pages:renderedPages,active,reduceMotion:false,onClose:()=>closed++,onReadBook:()=>read++,onRetry:()=>retries++,onPost:id=>{posts.push(id);closed++;}});for(const node of allNodes()){if(node.type==='audio'&&node.props.ref)node.props.ref.current=audioNode;if(node.type==='video'&&node.props.ref)node.props.ref.current=videoNode;}while(effects.length)effects.shift()();}}
  async function settle(){for(let i=0;i<8;i++){render();await new Promise(resolve=>setImmediate(resolve));}render();}
- return{settle,nodes:allNodes,words:()=>words(tree).replace(/\s+/g,' ').trim(),sounds,players,audioNode,videoNode,progress,posts,get ended(){return ended;},get ready(){return ready;},get failed(){return failed;},get closed(){return closed;},get read(){return read;},get retries(){return retries;},load,
+ return{settle,nodes:allNodes,words:()=>words(tree).replace(/\s+/g,' ').trim(),sounds,players,audioNode,videoNode,progress,posts,warmups,imageWarmups,get ended(){return ended;},get ready(){return ready;},get failed(){return failed;},get closed(){return closed;},get read(){return read;},get retries(){return retries;},load,
   press(label){const node=allNodes().find(node=>(node.props['aria-label']??node.props.accessibilityLabel)===label);if(!node)throw Error('Missing control: '+label);(node.props.onClick??node.props.onPress)();},
   mediaReady(){const node=allNodes().find(node=>node.type==='MemoryPageImage');node?.props.onReady();},
   async tick(ms){now+=ms;for(const [id,timer] of [...timers])if(timer.at<=now){if(timer.interval)timer.at=now+timer.delay;else timers.delete(id);timer.fn();}await settle();},

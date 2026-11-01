@@ -48,13 +48,15 @@ export default function StoryPixelImage(props: StoryPixelImageProps) {
   const report = useContext(StoryPhotoReadinessContext), id = useId();
   const graded = hasStoryPhotoLook(look);
   const [retry, setRetry] = useState(0), [failed, setFailed] = useState(false);
+  const identity = useMemo(() => ({}), [props.uri, graded, retry]);
+  const currentIdentity = useRef(identity); currentIdentity.current = identity;
   const callbacks = useRef(props); callbacks.current = props;
   useEffect(() => { setFailed(false); report?.(id, 'loading'); return () => report?.(id, 'removed'); }, [props.uri, graded, retry, report, id]);
-  const loaded = useCallback(() => { report?.(id, 'ready'); callbacks.current.onLoad?.(); }, [id, report]);
-  const errored = useCallback(() => { setFailed(true); report?.(id, 'error'); callbacks.current.onError?.(); }, [id, report]);
-  // Android fades file images for 300 ms after onLoad. A capture needs the
-  // decoded pixels at full opacity; ordinary playback keeps its native default.
-  const fadeDuration = report ? 0 : undefined;
+  const loaded = useCallback(() => { if (currentIdentity.current !== identity) return; report?.(id, 'ready'); callbacks.current.onLoad?.(); }, [id, report, identity]);
+  const errored = useCallback(() => { if (currentIdentity.current !== identity) return; setFailed(true); report?.(id, 'error'); callbacks.current.onError?.(); }, [id, report, identity]);
+  // onLoad is the viewing-clock boundary, so decoded pixels must already be at
+  // full opacity instead of spending another 300 ms in Android's default fade.
+  const fadeDuration = 0;
   return <View style={props.style}>
     {graded ? <GradedPhoto key={props.uri + ':' + retry} {...props} style={StyleSheet.absoluteFill} look={look} onLoad={loaded} onError={errored} /> : <Image key={props.uri + ':' + retry} source={{ uri: props.uri }} resizeMode={props.fit || 'cover'} style={StyleSheet.absoluteFill} fadeDuration={fadeDuration} onLoad={loaded} onError={errored} />}
     {failed ? <View style={[StyleSheet.absoluteFill, styles.error]}><Text style={styles.errorText}>This photo could not load.</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry photo" style={styles.retry} onPress={() => { setFailed(false); setRetry(value => value+1); }}><Text style={styles.errorText}>Retry</Text></TouchableOpacity></View> : null}

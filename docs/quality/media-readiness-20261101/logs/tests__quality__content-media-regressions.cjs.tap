@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: content parsing accepts current project only and rejects traversal/encoded alternatives
+ok 1 - content parsing accepts current project only and rejects traversal/encoded alternatives
+  ---
+  duration_ms: 1.808145
+  type: 'test'
+  ...
+# Subtest: embedded post requests are independent and duplicate IDs are removed
+ok 2 - embedded post requests are independent and duplicate IDs are removed
+  ---
+  duration_ms: 1.986456
+  type: 'test'
+  ...
+# Subtest: a large book authorizes retained story media once while shared posts retain their own checks
+ok 3 - a large book authorizes retained story media once while shared posts retain their own checks
+  ---
+  duration_ms: 1.749226
+  type: 'test'
+  ...
+# Subtest: independent media batches run with bounded parallelism and merge only after all succeed
+ok 4 - independent media batches run with bounded parallelism and merge only after all succeed
+  ---
+  duration_ms: 13.010093
+  type: 'test'
+  ...
+# Subtest: one failed concurrent media batch cannot expose partially authorized rows
+ok 5 - one failed concurrent media batch cannot expose partially authorized rows
+  ---
+  duration_ms: 2.376516
+  type: 'test'
+  ...
+# Subtest: authorized URLs are replaced and missing capabilities are cleared in every nested field
+ok 6 - authorized URLs are replaced and missing capabilities are cleared in every nested field
+  ---
+  duration_ms: 0.32371
+  type: 'test'
+  ...
+# Subtest: text-only content does not add authentication or signing round trips
+ok 7 - text-only content does not add authentication or signing round trips
+  ---
+  duration_ms: 0.219062
+  type: 'test'
+  ...
+# Subtest: account changes discard capabilities rather than applying them to another viewer
+ok 8 - account changes discard capabilities rather than applying them to another viewer
+  ---
+  duration_ms: 0.963878
+  type: 'test'
+  ...
+# Subtest: signer rejects unauthenticated calls and never signs client-supplied paths
+ok 9 - signer rejects unauthenticated calls and never signs client-supplied paths
+  ---
+  duration_ms: 8.972655
+  type: 'test'
+  ...
+# Subtest: only verified manifest objects may enter the signing batch
+ok 10 - only verified manifest objects may enter the signing batch
+  ---
+  duration_ms: 2.406781
+  type: 'test'
+  ...
+# Subtest: missing manifest is a failure, and denied content returns no capability
+ok 11 - missing manifest is a failure, and denied content returns no capability
+  ---
+  duration_ms: 1.367479
+  type: 'test'
+  ...
+# Subtest: article covers request the linked post and draft references remain a distinct permission
+ok 12 - article covers request the linked post and draft references remain a distinct permission
+  ---
+  duration_ms: 0.24437
+  type: 'test'
+  ...
+# Subtest: unsigned and foreign responses cannot become media capabilities
+ok 13 - unsigned and foreign responses cannot become media capabilities
+  ---
+  duration_ms: 0.840752
+  type: 'test'
+  ...
+# Subtest: malformed JSON values fail as client errors before manifest or signing
+ok 14 - malformed JSON values fail as client errors before manifest or signing
+  ---
+  duration_ms: 4.529593
+  type: 'test'
+  ...
+# Subtest: expired capabilities never reach a rendered row
+ok 15 - expired capabilities never reach a rendered row
+  ---
+  duration_ms: 0.567859
+  type: 'test'
+  ...
+# Subtest: Markdown images hydrate without changing text or turning ordinary links into media
+ok 16 - Markdown images hydrate without changing text or turning ordinary links into media
+  ---
+  duration_ms: 0.269268
+  type: 'test'
+  ...
+# Subtest: canonical reshares remove signed tokens from nested objects and Markdown before storage
+ok 17 - canonical reshares remove signed tokens from nested objects and Markdown before storage
+  ---
+  duration_ms: 0.377792
+  type: 'test'
+  ...
+# Subtest: owner upload hydration uses the separate server ownership manifest and never persists previews
+ok 18 - owner upload hydration uses the separate server ownership manifest and never persists previews
+  ---
+  duration_ms: 0.841453
+  type: 'test'
+  ...
+# Subtest: upload requests cannot bypass authenticated owner authorization or mix modes
+ok 19 - upload requests cannot bypass authenticated owner authorization or mix modes
+  ---
+  duration_ms: 1.144542
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.931013

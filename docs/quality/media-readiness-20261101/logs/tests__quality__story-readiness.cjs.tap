@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: a story tap joins its ring read, transfers the result once and warms its video before playback
+ok 1 - a story tap joins its ring read, transfers the result once and warms its video before playback
+  ---
+  duration_ms: 158.504908
+  type: 'test'
+  ...
+# Subtest: changing sessions discards both cached results and late reads, including an A to B to A round trip
+ok 2 - changing sessions discards both cached results and late reads, including an A to B to A round trip
+  ---
+  duration_ms: 49.619452
+  type: 'test'
+  ...
+# Subtest: expired story authorization and the short payload TTL force a fresh read
+ok 3 - expired story authorization and the short payload TTL force a fresh read
+  ---
+  duration_ms: 40.972289
+  type: 'test'
+  ...
+# Subtest: private posters are never sent through the image disk prefetcher and public duplicates coalesce
+ok 4 - private posters are never sent through the image disk prefetcher and public duplicates coalesce
+  ---
+  duration_ms: 56.019594
+  type: 'test'
+  ...
+# Subtest: ring cache keeps at most three author payloads and invalidation prevents stale reopening
+ok 5 - ring cache keeps at most three author payloads and invalidation prevents stale reopening
+  ---
+  duration_ms: 42.69194
+  type: 'test'
+  ...
+# Subtest: invalidating stories during an unchanged session stops the old read from warming media
+ok 6 - invalidating stories during an unchanged session stops the old read from warming media
+  ---
+  duration_ms: 22.541824
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 374.997349

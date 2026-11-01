@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: video recipe bounds output dimensions without changing canvas aspect, keeps edit duration and original mix
+ok 1 - video recipe bounds output dimensions without changing canvas aspect, keeps edit duration and original mix
+  ---
+  duration_ms: 1.237983
+  type: 'test'
+  ...
+# Subtest: invalid metadata and excessive slowed clips cannot start export
+ok 2 - invalid metadata and excessive slowed clips cannot start export
+  ---
+  duration_ms: 0.591766
+  type: 'test'
+  ...
+# Subtest: export uses actual color matrix and clamps hostile geometry/volume values
+ok 3 - export uses actual color matrix and clamps hostile geometry/volume values
+  ---
+  duration_ms: 0.359564
+  type: 'test'
+  ...
+# Subtest: timed artwork partitions its real source windows into speed-adjusted output time
+ok 4 - timed artwork partitions its real source windows into speed-adjusted output time
+  ---
+  duration_ms: 0.82623
+  type: 'test'
+  ...
+# Subtest: animated or embedded media never silently becomes a static export
+ok 5 - animated or embedded media never silently becomes a static export
+  ---
+  duration_ms: 0.566076
+  type: 'test'
+  ...
+# Subtest: export format is chosen only when the recorder reports support
+ok 6 - export format is chosen only when the recorder reports support
+  ---
+  duration_ms: 0.13246
+  type: 'test'
+  ...
+# Subtest: an older native build cannot claim edited video export
+ok 7 - an older native build cannot claim edited video export
+  ---
+  duration_ms: 89.984471
+  type: 'test'
+  ...
+# Subtest: Android export stays unavailable until a complete version-one encoder is installed
+ok 8 - Android export stays unavailable until a complete version-one encoder is installed
+  ---
+  duration_ms: 156.352872
+  type: 'test'
+  ...
+# Subtest: Android version-one export is independent of the iPhone-only native preview
+ok 9 - Android version-one export is independent of the iPhone-only native preview
+  ---
+  duration_ms: 91.929889
+  type: 'test'
+  ...
+# Subtest: native bridge cancels pending work and rejects late completion after an account fence
+ok 10 - native bridge cancels pending work and rejects late completion after an account fence
+  ---
+  duration_ms: 39.775348
+  type: 'test'
+  ...
+# Subtest: both native bridges verify output identity, finite media duration, dimensions and bytes
+ok 11 - both native bridges verify output identity, finite media duration, dimensions and bytes
+  ---
+  duration_ms: 582.964574
+  type: 'test'
+  ...
+# Subtest: native controller maintains actual clock events, bounded settings, exact seeks and released fencing
+ok 12 - native controller maintains actual clock events, bounded settings, exact seeks and released fencing
+  ---
+  duration_ms: 64.312681
+  type: 'test'
+  ...
+# Subtest: only the new audio-capable native build can export a soundtrack or still movie
+ok 13 - only the new audio-capable native build can export a soundtrack or still movie
+  ---
+  duration_ms: 74.435256
+  type: 'test'
+  ...
+# Subtest: native soundtrack export cannot report success when the encoded file lost its audio
+ok 14 - native soundtrack export cannot report success when the encoded file lost its audio
+  ---
+  duration_ms: 22.906606
+  type: 'test'
+  ...
+# Subtest: Android keeps Expo video even when its native audio encoder is available
+ok 15 - Android keeps Expo video even when its native audio encoder is available
+  ---
+  duration_ms: 87.490448
+  type: 'test'
+  ...
+# Subtest: Android published story viewers retain color overlays independently of export support
+ok 16 - Android published story viewers retain color overlays independently of export support
+  ---
+  duration_ms: 53.200329
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1319.279137

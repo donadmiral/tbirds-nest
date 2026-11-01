@@ -40,9 +40,9 @@ export type MemoryCoverPage = { story_id?: string; media_type?: string; media_ur
 export function memoryCoverMedia(page?: MemoryCoverPage | null) {
   if (!page) return { photoUrl: undefined, fallbackPhotoUrl: undefined, videoUrl: undefined, takenAt: undefined };
   const sticker = Array.isArray(page.stickers) ? page.stickers.find(s => s?.kind === 'post') : null;
-  const photoUrl = page.thumbnail_url || (page.media_type === 'image' ? page.media_url : null) || (sticker?.postMediaType !== 'video' ? sticker?.postMediaUrl : null) || undefined;
+  const photoUrl = page.thumbnail_url || (page.media_type === 'image' ? page.media_url : null) || sticker?.postThumbnailUrl || (sticker?.postMediaType !== 'video' ? sticker?.postMediaUrl : null) || undefined;
   const fallbackPhotoUrl = page.media_type === 'image' && page.media_url && page.media_url !== photoUrl ? page.media_url : undefined;
-  const videoUrl = page.media_type === 'video' ? page.media_url || undefined : undefined;
+  const videoUrl = page.media_type === 'video' ? page.media_url || undefined : sticker?.postMediaType === 'video' ? sticker.postMediaUrl || undefined : undefined;
   return { photoUrl, fallbackPhotoUrl, videoUrl, takenAt:page.taken_at??page.created_at??undefined };
 }
 export function memoryCoverPage(pages: MemoryCoverPage[], selected?: string | null) {

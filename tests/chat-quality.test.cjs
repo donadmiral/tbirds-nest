@@ -20,6 +20,7 @@ const defer = () => { let resolve; const promise = new Promise(done=>{resolve=do
 function historyHarness(response) {
   const state = { rows:[], loading:false, loadingOlder:false, error:null, hasOlder:false }, queries=[];
   const context = { accountScopeRef:{current:'owner:me'}, ...history, conversationId:'a', currentUserId:'me', mountedRef:{current:true}, activeConversation:{current:'a'}, historyRequest:{current:0}, historyCursor:{current:null}, olderPending:{current:false}, historyLoadedRef:{current:false},
+    messagesRef:{get current(){return state.rows;}},isChatMediaUrl:uri=>!!uri&&/\/storage\/v1\/object\/(?:public\/|sign\/)?(?:chat-media|chat-files)\//.test(uri),
     setMessages(fn){state.rows=typeof fn==='function'?fn(state.rows):fn;}, setLoading(value){state.loading=value;}, setHistoryError(value){state.error=value;}, setHasOlder(value){state.hasOlder=value;}, setLoadingOlder(value){state.loadingOlder=value;},
     signChatMedia:async rows=>rows, loadReactions:async()=>{}, markRead:async()=>{}, refreshStatus:async()=>{}, loadStarredIds:async()=>{}, loadSavedIds:async()=>{},
     supabase:{from(table){const query={table};queries.push(query); const chain={select(){return chain;},eq(key,value){query[key]=value;return chain;},order(){return chain;},limit(value){query.limit=value;return chain;},or(value){query.filter=value;return chain;},then(ok,bad){return Promise.resolve(typeof response==='function'?response(query):response).then(ok,bad);}};return chain;}}

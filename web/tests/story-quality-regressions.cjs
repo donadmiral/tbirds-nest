@@ -13,11 +13,12 @@ function execute(source, globals) {
   globals.MUSIC_CATALOG_ENABLED ??= false;
   globals.ORIGINAL_AUDIO_ENABLED ??= true;
   globals.queueMicrotask ??= queueMicrotask;
+  globals.useLayoutEffect ??= globals.useEffect;
   vm.runInNewContext(js, globals);
 }
 function effect(source, marker, end) {
   const ast=ts.createSourceFile('fixture.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let match;
-  function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useEffect'&&node.getText(ast).includes(marker.trim()))match??=node;ts.forEachChild(node,visit);}
+  function visit(node){if(ts.isCallExpression(node)&&['useEffect','useLayoutEffect'].includes(node.expression.getText(ast))&&node.getText(ast).includes(marker.trim()))match??=node;ts.forEachChild(node,visit);}
   visit(ast);assert.ok(match,marker+' '+end);return match.getText(ast)+';';
 }
 test('viewer arrow keys edit replies and only navigate outside editing controls', () => {
@@ -37,7 +38,7 @@ function playback(mediaType = 'image') {
   const player = { currentTime: 0, paused: true, ended: false };
   const globals = {
     document: { hidden: false }, callActive: () => false, playbackPausedRef: { current: false }, inputFocusedRef: { current: false }, overlayPausedRef: { current: false }, pauseNow() {},
-    useEffect: fn => fn(), story: { id: 'story-1', media_type: mediaType, media_url: 'synthetic', duration_sec: 5 }, uid: 'viewer',
+    useEffect: fn => fn(), story: { id: 'story-1', media_type: mediaType, media_url: 'synthetic', duration_sec: 5 }, uid: 'viewer', mediaKey: 'story-1',
     setProgress: p => progress = p, stopTimer() {}, setMuted() {}, setClock() {},
     videoRef: { current: mediaType === 'video' ? player : null }, audioRef: { current: null },
     readyStoryRef: ready, durRef: { current: 0 }, startedAt: { current: 0 }, timerRef: { current: null },
@@ -165,7 +166,7 @@ test('Back on the first story does not stop its playback timer', () => {
 test('advancing a story clears its private reply and viewer sheet', async () => {
   let reply = 'Reply intended for A', sheet = true, toast = true;
   execute(effect(viewer, '    readyStoryRef.current = null;', '  }, [story?.id]);'), {
-    useEffect: fn => fn(), playbackPausedRef: { current: true }, manualPauseRef: { current: true }, holdPausedRef: { current: true }, holdConsumedClickRef: { current: false }, setPlaybackPaused() {}, storyId: 'story-b', story: { id: 'story-b' }, readyStoryRef: { current: 'story-a' }, heldRef: { current: true },
+    useEffect: fn => fn(), playbackPausedRef: { current: true }, manualPauseRef: { current: true }, holdPausedRef: { current: true }, holdConsumedClickRef: { current: false }, setPlaybackPaused() {}, storyId: 'story-b', story: { id: 'story-b' }, mediaKey: 'story-b', readyStoryRef: { current: 'story-a' }, heldRef: { current: true },
     holdRef: { current: null }, resumeDelayRef: { current: null }, setLoadedStoryId() {}, setFailedStoryId() {}, setActionError() {},
     setReplyText: value => reply = value, setReplyToast: value => toast = value, setViewersOpen: value => sheet = value, setMoreOpen() {}, setMemoryOpen() {}, setHeartBurst() {},
   });

@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: React resolves canonical original media and creator, ignoring route URI/name claims
+ok 1 - React resolves canonical original media and creator, ignoring route URI/name claims
+  ---
+  duration_ms: 26.162512
+  type: 'test'
+  ...
+# Subtest: fresh visibility and public audience prevent reusing a private or withdrawn original
+ok 2 - fresh visibility and public audience prevent reusing a private or withdrawn original
+  ---
+  duration_ms: 107.448789
+  type: 'test'
+  ...
+# Subtest: a source edit is rejected before staging as well as before publication
+ok 3 - a source edit is rejected before staging as well as before publication
+  ---
+  duration_ms: 10.444863
+  type: 'test'
+  ...
+# Subtest: text posts retain canonical text and metadata for the rendered source card
+ok 4 - text posts retain canonical text and metadata for the rendered source card
+  ---
+  duration_ms: 16.713787
+  type: 'test'
+  ...
+# Subtest: a foreign media ID and a remote source without a post grant fail closed; local picks remain usable
+ok 5 - a foreign media ID and a remote source without a post grant fail closed; local picks remain usable
+  ---
+  duration_ms: 13.811026
+  type: 'test'
+  ...
+# Subtest: an external URL inserted into a public post cannot become an authorized React download
+ok 6 - an external URL inserted into a public post cannot become an authorized React download
+  ---
+  duration_ms: 7.755112
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 212.338199

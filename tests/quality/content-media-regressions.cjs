@@ -25,6 +25,38 @@ test('embedded post requests are independent and duplicate IDs are removed', () 
   const result = media.contentReferences([{ id, stickers_json: [{ postId: nestedId, postMediaUrl: raw }, { postId: nestedId }] }], 'story');
   assert.deepEqual(plain(result), [{ kind: 'story', id }, { kind: 'post', id: nestedId }]);
 });
+test('a large book authorizes retained story media once while shared posts retain their own checks', () => {
+  const pages = Array.from({length:120}, (_, index) => ({id:`page-${index}`,story_id:`30000000-0000-4000-8000-${String(index).padStart(12,'0')}`,media_url:raw}));
+  pages[0].stickers=[{postId:nestedId,postMediaUrl:raw},{storyId:'40000000-0000-4000-8000-000000000001'}];
+  const result=media.contentReferences([{id,pages,cover_page:pages[0],cover_pages:pages.slice(0,4)}],'memory_album');
+  assert.deepEqual(plain(result),[{kind:'memory_album',id},{kind:'post',id:nestedId},{kind:'story',id:'40000000-0000-4000-8000-000000000001'}]);
+  assert.equal(media.contentReferences([{id:'invalid',pages:[pages[1]]}],'memory_album')[0].id,pages[1].story_id,'an invalid album cannot suppress story checks');
+});
+
+test('independent media batches run with bounded parallelism and merge only after all succeed', async () => {
+  const rows=Array.from({length:201},(_,index)=>({id:`30000000-0000-4000-8000-${String(index).padStart(12,'0')}`,media_url:raw}));
+  const pending=[],calls=[];
+  const client={auth:{getSession:async()=>({data:{session:{user:{id},access_token:'captured-bearer'}},error:null}),getUser:async()=>({data:{user:{id}},error:null})},functions:{invoke:(_name,options)=>{calls.push(options);return new Promise(resolve=>pending.push(resolve));}}};
+  let completed=false;
+  const work=media.hydrateContentMedia(client,base,rows,'post').then(value=>{completed=true;return value;});
+  const turn=()=>new Promise(resolve=>setImmediate(resolve));
+  await turn();assert.equal(calls.length,3);assert.equal(completed,false);
+  const response=()=>({data:{urls:[{key:`post-media/${id}/photo.jpg`,url:signed}],expiresAt:Date.now()+300000},error:null});
+  pending.shift()(response());await turn();assert.equal(calls.length,4);
+  pending.shift()(response());await turn();assert.equal(calls.length,5);
+  for(const resolve of pending.splice(0))resolve(response());
+  const hydrated=await work;
+  assert.equal(hydrated.length,201);assert.ok(hydrated.every(row=>row.media_url===signed));
+  assert.ok(calls.every(call=>call.headers.Authorization==='Bearer captured-bearer'&&call.body.delivery==='no-store'));
+});
+
+test('one failed concurrent media batch cannot expose partially authorized rows', async () => {
+  const rows=Array.from({length:101},(_,index)=>({id:`30000000-0000-4000-8000-${String(index).padStart(12,'0')}`,media_url:raw}));
+  let calls=0;
+  const client={auth:{getSession:async()=>({data:{session:{user:{id},access_token:'captured-bearer'}},error:null}),getUser:async()=>({data:{user:{id}},error:null})},functions:{invoke:async()=>++calls===2?{data:null,error:Error('failed')}:{data:{urls:[{key:`post-media/${id}/photo.jpg`,url:signed}],expiresAt:Date.now()+300000},error:null}}};
+  await assert.rejects(media.hydrateContentMedia(client,base,rows,'post'),/could not be loaded/);
+  assert.equal(calls,3);assert.equal(rows[0].media_url,raw);
+});
 test('authorized URLs are replaced and missing capabilities are cleared in every nested field', () => {
   const row = { id, media_url: raw, media: [{ url: raw, edit: { coverUrl: raw + '2' } }], avatar: 'https://example.com/avatar.png' };
   const result = media.replaceContentMedia(row, base, new Map([[`post-media/${id}/photo.jpg`, signed]]));

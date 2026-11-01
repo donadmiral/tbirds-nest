@@ -29,6 +29,12 @@ public class BoomerangModule: Module {
       try await StoryVideoComposition.make(request)
     }
     AsyncFunction("cancelStoryComposition") { (id: String) in StoryVideoComposition.cancel(id) }
+    AsyncFunction("warmStoryVideo") { (uri: String, scope: String, expiresAt: Double) async in
+      await MainActor.run { StoryVideoWarmPool.warm(uri: uri, session: scope, expiresAt: expiresAt) }
+    }
+    AsyncFunction("clearStoryVideoWarmPool") { () async in
+      await MainActor.run { StoryVideoWarmPool.clear() }
+    }
     View(StoryVideoView.self) {
       Events("onPlayback")
       Prop("uri") { (view: StoryVideoView, value: String) in view.uri = value }

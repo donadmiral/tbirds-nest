@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: bridge retains the original export until a matching acknowledgement and rejects replacement
+ok 1 - bridge retains the original export until a matching acknowledgement and rejects replacement
+  ---
+  duration_ms: 34.736689
+  type: 'test'
+  ...
+# Subtest: bridge clears on account changes and rejects null or stale A → B → A scopes
+ok 2 - bridge clears on account changes and rejects null or stale A → B → A scopes
+  ---
+  duration_ms: 17.951684
+  type: 'test'
+  ...
+# Subtest: Feed acknowledges only after the actual append has committed, then opens that media
+ok 3 - Feed acknowledges only after the actual append has committed, then opens that media
+  ---
+  duration_ms: 45.25262
+  type: 'test'
+  ...
+# Subtest: focus loss during thumbnail work keeps the take for a successful later retry
+ok 4 - focus loss during thumbnail work keeps the take for a successful later retry
+  ---
+  duration_ms: 14.25056
+  type: 'test'
+  ...
+# Subtest: a busy publication, full draft, and different original each retain the completed take
+ok 5 - a busy publication, full draft, and different original each retain the completed take
+  ---
+  duration_ms: 58.080437
+  type: 'test'
+  ...
+# Subtest: the final updater rejects a publication or full draft that appeared during thumbnail work
+ok 6 - the final updater rejects a publication or full draft that appeared during thumbnail work
+  ---
+  duration_ms: 38.350967
+  type: 'test'
+  ...
+# Subtest: late Feed append and React launch cannot cross an A → B → A session roundtrip
+ok 7 - late Feed append and React launch cannot cross an A → B → A session roundtrip
+  ---
+  duration_ms: 28.075131
+  type: 'test'
+  ...
+# Subtest: one original controls preview and publication, while local clips do not invent a quote
+ok 8 - one original controls preview and publication, while local clips do not invent a quote
+  ---
+  duration_ms: 11.523905
+  type: 'test'
+  ...
+# Subtest: manual Quote cannot replace a React original already present in the draft
+ok 9 - manual Quote cannot replace a React original already present in the draft
+  ---
+  duration_ms: 3.211519
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 259.115815

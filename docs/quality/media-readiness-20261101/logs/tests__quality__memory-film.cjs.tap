@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: continuous native film waits for media, advances every page, and loops without stopping
+ok 1 - continuous native film waits for media, advances every page, and loops without stopping
+  ---
+  duration_ms: 349.880182
+  type: 'test'
+  ...
+# Subtest: a one-photo film replays with a fresh clock and native pause/background do not jump time
+ok 2 - a one-photo film replays with a fresh clock and native pause/background do not jump time
+  ---
+  duration_ms: 158.733615
+  type: 'test'
+  ...
+# Subtest: a one-photo native loop remounts its media frame so the next run receives readiness
+ok 3 - a one-photo native loop remounts its media frame so the next run receives readiness
+  ---
+  duration_ms: 189.816242
+  type: 'test'
+  ...
+# Subtest: native film controls wrap both directions, preserve the book, and isolate original audio from music
+ok 4 - native film controls wrap both directions, preserve the book, and isolate original audio from music
+  ---
+  duration_ms: 149.315427
+  type: 'test'
+  ...
+# Subtest: native film pauses music on calls and releases a soundtrack loaded after unmount
+ok 5 - native film pauses music on calls and releases a soundtrack loaded after unmount
+  ---
+  duration_ms: 236.449307
+  type: 'test'
+  ...
+# Subtest: native film media deadline is actionable and does not silently skip a failed page
+ok 6 - native film media deadline is actionable and does not silently skip a failed page
+  ---
+  duration_ms: 123.530634
+  type: 'test'
+  ...
+# Subtest: native film private backdrops are uncached and the actual prefetch path skips private images
+ok 7 - native film private backdrops are uncached and the actual prefetch path skips private images
+  ---
+  duration_ms: 440.232483
+  type: 'test'
+  ...
+# Subtest: native film prepares the next authorized video in memory and stops preparing when backgrounded
+ok 8 - native film prepares the next authorized video in memory and stops preparing when backgrounded
+  ---
+  duration_ms: 89.963523
+  type: 'test'
+  ...
+# Subtest: native film keeps its exact poster until a first rendered frame, independent of metadata
+ok 9 - native film keeps its exact poster until a first rendered frame, independent of metadata
+  ---
+  duration_ms: 111.7863
+  type: 'test'
+  ...
+# Subtest: native film video honors trim/speed and advances once at the real media boundary
+ok 10 - native film video honors trim/speed and advances once at the real media boundary
+  ---
+  duration_ms: 110.414178
+  type: 'test'
+  ...
+# Subtest: native film video cannot complete or continue playback while backgrounded or inactive
+ok 11 - native film video cannot complete or continue playback while backgrounded or inactive
+  ---
+  duration_ms: 92.872636
+  type: 'test'
+  ...
+# Subtest: native film gives stalled video an error instead of remaining stuck after initial readiness
+ok 12 - native film gives stalled video an error instead of remaining stuck after initial readiness
+  ---
+  duration_ms: 94.115577
+  type: 'test'
+  ...
+# Subtest: native film video progress and deliberate pauses reset its stalled-media deadline
+ok 13 - native film video progress and deliberate pauses reset its stalled-media deadline
+  ---
+  duration_ms: 122.359311
+  type: 'test'
+  ...
+# Subtest: native film photo artwork follows the playback clock and freezes on pause
+ok 14 - native film photo artwork follows the playback clock and freezes on pause
+  ---
+  duration_ms: 66.909052
+  type: 'test'
+  ...
+# Subtest: film source selection includes embedded videos and text posts without inventing URLs
+ok 15 - film source selection includes embedded videos and text posts without inventing URLs
+  ---
+  duration_ms: 60.986228
+  type: 'test'
+  ...
+# Subtest: original music assets match and their generated receipt verifies duration, codec, clipping and seam
+ok 16 - original music assets match and their generated receipt verifies duration, codec, clipping and seam
+  ---
+  duration_ms: 1.422763
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2420.56033

@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: expanded videos show the complete frame before the user opts into crop
+ok 1 - expanded videos show the complete frame before the user opts into crop
+  ---
+  duration_ms: 35.198569
+  type: 'test'
+  ...
+# Subtest: remembered valid playback speed is applied to the actual media element
+ok 2 - remembered valid playback speed is applied to the actual media element
+  ---
+  duration_ms: 12.804518
+  type: 'test'
+  ...
+# Subtest: malformed playback preferences fall back to muted, normal speed
+ok 3 - malformed playback preferences fall back to muted, normal speed
+  ---
+  duration_ms: 13.144613
+  type: 'test'
+  ...
+# Subtest: timeline is keyboard accessible and uses the edited clip duration
+ok 4 - timeline is keyboard accessible and uses the edited clip duration
+  ---
+  duration_ms: 14.638114
+  type: 'test'
+  ...
+# Subtest: media shortcuts do not steal input, select, button activation, or browser shortcuts
+ok 5 - media shortcuts do not steal input, select, button activation, or browser shortcuts
+  ---
+  duration_ms: 13.830251
+  type: 'test'
+  ...
+# Subtest: theater is a reachable viewing action and has a keyboard shortcut
+ok 6 - theater is a reachable viewing action and has a keyboard shortcut
+  ---
+  duration_ms: 16.994049
+  type: 'test'
+  ...
+# Subtest: data saver disables preloading and feed autoplay but allows explicit playback
+ok 7 - data saver disables preloading and feed autoplay but allows explicit playback
+  ---
+  duration_ms: 15.422451
+  type: 'test'
+  ...
+# Subtest: autoplay off leaves feed paused
+ok 8 - autoplay off leaves feed paused
+  ---
+  duration_ms: 10.091833
+  type: 'test'
+  ...
+# Subtest: unrevealed sensitive videos do not preload or play even through a direct handler
+ok 9 - unrevealed sensitive videos do not preload or play even through a direct handler
+  ---
+  duration_ms: 13.635507
+  type: 'test'
+  ...
+# Subtest: PiP control only appears after usable metadata and supported browser capability
+ok 10 - PiP control only appears after usable metadata and supported browser capability
+  ---
+  duration_ms: 25.222588
+  type: 'test'
+  ...
+# Subtest: PiP remains playing when page is hidden or the original player scrolls away
+ok 11 - PiP remains playing when page is hidden or the original player scrolls away
+  ---
+  duration_ms: 16.368202
+  type: 'test'
+  ...
+# Subtest: ordinary offscreen video pauses and late play events cannot restart it
+ok 12 - ordinary offscreen video pauses and late play events cannot restart it
+  ---
+  duration_ms: 11.078827
+  type: 'test'
+  ...
+# Subtest: play rejection and load errors display truthful recovery actions
+ok 13 - play rejection and load errors display truthful recovery actions
+  ---
+  duration_ms: 27.119363
+  type: 'test'
+  ...
+# Subtest: creator-muted video cannot be unmuted with a keyboard shortcut
+ok 14 - creator-muted video cannot be unmuted with a keyboard shortcut
+  ---
+  duration_ms: 11.077695
+  type: 'test'
+  ...
+# Subtest: gallery exposes the video theater action and keeps trim recipe in expanded playback
+ok 15 - gallery exposes the video theater action and keeps trim recipe in expanded playback
+  ---
+  duration_ms: 16.256774
+  type: 'test'
+  ...
+# Subtest: gallery arrows leave text editing and handled player shortcuts alone
+ok 16 - gallery arrows leave text editing and handled player shortcuts alone
+  ---
+  duration_ms: 11.951187
+  type: 'test'
+  ...
+# Subtest: gallery carries sensitive content permission into both inline and expanded video
+ok 17 - gallery carries sensitive content permission into both inline and expanded video
+  ---
+  duration_ms: 28.168972
+  type: 'test'
+  ...
+# Subtest: time helpers reject nonfinite duration and format long recordings
+ok 18 - time helpers reject nonfinite duration and format long recordings
+  ---
+  duration_ms: 0.119151
+  type: 'test'
+  ...
+# Subtest: only one player owns playback and a stopped pending play cannot steal it back
+ok 19 - only one player owns playback and a stopped pending play cannot steal it back
+  ---
+  duration_ms: 19.306789
+  type: 'test'
+  ...
+# Subtest: browser denial of PiP produces a visible fallback message
+ok 20 - browser denial of PiP produces a visible fallback message
+  ---
+  duration_ms: 11.999491
+  type: 'test'
+  ...
+# Subtest: Escape exits native fullscreen without closing the underlying gallery
+ok 21 - Escape exits native fullscreen without closing the underlying gallery
+  ---
+  duration_ms: 10.702698
+  type: 'test'
+  ...
+# Subtest: late-loading edit recipes constrain ongoing playback to the saved trim start
+ok 22 - late-loading edit recipes constrain ongoing playback to the saved trim start
+  ---
+  duration_ms: 11.064876
+  type: 'test'
+  ...
+# Subtest: closing video theater restores focus to the remounted inline opener
+ok 23 - closing video theater restores focus to the remounted inline opener
+  ---
+  duration_ms: 11.590712
+  type: 'test'
+  ...
+# Subtest: an image opened with a pointer restores its replacement opener on Escape
+ok 24 - an image opened with a pointer restores its replacement opener on Escape
+  ---
+  duration_ms: 12.610134
+  type: 'test'
+  ...
+# Subtest: changing viewer media preserves immersive mode and the focused live control
+ok 25 - changing viewer media preserves immersive mode and the focused live control
+  ---
+  duration_ms: 11.180681
+  type: 'test'
+  ...
+# Subtest: removed media navigation control returns focus inside the open viewer
+ok 26 - removed media navigation control returns focus inside the open viewer
+  ---
+  duration_ms: 14.458441
+  type: 'test'
+  ...
+# Subtest: closing viewer falls back to its focusable media wrapper when no opener remains
+ok 27 - closing viewer falls back to its focusable media wrapper when no opener remains
+  ---
+  duration_ms: 15.611787
+  type: 'test'
+  ...
+# Subtest: unmounting an open viewer releases the page without focusing disconnected media
+ok 28 - unmounting an open viewer releases the page without focusing disconnected media
+  ---
+  duration_ms: 9.458815
+  type: 'test'
+  ...
+# Subtest: music keeps playing when the creator silences the original video track
+ok 29 - music keeps playing when the creator silences the original video track
+  ---
+  duration_ms: 10.09643
+  type: 'test'
+  ...
+# Subtest: durable call state blocks new playback as well as late playing events
+ok 30 - durable call state blocks new playback as well as late playing events
+  ---
+  duration_ms: 9.842887
+  type: 'test'
+  ...
+# Subtest: 90 degree video rotation fits within the measured immersive viewport
+ok 31 - 90 degree video rotation fits within the measured immersive viewport
+  ---
+  duration_ms: 20.346673
+  type: 'test'
+  ...
+# Subtest: post-detail gallery opts into full-frame video while feed defaults preserve the authored crop
+ok 32 - post-detail gallery opts into full-frame video while feed defaults preserve the authored crop
+  ---
+  duration_ms: 52.633115
+  type: 'test'
+  ...
+# Subtest: post-detail portrait uses actual metadata to fit within its fixed viewport
+ok 33 - post-detail portrait uses actual metadata to fit within its fixed viewport
+  ---
+  duration_ms: 11.466574
+  type: 'test'
+  ...
+# Subtest: post-detail rotated video fits the rotated bounds without enabling theater mode
+ok 34 - post-detail rotated video fits the rotated bounds without enabling theater mode
+  ---
+  duration_ms: 11.637342
+  type: 'test'
+  ...
+# Subtest: inline portrait and landscape images fit their 90/270 degree rotated boxes
+ok 35 - inline portrait and landscape images fit their 90/270 degree rotated boxes
+  ---
+  duration_ms: 65.633682
+  type: 'test'
+  ...
+# Subtest: unrotated inline images retain their existing 1.25 upscale limit
+ok 36 - unrotated inline images retain their existing 1.25 upscale limit
+  ---
+  duration_ms: 21.470994
+  type: 'test'
+  ...
+# Subtest: malformed image dimensions never produce nonfinite fitted CSS values
+ok 37 - malformed image dimensions never produce nonfinite fitted CSS values
+  ---
+  duration_ms: 38.491104
+  type: 'test'
+  ...
+# Subtest: theater portrait and landscape images fit 90/270 degree rotation in the measured pane
+ok 38 - theater portrait and landscape images fit 90/270 degree rotation in the measured pane
+  ---
+  duration_ms: 44.655788
+  type: 'test'
+  ...
+# Subtest: theater does not upscale small images and zoom/pan preserve authored rotation
+ok 39 - theater does not upscale small images and zoom/pan preserve authored rotation
+  ---
+  duration_ms: 12.064869
+  type: 'test'
+  ...
+# Subtest: theater refits actual image metadata and follows comments and viewport resizing
+ok 40 - theater refits actual image metadata and follows comments and viewport resizing
+  ---
+  duration_ms: 10.126526
+  type: 'test'
+  ...
+# Subtest: published voice effects reproduce their pitch and pace in the actual web player
+ok 41 - published voice effects reproduce their pitch and pace in the actual web player
+  ---
+  duration_ms: 8.615719
+  type: 'test'
+  ...
+# Subtest: viewer speed multiplies the saved creator pace instead of replacing it
+ok 42 - viewer speed multiplies the saved creator pace instead of replacing it
+  ---
+  duration_ms: 11.499544
+  type: 'test'
+  ...
+# Subtest: nearby feed videos buffer before entering the viewport without starting playback
+ok 43 - nearby feed videos buffer before entering the viewport without starting playback
+  ---
+  duration_ms: 11.568398
+  type: 'test'
+  ...
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 792.580548

@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: a 20-second source plus a 12-second explanation exports a continuous 32-second take
+ok 1 - a 20-second source plus a 12-second explanation exports a continuous 32-second take
+  ---
+  duration_ms: 3.432153
+  type: 'test'
+  ...
+# Subtest: replaying and seeking change only source time while camera output remains continuous
+ok 2 - replaying and seeking change only source time while camera output remains continuous
+  ---
+  duration_ms: 0.310691
+  type: 'test'
+  ...
+# Subtest: source end automatically becomes a silent final-frame hold and never stops the camera
+ok 3 - source end automatically becomes a silent final-frame hold and never stops the camera
+  ---
+  duration_ms: 0.369249
+  type: 'test'
+  ...
+# Subtest: a photo supplies a held source throughout the moving camera and microphone take
+ok 4 - a photo supplies a held source throughout the moving camera and microphone take
+  ---
+  duration_ms: 0.259041
+  type: 'test'
+  ...
+# Subtest: trimming inside a hold preserves the exact source image and trims the microphone on the same clock
+ok 5 - trimming inside a hold preserves the exact source image and trims the microphone on the same clock
+  ---
+  duration_ms: 0.535971
+  type: 'test'
+  ...
+# Subtest: editing a source window adds a real hold without removing or extending camera commentary
+ok 6 - editing a source window adds a real hold without removing or extending camera commentary
+  ---
+  duration_ms: 0.474838
+  type: 'test'
+  ...
+# Subtest: replacing a timing window with replay preserves surrounding holds and bounds source end
+ok 7 - replacing a timing window with replay preserves surrounding holds and bounds source end
+  ---
+  duration_ms: 0.280144
+  type: 'test'
+  ...
+# Subtest: rapid actions at one output frame use the final action and never emit zero-duration segments
+ok 8 - rapid actions at one output frame use the final action and never emit zero-duration segments
+  ---
+  duration_ms: 0.232952
+  type: 'test'
+  ...
+# Subtest: face movement and resizing stay inside the output frame in PiP and person cutout layouts
+ok 9 - face movement and resizing stay inside the output frame in PiP and person cutout layouts
+  ---
+  duration_ms: 0.376179
+  type: 'test'
+  ...
+# Subtest: native contracts reject gaps, remote or reused outputs, broken holds and invalid audio values
+ok 10 - native contracts reject gaps, remote or reused outputs, broken holds and invalid audio values
+  ---
+  duration_ms: 1.148147
+  type: 'test'
+  ...
+# Subtest: completed native output must preserve length, canvas, timeline and microphone mix evidence
+ok 11 - completed native output must preserve length, canvas, timeline and microphone mix evidence
+  ---
+  duration_ms: 0.464273
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 28.792

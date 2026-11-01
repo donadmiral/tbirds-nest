@@ -68,6 +68,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const [pipAvailable, setPipAvailable] = useState(false);
   const [fill, setFill] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [nearViewport, setNearViewport] = useState(immersive);
   const [notice, setNotice] = useState("");
   const trimStart = edit?.trimStart;
   const trimEnd = edit?.trimEnd;
@@ -119,6 +120,18 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
       if (explicit) setNotice("Playback could not start. Try playing again.");
     });
   }, [allowPlayback, stop, src, trimStart, trimEnd]);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || !allowPlayback || dataSaverEnabled()) { setNearViewport(false); return; }
+    if (immersive || typeof IntersectionObserver === 'undefined') { setNearViewport(true); return; }
+    // Buffer only the next viewport, before the separate visibility observer starts playback.
+    const upcoming = new IntersectionObserver(([entry]) => {
+      setNearViewport(!!entry?.isIntersecting && !document.hidden);
+    }, { rootMargin: '75% 0px', threshold: 0 });
+    upcoming.observe(el);
+    return () => upcoming.disconnect();
+  }, [allowPlayback, immersive]);
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -247,7 +260,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
       style={!expanded && !fullFrame && width && height ? { aspectRatio: width + " / " + height } : undefined}
       className={"video-player group relative overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl " + (expanded ? "flex h-full w-full flex-col items-stretch bg-[#0b0b0d]" : "h-full w-full rounded-lg bg-black")}>
       <div ref={viewportRef} className={expanded?"relative flex min-h-0 flex-1 items-center justify-center overflow-hidden":fullFrame?"relative flex h-full w-full items-center justify-center overflow-hidden":"relative h-full w-full overflow-hidden"}>
-      <video poster={poster||edit?.coverUrl||undefined} style={{...(fitted ? { width: fitted.width, height: fitted.height, flexShrink: 0 } : {}), objectFit:showFullFrame?"contain":expanded?"cover":(edit?.fit||"cover"),transform:`translate(${(edit?.translateNX||0)*100}%, ${(edit?.translateNY||0)*100}%) scale(${edit?.scale||1}) rotate(${edit?.rotation||0}deg) scaleX(${edit?.flipX?-1:1})`}} ref={ref} src={src} playsInline muted={edit?.muted || muted} preload={allowPlayback && !dataSaverEnabled() ? "metadata" : "none"}
+      <video poster={poster||edit?.coverUrl||undefined} style={{...(fitted ? { width: fitted.width, height: fitted.height, flexShrink: 0 } : {}), objectFit:showFullFrame?"contain":expanded?"cover":(edit?.fit||"cover"),transform:`translate(${(edit?.translateNX||0)*100}%, ${(edit?.translateNY||0)*100}%) scale(${edit?.scale||1}) rotate(${edit?.rotation||0}deg) scaleX(${edit?.flipX?-1:1})`}} ref={ref} src={src} playsInline muted={edit?.muted || muted} preload={allowPlayback && nearViewport && !dataSaverEnabled() ? "auto" : "none"}
         onClick={(e) => { e.stopPropagation(); wrapRef.current?.focus(); togglePlay(); }}
         onDoubleClick={(e) => { e.stopPropagation(); void toggleFullscreen(); }}
         onPlay={() => {

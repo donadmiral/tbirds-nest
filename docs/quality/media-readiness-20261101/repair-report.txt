@@ -1,0 +1,52 @@
+PLATINUM CIRCLES — MEDIA READINESS REPAIR
+Prepared 1 November 2026
+
+STATUS
+The source changes are implemented and committed locally. They have not been uploaded to GitHub, built into new native QA previews, or installed on a device. This is a repair and verification report, not a claim of measured production performance.
+
+Source commit: df5c6ace6aeb400a9d1929f0fea142937c0ad362
+Base commit: 73dfcd56b12c2d31f273c74d128c9169fbd73431
+Local branch: codex/media-readiness-20261101
+Repository: https://github.com/donadmiral/tbirds-nest
+Source change: 47 files; 1,566 insertions and 286 deletions.
+
+REPAIRS
+
+React export
+The iOS image-capture path can be an absolute filesystem path without a file:// prefix. The reaction export validator rejected that valid capture path, causing the invalid-request error shown in the screenshot. The export boundary now normalizes and escapes local paths for captured layers, the source and the camera recording. Export failure continues to preserve the recorded take for retry.
+
+Feed videos and images
+The old shared-player replacement could briefly expose the previous video's frame. The new bounded player pool keeps each player attached to its own exact source, allows one audible owner, and prepares up to two upcoming videos. A card retains its own poster until that source delivers its first frame. Source identities guard asynchronous completions, recycled images, failures and retries. Navigation, account changes and backgrounding release stale players. Nearby web videos load ahead while far-away videos avoid unnecessary loading.
+
+Stories
+The story strip prepares the first unseen story before entry and reuses the in-flight request when tapped. Short-lived, account-scoped readiness data and a bounded native iOS warm-player pool prepare upcoming content. Playback keeps the correct poster through the saved trim seek and first-frame delivery. Photo callbacks are tied to the current source and retry. Author metadata no longer blocks opening media.
+
+Memory books
+The album authorization already covers retained story pages. Redundant per-story authorization work is now removed for those covered pages, with separate authorization retained for embedded posts and unrelated stories. Bounded concurrent media signing avoids sequential batches. Covers use a matching thumbnail when available, and the next native clips are prepared ahead. Native and web film playback retains the correct cover/poster until the required frame is available.
+
+Thumbnails and messages
+Thumbnail work has bounded concurrency and queue size, source-bound rendering, a time-bounded visible fallback, and account-scoped cleanup. A timed-out native decoder cannot silently exceed the concurrency limit.
+Inbox and chat text can render before attachment and group-photo grants finish. Late avatar results update only photo fields and cannot overwrite newer conversation text or unread state. Private attachments remain withheld until authorized.
+
+VERIFICATION
+
+422 consolidated focused regression cases passed across 29 test files, with zero failed or skipped. The machine-readable report and raw TAP logs are in docs/quality/media-readiness-20261101/focused-results.json and its logs directory.
+
+An additional 8 thumbnail lifecycle cases and 4 feed-owner lifecycle cases passed in separate targeted runs. Their successful execution was recorded in tool history; raw TAP files for those runs were not retained. These checks include stale-source rejection, account changes, bounded decoder work, background/foreground recovery and native-player error recovery.
+
+Both the native and web TypeScript checks passed:
+node node_modules/typescript/bin/tsc --noEmit --pretty false --incremental false
+The web command ran from the web directory. git diff --check also passed.
+
+The reported test durations measure test execution, not media startup speed. Tests use controlled transports and native/browser mocks where described in their source. They do not establish physical-device playback, real network latency, or equivalence to Instagram or X.
+
+DELIVERY AND DEVICE VERIFICATION STILL REQUIRED
+
+Automatic approval review rejected the Git push because it would publish new source to a public repository and requires explicit current permission for that upload. Repository ownership and push rights were verified, but the second review still required explicit permission. No alternative upload route was used.
+
+The prepared next step is to upload this exact repair branch to donadmiral/tbirds-nest and create new iOS and Android QA previews in the existing Expo project. The native Swift changes still require compilation and device playback verification. The currently installed QA builds do not contain these fixes.
+
+Device verification should exercise the user's reported flows: export the held-photo React take, open stories from a cold and warm entry, rapidly scroll feed videos in both directions, open a memory-book cover and film, and open conversations while attachments load. Confirm correct first-frame identity, recovery after backgrounding and account changes, and measure tap-to-first-frame on a good connection.
+
+These changes remove identified avoidable waits and stale-frame paths. Remaining network or server delivery delays cannot be claimed eliminated without the new builds and measured device results.
+

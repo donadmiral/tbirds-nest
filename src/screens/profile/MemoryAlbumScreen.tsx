@@ -1,4 +1,4 @@
-import {memoryPageSoundtrack} from '../../../shared/memoryFilm';
+import {memoryFilmItems,memoryPageSoundtrack} from '../../../shared/memoryFilm';
 import SoundtrackPicker from '../../components/SoundtrackPicker';
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
@@ -18,12 +18,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, FlatList,
   ActivityIndicator, Alert, StatusBar, ScrollView, Animated,
-  Easing, KeyboardAvoidingView, Platform, AppState, useWindowDimensions, AccessibilityInfo,
+  Easing, KeyboardAvoidingView, Platform, AppState, useWindowDimensions, AccessibilityInfo, Image as NativeImage,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
-import { StoryVideoView as VideoView, useStoryVideoPlayer as useVideoPlayer } from '../../../modules/boomerang/storyVideo';
+import { StoryVideoView as VideoView, useStoryVideoPlayer as useVideoPlayer, prewarmStoryVideo } from '../../../modules/boomerang/storyVideo';
 import { hydrateMemoryAlbumMedia, hydrateStoryMedia } from '../../services/contentMedia';
 import { supabase } from '../../services/supabase';
 import { COVER_COLORS } from '../../components/MemoryAlbumCard';
@@ -45,6 +45,8 @@ import { useMemoryPlayback } from '../../hooks/useMemoryPlayback';
 import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
 import { createMemorySoundtrackSaveHook } from '../../../shared/useMemorySoundtrackSave';
 import { createMemoryReaderRequest } from '../../../shared/memoryReaderRequest';
+import { navigationScope } from '../../lib/navigationCache';
+import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 const useMemorySoundtrackSave = createMemorySoundtrackSaveHook({ useEffect, useRef, useState });
 const PAGE_CREAM = '#FBF6EC';
 
@@ -272,6 +274,21 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     [album],
   );
   const draftCoverMedia = memoryCoverMedia(memoryCoverPage(pages, coverStoryId));
+
+  useEffect(() => {
+    if (!focused || !foreground || filmVisible || !viewerId || callState !== 'idle') return;
+    const scope = navigationScope();
+    if (!scope) return;
+    // The first memory starts preparing while its cover is visible. Page turns
+    // warm the following memory without keeping an entire book of players alive.
+    const start = opened ? idx + 1 : 0;
+    for (const entry of memoryFilmItems(pages.slice(start, start + 2))) {
+      if (entry.kind === 'video') prewarmStoryVideo(entry.uri, scope, album?._mediaExpiresAt ?? undefined);
+      const photo = entry.kind === 'image' ? entry.uri : null;
+      if (photo && privateImageCachePolicy(photo) !== 'none') void NativeImage.prefetch(photo).catch(() => {});
+      if (entry.poster && privateImageCachePolicy(entry.poster) !== 'none') void ExpoImage.prefetch(entry.poster).catch(() => {});
+    }
+  }, [pages, idx, opened, focused, foreground, filmVisible, viewerId, callState, album?._mediaExpiresAt]);
 
   useEffect(() => { if (idx > 0 && idx >= pages.length) setIdx(Math.max(0, pages.length - 1)); }, [pages.length, idx]);
   const pageAudio = useSoundtrackPlayer({selection:memoryPageSoundtrack(pages[idx]),use:'memory_album',playbackKey:pages[idx]?.id,active:focused && foreground && callState === 'idle' && opened && !filmVisible && (!playMode || playing) && !grid && !pageActions && !settings && !musicOpen && !picker && !captionFor && !playingUrl});
@@ -534,7 +551,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
         </View>
       )}
 
-      {filmVisible && pages.length > 0 && <MemoryFilm key={`${bookId}:${viewerId}`} bookId={bookId??undefined} revision={album.presentation_revision} filmSettings={album.film_settings} title={album.title} pages={pages} soundtrack={album.soundtrack} active={focused} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} onPost={postId => { setFilmVisible(false); navigation.push('PostTop', { postId }); }} />}
+      {filmVisible && pages.length > 0 && <MemoryFilm key={`${bookId}:${viewerId}`} bookId={bookId??undefined} mediaExpiresAt={album._mediaExpiresAt??undefined} revision={album.presentation_revision} filmSettings={album.film_settings} title={album.title} pages={pages} soundtrack={album.soundtrack} active={focused} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} onPost={postId => { setFilmVisible(false); navigation.push('PostTop', { postId }); }} />}
 
       <Modal visible={picker} animationType="slide" onRequestClose={() => setPicker(false)}>
         <View style={[st.safe, { paddingTop: Math.max(insets.top, 12) }]}>
@@ -713,10 +730,12 @@ const st = themedSheet((t) => ({
 function PageVideo({ url, page, active, onRetry, controls = false, onEnd, onProgress }: { url: string; page?: MemoryStoryPage | null; active:boolean; onRetry:()=>void; controls?:boolean; onEnd?:()=>void; onProgress?:(progress:number)=>void }) {
   // duration_sec can describe the selected excerpt; the player knows source duration.
   const recipe = useMemo(()=>memoryStoryRecipe(page?.media_transform),[page?.media_transform]);
-  const pv = useVideoPlayer(url, pp => { pp.loop = true; pp.muted = true; pp.timeUpdateEventInterval = .05; });
+  const pv = useVideoPlayer(url, pp => { pp.loop = true; pp.muted = true; pp.timeUpdateEventInterval = .05; pp.currentTime = recipe.start; });
   const [muted, setMuted] = React.useState(true);
   const [failed,setFailed]=useState(false);
+  const [frameSource,setFrameSource]=useState<string|null>(null);
   const [clock,setClock]=useState(recipe.start);
+  const poster = memoryCoverMedia(page).photoUrl;
   const activeRef=useRef(active);activeRef.current=active;
   const completion=useRef({onEnd,onProgress,done:false});completion.current.onEnd=onEnd;completion.current.onProgress=onProgress;
   const advancesOnEnd=!!onEnd;
@@ -726,7 +745,7 @@ function PageVideo({ url, page, active, onRetry, controls = false, onEnd, onProg
     let window=recipe;
     const apply=()=>{try{window=memoryStoryRecipe({trimStart:recipe.start,trimEnd:recipe.end},pv.duration);pv.playbackRate=recipe.speed;pv.volume=recipe.volume;if(!initialized){pv.currentTime=window.start;setClock(window.start);initialized=pv.status==='readyToPlay';}}catch{}};
     apply();
-    const status=pv.addListener('statusChange',({status})=>{setFailed(status==='error');if(status==='readyToPlay')apply();});
+    const status=pv.addListener('statusChange',({status})=>{if(status==='error')setFailed(true);if(status==='readyToPlay')apply();});
     const time=pv.addListener('timeUpdate',({currentTime})=>{
       if(!activeRef.current)return;
       if(window.end!=null)completion.current.onProgress?.(Math.max(0,Math.min(1,(currentTime-window.start)/(window.end-window.start))));
@@ -740,11 +759,19 @@ function PageVideo({ url, page, active, onRetry, controls = false, onEnd, onProg
     return()=>{status.remove();time.remove();ended.remove();};
   },[pv,recipe]);
   useEffect(()=>{try{pv.muted=muted||recipe.volume===0;pv.volume=recipe.volume;}catch{}},[pv,muted,recipe.volume]);
-  useMemoryVideoLifecycle(pv,active);
+  useEffect(()=>{
+    if(!active||!url||frameSource===url||failed)return;
+    const timer=setTimeout(()=>setFailed(true),20000);
+    return()=>clearTimeout(timer);
+  },[active,url,frameSource,failed]);
+  useMemoryVideoLifecycle(pv,active&&!failed);
   if(!url||failed)return <TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry memory video" onPress={onRetry} style={{flex:1,alignItems:'center',justifyContent:'center',backgroundColor:'#0B1E3D',padding:16}}><Text style={{color:'#FFFFFF',textAlign:'center'}}>This memory video could not play. Tap to retry.</Text></TouchableOpacity>;
   return (
     <View style={{ width: '100%', height: '100%' }}>
-      <MemoryStoryFrame page={page} clock={clock}>{({fit,style})=><VideoView player={pv} style={style} contentFit={fit} nativeControls={controls} />}</MemoryStoryFrame>
+      <MemoryStoryFrame page={page} clock={clock}>{({fit,style})=><View style={style}>
+        <VideoView player={pv} style={StyleSheet.absoluteFill} contentFit={fit} nativeControls={controls} onFirstFrameRender={()=>setFrameSource(url)} />
+        {frameSource!==url&&poster&&<ExpoImage key={poster} source={{uri:poster}} recyclingKey={poster} cachePolicy={privateImageCachePolicy(poster)} transition={0} contentFit={fit} style={StyleSheet.absoluteFill}/>}
+      </View>}</MemoryStoryFrame>
       {recipe.volume>0&&<TouchableOpacity onPress={() => setMuted(v=>!v)} style={{ position: 'absolute', left: 8, bottom: controls?54:8, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={muted ? 'Unmute original video sound' : 'Mute original video sound'}>
         <Feather name={muted ? 'volume-x' : 'volume-2'} size={15} color="#FFFFFF" />
       </TouchableOpacity>}

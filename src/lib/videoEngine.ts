@@ -1,67 +1,90 @@
-/**
- * One video engine for the whole app. Surfaces attach to it instead of creating
- * players; the surface that is on screen and in front owns it, and the same file
- * carries over from the feed to the post without restarting. A surface that
- * leaves the screen releases the engine and the engine pauses: nothing plays
- * out of view. Only the owner writes to the player; idle cards never touch it.
- */
+/** One audible owner, with two nearby sources buffering in separate native players. */
 import { useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import { createVideoPlayer, VideoPlayer } from 'expo-video';
 import { create } from 'zustand';
+import { createVideoReadinessPool, type PreparedVideoSource } from '../../shared/videoReadiness';
+import { subscribeNavigationScope } from './navigationCache';
 
-type EngineState = { uri: string | null; owner: string | null; postId: string | null };
-export const useVideoEngine = create<EngineState & { set: (p: Partial<EngineState>) => void }>((set) => ({
-  uri: null, owner: null, postId: null, set: (p) => set(p),
-}));
+type EngineState = {
+  uri: string | null; owner: string | null; postId: string | null;
+  player: VideoPlayer | null; ready: boolean; failed: boolean; foreground: boolean; version: number;
+};
+const empty: EngineState = { uri: null, owner: null, postId: null, player: null, ready: false, failed: false, foreground: AppState.currentState === 'active', version: 0 };
+export const useVideoEngine = create<EngineState & { set: (p: Partial<EngineState>) => void }>((set) => ({ ...empty, set }));
 
-let player: VideoPlayer | null = null;
-export function getVideoPlayer(): VideoPlayer {
-  if (!player) { player = createVideoPlayer(null); player.loop = true; player.timeUpdateEventInterval = 0.25; }
+const pool = createVideoReadinessPool(() => {
+  const player = createVideoPlayer(null);
+  player.loop = true;
+  player.muted = true;
+  player.timeUpdateEventInterval = 0.25;
+  player.bufferOptions = { preferredForwardBufferDuration: 8, minBufferForPlayback: 0.5, maxBufferBytes: 8 * 1024 * 1024, waitsToMinimizeStalling: true };
   return player;
-}
+}, entry => {
+  const state = useVideoEngine.getState();
+  if (state.player === entry.player && state.uri === entry.uri) state.set(entry.disposed
+    ? { player: null, ready: false, failed: false }
+    : { ready: entry.ready, failed: entry.failed });
+});
 
-// A position handed from one surface to the next: the expanded viewer closing back onto the feed.
 let pendingSeek: { uri: string; at: number } | null = null;
 export function seekWhenClaimed(uri: string, at: number) { pendingSeek = { uri, at }; }
-
-/** Where the engine is in a file right now, so another surface can start from the same moment. */
 export function enginePosition(uri: string): number {
-  if (!player || useVideoEngine.getState().uri !== uri) return 0;
-  try { return Number(player.currentTime) || 0; } catch { return 0; }
+  const state = useVideoEngine.getState();
+  if (state.uri !== uri || !state.ready) return 0;
+  try { return Number(state.player?.currentTime) || 0; } catch { return 0; }
 }
-
-/** Pause and free the engine, whoever holds it. */
+export function prefetchFeedVideos(sources: PreparedVideoSource[]) { pool.prefetch(sources); }
 export function releaseEngine() {
-  try { getVideoPlayer().pause(); } catch {}
+  pool.release();
   useVideoEngine.getState().set({ owner: null });
 }
+export function clearVideoEngine() {
+  useVideoEngine.getState().set({ ...empty, foreground: AppState.currentState === 'active' });
+  pool.clear();
+  pendingSeek = null;
+}
+subscribeNavigationScope(clearVideoEngine);
+AppState.addEventListener('change', state => { if (state !== 'active') clearVideoEngine(); useVideoEngine.getState().set({ foreground: state === 'active' }); });
 
-export function useSharedVideo(o: { uri: string; visible: boolean; screenActive: boolean; postId?: string | null; rate?: number; preservesPitch?: boolean; muted?: boolean; loop?: boolean }) {
-  const idRef = useRef('v' + Math.random().toString(36).slice(2));
-  const id = idRef.current;
-  const owner = useVideoEngine((s) => s.owner);
-  const owns = owner === id;
-  const active = o.visible && o.screenActive;
+export function useSharedVideo(o: { uri: string; visible: boolean; screenActive: boolean; postId?: string | null; rate?: number; preservesPitch?: boolean; muted?: boolean; loop?: boolean; startAt?: number }) {
+  const id = useRef('v' + Math.random().toString(36).slice(2)).current;
+  const state = useVideoEngine();
+  const owns = state.owner === id && state.uri === o.uri;
+  const active = o.visible && o.screenActive && state.foreground;
   useEffect(() => {
-    if (!active) return;
-    const p = getVideoPlayer();
-    const st = useVideoEngine.getState();
-    if (st.uri !== o.uri) { try { p.replaceAsync(o.uri).catch(() => {}); } catch {} }
-    if (pendingSeek && pendingSeek.uri === o.uri) { try { p.currentTime = pendingSeek.at; } catch {} pendingSeek = null; }
-    p.loop = o.loop ?? true; p.muted = !!o.muted; p.preservesPitch = o.preservesPitch ?? true; p.playbackRate = o.rate || 1;
-    st.set({ owner: id, uri: o.uri, postId: o.postId ?? null });
+    if (!active || !o.uri) return;
+    const entry = pool.claim(o.uri);
+    const p = entry.player;
+    p.loop = o.loop ?? true;
+    p.muted = !!o.muted;
+    p.preservesPitch = o.preservesPitch ?? true;
+    p.playbackRate = o.rate || 1;
+    useVideoEngine.getState().set({ owner: id, uri: o.uri, postId: o.postId ?? null, player: p, ready: entry.ready, failed: entry.failed, version: entry.identity });
     return () => {
-      const s2 = useVideoEngine.getState();
-      if (s2.owner !== id) return;
-      try { p.pause(); } catch {}
-      s2.set({ owner: null });
+      const current = useVideoEngine.getState();
+      if (current.owner !== id) return;
+      pool.release();
+      current.set({ owner: null });
     };
   }, [active, o.uri, id]);
   useEffect(() => {
+    if (!owns || !state.player || !state.ready) return;
+    const p = state.player;
+    p.preservesPitch = o.preservesPitch ?? true;
+    p.playbackRate = o.rate || 1;
+    if (pendingSeek?.uri === o.uri) {
+      try { p.currentTime = pendingSeek.at; } catch {}
+      pendingSeek = null;
+    } else if (o.startAt && p.currentTime < o.startAt) {
+      try { p.currentTime = o.startAt; } catch {}
+    }
+  }, [owns, state.player, state.ready, o.uri, o.rate, o.preservesPitch, o.startAt]);
+  const canHold = !state.owner && state.uri === o.uri;
+  const retry = () => {
     if (!owns) return;
-    const current = getVideoPlayer();
-    current.preservesPitch = o.preservesPitch ?? true;
-    current.playbackRate = o.rate || 1;
-  }, [owns, o.rate, o.preservesPitch]);
-  return { player: getVideoPlayer(), owns };
+    const entry = pool.reload(o.uri);
+    state.set({ player: entry.player, ready: entry.ready, failed: entry.failed, version: entry.identity });
+  };
+  return { player: state.uri === o.uri ? state.player : null, owns, canHold, sourceReady: (owns || canHold) && state.ready, failed: owns && state.failed, version: state.version, retry };
 }

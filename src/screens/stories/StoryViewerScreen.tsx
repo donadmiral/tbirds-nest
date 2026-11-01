@@ -50,7 +50,8 @@ import { storyVideoPreviewAvailable } from '../../../modules/boomerang/storyComp
 import { useCallContext } from '../../contexts/CallContext';
 import { useStoryPlayback } from '../../hooks/useStoryPlayback';
 import { returnToFeed } from '../../navigation/returnToFeed';
-import { withStoryTimeout, storyPrefetchUrls } from '../../../shared/storyPlayback';
+import { withStoryTimeout } from '../../../shared/storyPlayback';
+import { takeStoryEntry, prewarmStoryMedia } from '../../services/storyReadiness';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
 import { useStoryInteractionScope } from '../../hooks/useStoryInteractionScope';
 import { DrawingLayer } from '../../components/stories/DrawLayer';
@@ -316,7 +317,6 @@ export default function StoryViewerScreen() {
   const pickerAnimStyle = useAnimatedStyle(() => ({ opacity: pickerOpacitySV.value, transform: [{ scale: pickerScaleSV.value }] }));
 
   const nextUserCache = useRef<Map<string, { stories: StoryRow[]; profile: any }>>(new Map());
-  const preloadStatus = useRef<Map<string, 'pending' | 'done' | 'failed'>>(new Map());
 
   useEffect(() => { return () => { nextUserCache.current.clear(); if (holdoverCleanupRef.current) clearTimeout(holdoverCleanupRef.current); if (replyFocusTimerRef.current) clearTimeout(replyFocusTimerRef.current); }; }, []);
   useEffect(() => { const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'; const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'; const showSub = Keyboard.addListener(showEvent, (e) => { setKeyboardHeight(e.endCoordinates.height); }); const hideSub = Keyboard.addListener(hideEvent, () => { setKeyboardHeight(0); }); return () => { showSub.remove(); hideSub.remove(); }; }, []);
@@ -346,7 +346,7 @@ export default function StoryViewerScreen() {
   const captureInteraction = useStoryInteractionScope(myId, currentStoryId);
   const isVideo = currentStory?.media_type === 'video';
   const isText = currentStory?.media_type === 'text';
-  const videoPlayer = useVideoPlayer(isVideo && !isText && currentStory ? currentStory.media_url : null, (player) => { if (player) { player.loop = false; player.muted = false; } });
+  const videoPlayer = useVideoPlayer(isVideo && !isText && currentStory ? currentStory.media_url : null, (player) => { if (player) { player.loop = false; player.muted = false; player.currentTime = Math.max(0, Number(currentStory?.media_transform?.trimStart) || 0); } });
   // Dual viewer swap state (viewer-only, does not persist)
   const [dualSwapped, setDualSwapped] = useState(false);
   const dualSwapOpacity = useSharedValue(1);
@@ -436,23 +436,26 @@ export default function StoryViewerScreen() {
     const request = ++loadGeneration.current, viewer = myId;
     const current = () => loadGeneration.current === request && viewerRef.current === viewer;
     if (!currentUserId || !viewer) { setStories([]); setLoadedViewer(null); setLoading(false); return; }
-    setLoading(true); setLoadError(false);
+    setLoading(true); setLoadError(false); setStoryUser(null);
     try {
       const cacheKey = viewer + ':' + currentUserId;
-      const cached = highlightId ? undefined : nextUserCache.current.get(cacheKey);
+      const cached = highlightId ? undefined : nextUserCache.current.get(cacheKey) || await takeStoryEntry(currentUserId);
+      if (!current()) return;
       nextUserCache.current.delete(cacheKey);
       const fresh = cached && cached.stories.every(story => {
         const expiry = (story as StoryRow & { _mediaExpiresAt?: number })._mediaExpiresAt;
         return Date.parse(story.expires_at) > Date.now() && (!expiry || expiry > Date.now() + 60000);
       });
-      const [userStories, profileRes] = fresh ? [cached!.stories, { data: cached!.profile }] : await withStoryTimeout(Promise.all([
-        highlightId ? storiesService.getHighlightStories(highlightId) : storiesService.getUserStories(currentUserId),
-        supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', currentUserId).maybeSingle(),
-      ]));
+      if (fresh && cached!.profile) setStoryUser(cached!.profile);
+      else void Promise.resolve(supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', currentUserId).maybeSingle())
+        .then(result => { if (current()) setStoryUser(result.data || null); }, () => {});
+      // Author labels may arrive later. Their query must never delay the clip.
+      const userStories = fresh ? cached!.stories : await withStoryTimeout(
+        highlightId ? storiesService.getHighlightStories(highlightId) : storiesService.getUserStories(currentUserId));
       if (!current()) return;
       const targetId = requestedStoryId || (startStoryId && (currentUserId === startUserId || params?.storyId) ? startStoryId : undefined);
       const targetStory = targetId ? userStories.findIndex(s => s.id === targetId) : undefined;
-      setStories(targetStory === -1 ? [] : userStories); setLoadedViewer(viewer); setLoadedUser(currentUserId); setStoryUser(profileRes.data || null);
+      setStories(targetStory === -1 ? [] : userStories); setLoadedViewer(viewer); setLoadedUser(currentUserId);
       if (targetStory !== undefined) {
         setStoryIndex(Math.max(0, targetStory));
       } else if (!highlightId && !resumeConsumedRef.current && resumeStoryIndex >= 0 && resumeStoryIndex < userStories.length) {
@@ -465,22 +468,22 @@ export default function StoryViewerScreen() {
     finally { if (current()) setLoading(false); }
   }, [currentUserId, myId, highlightId, resumeStoryIndex, startStoryId, startUserId, params?.storyId]);
   useEffect(() => { void loadForCurrentUser(); return () => { loadGeneration.current++; }; }, [loadForCurrentUser]);
-  useEffect(() => { activityRequest.current += 1; nextUserCache.current.clear(); preloadStatus.current.clear(); setHoldoverMedia(null); setViewers([]); setViewersOpen(false); setReplyText(''); }, [myId]);
+  useEffect(() => { activityRequest.current += 1; nextUserCache.current.clear(); setHoldoverMedia(null); setViewers([]); setViewersOpen(false); setReplyText(''); }, [myId]);
 
   const prefetchStory = useCallback((story: StoryRow | undefined) => {
-    const viewer = myId;
-    for (const url of storyPrefetchUrls(story)) {
-      if (preloadStatus.current.has(url) && preloadStatus.current.get(url) !== 'failed') continue;
-      preloadStatus.current.set(url, 'pending');
-      void Image.prefetch(url).then(ok => { if (viewerRef.current === viewer) preloadStatus.current.set(url, ok ? 'done' : 'failed'); })
-        .catch(() => { if (viewerRef.current === viewer) preloadStatus.current.set(url, 'failed'); });
-    }
+    prewarmStoryMedia(story);
   }, [myId]);
   useEffect(() => {
+    if (!mediaReady) return;
     let cancelled = false;
     const preloadUser = async (userId: string) => {
       const cacheKey = myId + ':' + userId;
-      if (!myId || !userId || nextUserCache.current.has(cacheKey)) return;
+      if (!myId || !userId) return;
+      const cached = nextUserCache.current.get(cacheKey);
+      if (cached) {
+        if (storyIndex >= stories.length - 2) prefetchStory(cached.stories.find(story => !story.is_viewed) || cached.stories[0]);
+        return;
+      }
       try {
         const [userStories, profileRes] = await withStoryTimeout(Promise.all([
           storiesService.getUserStories(userId),
@@ -493,16 +496,19 @@ export default function StoryViewerScreen() {
         }
         nextUserCache.current.set(cacheKey, { stories: userStories, profile: profileRes.data || null });
         const first = userStories.find(story => !story.is_viewed) || userStories[0];
-        prefetchStory(first);
+        if (storyIndex >= stories.length - 2) prefetchStory(first);
       } catch { /* Prefetch is optional; the active loader has retry controls. */ }
     };
     const nextUser = userIds[userIndex + 1];
     if (nextUser && !highlightId) void preloadUser(nextUser);
     return () => { cancelled = true; };
-  }, [userIndex, userIds, myId, prefetchStory, highlightId]);
+  }, [userIndex, userIds, myId, prefetchStory, highlightId, mediaReady, storyIndex, stories.length]);
   useEffect(() => {
-    prefetchStory(stories[storyIndex + 1]); prefetchStory(stories[storyIndex + 2]);
-  }, [storyIndex, stories, prefetchStory]);
+    prefetchStory(stories[storyIndex + 1]);
+    // Keep the initially warmed clip until its native view has claimed it.
+    // Only then fill the second look-ahead slot.
+    if (mediaReady) prefetchStory(stories[storyIndex + 2]);
+  }, [storyIndex, stories, prefetchStory, mediaReady]);
 
   const refreshReactions = useCallback(async (reportFailure = false) => {
     if (!currentStoryId || !myId || currentStoryOwner === myId) return false;
@@ -1055,7 +1061,7 @@ export default function StoryViewerScreen() {
       <Animated.View ref={mediaWrapRef} style={[s.mediaWrap, { transform: [{ translateX: pinchTX }, { translateY: pinchTY }, { scale: pinchScale }] }]} pointerEvents="box-none" onLayout={(e) => { handleMediaLayout(e); requestAnimationFrame(() => { (mediaWrapRef.current as any)?.measureInWindow?.((x: number, y: number) => { mediaOriginRef.current = { x: x || 0, y: y || 0 }; }); }); }}>
         <ReAnimated.View style={[StyleSheet.absoluteFill, microParallaxStyle]}>
         {holdoverMedia && holdoverMedia.type === 'image' && (<View style={[StyleSheet.absoluteFill, { zIndex: 0 }]}>{holdoverFitMode === 'contain' && (<Image source={{ uri: holdoverMedia.url }} style={[s.media, { position: 'absolute', zIndex: -1, opacity: 0.22 }]} resizeMode="cover" blurRadius={35} fadeDuration={0} />)}<Image source={{ uri: holdoverMedia.url }} style={[s.media, holdoverHasTransform ? { transform: [{ translateX: holdoverMedia.transform!.translateNX * mediaSize.w }, { translateY: holdoverMedia.transform!.translateNY * mediaSize.h }, { scale: holdoverMedia.transform!.scale }] } : undefined]} resizeMode={holdoverFitMode} fadeDuration={0} /></View>)}
-        {holdoverMedia && holdoverMedia.type === 'video' && (<View style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: '#020408' }]} />)}
+        {isVideo && currentStory.thumbnail_url && !mediaReady ? <Image key={'poster-' + mediaSessionKey} source={{ uri: currentStory.thumbnail_url }} style={[StyleSheet.absoluteFill, { zIndex: 2 }]} resizeMode={mediaFitMode} fadeDuration={0} /> : null}
 
         {hasDual && isSplitMode ? renderSplitDual() : (
           <ZoomableMedia onZoomChange={(z) => { if (z) pauseFor('zoom'); else resumeFrom('zoom'); }}>
