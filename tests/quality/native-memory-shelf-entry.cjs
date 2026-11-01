@@ -83,7 +83,7 @@ test('the exact semantic shelf link requests another scroll instead of accepting
   assert.ok(safeBox.bottom < systemBar.top);
 });
 
-test('shelf centering and explicit title replacement preserve every other selector, assertion, timeout and lifecycle operation', () => {
+test('reviewed shelf, title, keyboard and saved-title readback changes preserve every other flow operation', () => {
   const expected = structuredClone(before);
   expected[1][0].scrollUntilVisible.centerElement = true;
   const title = expected[1].findIndex(command => command.tapOn === 'Book title');
@@ -92,12 +92,36 @@ test('shelf centering and explicit title replacement preserve every other select
     { tapOn: 'Book title' }, 'eraseText', { inputText: 'THE LONG WAY HOME' },
   ]);
   // The separately reproduced mid-string erase defect requires selecting all
-  // and reading the exact controlled value before Save. Keep this delta exact;
-  // every remaining command must still match the immutable observed baseline.
+  // and reading the exact controlled value before Save.
   expected[1].splice(title, 3,
     { longPressOn: 'Book title' }, { tapOn: 'Select [Aa]ll' }, { eraseText: 1 },
     { inputText: 'THE LONG WAY HOME' }, { copyTextFrom: 'Book title' },
     { assertTrue: '${maestro.copiedText === "THE LONG WAY HOME"}' });
+  // The later independently reproduced Save failure retired all three Android
+  // Back-based keyboard dismissals. Account for only those reviewed replacements
+  // and the explicit Save visibility assertion, retaining the historical baseline.
+  let keyboardExits = 0;
+  expected[1] = expected[1].flatMap(command => {
+    if (!command.runFlow) return [command];
+    assert.deepEqual(command, { runFlow: { when: { platform: 'Android' }, commands: ['hideKeyboard'] } });
+    keyboardExits++;
+    return [
+      { scrollUntilVisible: { element: 'Paper tint', direction: keyboardExits === 1 ? 'DOWN' : 'UP', centerElement: true } },
+      { tapOn: 'Paper tint' },
+      { assertVisible: 'Book settings' },
+    ];
+  });
+  assert.equal(keyboardExits, 3);
+  const save = expected[1].findIndex(command => command.tapOn === 'Save memory book');
+  assert.ok(save >= 0);
+  expected[1].splice(save, 0, { assertVisible: 'Save memory book' });
+  const reloadedFilm = expected[1].findIndex(command => command.scrollUntilVisible?.element === 'Play continuous memory film with original music');
+  assert.ok(reloadedFilm > save);
+  expected[1].splice(reloadedFilm, 0,
+    { tapOn: 'Edit memory book' }, { assertVisible: 'Book settings' },
+    { copyTextFrom: 'Book title' }, { assertTrue: '${maestro.copiedText === "THE LONG WAY HOME"}' },
+    { tapOn: 'Cancel memory book edits' },
+    { extendedWaitUntil: { notVisible: 'Book settings', timeout: 15000 } });
   assert.deepEqual(actual, expected);
-  assert.equal(actual[1].length, before[1].length + 3);
+  assert.equal(actual[1].length, before[1].length + 16);
 });

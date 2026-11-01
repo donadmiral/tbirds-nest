@@ -105,6 +105,7 @@ function runtime({ platform = 'android', qa = false, env = {} } = {}) {
     if (name === './backend-fixture.cjs') return { createFixture() { events.push('fixture'); return fixture; }, FixtureWebSocket: class {} };
     if (name === './fixture-runtime.cjs') return { installFixtureRuntime(value) { assert.equal(value, fixture); runtimeInstalled = true; events.push('runtime'); } };
     if (name === './capture-boundary-trace.cjs') return require('../native/capture-boundary-trace.cjs');
+    if (name === './navigation-timing.cjs') return require('../native/navigation-timing.cjs');
     if (name === './install-fixture-transport.cjs') return { installFixtureTransport(value) { assert.equal(value, fixture); transportInstalled = true; sandbox.fetch = fixture.fetch; events.push('transport'); } };
     if (name === '../../src/navigation/linking') {
       // Treat the first app dependency as auth-capable, so the QA bootstrap

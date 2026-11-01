@@ -182,6 +182,7 @@ function entryRuntime({ parser, action, recorder } = {}) {
     './install-fixture-transport.cjs': { installFixtureTransport: value => { assert.equal(value, fixture); events.push('transport'); } },
     './fixture-runtime.cjs': { installFixtureRuntime: value => { assert.equal(value, fixture); events.push('runtime'); } },
     './capture-boundary-trace.cjs': require('../native/capture-boundary-trace.cjs'),
+    './navigation-timing.cjs': require('../native/navigation-timing.cjs'),
     expo: { registerRootComponent: () => events.push('registered') }, '@daily-co/react-native-daily-js': {},
     '../../src/navigation/linking': { linking }, '@react-navigation/native': { CommonActions, getActionFromState }, '../../App': { default() {} } };
   load('tests/native/entry.js', imports, false, { process: { env: { EXPO_PUBLIC_APP_ENV: 'qa', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'native-ui-synthetic-no-provider-key' } },
