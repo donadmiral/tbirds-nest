@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "kind": "retained-android-memory-save",
+  "packageId": "app.platinumcircles.mobile.qa",
+  "applicationSourceCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+  "applicationSourceTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+  "producerRunId": 41235679679,
+  "artifactId": 13055287858,
+  "artifactName": "native-audit-android-binary",
+  "artifactArchiveDigestFromGitHub": "7117b34750fea6a71760a5e0bb587e9750b6988b4687a689523655de8ec7d4a3",
+  "binarySha256": "9897c6328030bde3bf2bdbf4553012f5431362d4f7a0e53960821301daa14298",
+  "binaryManifestSha256": "f2bcf7ddc76fafe1083ceddaf6b3399acf08ff77b93e945927e9dd3e29bd8fed",
+  "sourceReceiptSha256": "cb2d155446c9bf3148089fec50757fa982574735c90ded43c53387e5f3aa9168",
+  "auditManifestSha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+  "originalFiles": {
+    "tests/native/audit/flows/_signin.yaml": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+    "tests/native/audit/flows/memory-cover-settings.yaml": "c441efc557a5a3adcfad5f5ebbaa2db92870ae93710c20fb59c29eefcf6dd409",
+    "scripts/quality/native-ui-audit-runner.py": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352",
+    "scripts/quality/native-ui-emulator-graphics.py": "7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78",
+    "scripts/quality/install-native-ui-tools.sh": "30ed0ef0d19fa409b18177d850009b0094cb7d20c86cf3e7f9809ea4192587f5"
+  },
+  "diagnosticFlow": "tests/native/audit/flows/retained-memory-cover-settings.yaml",
+  "diagnosticFlowSha256": "253d5e195a447ecc04494551f25b9f9eff99e903a23d118b38dcb2d9eaff0c00",
+  "receiptGateSha256": "743dcfe5138890cf269dd7d00d3b1440f2099f7f5f139b91fd76e58e5c32d055",
+  "caseId": "memory-cover-settings",
+  "caseName": "Retained Android book save and readback",
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false,
+  "currentApplicationRepairsIncluded": false
+}

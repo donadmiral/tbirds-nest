@@ -1,0 +1,86 @@
+name: Verify retained Android book Save without rebuilding
+
+on:
+  push:
+    branches: ['codex/android-save-retained-20261031']
+    paths:
+      - '.github/workflows/native-android-save-retained.yml'
+      - 'scripts/quality/native-ui-android-save-recovery.py'
+      - 'scripts/quality/native-ui-android-save-recovery.json'
+      - 'scripts/quality/run-retained-android-save.sh'
+      - 'scripts/quality/native-ui-audit-runner.py'
+      - 'tests/native/audit/flows/retained-memory-cover-settings.yaml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: retained-android-save-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CI: 'true'
+  EXPO_NO_TELEMETRY: '1'
+  EXPO_PUBLIC_APP_ENV: qa
+  EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+  MAESTRO_CLI_NO_ANALYTICS: 'true'
+  PYTHONDONTWRITEBYTECODE: '1'
+
+jobs:
+  retained-android-save:
+    name: Retained APK Save and persistence check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out the exact retained application source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: d46c50f09164c75c7fe8cdba0c3470c272b1ab4e
+          path: application
+          persist-credentials: false
+      - name: Check out the separate external Save verifier
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: consumer
+          persist-credentials: false
+      - name: Download the exact already-built APK artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: '13055287858'
+          merge-multiple: true
+          path: application/native-audit-binary
+          run-id: 41235679679
+          github-token: ${{ github.token }}
+      - name: Verify APK, source, original sign-in and corrected flow before device setup
+        working-directory: application
+        run: python3 ../consumer/scripts/quality/native-ui-android-save-recovery.py prepare
+      - name: Prepare the isolated Android host
+        shell: bash
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          test -d "${ANDROID_HOME:?The runner must provide its Android SDK}"
+          printf '%s\n' "$ANDROID_HOME/platform-tools" "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0 ffmpeg xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - name: Install the original checksum-pinned Maestro CLI
+        working-directory: application
+        run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run only the corrected external Save flow against the retained APK
+        working-directory: application
+        run: bash ../consumer/scripts/quality/run-retained-android-save.sh
+      - name: Preserve Save result, persistence evidence and setup failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: retained-android-save-results
+          path: |
+            application/native-save-results/
+            application/native-ui-logs/
+          if-no-files-found: warn
+          retention-days: 7
