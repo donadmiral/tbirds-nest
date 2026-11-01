@@ -1,0 +1,351 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-11-01T00:05:27.902485+00:00",
+  "status": "FAILED_RUNTIME_ACCEPTANCE_SETUP_PASSED",
+  "runId": 41253722308,
+  "jobId": 124692367750,
+  "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41253722308",
+  "firstTerminalObservationUtc": "2026-11-01T00:01:56Z",
+  "conclusion": "failure",
+  "artifact": {
+    "id": 13061634885,
+    "name": "native-audit-ios-d46-memory-recovery-results",
+    "zipBytes": 6194776,
+    "zipSha256": "7639cd3908b67d9133e56e6f40420221148072e63123b14a02e868cb6fab3cb8",
+    "extractedFileCount": 48,
+    "singleDownload": true,
+    "archivePathsCheckedBeforeExtraction": true
+  },
+  "source": {
+    "consumerCommit": "cd36cf4ea182de90e4097caff6072e00a76785fd",
+    "consumerSha256": "3fb4ff2ce8e7b2faaf0fe5ea59ab103b44ea449dd1ad917d042de202b6872d3f",
+    "workflowSha256": "7ff8fc30de1a859b944b50072e11f3e2db2ce7b84cf64e226b52799372fbbc07",
+    "applicationCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "applicationTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+    "producerBinding": {
+      "schemaVersion": 1,
+      "ready": true,
+      "applicationSourceCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+      "applicationSourceTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+      "producerRunId": 41235679679,
+      "producerArtifactName": "native-audit-ios-binary",
+      "producerArtifactId": 13056677052,
+      "producerArtifactZipSha256": "3c55aa17d81e231ec70175709f0014494d9510e2d078d9f8939cd93c6ba13909",
+      "producerArtifactZipBytes": 49161063,
+      "appArchiveSha256": "dd5964e468167a36f5dea5922c957bca15f2265be66e7934d4dc275af4759b5a",
+      "binaryManifestSha256": "c0d9df2f3265ba0f387565ad4e28e87758bac57f594450242f410dcdc353cfec",
+      "binarySha256": "485540b05dc964f8602c7e7d83b03c53e0d78c5bec15da9d1ffaa82f160d6774",
+      "sourceReceiptSha256": "cb2d155446c9bf3148089fec50757fa982574735c90ded43c53387e5f3aa9168"
+    },
+    "originalRunnerSha256": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352",
+    "auditManifestSha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+    "reviewedHelperHashes": {
+      "native-ui-ios-audit-recovery.py": "428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2",
+      "native-ui-ios-compatibility.py": "0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9",
+      "native-ui-ios-created-device.py": "d2ffc477184b8a55f3e557facf1928ac5e11976caf84f78f8050c356e172d3b7"
+    },
+    "sourceManifestMatchesPriorVerifiedProducer": true,
+    "priorProducerSourcePath": "docs/quality/native-full-app-20261031/native-audit-android-d46c50f0-41235679679/producer/source.json",
+    "rebuild": false,
+    "rebundle": false,
+    "resign": false,
+    "originalCasesUnchanged": true,
+    "currentLocalReaderChangesIncluded": false,
+    "verificationScope": "Artifact metadata/digest, retained exact producer binding, manifest bytes and consumer execution provenance checked. Previously verified producer source is reused; no duplicate build or complete source test suite."
+  },
+  "setup": {
+    "passed": true,
+    "commands": [
+      {
+        "stage": "compatibility-host-architecture",
+        "status": "completed",
+        "exitCode": 0,
+        "elapsedSeconds": 0.002463129999995317,
+        "timeoutSeconds": 30,
+        "startedAtEpochMs": 1793490256358,
+        "finishedAtEpochMs": 1793490256364
+      },
+      {
+        "stage": "compatibility-xcode-version",
+        "status": "completed",
+        "exitCode": 0,
+        "elapsedSeconds": 0.1192959840000185,
+        "timeoutSeconds": 30,
+        "startedAtEpochMs": 1793490256365,
+        "finishedAtEpochMs": 1793490256490
+      },
+      {
+        "stage": "compatibility-simulator-sdk",
+        "status": "completed",
+        "exitCode": 0,
+        "elapsedSeconds": 3.7900010410000107,
+        "timeoutSeconds": 30,
+        "startedAtEpochMs": 1793490256491,
+        "finishedAtEpochMs": 1793490260286
+      },
+      {
+        "stage": "compatibility-actual-mach-o",
+        "status": "completed",
+        "exitCode": 0,
+        "elapsedSeconds": 1.110741503000014,
+        "timeoutSeconds": 30,
+        "startedAtEpochMs": 1793490260288,
+        "finishedAtEpochMs": 1793490261405
+      },
+      {
+        "stage": "compatibility-app-signature",
+        "status": "completed",
+        "exitCode": 0,
+        "elapsedSeconds": 0.5188685340000063,
+        "timeoutSeconds": 30,
+        "startedAtEpochMs": 1793490261406,
+        "finishedAtEpochMs": 1793490261930
+      },
+      {
+        "stage": "create",
+        "status": "completed",
+        "exitCode": 0,
+        "elapsedSeconds": 10.237730032999991,
+        "timeoutSeconds": 120,
+        "startedAtEpochMs": 1793490261932,
+        "finishedAtEpochMs": 1793490272174
+      },
+      {
+        "stage": "compatibility-available-runtimes",
+        "status": "completed",
+        "exitCode": 0,
+        "elapsedSeconds": 0.6744095349999952,
+        "timeoutSeconds": 30,
+        "startedAtEpochMs": 1793490272176,
+        "finishedAtEpochMs": 1793490272857
+      },
+      {
+        "stage": "compatibility-selected-device",
+        "status": "completed",
+        "exitCode": 0,
+        "elapsedSeconds": 0.6745842769999797,
+        "timeoutSeconds": 30,
+        "startedAtEpochMs": 1793490272861,
+        "finishedAtEpochMs": 1793490273542
+      },
+      {
+        "stage": "boot",
+        "status": "completed",
+        "exitCode": 0,
+        "elapsedSeconds": 5.263210580999981,
+        "timeoutSeconds": 120,
+        "startedAtEpochMs": 1793490273546,
+        "finishedAtEpochMs": 1793490278815
+      },
+      {
+        "stage": "bootstatus",
+        "status": "completed",
+        "exitCode": 0,
+        "elapsedSeconds": 236.76559366200001,
+        "timeoutSeconds": 300,
+        "startedAtEpochMs": 1793490278858,
+        "finishedAtEpochMs": 1793490516552
+      }
+    ],
+    "actualCompatibility": {
+      "hostArchitecture": "x86_64",
+      "actualExecutableArchitecture": "x86_64",
+      "xcode": "Xcode 16.4\nBuild version 16F6",
+      "sdkVersion": "18.5",
+      "codeSignatureVerified": true,
+      "guestUnameInvoked": false,
+      "scope": "Actual host, producer toolchain, Simulator bundle metadata, Mach-O and signature. Runtime/device checks remain required."
+    },
+    "createdDevice": {
+      "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+      "runtimeVersion": "18.5",
+      "selectedDevice": "26473F8C-BABF-4F2C-AE1E-C31FC4600B8E",
+      "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+      "stateAtVerification": "Shutdown",
+      "runtimeAvailabilityVerified": true,
+      "scope": "Fresh runtime and created-device identity verified before boot. Exact-UUID boot readiness remains required."
+    },
+    "bootReadiness": {
+      "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+      "runtimeVersion": "18.5",
+      "selectedDevice": "26473F8C-BABF-4F2C-AE1E-C31FC4600B8E",
+      "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+      "bootstatusCompleted": true,
+      "scope": "Fresh runtime/device identity checked before boot; boot and bootstatus -b succeeded for that exact UUID. App launch remains required."
+    },
+    "observation": "This run passed the created-device check before boot and bootstatus for the exact UUID, then executed both authorized journeys. It was not another setup-only failure."
+  },
+  "originalCases": {
+    "declared": 85,
+    "selected": [
+      "memory-reader-controls"
+    ],
+    "unselected": 84,
+    "attempted": 1,
+    "passed": 0,
+    "failed": 1,
+    "case": {
+      "id": "memory-reader-controls",
+      "group": "memory",
+      "kind": "control-journey",
+      "attempts": 1,
+      "startedAtEpochMs": 1793491069554,
+      "status": "failed",
+      "timeoutSeconds": 180,
+      "exitCode": null,
+      "timedOut": true,
+      "executionIssue": "case-timeout",
+      "collection": [
+        {
+          "file": "native-ui-receipt.json",
+          "collected": true,
+          "bytes": 3840
+        },
+        {
+          "file": "native-ui-auth-diagnostics.json",
+          "collected": true,
+          "bytes": 26359
+        }
+      ],
+      "junit": {
+        "passed": false,
+        "issue": "missing-or-empty-junit"
+      },
+      "fixture": {
+        "passed": true,
+        "requestCount": 25,
+        "auditRequestCount": 0,
+        "auditMutationCount": 0
+      },
+      "mediaVerifierExitCode": null,
+      "finishedAtEpochMs": 1793491256424
+    },
+    "classification": "Whole-case budget exhaustion at Open book dispatch, after required reader readiness passed. No completed Open book input or Page 1 assertion was retained.",
+    "timing": {
+      "caseStartedUtc": "2026-10-31T23:57:49.554Z",
+      "wholeCaseDeadlineUtc": "2026-11-01T00:00:49.554Z",
+      "firstFlowUtc": "2026-10-31T23:58:58.789Z",
+      "cliStartupSeconds": 69.235,
+      "signInCompletedUtc": "2026-11-01T00:00:13.208Z",
+      "requiredBookBodyFulfilledUtc": "2026-11-01T00:00:26.885Z",
+      "reactionBodyFulfilledUtc": "2026-11-01T00:00:26.904Z",
+      "editMemoryBookAssertionPassedUtc": "2026-11-01T00:00:29.228Z",
+      "openBookCenteringStartUtc": "2026-11-01T00:00:29.230Z",
+      "openBookCenteringEndUtc": "2026-11-01T00:00:48.435Z",
+      "lastTapAimedUtc": "2026-11-01T00:00:49.545Z",
+      "millisecondsFromLastTapAimedToDeadline": 9,
+      "noOpenBookPostTouchRetained": true,
+      "limit": "Arithmetic correlates runner epoch time and driver log timestamps; not a calibrated native/JS latency measurement."
+    }
+  },
+  "separateDiagnostic": {
+    "kind": "additional-related-path-diagnostic",
+    "countedInBaseline85": false,
+    "flow": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+    "flowSha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82",
+    "timeoutSeconds": 600,
+    "readerRequirementMs": 15000,
+    "attempts": 1,
+    "startedAtEpochMs": 1793490677390,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 8529
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 74104
+      }
+    ],
+    "fixture": {
+      "passed": true,
+      "requestCount": 82,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "junit": {
+      "passed": false,
+      "issue": "ValueError"
+    },
+    "passed": false,
+    "finishedAtEpochMs": 1793491069551,
+    "classification": "Profile name assertion failed before any observed book request. Warm reader acceptance remains untested.",
+    "junitFailure": "Assertion is false: \"Alex Rivera\" is visible",
+    "junitTestSeconds": 154.844,
+    "bookRequestCount": 0,
+    "readerBodyEventCount": 0
+  },
+  "diagnostics": {
+    "observations": [
+      {
+        "case": "diagnostic-warm-tabs-reader",
+        "polls": 52,
+        "sampleTrigger": null,
+        "sampleCount": 0,
+        "observerErrors": 0,
+        "containerIssue": "TimeoutExpired",
+        "logBytesSkipped": 271053,
+        "expectedCaseId": "navigation-warm-tabs",
+        "snapshotsAreNotFinalCaseReceipts": true
+      },
+      {
+        "case": "memory-reader-controls",
+        "polls": 26,
+        "sampleTrigger": null,
+        "sampleCount": 0,
+        "observerErrors": 0,
+        "containerIssue": "TimeoutExpired",
+        "logBytesSkipped": 306355,
+        "expectedCaseId": "memory-reader-controls",
+        "snapshotsAreNotFinalCaseReceipts": true
+      },
+      {
+        "case": "exit-diagnostics",
+        "polls": 1,
+        "sampleTrigger": null,
+        "sampleCount": 0,
+        "observerErrors": 0,
+        "containerIssue": null,
+        "logBytesSkipped": 0,
+        "expectedCaseId": null,
+        "snapshotsAreNotFinalCaseReceipts": true
+      }
+    ],
+    "processSamplesCaptured": 0,
+    "limits": [
+      "No sample is not evidence of no stall. Triggering required a matching busy marker within bounded log inspection.",
+      "Warm/direct observers reported container timeouts and skipped 271053/306355 log bytes.",
+      "Direct first fixture belongs to the previous warm case; latest periodic fixture has no case identity. Only matching after-case/final snapshots support direct-case attribution.",
+      "Auth snapshots have no own case ID; snapshots do not establish all UI work or exact clocks.",
+      "Synthetic fixture success is not hosted provider or full UI acceptance."
+    ]
+  },
+  "acceptance": {
+    "setup": true,
+    "initialDirectReaderReady": true,
+    "directOpenBookAndPageControls": false,
+    "warmProfileThenReader": false,
+    "allControls": false,
+    "newAppBuild": false,
+    "retryPerformed": false,
+    "result": "Two distinct failed journeys are preserved: one original case timed out and one separately reported warm diagnostic failed. No repair, rerun, threshold or assertion change is part of this review."
+  },
+  "independentReview": {
+    "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/independent-reader-boundary-review.json",
+    "sha256": "3c31d372a179031b99614b3c6235ffd1c842f4891c16bed52a638821f9169d8d"
+  },
+  "rawEvidenceManifest": {
+    "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw-evidence-manifest.json",
+    "sha256": "5ba5ff9855eaab0c4886f9d25555707adaabb5b0f03865ac478347faab3dc08a",
+    "files": 33,
+    "bytes": 743703
+  },
+  "githubMetadata": {
+    "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/github-terminal-metadata.json",
+    "sha256": "cfb3ecc6aa7a36ea61b61c3fad5591ab2f3b139f4949776b088f66d224aba73a",
+    "timestampLimit": "API job started/completed and step timestamps are retained as reported; their differing boundaries are not normalized."
+  }
+}

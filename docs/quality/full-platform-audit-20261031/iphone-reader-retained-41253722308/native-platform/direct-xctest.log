@@ -1,0 +1,799 @@
+** BUILD INTERRUPTED **
+
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/26473F8C-BABF-4F2C-AE1E-C31FC4600B8E8275064855370109515/maestro-driver-ios-config.xctestrun -destination id=26473F8C-BABF-4F2C-AE1E-C31FC4600B8E -derivedDataPath /var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/maestro_xctestrunner_xcodebuild_output8167089858857189817
+
+2026-10-31 23:58:50.313432+0000 maestro-driver-iosUITests-Runner[18924:59472] [Default] Running tests...
+2026-10-31 23:58:50.431577+0000 maestro-driver-iosUITests-Runner[18924:59472] snapshotKeyHonorModalViews configured to value: (null)
+2026-10-31 23:58:50.446918+0000 maestro-driver-iosUITests-Runner[18924:59594] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+2026-10-31 23:58:50.525826+0000 maestro-driver-iosUITests-Runner[18924:59595] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-31 23:58:54.714.
+Test Suite 'maestro-driver-iosUITests.xctest' started at 2026-10-31 23:58:54.753.
+Test Suite 'SwipeRouteHandlerV2ClassificationTests' started at 2026-10-31 23:58:54.781.
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testClassifiedTimeoutPreservesTheRealMessage]' started.
+    t =     0.01s Start Test at 2026-10-31 23:58:54.795
+    t =     0.03s Set Up
+    t =     0.12s Tear Down
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testClassifiedTimeoutPreservesTheRealMessage]' passed (0.126 seconds).
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testMainThreadBusyIsClassifiedAsTimeout]' started.
+    t =     0.00s Start Test at 2026-10-31 23:58:54.913
+    t =     0.01s Set Up
+    t =     0.01s Tear Down
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testMainThreadBusyIsClassifiedAsTimeout]' passed (0.016 seconds).
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testTimeoutMessageWithWrongDomainStaysInternal]' started.
+    t =     0.00s Start Test at 2026-10-31 23:58:54.929
+    t =     0.00s Set Up
+    t =     0.01s Tear Down
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testTimeoutMessageWithWrongDomainStaysInternal]' passed (0.012 seconds).
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testUIQueryTimeoutIsClassifiedAsTimeout]' started.
+    t =     0.00s Start Test at 2026-10-31 23:58:54.941
+    t =     0.00s Set Up
+    t =     0.01s Tear Down
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testUIQueryTimeoutIsClassifiedAsTimeout]' passed (0.017 seconds).
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testUnrelatedXCTFutureErrorStaysInternal]' started.
+    t =     0.00s Start Test at 2026-10-31 23:58:54.959
+    t =     0.01s Set Up
+    t =     0.01s Tear Down
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testUnrelatedXCTFutureErrorStaysInternal]' passed (0.009 seconds).
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testXCTFutureCode1000WithUnrelatedMessageStaysInternal]' started.
+    t =     0.00s Start Test at 2026-10-31 23:58:54.968
+    t =     0.00s Set Up
+    t =     0.01s Tear Down
+Test Case '-[maestro_driver_iosUITests.SwipeRouteHandlerV2ClassificationTests testXCTFutureCode1000WithUnrelatedMessageStaysInternal]' passed (0.008 seconds).
+Test Suite 'SwipeRouteHandlerV2ClassificationTests' passed at 2026-10-31 23:58:55.014.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.188 (0.233) seconds
+Test Suite 'maestro_driver_iosUITests' started at 2026-10-31 23:58:55.016.
+    t =      nans Suite Set Up
+Test Case '-[maestro_driver_iosUITests.maestro_driver_iosUITests testHttpServer]' started.
+    t =     0.00s Start Test at 2026-10-31 23:58:55.020
+    t =     0.01s Set Up
+2026-10-31 23:58:55.027239+0000 maestro-driver-iosUITests-Runner[18924:59598] [maestro_driver_iosUITests] Will start HTTP server
+2026-10-31 23:58:55.750828+0000 maestro-driver-iosUITests-Runner[18924:59597] [FlyingFox] starting server 127.0.0.1:53889
+2026-10-31 23:58:55.977860+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> open connection
+2026-10-31 23:58:55.984611+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /status
+2026-10-31 23:58:57.012290+0000 maestro-driver-iosUITests-Runner[18924:59598] [FlyingFox] <127.0.0.1> open connection
+2026-10-31 23:58:57.029594+0000 maestro-driver-iosUITests-Runner[18924:59597] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =     2.01s Getting device orientation
+2026-10-31 23:58:57.043129+0000 maestro-driver-iosUITests-Runner[18924:59472] Using singleton test manager
+2026-10-31 23:58:57.060394+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =     2.05s Getting device orientation
+    t =     2.06s Find the Application 'app.platinumcircles.mobile.qa'
+2026-10-31 23:58:57.449639+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-10-31 23:59:15.450195+0000 maestro-driver-iosUITests-Runner[18924:59595] [FlyingFox] <127.0.0.1> request: POST /setPermissions
+2026-10-31 23:59:15.501033+0000 maestro-driver-iosUITests-Runner[18924:59598] [FlyingFox] <127.0.0.1> request: POST /terminateApp
+2026-10-31 23:59:15.503967+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] Terminating app app.platinumcircles.mobile.qa
+    t =    20.49s Terminate app.platinumcircles.mobile.qa:0
+2026-10-31 23:59:15.510103+0000 maestro-driver-iosUITests-Runner[18924:59472] [End] Terminating app app.platinumcircles.mobile.qa
+2026-10-31 23:59:23.481946+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    28.46s Getting device orientation
+2026-10-31 23:59:23.653635+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    28.64s Getting device orientation
+2026-10-31 23:59:23.660604+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-10-31 23:59:23.661236+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-10-31 23:59:25.471780+0000 maestro-driver-iosUITests-Runner[18924:59599] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-10-31 23:59:25.485046+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-10-31 23:59:25.487123+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-10-31 23:59:25.487396+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    30.47s Find the Application 'app.platinumcircles.mobile.qa'
+2026-10-31 23:59:44.767384+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-10-31 23:59:44.768348+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-10-31 23:59:44.768617+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    49.75s Checking existence of `StatusBar (First Match)`
+    t =    49.80s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    49.90s Find the StatusBar (Element at index 0)
+    t =    50.02s Find the StatusBar (Element at index 1)
+2026-10-31 23:59:45.158785+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.3901458978652954
+2026-10-31 23:59:45.159040+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-10-31 23:59:45.159322+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.0002529621124267578
+    t =    50.14s Find the Application 'com.apple.springboard'
+2026-10-31 23:59:45.256037+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-10-31 23:59:45.450975+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    50.43s Getting device orientation
+2026-10-31 23:59:45.462239+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    50.44s Getting device orientation
+2026-10-31 23:59:45.466869+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-10-31 23:59:45.467106+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-10-31 23:59:45.487111+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-10-31 23:59:45.495595+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-10-31 23:59:45.497265+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-10-31 23:59:45.497498+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    50.48s Find the Application 'app.platinumcircles.mobile.qa'
+2026-10-31 23:59:45.578289+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-10-31 23:59:45.578692+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-10-31 23:59:45.578884+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    50.56s Checking existence of `StatusBar (First Match)`
+    t =    50.63s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    50.72s Find the StatusBar (Element at index 0)
+    t =    50.84s Find the StatusBar (Element at index 1)
+2026-10-31 23:59:45.986502+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.4075770378112793
+2026-10-31 23:59:45.986714+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-10-31 23:59:45.986935+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.0001939535140991211
+    t =    50.97s Find the Application 'com.apple.springboard'
+2026-10-31 23:59:46.090246+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-10-31 23:59:46.128118+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-10-31 23:59:46.564028+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /screenshot
+2026-10-31 23:59:47.322391+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /touch
+2026-10-31 23:59:47.335148+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    52.32s Getting device orientation
+2026-10-31 23:59:47.341039+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =    52.32s Getting device orientation
+2026-10-31 23:59:47.344565+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping 196.0, 363.0
+    t =    52.33s Getting device orientation
+2026-10-31 23:59:47.694170+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping took 0.3431450128555298
+2026-10-31 23:59:47.699212+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-10-31 23:59:48.072515+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /inputText
+2026-10-31 23:59:48.084218+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    53.07s Checking existence of `Keyboard (First Match)`
+2026-10-31 23:59:54.221124+0000 maestro-driver-iosUITests-Runner[18924:59472] [TextInputHelper] first character: q
+    t =    59.20s Getting device orientation
+2026-10-31 23:59:54.987577+0000 maestro-driver-iosUITests-Runner[18924:59472] [TextInputHelper] remaining text: a.alex@example.invalid
+    t =    59.97s Getting device orientation
+2026-10-31 23:59:55.912136+0000 maestro-driver-iosUITests-Runner[18924:59472] [InputTextRouteHandler] Text input duration took 7.836022
+2026-10-31 23:59:55.916363+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-10-31 23:59:56.406496+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    61.39s Getting device orientation
+2026-10-31 23:59:56.430736+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    61.41s Getting device orientation
+2026-10-31 23:59:56.436044+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-10-31 23:59:56.436320+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-10-31 23:59:56.440785+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-10-31 23:59:56.449528+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-10-31 23:59:56.451509+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-10-31 23:59:56.451746+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    61.43s Find the Application 'app.platinumcircles.mobile.qa'
+2026-10-31 23:59:56.692554+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-10-31 23:59:56.693091+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-10-31 23:59:56.693285+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    61.67s Checking existence of `StatusBar (First Match)`
+    t =    61.73s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    61.84s Find the StatusBar (Element at index 0)
+    t =    61.97s Find the StatusBar (Element at index 1)
+2026-10-31 23:59:57.128393+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.4350680112838745
+2026-10-31 23:59:57.128632+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-10-31 23:59:57.128953+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.0002930164337158203
+    t =    62.11s Find the Application 'com.apple.springboard'
+2026-10-31 23:59:57.249251+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-10-31 23:59:57.373440+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-10-31 23:59:57.879996+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-10-31 23:59:58.400978+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /screenshot
+2026-10-31 23:59:59.060894+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /touch
+2026-10-31 23:59:59.069791+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    64.05s Getting device orientation
+2026-10-31 23:59:59.076609+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =    64.06s Getting device orientation
+2026-10-31 23:59:59.081592+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping 196.0, 429.0
+    t =    64.06s Getting device orientation
+2026-10-31 23:59:59.453655+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping took 0.3673909902572632
+2026-11-01 00:00:02.277675+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:03.539848+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /inputText
+2026-11-01 00:00:03.551402+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    68.53s Checking existence of `Keyboard (First Match)`
+2026-11-01 00:00:03.669003+0000 maestro-driver-iosUITests-Runner[18924:59472] [TextInputHelper] first character: F
+    t =    68.65s Getting device orientation
+2026-11-01 00:00:04.405286+0000 maestro-driver-iosUITests-Runner[18924:59472] [TextInputHelper] remaining text: ixtureOnly-2026!
+    t =    69.39s Getting device orientation
+2026-11-01 00:00:05.116636+0000 maestro-driver-iosUITests-Runner[18924:59472] [InputTextRouteHandler] Text input duration took 1.576081
+2026-11-01 00:00:05.160440+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:05.728854+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    70.71s Getting device orientation
+2026-11-01 00:00:05.742341+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    70.73s Getting device orientation
+2026-11-01 00:00:05.753746+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:05.754217+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:05.761483+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:05.777807+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:05.780090+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:05.780460+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    70.76s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:06.020333+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:06.020821+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:06.021023+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    71.00s Checking existence of `StatusBar (First Match)`
+    t =    71.12s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    71.25s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    71.26s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    71.26s Find the StatusBar (Element at index 0)
+    t =    71.38s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    71.39s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    71.41s Find the StatusBar (Element at index 1)
+    t =    71.52s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    71.52s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+2026-11-01 00:00:06.572990+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.5519269704818726
+2026-11-01 00:00:06.573219+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:06.573517+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.00027000904083251953
+    t =    71.55s Find the Application 'com.apple.springboard'
+    t =    71.66s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    71.66s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+2026-11-01 00:00:06.684489+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:06.946758+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:07.310123+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: GET /screenshot
+2026-11-01 00:00:07.637703+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /touch
+2026-11-01 00:00:07.647959+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    72.63s Getting device orientation
+2026-11-01 00:00:07.653772+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =    72.63s Getting device orientation
+2026-11-01 00:00:07.660595+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping 196.0, 275.0
+    t =    72.64s Getting device orientation
+2026-11-01 00:00:08.013232+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping took 0.3483269214630127
+2026-11-01 00:00:08.148648+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:08.583248+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:09.038452+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    74.02s Getting device orientation
+2026-11-01 00:00:09.050395+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    74.03s Getting device orientation
+2026-11-01 00:00:09.055160+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:09.055437+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:09.059437+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:09.068248+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:09.069821+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:09.070049+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    74.05s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:09.160322+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:09.160700+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:09.160890+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    74.14s Checking existence of `StatusBar (First Match)`
+    t =    74.21s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    74.34s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    74.35s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    74.35s Find the StatusBar (Element at index 0)
+    t =    74.46s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    74.47s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    74.49s Find the StatusBar (Element at index 1)
+    t =    74.62s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    74.62s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+2026-11-01 00:00:09.674858+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.513929009437561
+2026-11-01 00:00:09.675186+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:09.675431+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.0002200603485107422
+    t =    74.66s Find the Application 'com.apple.springboard'
+    t =    74.77s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    74.78s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+2026-11-01 00:00:09.803244+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:09.837286+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:10.211554+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /screenshot
+2026-11-01 00:00:10.822398+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /touch
+2026-11-01 00:00:10.831694+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    75.81s Getting device orientation
+2026-11-01 00:00:10.837119+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =    75.82s Getting device orientation
+2026-11-01 00:00:10.840444+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping 196.0, 533.0
+    t =    75.82s Getting device orientation
+2026-11-01 00:00:11.189834+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping took 0.3457130193710327
+2026-11-01 00:00:11.664325+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:12.272278+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    77.25s Getting device orientation
+2026-11-01 00:00:12.287340+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    77.27s Getting device orientation
+2026-11-01 00:00:12.294054+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:12.294488+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:12.303142+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:12.315151+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:12.316794+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:12.317062+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    77.30s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:12.498003+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:12.498367+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:12.498583+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    77.48s Checking existence of `StatusBar (First Match)`
+    t =    77.65s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    77.79s Find the StatusBar (Element at index 0)
+    t =    77.93s Find the StatusBar (Element at index 1)
+2026-11-01 00:00:13.095546+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.5969240665435791
+2026-11-01 00:00:13.095794+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:13.096062+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.00023806095123291016
+    t =    78.08s Find the Application 'com.apple.springboard'
+2026-11-01 00:00:13.196363+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:13.296465+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    78.28s Getting device orientation
+2026-11-01 00:00:13.315250+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    78.30s Getting device orientation
+2026-11-01 00:00:13.323327+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:13.331514+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:13.467674+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:13.476967+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:13.478524+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:13.478975+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    78.46s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:14.438358+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:14.439007+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:14.439512+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    79.42s Checking existence of `StatusBar (First Match)`
+    t =    79.50s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    79.64s Find the StatusBar (Element at index 0)
+    t =    79.78s Find the StatusBar (Element at index 1)
+2026-11-01 00:00:14.969608+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.5300259590148926
+2026-11-01 00:00:14.970106+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:14.970402+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.0002620220184326172
+    t =    79.95s Find the Application 'com.apple.springboard'
+2026-11-01 00:00:15.082653+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:15.146934+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:15.648366+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:16.194881+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: GET /screenshot
+2026-11-01 00:00:16.679639+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /touch
+2026-11-01 00:00:16.688934+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    81.67s Getting device orientation
+2026-11-01 00:00:16.694786+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =    81.68s Getting device orientation
+2026-11-01 00:00:16.709006+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping 196.0, 217.0
+    t =    81.69s Getting device orientation
+2026-11-01 00:00:17.071113+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping took 0.3565140962600708
+2026-11-01 00:00:17.202485+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:18.292055+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:18.702867+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:19.146783+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /inputText
+2026-11-01 00:00:19.156148+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    84.14s Checking existence of `Keyboard (First Match)`
+2026-11-01 00:00:19.264860+0000 maestro-driver-iosUITests-Runner[18924:59472] [TextInputHelper] first character: m
+    t =    84.25s Getting device orientation
+2026-11-01 00:00:20.005680+0000 maestro-driver-iosUITests-Runner[18924:59472] [TextInputHelper] remaining text: emory-reader-controls
+    t =    84.99s Getting device orientation
+2026-11-01 00:00:20.881618+0000 maestro-driver-iosUITests-Runner[18924:59472] [InputTextRouteHandler] Text input duration took 1.734121
+2026-11-01 00:00:20.885897+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:21.397059+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    86.38s Getting device orientation
+2026-11-01 00:00:21.409508+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    86.39s Getting device orientation
+2026-11-01 00:00:21.415198+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:21.415456+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:21.420754+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:21.430002+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:21.431789+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:21.431994+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    86.41s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:21.622749+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:21.623211+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:21.623398+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    86.60s Checking existence of `StatusBar (First Match)`
+    t =    86.65s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    86.76s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    86.77s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    86.78s Find the StatusBar (Element at index 0)
+    t =    86.90s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    86.91s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    86.93s Find the StatusBar (Element at index 1)
+    t =    87.04s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    87.05s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+2026-11-01 00:00:22.092292+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.4688529968261719
+2026-11-01 00:00:22.092541+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:22.092784+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.00021398067474365234
+    t =    87.07s Find the Application 'com.apple.springboard'
+    t =    87.18s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    87.19s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+2026-11-01 00:00:22.215752+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:22.280634+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:22.782367+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:23.189641+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /screenshot
+2026-11-01 00:00:23.620054+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /touch
+2026-11-01 00:00:23.629549+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    88.61s Getting device orientation
+2026-11-01 00:00:23.635475+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =    88.62s Getting device orientation
+2026-11-01 00:00:23.640023+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping 196.0, 98.0
+    t =    88.62s Getting device orientation
+2026-11-01 00:00:23.999269+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping took 0.3547860383987427
+2026-11-01 00:00:24.031013+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:24.481800+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:24.921080+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    89.90s Getting device orientation
+2026-11-01 00:00:24.932728+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    89.92s Getting device orientation
+2026-11-01 00:00:24.941290+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:24.941623+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:24.946833+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:24.956468+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:24.958055+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:24.958236+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    89.94s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:25.027164+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:25.027497+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:25.027707+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    90.01s Checking existence of `StatusBar (First Match)`
+    t =    90.12s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    90.22s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    90.22s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    90.23s Find the StatusBar (Element at index 0)
+    t =    90.33s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    90.33s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    90.35s Find the StatusBar (Element at index 1)
+    t =    90.46s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    90.46s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+2026-11-01 00:00:25.511618+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.4838700294494629
+2026-11-01 00:00:25.511885+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:25.512122+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.00020599365234375
+    t =    90.49s Find the Application 'com.apple.springboard'
+    t =    90.60s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+    t =    90.61s Ignoring failure to get hierarchy for remote element in process 13363 (Error getting main window kAXErrorInvalidUIElement)
+2026-11-01 00:00:25.631857+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:25.641483+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:26.007673+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /screenshot
+2026-11-01 00:00:26.677566+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /touch
+2026-11-01 00:00:26.688998+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    91.67s Getting device orientation
+2026-11-01 00:00:26.696510+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =    91.68s Getting device orientation
+2026-11-01 00:00:26.703115+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping 196.0, 289.0
+    t =    91.68s Getting device orientation
+2026-11-01 00:00:27.056429+0000 maestro-driver-iosUITests-Runner[18924:59472] Tapping took 0.3481559753417969
+2026-11-01 00:00:27.086144+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:27.925395+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:28.391131+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    93.37s Getting device orientation
+2026-11-01 00:00:28.412495+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    93.40s Getting device orientation
+2026-11-01 00:00:28.421682+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:28.422005+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:28.429451+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:28.442274+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:28.444041+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:28.444298+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    93.43s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:28.558817+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:28.559268+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:28.559526+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    93.54s Checking existence of `StatusBar (First Match)`
+    t =    93.60s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    93.79s Find the StatusBar (Element at index 0)
+    t =    93.91s Find the StatusBar (Element at index 1)
+2026-11-01 00:00:29.111458+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.551893949508667
+2026-11-01 00:00:29.111692+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:29.111926+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.00020301342010498047
+    t =    94.09s Find the Application 'com.apple.springboard'
+2026-11-01 00:00:29.219354+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:29.240903+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    94.22s Getting device orientation
+2026-11-01 00:00:29.265175+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    94.25s Getting device orientation
+2026-11-01 00:00:29.270103+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:29.270364+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:29.280074+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    94.26s Getting device orientation
+2026-11-01 00:00:29.293714+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    94.28s Getting device orientation
+2026-11-01 00:00:29.298945+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:29.299258+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:29.303291+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:29.315342+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:29.316940+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:29.317164+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    94.30s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:29.444946+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:29.445579+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:29.445840+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    94.43s Checking existence of `StatusBar (First Match)`
+    t =    94.50s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    94.63s Find the StatusBar (Element at index 0)
+    t =    94.80s Find the StatusBar (Element at index 1)
+2026-11-01 00:00:30.156608+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.7106810808181763
+2026-11-01 00:00:30.156988+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:30.157305+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.0002740621566772461
+    t =    95.14s Find the Application 'com.apple.springboard'
+2026-11-01 00:00:30.283248+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:30.844134+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    95.83s Getting device orientation
+2026-11-01 00:00:30.860747+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    95.84s Getting device orientation
+2026-11-01 00:00:30.867652+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:30.867978+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:30.883710+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    95.87s Getting device orientation
+2026-11-01 00:00:30.898760+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    95.88s Getting device orientation
+2026-11-01 00:00:30.905308+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:30.905763+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:30.916009+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    95.90s Getting device orientation
+2026-11-01 00:00:30.930068+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    95.91s Getting device orientation
+2026-11-01 00:00:30.937984+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:30.938316+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:30.944842+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:31.466424+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: POST /swipeV2
+2026-11-01 00:00:31.480119+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    96.46s Getting device orientation
+2026-11-01 00:00:31.486100+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =    96.47s Getting device orientation
+    t =    96.47s Getting device orientation
+2026-11-01 00:00:31.497780+0000 maestro-driver-iosUITests-Runner[18924:59472] [SwipeRouteHandlerV2] Swipe (v2) from (196.0, 426.0) to (196.0, 85.0) with 0.601 duration
+2026-11-01 00:00:31.507262+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    96.49s Swipe (v2) from (196.0, 426.0) to (196.0, 85.0) with 0.601 duration
+2026-11-01 00:00:31.514175+0000 maestro-driver-iosUITests-Runner[18924:59472] Quiescence checks are disabled for app.platinumcircles.mobile.qa application. Making it to believe it is idling
+    t =    96.50s     Find the Any (First Match)
+    t =    96.50s Application is configured to skip UI interruption handling
+    t =    96.51s     Synthesize event
+    t =    96.51s         Getting device orientation
+2026-11-01 00:00:32.496577+0000 maestro-driver-iosUITests-Runner[18924:59472] Quiescence checks are disabled for app.platinumcircles.mobile.qa application. Making it to believe it is idling
+2026-11-01 00:00:32.504338+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:33.202766+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:33.914642+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    98.90s Getting device orientation
+2026-11-01 00:00:33.930342+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    98.91s Getting device orientation
+2026-11-01 00:00:33.935411+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:33.935690+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:33.939487+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:33.948341+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:33.950361+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:33.950620+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =    98.93s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:34.069620+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:34.070140+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:34.070344+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =    99.05s Checking existence of `StatusBar (First Match)`
+    t =    99.13s Get all elements bound by index for: Descendants matching type StatusBar
+    t =    99.23s Find the StatusBar (Element at index 0)
+    t =    99.35s Find the StatusBar (Element at index 1)
+2026-11-01 00:00:34.495875+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.4254889488220215
+2026-11-01 00:00:34.496142+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:34.496380+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.00020897388458251953
+    t =    99.48s Find the Application 'com.apple.springboard'
+2026-11-01 00:00:34.592774+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:34.605104+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    99.59s Getting device orientation
+2026-11-01 00:00:34.617170+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    99.60s Getting device orientation
+2026-11-01 00:00:34.622310+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:34.622603+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:34.628392+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    99.61s Getting device orientation
+2026-11-01 00:00:34.640211+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    99.62s Getting device orientation
+2026-11-01 00:00:34.644816+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:34.645077+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:34.649361+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =    99.63s Getting device orientation
+2026-11-01 00:00:34.662815+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =    99.65s Getting device orientation
+2026-11-01 00:00:34.667483+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:34.667731+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:34.671848+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:35.113286+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: POST /swipeV2
+2026-11-01 00:00:35.121808+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   100.10s Getting device orientation
+2026-11-01 00:00:35.126677+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =   100.11s Getting device orientation
+    t =   100.11s Getting device orientation
+2026-11-01 00:00:35.133489+0000 maestro-driver-iosUITests-Runner[18924:59472] [SwipeRouteHandlerV2] Swipe (v2) from (196.0, 426.0) to (196.0, 85.0) with 0.601 duration
+2026-11-01 00:00:35.142584+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   100.13s Swipe (v2) from (196.0, 426.0) to (196.0, 85.0) with 0.601 duration
+2026-11-01 00:00:35.145009+0000 maestro-driver-iosUITests-Runner[18924:59472] Quiescence checks are disabled for app.platinumcircles.mobile.qa application. Making it to believe it is idling
+    t =   100.13s     Find the Any (First Match)
+    t =   100.14s Application is configured to skip UI interruption handling
+    t =   100.15s     Synthesize event
+    t =   100.15s         Getting device orientation
+2026-11-01 00:00:36.140275+0000 maestro-driver-iosUITests-Runner[18924:59472] Quiescence checks are disabled for app.platinumcircles.mobile.qa application. Making it to believe it is idling
+2026-11-01 00:00:36.202165+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:36.765322+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:37.401579+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   102.38s Getting device orientation
+2026-11-01 00:00:37.417017+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   102.40s Getting device orientation
+2026-11-01 00:00:37.422524+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:37.422780+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:37.426983+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:37.437156+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:37.438948+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:37.439157+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =   102.42s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:37.549422+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:37.549836+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:37.550057+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =   102.53s Checking existence of `StatusBar (First Match)`
+    t =   102.65s Get all elements bound by index for: Descendants matching type StatusBar
+    t =   102.76s Find the StatusBar (Element at index 0)
+    t =   102.88s Find the StatusBar (Element at index 1)
+2026-11-01 00:00:38.042422+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.4923100471496582
+2026-11-01 00:00:38.042679+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:38.042974+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.00026297569274902344
+    t =   103.02s Find the Application 'com.apple.springboard'
+2026-11-01 00:00:38.142021+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:38.156075+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   103.14s Getting device orientation
+2026-11-01 00:00:38.167784+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   103.15s Getting device orientation
+2026-11-01 00:00:38.172498+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:38.172771+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:38.177782+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   103.16s Getting device orientation
+2026-11-01 00:00:38.191740+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   103.17s Getting device orientation
+2026-11-01 00:00:38.197285+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:38.197553+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:38.201855+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   103.18s Getting device orientation
+2026-11-01 00:00:38.214223+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   103.20s Getting device orientation
+2026-11-01 00:00:38.219413+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:38.219672+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:38.223338+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:38.741954+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /swipeV2
+2026-11-01 00:00:38.754483+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   103.74s Getting device orientation
+2026-11-01 00:00:38.766595+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =   103.75s Getting device orientation
+    t =   103.76s Getting device orientation
+2026-11-01 00:00:38.794163+0000 maestro-driver-iosUITests-Runner[18924:59472] [SwipeRouteHandlerV2] Swipe (v2) from (196.0, 426.0) to (196.0, 85.0) with 0.601 duration
+2026-11-01 00:00:38.825844+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   103.81s Swipe (v2) from (196.0, 426.0) to (196.0, 85.0) with 0.601 duration
+2026-11-01 00:00:38.828780+0000 maestro-driver-iosUITests-Runner[18924:59472] Quiescence checks are disabled for app.platinumcircles.mobile.qa application. Making it to believe it is idling
+    t =   103.81s     Find the Any (First Match)
+    t =   103.82s Application is configured to skip UI interruption handling
+    t =   103.83s     Synthesize event
+    t =   103.84s         Getting device orientation
+2026-11-01 00:00:39.807339+0000 maestro-driver-iosUITests-Runner[18924:59472] Quiescence checks are disabled for app.platinumcircles.mobile.qa application. Making it to believe it is idling
+2026-11-01 00:00:39.816547+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:40.374203+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:40.869808+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   105.85s Getting device orientation
+2026-11-01 00:00:40.883275+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   105.87s Getting device orientation
+2026-11-01 00:00:40.888728+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:40.888983+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:40.893564+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:40.903561+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:40.905660+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:40.905913+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =   105.89s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:41.025705+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:41.026135+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:41.026353+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =   106.01s Checking existence of `StatusBar (First Match)`
+    t =   106.10s Get all elements bound by index for: Descendants matching type StatusBar
+    t =   106.21s Find the StatusBar (Element at index 0)
+    t =   106.33s Find the StatusBar (Element at index 1)
+2026-11-01 00:00:41.481238+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.4548450708389282
+2026-11-01 00:00:41.481528+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:41.481808+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.0002510547637939453
+    t =   106.46s Find the Application 'com.apple.springboard'
+2026-11-01 00:00:41.571970+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:41.586234+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   106.57s Getting device orientation
+2026-11-01 00:00:41.598583+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   106.58s Getting device orientation
+2026-11-01 00:00:41.604266+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:41.604551+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:41.609229+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   106.59s Getting device orientation
+2026-11-01 00:00:41.620964+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   106.60s Getting device orientation
+2026-11-01 00:00:41.626063+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:41.626343+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:41.630124+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   106.61s Getting device orientation
+2026-11-01 00:00:41.642199+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   106.63s Getting device orientation
+2026-11-01 00:00:41.648145+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:41.648561+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:41.652737+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:42.097613+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /swipeV2
+2026-11-01 00:00:42.108465+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   107.09s Getting device orientation
+2026-11-01 00:00:42.115966+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =   107.10s Getting device orientation
+    t =   107.10s Getting device orientation
+2026-11-01 00:00:42.123305+0000 maestro-driver-iosUITests-Runner[18924:59472] [SwipeRouteHandlerV2] Swipe (v2) from (196.0, 426.0) to (196.0, 85.0) with 0.601 duration
+2026-11-01 00:00:42.134435+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   107.12s Swipe (v2) from (196.0, 426.0) to (196.0, 85.0) with 0.601 duration
+2026-11-01 00:00:42.136993+0000 maestro-driver-iosUITests-Runner[18924:59472] Quiescence checks are disabled for app.platinumcircles.mobile.qa application. Making it to believe it is idling
+    t =   107.12s     Find the Any (First Match)
+    t =   107.13s Application is configured to skip UI interruption handling
+    t =   107.14s     Synthesize event
+    t =   107.15s         Getting device orientation
+2026-11-01 00:00:43.140509+0000 maestro-driver-iosUITests-Runner[18924:59472] Quiescence checks are disabled for app.platinumcircles.mobile.qa application. Making it to believe it is idling
+2026-11-01 00:00:43.149705+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:43.677888+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:44.148323+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   109.13s Getting device orientation
+2026-11-01 00:00:44.160149+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   109.14s Getting device orientation
+2026-11-01 00:00:44.164974+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:44.165223+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:44.169129+0000 maestro-driver-iosUITests-Runner[18924:59593] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:44.177541+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:44.179576+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:44.179899+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =   109.16s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:44.283836+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:44.284210+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:44.284425+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =   109.27s Checking existence of `StatusBar (First Match)`
+    t =   109.32s Get all elements bound by index for: Descendants matching type StatusBar
+    t =   109.42s Find the StatusBar (Element at index 0)
+    t =   109.52s Find the StatusBar (Element at index 1)
+2026-11-01 00:00:44.684214+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.39975106716156006
+2026-11-01 00:00:44.684461+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:44.684789+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.00029599666595458984
+    t =   109.67s Find the Application 'com.apple.springboard'
+2026-11-01 00:00:44.783710+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:44.797512+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   109.78s Getting device orientation
+2026-11-01 00:00:44.813611+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   109.80s Getting device orientation
+2026-11-01 00:00:44.818505+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:44.818871+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:44.826259+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   109.81s Getting device orientation
+2026-11-01 00:00:44.838110+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   109.82s Getting device orientation
+2026-11-01 00:00:44.842897+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:44.843175+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:44.848795+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   109.85s Getting device orientation
+2026-11-01 00:00:44.876962+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   109.86s Getting device orientation
+2026-11-01 00:00:44.881596+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:44.881848+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:44.886076+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:45.368545+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: POST /swipeV2
+2026-11-01 00:00:45.377583+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   110.36s Getting device orientation
+2026-11-01 00:00:45.382458+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+    t =   110.36s Getting device orientation
+    t =   110.37s Getting device orientation
+2026-11-01 00:00:45.389638+0000 maestro-driver-iosUITests-Runner[18924:59472] [SwipeRouteHandlerV2] Swipe (v2) from (196.0, 426.0) to (196.0, 85.0) with 0.601 duration
+2026-11-01 00:00:45.399020+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   110.38s Swipe (v2) from (196.0, 426.0) to (196.0, 85.0) with 0.601 duration
+2026-11-01 00:00:45.401918+0000 maestro-driver-iosUITests-Runner[18924:59472] Quiescence checks are disabled for app.platinumcircles.mobile.qa application. Making it to believe it is idling
+    t =   110.38s     Find the Any (First Match)
+    t =   110.39s Application is configured to skip UI interruption handling
+    t =   110.40s     Synthesize event
+    t =   110.40s         Getting device orientation
+2026-11-01 00:00:46.380135+0000 maestro-driver-iosUITests-Runner[18924:59472] Quiescence checks are disabled for app.platinumcircles.mobile.qa application. Making it to believe it is idling
+2026-11-01 00:00:46.386823+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:46.969932+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:47.715332+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   112.70s Getting device orientation
+2026-11-01 00:00:47.734106+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   112.72s Getting device orientation
+2026-11-01 00:00:47.740079+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:47.740341+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:47.745699+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:47.770568+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:47.772158+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:47.772354+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =   112.75s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:47.884924+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:47.885296+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:47.885503+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =   112.87s Checking existence of `StatusBar (First Match)`
+    t =   112.97s Get all elements bound by index for: Descendants matching type StatusBar
+    t =   113.07s Find the StatusBar (Element at index 0)
+    t =   113.19s Find the StatusBar (Element at index 1)
+2026-11-01 00:00:48.329699+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.4441530704498291
+2026-11-01 00:00:48.330141+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:48.330383+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.00021195411682128906
+    t =   113.31s Find the Application 'com.apple.springboard'
+2026-11-01 00:00:48.426182+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:48.439855+0000 maestro-driver-iosUITests-Runner[18924:62988] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   113.42s Getting device orientation
+2026-11-01 00:00:48.452252+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   113.43s Getting device orientation
+2026-11-01 00:00:48.456711+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:48.457013+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:48.461794+0000 maestro-driver-iosUITests-Runner[18924:64508] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:48.469810+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:48.471400+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:48.471615+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =   113.45s Find the Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:48.571491+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Successfully retrieved element hierarchy.
+2026-11-01 00:00:48.571859+0000 maestro-driver-iosUITests-Runner[18924:59472] Foreground app is not springboard skipping auto tapping on permissions
+2026-11-01 00:00:48.572106+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch status bar hierarchy - start
+    t =   113.55s Checking existence of `StatusBar (First Match)`
+    t =   113.66s Get all elements bound by index for: Descendants matching type StatusBar
+    t =   113.75s Find the StatusBar (Element at index 0)
+    t =   113.87s Find the StatusBar (Element at index 1)
+2026-11-01 00:00:49.017791+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch status bar hierarchy - duration 0.4456450939178467
+2026-11-01 00:00:49.018066+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start
+2026-11-01 00:00:49.018347+0000 maestro-driver-iosUITests-Runner[18924:59472] Fetch Safari WebView hierarchy - duration 0.0002510547637939453
+    t =   114.00s Find the Application 'com.apple.springboard'
+2026-11-01 00:00:49.108386+0000 maestro-driver-iosUITests-Runner[18924:59472] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' 
+2026-11-01 00:00:49.120518+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: GET /isScreenStatic
+2026-11-01 00:00:49.550400+0000 maestro-driver-iosUITests-Runner[18924:62992] [FlyingFox] <127.0.0.1> request: POST /deviceInfo
+    t =   114.53s Getting device orientation
+2026-11-01 00:00:49.562333+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+    t =   114.55s Getting device orientation
+2026-11-01 00:00:49.567734+0000 maestro-driver-iosUITests-Runner[18924:59472] Returning cached screen size
+2026-11-01 00:00:49.567994+0000 maestro-driver-iosUITests-Runner[18924:59472] Device orientation is 1
+2026-11-01 00:00:49.571708+0000 maestro-driver-iosUITests-Runner[18924:64430] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy
+2026-11-01 00:00:49.580877+0000 maestro-driver-iosUITests-Runner[18924:59472] Detected running apps: ["app.platinumcircles.mobile.qa"]
+2026-11-01 00:00:49.582511+0000 maestro-driver-iosUITests-Runner[18924:59472] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'
+2026-11-01 00:00:49.582853+0000 maestro-driver-iosUITests-Runner[18924:59472] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element.
+    t =   114.56s Find the Application 'app.platinumcircles.mobile.qa'

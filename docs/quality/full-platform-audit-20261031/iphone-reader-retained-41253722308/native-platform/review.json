@@ -1,0 +1,125 @@
+{
+  "kind": "read-only-native-platform-and-warm-tab-boundary-review",
+  "runId": 41253722308,
+  "jobId": 124692367750,
+  "artifactId": 13061634885,
+  "artifactZipSha256": "7639cd3908b67d9133e56e6f40420221148072e63123b14a02e868cb6fab3cb8",
+  "artifactZipBytes": 6194776,
+  "applicationSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+  "consumerSource": "cd36cf4ea182de90e4097caff6072e00a76785fd",
+  "conclusion": "Setup and direct reader readiness succeeded. Direct flow exhausted its process budget before Open book input dispatch was recorded. Warm flow failed Profile navigation while Messages remained visible. No native main-thread stall or specific tab root cause is proven.",
+  "directTimelineUTC": {
+    "caseStart": "2026-10-31T23:57:49.554Z",
+    "firstFlowCommand": "2026-10-31T23:58:58.789Z",
+    "signinComplete": "2026-11-01T00:00:13.208Z",
+    "readerReadinessPassed": "2026-11-01T00:00:29.228Z",
+    "centeringStart": "2026-11-01T00:00:29.230Z",
+    "centeringComplete": "2026-11-01T00:00:48.435Z",
+    "tapAimed": "2026-11-01T00:00:49.545Z",
+    "calculatedProcessDeadline": "2026-11-01T00:00:49.554Z",
+    "appAXSnapshotSucceeded": "2026-11-01T00:00:49.618Z",
+    "automationDisabled": "2026-11-01T00:00:49.704Z"
+  },
+  "directBoundaries": {
+    "timeoutSeconds": 180,
+    "startupBeforeFirstFlowSeconds": 69.235,
+    "centeringSeconds": 19.205,
+    "tapAimedBeforeCalculatedDeadlineMilliseconds": 9,
+    "openBookTouchDispatchRetained": false,
+    "page1AssertionReached": false,
+    "clockLimit": "Chronology combines recorded timestamps; no explicit cross-process clock calibration was performed. Host result independently reports case-timeout."
+  },
+  "warm": {
+    "profileTargetBounds": "[304,744][376,808]",
+    "nativeTouchCoordinates": [
+      340,
+      776
+    ],
+    "nativeTouchTimeUTC": "2026-10-31T23:57:06.521248Z",
+    "failedNameAssertionUTC": "2026-10-31T23:57:27.616Z",
+    "screenshotScreen": "Messages",
+    "selectedTab": "Messages",
+    "profileSelected": false,
+    "lastSuccessfulSnapshotUTC": "2026-10-31T23:57:26.766352Z",
+    "jobsAssertionLimit": "Generic Jobs label can match persistent tab; it does not prove Jobs page navigation.",
+    "rootCause": "Unknown. The native touch is logged, but JS onPress/tabPress/navigation dispatch outcome is not instrumented."
+  },
+  "sourceReview": {
+    "checks": [
+      {
+        "path": "src/navigation/AppNavigator.tsx",
+        "sha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+        "matchesTestedD46Source": true
+      },
+      {
+        "path": "src/components/AdaptiveTabBar.tsx",
+        "sha256": "f2a34985aedaf394a0b3462809d7a20c7ecc01ad16bbd6f92eee65a358d8d32f",
+        "matchesTestedD46Source": true
+      },
+      {
+        "path": "src/screens/messages/ConversationsScreen.tsx",
+        "sha256": "b35ea77be5cfb9605b458f21f14bb45228c5dff112a793167e59f3c59f8a2fee",
+        "matchesTestedD46Source": true
+      },
+      {
+        "path": "src/components/TapTopList.tsx",
+        "sha256": "95d91fdbe95a269f1e18965dbabe4f2bcd6c5992341e0f778caef573809c2e7c",
+        "matchesTestedD46Source": true
+      }
+    ],
+    "findings": [
+      "TabBarButton forwards received onPress and onLongPress unchanged; press-in prewarming and icon-only scale animation do not conditionally suppress onPress in source.",
+      "Profile registers tabLongPress only; no Profile-specific tabPress preventDefault was found.",
+      "Installed BottomTabBar emits tabPress and dispatches navigate for an unfocused route unless prevented.",
+      "Adaptive wrapper uses pointerEvents box-none and numeric frame enclosing current bar.",
+      "Messages renders no full-screen Modal/backdrop/absolute touch overlay; context ActionSheet requires conversation long press.",
+      "TapTopFlatList forwards list props and useScrollToTop; no direct Profile navigation interception."
+    ],
+    "libraryVersion": "6.6.1",
+    "installedLibraryInspected": "node_modules/@react-navigation/bottom-tabs/src/views/BottomTabBar.tsx"
+  },
+  "samples": {
+    "sampleTrigger": null,
+    "count": 0,
+    "limit": "No native stack was captured. Both observations also record container collection timeouts and skipped log bytes; these are collection limits, not proof of app deadlock."
+  },
+  "unchangedScope": "No product or test changes, new tests, CI, build, deployment or additional artifact download. Latest restored reader deadline repair is not inside this retained d46 binary.",
+  "evidence": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/native-platform/warm-maestro.log",
+      "sourceArchivePath": "native-audit-results/diagnostic-warm-tabs-reader/maestro/2026-10-31_235206/Diagnostic warm tabs then saved memory reader/logs/maestro.log",
+      "bytes": 21406,
+      "sha256": "52cc14f62218e921d959a2a907a067ee7d0131e7ce61cf8b70aa7f7ac0409e78"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/native-platform/warm-failure-ax.json",
+      "sourceArchivePath": "native-audit-results/diagnostic-warm-tabs-reader/maestro/2026-10-31_235206/Diagnostic warm tabs then saved memory reader/screen-hierarchy/step-036-assertCondition-Alex_Rivera.json",
+      "bytes": 51603,
+      "sha256": "27c00f3a2cec082e579e9c5578f9b5b9525052a6765e7cae446e89b44965f529"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/native-platform/warm-failure.png",
+      "sourceArchivePath": "native-audit-results/diagnostic-warm-tabs-reader/maestro/2026-10-31_235206/Diagnostic warm tabs then saved memory reader/screenshots/step-036-assertCondition-Alex_Rivera.png",
+      "bytes": 186964,
+      "sha256": "c9e60277df1445511f9e3354573dc69d80321e44b9dda955fb5a315e4710d35c"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/native-platform/direct-maestro.log",
+      "sourceArchivePath": "native-audit-results/memory-reader-controls/maestro/2026-10-31_235803/Audit book open and page controls/logs/maestro.log",
+      "bytes": 21840,
+      "sha256": "50bd45e9693508463c4340a6e28f8cec4728a438a806fe0033dc3cd629ddaaa3"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/native-platform/direct-xctest.log",
+      "sourceArchivePath": "native-audit-results/memory-reader-controls/maestro/2026-10-31_235803/xctest_runner_2026-10-31_235831.log",
+      "bytes": 85090,
+      "sha256": "49dec4f63be2fcd96f9b5b6c8e9a62550a2d63f2e024875a65af9da1f0a559c7"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/native-platform/native-log-projection.json",
+      "bytes": 3890,
+      "sha256": "123bde0823d5139f9ff50158206b1d4120669d96ca1396792cc61f5ae10b58c0"
+    }
+  ],
+  "canonicalGlobalReceipt": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/consumer-runtime-acceptance.json"
+}

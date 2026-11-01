@@ -1,0 +1,86 @@
+{
+  "appLog": {
+    "archivePath": "native-ui-logs/app.log",
+    "bytes": 2941997,
+    "sha256": "3bf1071d7d1aac27c2480e0a195887db3f3a63c3e37b382872531f9f2a2a4f92",
+    "lines": 18428,
+    "selectedLines": [
+      {
+        "line": 7748,
+        "text": "2026-10-31 23:57:06.547 Df PlatinumQA[13004:a9ca] [com.apple.UIKit:EventDispatch] Sending UIEvent type: 0; subtype: 0; to windows: 1"
+      },
+      {
+        "line": 7749,
+        "text": "2026-10-31 23:57:06.547 Df PlatinumQA[13004:a9ca] [com.apple.UIKit:EventDispatch] Sending UIEvent type: 0; subtype: 0; to window: <UIWindow: 0x112c09090>; contextId: 0x6E7E4575"
+      },
+      {
+        "line": 7759,
+        "text": "2026-10-31 23:57:06.671 Df PlatinumQA[13004:a9ca] [com.apple.UIKit:EventDispatch] Sending UIEvent type: 0; subtype: 0; to windows: 1"
+      },
+      {
+        "line": 7760,
+        "text": "2026-10-31 23:57:06.671 Df PlatinumQA[13004:a9ca] [com.apple.UIKit:EventDispatch] Sending UIEvent type: 0; subtype: 0; to window: <UIWindow: 0x112c09090>; contextId: 0x6E7E4575"
+      },
+      {
+        "line": 18344,
+        "text": "2026-11-01 00:00:49.585 Df PlatinumQA[19866:106e7] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[not MT]: about to CFRunLoopPerform"
+      },
+      {
+        "line": 18345,
+        "text": "2026-11-01 00:00:49.585 Df PlatinumQA[19866:106e7] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[not MT]: waiting with 30.00s responsiveness timeout"
+      },
+      {
+        "line": 18346,
+        "text": "2026-11-01 00:00:49.585 Df PlatinumQA[19866:f5fc] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[MT]: inside CFRunLoopPerform"
+      },
+      {
+        "line": 18347,
+        "text": "2026-11-01 00:00:49.586 Df PlatinumQA[19866:f5fc] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[MT]: MT responded in time (won the race to the busy flag)"
+      },
+      {
+        "line": 18348,
+        "text": "2026-11-01 00:00:49.586 Df PlatinumQA[19866:106e7] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[not MT]: waiting 60.00s for work to complete"
+      },
+      {
+        "line": 18369,
+        "text": "2026-11-01 00:00:49.618 Df PlatinumQA[19866:f5fc] [com.apple.dt.xctest:Default] Captured accessibility snapshot data in 0.03s"
+      },
+      {
+        "line": 18378,
+        "text": "2026-11-01 00:00:49.619 Df PlatinumQA[19866:106e7] [com.apple.dt.xctest:Default] Replying to query  with results: <XCTElementQueryResults: 0x600000d98ed0> (error: (null))"
+      },
+      {
+        "line": 18385,
+        "text": "2026-11-01 00:00:49.704 Df PlatinumQA[19866:106e7] [com.apple.dt.automationmode:Default] Comparing previous enabled state (1) to current enabled state (0)"
+      },
+      {
+        "line": 18386,
+        "text": "2026-11-01 00:00:49.705 Df PlatinumQA[19866:105cd] [com.apple.dt.xctest:Default] Automation Mode has been disabled, existing connections will be invalidated."
+      }
+    ],
+    "exactPatternCounts": {
+      "busy for": 0,
+      "unable to perform work": 0,
+      "animationDidStop": 0,
+      "uncaught exception": 0
+    }
+  },
+  "warmXCTest": {
+    "archivePath": "native-audit-results/diagnostic-warm-tabs-reader/maestro/2026-10-31_235206/Diagnostic warm tabs then saved memory reader/logs/device-xctest.log",
+    "sha256": "83df750af955f411f686ebd7fe7d19808b7df2b4c11f38b8fa37a19ea5779f3b",
+    "selectedLines": [
+      {
+        "line": 700,
+        "text": "2026-10-31 23:57:06.504543+0000 maestro-driver-iosUITests-Runner[10689:44080] [FlyingFox] <127.0.0.1> request: POST /touch"
+      },
+      {
+        "line": 705,
+        "text": "2026-10-31 23:57:06.521248+0000 maestro-driver-iosUITests-Runner[10689:36621] Tapping 340.0, 776.0"
+      },
+      {
+        "line": 707,
+        "text": "2026-10-31 23:57:06.861912+0000 maestro-driver-iosUITests-Runner[10689:36621] Tapping took 0.3372960090637207"
+      }
+    ]
+  }
+}

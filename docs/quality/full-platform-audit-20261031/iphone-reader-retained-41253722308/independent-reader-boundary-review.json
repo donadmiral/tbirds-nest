@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "status": "DIRECT_READER_READY_THEN_OUTER_CASE_BUDGET_EXHAUSTED_WARM_PROFILE_ASSERTION_FAILED",
+  "reviewedAtUtc": "2026-11-01T00:03:48.759566+00:00",
+  "runId": 41253722308,
+  "jobId": 124692367750,
+  "artifact": {
+    "id": 13061634885,
+    "zipBytes": 6194776,
+    "zipSha256": "7639cd3908b67d9133e56e6f40420221148072e63123b14a02e868cb6fab3cb8",
+    "verificationAttribution": "Single archive checksum and extraction verified by hosted_backend; no duplicate download."
+  },
+  "source": {
+    "applicationCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "tree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+    "consumerCommit": "cd36cf4ea182de90e4097caff6072e00a76785fd",
+    "binarySha256": "485540b05dc964f8602c7e7d83b03c53e0d78c5bec15da9d1ffaa82f160d6774",
+    "focusedVerifiedFiles": [
+      {
+        "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+        "sha256": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab",
+        "matchesRetainedSourceManifest": true,
+        "verifiedAgainstLiteralGitTree": "b9816fb408382a5e4ae4277111128e458b1d524f"
+      },
+      {
+        "path": "shared/contentMedia.ts",
+        "sha256": "a744a17a33a5b0f93be5b84ec943f4a5a05c94059ddd128109077031a2667664",
+        "matchesRetainedSourceManifest": true,
+        "verifiedAgainstLiteralGitTree": "b9816fb408382a5e4ae4277111128e458b1d524f"
+      },
+      {
+        "path": "tests/native/memory-fixture.cjs",
+        "sha256": "9368a168342678a62e4c5aee24bfa2cbeba8d6245c1ff2910fa1494e4724b7d7",
+        "matchesRetainedSourceManifest": true,
+        "verifiedAgainstLiteralGitTree": "b9816fb408382a5e4ae4277111128e458b1d524f"
+      },
+      {
+        "path": "tests/native/capture-boundary-trace.cjs",
+        "sha256": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb",
+        "matchesRetainedSourceManifest": true,
+        "verifiedAgainstLiteralGitTree": "b9816fb408382a5e4ae4277111128e458b1d524f"
+      }
+    ],
+    "newReaderDeadlineRepairIncluded": false
+  },
+  "scope": {
+    "selectedOriginalCases": 1,
+    "originalCasePassed": 0,
+    "originalCaseFailed": 1,
+    "unselectedOriginalCases": 84,
+    "separateWarmDiagnosticCount": 1,
+    "full85Acceptance": false
+  },
+  "warmDiagnostic": {
+    "result": "Failed Alex Rivera assertion at23:57:27.616 before shelf/book entry. It is not a reader-loading failure.",
+    "bookReads": 0,
+    "readerBodyEvents": 0,
+    "authBoundary": "Final auth snapshot23:57:00.904397 precedes Profile tap23:57:04.983; no inference about later lock/auth state.",
+    "fixtureContractPassed": true,
+    "fixtureContractIsNotUiAcceptance": true
+  },
+  "directReader": {
+    "result": "Initial authorized reader readiness PASSED. The fixed whole-case180s budget expired9ms after the last Open book tap-aimed log; no completed tap or later page assertion was retained. This is not evidence of a reader/Open-book stall.",
+    "bodyReadyAndFulfilledUtc": "2026-11-01T00:00:26.885000+00:00",
+    "reactionBodyFulfilledUtc": "2026-11-01T00:00:26.904000+00:00",
+    "editMemoryBookAssertionPassedUtc": "2026-11-01T00:00:29.228+00:00",
+    "openBookCentering": "00:00:29.230\u201300:00:48.435; original button fully visible, final bounds[28,661][365,714] on393\u00d7852 logical viewport.",
+    "openBookTapStartedUtc": "2026-11-01T00:00:48.435+00:00",
+    "lastTapAimedLogUtc": "2026-11-01T00:00:49.545+00:00",
+    "wholeCaseBudgetSeconds": 180,
+    "junit": "missing after timeout",
+    "fixtureContractPassed": true,
+    "readerBoundaryDropped": 0,
+    "identity": "Fixture request and saved book owner match synthetic OWNER10000000-0000-4000-8000-000000000001. No hosted authorization claim.",
+    "hydrationInference": "The exact d46 load orders required RPC\u2192hydrateMemoryAlbumMedia\u2192generation/viewer/scope fence\u2192setAlbum\u2192optional reactions. Observed reactions and successful Edit control establish traversal of those gates. Two text-only fixture pages require no private-media capability request.",
+    "unresolved": "Page1 and later controls remain unaccepted; semantic tap receipt by JS is not retained. This run establishes no native/JS fault or Open-book hang.",
+    "deadlineCalculation": {
+      "caseStartedAtEpochMs": 1793491069554,
+      "caseStartedUtc": "2026-10-31T23:57:49.554000+00:00",
+      "timeoutSeconds": 180,
+      "calculatedDeadlineUtc": "2026-11-01T00:00:49.554000+00:00",
+      "lastTapAimedUtc": "2026-11-01T00:00:49.545000+00:00",
+      "millisecondsBetweenLastTapAimedAndDeadline": 9,
+      "limitation": "The budget is measured from the wrapper start before the Maestro subprocess; this is recorded boundary arithmetic, not a calibrated native input latency measurement."
+    }
+  },
+  "snapshotAttributionLimits": [
+    "Direct-case first snapshot belongs to navigation-warm-tabs; latest periodic fixture has caseId null. They are not attributed to the reader case.",
+    "Direct after-case/final/exit receipts identify memory-reader-controls and preserve its six body events.",
+    "Auth records have no own caseId. Final/exit origins are correlated with matching fixture snapshots; monotonic-to-wall mapping assumes stable clock and is not a hardware clock calibration.",
+    "No dropped auth/body events in these retained traces. Empty active arrays reflect snapshot instants, not absence of all asynchronous UI work.",
+    "No process samples were triggered; observer reports container timeouts and skipped log bytes. Native stack diagnosis remains separate."
+  ],
+  "preservedOutcome": "No deadlines/assertions changed, no code repair, test run, build or remote action performed by this review. The new12/15s recoverability patch cannot be validated by this old binary.",
+  "projection": {
+    "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/auth-reader-correlation.json",
+    "sha256": "2b4222b87c0645aaecea75b9ed7c0bdaf471cedf22a27a6c1647e842711ca20d",
+    "bytes": 21629
+  },
+  "artifactEvidence": [
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/native-ui-receipt.json",
+      "sha256": "95f4e5324e2d7faf243dfe099b46a118d9118c05a17966743d89f6e96d230e7d",
+      "bytes": 8529
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/native-ui-auth-diagnostics.json",
+      "sha256": "bbe7dd48810b4fe376b53ebb7236732e2fe808aa20d979d853cad20d05f0d2cb",
+      "bytes": 74104
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/native-ui-receipt.json",
+      "sha256": "06a398651463ac4a97aff50f40228b68e7cf17828b060555e1a22b6a22c1b600",
+      "bytes": 3840
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/native-ui-auth-diagnostics.json",
+      "sha256": "f888b36cfe9d02b36afc6ca5997da02047e072e6053149efed1bd20931c8465a",
+      "bytes": 26359
+    },
+    {
+      "artifactRelativePath": "native-audit-results/exit-diagnostics/exit/native-ui-receipt.json",
+      "sha256": "c79edbafb935f68251defe39a476682d04d463c052916cedb2420e04a88f7625",
+      "bytes": 3929
+    },
+    {
+      "artifactRelativePath": "native-audit-results/exit-diagnostics/exit/native-ui-auth-diagnostics.json",
+      "sha256": "8b918add3bf5e2a9a6a8663636f847a1e35c88613b04a556c86f52819a7f03db",
+      "bytes": 27535
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/maestro/2026-10-31_235206/Diagnostic warm tabs then saved memory reader/logs/maestro.log",
+      "sha256": "52cc14f62218e921d959a2a907a067ee7d0131e7ce61cf8b70aa7f7ac0409e78",
+      "bytes": 21406
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/maestro/2026-10-31_235803/Audit book open and page controls/logs/maestro.log",
+      "sha256": "50bd45e9693508463c4340a6e28f8cec4728a438a806fe0033dc3cd629ddaaa3",
+      "bytes": 21840
+    },
+    {
+      "artifactRelativePath": "native-audit-results/source.json",
+      "sha256": "cb2d155446c9bf3148089fec50757fa982574735c90ded43c53387e5f3aa9168",
+      "bytes": 74153
+    },
+    {
+      "artifactRelativePath": "native-audit-results/summary.json",
+      "sha256": "1df8d2f1fde31b220427e1222957c664ea587c390924bed129add1f74f19e920",
+      "bytes": 3857
+    },
+    {
+      "artifactRelativePath": "native-audit-results/results.json",
+      "sha256": "de91beda0e1dac7f943a0cfc414d037149ca21e292d44cab6228d6c8be6c7859",
+      "bytes": 836
+    }
+  ]
+}

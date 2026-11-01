@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAtUtc": "2026-10-31T23:54:59.133045+00:00",
+  "updatedAtUtc": "2026-11-01T00:11:46.777672+00:00",
   "source": {
     "head": "2f91218e71dbcaf94ea7b454a0e3562800bfe601",
     "merge": "5333fddeaab859dfde2079266aafb07ffd94f329",
@@ -12,7 +12,7 @@
     "nativeCandidateTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
     "candidatePublicationReceipt": "../live-app-20261031/native-candidate-d46c50f0-publication.json"
   },
-  "phase": "focused-local-repairs-preserved-one-retained-iphone-reader-run-in-progress",
+  "phase": "source-fixes-saved-initial-iphone-reader-proven-direct-page-diagnostic-running",
   "retiredProgressCounter": "The former 5/6 count represented a narrow repair cycle and is not whole-product progress. It is no longer the current status measure.",
   "inventory": {
     "native": {
@@ -1350,7 +1350,7 @@
     "iosCurrentVerifiedCaseResults": 0
   },
   "latestFocusedRepair": {
-    "recordedAt": "2026-10-31T23:58:27.505809+00:00",
+    "recordedAt": "2026-11-01T00:11:46.777672+00:00",
     "task": "Post poll fixture and iPhone memory reader; restore earlier authorized fixes lost during workspace interruption",
     "sourceBranch": "codex/reader-recoverability-20261031",
     "sourceCommit": "a65f2b0b089308857085d7183ec176aad9e57372",
@@ -1362,7 +1362,7 @@
       "receipt": "poll-transport-repair/acceptance.json"
     },
     "reader": {
-      "status": "LOCAL_RECOVERABILITY_FIX_VERIFIED_NATIVE_STALL_NOT_YET_RESOLVED",
+      "status": "INITIAL_READER_LOAD_OBSERVED_DIRECT_PAGE_CONTROLS_RETEST_RUNNING",
       "freshLocalPassed": 61,
       "freshLocalFailed": 0,
       "receipt": "iphone-reader-stall-investigation/review.json",
@@ -1375,7 +1375,7 @@
         "run": 41253722308,
         "job": 124692367750,
         "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41253722308",
-        "status": "in_progress",
+        "status": "completed",
         "consumerCommit": "cd36cf4ea182de90e4097caff6072e00a76785fd",
         "retainedAppSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
         "thisRepairIncludedInRetainedApp": false,
@@ -1383,7 +1383,47 @@
           "memory-reader-controls"
         ],
         "separateDiagnostic": "diagnostic-warm-tabs-reader",
-        "caseResultsVerified": 0
+        "caseResultsVerified": 1,
+        "conclusion": "failure",
+        "originalCasePassed": 0,
+        "originalCaseFailed": 1,
+        "classification": "Reader loaded. The overall180-second case deadline expired9ms after aiming Open book, before a touch dispatch. Page controls unaccepted; no reader freeze demonstrated.",
+        "receipt": "iphone-reader-retained-41253722308/consumer-runtime-acceptance.json",
+        "independentTrace": "iphone-reader-retained-41253722308/independent-reader-boundary-review.json",
+        "nativeTrace": "iphone-reader-retained-41253722308/native-platform/review.json",
+        "artifactId": 13061634885,
+        "artifactSha256": "7639cd3908b67d9133e56e6f40420221148072e63123b14a02e868cb6fab3cb8"
+      },
+      "initialReaderObserved": {
+        "bookResponseBodyFulfilledAt": "2026-11-01T00:00:26.885Z",
+        "editMemoryBookVisibleAt": "2026-11-01T00:00:29.228Z",
+        "appSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+        "newSourceRepairIncluded": false,
+        "countedAsFullReaderCasePass": false
+      },
+      "directPageDiagnostic": {
+        "run": 41255492904,
+        "job": 124697671752,
+        "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41255492904",
+        "status": "in_progress",
+        "consumerCommit": "06637178191f5b6c9bb6fd9fd72847f9fc70a2d8",
+        "flow": "tests/native/diagnostics/ios-direct-reader-controls.yaml",
+        "flowSha256": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1",
+        "cliWatchdogSeconds": 600,
+        "jobCapMinutes": 25,
+        "readerReadinessMs": 15000,
+        "allOriginal85CasesUnselected": true,
+        "warmDiagnosticUnselected": true,
+        "mandatory": [
+          "Edit memory book within15seconds",
+          "Open book",
+          "Page1 and exact caption",
+          "Next memory",
+          "Page2 and exact caption"
+        ],
+        "preparationReceipt": "iphone-reader-retained-41253722308/direct-diagnostic-preparation/acceptance.json",
+        "independentReview": "iphone-direct-reader-diagnostic-review/independent-review.json",
+        "newAppBuild": false
       }
     },
     "restoration": {
@@ -1413,6 +1453,16 @@
     "newAppBuild": false,
     "deployment": false,
     "fiveMillionDailyUserCapacityTested": false,
-    "noRealProviderDataWritten": true
+    "noRealProviderDataWritten": true,
+    "sourceReviewHead": "503f8740447e05adc2d40fe43709467f7bbdf8be",
+    "warmNavigationProblem": {
+      "status": "UNRESOLVED",
+      "observedAt": "2026-10-31T23:57:27.616Z",
+      "finding": "After a correctly targeted native Profile touch, Messages remained selected and visible. The journey failed before shelf/reader entry.",
+      "nativeTouchToJsPressOrDispatch": "not observed",
+      "sourceCause": "not established",
+      "receipt": "iphone-reader-retained-41253722308/native-platform/review.json",
+      "retestInCurrentDirectProbe": false
+    }
   }
 }

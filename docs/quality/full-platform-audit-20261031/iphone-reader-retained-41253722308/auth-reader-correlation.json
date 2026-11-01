@@ -1,0 +1,458 @@
+{
+  "schema": 1,
+  "artifactId": 13061634885,
+  "caseSummaries": [
+    {
+      "caseDirectory": "diagnostic-warm-tabs-reader",
+      "fixture": {
+        "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/native-ui-receipt.json",
+        "sha256": "95f4e5324e2d7faf243dfe099b46a118d9118c05a17966743d89f6e96d230e7d",
+        "bytes": 8529
+      },
+      "auth": {
+        "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/native-ui-auth-diagnostics.json",
+        "sha256": "bbe7dd48810b4fe376b53ebb7236732e2fe808aa20d979d853cad20d05f0d2cb",
+        "bytes": 74104
+      },
+      "auditCaseId": "navigation-warm-tabs",
+      "requestCount": 82,
+      "requestCounts": {
+        "/auth/v1/health": 16,
+        "/auth/v1/token": 1,
+        "/rest/v1/profiles": 8,
+        "/rest/v1/user_presence": 1,
+        "/rest/v1/call_sessions": 1,
+        "/rest/v1/call_participants": 1,
+        "/rest/v1/rpc/get_catchup_feed": 4,
+        "/rest/v1/notifications": 2,
+        "/rest/v1/follows": 1,
+        "/rest/v1/follow_requests": 1,
+        "/rest/v1/rpc/get_my_actors": 1,
+        "/rest/v1/rpc/get_feed": 1,
+        "/rest/v1/posts": 2,
+        "/rest/v1/post_reposts": 1,
+        "/rest/v1/post_bookmarks": 1,
+        "/rest/v1/post_collaborators": 1,
+        "/rest/v1/post_polls": 1,
+        "/rest/v1/rpc/get_feed_visibility": 1,
+        "/rest/v1/rpc/get_recent_likers": 1,
+        "/rest/v1/rpc/home_marketplace_recommendations": 1,
+        "/rest/v1/post_comments": 1,
+        "/rest/v1/rpc/get_active_promos": 1,
+        "/rest/v1/rpc/get_context_unread": 3,
+        "/rest/v1/rpc/get_profile": 1,
+        "/rest/v1/conversations": 3,
+        "/rest/v1/conversation_members": 3,
+        "/rest/v1/conversation_settings": 3,
+        "/rest/v1/rpc/get_unread_counts": 3,
+        "/rest/v1/announcements": 1,
+        "/rest/v1/feature_flags": 1,
+        "/rest/v1/rpc/get_trending_topics": 1,
+        "/rest/v1/rpc/get_trending_stories": 2,
+        "/rest/v1/post_seen": 1,
+        "/rest/v1/saved_listings": 1,
+        "/rest/v1/rpc/get_market_feed": 1,
+        "/rest/v1/marketplace_listings": 1,
+        "/rest/v1/conversation_typing": 6,
+        "/rest/v1/message_mentions": 2
+      },
+      "requestOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "unhandledCount": 0,
+      "bookReads": [],
+      "readerResponseDropped": 0,
+      "readerBoundaries": [],
+      "captureBoundaries": [],
+      "accountReadbacks": [],
+      "authSummary": {
+        "operations": 137,
+        "events": 388,
+        "snapshotAtUtc": "2026-10-31T23:57:00.904397+00:00",
+        "lastEventAtUtc": "2026-10-31T23:57:00.641582+00:00",
+        "droppedEvents": 0,
+        "droppedTracking": 0,
+        "maxWaitMs": 666.25,
+        "maxHoldMs": 380.69399999999587,
+        "maxStorageMs": 245.08499999999913,
+        "outcomes": {
+          "fulfilled": 194
+        },
+        "activeLocks": [],
+        "waitingLocks": [],
+        "activeStorage": [],
+        "timerApiIdentityCount": 2
+      }
+    },
+    {
+      "caseDirectory": "memory-reader-controls",
+      "fixture": {
+        "artifactRelativePath": "native-audit-results/memory-reader-controls/native-ui-receipt.json",
+        "sha256": "06a398651463ac4a97aff50f40228b68e7cf17828b060555e1a22b6a22c1b600",
+        "bytes": 3840
+      },
+      "auth": {
+        "artifactRelativePath": "native-audit-results/memory-reader-controls/native-ui-auth-diagnostics.json",
+        "sha256": "f888b36cfe9d02b36afc6ca5997da02047e072e6053149efed1bd20931c8465a",
+        "bytes": 26359
+      },
+      "auditCaseId": "memory-reader-controls",
+      "requestCount": 25,
+      "requestCounts": {
+        "/auth/v1/health": 16,
+        "/auth/v1/token": 1,
+        "/rest/v1/profiles": 2,
+        "/rest/v1/user_presence": 1,
+        "/rest/v1/call_sessions": 1,
+        "/rest/v1/call_participants": 1,
+        "/rest/v1/rpc/get_memory_book": 1,
+        "/rest/v1/story_reactions": 1,
+        "/rest/v1/rpc/get_memory_albums": 1
+      },
+      "requestOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "unhandledCount": 0,
+      "bookReads": [
+        {
+          "id": "a0000000-0000-4000-8000-000000000002",
+          "owner": "10000000-0000-4000-8000-000000000001",
+          "revision": 0,
+          "title": "THE SMALL ADVENTURES",
+          "cover_color": "cream",
+          "cover_design": "keepsake",
+          "cover_artwork": {
+            "version": 1,
+            "inscription": "",
+            "inscriptionStyle": "handwritten",
+            "inscriptionPosition": "bottom",
+            "postmark": "",
+            "showDate": true,
+            "photo": {
+              "x": 0.5,
+              "y": 0.5,
+              "scale": 1
+            }
+          },
+          "film_settings": {
+            "version": 1,
+            "mode": "automatic",
+            "style": "reflective",
+            "length": "full",
+            "order": "book",
+            "titleCard": true,
+            "originalAudio": true
+          }
+        }
+      ],
+      "readerResponseDropped": 0,
+      "readerBoundaries": [
+        {
+          "sequence": 1,
+          "id": 1,
+          "kind": "book",
+          "phase": "response-ready",
+          "bodyObserved": true,
+          "status": 200,
+          "atUnixMs": 1793491226885,
+          "atUtc": "2026-11-01T00:00:26.885000+00:00"
+        },
+        {
+          "sequence": 2,
+          "id": 1,
+          "kind": "book",
+          "phase": "body-start",
+          "atUnixMs": 1793491226885,
+          "atUtc": "2026-11-01T00:00:26.885000+00:00"
+        },
+        {
+          "sequence": 3,
+          "id": 1,
+          "kind": "book",
+          "phase": "body-complete",
+          "fulfilled": true,
+          "atUnixMs": 1793491226885,
+          "atUtc": "2026-11-01T00:00:26.885000+00:00"
+        },
+        {
+          "sequence": 4,
+          "id": 2,
+          "kind": "reactions",
+          "phase": "response-ready",
+          "bodyObserved": true,
+          "status": 200,
+          "atUnixMs": 1793491226903,
+          "atUtc": "2026-11-01T00:00:26.903000+00:00"
+        },
+        {
+          "sequence": 5,
+          "id": 2,
+          "kind": "reactions",
+          "phase": "body-start",
+          "atUnixMs": 1793491226904,
+          "atUtc": "2026-11-01T00:00:26.904000+00:00"
+        },
+        {
+          "sequence": 6,
+          "id": 2,
+          "kind": "reactions",
+          "phase": "body-complete",
+          "fulfilled": true,
+          "atUnixMs": 1793491226904,
+          "atUtc": "2026-11-01T00:00:26.904000+00:00"
+        }
+      ],
+      "captureBoundaries": [],
+      "accountReadbacks": [],
+      "authSummary": {
+        "operations": 47,
+        "events": 136,
+        "snapshotAtUtc": "2026-11-01T00:00:30.405367+00:00",
+        "lastEventAtUtc": "2026-11-01T00:00:30.140267+00:00",
+        "droppedEvents": 0,
+        "droppedTracking": 0,
+        "maxWaitMs": 131.779,
+        "maxHoldMs": 46.17999999999998,
+        "maxStorageMs": 46.045000000000016,
+        "outcomes": {
+          "fulfilled": 68
+        },
+        "activeLocks": [],
+        "waitingLocks": [],
+        "activeStorage": [],
+        "timerApiIdentityCount": 2
+      }
+    },
+    {
+      "caseDirectory": "exit-diagnostics/exit",
+      "fixture": {
+        "artifactRelativePath": "native-audit-results/exit-diagnostics/exit/native-ui-receipt.json",
+        "sha256": "c79edbafb935f68251defe39a476682d04d463c052916cedb2420e04a88f7625",
+        "bytes": 3929
+      },
+      "auth": {
+        "artifactRelativePath": "native-audit-results/exit-diagnostics/exit/native-ui-auth-diagnostics.json",
+        "sha256": "8b918add3bf5e2a9a6a8663636f847a1e35c88613b04a556c86f52819a7f03db",
+        "bytes": 27535
+      },
+      "auditCaseId": "memory-reader-controls",
+      "requestCount": 26,
+      "requestCounts": {
+        "/auth/v1/health": 17,
+        "/auth/v1/token": 1,
+        "/rest/v1/profiles": 2,
+        "/rest/v1/user_presence": 1,
+        "/rest/v1/call_sessions": 1,
+        "/rest/v1/call_participants": 1,
+        "/rest/v1/rpc/get_memory_book": 1,
+        "/rest/v1/story_reactions": 1,
+        "/rest/v1/rpc/get_memory_albums": 1
+      },
+      "requestOwners": [
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "unhandledCount": 0,
+      "bookReads": [
+        {
+          "id": "a0000000-0000-4000-8000-000000000002",
+          "owner": "10000000-0000-4000-8000-000000000001",
+          "revision": 0,
+          "title": "THE SMALL ADVENTURES",
+          "cover_color": "cream",
+          "cover_design": "keepsake",
+          "cover_artwork": {
+            "version": 1,
+            "inscription": "",
+            "inscriptionStyle": "handwritten",
+            "inscriptionPosition": "bottom",
+            "postmark": "",
+            "showDate": true,
+            "photo": {
+              "x": 0.5,
+              "y": 0.5,
+              "scale": 1
+            }
+          },
+          "film_settings": {
+            "version": 1,
+            "mode": "automatic",
+            "style": "reflective",
+            "length": "full",
+            "order": "book",
+            "titleCard": true,
+            "originalAudio": true
+          }
+        }
+      ],
+      "readerResponseDropped": 0,
+      "readerBoundaries": [
+        {
+          "sequence": 1,
+          "id": 1,
+          "kind": "book",
+          "phase": "response-ready",
+          "bodyObserved": true,
+          "status": 200,
+          "atUnixMs": 1793491226885,
+          "atUtc": "2026-11-01T00:00:26.885000+00:00"
+        },
+        {
+          "sequence": 2,
+          "id": 1,
+          "kind": "book",
+          "phase": "body-start",
+          "atUnixMs": 1793491226885,
+          "atUtc": "2026-11-01T00:00:26.885000+00:00"
+        },
+        {
+          "sequence": 3,
+          "id": 1,
+          "kind": "book",
+          "phase": "body-complete",
+          "fulfilled": true,
+          "atUnixMs": 1793491226885,
+          "atUtc": "2026-11-01T00:00:26.885000+00:00"
+        },
+        {
+          "sequence": 4,
+          "id": 2,
+          "kind": "reactions",
+          "phase": "response-ready",
+          "bodyObserved": true,
+          "status": 200,
+          "atUnixMs": 1793491226903,
+          "atUtc": "2026-11-01T00:00:26.903000+00:00"
+        },
+        {
+          "sequence": 5,
+          "id": 2,
+          "kind": "reactions",
+          "phase": "body-start",
+          "atUnixMs": 1793491226904,
+          "atUtc": "2026-11-01T00:00:26.904000+00:00"
+        },
+        {
+          "sequence": 6,
+          "id": 2,
+          "kind": "reactions",
+          "phase": "body-complete",
+          "fulfilled": true,
+          "atUnixMs": 1793491226904,
+          "atUtc": "2026-11-01T00:00:26.904000+00:00"
+        }
+      ],
+      "captureBoundaries": [],
+      "accountReadbacks": [],
+      "authSummary": {
+        "operations": 49,
+        "events": 142,
+        "snapshotAtUtc": "2026-11-01T00:01:00.404026+00:00",
+        "lastEventAtUtc": "2026-11-01T00:01:00.141060+00:00",
+        "droppedEvents": 0,
+        "droppedTracking": 0,
+        "maxWaitMs": 131.779,
+        "maxHoldMs": 46.17999999999998,
+        "maxStorageMs": 46.045000000000016,
+        "outcomes": {
+          "fulfilled": 71
+        },
+        "activeLocks": [],
+        "waitingLocks": [],
+        "activeStorage": [],
+        "timerApiIdentityCount": 2
+      }
+    }
+  ],
+  "maestro": [
+    {
+      "case": "diagnostic-warm-tabs-reader",
+      "source": {
+        "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/maestro/2026-10-31_235206/Diagnostic warm tabs then saved memory reader/logs/maestro.log",
+        "sha256": "52cc14f62218e921d959a2a907a067ee7d0131e7ce61cf8b70aa7f7ac0409e78",
+        "bytes": 21406
+      },
+      "selectedTail": [
+        "23:56:23.891 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is ANDROID RUNNING",
+        "23:56:23.891 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is ANDROID SKIPPED",
+        "23:56:23.892 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is IOS RUNNING",
+        "23:56:23.892 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on \"Native audit launcher\" RUNNING",
+        "23:56:25.791 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)",
+        "23:56:27.676 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on \"Native audit launcher\" COMPLETED",
+        "23:56:27.676 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is IOS COMPLETED",
+        "23:56:27.676 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on id: native-audit-open-case RUNNING",
+        "23:56:28.714 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)",
+        "23:56:34.729 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: native-audit-open-case COMPLETED",
+        "23:56:34.729 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"A quiet morning in the desert. Small moments worth keeping.\" is visible RUNNING",
+        "23:56:35.639 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"A quiet morning in the desert. Small moments worth keeping.\" is visible COMPLETED",
+        "23:56:35.640 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Repeat 3 times RUNNING",
+        "23:56:35.734 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on id: main-tab-market RUNNING",
+        "23:56:40.999 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via settled hierarchy",
+        "23:56:43.349 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: main-tab-market COMPLETED",
+        "23:56:43.349 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"View listing: Travel journal\" is visible RUNNING",
+        "23:56:44.284 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"View listing: Travel journal\" is visible COMPLETED",
+        "23:56:44.287 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on id: main-tab-messages RUNNING",
+        "23:56:45.397 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)",
+        "23:56:47.009 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: main-tab-messages COMPLETED",
+        "23:56:47.010 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"Messages\" is visible RUNNING",
+        "23:57:02.124 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"Messages\" is visible COMPLETED",
+        "23:57:02.126 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on id: main-tab-jobs RUNNING",
+        "23:57:03.197 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)",
+        "23:57:04.270 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: main-tab-jobs COMPLETED",
+        "23:57:04.270 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"Jobs\" is visible RUNNING",
+        "23:57:04.982 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"Jobs\" is visible COMPLETED",
+        "23:57:04.983 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on id: main-tab-profile RUNNING",
+        "23:57:06.011 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)",
+        "23:57:07.205 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: main-tab-profile COMPLETED",
+        "23:57:07.205 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"Alex Rivera\" is visible RUNNING",
+        "23:57:27.616 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"Alex Rivera\" is visible FAILED",
+        "23:57:27.828 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Repeat 3 times FAILED",
+        "23:57:28.050 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run ../audit/flows/navigation-warm-tabs.yaml FAILED"
+      ]
+    },
+    {
+      "case": "memory-reader-controls",
+      "source": {
+        "artifactRelativePath": "native-audit-results/memory-reader-controls/maestro/2026-10-31_235803/Audit book open and page controls/logs/maestro.log",
+        "sha256": "50bd45e9693508463c4340a6e28f8cec4728a438a806fe0033dc3cd629ddaaa3",
+        "bytes": 21840
+      },
+      "selectedTail": [
+        "00:00:09.034 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on \"Platinum Circles\" COMPLETED",
+        "00:00:09.034 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is IOS COMPLETED",
+        "00:00:09.035 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on \"Sign in\" RUNNING",
+        "00:00:10.206 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)",
+        "00:00:12.260 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on \"Sign in\" COMPLETED",
+        "00:00:12.261 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"Native audit launcher\" is visible RUNNING",
+        "00:00:13.207 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"Native audit launcher\" is visible COMPLETED",
+        "00:00:13.208 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run _signin.yaml COMPLETED",
+        "00:00:13.208 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on id: native-audit-case-input RUNNING",
+        "00:00:16.190 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)",
+        "00:00:19.142 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: native-audit-case-input COMPLETED",
+        "00:00:19.142 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Input text memory-reader-controls RUNNING",
+        "00:00:21.391 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Input text memory-reader-controls COMPLETED",
+        "00:00:21.391 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is ANDROID RUNNING",
+        "00:00:21.392 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is ANDROID SKIPPED",
+        "00:00:21.392 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is IOS RUNNING",
+        "00:00:21.393 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on \"Native audit launcher\" RUNNING",
+        "00:00:23.184 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)",
+        "00:00:24.916 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on \"Native audit launcher\" COMPLETED",
+        "00:00:24.917 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is IOS COMPLETED",
+        "00:00:24.917 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on id: native-audit-open-case RUNNING",
+        "00:00:26.002 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)",
+        "00:00:28.386 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: native-audit-open-case COMPLETED",
+        "00:00:28.386 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"Edit memory book\" is visible RUNNING",
+        "00:00:29.228 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"Edit memory book\" is visible COMPLETED",
+        "00:00:29.230 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Scrolling DOWN until \"Open book\" is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled RUNNING",
+        "00:00:30.304 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Element bounds: Bounds(x=28, y=715, width=337, height=53)",
+        "00:00:34.601 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Element bounds: Bounds(x=28, y=661, width=337, height=53)",
+        "00:00:38.151 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Element bounds: Bounds(x=28, y=661, width=337, height=53)",
+        "00:00:41.581 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Element bounds: Bounds(x=28, y=661, width=337, height=53)",
+        "00:00:44.792 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Element bounds: Bounds(x=28, y=661, width=337, height=53)",
+        "00:00:48.434 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Element bounds: Bounds(x=28, y=661, width=337, height=53)",
+        "00:00:48.435 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Scrolling DOWN until \"Open book\" is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled COMPLETED",
+        "00:00:48.435 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on \"Open book\" RUNNING",
+        "00:00:49.545 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via stabilised hierarchy (null settle after a scroll)"
+      ]
+    }
+  ]
+}

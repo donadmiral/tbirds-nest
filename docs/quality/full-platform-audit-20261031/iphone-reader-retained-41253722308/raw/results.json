@@ -1,0 +1,38 @@
+[
+  {
+    "id": "memory-reader-controls",
+    "group": "memory",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793491069554,
+    "status": "failed",
+    "timeoutSeconds": 180,
+    "exitCode": null,
+    "timedOut": true,
+    "executionIssue": "case-timeout",
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3840
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 26359
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "missing-or-empty-junit"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 25,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793491256424
+  }
+]

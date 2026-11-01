@@ -1,0 +1,87 @@
+name: Recover the exact d46 iPhone audit binary
+
+on:
+  push:
+    branches: [codex/native-audit-ios-d46-recovery-20261031]
+    paths:
+      - .github/workflows/native-audit-ios-d46-recovery.yml
+      - scripts/quality/native-ui-ios-d46-recovery.py
+      - scripts/quality/native-ui-ios-d46-recovery.json
+      - tests/native/diagnostics/ios-direct-reader-controls.yaml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  recover-ios:
+    name: Recover d46 iPhone group ${{ matrix.shard }}
+    runs-on: macos-15-intel
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: memory
+            groups: memory
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_APP_ENV: qa
+      EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+      MAESTRO_CLI_NO_ANALYTICS: 'true'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Check out the reviewed consumer tools
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: recovery-tools
+          persist-credentials: false
+      - name: Require the independently verified producer binding
+        id: binding
+        run: |
+          artifact_id="$(python3 recovery-tools/scripts/quality/native-ui-ios-d46-recovery.py --artifact-id)"
+          echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
+      - name: Check out the exact original binary and all85 case source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: d46c50f09164c75c7fe8cdba0c3470c272b1ab4e
+          path: baseline
+          persist-credentials: false
+      - name: Retrieve only the verified already-built Simulator app
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ steps.binding.outputs.artifact_id }}
+          merge-multiple: true
+          path: baseline/native-audit-binary
+          run-id: 41235679679
+          github-token: ${{ github.token }}
+      - name: Prepare consumer tools without rebuilding
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
+      - name: Install the original pinned Maestro CLI
+        working-directory: baseline
+        run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run only the separately counted direct reader diagnostic
+        env:
+          AUDIT_GROUPS: ${{ matrix.groups }}
+          RECOVERY_SOURCE: ${{ github.sha }}
+        run: |
+          python3 recovery-tools/scripts/quality/native-ui-ios-d46-recovery.py \
+            --baseline "$PWD/baseline" --recovery-source "$RECOVERY_SOURCE" \
+            --groups "$AUDIT_GROUPS" --direct-reader-diagnostic-only
+      - name: Retain completed, failed and interrupted observations
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-audit-ios-d46-${{ matrix.shard }}-recovery-results
+          path: |
+            baseline/native-audit-results/
+            baseline/native-ui-logs/
+          if-no-files-found: warn
+          retention-days: 7

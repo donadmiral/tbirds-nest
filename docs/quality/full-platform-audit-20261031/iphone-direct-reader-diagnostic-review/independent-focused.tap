@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes
+ok 1 - direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes
+  ---
+  duration_ms: 101.345121
+  type: 'test'
+  ...
+# Subtest: d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering
+ok 2 - d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering
+  ---
+  duration_ms: 183.626755
+  type: 'test'
+  ...
+# Subtest: prepared d46 workflow selects only the separately counted direct reader diagnostic without rebuilding
+ok 3 - prepared d46 workflow selects only the separately counted direct reader diagnostic without rebuilding
+  ---
+  duration_ms: 8.051744
+  type: 'test'
+  ...
+# Subtest: actual d46 case selector preserves order and rejects invalid or out-of-group subsets without changing the manifest
+ok 4 - actual d46 case selector preserves order and rejects invalid or out-of-group subsets without changing the manifest
+  ---
+  duration_ms: 50.602529
+  type: 'test'
+  ...
+# Subtest: actual warm diagnostic preserves its original flow and requires real fixture/JUnit success separately from the original case
+ok 5 - actual warm diagnostic preserves its original flow and requires real fixture/JUnit success separately from the original case
+  ---
+  duration_ms: 80.325747
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 458.587243

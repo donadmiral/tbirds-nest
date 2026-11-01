@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "status": "INDEPENDENT_REVIEW_ACCEPTED_RUNTIME_PENDING",
+  "reviewedAtUtc": "2026-11-01T00:09:06.112090+00:00",
+  "scope": "Four test-only consumer/workflow/diagnostic paths; retained d46 app binary, original runner and85case manifest remain the runtime authority.",
+  "findings": [
+    "Exact15s Edit memory book readiness remains mandatory.",
+    "Both Page1/Page2 counters and captions, Open book and Next memory actions remain mandatory and source-equal to the original flow.",
+    "Only diagnostic metadata/sign-in reference/screenshot name and centerElement:false differ in the cloned YAML.",
+    "600s is the whole diagnostic CLI watchdog, including driver startup and original sign-in. Original180s case budget and all original flows are unchanged.",
+    "Root reduced the overall job cap from100 to25minutes; final focused test expectation matches25. This does not change the600s diagnostic or15s reader requirement.",
+    "Diagnostic-only mode rejects --cases, warm diagnostic and non-memory groups; reports original attempted/pass/fail0 with85unselected.",
+    "Warm diagnostic is explicitly not attempted by this selection; its previous failure is not erased or reported as passed.",
+    "Success requires CLIexit0, original fixture validator with exact memory-reader-controls case identity, and exact single SUCCESS JUnit name/file with no failure/error/skipped/disabled evidence.",
+    "Relative diagnostic path runs with consumer cwd; original sign-in comes from explicitly bound D46_BASELINE.",
+    "Pre/post app digest, original runner/manifest and reviewed-helper guards remain. No rebuild, rebundle, resign or product source edit.",
+    "Exact diagnostic YAML is copied into the output artifact, and failures/timeouts retain fail-closed result state."
+  ],
+  "verification": {
+    "command": [
+      "env",
+      "-u",
+      "NODE_TEST_CONTEXT",
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "tests/quality/native-ios-d46-recovery.cjs"
+    ],
+    "processExitCode": 0,
+    "formalCases": 5,
+    "formalPass": 5,
+    "formalFail": 0,
+    "skipped": 0,
+    "nestedPythonCases": 38,
+    "countBoundary": "38 Python checks are nested inside the5formal cases, not43additional cases. This independent repeat overlaps the owner run.",
+    "elapsedSeconds": 0.4984783280001466,
+    "sourceHashesUnchangedBeforeAfter": true,
+    "checkedInputs": 98,
+    "harnessLimit": "Actual Python consumer/selector/validators/setup and terminal summary expressions execute with controlled subprocess/runtime responses. This is not a live Maestro/iOS page-turn result."
+  },
+  "candidateSha256": {
+    ".github/workflows/native-audit-ios-d46-recovery.yml": "10529f3da3d4b63db2f906c9e0bbf86e73c3e6c82612db63c9e27f8b0ab6c228",
+    "scripts/quality/native-ui-ios-d46-recovery.py": "ba9f1861dd10af48524e52991d387074b2a6f96f58b24a423dcfc806385bcfe6",
+    "tests/native/diagnostics/ios-direct-reader-controls.yaml": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1",
+    "tests/quality/native-ios-d46-recovery.cjs": "f640e9e5e54c87407810e45edbf2bb9fdd144417a410867e3965215a8b170af4"
+  },
+  "literalD46Proof": [
+    {
+      "path": "scripts/quality/native-ui-audit-runner.py",
+      "sha256": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352",
+      "matchesLiteralD46Tree": true
+    },
+    {
+      "path": "tests/native/audit/manifest.json",
+      "sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+      "matchesLiteralD46Tree": true
+    },
+    {
+      "path": "tests/native/audit/flows/memory-reader-controls.yaml",
+      "sha256": "bb1043029586a692530261b9c0a3ed63b7cc77dd9f34e0129a854ee26e2d7a42",
+      "matchesLiteralD46Tree": true
+    },
+    {
+      "path": "tests/native/audit/flows/_signin.yaml",
+      "sha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+      "matchesLiteralD46Tree": true
+    },
+    {
+      "path": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+      "sha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82",
+      "matchesLiteralD46Tree": true
+    }
+  ],
+  "limits": [
+    "The old binary excludes the newly restored reader12/15s deadlines; those changes are not validated by a retained-binary run.",
+    "No original case receives acceptance credit from the diagnostic, even if it passes.",
+    "No remote run or build was launched by this review."
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-diagnostic-review/independent-focused.tap",
+      "bytes": 1552,
+      "sha256": "1677c7c033a68430faaba6e915186830cdba4f2fefbfeb037f5a765472bc76e2"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-diagnostic-review/independent-source-manifest.json",
+      "bytes": 13856,
+      "sha256": "41f3680dbaf5b72d01389bf1747def598784548f4967e001d9666cbbbcd92f94"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "kind": "additional-related-path-diagnostic",
+  "countedInBaseline85": false,
+  "flow": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+  "flowSha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82",
+  "timeoutSeconds": 600,
+  "readerRequirementMs": 15000,
+  "attempts": 1,
+  "startedAtEpochMs": 1793490677390,
+  "exitCode": 1,
+  "collection": [
+    {
+      "file": "native-ui-receipt.json",
+      "collected": true,
+      "bytes": 8529
+    },
+    {
+      "file": "native-ui-auth-diagnostics.json",
+      "collected": true,
+      "bytes": 74104
+    }
+  ],
+  "fixture": {
+    "passed": true,
+    "requestCount": 82,
+    "auditRequestCount": 0,
+    "auditMutationCount": 0
+  },
+  "junit": {
+    "passed": false,
+    "issue": "ValueError"
+  },
+  "passed": false,
+  "finishedAtEpochMs": 1793491069551
+}

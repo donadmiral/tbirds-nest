@@ -1,0 +1,46 @@
+{
+  "polls": 1,
+  "snapshots": {
+    "exit/native-ui-receipt.json": {
+      "collected": true,
+      "latestAttemptCollected": true,
+      "bytes": 3929,
+      "sha256": "c79edbafb935f68251defe39a476682d04d463c052916cedb2420e04a88f7625",
+      "atEpochMs": 1793491261017,
+      "fixtureCaseMatchesExpectedAtThisPoll": null,
+      "caseAttribution": "not-established"
+    },
+    "first/native-ui-receipt.json": {
+      "collected": true,
+      "latestAttemptCollected": true,
+      "bytes": 3929,
+      "sha256": "c79edbafb935f68251defe39a476682d04d463c052916cedb2420e04a88f7625",
+      "atEpochMs": 1793491261017,
+      "fixtureCaseMatchesExpectedAtThisPoll": null,
+      "caseAttribution": "not-established"
+    },
+    "exit/native-ui-auth-diagnostics.json": {
+      "collected": true,
+      "latestAttemptCollected": true,
+      "bytes": 27535,
+      "sha256": "8b918add3bf5e2a9a6a8663636f847a1e35c88613b04a556c86f52819a7f03db",
+      "atEpochMs": 1793491261020,
+      "fixtureCaseMatchesExpectedAtThisPoll": null,
+      "caseAttribution": "not-established"
+    },
+    "first/native-ui-auth-diagnostics.json": {
+      "collected": true,
+      "latestAttemptCollected": true,
+      "bytes": 27535,
+      "sha256": "8b918add3bf5e2a9a6a8663636f847a1e35c88613b04a556c86f52819a7f03db",
+      "atEpochMs": 1793491261021,
+      "fixtureCaseMatchesExpectedAtThisPoll": null,
+      "caseAttribution": "not-established"
+    }
+  },
+  "sampleTrigger": null,
+  "samples": [],
+  "observerErrors": 0,
+  "expectedCaseId": null,
+  "diagnosticSnapshotsAreNotFinalCaseReceipts": true
+}

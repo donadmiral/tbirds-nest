@@ -1,0 +1,207 @@
+{
+  "schemaVersion": 1,
+  "artifactId": 13061634885,
+  "zipBytes": 6194776,
+  "zipSha256": "7639cd3908b67d9133e56e6f40420221148072e63123b14a02e868cb6fab3cb8",
+  "source": "One verified archive; canonical global, fixture, auth and observer bytes retained without transformation. Native/app/driver/visual evidence is separately owned.",
+  "files": [
+    {
+      "artifactRelativePath": "native-audit-results/audit-manifest.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/audit-manifest.json",
+      "bytes": 91086,
+      "sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/binary-manifest.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/binary-manifest.json",
+      "bytes": 2621,
+      "sha256": "c0d9df2f3265ba0f387565ad4e28e87758bac57f594450242f410dcdc353cfec"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/diagnostics/after-case/native-ui-auth-diagnostics.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/diagnostics/after-case/native-ui-auth-diagnostics.json",
+      "bytes": 74104,
+      "sha256": "bbe7dd48810b4fe376b53ebb7236732e2fe808aa20d979d853cad20d05f0d2cb"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/diagnostics/after-case/native-ui-receipt.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/diagnostics/after-case/native-ui-receipt.json",
+      "bytes": 8529,
+      "sha256": "95f4e5324e2d7faf243dfe099b46a118d9118c05a17966743d89f6e96d230e7d"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/diagnostics/first/native-ui-auth-diagnostics.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/diagnostics/first/native-ui-auth-diagnostics.json",
+      "bytes": 69350,
+      "sha256": "9b563baa010fb89f507d3cbe9feb80cd90b5f2784c6c8ac986ecd0b2a7229bdb"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/diagnostics/first/native-ui-receipt.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/diagnostics/first/native-ui-receipt.json",
+      "bytes": 7854,
+      "sha256": "70c3a1341dfd687736d093cddc4b56441902f6c7bb1aba6480832dfd0f378c10"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/diagnostics/latest/native-ui-auth-diagnostics.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/diagnostics/latest/native-ui-auth-diagnostics.json",
+      "bytes": 74104,
+      "sha256": "bbe7dd48810b4fe376b53ebb7236732e2fe808aa20d979d853cad20d05f0d2cb"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/diagnostics/latest/native-ui-receipt.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/diagnostics/latest/native-ui-receipt.json",
+      "bytes": 8529,
+      "sha256": "95f4e5324e2d7faf243dfe099b46a118d9118c05a17966743d89f6e96d230e7d"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/diagnostics/observation.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/diagnostics/observation.json",
+      "bytes": 2393,
+      "sha256": "716152951824c0d78e38a0ee44084961c2cf9efb4ee10d53e7aa9ef0b9dc9e13"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/junit.xml",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/junit.xml",
+      "bytes": 656,
+      "sha256": "a1f28eea0e5681b520862f76c230d8f51d5d05bf78b32ea34f254c26da4ab987"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/native-ui-auth-diagnostics.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/native-ui-auth-diagnostics.json",
+      "bytes": 74104,
+      "sha256": "bbe7dd48810b4fe376b53ebb7236732e2fe808aa20d979d853cad20d05f0d2cb"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/native-ui-receipt.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/native-ui-receipt.json",
+      "bytes": 8529,
+      "sha256": "95f4e5324e2d7faf243dfe099b46a118d9118c05a17966743d89f6e96d230e7d"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/diagnostic-warm-tabs-reader/result.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/diagnostic-warm-tabs-reader/result.json",
+      "bytes": 829,
+      "sha256": "815459348aba0d4c18c43a98e2638b7e8162722969a83e66cbde368ca89e5600"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/exit-diagnostics/exit/native-ui-auth-diagnostics.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/exit-diagnostics/exit/native-ui-auth-diagnostics.json",
+      "bytes": 27535,
+      "sha256": "8b918add3bf5e2a9a6a8663636f847a1e35c88613b04a556c86f52819a7f03db"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/exit-diagnostics/exit/native-ui-receipt.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/exit-diagnostics/exit/native-ui-receipt.json",
+      "bytes": 3929,
+      "sha256": "c79edbafb935f68251defe39a476682d04d463c052916cedb2420e04a88f7625"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/exit-diagnostics/first/native-ui-auth-diagnostics.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/exit-diagnostics/first/native-ui-auth-diagnostics.json",
+      "bytes": 27535,
+      "sha256": "8b918add3bf5e2a9a6a8663636f847a1e35c88613b04a556c86f52819a7f03db"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/exit-diagnostics/first/native-ui-receipt.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/exit-diagnostics/first/native-ui-receipt.json",
+      "bytes": 3929,
+      "sha256": "c79edbafb935f68251defe39a476682d04d463c052916cedb2420e04a88f7625"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/exit-diagnostics/observation.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/exit-diagnostics/observation.json",
+      "bytes": 1569,
+      "sha256": "fb5320c3dd0df6f2ab8c76e2da77c4a5d6684804a7102ba2169c6c8ff401e961"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/diagnostics/after-case/native-ui-auth-diagnostics.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/memory-reader-controls/diagnostics/after-case/native-ui-auth-diagnostics.json",
+      "bytes": 26359,
+      "sha256": "f888b36cfe9d02b36afc6ca5997da02047e072e6053149efed1bd20931c8465a"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/diagnostics/after-case/native-ui-receipt.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/memory-reader-controls/diagnostics/after-case/native-ui-receipt.json",
+      "bytes": 3751,
+      "sha256": "ad003bd03430ca879ee1a43dbe86d5b3f551af3fdaaea4fa9025e28746585bcb"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/diagnostics/first/native-ui-auth-diagnostics.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/memory-reader-controls/diagnostics/first/native-ui-auth-diagnostics.json",
+      "bytes": 74104,
+      "sha256": "bbe7dd48810b4fe376b53ebb7236732e2fe808aa20d979d853cad20d05f0d2cb"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/diagnostics/first/native-ui-receipt.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/memory-reader-controls/diagnostics/first/native-ui-receipt.json",
+      "bytes": 8529,
+      "sha256": "95f4e5324e2d7faf243dfe099b46a118d9118c05a17966743d89f6e96d230e7d"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/diagnostics/latest/native-ui-auth-diagnostics.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/memory-reader-controls/diagnostics/latest/native-ui-auth-diagnostics.json",
+      "bytes": 6066,
+      "sha256": "95dfdf9ecb98484fe70a8cd6a422294c63bd2bd187281cc3d517b26010f0618b"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/diagnostics/latest/native-ui-receipt.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/memory-reader-controls/diagnostics/latest/native-ui-receipt.json",
+      "bytes": 639,
+      "sha256": "a1114e725e4a93c7f7f4ba2647af446aa991be293b7abe26c5c40ab737d900e6"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/diagnostics/observation.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/memory-reader-controls/diagnostics/observation.json",
+      "bytes": 2377,
+      "sha256": "98cec40a2e9980b011f92e5cc1af48ee7048d25662d12e01c591d56e218f7c69"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/native-ui-auth-diagnostics.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/memory-reader-controls/native-ui-auth-diagnostics.json",
+      "bytes": 26359,
+      "sha256": "f888b36cfe9d02b36afc6ca5997da02047e072e6053149efed1bd20931c8465a"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/memory-reader-controls/native-ui-receipt.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/memory-reader-controls/native-ui-receipt.json",
+      "bytes": 3840,
+      "sha256": "06a398651463ac4a97aff50f40228b68e7cf17828b060555e1a22b6a22c1b600"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/recovery-provenance.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/recovery-provenance.json",
+      "bytes": 6851,
+      "sha256": "1554e6af8d61bf919e918535b6215a3e5ea1e724875dd43b6cda0ceb9aff4a2c"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/results.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/results.json",
+      "bytes": 836,
+      "sha256": "de91beda0e1dac7f943a0cfc414d037149ca21e292d44cab6228d6c8be6c7859"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/setup-commands.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/setup-commands.json",
+      "bytes": 17987,
+      "sha256": "e72d9529c9faa49d7482b29cd2b85aae6d126abf652b00b0a9f1eb406b3b7c34"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/source.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/source.json",
+      "bytes": 74153,
+      "sha256": "cb2d155446c9bf3148089fec50757fa982574735c90ded43c53387e5f3aa9168"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/summary.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/summary.json",
+      "bytes": 3857,
+      "sha256": "1df8d2f1fde31b220427e1222957c664ea587c390924bed129add1f74f19e920"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/verified-producer-binding.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/raw/verified-producer-binding.json",
+      "bytes": 810,
+      "sha256": "3775b6b5fd3bd4e3d0fd2ac5674943aa8ddd71fc8b849c06f7ad24f78bae1310"
+    }
+  ]
+}

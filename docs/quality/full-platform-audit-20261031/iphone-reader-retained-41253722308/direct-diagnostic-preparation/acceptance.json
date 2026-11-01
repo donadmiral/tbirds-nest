@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "preparedAtUtc": "2026-11-01T00:08:43.556893+00:00",
+  "status": "PREPARED_LOCAL_REVIEW_PASSED_RUNTIME_PENDING",
+  "applicationCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+  "applicationTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+  "producerRunId": 41235679679,
+  "producerArtifactId": 13056677052,
+  "priorConsumerCommit": "cd36cf4ea182de90e4097caff6072e00a76785fd",
+  "reason": "Prior direct reader readiness passed; the whole-case180s deadline expired9ms after tap aiming. Fully visible button centering consumed19.205s. This is a separately reported diagnostic, not a changed original acceptance outcome.",
+  "changedFiles": [
+    {
+      "path": ".github/workflows/native-audit-ios-d46-recovery.yml",
+      "bytes": 3486,
+      "sha256": "10529f3da3d4b63db2f906c9e0bbf86e73c3e6c82612db63c9e27f8b0ab6c228"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-d46-recovery.py",
+      "bytes": 25080,
+      "sha256": "ba9f1861dd10af48524e52991d387074b2a6f96f58b24a423dcfc806385bcfe6"
+    },
+    {
+      "path": "tests/native/diagnostics/ios-direct-reader-controls.yaml",
+      "bytes": 841,
+      "sha256": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1"
+    },
+    {
+      "path": "tests/quality/native-ios-d46-recovery.cjs",
+      "bytes": 29401,
+      "sha256": "f640e9e5e54c87407810e45edbf2bb9fdd144417a410867e3965215a8b170af4"
+    }
+  ],
+  "unchangedConsumerDependencies": [
+    {
+      "path": "scripts/quality/native-ui-ios-d46-recovery.json",
+      "bytes": 810,
+      "sha256": "3775b6b5fd3bd4e3d0fd2ac5674943aa8ddd71fc8b849c06f7ad24f78bae1310"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-created-device.py",
+      "bytes": 2718,
+      "sha256": "d2ffc477184b8a55f3e557facf1928ac5e11976caf84f78f8050c356e172d3b7"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-audit-recovery.py",
+      "bytes": 36037,
+      "sha256": "428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-compatibility.py",
+      "bytes": 3981,
+      "sha256": "0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9"
+    },
+    {
+      "path": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+      "bytes": 709,
+      "sha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82"
+    }
+  ],
+  "originalInputs": [
+    {
+      "path": "scripts/quality/native-ui-audit-runner.py",
+      "bytes": 15481,
+      "sha256": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352",
+      "d46Sha256": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352",
+      "localMatchesD46": true,
+      "changedByThisTask": false
+    },
+    {
+      "path": "tests/native/audit/manifest.json",
+      "bytes": 91086,
+      "sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+      "d46Sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+      "localMatchesD46": true,
+      "changedByThisTask": false
+    },
+    {
+      "path": "tests/native/audit/flows/memory-reader-controls.yaml",
+      "bytes": 775,
+      "sha256": "bb1043029586a692530261b9c0a3ed63b7cc77dd9f34e0129a854ee26e2d7a42",
+      "d46Sha256": "bb1043029586a692530261b9c0a3ed63b7cc77dd9f34e0129a854ee26e2d7a42",
+      "localMatchesD46": true,
+      "changedByThisTask": false
+    },
+    {
+      "path": "tests/native/audit/flows/_signin.yaml",
+      "bytes": 1100,
+      "sha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+      "d46Sha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+      "localMatchesD46": true,
+      "changedByThisTask": false
+    }
+  ],
+  "originalInputsEvidence": "Retained verified d46 source/consumer manifests. Original source commit is not available in the restored local Git object database; no network lookup was made. The consumer still verifies exact d46 commit/tree/runner/manifest/app before and after execution.",
+  "execution": {
+    "flag": "--direct-reader-diagnostic-only",
+    "groups": [
+      "memory"
+    ],
+    "selectedOriginalCases": [],
+    "originalAttempted": 0,
+    "originalUnselected": 85,
+    "warmDiagnosticRuns": 0,
+    "diagnosticId": "diagnostic-direct-reader-controls",
+    "diagnosticName": "Diagnostic direct saved memory reader controls",
+    "fixtureCaseId": "memory-reader-controls",
+    "flow": "tests/native/diagnostics/ios-direct-reader-controls.yaml",
+    "flowSha256": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1",
+    "countedInBaseline85": false,
+    "wholeCliWatchdogSeconds": 600,
+    "watchdogScope": "Entire Maestro CLI including driver startup, original sign-in and controls",
+    "readerReadinessMs": 15000,
+    "centerElement": false,
+    "mandatorySequence": [
+      "Edit memory book",
+      "Open book",
+      "Page 1 of 2",
+      "WE TOOK THE LONG WAY HOME",
+      "Next memory",
+      "Page 2 of 2",
+      "THE STORIES WE KEEP"
+    ],
+    "rebuild": false,
+    "rebundle": false,
+    "resign": false,
+    "outerJobWatchdogMinutes": 25,
+    "remoteActionPerformedByThisAgent": false
+  },
+  "preservedGates": [
+    "Diagnostic-only rejects requested original cases, warm diagnostic and all group selections except memory.",
+    "The exact pinned baseline supplies original _signin through D46_BASELINE; all original files remain untouched.",
+    "Relative diagnostic path executed from consumer cwd is the strict JUnit expected file. Name, file, SUCCESS, exactly one test/suite and zero failure/error/skip/disabled counts are mandatory.",
+    "Original fixture-case validator plus zero CLI exit must pass. Timeout/error remain failures; cancellation propagates.",
+    "Diagnostic YAML is hash-checked before/after and copied into result artifacts.",
+    "Original summary counts remain0/0/0; separate diagnostic attempt/pass/fail counts are explicit.",
+    "Existing synthetic environment, immutable producer binding, simulator setup, sampler, cancellation and cleanup guards remain."
+  ],
+  "verification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-ios-d46-recovery.cjs",
+    "formalTests": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "nestedPythonCases": 38,
+    "nestedCasesNotAdditive": true,
+    "durationMs": 498.4783280001466,
+    "scopedEslintExitCode": 0,
+    "pythonCompileExitCode": 0,
+    "nodeSyntaxExitCode": 0,
+    "whitespaceExitCode": 0,
+    "coverage": "Actual mode/summary/execution functions and local fixture/JUnit validation with controlled CLI outcomes. Parsed YAML differs from original only by diagnostic identity, exact baseline sign-in path, centering=false and screenshot name. No device run.",
+    "ownerRunBeforeFinalOuterCapChange": {
+      "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-ios-d46-recovery.cjs",
+      "formalTests": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "nestedPythonCases": 38,
+      "nestedCasesNotAdditive": true,
+      "durationMs": 468.56758,
+      "scopedEslintExitCode": 0,
+      "pythonCompileExitCode": 0,
+      "nodeSyntaxExitCode": 0,
+      "whitespaceExitCode": 0,
+      "coverage": "Actual mode/summary/execution functions and local fixture/JUnit validation with controlled CLI outcomes. Parsed YAML differs from original only by diagnostic identity, exact baseline sign-in path, centering=false and screenshot name. No device run.",
+      "workflowSha256": "e3276e67a0f20d9e25aae4273ca066659eb542c90bdd5cfd5ecb695289501f01",
+      "testSha256": "3901a228de3fcd8d4a4ee5c54bf04b0e0b99547022890b47f7a418e74dbe09d0",
+      "note": "5/5 before root shortened only job100\u219225; corresponding test expectation then updated. Historical output retained."
+    },
+    "finalIndependentRun": {
+      "review": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-diagnostic-review/independent-review.json",
+      "sha256": "54e96f7076a01dc6b8ed0ab3d111f76a51f6b3757af384f08ab9daca18f08c07",
+      "command": [
+        "env",
+        "-u",
+        "NODE_TEST_CONTEXT",
+        "node",
+        "--test",
+        "--test-isolation=none",
+        "--test-reporter=tap",
+        "tests/quality/native-ios-d46-recovery.cjs"
+      ],
+      "processExitCode": 0,
+      "formalCases": 5,
+      "formalPass": 5,
+      "formalFail": 0,
+      "skipped": 0,
+      "nestedPythonCases": 38,
+      "countBoundary": "38 Python checks are nested inside the5formal cases, not43additional cases. This independent repeat overlaps the owner run.",
+      "elapsedSeconds": 0.4984783280001466,
+      "sourceHashesUnchangedBeforeAfter": true,
+      "checkedInputs": 98,
+      "harnessLimit": "Actual Python consumer/selector/validators/setup and terminal summary expressions execute with controlled subprocess/runtime responses. This is not a live Maestro/iOS page-turn result.",
+      "evidence": [
+        {
+          "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-diagnostic-review/independent-focused.tap",
+          "bytes": 1552,
+          "sha256": "1677c7c033a68430faaba6e915186830cdba4f2fefbfeb037f5a765472bc76e2"
+        },
+        {
+          "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-diagnostic-review/independent-source-manifest.json",
+          "bytes": 13856,
+          "sha256": "41f3680dbaf5b72d01389bf1747def598784548f4967e001d9666cbbbcd92f94"
+        }
+      ]
+    },
+    "finalCountBoundary": "Final5/5 includes38nested Python checks. Independent repeat overlaps owner5/5; counts are not additive."
+  },
+  "limits": [
+    "The old d46 package excludes later local product fixes. No future result is predicted.",
+    "Page1 and subsequent controls remain unaccepted until runtime completion.",
+    "600s is a diagnostic CLI watchdog, not relaxed15s reader readiness or changed original85-case acceptance."
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/direct-diagnostic-preparation/focused.tap",
+      "bytes": 1547,
+      "sha256": "3d64bc897b555e5af1bc9f63e96f74c6b621ff76d9e8853589f460a473d0801f"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-retained-41253722308/direct-diagnostic-preparation/eslint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "literalD46ProofFromIndependentReview": [
+    {
+      "path": "scripts/quality/native-ui-audit-runner.py",
+      "sha256": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352",
+      "matchesLiteralD46Tree": true
+    },
+    {
+      "path": "tests/native/audit/manifest.json",
+      "sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+      "matchesLiteralD46Tree": true
+    },
+    {
+      "path": "tests/native/audit/flows/memory-reader-controls.yaml",
+      "sha256": "bb1043029586a692530261b9c0a3ed63b7cc77dd9f34e0129a854ee26e2d7a42",
+      "matchesLiteralD46Tree": true
+    },
+    {
+      "path": "tests/native/audit/flows/_signin.yaml",
+      "sha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+      "matchesLiteralD46Tree": true
+    },
+    {
+      "path": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+      "sha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82",
+      "matchesLiteralD46Tree": true
+    }
+  ]
+}

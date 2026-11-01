@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum d46 audit 41253722308 - iOS 18.5 - 26473F8C-BABF-4F2C-AE1E-C31FC4600B8E" tests="1" failures="1" time="154.917" timestamp="2026-10-31T23:54:58">
+    <testcase id="Diagnostic warm tabs then saved memory reader" name="Diagnostic warm tabs then saved memory reader" classname="Diagnostic warm tabs then saved memory reader" file="tests/native/diagnostics/ios-warm-tabs-reader.yaml" time="154.844" timestamp="2026-10-31T23:54:58" status="ERROR">
+      <failure>Assertion is false: "Alex Rivera" is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,66 @@
+{
+  "polls": 52,
+  "snapshots": {
+    "latest/native-ui-receipt.json": {
+      "collected": true,
+      "latestAttemptCollected": true,
+      "bytes": 8529,
+      "sha256": "95f4e5324e2d7faf243dfe099b46a118d9118c05a17966743d89f6e96d230e7d",
+      "atEpochMs": 1793491065180,
+      "fixtureCaseMatchesExpectedAtThisPoll": true,
+      "caseAttribution": "matching-fixture-observed"
+    },
+    "latest/native-ui-auth-diagnostics.json": {
+      "collected": true,
+      "latestAttemptCollected": true,
+      "bytes": 74104,
+      "sha256": "bbe7dd48810b4fe376b53ebb7236732e2fe808aa20d979d853cad20d05f0d2cb",
+      "atEpochMs": 1793491065186,
+      "fixtureCaseMatchesExpectedAtThisPoll": true,
+      "caseAttribution": "not-established"
+    },
+    "first/native-ui-receipt.json": {
+      "collected": true,
+      "latestAttemptCollected": true,
+      "bytes": 7854,
+      "sha256": "70c3a1341dfd687736d093cddc4b56441902f6c7bb1aba6480832dfd0f378c10",
+      "atEpochMs": 1793491007643,
+      "fixtureCaseMatchesExpectedAtThisPoll": true,
+      "caseAttribution": "matching-fixture-observed"
+    },
+    "first/native-ui-auth-diagnostics.json": {
+      "collected": true,
+      "latestAttemptCollected": true,
+      "bytes": 69350,
+      "sha256": "9b563baa010fb89f507d3cbe9feb80cd90b5f2784c6c8ac986ecd0b2a7229bdb",
+      "atEpochMs": 1793491007650,
+      "fixtureCaseMatchesExpectedAtThisPoll": true,
+      "caseAttribution": "not-established"
+    },
+    "after-case/native-ui-receipt.json": {
+      "collected": true,
+      "latestAttemptCollected": true,
+      "bytes": 8529,
+      "sha256": "95f4e5324e2d7faf243dfe099b46a118d9118c05a17966743d89f6e96d230e7d",
+      "atEpochMs": 1793491066537,
+      "fixtureCaseMatchesExpectedAtThisPoll": true,
+      "caseAttribution": "matching-fixture-observed"
+    },
+    "after-case/native-ui-auth-diagnostics.json": {
+      "collected": true,
+      "latestAttemptCollected": true,
+      "bytes": 74104,
+      "sha256": "bbe7dd48810b4fe376b53ebb7236732e2fe808aa20d979d853cad20d05f0d2cb",
+      "atEpochMs": 1793491066540,
+      "fixtureCaseMatchesExpectedAtThisPoll": true,
+      "caseAttribution": "not-established"
+    }
+  },
+  "sampleTrigger": null,
+  "samples": [],
+  "observerErrors": 0,
+  "expectedCaseId": "navigation-warm-tabs",
+  "diagnosticSnapshotsAreNotFinalCaseReceipts": true,
+  "containerIssue": "TimeoutExpired",
+  "logBytesSkipped": 271053
+}
