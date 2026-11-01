@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "status": "prepared-and-locally-verified-not-dispatched",
+  "recordedAtUtc": "2026-11-01T00:35:20.527338+00:00",
+  "branch": "codex/android-save-retained-20261031",
+  "files": [
+    {
+      "path": ".github/workflows/native-android-save-retained.yml",
+      "sha256": "448b3791a014eaea6f8876cc104743820dc517bed9110b1554ef557523550e53",
+      "bytes": 3497
+    },
+    {
+      "path": "scripts/quality/native-ui-android-save-recovery.py",
+      "sha256": "4d92a0aa27022114aaf0d8b1818797b3350c7ceeb0a703e78948e80cb0063a74",
+      "bytes": 9101
+    },
+    {
+      "path": "scripts/quality/native-ui-android-save-recovery.json",
+      "sha256": "4f591313dddc40a28343e14aad072673690bcb9e3d797a95650d224b475f534b",
+      "bytes": 1931
+    },
+    {
+      "path": "scripts/quality/run-retained-android-save.sh",
+      "sha256": "4963ee7f26004b4ca19535f5deb84e7d084d8a95aa14869e819236c5f97daf68",
+      "bytes": 3840
+    },
+    {
+      "path": "tests/native/audit/flows/retained-memory-cover-settings.yaml",
+      "sha256": "253d5e195a447ecc04494551f25b9f9eff99e903a23d118b38dcb2d9eaff0c00",
+      "bytes": 1476
+    },
+    {
+      "path": "tests/quality/test_android_retained_save.py",
+      "sha256": "d55afd5404f3d56bbdb73230f798aaebf96292ed914aa58ff5926af9d4290dba",
+      "bytes": 6361
+    }
+  ],
+  "existingDependency": {
+    "path": "scripts/quality/native-ui-audit-runner.py",
+    "sha256": "743dcfe5138890cf269dd7d00d3b1440f2099f7f5f139b91fd76e58e5c32d055"
+  },
+  "tests": {
+    "pythonCases": 7,
+    "passed": 7,
+    "failed": 0,
+    "workflowAndFlowContract": "passed",
+    "shellSyntax": "passed",
+    "pythonSyntax": "passed"
+  },
+  "artifactReadback": {
+    "id": 13055287858,
+    "runId": 41235679679,
+    "sourceCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "expired": false,
+    "expiresAtUtc": "2026-11-07T20:02:53Z",
+    "digest": "sha256:7117b34750fea6a71760a5e0bb587e9750b6988b4687a689523655de8ec7d4a3"
+  },
+  "scope": "One corrected external Android memory-cover-settings case against the retained APK. Exact original sign-in and source unchanged. Verify committed save, correct owner/book/revision/title and ordered readback using restored runner gate.",
+  "apkIntegrity": "Pinned artifact ID, source receipt, binary manifest, audit manifest and APK digests. Original tracked checkout must remain clean. Installed base APK bytes are read back and hashed before UI testing.",
+  "runtimeEnvironment": "Disposable Ubuntu24 Android35 AOSP x86_64 emulator with known working Mesa LLVMpipe GLES setup;25minute total job cap;180second owned Maestro case deadline.",
+  "limits": [
+    "No app build, rebundle, resign, remote write or runtime acceptance performed during preparation.",
+    "Does not verify the current appearance/offer/story/poll/reader code changes on a device.",
+    "Synthetic fixture persistence is verified; no hosted database or provider mutation is performed."
+  ],
+  "cleanupRefinement": "The owned emulator receives TERM, a2second bounded wait, then KILL before reaping. This avoids an unbounded EXIT trap delaying artifact upload."
+}

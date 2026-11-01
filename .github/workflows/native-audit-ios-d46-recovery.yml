@@ -8,6 +8,7 @@ on:
       - scripts/quality/native-ui-ios-d46-recovery.py
       - scripts/quality/native-ui-ios-d46-recovery.json
       - tests/native/diagnostics/ios-direct-reader-controls.yaml
+      - tests/native/diagnostics/ios-warm-reader-controls.yaml
   workflow_dispatch:
 
 permissions:
@@ -67,14 +68,14 @@ jobs:
       - name: Install the original pinned Maestro CLI
         working-directory: baseline
         run: bash scripts/quality/install-native-ui-tools.sh
-      - name: Run only the separately counted direct reader diagnostic
+      - name: Run only the separately counted original tabs and reader diagnostic
         env:
           AUDIT_GROUPS: ${{ matrix.groups }}
           RECOVERY_SOURCE: ${{ github.sha }}
         run: |
           python3 recovery-tools/scripts/quality/native-ui-ios-d46-recovery.py \
             --baseline "$PWD/baseline" --recovery-source "$RECOVERY_SOURCE" \
-            --groups "$AUDIT_GROUPS" --direct-reader-diagnostic-only
+            --groups "$AUDIT_GROUPS" --warm-reader-controls-diagnostic-only
       - name: Retain completed, failed and interrupted observations
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

@@ -1,0 +1,286 @@
+TAP version 13
+# Subtest: android Appearance exposes all choices/current state and all non-mutating dismissals
+ok 1 - android Appearance exposes all choices/current state and all non-mutating dismissals
+  ---
+  duration_ms: 65.941173
+  type: 'test'
+  ...
+# Subtest: ios Appearance exposes all choices/current state and all non-mutating dismissals
+ok 2 - ios Appearance exposes all choices/current state and all non-mutating dismissals
+  ---
+  duration_ms: 11.161767
+  type: 'test'
+  ...
+# Subtest: android offer cancel clears draft without sending and retains keyboard-safe controls
+ok 3 - android offer cancel clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 23.562051
+  type: 'test'
+  ...
+# Subtest: android offer backdrop clears draft without sending and retains keyboard-safe controls
+ok 4 - android offer backdrop clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 15.000951
+  type: 'test'
+  ...
+# Subtest: android offer back clears draft without sending and retains keyboard-safe controls
+ok 5 - android offer back clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 13.631008
+  type: 'test'
+  ...
+# Subtest: android offer escape clears draft without sending and retains keyboard-safe controls
+ok 6 - android offer escape clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 20.069404
+  type: 'test'
+  ...
+# Subtest: ios offer cancel clears draft without sending and retains keyboard-safe controls
+ok 7 - ios offer cancel clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 16.499109
+  type: 'test'
+  ...
+# Subtest: ios offer backdrop clears draft without sending and retains keyboard-safe controls
+ok 8 - ios offer backdrop clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 12.524851
+  type: 'test'
+  ...
+# Subtest: ios offer back clears draft without sending and retains keyboard-safe controls
+ok 9 - ios offer back clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 12.950021
+  type: 'test'
+  ...
+# Subtest: ios offer escape clears draft without sending and retains keyboard-safe controls
+ok 10 - ios offer escape clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 11.247627
+  type: 'test'
+  ...
+# Subtest: offer send is single-flight; busy dismissals/edits are guarded and failure preserves draft
+ok 11 - offer send is single-flight; busy dismissals/edits are guarded and failure preserves draft
+  ---
+  duration_ms: 17.5086
+  type: 'test'
+  ...
+# Subtest: old offer callbacks cannot affect reopened draft; invalid input never dispatches
+ok 12 - old offer callbacks cannot affect reopened draft; invalid input never dispatches
+  ---
+  duration_ms: 10.741704
+  type: 'test'
+  ...
+# Subtest: late offer success after unmount cannot navigate or write state
+ok 13 - late offer success after unmount cannot navigate or write state
+  ---
+  duration_ms: 8.964887
+  type: 'test'
+  ...
+# Subtest: offer missing acknowledgement preserves the draft and never opens a conversation
+ok 14 - offer missing acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 11.562771
+  type: 'test'
+  ...
+# Subtest: offer null acknowledgement preserves the draft and never opens a conversation
+ok 15 - offer null acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 12.773917
+  type: 'test'
+  ...
+# Subtest: offer false acknowledgement preserves the draft and never opens a conversation
+ok 16 - offer false acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 10.007137
+  type: 'test'
+  ...
+# Subtest: offer empty array acknowledgement preserves the draft and never opens a conversation
+ok 17 - offer empty array acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 9.597872
+  type: 'test'
+  ...
+# Subtest: offer UUID array acknowledgement preserves the draft and never opens a conversation
+ok 18 - offer UUID array acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 8.390982
+  type: 'test'
+  ...
+# Subtest: offer object acknowledgement preserves the draft and never opens a conversation
+ok 19 - offer object acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 8.82007
+  type: 'test'
+  ...
+# Subtest: offer empty string acknowledgement preserves the draft and never opens a conversation
+ok 20 - offer empty string acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 13.176743
+  type: 'test'
+  ...
+# Subtest: offer non-UUID string acknowledgement preserves the draft and never opens a conversation
+ok 21 - offer non-UUID string acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 9.638983
+  type: 'test'
+  ...
+# Subtest: offer malformed UUID acknowledgement preserves the draft and never opens a conversation
+ok 22 - offer malformed UUID acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 7.677307
+  type: 'test'
+  ...
+# Subtest: offer padded UUID acknowledgement preserves the draft and never opens a conversation
+ok 23 - offer padded UUID acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 8.896424
+  type: 'test'
+  ...
+# Subtest: offer UUID with error acknowledgement preserves the draft and never opens a conversation
+ok 24 - offer UUID with error acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 7.408793
+  type: 'test'
+  ...
+# Subtest: android UUID offer acknowledgement closes once and clears the sent draft
+ok 25 - android UUID offer acknowledgement closes once and clears the sent draft
+  ---
+  duration_ms: 8.90772
+  type: 'test'
+  ...
+# Subtest: ios UUID offer acknowledgement closes once and clears the sent draft
+ok 26 - ios UUID offer acknowledgement closes once and clears the sent draft
+  ---
+  duration_ms: 8.045232
+  type: 'test'
+  ...
+# Subtest: theme rapid choices coalesce behind one active write and older hydration cannot replace latest choice
+ok 27 - theme rapid choices coalesce behind one active write and older hydration cannot replace latest choice
+  ---
+  duration_ms: 16.05497
+  type: 'test'
+  ...
+# Subtest: theme persistence rejection cannot strand a newer pending choice
+ok 28 - theme persistence rejection cannot strand a newer pending choice
+  ---
+  duration_ms: 6.003685
+  type: 'test'
+  ...
+# Subtest: Settings Appearance search includes every mode while preserving existing contrast edits
+ok 29 - Settings Appearance search includes every mode while preserving existing contrast edits
+  ---
+  duration_ms: 27.465892
+  type: 'test'
+  ...
+# Subtest: explicit Cancel at compose preserves draft without RPC
+ok 30 - explicit Cancel at compose preserves draft without RPC
+  ---
+  duration_ms: 114.373707
+  type: 'test'
+  ...
+# Subtest: explicit Cancel at review preserves draft without RPC
+ok 31 - explicit Cancel at review preserves draft without RPC
+  ---
+  duration_ms: 44.851877
+  type: 'test'
+  ...
+# Subtest: busy submission blocks Cancel/close and duplicate dispatch, then confirms once
+ok 32 - busy submission blocks Cancel/close and duplicate dispatch, then confirms once
+  ---
+  duration_ms: 47.406066
+  type: 'test'
+  ...
+# Subtest: failed submission preserves review and allows Cancel/reopen with original draft
+ok 33 - failed submission preserves review and allows Cancel/reopen with original draft
+  ---
+  duration_ms: 30.849201
+  type: 'test'
+  ...
+# Subtest: missing offer acknowledgement preserves review and amount without opening a conversation
+ok 34 - missing offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 27.742769
+  type: 'test'
+  ...
+# Subtest: null offer acknowledgement preserves review and amount without opening a conversation
+ok 35 - null offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 26.350953
+  type: 'test'
+  ...
+# Subtest: false offer acknowledgement preserves review and amount without opening a conversation
+ok 36 - false offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 39.51716
+  type: 'test'
+  ...
+# Subtest: empty array offer acknowledgement preserves review and amount without opening a conversation
+ok 37 - empty array offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 23.277362
+  type: 'test'
+  ...
+# Subtest: UUID array offer acknowledgement preserves review and amount without opening a conversation
+ok 38 - UUID array offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 24.049996
+  type: 'test'
+  ...
+# Subtest: object offer acknowledgement preserves review and amount without opening a conversation
+ok 39 - object offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 27.113852
+  type: 'test'
+  ...
+# Subtest: empty string offer acknowledgement preserves review and amount without opening a conversation
+ok 40 - empty string offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 24.834939
+  type: 'test'
+  ...
+# Subtest: non-UUID string offer acknowledgement preserves review and amount without opening a conversation
+ok 41 - non-UUID string offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 24.482377
+  type: 'test'
+  ...
+# Subtest: malformed UUID offer acknowledgement preserves review and amount without opening a conversation
+ok 42 - malformed UUID offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 40.200971
+  type: 'test'
+  ...
+# Subtest: padded UUID offer acknowledgement preserves review and amount without opening a conversation
+ok 43 - padded UUID offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 39.051103
+  type: 'test'
+  ...
+# Subtest: UUID with error offer acknowledgement preserves review and amount without opening a conversation
+ok 44 - UUID with error offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 26.214949
+  type: 'test'
+  ...
+# Subtest: visual viewport updates height/offset and cleans both listeners and inline properties
+ok 45 - visual viewport updates height/offset and cleans both listeners and inline properties
+  ---
+  duration_ms: 12.75654
+  type: 'test'
+  ...
+# Subtest: ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy
+ok 46 - ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy
+  ---
+  duration_ms: 5.831837
+  type: 'test'
+  ...
+1..46
+# tests 46
+# suites 0
+# pass 46
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1272.872166

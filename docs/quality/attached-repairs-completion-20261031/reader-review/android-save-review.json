@@ -1,0 +1,34 @@
+{
+  "verdict": "accepted-for-one-retained-Android-Save-run",
+  "sourceRoot": "/workspace/scratch/a8c1175db866/android-save",
+  "focusedTests": {
+    "passed": 7,
+    "failed": 0,
+    "log": "android-save-independent.txt"
+  },
+  "shellSyntaxAfterFinalCleanupFix": "passed",
+  "checks": [
+    "Retained producer manifest, source receipt and audit manifest hashes match actual retained artifacts",
+    "All original-file pins match retained source receipt, including literal same-directory _signin.yaml",
+    "Exact d46 source commit and tree, clean tracked source, original APK hash, installed base APK hash, API35 x86_64 and root identity checked before case",
+    "Exactly one memory-cover-settings case and one attempt; original 15-second sheet waits retained",
+    "Imported gate requires exact JUnit case plus synthetic receipt, one committed revision1 Save and ordered revision0-to-revision1 readback",
+    "No rebuild, rebundle, resign, fixture edit, real RPC, global emulator kill, or acceptance of current product repairs",
+    "Owned emulator cleanup now bounds TERM to2s then KILL and reap; no verdict relaxation"
+  ],
+  "correctedFinding": "Unbounded owned-emulator cleanup wait replaced with bounded TERM/KILL before evidence upload",
+  "limitations": [
+    "No local emulator execution performed",
+    "Native result remains pending; local test acceptance is not device acceptance",
+    "Retained d46 application excludes current source repairs"
+  ],
+  "sha256": {
+    ".github/workflows/native-android-save-retained.yml": "448b3791a014eaea6f8876cc104743820dc517bed9110b1554ef557523550e53",
+    "scripts/quality/native-ui-android-save-recovery.py": "4d92a0aa27022114aaf0d8b1818797b3350c7ceeb0a703e78948e80cb0063a74",
+    "scripts/quality/native-ui-android-save-recovery.json": "4f591313dddc40a28343e14aad072673690bcb9e3d797a95650d224b475f534b",
+    "scripts/quality/run-retained-android-save.sh": "4963ee7f26004b4ca19535f5deb84e7d084d8a95aa14869e819236c5f97daf68",
+    "scripts/quality/native-ui-audit-runner.py": "743dcfe5138890cf269dd7d00d3b1440f2099f7f5f139b91fd76e58e5c32d055",
+    "tests/native/audit/flows/retained-memory-cover-settings.yaml": "253d5e195a447ecc04494551f25b9f9eff99e903a23d118b38dcb2d9eaff0c00",
+    "tests/quality/test_android_retained_save.py": "d55afd5404f3d56bbdb73230f798aaebf96292ed914aa58ff5926af9d4290dba"
+  }
+}

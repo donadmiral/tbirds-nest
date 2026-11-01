@@ -1,0 +1,12 @@
+test_case_failure_or_binary_change_cannot_pass (__main__.RetainedSaveChecks.test_case_failure_or_binary_change_cannot_pass) ... ok
+test_case_scope_drift_is_rejected (__main__.RetainedSaveChecks.test_case_scope_drift_is_rejected) ... ok
+test_consumer_flow_and_gate_are_hash_bound (__main__.RetainedSaveChecks.test_consumer_flow_and_gate_are_hash_bound) ... ok
+test_installed_identity_reads_only_one_exact_base_apk (__main__.RetainedSaveChecks.test_installed_identity_reads_only_one_exact_base_apk) ... ok
+test_pinned_producer_and_selected_case_are_exact (__main__.RetainedSaveChecks.test_pinned_producer_and_selected_case_are_exact) ... ok
+test_success_executes_exactly_one_case_and_preserves_scope (__main__.RetainedSaveChecks.test_success_executes_exactly_one_case_and_preserves_scope) ... ok
+test_wrong_installed_binary_stops_before_any_case (__main__.RetainedSaveChecks.test_wrong_installed_binary_stops_before_any_case) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.010s
+
+OK

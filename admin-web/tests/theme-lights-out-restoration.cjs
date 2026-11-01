@@ -13,7 +13,7 @@ test('actual control selects all four modes and writes the existing persistence 
   let theme = 'system'; const document = { documentElement: { getAttribute: () => theme, setAttribute: (_k, v) => { theme = v; } }, cookie: '' };
   const Controls = compile('components/ThemeControls.tsx', { react: { useSyncExternalStore: (_subscribe, read) => read() }, '@/components/AdminIcon': 'svg' }, { document });
   for (const mode of ['light', 'dark', 'lightsOut', 'system']) {
-    const labels = { light: 'Light appearance', dark: 'Dark appearance', lightsOut: 'Lights out appearance', system: 'Use device appearance' };
+    const labels = { light: 'Light appearance', dark: 'Dim appearance', lightsOut: 'Lights out appearance', system: 'Use device appearance' };
     const tree = Controls(); assert.equal(tree.props.children.length, 4); tree.props.children.find(n => n.props['aria-label'] === labels[mode]).props.onClick();
     assert.equal(theme, mode); assert.match(document.cookie, new RegExp('^pc-theme=' + mode + ';'));
     const selected = Controls().props.children.filter(n => n.props['aria-pressed']); assert.equal(selected.length, 1); assert.equal(selected[0].props['aria-label'], labels[mode]);

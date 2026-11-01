@@ -1,0 +1,65 @@
+{
+  "status": "source-corrections-verified-retained-device-checks-running",
+  "sourceBase": "6667a1f4edd0c3fa9cd4c7241c9816d769cce6c8",
+  "fixes": [
+    "Four native appearance modes with serialized preference persistence; native and admin display Dim and Lights out.",
+    "Explicit offer cancellation and keyboard-aware sheets; native/web require a UUID acknowledgement before clearing the draft.",
+    "Memory Save flow keeps settings open while dismissing input and requires one committed save plus matching persisted readback.",
+    "Correct story caption/background/sticker fields and actual PollCard transport contract.",
+    "Reader has bounded auth/book waits, Retry and account-switch/stale-response handling.",
+    "iPhone diagnostic resolves exact original sign-in before setup and tests both pages; separate original tab journey captures process evidence on failure."
+  ],
+  "verification": {
+    "combinedSourceAndDirectRunner": {
+      "passed": 141,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "combined-focused-result.json"
+    },
+    "latestIntegratedIosRunner": {
+      "passed": 8,
+      "failed": 0,
+      "note": "Includes six earlier runner cases plus two new warm-journey cases."
+    },
+    "androidRetainedConsumer": {
+      "passed": 7,
+      "failed": 0
+    },
+    "typescript": {
+      "native": 0,
+      "web": 0,
+      "admin": 0
+    },
+    "scopedEslint": {
+      "native": 0,
+      "web": 0,
+      "admin": 0
+    }
+  },
+  "deviceRuns": [
+    {
+      "purpose": "Retained iPhone direct reader and both pages",
+      "run": 41256973276,
+      "consumer": "fe58468531341fbcb4713139e680fa2771fada5f",
+      "state": "in_progress"
+    },
+    {
+      "purpose": "Retained iPhone original tabs through reader and both pages",
+      "run": 41257372139,
+      "consumer": "9d993024a15b181bd514fb439ccb6468516da9ce",
+      "state": "in_progress"
+    },
+    {
+      "purpose": "Retained Android corrected Save and persisted readback",
+      "run": 41257566964,
+      "consumer": "a20a492e7f1402ff6e9205ac77ea8ff664c9f1f1",
+      "state": "in_progress"
+    }
+  ],
+  "constraints": {
+    "newAppBuild": false,
+    "deployment": false,
+    "retainedApplicationsContainNewSourceFixes": false,
+    "historicalInstruction": "User review before new builds or releases remains in the prior task handoff."
+  }
+}

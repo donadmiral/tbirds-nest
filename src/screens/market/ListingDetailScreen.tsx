@@ -139,8 +139,8 @@ export default function ListingDetailScreen({ navigation, route }: any) {
     if (!/^\d+(?:\.\d{1,2})?$/.test(amountText) || !Number.isFinite(amt) || amt <= 0) { setOfferError('Enter a valid amount.'); return; }
     guard.busy = true; setOfferBusy(true); setOfferError('');
     try {
-      const { error } = await supabase.rpc('make_offer', { p_listing_id: listing.id, p_amount: amt });
-      if (error) throw error;
+      const { data, error } = await supabase.rpc('make_offer', { p_listing_id: listing.id, p_amount: amt });
+      if (error || typeof data !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data)) throw error || new Error('Offer confirmation unavailable');
       if (!current()) return;
       guard.open = false; Keyboard.dismiss(); setOfferOpen(false); setOfferAmt('');
       await messageSeller(current);

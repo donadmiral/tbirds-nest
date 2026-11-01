@@ -1,0 +1,48 @@
+{
+  "status": "OFFER_ACKNOWLEDGEMENT_REPAIRED_LOCAL_REGRESSIONS_PASS",
+  "changes": "Require make_offer to return an error-free scalar UUID before clearing native/web amount, closing dialog or opening messages. Null, missing, malformed or wrong-shaped acknowledgement preserves entered amount and shows existing unconfirmed error.",
+  "schemaBasis": "supabase/migrations/00000000000074_market_offers.sql defines make_offer(... ) RETURNS uuid and returns inserted offer id.",
+  "before": {
+    "tests": 46,
+    "passed": 26,
+    "failed": 20,
+    "skipped": 0,
+    "tap": "offer-before.tap"
+  },
+  "after": {
+    "tests": 46,
+    "passed": 46,
+    "failed": 0,
+    "skipped": 0,
+    "tap": "offer-after.tap"
+  },
+  "newNegativeCasesPerSurface": [
+    "missing data",
+    "null data",
+    "false",
+    "empty array",
+    "UUID array",
+    "object",
+    "empty string",
+    "non-UUID string",
+    "malformed UUID",
+    "padded UUID",
+    "UUID plus error"
+  ],
+  "positive": "iOS, Android and web use 80000000-0000-4000-8000-000000000001 as scalar confirmation.",
+  "preserved": "Existing duplicate-submit, busy cancellation, stale callback, unmount and keyboard-layout cases continue passing. Scope/generation guards remain unchanged.",
+  "review": {
+    "webInstructions": "Read web/AGENTS.md and installed Next.js server-and-client-components guide. Client boundary unchanged.",
+    "react": "No hook or dependency changes. Existing error announcement and busy controls remain. No new imports, re-renders, server/client crossing or network round trip.",
+    "diffCheck": true
+  },
+  "sha256": {
+    "src/screens/market/ListingDetailScreen.tsx": "7bd5cdab46e5f76597b0758b7b9e12e0eef42e4df49d9fd909a35b072ffcc2cf",
+    "web/app/market/[id]/page.tsx": "9a7b9c6b7844cbeea031bb8457a290ca8f65ad849d9c5bf312d400cffe2589bc",
+    "tests/quality/native-sheet-restoration.cjs": "52016fda006230adecb4425820ef3f45422c4b7d095046573a643a609c1913c9",
+    "web/tests/offer-cancel-restoration.cjs": "de6dcd84a950529fdfa2f56a952f39b816868c778d523fd5426e795f98589892"
+  },
+  "realRpc": false,
+  "build": false,
+  "nativeAcceptance": false
+}

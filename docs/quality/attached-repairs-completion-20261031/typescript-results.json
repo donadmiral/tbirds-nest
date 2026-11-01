@@ -1,0 +1,20 @@
+[
+  {
+    "name": "native",
+    "exitCode": 0,
+    "seconds": 24.854,
+    "output": ""
+  },
+  {
+    "name": "web",
+    "exitCode": 0,
+    "seconds": 17.675,
+    "output": ""
+  },
+  {
+    "name": "admin",
+    "exitCode": 0,
+    "seconds": 7.944,
+    "output": ""
+  }
+]

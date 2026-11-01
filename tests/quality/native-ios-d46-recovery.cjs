@@ -58,7 +58,7 @@ p=pathlib.Path(__import__('sys').argv[1]);spec=importlib.util.spec_from_file_loc
 helper=m.load_helpers(p.parent);runner=m.load_module('runner',p.with_name('native-ui-audit-runner.py'));repo=p.parents[2]
 class Tests(unittest.TestCase):
  def setUp(self):
-  self.tmp=tempfile.TemporaryDirectory();self.root=pathlib.Path(self.tmp.name);self.tools=self.root/'consumer';self.tools.mkdir();self.output=self.root/'out';self.output.mkdir();self.baseline=self.root/'baseline';self.baseline.mkdir();f=self.tools/m.DIRECT_FLOW;f.parent.mkdir(parents=True);f.write_bytes((repo/m.DIRECT_FLOW).read_bytes());self.scenarios=json.loads((repo/'tests/native/audit/manifest.json').read_text());self.case=next(c for c in self.scenarios['cases'] if c['id']=='memory-reader-controls');self.calls=[]
+  self.tmp=tempfile.TemporaryDirectory();self.root=pathlib.Path(self.tmp.name);self.tools=self.root/'consumer';self.tools.mkdir();self.output=self.root/'out';self.output.mkdir();self.baseline=self.root/'baseline';self.baseline.mkdir();f=self.tools/m.DIRECT_FLOW;f.parent.mkdir(parents=True);f.write_bytes((repo/m.DIRECT_FLOW).read_bytes());sign_in=self.baseline/m.SIGNIN_FLOW;sign_in.parent.mkdir(parents=True);sign_in.write_bytes((repo/m.SIGNIN_FLOW).read_bytes());self.scenarios=json.loads((repo/'tests/native/audit/manifest.json').read_text());self.case=next(c for c in self.scenarios['cases'] if c['id']=='memory-reader-controls');self.calls=[]
  def tearDown(self):self.tmp.cleanup()
  def invoke(self,code=0,xml_change=None,receipt_change=None,error=None):
   def execute(args,timeout,**kwargs):
@@ -79,14 +79,14 @@ class Tests(unittest.TestCase):
   statement=next(n for n in ast.walk(main) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='summary' for t in n.targets))
   code=compile(ast.Module(body=[statement],type_ignores=[]),str(p),'exec')
   for passed in [False,True]:
-   ns={**m.__dict__,'groups':{'memory'},'scenarios':self.scenarios,'selected_case_ids':[],'unselected_case_ids':[c['id'] for c in self.scenarios['cases']],'results':[],'diagnostic':{'passed':passed},'args':types.SimpleNamespace(direct_reader_diagnostic_only=True,warm_reader_diagnostic=False)}
+   ns={**m.__dict__,'groups':{'memory'},'scenarios':self.scenarios,'selected_case_ids':[],'unselected_case_ids':[c['id'] for c in self.scenarios['cases']],'results':[],'diagnostic':{'passed':passed},'args':types.SimpleNamespace(direct_reader_diagnostic_only=True,warm_reader_diagnostic=False,warm_reader_controls_diagnostic_only=False)}
    exec(code,ns);r=ns['summary'];self.assertEqual((r['attempted'],r['passed'],r['failed']),(0,0,0));self.assertEqual(len(r['unselectedCaseIds']),85);self.assertFalse(r['warmDiagnosticAttempted']);self.assertEqual((r['diagnosticAttempted'],r['diagnosticPassed'],r['diagnosticFailed']),(1,int(passed),int(not passed)))
  def test_mode_rejects_original_or_warm_or_other_groups(self):
   for groups,cases,warm in [({'memory'},'memory-reader-controls',False),({'memory'},None,True),({'memory','feed'},None,False),({'feed'},None,False),(set(),None,False)]:
    with self.subTest(groups=groups,cases=cases,warm=warm),self.assertRaises(ValueError):m.select_execution_cases(self.scenarios,groups,cases,warm,True)
  def test_exact_command_watchdog_and_identity(self):
   r=self.invoke();self.assertTrue(r['passed']);self.assertFalse(r['countedInBaseline85']);self.assertEqual(r['fixtureCaseId'],'memory-reader-controls');self.assertEqual(r['readerRequirementMs'],15000);self.assertEqual(r['timeoutSeconds'],600);self.assertFalse(r['centerElement']);self.assertEqual(r['flowSha256'],m.DIRECT_SHA)
-  call=self.calls[0];self.assertEqual(call['timeout'],600);self.assertEqual(call['cwd'],self.tools);self.assertEqual(call['args'][-3:],['-e','D46_BASELINE='+str(self.baseline),m.DIRECT_FLOW]);self.assertEqual(r['junit'],{'passed':True,'executedDiagnostics':1})
+  call=self.calls[0];self.assertEqual(call['timeout'],600);self.assertEqual(call['cwd'],self.tools);self.assertEqual(call['args'][-1],m.DIRECT_FLOW);self.assertNotIn('-e',call['args']);self.assertEqual(r['signIn']['sha256'],m.SIGNIN_SHA);self.assertTrue(r['signIn']['resolvedBeforeMaestro']);self.assertEqual(r['junit'],{'passed':True,'executedDiagnostics':1})
  def test_warm_junit_identity_rejected(self):self.assertFalse(self.invoke(xml_change=lambda x:x.replace(m.DIRECT_NAME,'Diagnostic warm tabs then saved memory reader').replace(m.DIRECT_FLOW,m.DIAGNOSTIC_FLOW))['passed'])
  def test_wrong_file_rejected(self):self.assertFalse(self.invoke(xml_change=lambda x:x.replace(m.DIRECT_FLOW,'/wrong/'+m.DIRECT_FLOW))['passed'])
  def test_failed_junit_rejected(self):self.assertFalse(self.invoke(xml_change=lambda x:x.replace('SUCCESS','ERROR'))['passed'])
@@ -99,6 +99,20 @@ class Tests(unittest.TestCase):
   (self.tools/m.DIRECT_FLOW).write_text('changed')
   with self.assertRaises(ValueError):self.invoke()
   self.assertEqual(self.calls,[])
+ def test_missing_sign_in_fails_before_maestro(self):
+  (self.baseline/m.SIGNIN_FLOW).unlink()
+  with self.assertRaisesRegex(ValueError,'unavailable'):self.invoke()
+  self.assertEqual(self.calls,[])
+ def test_changed_sign_in_fails_before_maestro(self):
+  (self.baseline/m.SIGNIN_FLOW).write_text('changed sign in')
+  with self.assertRaisesRegex(ValueError,'exact original'):self.invoke()
+  self.assertEqual(self.calls,[])
+ def test_other_baseline_checkout_fails_before_maestro(self):
+  original=self.baseline;self.baseline=self.root/'another-baseline';sign_in=self.baseline/m.SIGNIN_FLOW;sign_in.parent.mkdir(parents=True);sign_in.write_bytes((original/m.SIGNIN_FLOW).read_bytes())
+  with self.assertRaisesRegex(ValueError,'exact original'):self.invoke()
+  self.assertEqual(self.calls,[])
+ def test_literal_include_resolves_to_pinned_original_sign_in(self):
+  include=(self.tools/m.DIRECT_FLOW).read_text().splitlines()[3].split(': ',1)[1];self.assertNotIn(chr(36)+'{',include);self.assertFalse(pathlib.Path(include).is_absolute());self.assertEqual(((self.tools/m.DIRECT_FLOW).parent/include).resolve(strict=True),(self.baseline/m.SIGNIN_FLOW).resolve(strict=True));self.assertEqual(m.digest(self.baseline/m.SIGNIN_FLOW),m.SIGNIN_SHA);self.assertTrue(self.invoke()['passed'])
  def test_cancellation_propagates(self):
   with self.assertRaises(SystemExit) as caught:self.invoke(error=SystemExit(130))
   self.assertEqual(caught.exception.code,130)
@@ -106,14 +120,14 @@ unittest.main(argv=['direct-diagnostic'],verbosity=2)
 `;
   const result = spawnSync('python3', ['-c', script, consumer], { cwd: root, encoding: 'utf8', timeout: 10000 });
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stderr, /Ran 13 tests/);
+  assert.match(result.stderr, /Ran 17 tests/);
   const parse = relative => YAML.parseAllDocuments(fs.readFileSync(path.join(root, relative), 'utf8')).map(doc => doc.toJSON());
   const [originalConfig, original] = parse('tests/native/audit/flows/memory-reader-controls.yaml');
   const [config, diagnostic] = parse('tests/native/diagnostics/ios-direct-reader-controls.yaml');
   assert.equal(config.appId, originalConfig.appId);
   assert.equal(config.name, 'Diagnostic direct saved memory reader controls');
   const expected = structuredClone(original);
-  expected[0].runFlow = '${D46_BASELINE}/tests/native/audit/flows/_signin.yaml';
+  expected[0].runFlow = '../../../../baseline/tests/native/audit/flows/_signin.yaml';
   expected.find(command => command.scrollUntilVisible).scrollUntilVisible.centerElement = false;
   expected.at(-1).takeScreenshot = 'diagnostic-direct-reader-controls';
   assert.deepEqual(diagnostic, expected, 'all fixture, readiness, page, caption and Next commands stay exact');
@@ -250,7 +264,7 @@ unittest.main(argv=['review'],verbosity=2)
   assert.match(result.stderr, /Ran 13 tests/);
 });
 
-test('prepared d46 workflow selects only the separately counted direct reader diagnostic without rebuilding', () => {
+test('prepared d46 workflow selects one separately counted reader diagnostic without rebuilding', () => {
   const workflow = YAML.parse(fs.readFileSync(path.join(root, '.github/workflows/native-audit-ios-d46-recovery.yml'), 'utf8'));
   assert.deepEqual(workflow.on.push.branches, ['codex/native-audit-ios-d46-recovery-20261031']);
   assert.deepEqual(workflow.permissions, { contents: 'read', actions: 'read' });
@@ -269,7 +283,7 @@ test('prepared d46 workflow selects only the separately counted direct reader di
   assert.equal(job.steps.at(-1).if, 'always()');
   const commands = job.steps.map(step => step.run || '').join('\n');
   assert.match(commands, /--artifact-id/); assert.match(commands, /--recovery-source/);
-  assert.match(commands, /--direct-reader-diagnostic-only/);
+  assert.equal(commands.match(/--(?:direct-reader|warm-reader-controls)-diagnostic-only/g)?.length, 1);
   assert.doesNotMatch(commands, /--cases|--warm-reader-diagnostic/);
   assert.equal(job.steps.some(step => step.env?.AUDIT_CASES), false);
   assert.doesNotMatch(commands, /npm ci|expo prebuild|xcodebuild .*build|codesign .*--sign|pod .*install/);

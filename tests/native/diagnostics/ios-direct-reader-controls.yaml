@@ -1,7 +1,7 @@
 appId: app.platinumcircles.mobile.qa
 name: Diagnostic direct saved memory reader controls
 ---
-- runFlow: ${D46_BASELINE}/tests/native/audit/flows/_signin.yaml
+- runFlow: ../../../../baseline/tests/native/audit/flows/_signin.yaml
 - tapOn:
     id: native-audit-case-input
 - inputText: memory-reader-controls

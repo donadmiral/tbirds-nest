@@ -1,0 +1,31 @@
+{
+  "status": "INDEPENDENT_WARM_DIAGNOSTIC_REVIEW_ACCEPT",
+  "baselineConsumer": "fe584685",
+  "tests": {
+    "suites": 8,
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "nestedPythonChecks": 65,
+    "tap": "warm-runner-independent.tap"
+  },
+  "review": {
+    "journey": "One original navigation cycle: Feed Latest/For You, Market, Feed, Jobs, Messages, Profile, real shelf, private book and both pages. No repeated taps or retry loop.",
+    "deadlines": "Original exact seeded Jobs and Messages extendedWaitUntil objects and15000ms timeouts are preserved. Unique placeholders are additional assertions. Required Edit memory book wait stays15000ms. Both page labels, captions and Next memory action stay unchanged.",
+    "signIn": "Literal path resolves to sibling baseline checkout and exact original847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a sign-in bytes are checked.",
+    "application": "Workflow retains d46c50f09164c75c7fe8cdba0c3470c272b1ab4e checkout and exact producer artifact. No app build, install-dependency build, signing, rebundling or product patch command added.",
+    "sampling": "One bounded pair for the exact selected simulator app and driver after diagnostic failure. Existing executable containment, process identity, UID,3s sample,8s wall budget and bounded bytes guards remain. Sampling cannot change failed verdict.",
+    "reporting": "Zero original85 cases selected. One separate diagnostic requires matching fixture, JUnit identity and process exit. No original-suite acceptance claim.",
+    "samplingTimestamps": "Sampler records start and update wall times and writes initial sampling.json before capture. Final delta reviewed and8 suites rerun successfully."
+  },
+  "revisionDuringReview": "Requested original seeded Jobs/Messages15s waits instead of placeholder wait followed by default seed assertion. Candidate changed both and tests compare full original wait objects.",
+  "sha256": {
+    ".github/workflows/native-audit-ios-d46-recovery.yml": "9ad10ebb6a536605dcafde529e9c15ffdf4a71e41b578d352958be2e2f93c5b5",
+    "scripts/quality/native-ui-ios-d46-recovery.py": "ce86171bcd424adaa1d1488dc97e982c9404f0517e1050e0dfbcf529793a207f",
+    "tests/native/diagnostics/ios-warm-reader-controls.yaml": "044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f",
+    "tests/quality/native-ios-d46-recovery.cjs": "55a694832b5a748bc5d304c78c6e856260bcbd828be7ee25ab3245e844697fd3",
+    "tests/quality/native-ios-warm-reader-controls.cjs": "049c2822af2195fd3df8b935b1c2faa3c579172c8527077f2cc5a8cdc1cd1b82"
+  },
+  "deviceExecutionByReviewer": false,
+  "productSourceChangedByReviewer": false
+}

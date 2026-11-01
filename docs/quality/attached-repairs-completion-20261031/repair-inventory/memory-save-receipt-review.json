@@ -1,0 +1,43 @@
+{
+  "status": "restored-local-gate-verified-device-save-rerun-pending",
+  "recordedAtUtc": "2026-11-01T00:30:52.743966+00:00",
+  "files": [
+    {
+      "path": "scripts/quality/native-ui-audit-runner.py",
+      "baselineSha256": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352",
+      "sha256": "743dcfe5138890cf269dd7d00d3b1440f2099f7f5f139b91fd76e58e5c32d055",
+      "bytes": 18678
+    },
+    {
+      "path": "tests/quality/native-memory-book-save-receipt.cjs",
+      "baselineSha256": null,
+      "sha256": "2944e783b46b60867f9456f85a8ae04c104ac55b2ffc2693a15c982ec2451331",
+      "bytes": 12297
+    }
+  ],
+  "testBefore": {
+    "passed": 1,
+    "failed": 10,
+    "skipped": 0,
+    "evidence": "save-gate-before.tap"
+  },
+  "testAfter": {
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "newTests": 11,
+    "existingDiagnosticTests": 2,
+    "evidence": "save-gate-after.tap"
+  },
+  "behavior": "For memory-cover-settings only, require exactly one POST save request and one successful commit for owner 10000000-0000-4000-8000-000000000001 and book a0000000-0000-4000-8000-000000000002. Require initial revision 0/title THE SMALL ADVENTURES, saved revision 1/title AUDIT BOOK TITLE, and a matching later get_memory_book read. Correlate all book read records with all book request rows and reject count, scope, method, order, title and revision mismatches. Successful UI alone cannot pass. Other cases retain existing rules.",
+  "evidenceBasis": "The pinned existing synthetic fixture synchronously records bookReads only for successful navigation-book reads, and records the save mutation only after authorization, input and revision validation and the actual state update. Matching request/read counts make order correlation exact for this isolated case.",
+  "limits": [
+    "No app source, fixture, build, deployment or remote reference changed.",
+    "The original retained Android Save failure is correctly rejected. No corrected installed Save run is claimed.",
+    "No hosted database or real-account persistence claim."
+  ],
+  "syntax": {
+    "python": "passed",
+    "node": "passed"
+  }
+}

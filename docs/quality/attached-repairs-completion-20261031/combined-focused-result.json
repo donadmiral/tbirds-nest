@@ -1,0 +1,31 @@
+{
+  "command": [
+    "env",
+    "-u",
+    "NODE_TEST_CONTEXT",
+    "node",
+    "--test",
+    "--test-isolation=none",
+    "--test-reporter=tap",
+    "tests/quality/native-memory-album-loading.cjs",
+    "tests/quality/memory-media-regressions.cjs",
+    "tests/quality/native-memory-title-edit.cjs",
+    "tests/quality/native-audit-content-contracts.cjs",
+    "tests/quality/native-sheet-restoration.cjs",
+    "tests/quality/native-memory-book-save-flow.cjs",
+    "web/tests/offer-cancel-restoration.cjs",
+    "admin-web/tests/theme-lights-out-restoration.cjs",
+    "tests/quality/native-memory-book-save-receipt.cjs",
+    "tests/quality/native-audit-diagnostic-gate.cjs",
+    "tests/quality/native-ios-d46-recovery.cjs"
+  ],
+  "exitCode": 0,
+  "seconds": 7.423,
+  "summary": [
+    "# tests 141",
+    "# pass 141",
+    "# fail 0",
+    "# skipped 0",
+    "# duration_ms 7359.114165"
+  ]
+}

@@ -1,0 +1,856 @@
+TAP version 13
+# Subtest: actual control selects all four modes and writes the existing persistence cookie
+ok 1 - actual control selects all four modes and writes the existing persistence cookie
+  ---
+  duration_ms: 58.602522
+  type: 'test'
+  ...
+# Subtest: actual server layout restores Lights out cookie and rejects unknown values
+ok 2 - actual server layout restores Lights out cookie and rejects unknown values
+  ---
+  duration_ms: 14.547009
+  type: 'test'
+  ...
+# Subtest: Lights out inherits both dark token sets and has explicit black workspace surfaces
+ok 3 - Lights out inherits both dark token sets and has explicit black workspace surfaces
+  ---
+  duration_ms: 3.853576
+  type: 'test'
+  ...
+# Subtest: web album loader commits authorized media
+ok 4 - web album loader commits authorized media
+  ---
+  duration_ms: 5.208498
+  type: 'test'
+  ...
+# Subtest: web late album read cannot restore an old account's media
+ok 5 - web late album read cannot restore an old account's media
+  ---
+  duration_ms: 2.682532
+  type: 'test'
+  ...
+# Subtest: web failed album authorization clears media and offers retry
+ok 6 - web failed album authorization clears media and offers retry
+  ---
+  duration_ms: 2.517894
+  type: 'test'
+  ...
+# Subtest: native album loader commits authorized media
+ok 7 - native album loader commits authorized media
+  ---
+  duration_ms: 9.484571
+  type: 'test'
+  ...
+# Subtest: native late album read cannot restore an old account's media
+ok 8 - native late album read cannot restore an old account's media
+  ---
+  duration_ms: 6.982331
+  type: 'test'
+  ...
+# Subtest: native failed album authorization clears media and offers retry
+ok 9 - native failed album authorization clears media and offers retry
+  ---
+  duration_ms: 6.97462
+  type: 'test'
+  ...
+# Subtest: actual Story service and viewer caption render the unchanged audit expectation from published fields
+ok 10 - actual Story service and viewer caption render the unchanged audit expectation from published fields
+  ---
+  duration_ms: 124.141336
+  type: 'test'
+  ...
+# Subtest: the actual text-story background branch consumes the canonical published background
+ok 11 - the actual text-story background branch consumes the canonical published background
+  ---
+  duration_ms: 63.355443
+  type: 'test'
+  ...
+# Subtest: the mounted real PollCard completes its author and no-poll reads without a hidden contract failure
+ok 12 - the mounted real PollCard completes its author and no-poll reads without a hidden contract failure
+  ---
+  duration_ms: 23.918074
+  type: 'test'
+  ...
+# Subtest: get_poll accepts only the declared no-poll post read and rejects extra fields, methods, cases and mutations
+ok 13 - get_poll accepts only the declared no-poll post read and rejects extra fields, methods, cases and mutations
+  ---
+  duration_ms: 4.444467
+  type: 'test'
+  ...
+# Subtest: get_poll is fenced to the currently issued audit bearer and never permits another origin
+ok 14 - get_poll is fenced to the currently issued audit bearer and never permits another origin
+  ---
+  duration_ms: 2.676363
+  type: 'test'
+  ...
+# Subtest: actual audit verifier rejects reported and dropped diagnostics without disclosing payloads
+ok 15 - actual audit verifier rejects reported and dropped diagnostics without disclosing payloads
+  ---
+  duration_ms: 52.432781
+  type: 'test'
+  ...
+# Subtest: successful UI with a client error fails its case and the next independent case still runs
+ok 16 - successful UI with a client error fails its case and the next independent case still runs
+  ---
+  duration_ms: 35.70185
+  type: 'test'
+  ...
+# Subtest: existing simulator selection is exact, bounded and preserves cleanup ownership
+ok 17 - existing simulator selection is exact, bounded and preserves cleanup ownership
+  ---
+  duration_ms: 55.383967
+  type: 'test'
+  ...
+# Subtest: direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes
+ok 18 - direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes
+  ---
+  duration_ms: 105.041375
+  type: 'test'
+  ...
+# Subtest: d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering
+ok 19 - d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering
+  ---
+  duration_ms: 211.018456
+  type: 'test'
+  ...
+# Subtest: prepared d46 workflow selects only the separately counted direct reader diagnostic without rebuilding
+ok 20 - prepared d46 workflow selects only the separately counted direct reader diagnostic without rebuilding
+  ---
+  duration_ms: 5.825017
+  type: 'test'
+  ...
+# Subtest: actual d46 case selector preserves order and rejects invalid or out-of-group subsets without changing the manifest
+ok 21 - actual d46 case selector preserves order and rejects invalid or out-of-group subsets without changing the manifest
+  ---
+  duration_ms: 48.877063
+  type: 'test'
+  ...
+# Subtest: actual warm diagnostic preserves its original flow and requires real fixture/JUnit success separately from the original case
+ok 22 - actual warm diagnostic preserves its original flow and requires real fixture/JUnit success separately from the original case
+  ---
+  duration_ms: 77.950631
+  type: 'test'
+  ...
+# Subtest: held optional reactions do not block the actual authorized reader
+ok 23 - held optional reactions do not block the actual authorized reader
+  ---
+  duration_ms: 127.498102
+  type: 'test'
+  ...
+# Subtest: unknown initial reaction state cannot expose an actionable Like guess
+ok 24 - unknown initial reaction state cannot expose an actionable Like guess
+  ---
+  duration_ms: 123.913267
+  type: 'test'
+  ...
+# Subtest: optional reaction reject cannot discard the authorized book
+ok 25 - optional reaction reject cannot discard the authorized book
+  ---
+  duration_ms: 92.367409
+  type: 'test'
+  ...
+# Subtest: optional reaction error-result cannot discard the authorized book
+ok 26 - optional reaction error-result cannot discard the authorized book
+  ---
+  duration_ms: 94.773189
+  type: 'test'
+  ...
+# Subtest: pending auth cannot dispatch required book or optional reaction reads
+ok 27 - pending auth cannot dispatch required book or optional reaction reads
+  ---
+  duration_ms: 98.399058
+  type: 'test'
+  ...
+# Subtest: pending required book authorization keeps the reader gated
+ok 28 - pending required book authorization keeps the reader gated
+  ---
+  duration_ms: 78.75661
+  type: 'test'
+  ...
+# Subtest: required book rejection still clears the reader and offers retry
+ok 29 - required book rejection still clears the reader and offers retry
+  ---
+  duration_ms: 90.84208
+  type: 'test'
+  ...
+# Subtest: required media rejection still clears the reader and offers retry
+ok 30 - required media rejection still clears the reader and offers retry
+  ---
+  duration_ms: 78.226552
+  type: 'test'
+  ...
+# Subtest: held required media hydration cannot publish a book or start optional reads
+ok 31 - held required media hydration cannot publish a book or start optional reads
+  ---
+  duration_ms: 87.07255
+  type: 'test'
+  ...
+# Subtest: old optional read cannot affect a replacement route that shares a story ID
+ok 32 - old optional read cannot affect a replacement route that shares a story ID
+  ---
+  duration_ms: 82.93862
+  type: 'test'
+  ...
+# Subtest: account ABA invalidates old optional reads before a replacement viewer commit
+ok 33 - account ABA invalidates old optional reads before a replacement viewer commit
+  ---
+  duration_ms: 76.362943
+  type: 'test'
+  ...
+# Subtest: unmount invalidates a pending optional reaction result
+ok 34 - unmount invalidates a pending optional reaction result
+  ---
+  duration_ms: 88.317807
+  type: 'test'
+  ...
+# Subtest: a newer load result wins over the previous optional reaction read
+ok 35 - a newer load result wins over the previous optional reaction read
+  ---
+  duration_ms: 82.797198
+  type: 'test'
+  ...
+# Subtest: an older reaction read preserves a newer successful toggle and other page results
+ok 36 - an older reaction read preserves a newer successful toggle and other page results
+  ---
+  duration_ms: 91.386601
+  type: 'test'
+  ...
+# Subtest: a newer successful unreact removes the stale read membership
+ok 37 - a newer successful unreact removes the stale read membership
+  ---
+  duration_ms: 103.885394
+  type: 'test'
+  ...
+# Subtest: failed toggle leaves the optional authoritative reaction result usable
+ok 38 - failed toggle leaves the optional authoritative reaction result usable
+  ---
+  duration_ms: 73.979212
+  type: 'test'
+  ...
+# Subtest: fresh book identity cannot display old confirmed likes while its optional read is held
+ok 39 - fresh book identity cannot display old confirmed likes while its optional read is held
+  ---
+  duration_ms: 85.384496
+  type: 'test'
+  ...
+# Subtest: empty refreshed book removes old likes before a source returns
+ok 40 - empty refreshed book removes old likes before a source returns
+  ---
+  duration_ms: 77.04089
+  type: 'test'
+  ...
+# Subtest: no-story refreshed book removes old likes before a source returns
+ok 41 - no-story refreshed book removes old likes before a source returns
+  ---
+  duration_ms: 85.561443
+  type: 'test'
+  ...
+# Subtest: a successful old-route toggle cannot leak into a replacement book
+ok 42 - a successful old-route toggle cannot leak into a replacement book
+  ---
+  duration_ms: 83.719998
+  type: 'test'
+  ...
+# Subtest: optional background reject retains confirmed known reaction state
+ok 43 - optional background reject retains confirmed known reaction state
+  ---
+  duration_ms: 83.356591
+  type: 'test'
+  ...
+# Subtest: optional background error-result retains confirmed known reaction state
+ok 44 - optional background error-result retains confirmed known reaction state
+  ---
+  duration_ms: 83.377753
+  type: 'test'
+  ...
+# Subtest: an old-account mutation cannot apply after ABA before React rerenders
+ok 45 - an old-account mutation cannot apply after ABA before React rerenders
+  ---
+  duration_ms: 71.396088
+  type: 'test'
+  ...
+# Subtest: unmounted confirmed reaction completion cannot publish state or errors
+ok 46 - unmounted confirmed reaction completion cannot publish state or errors
+  ---
+  duration_ms: 80.437102
+  type: 'test'
+  ...
+# Subtest: unmounted rejected reaction completion cannot publish state or errors
+ok 47 - unmounted rejected reaction completion cannot publish state or errors
+  ---
+  duration_ms: 77.449169
+  type: 'test'
+  ...
+# Subtest: soundtrack confirmation does not discard a held optional reaction response
+ok 48 - soundtrack confirmation does not discard a held optional reaction response
+  ---
+  duration_ms: 82.4542
+  type: 'test'
+  ...
+# Subtest: soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading
+ok 49 - soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading
+  ---
+  duration_ms: 99.989083
+  type: 'test'
+  ...
+# Subtest: ios authorized reader entry does not wait for native animation completion
+ok 50 - ios authorized reader entry does not wait for native animation completion
+  ---
+  duration_ms: 112.35855
+  type: 'test'
+  ...
+# Subtest: android authorized reader entry does not wait for native animation completion
+ok 51 - android authorized reader entry does not wait for native animation completion
+  ---
+  duration_ms: 81.952475
+  type: 'test'
+  ...
+# Subtest: reduced-motion reader entry also needs no animation acknowledgement
+ok 52 - reduced-motion reader entry also needs no animation acknowledgement
+  ---
+  duration_ms: 88.776583
+  type: 'test'
+  ...
+# Subtest: an interrupted decorative animation cannot prevent authorized reader entry
+ok 53 - an interrupted decorative animation cannot prevent authorized reader entry
+  ---
+  duration_ms: 87.146221
+  type: 'test'
+  ...
+# Subtest: explicit close returns to the cover and a later press opens the reader again
+ok 54 - explicit close returns to the cover and a later press opens the reader again
+  ---
+  duration_ms: 76.413599
+  type: 'test'
+  ...
+# Subtest: route replacement discards the previous reader entry and any delayed acknowledgement
+ok 55 - route replacement discards the previous reader entry and any delayed acknowledgement
+  ---
+  duration_ms: 81.735137
+  type: 'test'
+  ...
+# Subtest: account replacement hides the old reader until its new authorized book read
+ok 56 - account replacement hides the old reader until its new authorized book read
+  ---
+  duration_ms: 71.299002
+  type: 'test'
+  ...
+# Subtest: unmount rejects late reader-entry animation acknowledgement without a state write
+ok 57 - unmount rejects late reader-entry animation acknowledgement without a state write
+  ---
+  duration_ms: 81.885014
+  type: 'test'
+  ...
+# Subtest: ordinary same-book refresh preserves the already opened reader
+ok 58 - ordinary same-book refresh preserves the already opened reader
+  ---
+  duration_ms: 81.478621
+  type: 'test'
+  ...
+# Subtest: held initial session has a bounded reader wait and Retry starts a fresh attempt
+ok 59 - held initial session has a bounded reader wait and Retry starts a fresh attempt
+  ---
+  duration_ms: 70.210292
+  type: 'test'
+  ...
+# Subtest: authoritative auth event retires initial read timeout and stale rejection
+ok 60 - authoritative auth event retires initial read timeout and stale rejection
+  ---
+  duration_ms: 89.275169
+  type: 'test'
+  ...
+# Subtest: a later authoritative auth event can recover a timed-out reader
+ok 61 - a later authoritative auth event can recover a timed-out reader
+  ---
+  duration_ms: 80.819248
+  type: 'test'
+  ...
+# Subtest: held required book times out, aborts supported transport and retries without a late overwrite
+ok 62 - held required book times out, aborts supported transport and retries without a late overwrite
+  ---
+  duration_ms: 83.238407
+  type: 'test'
+  ...
+# Subtest: installed PostgREST response-body wait is included in the required book budget
+ok 63 - installed PostgREST response-body wait is included in the required book budget
+  ---
+  duration_ms: 88.649657
+  type: 'test'
+  ...
+# Subtest: actual private-media authorization keeps its existing20s stage budget and fails honestly
+ok 64 - actual private-media authorization keeps its existing20s stage budget and fails honestly
+  ---
+  duration_ms: 87.654638
+  type: 'test'
+  ...
+# Subtest: valid delayed auth and book results within their budgets still load real content
+ok 65 - valid delayed auth and book results within their budgets still load real content
+  ---
+  duration_ms: 88.583897
+  type: 'test'
+  ...
+# Subtest: route replacement cancels an old book and keeps late failure from the new reader
+ok 66 - route replacement cancels an old book and keeps late failure from the new reader
+  ---
+  duration_ms: 101.003832
+  type: 'test'
+  ...
+# Subtest: account ABA before commit restarts required authorization instead of stranding the spinner
+ok 67 - account ABA before commit restarts required authorization instead of stranding the spinner
+  ---
+  duration_ms: 93.402294
+  type: 'test'
+  ...
+# Subtest: unmount retires held auth and clears reader timers
+ok 68 - unmount retires held auth and clears reader timers
+  ---
+  duration_ms: 91.71756
+  type: 'test'
+  ...
+# Subtest: unmount retires held book and clears reader timers
+ok 69 - unmount retires held book and clears reader timers
+  ---
+  duration_ms: 91.173434
+  type: 'test'
+  ...
+# Subtest: unmount retires held media and clears reader timers
+ok 70 - unmount retires held media and clears reader timers
+  ---
+  duration_ms: 97.680329
+  type: 'test'
+  ...
+# Subtest: initial session rejection exposes Retry without a book read
+ok 71 - initial session rejection exposes Retry without a book read
+  ---
+  duration_ms: 100.456066
+  type: 'test'
+  ...
+# Subtest: initial session error-result exposes Retry without a book read
+ok 72 - initial session error-result exposes Retry without a book read
+  ---
+  duration_ms: 83.412379
+  type: 'test'
+  ...
+# Subtest: ordinary same-owner auth refresh neither restarts nor cancels the active required book
+ok 73 - ordinary same-owner auth refresh neither restarts nor cancels the active required book
+  ---
+  duration_ms: 84.535047
+  type: 'test'
+  ...
+# Subtest: retained d46 failure entered the exact title then lost Save after Android hideKeyboard without a save request
+ok 74 - retained d46 failure entered the exact title then lost Save after Android hideKeyboard without a save request
+  ---
+  duration_ms: 0.794918
+  type: 'test'
+  ...
+# Subtest: actual Paper tint is a harmless text child inside the handled-taps settings ScrollView
+ok 75 - actual Paper tint is a harmless text child inside the handled-taps settings ScrollView
+  ---
+  duration_ms: 3.618773
+  type: 'test'
+  ...
+# Subtest: installed RN handled-tap responder blurs the input without invoking the actual modal Back dismissal
+ok 76 - installed RN handled-tap responder blurs the input without invoking the actual modal Back dismissal
+  ---
+  duration_ms: 6.86879
+  type: 'test'
+  ...
+# Subtest: audit Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 77 - audit Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 2.785247
+  type: 'test'
+  ...
+# Subtest: audit iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 78 - audit iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 2.088938
+  type: 'test'
+  ...
+# Subtest: full Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 79 - full Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 5.031597
+  type: 'test'
+  ...
+# Subtest: full iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 80 - full iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 5.159024
+  type: 'test'
+  ...
+# Subtest: real creative save and Supabase readback pass the case-specific persistence gate
+ok 81 - real creative save and Supabase readback pass the case-specific persistence gate
+  ---
+  duration_ms: 46.956083
+  type: 'test'
+  ...
+# Subtest: retained Android failure with no actual save cannot pass even if its UI is marked successful
+ok 82 - retained Android failure with no actual save cannot pass even if its UI is marked successful
+  ---
+  duration_ms: 41.153349
+  type: 'test'
+  ...
+# Subtest: a preview without save, a rejected save, and duplicate committed saves all fail
+ok 83 - a preview without save, a rejected save, and duplicate committed saves all fail
+  ---
+  duration_ms: 51.040792
+  type: 'test'
+  ...
+# Subtest: a committed save without a new data read cannot count as persistence
+ok 84 - a committed save without a new data read cannot count as persistence
+  ---
+  duration_ms: 44.795849
+  type: 'test'
+  ...
+# Subtest: wrong save method, owner, book, title or revision fails without leaking receipt values
+ok 85 - wrong save method, owner, book, title or revision fails without leaking receipt values
+  ---
+  duration_ms: 48.849355
+  type: 'test'
+  ...
+# Subtest: duplicate requests and commits cannot be hidden by one matching readback
+ok 86 - duplicate requests and commits cannot be hidden by one matching readback
+  ---
+  duration_ms: 49.141686
+  type: 'test'
+  ...
+# Subtest: every read must map to one request and the expected owner, book, title and revision
+ok 87 - every read must map to one request and the expected owner, book, title and revision
+  ---
+  duration_ms: 46.772752
+  type: 'test'
+  ...
+# Subtest: pre-save matching text and a post-save stale read both fail the ordered readback check
+ok 88 - pre-save matching text and a post-save stale read both fail the ordered readback check
+  ---
+  duration_ms: 49.5623
+  type: 'test'
+  ...
+# Subtest: malformed evidence fails closed instead of passing or crashing the runner
+ok 89 - malformed evidence fails closed instead of passing or crashing the runner
+  ---
+  duration_ms: 45.230368
+  type: 'test'
+  ...
+# Subtest: other declared cases keep their existing receipt contract
+ok 90 - other declared cases keep their existing receipt contract
+  ---
+  duration_ms: 43.341181
+  type: 'test'
+  ...
+# Subtest: passing UI cannot bypass missing persistence, and the runner continues to the next case
+ok 91 - passing UI cannot bypass missing persistence, and the runner continues to the next case
+  ---
+  duration_ms: 45.237288
+  type: 'test'
+  ...
+# Subtest: the actual controlled title input and save callback reproduce the observed suffix after a mid-string backspace edit
+ok 92 - the actual controlled title input and save callback reproduce the observed suffix after a mid-string backspace edit
+  ---
+  duration_ms: 14.310473
+  type: 'test'
+  ...
+# Subtest: the actual title state and creative save preserve an explicitly selected full replacement
+ok 93 - the actual title state and creative save preserve an explicitly selected full replacement
+  ---
+  duration_ms: 10.866724
+  type: 'test'
+  ...
+# Subtest: tests/native/flows/memory-navigation.yaml requires semantic Select All and an exact field-value readback before any save
+ok 94 - tests/native/flows/memory-navigation.yaml requires semantic Select All and an exact field-value readback before any save
+  ---
+  duration_ms: 4.201401
+  type: 'test'
+  ...
+# Subtest: tests/native/audit/flows/memory-cover-settings.yaml requires semantic Select All and an exact field-value readback before any save
+ok 95 - tests/native/audit/flows/memory-cover-settings.yaml requires semantic Select All and an exact field-value readback before any save
+  ---
+  duration_ms: 2.069568
+  type: 'test'
+  ...
+# Subtest: android Appearance exposes all choices/current state and all non-mutating dismissals
+ok 96 - android Appearance exposes all choices/current state and all non-mutating dismissals
+  ---
+  duration_ms: 4.097314
+  type: 'test'
+  ...
+# Subtest: ios Appearance exposes all choices/current state and all non-mutating dismissals
+ok 97 - ios Appearance exposes all choices/current state and all non-mutating dismissals
+  ---
+  duration_ms: 2.84057
+  type: 'test'
+  ...
+# Subtest: android offer cancel clears draft without sending and retains keyboard-safe controls
+ok 98 - android offer cancel clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 7.196734
+  type: 'test'
+  ...
+# Subtest: android offer backdrop clears draft without sending and retains keyboard-safe controls
+ok 99 - android offer backdrop clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 6.037747
+  type: 'test'
+  ...
+# Subtest: android offer back clears draft without sending and retains keyboard-safe controls
+ok 100 - android offer back clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 5.865097
+  type: 'test'
+  ...
+# Subtest: android offer escape clears draft without sending and retains keyboard-safe controls
+ok 101 - android offer escape clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 5.107236
+  type: 'test'
+  ...
+# Subtest: ios offer cancel clears draft without sending and retains keyboard-safe controls
+ok 102 - ios offer cancel clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 18.238782
+  type: 'test'
+  ...
+# Subtest: ios offer backdrop clears draft without sending and retains keyboard-safe controls
+ok 103 - ios offer backdrop clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 5.626728
+  type: 'test'
+  ...
+# Subtest: ios offer back clears draft without sending and retains keyboard-safe controls
+ok 104 - ios offer back clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 5.377994
+  type: 'test'
+  ...
+# Subtest: ios offer escape clears draft without sending and retains keyboard-safe controls
+ok 105 - ios offer escape clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 5.042398
+  type: 'test'
+  ...
+# Subtest: offer send is single-flight; busy dismissals/edits are guarded and failure preserves draft
+ok 106 - offer send is single-flight; busy dismissals/edits are guarded and failure preserves draft
+  ---
+  duration_ms: 10.905693
+  type: 'test'
+  ...
+# Subtest: old offer callbacks cannot affect reopened draft; invalid input never dispatches
+ok 107 - old offer callbacks cannot affect reopened draft; invalid input never dispatches
+  ---
+  duration_ms: 9.336568
+  type: 'test'
+  ...
+# Subtest: late offer success after unmount cannot navigate or write state
+ok 108 - late offer success after unmount cannot navigate or write state
+  ---
+  duration_ms: 7.161381
+  type: 'test'
+  ...
+# Subtest: offer missing acknowledgement preserves the draft and never opens a conversation
+ok 109 - offer missing acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 18.965558
+  type: 'test'
+  ...
+# Subtest: offer null acknowledgement preserves the draft and never opens a conversation
+ok 110 - offer null acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 6.891695
+  type: 'test'
+  ...
+# Subtest: offer false acknowledgement preserves the draft and never opens a conversation
+ok 111 - offer false acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 6.159712
+  type: 'test'
+  ...
+# Subtest: offer empty array acknowledgement preserves the draft and never opens a conversation
+ok 112 - offer empty array acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 6.369889
+  type: 'test'
+  ...
+# Subtest: offer UUID array acknowledgement preserves the draft and never opens a conversation
+ok 113 - offer UUID array acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 5.394959
+  type: 'test'
+  ...
+# Subtest: offer object acknowledgement preserves the draft and never opens a conversation
+ok 114 - offer object acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 5.868783
+  type: 'test'
+  ...
+# Subtest: offer empty string acknowledgement preserves the draft and never opens a conversation
+ok 115 - offer empty string acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 6.004487
+  type: 'test'
+  ...
+# Subtest: offer non-UUID string acknowledgement preserves the draft and never opens a conversation
+ok 116 - offer non-UUID string acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 5.834482
+  type: 'test'
+  ...
+# Subtest: offer malformed UUID acknowledgement preserves the draft and never opens a conversation
+ok 117 - offer malformed UUID acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 9.810833
+  type: 'test'
+  ...
+# Subtest: offer padded UUID acknowledgement preserves the draft and never opens a conversation
+ok 118 - offer padded UUID acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 7.485418
+  type: 'test'
+  ...
+# Subtest: offer UUID with error acknowledgement preserves the draft and never opens a conversation
+ok 119 - offer UUID with error acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 7.587343
+  type: 'test'
+  ...
+# Subtest: android UUID offer acknowledgement closes once and clears the sent draft
+ok 120 - android UUID offer acknowledgement closes once and clears the sent draft
+  ---
+  duration_ms: 6.798624
+  type: 'test'
+  ...
+# Subtest: ios UUID offer acknowledgement closes once and clears the sent draft
+ok 121 - ios UUID offer acknowledgement closes once and clears the sent draft
+  ---
+  duration_ms: 6.128905
+  type: 'test'
+  ...
+# Subtest: theme rapid choices coalesce behind one active write and older hydration cannot replace latest choice
+ok 122 - theme rapid choices coalesce behind one active write and older hydration cannot replace latest choice
+  ---
+  duration_ms: 8.506678
+  type: 'test'
+  ...
+# Subtest: theme persistence rejection cannot strand a newer pending choice
+ok 123 - theme persistence rejection cannot strand a newer pending choice
+  ---
+  duration_ms: 2.981282
+  type: 'test'
+  ...
+# Subtest: Settings Appearance search includes every mode while preserving existing contrast edits
+ok 124 - Settings Appearance search includes every mode while preserving existing contrast edits
+  ---
+  duration_ms: 9.402118
+  type: 'test'
+  ...
+# Subtest: explicit Cancel at compose preserves draft without RPC
+ok 125 - explicit Cancel at compose preserves draft without RPC
+  ---
+  duration_ms: 121.374475
+  type: 'test'
+  ...
+# Subtest: explicit Cancel at review preserves draft without RPC
+ok 126 - explicit Cancel at review preserves draft without RPC
+  ---
+  duration_ms: 43.397972
+  type: 'test'
+  ...
+# Subtest: busy submission blocks Cancel/close and duplicate dispatch, then confirms once
+ok 127 - busy submission blocks Cancel/close and duplicate dispatch, then confirms once
+  ---
+  duration_ms: 43.087233
+  type: 'test'
+  ...
+# Subtest: failed submission preserves review and allows Cancel/reopen with original draft
+ok 128 - failed submission preserves review and allows Cancel/reopen with original draft
+  ---
+  duration_ms: 32.904591
+  type: 'test'
+  ...
+# Subtest: missing offer acknowledgement preserves review and amount without opening a conversation
+ok 129 - missing offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 26.081419
+  type: 'test'
+  ...
+# Subtest: null offer acknowledgement preserves review and amount without opening a conversation
+ok 130 - null offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 27.069958
+  type: 'test'
+  ...
+# Subtest: false offer acknowledgement preserves review and amount without opening a conversation
+ok 131 - false offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 26.504507
+  type: 'test'
+  ...
+# Subtest: empty array offer acknowledgement preserves review and amount without opening a conversation
+ok 132 - empty array offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 34.449498
+  type: 'test'
+  ...
+# Subtest: UUID array offer acknowledgement preserves review and amount without opening a conversation
+ok 133 - UUID array offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 23.690607
+  type: 'test'
+  ...
+# Subtest: object offer acknowledgement preserves review and amount without opening a conversation
+ok 134 - object offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 24.123089
+  type: 'test'
+  ...
+# Subtest: empty string offer acknowledgement preserves review and amount without opening a conversation
+ok 135 - empty string offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 20.79946
+  type: 'test'
+  ...
+# Subtest: non-UUID string offer acknowledgement preserves review and amount without opening a conversation
+ok 136 - non-UUID string offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 22.708307
+  type: 'test'
+  ...
+# Subtest: malformed UUID offer acknowledgement preserves review and amount without opening a conversation
+ok 137 - malformed UUID offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 24.591133
+  type: 'test'
+  ...
+# Subtest: padded UUID offer acknowledgement preserves review and amount without opening a conversation
+ok 138 - padded UUID offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 20.891089
+  type: 'test'
+  ...
+# Subtest: UUID with error offer acknowledgement preserves review and amount without opening a conversation
+ok 139 - UUID with error offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 27.620208
+  type: 'test'
+  ...
+# Subtest: visual viewport updates height/offset and cleans both listeners and inline properties
+ok 140 - visual viewport updates height/offset and cleans both listeners and inline properties
+  ---
+  duration_ms: 11.994132
+  type: 'test'
+  ...
+# Subtest: ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy
+ok 141 - ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy
+  ---
+  duration_ms: 6.056757
+  type: 'test'
+  ...
+1..141
+# tests 141
+# suites 0
+# pass 141
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7359.114165

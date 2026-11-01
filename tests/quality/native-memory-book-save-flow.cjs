@@ -32,7 +32,7 @@ const sourceText = read('src/screens/profile/MemoryAlbumScreen.tsx');
 const source = ts.createSourceFile('MemoryAlbumScreen.tsx', sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 
 test('retained d46 failure entered the exact title then lost Save after Android hideKeyboard without a save request', () => {
-  const folder = 'docs/quality/native-full-app-20261031/native-audit-android-d46c50f0-41235679679/failures/memory-cover-settings';
+  const folder = 'tests/fixtures/memory-save-d46-failure';
   const observed = JSON.parse(read(`${folder}/commands.json`));
   const title = observed.find(row => row.command.inputTextCommand?.text === 'AUDIT BOOK TITLE');
   assert.equal(title.metadata.status, 'COMPLETED');

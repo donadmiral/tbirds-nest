@@ -52,7 +52,7 @@ export default function ThemeControls() {
       <button type="button" title="Light" aria-label="Light appearance" aria-pressed={theme === 'light'} className="pc-seg" style={seg(theme === 'light')} onClick={() => choose('light')}>
         <AdminIcon name="sun" size={17} />
       </button>
-      <button type="button" title="Dark" aria-label="Dark appearance" aria-pressed={theme === 'dark'} className="pc-seg" style={seg(theme === 'dark')} onClick={() => choose('dark')}>
+      <button type="button" title="Dim" aria-label="Dim appearance" aria-pressed={theme === 'dark'} className="pc-seg" style={seg(theme === 'dark')} onClick={() => choose('dark')}>
         <AdminIcon name="moon" size={17} />
       </button>
       <button type="button" title="Lights out" aria-label="Lights out appearance" aria-pressed={theme === 'lightsOut'} className="pc-seg" style={seg(theme === 'lightsOut')} onClick={() => choose('lightsOut')}>

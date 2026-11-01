@@ -1,0 +1,20 @@
+{
+  "runId": 41235679679,
+  "applicationSourceCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+  "case": "memory-cover-settings",
+  "platform": "android",
+  "kind": "original-failed-run-regression-evidence",
+  "networkForwarded": 0,
+  "files": [
+    {
+      "path": "commands.json",
+      "sha256": "4d9b700477f7294ab1b46d9cc499ec7b3d8e62f72e8d6805fb4c74874b9a5d73",
+      "bytes": 33466
+    },
+    {
+      "path": "fixture-receipt.json",
+      "sha256": "b6b11709eb44eae3fb7f6c7a2efa34d05c03cd5a3394319f899d9af60d0762d7",
+      "bytes": 3776
+    }
+  ]
+}

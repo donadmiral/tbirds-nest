@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
+const OFFER_ID = '80000000-0000-4000-8000-000000000001';
 const text = n => n == null ? '' : typeof n === 'string' || typeof n === 'number' ? String(n) : Array.isArray(n) ? n.map(text).join('') : text(n.props?.children);
 function host() {
   let cursor = 0; const slots = [], pending = [];
@@ -45,10 +46,26 @@ for (const review of [false, true]) test('explicit Cancel at ' + (review ? 'revi
   const a = listing(); await a.flush(); a.click('Make offer'); a.fill('21.50'); if (review) a.submit(); a.click('Cancel'); assert.equal(a.dialog().props.open, false); assert.equal(a.calls.length, 0); a.click('Make offer'); assert.equal(a.value(), '21.50'); assert.equal(a.dialog().props.keyboardSafe, true); a.destroy();
 });
 test('busy submission blocks Cancel/close and duplicate dispatch, then confirms once', async () => {
-  let finish; const held = new Promise(resolve => { finish = resolve; }); const a = listing(name => name === 'make_offer' ? held : Promise.resolve({ data: 'conversation', error: null })); await a.flush(); a.click('Make offer'); a.fill('21'); a.submit(); a.submit(); await a.flush(); assert.equal(a.button('Cancel').props.disabled, true); a.dialog().props.onClose(); a.render(); assert.equal(a.dialog().props.open, true); a.submit(); await a.flush(); assert.equal(a.calls.filter(x => x.name === 'make_offer').length, 1); finish({ error: null }); await a.flush(); assert.equal(a.dialog().props.open, false); a.click('Make offer'); assert.equal(a.value(), ''); a.destroy();
+  let finish; const held = new Promise(resolve => { finish = resolve; }); const a = listing(name => name === 'make_offer' ? held : Promise.resolve({ data: 'conversation', error: null })); await a.flush(); a.click('Make offer'); a.fill('21'); a.submit(); a.submit(); await a.flush(); assert.equal(a.button('Cancel').props.disabled, true); a.dialog().props.onClose(); a.render(); assert.equal(a.dialog().props.open, true); a.submit(); await a.flush(); assert.equal(a.calls.filter(x => x.name === 'make_offer').length, 1); finish({ data: OFFER_ID, error: null }); await a.flush(); assert.equal(a.dialog().props.open, false); a.click('Make offer'); assert.equal(a.value(), ''); a.destroy();
 });
 test('failed submission preserves review and allows Cancel/reopen with original draft', async () => {
   const a = listing(async () => { throw new Error('controlled failure'); }); await a.flush(); a.click('Make offer'); a.fill('21'); a.submit(); a.submit(); await a.flush(); assert.equal(a.button('Cancel').props.disabled, false); a.click('Cancel'); a.click('Make offer'); assert.equal(a.value(), '21'); a.destroy();
+});
+for (const [label, response] of [
+  ['missing', { error: null }], ['null', { data: null, error: null }], ['false', { data: false, error: null }],
+  ['empty array', { data: [], error: null }], ['UUID array', { data: [OFFER_ID], error: null }],
+  ['object', { data: { id: OFFER_ID }, error: null }], ['empty string', { data: '', error: null }],
+  ['non-UUID string', { data: 'accepted', error: null }], ['malformed UUID', { data: OFFER_ID.slice(0, -1) + 'x', error: null }],
+  ['padded UUID', { data: ' ' + OFFER_ID + ' ', error: null }], ['UUID with error', { data: OFFER_ID, error: Error('unconfirmed') }],
+]) test(label + ' offer acknowledgement preserves review and amount without opening a conversation', async () => {
+  const a = listing(async () => response);
+  try {
+    await a.flush(); a.click('Make offer'); a.fill('21.50'); a.submit(); a.submit(); await a.flush();
+    assert.equal(a.dialog().props.open, true); assert.equal(a.dialog().props.title, 'Review offer');
+    assert.match(text(a.dialog()), /could not be confirmed/); assert.equal(a.button('Cancel').props.disabled, false);
+    assert.equal(a.calls.length, 1); assert.equal(a.calls[0].name, 'make_offer');
+    a.click('Edit offer'); assert.equal(a.value(), '21.50');
+  } finally { a.destroy(); }
 });
 function dialog() {
   const h = host(), listeners = new Map(), properties = new Map(); let closed = 0, props, tree;

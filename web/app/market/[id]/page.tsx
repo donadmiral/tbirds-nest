@@ -129,8 +129,8 @@ function ListingDetails({ id }: { id: string }) {
     mutating.current = true; setBusy(true); setActionError("");
     try {
       await currentAccount(); if (token !== generation.current) return;
-      const { error } = await supabase.rpc("make_offer", { p_listing_id: listing.id, p_amount: amount });
-      if (error) throw error;
+      const { data, error } = await supabase.rpc("make_offer", { p_listing_id: listing.id, p_amount: amount });
+      if (error || typeof data !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data)) throw error || new Error("Offer confirmation unavailable");
       if (token !== generation.current) return;
       setOfferOpen(false); setOfferReview(false); setOfferAmt(""); setStatus("Offer sent to the seller.");
       await messageSeller();

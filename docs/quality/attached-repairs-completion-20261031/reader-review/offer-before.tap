@@ -1,0 +1,606 @@
+TAP version 13
+# Subtest: android Appearance exposes all choices/current state and all non-mutating dismissals
+ok 1 - android Appearance exposes all choices/current state and all non-mutating dismissals
+  ---
+  duration_ms: 65.097623
+  type: 'test'
+  ...
+# Subtest: ios Appearance exposes all choices/current state and all non-mutating dismissals
+ok 2 - ios Appearance exposes all choices/current state and all non-mutating dismissals
+  ---
+  duration_ms: 15.59649
+  type: 'test'
+  ...
+# Subtest: android offer cancel clears draft without sending and retains keyboard-safe controls
+ok 3 - android offer cancel clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 22.070884
+  type: 'test'
+  ...
+# Subtest: android offer backdrop clears draft without sending and retains keyboard-safe controls
+ok 4 - android offer backdrop clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 14.669112
+  type: 'test'
+  ...
+# Subtest: android offer back clears draft without sending and retains keyboard-safe controls
+ok 5 - android offer back clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 13.507232
+  type: 'test'
+  ...
+# Subtest: android offer escape clears draft without sending and retains keyboard-safe controls
+ok 6 - android offer escape clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 12.155434
+  type: 'test'
+  ...
+# Subtest: ios offer cancel clears draft without sending and retains keyboard-safe controls
+ok 7 - ios offer cancel clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 19.475494
+  type: 'test'
+  ...
+# Subtest: ios offer backdrop clears draft without sending and retains keyboard-safe controls
+ok 8 - ios offer backdrop clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 12.842741
+  type: 'test'
+  ...
+# Subtest: ios offer back clears draft without sending and retains keyboard-safe controls
+ok 9 - ios offer back clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 13.22698
+  type: 'test'
+  ...
+# Subtest: ios offer escape clears draft without sending and retains keyboard-safe controls
+ok 10 - ios offer escape clears draft without sending and retains keyboard-safe controls
+  ---
+  duration_ms: 12.978094
+  type: 'test'
+  ...
+# Subtest: offer send is single-flight; busy dismissals/edits are guarded and failure preserves draft
+ok 11 - offer send is single-flight; busy dismissals/edits are guarded and failure preserves draft
+  ---
+  duration_ms: 21.472623
+  type: 'test'
+  ...
+# Subtest: old offer callbacks cannot affect reopened draft; invalid input never dispatches
+ok 12 - old offer callbacks cannot affect reopened draft; invalid input never dispatches
+  ---
+  duration_ms: 13.926283
+  type: 'test'
+  ...
+# Subtest: late offer success after unmount cannot navigate or write state
+ok 13 - late offer success after unmount cannot navigate or write state
+  ---
+  duration_ms: 8.157532
+  type: 'test'
+  ...
+# Subtest: offer missing acknowledgement preserves the draft and never opens a conversation
+not ok 14 - offer missing acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 13.564057
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:42:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:44:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: offer null acknowledgement preserves the draft and never opens a conversation
+not ok 15 - offer null acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 10.948367
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:42:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:44:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: offer false acknowledgement preserves the draft and never opens a conversation
+not ok 16 - offer false acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 12.119551
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:42:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:44:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: offer empty array acknowledgement preserves the draft and never opens a conversation
+not ok 17 - offer empty array acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 9.076215
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:42:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:44:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: offer UUID array acknowledgement preserves the draft and never opens a conversation
+not ok 18 - offer UUID array acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 9.213542
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:42:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:44:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: offer object acknowledgement preserves the draft and never opens a conversation
+not ok 19 - offer object acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 8.7739
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:42:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:44:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: offer empty string acknowledgement preserves the draft and never opens a conversation
+not ok 20 - offer empty string acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 8.828953
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:42:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:44:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: offer non-UUID string acknowledgement preserves the draft and never opens a conversation
+not ok 21 - offer non-UUID string acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 14.66127
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:42:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:44:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: offer malformed UUID acknowledgement preserves the draft and never opens a conversation
+not ok 22 - offer malformed UUID acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 9.134985
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:42:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:44:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: offer padded UUID acknowledgement preserves the draft and never opens a conversation
+not ok 23 - offer padded UUID acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 8.267606
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:42:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/tests/quality/native-sheet-restoration.cjs:44:9)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: offer UUID with error acknowledgement preserves the draft and never opens a conversation
+ok 24 - offer UUID with error acknowledgement preserves the draft and never opens a conversation
+  ---
+  duration_ms: 7.586451
+  type: 'test'
+  ...
+# Subtest: android UUID offer acknowledgement closes once and clears the sent draft
+ok 25 - android UUID offer acknowledgement closes once and clears the sent draft
+  ---
+  duration_ms: 8.08386
+  type: 'test'
+  ...
+# Subtest: ios UUID offer acknowledgement closes once and clears the sent draft
+ok 26 - ios UUID offer acknowledgement closes once and clears the sent draft
+  ---
+  duration_ms: 9.232731
+  type: 'test'
+  ...
+# Subtest: theme rapid choices coalesce behind one active write and older hydration cannot replace latest choice
+ok 27 - theme rapid choices coalesce behind one active write and older hydration cannot replace latest choice
+  ---
+  duration_ms: 16.347952
+  type: 'test'
+  ...
+# Subtest: theme persistence rejection cannot strand a newer pending choice
+ok 28 - theme persistence rejection cannot strand a newer pending choice
+  ---
+  duration_ms: 5.689833
+  type: 'test'
+  ...
+# Subtest: Settings Appearance search includes every mode while preserving existing contrast edits
+ok 29 - Settings Appearance search includes every mode while preserving existing contrast edits
+  ---
+  duration_ms: 25.501263
+  type: 'test'
+  ...
+# Subtest: explicit Cancel at compose preserves draft without RPC
+ok 30 - explicit Cancel at compose preserves draft without RPC
+  ---
+  duration_ms: 122.018097
+  type: 'test'
+  ...
+# Subtest: explicit Cancel at review preserves draft without RPC
+ok 31 - explicit Cancel at review preserves draft without RPC
+  ---
+  duration_ms: 44.691167
+  type: 'test'
+  ...
+# Subtest: busy submission blocks Cancel/close and duplicate dispatch, then confirms once
+ok 32 - busy submission blocks Cancel/close and duplicate dispatch, then confirms once
+  ---
+  duration_ms: 41.609213
+  type: 'test'
+  ...
+# Subtest: failed submission preserves review and allows Cancel/reopen with original draft
+ok 33 - failed submission preserves review and allows Cancel/reopen with original draft
+  ---
+  duration_ms: 39.328737
+  type: 'test'
+  ...
+# Subtest: missing offer acknowledgement preserves review and amount without opening a conversation
+not ok 34 - missing offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 26.685718
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:60:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:64:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: null offer acknowledgement preserves review and amount without opening a conversation
+not ok 35 - null offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 25.800214
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:60:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:64:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: false offer acknowledgement preserves review and amount without opening a conversation
+not ok 36 - false offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 39.775671
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:60:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:64:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: empty array offer acknowledgement preserves review and amount without opening a conversation
+not ok 37 - empty array offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 23.898439
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:60:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:64:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: UUID array offer acknowledgement preserves review and amount without opening a conversation
+not ok 38 - UUID array offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 22.941005
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:60:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:64:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: object offer acknowledgement preserves review and amount without opening a conversation
+not ok 39 - object offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 22.130935
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:60:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:64:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: empty string offer acknowledgement preserves review and amount without opening a conversation
+not ok 40 - empty string offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 19.713433
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:60:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:64:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: non-UUID string offer acknowledgement preserves review and amount without opening a conversation
+not ok 41 - non-UUID string offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 22.919543
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:60:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:64:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: malformed UUID offer acknowledgement preserves review and amount without opening a conversation
+not ok 42 - malformed UUID offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 23.190131
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:60:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:64:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: padded UUID offer acknowledgement preserves review and amount without opening a conversation
+not ok 43 - padded UUID offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 27.149467
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:60:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/platinum-circles/web/tests/offer-cancel-restoration.cjs:64:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: UUID with error offer acknowledgement preserves review and amount without opening a conversation
+ok 44 - UUID with error offer acknowledgement preserves review and amount without opening a conversation
+  ---
+  duration_ms: 21.156868
+  type: 'test'
+  ...
+# Subtest: visual viewport updates height/offset and cleans both listeners and inline properties
+ok 45 - visual viewport updates height/offset and cleans both listeners and inline properties
+  ---
+  duration_ms: 11.00434
+  type: 'test'
+  ...
+# Subtest: ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy
+ok 46 - ordinary dialogs have no visual viewport listeners; Escape/backdrop respect busy
+  ---
+  duration_ms: 5.854972
+  type: 'test'
+  ...
+1..46
+# tests 46
+# suites 0
+# pass 26
+# fail 20
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1250.619425

@@ -82,6 +82,58 @@ def validate_junit(path, case):
         return {'passed': False, 'issue': str(error)}
 
 
+def validate_memory_cover_save(receipt):
+    """Require a real committed edit and a later read of that edit.
+
+    The pinned fixture appends one bookReads row synchronously for each
+    successful navigation-book request. Correlate the complete request/read
+    counts before using their order. Missing, failed or other-book reads cannot
+    be silently skipped. No UI preview or sheet dismissal is persistence proof.
+    """
+    owner = '10000000-0000-4000-8000-000000000001'
+    book = 'a0000000-0000-4000-8000-000000000002'
+    save_rpc = 'save_memory_book_creative_presentation'
+    save_path = '/rest/v1/rpc/' + save_rpc
+    read_path = '/rest/v1/rpc/get_memory_book'
+    requests, mutations, reads = (receipt.get(key) for key in ['requests', 'mutations', 'bookReads'])
+    if any(not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows)
+           for rows in [requests, mutations, reads]):
+        raise ValueError('malformed-memory-save-receipt')
+    saves = [(index, row) for index, row in enumerate(requests) if row.get('path') == save_path]
+    committed = [row for row in mutations if row.get('rpc') == save_rpc]
+    if len(saves) != 1 or len(committed) != 1:
+        raise ValueError('memory-save-requires-one-committed-request')
+    save_index, save_request = saves[0]
+    saved = committed[0]
+    if save_request.get('method') != 'POST' or save_request.get('owner') != owner:
+        raise ValueError('memory-save-request-scope-mismatch')
+    if (saved.get('id') != book or saved.get('owner') != owner
+            or saved.get('title') != 'AUDIT BOOK TITLE'
+            or type(saved.get('revision')) is not int or saved['revision'] != 1):
+        raise ValueError('memory-save-commit-mismatch')
+    read_requests = [(index, row) for index, row in enumerate(requests) if row.get('path') == read_path]
+    if len(read_requests) != len(reads) or len(reads) < 2:
+        raise ValueError('memory-save-read-correlation-missing')
+    before, after = 0, 0
+    for (index, request), read in zip(read_requests, reads):
+        if (request.get('method') != 'POST' or request.get('owner') != owner
+                or read.get('id') != book or read.get('owner') != owner
+                or type(read.get('revision')) is not int):
+            raise ValueError('memory-save-read-scope-mismatch')
+        if index < save_index:
+            if read['revision'] != 0 or read.get('title') != 'THE SMALL ADVENTURES':
+                raise ValueError('memory-save-baseline-read-mismatch')
+            before += 1
+        else:
+            if read['revision'] != saved['revision'] or read.get('title') != saved['title']:
+                raise ValueError('memory-save-readback-mismatch')
+            after += 1
+    if not before or not after:
+        raise ValueError('memory-save-ordered-readback-missing')
+    return {'passed': True, 'saveRequestCount': 1, 'committedSaveCount': 1,
+            'savedRevision': saved['revision'], 'readbacksAfterSave': after}
+
+
 def validate_receipt(path, case):
     try:
         receipt = json.loads(path.read_text())
@@ -105,11 +157,15 @@ def validate_receipt(path, case):
             raise ValueError('missing-or-wrong-case-receipt')
         if receipt.get('unhandled') or audit.get('rejected'):
             raise ValueError('unhandled-fixture-contract')
+        memory_save = validate_memory_cover_save(receipt) if case['id'] == 'memory-cover-settings' else None
         if not any(row.get('path') == '/auth/v1/token' for row in receipt.get('requests', [])):
             raise ValueError('no-real-sdk-synthetic-signin')
-        return {'passed': True, 'requestCount': len(receipt['requests']),
-                'auditRequestCount': len(audit.get('requests', [])),
-                'auditMutationCount': len(audit.get('mutations', []))}
+        result = {'passed': True, 'requestCount': len(receipt['requests']),
+                  'auditRequestCount': len(audit.get('requests', [])),
+                  'auditMutationCount': len(audit.get('mutations', []))}
+        if memory_save is not None:
+            result['memorySave'] = memory_save
+        return result
     except (OSError, ValueError, TypeError, KeyError) as error:
         return {'passed': False, 'issue': str(error)}
 

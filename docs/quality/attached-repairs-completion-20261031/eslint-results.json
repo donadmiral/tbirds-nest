@@ -1,0 +1,38 @@
+[
+  {
+    "name": "native",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "src/screens/market/ListingDetailScreen.tsx",
+      "tests/quality/native-sheet-restoration.cjs"
+    ],
+    "exitCode": 0,
+    "seconds": 1.786,
+    "output": ""
+  },
+  {
+    "name": "web",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "app/market/[id]/page.tsx",
+      "tests/offer-cancel-restoration.cjs"
+    ],
+    "exitCode": 0,
+    "seconds": 2.437,
+    "output": ""
+  },
+  {
+    "name": "admin",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "components/ThemeControls.tsx",
+      "tests/theme-lights-out-restoration.cjs"
+    ],
+    "exitCode": 0,
+    "seconds": 1.928,
+    "output": ""
+  }
+]

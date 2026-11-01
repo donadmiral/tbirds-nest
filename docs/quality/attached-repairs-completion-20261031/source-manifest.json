@@ -1,0 +1,122 @@
+[
+  {
+    "path": ".github/workflows/native-android-save-retained.yml",
+    "sha256": "448b3791a014eaea6f8876cc104743820dc517bed9110b1554ef557523550e53",
+    "bytes": 3497
+  },
+  {
+    "path": ".github/workflows/native-audit-ios-d46-recovery.yml",
+    "sha256": "9ad10ebb6a536605dcafde529e9c15ffdf4a71e41b578d352958be2e2f93c5b5",
+    "bytes": 3567
+  },
+  {
+    "path": "admin-web/components/ThemeControls.tsx",
+    "sha256": "10718f534ff7f793fa3cf883606cda9710e93326a3e5558736d6d9e8dfcd6c21",
+    "bytes": 2654
+  },
+  {
+    "path": "admin-web/tests/theme-lights-out-restoration.cjs",
+    "sha256": "ce1df0bfb1aa5814f03052598c096830209649f43d6cbc2fd2556a2fb49237d3",
+    "bytes": 3034
+  },
+  {
+    "path": "scripts/quality/native-ui-android-save-recovery.json",
+    "sha256": "4f591313dddc40a28343e14aad072673690bcb9e3d797a95650d224b475f534b",
+    "bytes": 1931
+  },
+  {
+    "path": "scripts/quality/native-ui-android-save-recovery.py",
+    "sha256": "4d92a0aa27022114aaf0d8b1818797b3350c7ceeb0a703e78948e80cb0063a74",
+    "bytes": 9101
+  },
+  {
+    "path": "scripts/quality/native-ui-audit-runner.py",
+    "sha256": "743dcfe5138890cf269dd7d00d3b1440f2099f7f5f139b91fd76e58e5c32d055",
+    "bytes": 18678
+  },
+  {
+    "path": "scripts/quality/native-ui-ios-d46-recovery.py",
+    "sha256": "ce86171bcd424adaa1d1488dc97e982c9404f0517e1050e0dfbcf529793a207f",
+    "bytes": 36282
+  },
+  {
+    "path": "scripts/quality/run-retained-android-save.sh",
+    "sha256": "4963ee7f26004b4ca19535f5deb84e7d084d8a95aa14869e819236c5f97daf68",
+    "bytes": 3840
+  },
+  {
+    "path": "src/screens/market/ListingDetailScreen.tsx",
+    "sha256": "7bd5cdab46e5f76597b0758b7b9e12e0eef42e4df49d9fd909a35b072ffcc2cf",
+    "bytes": 26927
+  },
+  {
+    "path": "tests/fixtures/memory-save-d46-failure/commands.json",
+    "sha256": "4d9b700477f7294ab1b46d9cc499ec7b3d8e62f72e8d6805fb4c74874b9a5d73",
+    "bytes": 33466
+  },
+  {
+    "path": "tests/fixtures/memory-save-d46-failure/fixture-receipt.json",
+    "sha256": "b6b11709eb44eae3fb7f6c7a2efa34d05c03cd5a3394319f899d9af60d0762d7",
+    "bytes": 3776
+  },
+  {
+    "path": "tests/fixtures/memory-save-d46-failure/provenance.json",
+    "sha256": "89524d965e92ea82310e926b29bcee4857c1a9f7252c6f98b9b4981a757baf44",
+    "bytes": 559
+  },
+  {
+    "path": "tests/native/audit/flows/retained-memory-cover-settings.yaml",
+    "sha256": "253d5e195a447ecc04494551f25b9f9eff99e903a23d118b38dcb2d9eaff0c00",
+    "bytes": 1476
+  },
+  {
+    "path": "tests/native/diagnostics/ios-direct-reader-controls.yaml",
+    "sha256": "008099f1ee207ab6c91022d410b04873b67a3ee3ea2f5b3ad586180b0a5c67af",
+    "bytes": 846
+  },
+  {
+    "path": "tests/native/diagnostics/ios-warm-reader-controls.yaml",
+    "sha256": "044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f",
+    "bytes": 2324
+  },
+  {
+    "path": "tests/quality/native-ios-d46-recovery.cjs",
+    "sha256": "55a694832b5a748bc5d304c78c6e856260bcbd828be7ee25ab3245e844697fd3",
+    "bytes": 36739
+  },
+  {
+    "path": "tests/quality/native-ios-warm-reader-controls.cjs",
+    "sha256": "049c2822af2195fd3df8b935b1c2faa3c579172c8527077f2cc5a8cdc1cd1b82",
+    "bytes": 11418
+  },
+  {
+    "path": "tests/quality/native-memory-book-save-flow.cjs",
+    "sha256": "278f1fec5c8c040642291b747caa777618e3f87cec2cab5aacf62aca00e4aa76",
+    "bytes": 8229
+  },
+  {
+    "path": "tests/quality/native-memory-book-save-receipt.cjs",
+    "sha256": "4a48a3c085f95e18ccc8cedaeb4c687de968b38aa41d22a397f3777a03cc96a0",
+    "bytes": 12225
+  },
+  {
+    "path": "tests/quality/native-sheet-restoration.cjs",
+    "sha256": "52016fda006230adecb4425820ef3f45422c4b7d095046573a643a609c1913c9",
+    "bytes": 13660
+  },
+  {
+    "path": "tests/quality/test_android_retained_save.py",
+    "sha256": "d55afd5404f3d56bbdb73230f798aaebf96292ed914aa58ff5926af9d4290dba",
+    "bytes": 6361
+  },
+  {
+    "path": "web/app/market/[id]/page.tsx",
+    "sha256": "9a7b9c6b7844cbeea031bb8457a290ca8f65ad849d9c5bf312d400cffe2589bc",
+    "bytes": 18240
+  },
+  {
+    "path": "web/tests/offer-cancel-restoration.cjs",
+    "sha256": "de6dcd84a950529fdfa2f56a952f39b816868c778d523fd5426e795f98589892",
+    "bytes": 9894
+  }
+]

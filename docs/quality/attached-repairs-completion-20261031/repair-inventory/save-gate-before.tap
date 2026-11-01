@@ -1,0 +1,261 @@
+TAP version 13
+# Subtest: real creative save and Supabase readback pass the case-specific persistence gate
+not ok 1 - real creative save and Supabase readback pass the case-specific persistence gate
+  ---
+  duration_ms: 79.808058
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:87:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + undefined
+    - {
+    -   committedSaveCount: 1,
+    -   passed: true,
+    -   readbacksAfterSave: 1,
+    -   saveRequestCount: 1,
+    -   savedRevision: 1
+    - }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    passed: true
+    saveRequestCount: 1
+    committedSaveCount: 1
+    savedRevision: 1
+    readbacksAfterSave: 1
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:92:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: retained Android failure with no actual save cannot pass even if its UI is marked successful
+not ok 2 - retained Android failure with no actual save cannot pass even if its UI is marked successful
+  ---
+  duration_ms: 36.289259
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:98:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:102:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: a preview without save, a rejected save, and duplicate committed saves all fail
+not ok 3 - a preview without save, a rejected save, and duplicate committed saves all fail
+  ---
+  duration_ms: 47.642782
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:105:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:108:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: a committed save without a new data read cannot count as persistence
+not ok 4 - a committed save without a new data read cannot count as persistence
+  ---
+  duration_ms: 44.989905
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:113:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:114:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: wrong save method, owner, book, title or revision fails without leaking receipt values
+not ok 5 - wrong save method, owner, book, title or revision fails without leaking receipt values
+  ---
+  duration_ms: 54.1764
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:117:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(results.every(result => result.passed === false))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:128:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: duplicate requests and commits cannot be hidden by one matching readback
+not ok 6 - duplicate requests and commits cannot be hidden by one matching readback
+  ---
+  duration_ms: 43.120439
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:132:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(validate([duplicateRequest, duplicateMutation, missingMutation]).every(result => !result.passed))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:140:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: every read must map to one request and the expected owner, book, title and revision
+not ok 7 - every read must map to one request and the expected owner, book, title and revision
+  ---
+  duration_ms: 41.949606
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:143:1'
+  failureType: 'testCodeFailure'
+  error: 'false == true'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:157:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: pre-save matching text and a post-save stale read both fail the ordered readback check
+not ok 8 - pre-save matching text and a post-save stale read both fail the ordered readback check
+  ---
+  duration_ms: 45.215856
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:161:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(validate([stale, reversed, saveLast, noBaseline]).every(result => !result.passed))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:171:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: malformed evidence fails closed instead of passing or crashing the runner
+not ok 9 - malformed evidence fails closed instead of passing or crashing the runner
+  ---
+  duration_ms: 41.692438
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:174:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Traceback (most recent call last):
+      File "<string>", line 9, in <module>
+      File "/workspace/scratch/f9638ed3020b/platinum-circles/scripts/quality/native-ui-audit-runner.py", line 108, in validate_receipt
+        if not any(row.get('path') == '/auth/v1/token' for row in receipt.get('requests', [])):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/workspace/scratch/f9638ed3020b/platinum-circles/scripts/quality/native-ui-audit-runner.py", line 108, in <genexpr>
+        if not any(row.get('path') == '/auth/v1/token' for row in receipt.get('requests', [])):
+                   ^^^^^^^
+    AttributeError: 'str' object has no attribute 'get'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    validate (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:83:10)
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:181:19)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: other declared cases keep their existing receipt contract
+ok 10 - other declared cases keep their existing receipt contract
+  ---
+  duration_ms: 40.75071
+  type: 'test'
+  ...
+# Subtest: passing UI cannot bypass missing persistence, and the runner continues to the next case
+not ok 11 - passing UI cannot bypass missing persistence, and the runner continues to the next case
+  ---
+  duration_ms: 42.209126
+  type: 'test'
+  location: '/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:197:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Traceback (most recent call last):
+      File "<string>", line 15, in <module>
+    AssertionError
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/a8c1175db866/repair-inventory/save-gate/tests/quality/native-memory-book-save-receipt.cjs:218:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 1
+# fail 10
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 816.948391
