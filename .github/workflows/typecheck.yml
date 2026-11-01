@@ -10,7 +10,7 @@ name: Type and quality gates
 
 on:
   push:
-    branches: [master]
+    branches: [master, codex/completion-20261101]
   pull_request:
   workflow_dispatch:
 

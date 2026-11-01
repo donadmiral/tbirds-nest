@@ -2,7 +2,7 @@ name: Independent native product audit
 
 on:
   push:
-    branches: ['codex/native-v6-followup-20261031']
+    branches: ['codex/native-v6-followup-20261031', 'codex/completion-20261101']
     paths:
       - 'App.tsx'
       - 'src/**'
@@ -34,6 +34,8 @@ env:
   EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
   EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
   MAESTRO_CLI_NO_ANALYTICS: 'true'
+  # This is driver setup only. Product assertions keep their 15-second bounds.
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: '180000'
 
 jobs:
   ios-build:

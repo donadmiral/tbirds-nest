@@ -29,7 +29,10 @@ name: Audit repeated main tab controls
       - assertVisible: 'View listing: Travel journal'
       - tapOn:
           id: main-tab-messages
-      - assertVisible: Messages
+      - extendedWaitUntil:
+          visible: '(?s)^(?:Ready for our next adventure\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\?(?:, .*)?)$'
+          timeout: 15000
+      - assertVisible: Search messages
       - tapOn:
           id: main-tab-jobs
       - assertVisible: Jobs

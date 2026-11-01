@@ -220,7 +220,7 @@ def validate_device(platform, device, compatibility, binary=None, toolchain=None
 
 def collect(platform, device, target):
     records = []
-    for name in ['native-ui-receipt.json', 'native-ui-auth-diagnostics.json']:
+    for name in ['native-ui-receipt.json', 'native-ui-auth-diagnostics.json', 'native-ui-navigation-timing.json']:
         output = target / name
         if platform == 'android':
             with output.open('wb') as stream:
@@ -253,7 +253,9 @@ def run_cases(cases, platform, device, output, execute=run_owned, collect_case=c
         target.mkdir()
         row = {'id': case['id'], 'group': case['group'], 'kind': case['kind'], 'attempts': 1,
                'startedAtEpochMs': round(time.time() * 1000), 'status': 'running',
-               'timeoutSeconds': 300 if case['kind'] == 'same-session-memory-capture' else 180}
+               'timeoutSeconds': (300 if case['kind'] == 'same-session-memory-capture' else 180)
+                                 + (180 if platform == 'ios' else 0),
+               'driverStartupBudgetSeconds': 180 if platform == 'ios' else 0}
         results.append(row)
         (output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
         args = ['maestro', '--device', device, 'test', '--format', 'junit', '--output', str(target / 'junit.xml'),

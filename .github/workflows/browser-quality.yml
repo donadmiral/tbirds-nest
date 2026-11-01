@@ -1,6 +1,13 @@
 name: Browser interaction and video gates
 
 on:
+  push:
+    branches: ['codex/completion-20261101']
+    paths:
+      - 'admin-web/**'
+      - 'web/**'
+      - 'shared/**'
+      - '.github/workflows/browser-quality.yml'
   pull_request:
     paths:
       - 'admin-web/**'

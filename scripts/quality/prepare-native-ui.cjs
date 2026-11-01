@@ -22,7 +22,7 @@ const source = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package.jso
   'scripts/quality/native-ui-android-media-abi.py',
   ...files('modules/boomerang/ios'), ...files('modules/boomerang/android/src/main'), ...files('tests/native'),
   'modules/boomerang/memoryComposition.ts',
-  'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/verify-native-ui.cjs',
+  'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/verify-native-ui.cjs',
   'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh',
   'scripts/quality/test-android-app-ui.sh', 'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
 const hashes = Object.fromEntries(source.map(file => [file, crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')]));
@@ -73,11 +73,15 @@ if (versions[0] === 0) for (const [file, pattern] of bridges) {
     'Disposable QA-only declaration: exercise the independently accepted renderer through the real JS capability check.');
 }
 const navigator = 'src/navigation/AppNavigator.tsx';
-const navigatorSource = fs.readFileSync(navigator, 'utf8');
+const { navigationTimingOverlay, inboxTimingOverlay } = require('./native-ui-navigation-overlay.cjs');
+const navigatorSource = navigationTimingOverlay(fs.readFileSync(navigator, 'utf8'));
+const inbox = 'src/screens/messages/ConversationsScreen.tsx';
+overlay(inbox, inboxTimingOverlay(fs.readFileSync(inbox, 'utf8')),
+  'Disposable QA-only committed inbox, native row layout and animation-frame timestamps. No loading, navigation or content behavior changes.');
 const anchor = '<RootStack.Screen name="MemoryAlbum"          component={MemoryAlbumScreen} />';
 if (navigatorSource.split(anchor).length !== 2) throw new Error('Expected the single authenticated memory route anchor.');
 overlay(navigator, navigatorSource.replace(anchor, anchor + '\n                <RootStack.Screen name="NativeMemoryCaptureFixture" component={require(\'../../tests/native/MemoryCaptureFixtureScreen\').default} />'),
-  'Register one synthetic capture route inside the unchanged production auth, call and safe-area providers.');
+  'Register one synthetic capture route and observe tab press timestamps inside the unchanged production auth, call and safe-area providers.');
 overlay('metro.config.js', "module.exports = require('./tests/native/metro-config.cjs')(__dirname);\n",
   'Only packaged synthetic bytes for expo/fetch; production capture/export delegation records actual returned files. No network fallback.');
 overlay('index.js', "require('./tests/native/entry');\n", 'Install the isolated synthetic HTTP/Realtime transport before the actual App imports.');

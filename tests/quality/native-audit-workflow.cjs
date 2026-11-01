@@ -11,7 +11,8 @@ test('native feature shards cover every declared group once and consume one plat
   const workflow = YAML.parse(fs.readFileSync(path.join(root, '.github/workflows/native-product-audit.yml'), 'utf8'));
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'tests/native/audit/manifest.json'), 'utf8'));
   assert.equal(workflow.concurrency['cancel-in-progress'], false);
-  assert.deepEqual(workflow.on.push.branches, ['codex/native-v6-followup-20261031']);
+  assert.deepEqual(workflow.on.push.branches, ['codex/native-v6-followup-20261031', 'codex/completion-20261101']);
+  assert.equal(workflow.env.MAESTRO_DRIVER_STARTUP_TIMEOUT, '180000');
   for (const platform of ['ios', 'android']) {
     const build = workflow.jobs[platform + '-build'], consume = workflow.jobs[platform + '-cases'];
     assert.equal(build.env.PLATINUM_NATIVE_AUDIT_BUILD_ONLY, '1');

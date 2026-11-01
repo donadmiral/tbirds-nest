@@ -44,10 +44,7 @@ if [[ "$platform" == ios ]]; then
   binary="$PWD/native-audit-binary/PlatinumQA.app"
   test -s "$binary/main.jsbundle"
   codesign --verify --deep --strict "$binary"
-  runtime=com.apple.CoreSimulator.SimRuntime.iOS-18-5
-  device="$(xcrun simctl create "Platinum audit ${GITHUB_RUN_ID}-${GITHUB_JOB}" com.apple.CoreSimulator.SimDeviceType.iPhone-16 "$runtime")"
-  xcrun simctl boot "$device"
-  xcrun simctl bootstatus "$device" -b
+  device="$(python3 scripts/quality/native-ui-start-ios-device.py --manifest "$binary_manifest" --output native-ui-logs/device-setup.json)"
   xcrun simctl spawn "$device" log stream --style compact --level info --predicate 'process == "PlatinumQA"' > native-ui-logs/app.log 2>&1 &
   log_pid=$!
 elif [[ "$platform" == android ]]; then

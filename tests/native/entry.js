@@ -6,10 +6,15 @@ import { createFixture, FixtureWebSocket } from './backend-fixture.cjs';
 import { installFixtureTransport } from './install-fixture-transport.cjs';
 import { installFixtureRuntime } from './fixture-runtime.cjs';
 import { observeCaptureBoundary, isCaptureState } from './capture-boundary-trace.cjs';
+import { createNavigationTimingRecorder } from './navigation-timing.cjs';
 
 if (process.env.EXPO_PUBLIC_APP_ENV !== 'qa' || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY !== 'native-ui-synthetic-no-provider-key') {
   throw new Error('The isolated native UI entry cannot use a provider credential or production configuration.');
 }
+
+globalThis.__platinumNativeNavigationTiming = createNavigationTimingRecorder({
+  write: value => FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'native-ui-navigation-timing.json', value),
+});
 
 let timer;
 let latest;
