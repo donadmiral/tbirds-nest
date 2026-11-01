@@ -1,0 +1,544 @@
+{
+  "producerSourceCommit": "2c70d23873ccc9288eb22d59fd18de920b680f9d",
+  "rendererAndHarnessInputsExactlyMatch": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "workflowRun": 41261337781,
+  "jobId": 124715119374,
+  "artifactId": 13065377552,
+  "artifactBytes": 1431311,
+  "artifactSha256": "5d36d8a395289236447fc75b1a9ac9c0baf2c049caa3e707a60ada5977fa14fa",
+  "passed": true,
+  "instrumentationCases": 40,
+  "storyCases": 23,
+  "memoryCases": 17,
+  "allDeclaredCasesExecutedExactlyOnce": true,
+  "sourceHashesVerified": 3,
+  "acceptanceInputHashesVerified": 7,
+  "media3Version": "1.11.1",
+  "mediaFiles": [
+    {
+      "name": "canvas-and-timed-artwork.mp4",
+      "bytes": 405708,
+      "sha256": "c724bfc61e6e1f09ca75990e51e8453ec2cee5f64fa89244c241dfc0cd3c0144",
+      "duration": 1.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "full-1080x1920-portrait.mp4",
+      "bytes": 447174,
+      "sha256": "c383744ffce053188d6df69dd43cc94e625a7945516e03a77f0989f49ac0185f",
+      "duration": 0.966667,
+      "width": 1920,
+      "height": 1080,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "known-length-open-provider.mp4",
+      "bytes": 401284,
+      "sha256": "06212b51fc9139039873fa768272f12c073996d4cf57783da39b08c7fd666c86",
+      "duration": 0.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "known-provider-source-original-330hz.mp4",
+      "bytes": 470374,
+      "sha256": "b908a24c7c36ccd90364602515a4adbeb116f7784b8b1ae91edc524ce040b127",
+      "duration": 3.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "matrix-alpha-bias.mp4",
+      "bytes": 403810,
+      "sha256": "0f7803c60346191add096f8c3b8a34d6813ae392a7f7d52fee2bb68ae17f4045",
+      "duration": 1.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "matrix-scale-translation.mp4",
+      "bytes": 404448,
+      "sha256": "dd811dae5e1c6da54a2c04e4dbb21eb758f65281bad83c52c229ab856de30a7a",
+      "duration": 1.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "memory-b-frame-boundary.mp4",
+      "bytes": 490092,
+      "sha256": "930e52fda9a08ff0a0f3981ca25c38925cdeef5ad4e699608b9a36aae1a1f770",
+      "duration": 3.5,
+      "width": 1280,
+      "height": 720,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "memory-cancel-retry.mp4",
+      "bytes": 419514,
+      "sha256": "1d58b5114dde013e095291dba8d0726cde54e78583a9b7e6a32749530ce35c49",
+      "duration": 1.0,
+      "width": 1280,
+      "height": 720,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "memory-continuous-music.mp4",
+      "bytes": 544852,
+      "sha256": "0d8ef2da8e8d1184f243b8ae47dda86f50ee8c778f6220b6e3416925d03df5dc",
+      "duration": 5.048889,
+      "width": 1280,
+      "height": 720,
+      "fps": "60/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "memory-independent-audio.mp4",
+      "bytes": 528483,
+      "sha256": "320004b83d0c5902d91d266f729fa5ac38bba119e740d9877009a4df4ec04e11",
+      "duration": 5.0,
+      "width": 1280,
+      "height": 720,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "memory-local-effects.mp4",
+      "bytes": 741962,
+      "sha256": "8bb35c277cd7cf8a41e8dc72645fe1e96f74442c8fca17483e9c8a84091eb35a",
+      "duration": 4.0,
+      "width": 1280,
+      "height": 720,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "memory-muted-original.mp4",
+      "bytes": 512123,
+      "sha256": "97e97707fc316ed58a304a284d9a681dfc6895725c0e71fc10a3df28ea8676dd",
+      "duration": 4.0,
+      "width": 1280,
+      "height": 720,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "memory-one-pass.mp4",
+      "bytes": 481382,
+      "sha256": "68cc0d75552fd880012aee19cc0f83cce45e041a019acd534729b9f77a3fc49e",
+      "duration": 3.0,
+      "width": 1280,
+      "height": 720,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "memory-source-original-330hz.mp4",
+      "bytes": 470374,
+      "sha256": "119a453731ebef81c1d2eb629b091201e1b14f95ab77651d3ba3ed37bb0e35d1",
+      "duration": 3.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "memory-zero-volume.mp4",
+      "bytes": 438977,
+      "sha256": "4eed6a9f3c9967081709cfc58260d01f8a2014cbc831a23eb52597f7ff4d844f",
+      "duration": 2.0,
+      "width": 1280,
+      "height": 720,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "mute-source-original-330hz.mp4",
+      "bytes": 470374,
+      "sha256": "6735163c5600bb294cf0c766453b611a6fe5b1abb7dfb73fba9f9801322e7f68",
+      "duration": 3.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "muted-original.mp4",
+      "bytes": 435034,
+      "sha256": "136bf427018fe9ecbf688057d3d95884976f1c0db087837033a9341718dc3f2f",
+      "duration": 1.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "negative-y-orientation.mp4",
+      "bytes": 402578,
+      "sha256": "d0a33a547414682df4eb50c46b3a617825e7c7a580548ecf4a4fe29edeed9738",
+      "duration": 1.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "one-pass-voiceover.mp4",
+      "bytes": 419847,
+      "sha256": "588cc5efb94c66da61984884b11359b82b8b166e7e53d011e301c1a82eaabda7",
+      "duration": 2.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "original-only-mix.mp4",
+      "bytes": 435034,
+      "sha256": "3e3d685697c4e4a5d3047f9921497e8943ddf2f88f281b95dee6dd7aa67ee4e0",
+      "duration": 1.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "original-only-source-original-330hz.mp4",
+      "bytes": 470374,
+      "sha256": "69145ff3eeb4796d940a00d687e9c8a41a467b2ed00d27b3a450ba373de5f358",
+      "duration": 3.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "positive-y-orientation.mp4",
+      "bytes": 402573,
+      "sha256": "be09940f850506731523f49a1ab9cfd90c3a9a029f23230f8e0b43372af1976a",
+      "duration": 1.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "provider-source-original-330hz.mp4",
+      "bytes": 470374,
+      "sha256": "83a41a5e6e331d9f7ab980112b11eb3a864c756f35c049ed2a838e809ec10846",
+      "duration": 3.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "quarter-volume.mp4",
+      "bytes": 435031,
+      "sha256": "b5f6ae17a5a4dbfd1a5d9377290b94d0d72faf911ebaada358b779ccebbee19d",
+      "duration": 1.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "readable-external-input.mp4",
+      "bytes": 401284,
+      "sha256": "eb6328941afb587d74386aeadceaa4b799871c266c9f677d9df4a59c1980399c",
+      "duration": 0.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "retry-after-blocked-provider.mp4",
+      "bytes": 401283,
+      "sha256": "e3278c971117edb7a09300ef2d59d9fe702b7fab3921e72c657924a26cd043b8",
+      "duration": 0.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "retry-after-cancel.mp4",
+      "bytes": 401283,
+      "sha256": "dc82d097f1c2bb3108de45cc1e9c146036f6fd8fcdeef3f3d927b2a11687878f",
+      "duration": 0.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "seekable-provider-range.mp4",
+      "bytes": 401284,
+      "sha256": "06212b51fc9139039873fa768272f12c073996d4cf57783da39b08c7fd666c86",
+      "duration": 0.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "selected-excerpt-loop.mp4",
+      "bytes": 452702,
+      "sha256": "a34379469f68b1bf4b84c0da2ec618b8479873f03522030c217f5e4697195793",
+      "duration": 2.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "slow-mix-source-original-330hz.mp4",
+      "bytes": 470374,
+      "sha256": "14528e94b0bdbf23b3c387fe15254ee249d8258dba9442c06a7b65e6cc2b54a6",
+      "duration": 3.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "slow-video-fractional-soundtrack-loop.mp4",
+      "bytes": 475554,
+      "sha256": "1f3e2c73f1076a44de41636ec4212f731dc09a02ca0d7ba500d23c9caa3b38cf",
+      "duration": 4.361292,
+      "width": 480,
+      "height": 320,
+      "fps": "15/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "source-original-330hz.mp4",
+      "bytes": 470374,
+      "sha256": "e423a44c72c62103d22ab8199cd4444a5b376d17b4afd3a2116ffa6cfd66e755",
+      "duration": 3.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "source-with-short-audio.mp4",
+      "bytes": 419847,
+      "sha256": "a0ffbe68e21eb93a2aeee6c57f4f46ab9f1607b1dbe397f093b4ed921447a7ed",
+      "duration": 2.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "timed-video-source-original-330hz.mp4",
+      "bytes": 470374,
+      "sha256": "a0a00ded7308a76ce6c328982012a8cbe8b0327eb8350f5ce235236328ab6d69",
+      "duration": 3.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "trim-after-original-audio.mp4",
+      "bytes": 401284,
+      "sha256": "d885742eed7a37b7e7288fa93d3def982bbe72caf530da4bbf138ab6e184f039",
+      "duration": 0.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "trim-speed-original-mix.mp4",
+      "bytes": 417723,
+      "sha256": "9eca32d3b573fad38eb106af3174446408c24886ca4a3a01a6a7027dd2234226",
+      "duration": 1.0,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "unknown-length-provider-input.mp4",
+      "bytes": 435034,
+      "sha256": "665da61b9c676150efdf038d427159aba9911effad1c55d9887e11e91af42276",
+      "duration": 1.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "video-output-time-artwork.mp4",
+      "bytes": 419036,
+      "sha256": "59cfdff0a96c27ec7b13b3d03df34afcea391438ef32f7857f611d586d7e9bda",
+      "duration": 1.0,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "voiceover-clipped-to-movie.mp4",
+      "bytes": 426812,
+      "sha256": "59b6fac256649ad831f2e8c4f1c529508a594b9c86bb4ce1277a31c87d9a7e5c",
+      "duration": 1.466667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "zero-volume.mp4",
+      "bytes": 435031,
+      "sha256": "bd10939a432e91095c73de6d70024b3d3e48231f51fa17f66530b21176e40aae",
+      "duration": 1.966667,
+      "width": 480,
+      "height": 320,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    }
+  ],
+  "normalizedImages": [
+    {
+      "name": "memory-normalized-alpha.png",
+      "width": 1440,
+      "height": 2560,
+      "mode": "RGBA",
+      "independentDecodePassed": true
+    },
+    {
+      "name": "memory-normalized-exif.png",
+      "width": 300,
+      "height": 600,
+      "mode": "RGB",
+      "independentDecodePassed": true
+    },
+    {
+      "name": "memory-prepare-retry.png",
+      "width": 720,
+      "height": 1280,
+      "mode": "RGBA",
+      "independentDecodePassed": true
+    }
+  ],
+  "mediaCountMeaning": "All40 retained media files were independently decoded; they include both encoded outputs and synthetic source/reference clips. The40 instrumentation cases are counted separately.",
+  "installedProductAcceptance": false,
+  "physicalDeviceAcceptance": false,
+  "networkDataAccessed": false
+}

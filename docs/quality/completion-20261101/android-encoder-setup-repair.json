@@ -5,7 +5,11 @@
     "observedStep": "Install the emulator host audio library",
     "setupStartedAt": "2026-11-01T01:05:51Z",
     "encoderCasesExecuted": 0,
-    "terminalStatus": "pending-concurrency-cancellation"
+    "terminalStatus": "cancelled",
+    "completedAt": "2026-11-01T01:30:20Z",
+    "encoderStepConclusion": "skipped",
+    "setupSeconds": 1467,
+    "terminalEvidence": "android-encoder-obsolete-attempt.json"
   },
   "sameRunEvidence": {
     "workflowRun": 41259529351,
@@ -42,5 +46,22 @@
   "officialDocumentation": [
     "https://manpages.ubuntu.com/manpages/noble/man8/apt-get.8.html",
     "https://manpages.ubuntu.com/manpages/jammy/man5/apt.conf.5.html"
-  ]
+  ],
+  "retry": {
+    "workflowRun": 41261337781,
+    "sourceCommit": "2c70d23873ccc9288eb22d59fd18de920b680f9d",
+    "encoderJobId": 124715119374,
+    "status": "completed",
+    "hostSetupConclusion": "success",
+    "hostSetupStartedAt": "2026-11-01T01:30:41Z",
+    "hostSetupCompletedAt": "2026-11-01T01:30:49Z",
+    "hostSetupSeconds": 8,
+    "currentStep": "Exercise the actual story and memory encoders in an isolated emulator",
+    "encoderConclusion": "success",
+    "instrumentationCases": 40,
+    "storyCases": 23,
+    "memoryCases": 17,
+    "artifactId": 13065377552,
+    "verificationReceipt": "android-encoder/verification.json"
+  }
 }

@@ -7,6 +7,7 @@ on:
       - .github/workflows/native-completion-journey.yml
       - scripts/quality/completion-ios-journey.py
       - scripts/quality/completion-ios-journey.json
+      - scripts/quality/completion-ios-startup-diagnostics.py
   workflow_dispatch:
 
 permissions:

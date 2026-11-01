@@ -130,7 +130,7 @@ print('Reader deadlines and controls preserved')
   assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 30000 }), /controls preserved/);
 });
 
-test('cold Simulator inventory completes when its exited parent leaves a service holding the output pipe', () => {
+test('owned cold Simulator creation and metadata complete when an exited parent leaves a service holding the output pipe', () => {
   const code = String.raw`
 import importlib.util,json,os,signal,sys,tempfile,time
 from pathlib import Path
@@ -145,28 +145,29 @@ with tempfile.TemporaryDirectory() as directory:
  device={'udid':uuid,'state':'Shutdown','isAvailable':True,'deviceTypeIdentifier':starter.DEVICE_TYPE}
  devices=json.dumps({'devices':{starter.RUNTIME:[device]}})
  runtimes=json.dumps({'runtimes':[{'identifier':starter.RUNTIME,'version':'18.5','isAvailable':True}]})
- # The exact startup command exits successfully after returning complete JSON,
+ # The exact startup command exits successfully after returning its owned UUID,
  # while a separately running service retains the parent's stdout/stderr.
  fake.write_text('#!'+sys.executable+'\n'+
   'import json,subprocess,sys\nfrom pathlib import Path\n'+
   'args=sys.argv[1:]\n'+
-  'if args==["simctl","list","devices","--json"]:\n'+
+  'if args[:2]==["simctl","create"] or args==["simctl","list","devices","--json"]:\n'+
   ' child=subprocess.Popen([sys.executable,"-c","import time;time.sleep(30)"])\n'+
   ' with Path('+repr(str(marker))+').open("a") as out:out.write(str(child.pid)+"\\n")\n'+
-  ' print('+repr(devices)+',flush=True)\n'+
+  ' print('+repr(uuid)+' if args[1]=="create" else '+repr(devices)+',flush=True)\n'+
   'elif args==["simctl","list","runtimes","--json"]:print('+repr(runtimes)+',flush=True)\n'+
   'elif args[:2] not in [["simctl","boot"],["simctl","bootstatus"]]:raise SystemExit(2)\n')
  fake.chmod(0o755);original_path=os.environ['PATH'];os.environ['PATH']=str(root)+os.pathsep+original_path
  try:
   records=[];output=root/'setup.json';start=time.monotonic()
   result=consumer.prepare_simulator({'applicationSourceCommit':consumer.SOURCE,'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':starter.RUNTIME}},starter,created,helper,records,output)
-  assert result['bootReady'] and result['device']==uuid and not result['created']
+  assert result['bootReady'] and result['device']==uuid and result['created']
+  assert result['name'].startswith('Platinum completion ') and len(result['name'].removeprefix('Platinum completion '))==32
   assert time.monotonic()-start<5,'Completed inventory waited for the inherited service pipe'
   saved=json.loads(output.read_text())['commands'];assert len(saved)==5
-  assert [row['timeoutSeconds'] for row in saved]==[30,30,30,120,300]
+  assert [row['timeoutSeconds'] for row in saved]==[120,30,30,120,300]
   assert all(row['status']=='completed' and row['exitCode']==0 for row in saved)
   assert all(saved[index]['leaderCompletedBeforePipeEOF'] for index in [0,2])
-  assert json.loads(saved[0]['stdoutTail'])==json.loads(devices)
+  assert saved[0]['stdoutTail'].strip()==uuid
   assert json.loads(saved[2]['stdoutTail'])==json.loads(devices)
  finally:
   os.environ['PATH']=original_path
@@ -177,4 +178,88 @@ with tempfile.TemporaryDirectory() as directory:
 print('Cold inventory uses bounded inherited-pipe handling without wider deadlines')
 `;
   assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 15000 }), /without wider deadlines/);
+});
+
+test('cold startup observation preserves the exact command, deadline and timeout without retrying', () => {
+  const code = String.raw`
+import importlib.util,subprocess,time
+from pathlib import Path
+p=Path('scripts/quality/completion-ios-startup-diagnostics.py');s=importlib.util.spec_from_file_location('observer',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
+command=['xcrun','simctl','list','devices','--json'];reads=[];captures=[]
+def quick(args,timeout):reads.append((args,timeout));return 'complete original inventory'
+assert m.observed_read(command,30,quick,lambda:captures.append('unexpected'),delay_seconds=.03)=='complete original inventory'
+assert reads==[(command,30)] and captures==[]
+reads.clear();error=subprocess.TimeoutExpired(command,30,output=b'',stderr=b'')
+def stalled(args,timeout):
+ reads.append((args,timeout));time.sleep(.08);raise error
+try:m.observed_read(command,30,stalled,lambda:captures.append('live'),delay_seconds=.01)
+except subprocess.TimeoutExpired as observed:assert observed is error
+else:raise AssertionError('Original startup timeout was hidden')
+assert reads==[(command,30)] and captures==['live']
+def failed_probe():raise ValueError('controlled diagnostic failure')
+try:m.observed_read(command,30,stalled,failed_probe,delay_seconds=.01)
+except subprocess.TimeoutExpired as observed:assert observed is error
+else:raise AssertionError('Diagnostic failure replaced the real command result')
+print('Observation does not retry, widen or mask startup')
+`;
+  assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 5000 }), /does not retry, widen or mask/);
+});
+
+test('owned startup rejects another runtime and cleans only its returned UUID after metadata failure', () => {
+  const code = String.raw`
+import importlib.util,json,tempfile,types
+from pathlib import Path
+def load(name,file):
+ s=importlib.util.spec_from_file_location(name,file);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+consumer=load('consumer','scripts/quality/completion-ios-journey.py')
+starter=load('starter','scripts/quality/native-ui-start-ios-device.py')
+created=load('created','scripts/quality/native-ui-ios-created-device.py')
+uuid='11111111-1111-4111-8111-111111111111';calls=[]
+def read(command,stage,timeout,records,output):
+ calls.append((command,stage,timeout))
+ if command[2]=='create':return uuid
+ if command[2:4]==['list','runtimes']:return '{"runtimes":[]}'
+ if command[2] in ['shutdown','delete']:return ''
+ raise AssertionError('Unexpected operation after invalid metadata')
+helper=types.SimpleNamespace(setup_read=read,atomic_json=lambda p,v:Path(p).write_text(json.dumps(v)))
+manifest={'applicationSourceCommit':consumer.SOURCE,'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':starter.RUNTIME}}
+with tempfile.TemporaryDirectory() as directory:
+ output=Path(directory)/'setup.json'
+ try:consumer.prepare_simulator(manifest,starter,created,helper,[],output)
+ except ValueError as error:assert 'available original runtime' in str(error)
+ else:raise AssertionError('Missing pinned runtime passed setup')
+ assert [row[0][2] for row in calls]==['create','list','shutdown','delete']
+ assert [row[2] for row in calls]==[120,30,20,20]
+ assert calls[0][0][-2:]==[created.DEVICE_TYPE,created.RUNTIME]
+ assert all(row[0][-1]==uuid for row in calls[-2:])
+ saved=json.loads((Path(directory)/'device-ownership.json').read_text())
+ assert saved['device']==uuid and saved['created'] and all(row['completed'] for row in saved['cleanupAfterSetupFailure'])
+ before=len(calls)
+ try:consumer.prepare_simulator({'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':'com.apple.CoreSimulator.SimRuntime.iOS-26-0'}},starter,created,helper,[],output)
+ except ValueError:pass
+ else:raise AssertionError('Unbound runtime creation was accepted')
+ assert len(calls)==before
+print('Only the exact newly created device is cleaned after failed metadata')
+`;
+  assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 5000 }), /exact newly created device/);
+});
+
+test('cold startup evidence selects only fixed Simulator executables without arguments or environment', () => {
+  const code = String.raw`
+import importlib.util
+from pathlib import Path
+p=Path('scripts/quality/completion-ios-startup-diagnostics.py');s=importlib.util.spec_from_file_location('observer',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
+paths={11:'/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/simctl',12:'/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/XPCServices/com.apple.CoreSimulator.CoreSimulatorService.xpc/Contents/MacOS/com.apple.CoreSimulator.CoreSimulatorService',13:'/tmp/simctl',14:'/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/other',15:'/System/Library/PrivateFrameworks/CoreSimulator.framework/Resources/simdiskimaged',16:'/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/simctl'}
+owners={pid:501 for pid in paths};owners[15]=0;owners[16]=502
+def identify(pid):return {'pid':pid,'uid':owners[pid],'startSeconds':1,'startMicroseconds':2,'executable':paths[pid]}
+rows='\n'.join(f'{pid} 1 {owners[pid]} S 00:12 0:00.01' for pid in paths)
+selected=m.selected_processes(rows,identify,501)
+assert [row['pid'] for row in selected]==[11,12,15]
+assert all(set(row)=={'pid','uid','startSeconds','startMicroseconds','executable','parentPid','state','processElapsed','cpuTime'} for row in selected)
+try:m.selected_processes('unexpected output',identify,501)
+except ValueError:pass
+else:raise AssertionError('Malformed process inventory accepted')
+print('Only fixed Simulator process identity and state are retained')
+`;
+  assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 5000 }), /Only fixed Simulator/);
 });

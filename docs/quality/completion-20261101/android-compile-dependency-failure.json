@@ -1,0 +1,29 @@
+{
+  "workflowRun": 41261337781,
+  "jobId": 124715119527,
+  "sourceCommit": "2c70d23873ccc9288eb22d59fd18de920b680f9d",
+  "conclusion": "failure",
+  "stage": "Gradle plugin dependency resolution before native compilation",
+  "dependency": "com.google.code.gson:gson:2.9.1",
+  "httpStatus": 429,
+  "earlierExactNativeInputsCompiledSuccessfully": {
+    "workflowRun": 41259529333,
+    "jobId": 124709725097
+  },
+  "evidence": [
+    "2026-11-01T01:32:01.0673677Z FAILURE: Build failed with an exception.",
+    "2026-11-01T01:32:01.0702951Z * What went wrong:",
+    "2026-11-01T01:32:01.0760766Z Error resolving plugin [id: 'com.facebook.react.settings']",
+    "2026-11-01T01:32:01.0790576Z    > Could not resolve com.google.code.gson:gson:2.9.1.",
+    "2026-11-01T01:32:01.0850641Z       > Could not resolve com.google.code.gson:gson:2.9.1.",
+    "2026-11-01T01:32:01.0887842Z             > Could not GET 'https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.9.1/gson-2.9.1.pom'. Received status code 429 from server: Too Many Requests",
+    "2026-11-01T01:32:01.0910889Z       > Could not resolve com.google.code.gson:gson:2.9.1.",
+    "2026-11-01T01:32:01.0935390Z             > Could not GET 'https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.9.1/gson-2.9.1.pom'. Received status code 429 from server: Too Many Requests",
+    "2026-11-01T01:32:01.0942176Z org.gradle.api.GradleException: Error resolving plugin [id: 'com.facebook.react.settings']",
+    "2026-11-01T01:32:01.1630497Z Caused by: org.gradle.internal.resolve.ModuleVersionResolveException: Could not resolve com.google.code.gson:gson:2.9.1.",
+    "2026-11-01T01:32:01.1636100Z Caused by: org.gradle.internal.resolve.ModuleVersionResolveException: Could not resolve com.google.code.gson:gson:2.9.1.",
+    "2026-11-01T01:32:01.2236886Z Caused by: org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException: Could not GET 'https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.9.1/gson-2.9.1.pom'. Received status code 429 from server: Too Many Requests",
+    "2026-11-01T01:32:01.3530872Z ##[error]Process completed with exit code 1."
+  ],
+  "retry": "One individual job retry pending after the encoder dependency downloads settle"
+}

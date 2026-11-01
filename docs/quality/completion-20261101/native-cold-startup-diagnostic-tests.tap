@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: the recovery partitions exactly the original85 cases and never accepts missing, altered or failed execution
+ok 1 - the recovery partitions exactly the original85 cases and never accepts missing, altered or failed execution
+  ---
+  duration_ms: 65.957209
+  type: 'test'
+  ...
+# Subtest: the original iOS collector uses bounded metadata reads and restores its original command after failure
+ok 2 - the original iOS collector uses bounded metadata reads and restores its original command after failure
+  ---
+  duration_ms: 42.550022
+  type: 'test'
+  ...
+# Subtest: all85 recovery consumes the same app with three original groups and no producer build
+ok 3 - all85 recovery consumes the same app with three original groups and no producer build
+  ---
+  duration_ms: 18.387017
+  type: 'test'
+  ...
+# Subtest: fresh original-journey consumer refuses unrelated, incomplete or changed producer bytes
+ok 4 - fresh original-journey consumer refuses unrelated, incomplete or changed producer bytes
+  ---
+  duration_ms: 59.478026
+  type: 'test'
+  ...
+# Subtest: fresh original journey keeps the exact reviewed path and reports a separate source-bound result
+ok 5 - fresh original journey keeps the exact reviewed path and reports a separate source-bound result
+  ---
+  duration_ms: 32.292249
+  type: 'test'
+  ...
+# Subtest: native app timing requires the exact visit count and a populated frame before leaving
+ok 6 - native app timing requires the exact visit count and a populated frame before leaving
+  ---
+  duration_ms: 39.126939
+  type: 'test'
+  ...
+# Subtest: reader timing requires both original pages and captions and catches a driver deadline overrun
+ok 7 - reader timing requires both original pages and captions and catches a driver deadline overrun
+  ---
+  duration_ms: 26.662537
+  type: 'test'
+  ...
+# Subtest: owned cold Simulator creation and metadata complete when an exited parent leaves a service holding the output pipe
+ok 8 - owned cold Simulator creation and metadata complete when an exited parent leaves a service holding the output pipe
+  ---
+  duration_ms: 392.558444
+  type: 'test'
+  ...
+# Subtest: cold startup observation preserves the exact command, deadline and timeout without retrying
+ok 9 - cold startup observation preserves the exact command, deadline and timeout without retrying
+  ---
+  duration_ms: 189.590426
+  type: 'test'
+  ...
+# Subtest: owned startup rejects another runtime and cleans only its returned UUID after metadata failure
+ok 10 - owned startup rejects another runtime and cleans only its returned UUID after metadata failure
+  ---
+  duration_ms: 35.514868
+  type: 'test'
+  ...
+# Subtest: cold startup evidence selects only fixed Simulator executables without arguments or environment
+ok 11 - cold startup evidence selects only fixed Simulator executables without arguments or environment
+  ---
+  duration_ms: 26.131897
+  type: 'test'
+  ...
+# Subtest: navigation observation excludes content, preserves event order and bounds retained data
+ok 12 - navigation observation excludes content, preserves event order and bounds retained data
+  ---
+  duration_ms: 14.828244
+  type: 'test'
+  ...
+# Subtest: navigation observers compile against exact production components without replacing their handlers
+ok 13 - navigation observers compile against exact production components without replacing their handlers
+  ---
+  duration_ms: 199.517182
+  type: 'test'
+  ...
+# Subtest: Simulator setup selects only the exact available shutdown device and bounds boot failures
+ok 14 - Simulator setup selects only the exact available shutdown device and bounds boot failures
+  ---
+  duration_ms: 30.479227
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 903.424063

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "consumerRunId": 41262989185,
+  "consumerSourceCommit": "f834688588a710e4cd32535d0d4362b9b0ff3e8c",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "producerRunId": 41259529351,
+  "artifactId": 13065694088,
+  "artifactBytes": 3071,
+  "artifactSha256": "dcb4dfd5390434324cd6aa962acde3ceba625f289b24e65f253c3f55b0099541",
+  "result": "failed-before-app-launch",
+  "failureCommand": [
+    "xcrun",
+    "simctl",
+    "list",
+    "devices",
+    "--json"
+  ],
+  "timeoutSeconds": 30,
+  "elapsedSeconds": 30.000485262999973,
+  "leaderStillAliveAtTimeout": true,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "readerOrMessagesAcceptanceClaimed": false,
+  "verifiedBeforeFailure": [
+    "f5 artifact and source receipt digests",
+    "actual extracted app digest",
+    "x86_64 host and Mach-O",
+    "Xcode 16.4 build16F6",
+    "Simulator SDK18.5",
+    "actual app code signature"
+  ],
+  "conclusion": "The bounded reader confirms a live cold inventory command stall. An inherited output pipe after parent exit does not explain this attempt. Service state and stacks were not captured in this attempt.",
+  "historicalComparison": {
+    "file": "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41234444953/account/setup-commands.json",
+    "operation": "explicit owned-device create before metadata",
+    "existingTimeoutSeconds": 120,
+    "observedSuccessfulColdCreateSeconds": 42.69245042699998,
+    "currentAttemptMechanismProven": false
+  },
+  "nextRepair": {
+    "strategy": "Create one unique owned iPhone16/iOS18.5 under the already established120-second create budget before any runtime/device metadata query.",
+    "runtimeAndDeviceMetadataBudgetsSeconds": 30,
+    "bootBudgetSeconds": 120,
+    "bootReadyBudgetSeconds": 300,
+    "serviceObservation": "If the first create remains live at10s, capture allowed Simulator process identities/state, tool paths and at most two bounded3-second samples.",
+    "genericRetries": 0,
+    "existingCommandBudgetsWidened": false,
+    "readerDeadlineMs": 15000,
+    "messagesAppFrameTargetMs": 1000,
+    "exactNewlyCreatedUuidVerified": true,
+    "failureCleanupScopedToReturnedUuid": true,
+    "currentCacheRebuildMechanismProven": false,
+    "primaryRunnerReference": "https://github.com/actions/runner-images/issues/12862?timeline_page=1"
+  }
+}

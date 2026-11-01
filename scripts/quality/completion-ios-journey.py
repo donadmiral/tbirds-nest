@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import sys
+import uuid
 
 SOURCE = 'f5be97445ef7223baeb60dd10e8cded05630b6c1'
 TREE = 'f54e192c3ef721d0207d840382f176185c8c4f5a'
@@ -78,10 +79,43 @@ def verify_download(binary_dir, binding, scenario_manifest):
 
 
 def prepare_simulator(manifest, starter, created, helper, records, output):
-    """Use the reviewed bounded command reader for cold Simulator metadata too."""
-    def metadata(command, timeout):
-        return helper.setup_read(command, 'simulator-setup', timeout, records, output)
-    return starter.prepare(manifest, metadata, metadata, created)
+    """Create one owned pinned device before querying cold service metadata."""
+    startup = load_module('completion_cold_startup', Path(__file__).with_name('completion-ios-startup-diagnostics.py'))
+    expected = manifest.get('nativeCompatibility', {})
+    if (expected.get('abi') != 'x86_64' or expected.get('runtimeIdentifier') != created.RUNTIME
+            or starter.RUNTIME != created.RUNTIME or starter.DEVICE_TYPE != created.DEVICE_TYPE):
+        raise ValueError('Only the original Intel iPhone16/iOS18.5 device may be created')
+    name = 'Platinum completion ' + uuid.uuid4().hex
+    command = ['xcrun', 'simctl', 'create', name, created.DEVICE_TYPE, created.RUNTIME]
+    # Successful retained jobs created a device before metadata, using this
+    # same 120s budget. A cold create previously took 42.69s; the new first
+    # 30s inventory read failed while its client was still awaiting a response.
+    device = created.validate_device_identifier(startup.observed_read(command, 120,
+        lambda args, seconds: helper.setup_read(args, 'create-owned-device', seconds, records, output),
+        lambda: startup.capture_startup(helper, Path(output).parent / 'cold-startup')))
+    ownership = {'device': device, 'created': True, 'name': name,
+                 'deviceTypeIdentifier': created.DEVICE_TYPE, 'runtimeIdentifier': created.RUNTIME,
+                 'sourceCommit': manifest.get('applicationSourceCommit')}
+    helper.atomic_json(Path(output).parent / 'device-ownership.json', ownership)
+    def metadata(command):
+        stage = 'compatibility-available-runtimes' if command[3] == 'runtimes' else 'compatibility-created-device'
+        return helper.setup_read(command, stage, 30, records, output)
+    try:
+        verification = created.verify_created_device(manifest, device, metadata)
+        helper.setup_read(['xcrun', 'simctl', 'boot', device], 'boot', 120, records, output)
+        helper.setup_read(['xcrun', 'simctl', 'bootstatus', device, '-b'], 'bootstatus', 300, records, output)
+    except BaseException:
+        ownership['cleanupAfterSetupFailure'] = []
+        for operation in ['shutdown', 'delete']:
+            try:
+                helper.setup_read(['xcrun', 'simctl', operation, device], operation, 20, records, output)
+                ownership['cleanupAfterSetupFailure'].append({'operation': operation, 'completed': True})
+            except (OSError, ValueError, subprocess.SubprocessError) as error:
+                ownership['cleanupAfterSetupFailure'].append({'operation': operation, 'completed': False,
+                                                              'issue': type(error).__name__})
+        helper.atomic_json(Path(output).parent / 'device-ownership.json', ownership)
+        raise
+    return {**ownership, 'verification': verification, 'bootReady': True}
 
 
 def main():
