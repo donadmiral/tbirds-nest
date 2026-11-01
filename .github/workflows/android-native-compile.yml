@@ -13,6 +13,7 @@ on:
       - 'android/**'
       - 'scripts/quality/compile-android-native.sh'
       - 'scripts/quality/test-android-story-audio.sh'
+      - 'scripts/quality/install-android-encoder-host.sh'
       - 'scripts/quality/android-story-export/**'
       - 'scripts/quality/android-media-dependencies.init.gradle'
       - '.github/workflows/android-native-compile.yml'
@@ -29,6 +30,7 @@ on:
       - 'android/**'
       - 'scripts/quality/compile-android-native.sh'
       - 'scripts/quality/test-android-story-audio.sh'
+      - 'scripts/quality/install-android-encoder-host.sh'
       - 'scripts/quality/android-story-export/**'
       - 'scripts/quality/android-media-dependencies.init.gradle'
       - '.github/workflows/android-native-compile.yml'
@@ -69,9 +71,13 @@ jobs:
         run: npm ci --ignore-scripts --no-fund
       - name: Install the emulator host audio library
         # The emulator binary links libpulse even when its audio output is disabled.
+        timeout-minutes: 6
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends libpulse0
+          set -o pipefail
+          mkdir -p android-story-export-logs
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-android-encoder-host.sh \
+            2>&1 | tee android-story-export-logs/host-dependencies.log
       - name: Allow this disposable runner to use KVM
         run: |
           test -c /dev/kvm

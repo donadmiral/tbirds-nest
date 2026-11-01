@@ -1,0 +1,43 @@
+{
+  "source": "eb64204b434287c1707aa2d733ef5dddf9998825",
+  "entry": "index.js",
+  "profile": "production",
+  "runtimeHarness": false,
+  "results": [
+    {
+      "platform": "ios",
+      "startedAt": "2026-11-01T01:23:16.633Z",
+      "finishedAt": "2026-11-01T01:24:16.432Z",
+      "exitCode": 0,
+      "error": null,
+      "bundle": "_expo/static/js/ios/index-48b5b1f24bb27eeedb7807ef65ff3a9d.hbc",
+      "bundleBytes": 12872615,
+      "bundleSha256": "4856e888f73ed8b7def948fbee73f60332b749e93ab47dae875f571a02bed6c9",
+      "metadataSha256": "ab8585f87683ddd3d9618720923edcda1207474828b1d21d3cbf0e52cec7f8e1",
+      "assets": 45,
+      "missingAssets": []
+    },
+    {
+      "platform": "android",
+      "startedAt": "2026-11-01T01:24:16.433Z",
+      "finishedAt": "2026-11-01T01:25:10.212Z",
+      "exitCode": 0,
+      "error": null,
+      "bundle": "_expo/static/js/android/index-2e20fc18107ddd8a0937e43ffff571b7.hbc",
+      "bundleBytes": 12885487,
+      "bundleSha256": "c80191a3d71d42ec40ce126765e8a2f37700d132314eeb85e56f6b379da08588",
+      "metadataSha256": "0f7637400b72c59c294d68a3aecf31e9013a6a89ea2f5dbbe71aba29f7ba0fc0",
+      "assets": 45,
+      "missingAssets": []
+    }
+  ],
+  "entrySha256": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+  "configurationSha256": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+  "easProfileFileSha256": "2743117e9493cb0e2ef3eb452f3c7bf166700adf0ac4088a3dcc5ba89e85efd7",
+  "profileEnvironment": "production",
+  "backendProject": "prlkikhckbifseosbukl",
+  "syntheticEntryUsed": false,
+  "nativeCompilationProven": false,
+  "signingOrDeliveryProven": false,
+  "scope": "Normal production JavaScript entry point and all referenced assets export with the production EAS profile on both platforms. Separate native runtime and signed delivery gates remain authoritative."
+}

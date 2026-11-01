@@ -1,0 +1,46 @@
+{
+  "unproductiveAttempt": {
+    "workflowRun": 41259529333,
+    "encoderJobId": 124709724968,
+    "observedStep": "Install the emulator host audio library",
+    "setupStartedAt": "2026-11-01T01:05:51Z",
+    "encoderCasesExecuted": 0,
+    "terminalStatus": "pending-concurrency-cancellation"
+  },
+  "sameRunEvidence": {
+    "workflowRun": 41259529351,
+    "jobId": 124709725045,
+    "runnerImage": "20261025.353.1",
+    "libraryInitiallyInstalled": false,
+    "observations": [
+      "Azure Ubuntu mirror retries for libpulse0 at01:06:08Z and01:06:09Z",
+      "Official archive.ubuntu.com HTTPS download succeeds01:06:18Z",
+      "libpulse0:amd64 1:16.1+dfsg1-2ubuntu10.1 installed01:06:28Z"
+    ]
+  },
+  "repair": {
+    "hardSetupLimitSeconds": 300,
+    "killGraceSeconds": 10,
+    "workflowStepLimitMinutes": 6,
+    "networkTimeoutSeconds": 20,
+    "downloadRetries": 1,
+    "repositories": [
+      "https://archive.ubuntu.com/ubuntu",
+      "https://security.ubuntu.com/ubuntu"
+    ],
+    "existingUbuntuArchiveSigningKeyRequired": true,
+    "installedAndLoadableCheckBeforeAndAfter": true,
+    "encoderCasesUnchanged": true,
+    "productAuditRunUnaffected": 41259529351
+  },
+  "focusedChecks": {
+    "command": "node --test --test-reporter=tap tests/quality/native-encoder-host.cjs",
+    "passed": 6,
+    "failed": 0,
+    "packageInstallationPerformedLocally": false
+  },
+  "officialDocumentation": [
+    "https://manpages.ubuntu.com/manpages/noble/man8/apt-get.8.html",
+    "https://manpages.ubuntu.com/manpages/jammy/man5/apt.conf.5.html"
+  ]
+}

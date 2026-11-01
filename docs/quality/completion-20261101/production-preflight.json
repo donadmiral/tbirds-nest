@@ -1,0 +1,284 @@
+{
+  "source": "Supabase hosted SQL connector",
+  "project": "prlkikhckbifseosbukl",
+  "mode": "read-only",
+  "production_state": {
+    "buckets": [
+      {
+        "id": "application-cvs",
+        "public": false
+      },
+      {
+        "id": "avatars",
+        "public": true
+      },
+      {
+        "id": "business-media",
+        "public": true
+      },
+      {
+        "id": "channel-media",
+        "public": false
+      },
+      {
+        "id": "chat-files",
+        "public": true
+      },
+      {
+        "id": "chat-media",
+        "public": true
+      },
+      {
+        "id": "identity-training-photos",
+        "public": false
+      },
+      {
+        "id": "market-media",
+        "public": true
+      },
+      {
+        "id": "media",
+        "public": true
+      },
+      {
+        "id": "mingle-images",
+        "public": true
+      },
+      {
+        "id": "mingle-media",
+        "public": true
+      },
+      {
+        "id": "post-media",
+        "public": true
+      },
+      {
+        "id": "startup-media",
+        "public": true
+      },
+      {
+        "id": "story-media",
+        "public": true
+      }
+    ],
+    "schemas": {
+      "admin_ops": true,
+      "business_auth": false,
+      "music_library": false,
+      "private_media": false,
+      "account_erasure": false,
+      "creator_finance": true,
+      "content_media_processing": false
+    },
+    "contracts": [
+      {
+        "name": "content_media_manifest",
+        "arguments": "p_references jsonb",
+        "definition_md5": "1bc0a04f263b282b5e785127ab0f0078"
+      },
+      {
+        "name": "get_memory_book",
+        "arguments": "p_album uuid",
+        "definition_md5": "e7fe26d8442d70810ef29a093c4831ca"
+      },
+      {
+        "name": "make_offer",
+        "arguments": "p_listing_id uuid, p_amount numeric",
+        "definition_md5": "0a40428fa71488df090548ba106ff4c4"
+      },
+      {
+        "name": "publish_story_v2",
+        "arguments": "p_expected_user uuid, p_request_id uuid, p_story jsonb",
+        "definition_md5": "a45f9673c681b1da88e2d790c652c7e0"
+      },
+      {
+        "name": "report_client_error",
+        "arguments": "p_report jsonb",
+        "definition_md5": "4a6ca72db048aac7bf416032a4981b5a"
+      }
+    ],
+    "observed_at": "2026-11-01T01:16:18.722446+00:00",
+    "recent_migrations": [
+      {
+        "name": "platinum_app_quality_admin_support_reviews_20261029",
+        "version": "20261029202457"
+      },
+      {
+        "name": "platinum_app_quality_redacted_client_diagnostics_20261029",
+        "version": "20261029192351"
+      },
+      {
+        "name": "platinum_app_quality_comment_author_highlights_20261029",
+        "version": "20261029190700"
+      },
+      {
+        "name": "platinum_app_quality_applicant_self_service_20261029",
+        "version": "20261029190648"
+      },
+      {
+        "name": "platinum_parity_user_20261029_u07_studio_draft_retry_identity",
+        "version": "20261029080950"
+      },
+      {
+        "name": "platinum_parity_user_20261029_u06_story_post_voice_playback",
+        "version": "20261029080944"
+      },
+      {
+        "name": "platinum_parity_user_20261029_u05_home_marketplace_recommendations",
+        "version": "20261029080940"
+      },
+      {
+        "name": "platinum_parity_user_20261029_u04_admin_payment_reporting_and_support",
+        "version": "20261029080936"
+      },
+      {
+        "name": "platinum_parity_user_20261029_u03_marketplace_purchase_reviews",
+        "version": "20261029080931"
+      },
+      {
+        "name": "platinum_parity_user_20261029_u02_hiring_workflow_quality",
+        "version": "20261029080909"
+      },
+      {
+        "name": "platinum_parity_user_20261029_u01_business_publishing_and_receipts",
+        "version": "20261029080905"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u18_call_membership_recovery",
+        "version": "20261029061809"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u17_visual_media_legacy_snapshots",
+        "version": "20261029061804"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u16_visual_discover_existing_visibility",
+        "version": "20261029061740"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u15_story_visual_publication_controls",
+        "version": "20261029061735"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u14_post_media_edit_projections",
+        "version": "20261029061620"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u13_trending_story_visibility",
+        "version": "20261029061557"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u12_content_owner_upload_previews",
+        "version": "20261029061451"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u11_visual_media_existing_visibility",
+        "version": "20261029061446"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u10_feed_mute_feedback",
+        "version": "20261029061423"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u09_feed_snapshot_visibility",
+        "version": "20261029061418"
+      },
+      {
+        "name": "platinum_visual_only_20261029_u08_memory_book_visual_presentation",
+        "version": "20261029061412"
+      },
+      {
+        "name": "platinum_r20261029_u07_platinum_story_editor_and_hiring",
+        "version": "20261029053908"
+      },
+      {
+        "name": "platinum_r20261029_u06_social_directory_history_quality",
+        "version": "20261029053903"
+      },
+      {
+        "name": "platinum_r20261029_u05_message_call_access_compatible",
+        "version": "20261029053840"
+      },
+      {
+        "name": "platinum_r20261029_u04_marketplace_order_lifecycle",
+        "version": "20261029053732"
+      },
+      {
+        "name": "platinum_r20261029_u03_creator_monetization_foundation",
+        "version": "20261029053726"
+      },
+      {
+        "name": "platinum_r20261029_u02_account_export_snapshot",
+        "version": "20261029053719"
+      },
+      {
+        "name": "platinum_r20261029_u01_platinum_private_application_cvs",
+        "version": "20261029053714"
+      },
+      {
+        "name": "harden_push_and_group_rpc_authorization",
+        "version": "20261017231245"
+      },
+      {
+        "name": "platinum_business_identity_authorization",
+        "version": "20261017211345"
+      },
+      {
+        "name": "platinum_article_authorization",
+        "version": "20261017210557"
+      },
+      {
+        "name": "platinum_job_application_integrity",
+        "version": "20261016183013"
+      },
+      {
+        "name": "platinum_promotion_client_integrity",
+        "version": "20261016182419"
+      },
+      {
+        "name": "platinum_post_message_identity_guards",
+        "version": "20261016173211"
+      },
+      {
+        "name": "platinum_conversation_authorization_repair",
+        "version": "20261016172911"
+      },
+      {
+        "name": "voip_ring_on_sessions",
+        "version": "00000000000150"
+      },
+      {
+        "name": "visibility_sweep",
+        "version": "00000000000149"
+      },
+      {
+        "name": "rls_hardening",
+        "version": "00000000000148"
+      },
+      {
+        "name": "multi_memory_books",
+        "version": "00000000000147"
+      },
+      {
+        "name": "message_pinning",
+        "version": "00000000000146"
+      },
+      {
+        "name": "business_dms",
+        "version": "00000000000145"
+      },
+      {
+        "name": "story_reaction_notifications",
+        "version": "00000000000144"
+      },
+      {
+        "name": "story_audio_filters",
+        "version": "00000000000143"
+      },
+      {
+        "name": "entity_search",
+        "version": "00000000000142"
+      }
+    ]
+  }
+}

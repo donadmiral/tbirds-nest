@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-11-01 01:19:49 UTC",
+  "project": "prlkikhckbifseosbukl",
+  "mode": "read-only",
+  "expectedCatalog": "docs/quality/ADMIN_COMPLETION_PREFLIGHT_20261029.json",
+  "groups": {
+    "functions": {
+      "match": true,
+      "entries": 5
+    },
+    "admin_relations": {
+      "match": true,
+      "entries": 2
+    },
+    "guard_triggers": {
+      "match": true,
+      "entries": 0
+    },
+    "columns": {
+      "match": true,
+      "entries": 212
+    },
+    "verification_constraint": {
+      "match": true,
+      "entries": 2
+    },
+    "policies": {
+      "match": true,
+      "entries": 6
+    }
+  },
+  "allMatch": true,
+  "sourceCandidate": "supabase/migrations/20261029224550_admin_operations_completion.sql",
+  "installed": false
+}
