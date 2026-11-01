@@ -244,6 +244,62 @@ print('Only the exact newly created device is cleaned after failed metadata')
   assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 5000 }), /exact newly created device/);
 });
 
+test('postboot proof requires exact running-device identity/version and keeps both30-second deadlines', () => {
+  const code = String.raw`
+import copy,importlib.util,os,subprocess,tempfile,types
+from pathlib import Path
+def load(name,file):
+ s=importlib.util.spec_from_file_location(name,file);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+m=load('consumer','scripts/quality/completion-ios-journey.py');created=load('created','scripts/quality/native-ui-ios-created-device.py')
+uuid='11111111-1111-4111-8111-111111111111'
+manifest={'applicationSourceCommit':m.SOURCE,'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':created.RUNTIME}}
+prepared={'device':uuid,'created':True,'bootReady':True,'sourceCommit':m.SOURCE,'runtimeIdentifier':created.RUNTIME,'deviceTypeIdentifier':created.DEVICE_TYPE,'verification':{'selectedDevice':uuid,'runtimeIdentifier':created.RUNTIME,'runtimeVersion':created.VERSION,'deviceTypeIdentifier':created.DEVICE_TYPE,'runtimeAvailabilityVerified':True,'stateAtVerification':'Shutdown'}}
+values={'SIMULATOR_UDID':uuid,'SIMULATOR_RUNTIME_VERSION':'18.5'};calls=[]
+def read(command,stage,timeout,records,output):calls.append((command,stage,timeout));return values[command[-1]]
+helper=types.SimpleNamespace(setup_read=read)
+with tempfile.TemporaryDirectory() as directory:
+ output=Path(directory)/'setup.json'
+ proof=m.verify_selected_booted_runtime(manifest,prepared,created,helper,[],output)
+ assert proof['postbootIdentityAndVersionReadFromDevice'] and proof['runtimeVersion']=='18.5' and proof['selectedDevice']==uuid
+ assert not proof['globalInventoryRepeatedAfterBoot'] and not proof['guestArchitectureMeasured']
+ assert [row[0] for row in calls]==[['xcrun','simctl','getenv',uuid,'SIMULATOR_UDID'],['xcrun','simctl','getenv',uuid,'SIMULATOR_RUNTIME_VERSION']]
+ assert all(row[2]==30 for row in calls)
+ for field,value in [('created',False),('bootReady',False),('sourceCommit','wrong'),('deviceTypeIdentifier','wrong')]:
+  invalid=copy.deepcopy(prepared);invalid[field]=value;before=len(calls)
+  try:m.verify_selected_booted_runtime(manifest,invalid,created,helper,[],output)
+  except ValueError:pass
+  else:raise AssertionError('Invalid preboot evidence accepted: '+field)
+  assert len(calls)==before
+ for field,value in [('runtimeAvailabilityVerified',False),('runtimeVersion','18.6'),('selectedDevice','22222222-2222-4222-8222-222222222222'),('stateAtVerification','Booted')]:
+  invalid=copy.deepcopy(prepared);invalid['verification'][field]=value
+  try:m.verify_selected_booted_runtime(manifest,invalid,created,helper,[],output)
+  except ValueError:pass
+  else:raise AssertionError('Changed preboot metadata accepted: '+field)
+ for variable,bad in [('SIMULATOR_UDID','22222222-2222-4222-8222-222222222222'),('SIMULATOR_UDID',''),('SIMULATOR_RUNTIME_VERSION','18.6'),('SIMULATOR_RUNTIME_VERSION','')]:
+  original=values[variable];values[variable]=bad
+  try:m.verify_selected_booted_runtime(manifest,prepared,created,helper,[],output)
+  except ValueError:pass
+  else:raise AssertionError('Wrong or missing live device value accepted')
+  values[variable]=original
+ for variable in ['SIMULATOR_UDID','SIMULATOR_RUNTIME_VERSION']:
+  name='SIMCTL_CHILD_'+variable;os.environ[name]=values[variable];before=len(calls)
+  try:
+   try:m.verify_selected_booted_runtime(manifest,prepared,created,helper,[],output)
+   except ValueError:pass
+   else:raise AssertionError('Caller-supplied proof override accepted')
+   assert len(calls)==before
+  finally:del os.environ[name]
+ timeout=subprocess.TimeoutExpired(['xcrun','simctl','getenv'],30)
+ def fail(*args):raise timeout
+ helper.setup_read=fail
+ try:m.verify_selected_booted_runtime(manifest,prepared,created,helper,[],output)
+ except subprocess.TimeoutExpired as error:assert error is timeout
+ else:raise AssertionError('Unavailable running device became a pass')
+print('Exact postboot identity and version required without global inventory or widened timeouts')
+`;
+  assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 5000 }), /Exact postboot identity and version/);
+});
+
 test('cold startup evidence selects only fixed Simulator executables without arguments or environment', () => {
   const code = String.raw`
 import importlib.util

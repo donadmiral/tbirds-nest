@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T02:11:59.239779+00:00",
+  "filesSha256": {
+    "scripts/quality/completion-ios-journey.py": "087e90cf7cffcb7476dbad653133dd7d330cb09b218daa9ec1eae439bbe06ae4",
+    "scripts/quality/completion-ios-startup-diagnostics.py": "2e7ee36a2c957a79f8b8efa73aac98ceb7626933e04fd3529eb0788474167c0e",
+    "tests/quality/native-completion-journey.cjs": "84e2c2f4ba272fcc466b67ed8a0b6ab1fb5e582534a6210320db5e1e3870ac14"
+  },
+  "optionalAll85CallsitePath": "scripts/quality/completion-ios-audit.py",
+  "optionalAll85CallsitePublicationHeldByRoot": true,
+  "gate": {
+    "actualPostbootIdentityRead": true,
+    "actualPostbootRuntimeVersionRead": true,
+    "eachReadBudgetSeconds": 30,
+    "exactCreatedUuidRequired": true,
+    "prebootPinnedAvailabilityTypeVersionRequired": true,
+    "completedExactUuidBootstatusRequired": true,
+    "callerIdentityVersionOverridesRejected": true,
+    "sourceBindingPreserved": true,
+    "globalInventoryNotRepeated": true,
+    "guestArchitectureMeasured": false,
+    "hostAndActualAppArchitectureStillIndependentlyVerified": true,
+    "readerDeadlineMs": 15000,
+    "messagesTargetMs": 1000,
+    "genericRetries": 0
+  },
+  "primaryReferences": [
+    {
+      "url": "https://github.com/appium/node-simctl/blob/master/README.md",
+      "supports": "getenv reads a variable from a running device"
+    },
+    {
+      "url": "https://github.com/apple-oss-distributions/Libnotify/blob/main/libnotify.c",
+      "supports": "Apple simulator code uses SIMULATOR_UDID for device identity"
+    },
+    {
+      "url": "https://lldb.llvm.org/cpp_reference/PlatformDarwin_8cpp_source.html",
+      "supports": "LLVM/LLDB uses SIMULATOR_RUNTIME_VERSION as the Simulator OS version"
+    }
+  ],
+  "validation": {
+    "focusedTestsPassed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "pythonCompilationPassed": true,
+    "diffCheckPassed": true,
+    "testReceipt": "native-postboot-runtime-tests.tap"
+  },
+  "actualDeviceQueryAcceptanceClaimed": false
+}

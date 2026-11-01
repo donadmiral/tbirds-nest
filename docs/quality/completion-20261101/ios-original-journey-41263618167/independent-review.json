@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "consumerRunId": 41263618167,
+  "consumerSourceCommit": "f5b25137409a04372186b823a8ea3656b02e6b2a",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "producerRunId": 41259529351,
+  "artifactId": 13066456940,
+  "artifactBytes": 5832,
+  "artifactSha256": "c5bd05b58e942114712e35db2336fd560ed808cd8621b69856f8927ab34e1e6c",
+  "result": "failed-after-verified-device-boot-before-app-install",
+  "passedSetup": {
+    "createSeconds": 8.113267543000347,
+    "prebootRuntimeInventorySeconds": 0.5106391720000829,
+    "prebootDeviceInventorySeconds": 0.4940137359999426,
+    "bootSeconds": 4.782831443999839,
+    "exactUuidBootstatusSeconds": 145.05252040899995,
+    "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+    "runtimeVersion": "18.5",
+    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+    "exactReturnedUuidVerified": true,
+    "sourceAndBinaryIdentityVerified": true
+  },
+  "failedCommand": [
+    "xcrun",
+    "simctl",
+    "list",
+    "runtimes",
+    "--json"
+  ],
+  "failureTiming": "postboot",
+  "timeoutSeconds": 30,
+  "elapsedSeconds": 30.051515647000087,
+  "leaderAliveAtTimeout": true,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "createObserverTriggered": false,
+  "createObserverReason": "Create completed before the10-second sampling threshold",
+  "cleanup": {
+    "shutdownCompleted": false,
+    "shutdownIssue": "PermissionError",
+    "ownedDeviceDeleteCompleted": true
+  },
+  "appLaunchClaimed": false,
+  "readerOrMessagesAcceptanceClaimed": false,
+  "postbootRepair": "Replace repeated global inventories with exact-running-device getenv reads for SIMULATOR_UDID and SIMULATOR_RUNTIME_VERSION; both remain30seconds and must exactly match preboot verified metadata."
+}

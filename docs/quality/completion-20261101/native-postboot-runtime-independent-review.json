@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "native_completion",
+  "reviewedAtUtc": "2026-11-01T02:12:39.374043+00:00",
+  "kind": "independent-exact-device-postboot-review",
+  "filesSha256": {
+    "scripts/quality/completion-ios-journey.py": "087e90cf7cffcb7476dbad653133dd7d330cb09b218daa9ec1eae439bbe06ae4",
+    "scripts/quality/completion-ios-startup-diagnostics.py": "2e7ee36a2c957a79f8b8efa73aac98ceb7626933e04fd3529eb0788474167c0e",
+    "tests/quality/native-completion-journey.cjs": "84e2c2f4ba272fcc466b67ed8a0b6ab1fb5e582534a6210320db5e1e3870ac14",
+    "scripts/quality/completion-ios-audit.py": "a0669fcafc2b649bec7c48a68c8e7e17e235d72b9d0e69377b2bb0ca5955b597"
+  },
+  "all85CallsitePreparedButNotYetPublished": true,
+  "publicationBlockers": [],
+  "verifiedInvariants": [
+    "Exact source and source tree remain bound outside the verifier",
+    "Only owned newly-created returned UUID accepted",
+    "Preboot available runtime18.5 and exact iPhone16 device metadata required",
+    "Successful boot and completed readiness for the same UUID required",
+    "Live runtime and UDID queried through that explicit UUID",
+    "Each live query retains the original30-second metadata budget",
+    "Empty wrong or timed-out live values fail closed",
+    "Caller SIMCTL_CHILD identity/version overrides fail closed",
+    "Actual host architecture toolchain MachO and signature checks remain separate",
+    "Original reader15-second and populated inbox-frame1000-ms deadlines unchanged",
+    "No new build rebundle resign or generic retry"
+  ],
+  "independentTargetedVerification": {
+    "command": "node --test --test-name-pattern='postboot proof' --test-reporter=tap tests/quality/native-completion-journey.cjs",
+    "nodeTests": 1,
+    "passed": 1,
+    "failed": 0,
+    "covers": [
+      "missing owned readiness",
+      "altered preboot type version UUID availability state",
+      "wrong or missing live UDID/version",
+      "caller overrides",
+      "timeout identity propagation",
+      "exact command target and budgets"
+    ]
+  },
+  "sourcesIndependentlyRead": [
+    "https://appium.github.io/appium-xcuitest-driver/9.10/reference/execute-methods/#mobile-simctl",
+    "https://github.com/apple-oss-distributions/Libnotify/blob/main/libnotify.c",
+    "https://github.com/llvm/llvm-project/blob/main/compiler-rt/lib/sanitizer_common/sanitizer_mac.cpp"
+  ],
+  "actualRuntimePassClaimed": false
+}

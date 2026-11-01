@@ -37,7 +37,7 @@ def capture_startup(helper, target):
     """Record live owned clients/services and at most two three-second samples."""
     target = Path(target)
     target.mkdir(exist_ok=False)
-    record = {'schemaVersion': 1, 'kind': 'read-only-cold-core-simulator-diagnostic',
+    record = {'schemaVersion': 1, 'kind': 'read-only-core-simulator-client-diagnostic',
               'startedAtEpochMs': round(time.time() * 1000), 'changesVerdict': False,
               'appLaunched': False, 'readsProcessArguments': False,
               'readsProcessEnvironment': False, 'samples': [],
