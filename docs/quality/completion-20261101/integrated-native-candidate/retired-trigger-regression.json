@@ -1,0 +1,29 @@
+{
+  "formatVersion": 1,
+  "observedAtUtc": "2026-11-01T05:03:49.914597+00:00",
+  "failedSource": "f318c7ce5312956a903482320ec1a773e28b28f9",
+  "runId": 41273946479,
+  "jobId": 124752199475,
+  "sourceSuite": {
+    "total": 2377,
+    "passed": 2376,
+    "failed": 1
+  },
+  "failure": {
+    "file": "tests/quality/native-completion-remaining.cjs",
+    "test": "remaining recovery cannot duplicate the active account or original journey",
+    "error": "Cannot read properties of undefined (reading paths)",
+    "cause": "The intentionally retired automatic push trigger no longer exists. The assertion still dereferenced it."
+  },
+  "change": "Require exactly workflow_dispatch; preserve all original source/artifact, matrix, permission, runtime-budget and interaction checks.",
+  "sourceSha256": "1cea950ceee8b1660a102bf441399f62260f0c5be8897f5581a738870f742e64",
+  "localChecks": {
+    "namedNodeTests": 2,
+    "embeddedPythonCases": 5,
+    "failed": 0,
+    "skipped": 0
+  },
+  "applicationSourceChanged": false,
+  "retiredJobsReenabled": false,
+  "fullRemoteRetestRequired": true
+}

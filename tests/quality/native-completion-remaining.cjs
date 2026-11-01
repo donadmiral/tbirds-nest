@@ -74,7 +74,7 @@ unittest.main(argv=['execution-copy'],verbosity=2)
 `], { stdio: 'inherit', timeout: 15000 });
 });
 
-test('remaining recovery cannot duplicate the active account or original journey', () => {
+test('retained recovery requires explicit dispatch and selects only social and settings', () => {
   const workflow = YAML.parse(fs.readFileSync('.github/workflows/completion-ios-ecf-remaining.yml', 'utf8'));
   assert.deepEqual(workflow.permissions, { contents: 'read', actions: 'read' });
   const job = workflow.jobs['ios-remaining'];
@@ -84,5 +84,6 @@ test('remaining recovery cannot duplicate the active account or original journey
   assert.equal(job.steps.find(step => step.name === 'Read the exact current source used to build the app').with.ref,
     'ecf5e5a960106d7cb04c211ee99e9e89c09642cc');
   assert.equal(job.steps.find(step => step.name === 'Retrieve the verified current Simulator app').with['run-id'], 41266020074);
-  assert.ok(workflow.on.push.paths.every(path => !path.includes('ecf-account') && !path.includes('journey')));
+  assert.deepEqual(Object.keys(workflow.on), ['workflow_dispatch']);
+  assert.equal(workflow.on.workflow_dispatch, null);
 });
