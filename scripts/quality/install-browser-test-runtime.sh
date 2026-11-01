@@ -16,7 +16,9 @@ curl --fail --location --retry 2 --connect-timeout 20 --max-time 180 \
 printf '%s  %s\n' "$platinum_chrome_sha" "$platinum_chrome_archive" | sha256sum --check --status
 unzip -q -o "$platinum_chrome_archive" -d "$platinum_chrome_root"
 platinum_chrome_executable="$platinum_chrome_root/chrome-linux64/chrome"
-platinum_chrome_actual="$("$platinum_chrome_executable" --version)"
+# Chrome's vendor version output includes a trailing space. Normalize only its
+# surrounding whitespace; the archive checksum and exact version stay pinned.
+platinum_chrome_actual="$("$platinum_chrome_executable" --version | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
 test "$platinum_chrome_actual" = "Google Chrome for Testing $platinum_chrome_version"
 printf '%s\n' "$platinum_chrome_actual"
 if test -n "${GITHUB_ENV:-}"; then
