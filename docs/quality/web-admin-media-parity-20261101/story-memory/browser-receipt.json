@@ -1,0 +1,203 @@
+{
+  "browser": "156.0.8078.80",
+  "scope": "Actual web StoryViewer, MemoryAlbumView, MemoryFilm and cover components; synthetic Auth/RPC; generated same-origin no-store clips. No hosted account or hosted playback acceptance.",
+  "cases": [
+    {
+      "name": "Decorative video cover uses no video element, decoder or byte request",
+      "passed": true
+    },
+    {
+      "name": "Story handoff retains the warmed video node and its no-store bytes with one playing owner",
+      "passed": true
+    },
+    {
+      "name": "Next and back across owners with held reads never pair an old source with the next header",
+      "passed": true
+    },
+    {
+      "name": "Opening stories stops an already-playing browser media consumer without pausing its own player",
+      "passed": true
+    },
+    {
+      "name": "Book cover prewarms real pages; opening, page turns and metadata refresh retain exact nodes and playback position",
+      "passed": true
+    },
+    {
+      "name": "Book A-to-B-to-A account changes discard old media and pending owner work",
+      "passed": true
+    },
+    {
+      "name": "Film handoff retains the next player, limits playback ownership and releases every source on close",
+      "passed": true
+    },
+    {
+      "name": "Every observed first revealed frame has the correct distinct clip pixels after the saved trim",
+      "passed": true,
+      "frames": 9
+    }
+  ],
+  "firstRevealedFrames": [
+    {
+      "source": "/media/a.mp4",
+      "time": 0.4634,
+      "pixel": [
+        254,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "source": "/media/b.mp4",
+      "time": 0.4642,
+      "pixel": [
+        0,
+        0,
+        253,
+        255
+      ]
+    },
+    {
+      "source": "/media/d.mp4",
+      "time": 0.4769,
+      "pixel": [
+        255,
+        255,
+        2,
+        255
+      ]
+    },
+    {
+      "source": "/media/a.mp4",
+      "time": 0.4627,
+      "pixel": [
+        254,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "source": "/media/a.mp4",
+      "time": 0.4696,
+      "pixel": [
+        254,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "source": "/media/b.mp4",
+      "time": 0.4504,
+      "pixel": [
+        0,
+        0,
+        253,
+        255
+      ]
+    },
+    {
+      "source": "/media/a.mp4",
+      "time": 0.4179,
+      "pixel": [
+        254,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "source": "/media/b.mp4",
+      "time": 0.4,
+      "pixel": [
+        0,
+        0,
+        253,
+        255
+      ]
+    },
+    {
+      "source": "/media/c.mp4",
+      "time": 0.4,
+      "pixel": [
+        0,
+        254,
+        1,
+        255
+      ]
+    }
+  ],
+  "consoleErrors": [],
+  "sourceSha256": {
+    "web/components/StoryViewer.tsx": "7bebe454a17869706cfb9d3a27b9e7009e14cfcbc2b621f1a0b653c0cbc0d81a",
+    "web/components/StoryMedia.tsx": "78580990b4b73ff1448b4729a04fff680d6c258d8a14d3fad5693b9812d8cf37",
+    "web/lib/storyMediaReadiness.ts": "6ecedb8c32720d613abb7950ba306490e845a84cc8b88727a232446e94df6dc0",
+    "web/lib/stories.ts": "eb86296f9de14f3bcc6213a2ad3f43aab53dd681a94905bff200337c6cf3b1d9",
+    "web/components/MemoryAlbum.tsx": "36f1c1ea1cd54e76fa411503db84c757bbcf1b3e32ac35b1225d01c292dc1685",
+    "web/lib/memoryAlbum.ts": "bce4d79b04c1aa5e7fd2395d7e33c994ce7660491af82f45982a6134ca100f38",
+    "web/lib/memoryReadiness.ts": "5f9c014a18986c506f1bdfe580ac603959aff858f33596924b8f40debf2f99c8",
+    "web/components/memory/MemoryBookCover.tsx": "21752a82117402c01357e9faa525b7fc2b3c137826c5058811de2963a8bf23a6",
+    "web/components/memory/MemoryPageImage.tsx": "e78c0f4cc6fd4253422601c39ef1a29cdb139c0fe8cff8824cdc2c8c37df9fde",
+    "web/components/memory/MemoryFilm.tsx": "70f0fb2e21b0bc5595c286ff8e74f7d1d18b1e9aeecd69206fa3c63e62eea06e",
+    "web/components/memory/MemoryFilm.module.css": "a293abf4688c7903b21aae3ef2a469947f666fd9204bba512418090c4ab4cd37",
+    "web/tests/browser/story-memory-readiness-adapter.ts": "f631ef9443cb099f335ccbd1ab685d32037d1b875699b17e35fd7664c7637666",
+    "web/tests/browser/story-memory-readiness-fixture.tsx": "663aae9e3fac4c8448f7361f397c6ce511bf5912d4d4dc79104134eb9ee025f9",
+    "web/tests/browser/story-memory-readiness.cjs": "f5e6731a6d6d4e00d6c8d691362b7f49cb06cbe222753bd82438b0711fbf9237"
+  },
+  "fixtureBundleSha256": "3ee93da8b0b30444397299c057a3fe4135c68e93f62db97fc06ae126120fabf9",
+  "mediaRequests": [
+    {
+      "route": "/media/a.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/b.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/c.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/d.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/background.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/a.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/b.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/a.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/b.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/c.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/a.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/b.mp4",
+      "range": true
+    },
+    {
+      "route": "/media/c.mp4",
+      "range": true
+    }
+  ]
+}

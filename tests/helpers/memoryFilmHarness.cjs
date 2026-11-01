@@ -17,7 +17,7 @@ function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',medi
  };
  hooks.useLayoutEffect=hooks.useEffect;
  const createMedia=()=>({isConnected:true,paused:true,muted:true,volume:1,duration:10,currentTime:0,playbackRate:1,readyState:2,seeking:false,status:'readyToPlay',playCalls:0,pauseCalls:0,playReject:null,playPending:null,
-  play(){this.playCalls++;if(this.playReject)return Promise.reject(this.playReject);this.paused=false;return this.playPending??Promise.resolve();},pause(){this.pauseCalls++;this.paused=true;},load(){},
+  play(){this.playCalls++;if(this.playReject)return Promise.reject(this.playReject);this.paused=false;return this.playPending??Promise.resolve();},pause(){this.pauseCalls++;this.paused=true;},load(){},getAttribute(name){return name==='src'?this.src??null:null;},removeAttribute(name){if(name==='src')delete this.src;},
  });
  const audioNode=createMedia(),videoNode=createMedia();
  const audioAPI={Sound:{createAsync(){const sound={status:[],unload:0,async setStatusAsync(value){this.status.push(value);},async unloadAsync(){this.unload++;}};sounds.push(sound);return deferredAudio?new Promise(resolve=>{audioResolve=()=>resolve({sound});}):Promise.resolve({sound});}}};

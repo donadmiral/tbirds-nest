@@ -6,7 +6,7 @@ const output = process.env.PLATINUM_UI_OUTPUT || '/tmp/platinum-admin-browser';
 async function main() {
   await fs.mkdir(output,{recursive:true});
   await new Promise((resolve,reject)=>webpack({
-    mode:'development',devtool:false,context:root,target:'web',entry:path.join(__dirname,'fixture.tsx'),output:{path:output,filename:'fixture.js'},
+    mode:'development',devtool:false,context:root,target:'web',entry:process.env.PLATINUM_UI_ENTRY ? path.resolve(root,process.env.PLATINUM_UI_ENTRY) : path.join(__dirname,'fixture.tsx'),output:{path:output,filename:'fixture.js'},
     // Next normally injects these constants. Keep its real Image component in
     // the fixture without relying on a Node process global in the browser.
     plugins:[new webpack.DefinePlugin({'process.env.__NEXT_IMAGE_OPTS':'undefined','process.env.NEXT_DEPLOYMENT_ID':'undefined','process.env.NEXT_SUPPORTS_IMMUTABLE_ASSETS':'false','process.env.NEXT_RUNTIME':JSON.stringify('browser')})],

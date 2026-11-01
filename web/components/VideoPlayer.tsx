@@ -5,6 +5,8 @@ import { Play, Pause, Volume2, VolumeX, RotateCcw, RotateCw, Maximize, Minimize,
 import { createClient } from "@/lib/supabase/client";
 import { autoplayEnabled, dataSaverEnabled } from "@/lib/mediaPrefs";
 import { PLAYBACK_SPEEDS, playbackWindow, clampVideoTime, formatVideoTime } from "@/lib/videoPlayback";
+import { videoPreloads } from '@/lib/videoReadiness';
+import { getNavigationStore } from '@/lib/navigationCache';
 
 import {PostSoundtrack} from './PostSoundtrack';
 import type {SoundtrackSelection} from '../../shared/soundtrack';
@@ -57,6 +59,14 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const dwellStart = useRef<number | null>(null);
   const playRequest = useRef(0);
   const wantsPlayback = useRef(false);
+  const warmLease = useRef<ReturnType<typeof videoPreloads.register> | null>(null);
+  const [requested, setRequested] = useState(false);
+  const [frameReady, setFrameReady] = useState(false);
+  const [posterFailed, setPosterFailed] = useState(false);
+  const frameReadyRef = useRef(false);
+  const frameRequest = useRef<number | null>(null);
+  const frameGeneration = useRef(0);
+  const sessionRevoked = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(() => readPrefs().muted);
   const [speed, setSpeed] = useState(() => readPrefs().speed);
@@ -68,7 +78,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const [pipAvailable, setPipAvailable] = useState(false);
   const [fill, setFill] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [nearViewport, setNearViewport] = useState(immersive);
+  const [nearViewport, setNearViewport] = useState(false);
   const [notice, setNotice] = useState("");
   const trimStart = edit?.trimStart;
   const trimEnd = edit?.trimEnd;
@@ -93,6 +103,8 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const stop = useCallback(function stopVideo() {
     playRequest.current += 1;
     wantsPlayback.current = false;
+    setRequested(false);
+    warmLease.current?.activate(false);
     const v = ref.current;
     if (v) { remember(src, v.currentTime); v.pause(); }
     if (activeStop === stopVideo) activeStop = null;
@@ -102,10 +114,15 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
 
   const playNow = useCallback((explicit = false) => {
     const v = ref.current;
-    if (!v || !allowPlayback || document.documentElement.dataset.platinumCallActive==='true') return;
+    if (!v || !allowPlayback || sessionRevoked.current || document.documentElement.dataset.platinumCallActive==='true') return;
     if (activeStop && activeStop !== stop) activeStop();
     activeStop = stop;
     wantsPlayback.current = true;
+    setRequested(true);
+    warmLease.current?.activate(true);
+    // Explicit play may precede React's next commit. Prepare this same element,
+    // never a detached duplicate whose buffers would be discarded at playback.
+    if (v.getAttribute('src') !== src) { v.src = src; v.load(); }
     const request = playRequest.current += 1;
     const bounds = playbackWindow(v.duration, trimStart, trimEnd);
     if (bounds.duration) {
@@ -123,15 +140,55 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
 
   useEffect(() => {
     const el = wrapRef.current;
-    if (!el || !allowPlayback || dataSaverEnabled()) { setNearViewport(false); return; }
-    if (immersive || typeof IntersectionObserver === 'undefined') { setNearViewport(true); return; }
-    // Buffer only the next viewport, before the separate visibility observer starts playback.
-    const upcoming = new IntersectionObserver(([entry]) => {
-      setNearViewport(!!entry?.isIntersecting && !document.hidden);
+    if (!el || !allowPlayback) { setNearViewport(false); return; }
+    const lease = videoPreloads.register(setNearViewport); warmLease.current = lease;
+    lease.activate(wantsPlayback.current);
+    const refresh = () => {
+      const rect = el.getBoundingClientRect(), margin = window.innerHeight * 0.75;
+      const eligible = !document.hidden && !dataSaverEnabled() && !sessionRevoked.current
+        && rect.bottom >= -margin && rect.top <= window.innerHeight + margin;
+      lease.approach(eligible ? rect.top >= 0 ? rect.top : window.innerHeight + Math.abs(rect.top) : null);
+    };
+    // Slots are shared across all feed cards, while buffers stay on their own DOM nodes.
+    const upcoming = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting) refresh(); else lease.approach(null);
     }, { rootMargin: '75% 0px', threshold: 0 });
-    upcoming.observe(el);
-    return () => upcoming.disconnect();
+    upcoming?.observe(el);
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('pc-media-preferences', refresh);
+    return () => { upcoming?.disconnect(); document.removeEventListener('visibilitychange', refresh); window.removeEventListener('pc-media-preferences', refresh); lease.dispose(); if (warmLease.current === lease) warmLease.current = null; };
   }, [allowPlayback, immersive]);
+
+  const loadSource = allowPlayback && !sessionRevoked.current && (nearViewport || requested);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    // Source ownership is imperative for both warming and explicit play. A
+    // subsequent React src assignment would reload the same URL and abort the
+    // play() promise started directly by the user's click (notably Data Saver).
+    if (loadSource) { if (v.getAttribute('src') !== src) { v.src = src; v.load(); } return; }
+    frameGeneration.current++;
+    if (frameRequest.current !== null) v.cancelVideoFrameCallback?.(frameRequest.current);
+    frameRequest.current = null; frameReadyRef.current = false; setFrameReady(false);
+    if (v.currentSrc || v.getAttribute('src')) { v.pause(); v.removeAttribute('src'); v.load(); }
+  }, [loadSource, src]);
+
+  useEffect(() => {
+    if (!requested || frameReady) return;
+    const timer = setTimeout(() => { if (wantsPlayback.current && !frameReadyRef.current) { stop(); setFailed(true); } }, 12000);
+    return () => clearTimeout(timer);
+  }, [requested, frameReady, stop]);
+
+  useEffect(() => {
+    const store = getNavigationStore(); let session = store.getSnapshot();
+    return store.subscribe(() => {
+      const next = store.getSnapshot();
+      if (session.initialized && next.scope !== session.scope) {
+        sessionRevoked.current = true; positions.clear(); stop(); warmLease.current?.approach(null); setNearViewport(false);
+      }
+      session = next;
+    });
+  }, [stop]);
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -245,8 +302,33 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     const observer = new ResizeObserver(update); observer.observe(element); update();
     return () => observer.disconnect();
   }, []);
-  useEffect(() => () => { if (stalledAt.current) clearTimeout(stalledAt.current); }, []);
+  useEffect(() => {
+    const video = ref.current;
+    return () => {
+      if (stalledAt.current) clearTimeout(stalledAt.current);
+      frameGeneration.current++;
+      if (frameRequest.current !== null) video?.cancelVideoFrameCallback?.(frameRequest.current);
+      if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
+    };
+  }, []);
   const clearStall = () => { if (stalledAt.current) clearTimeout(stalledAt.current); stalledAt.current = null; };
+  const confirmFrame = () => {
+    const v = ref.current, generation = frameGeneration.current;
+    if (!v || !loadSource || frameReadyRef.current || frameRequest.current !== null) return;
+    const matches = (at: number) => {
+      const bounds = playbackWindow(v.duration, trimStart, trimEnd);
+      return ref.current === v && generation === frameGeneration.current && !v.seeking && v.readyState >= 2
+        && (!bounds.duration || at >= bounds.start - 0.04 && at <= bounds.end + 0.04);
+    };
+    const mark = () => { frameReadyRef.current = true; setFrameReady(true); };
+    if (typeof v.requestVideoFrameCallback === 'function') {
+      frameRequest.current = v.requestVideoFrameCallback((_now, metadata) => {
+        frameRequest.current = null;
+        if (generation !== frameGeneration.current || ref.current !== v) return;
+        if (matches(metadata.mediaTime)) mark(); else confirmFrame();
+      });
+    } else if (matches(v.currentTime)) mark();
+  };
   const waitForData = () => {
     setPlaying(false); void reportDwell(); clearStall();
     stalledAt.current = setTimeout(() => { if (wantsPlayback.current && (ref.current?.readyState ?? 0) < 3) { stop(); setFailed(true); } }, 15000);
@@ -260,14 +342,16 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
       style={!expanded && !fullFrame && width && height ? { aspectRatio: width + " / " + height } : undefined}
       className={"video-player group relative overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl " + (expanded ? "flex h-full w-full flex-col items-stretch bg-[#0b0b0d]" : "h-full w-full rounded-lg bg-black")}>
       <div ref={viewportRef} className={expanded?"relative flex min-h-0 flex-1 items-center justify-center overflow-hidden":fullFrame?"relative flex h-full w-full items-center justify-center overflow-hidden":"relative h-full w-full overflow-hidden"}>
-      <video poster={poster||edit?.coverUrl||undefined} style={{...(fitted ? { width: fitted.width, height: fitted.height, flexShrink: 0 } : {}), objectFit:showFullFrame?"contain":expanded?"cover":(edit?.fit||"cover"),transform:`translate(${(edit?.translateNX||0)*100}%, ${(edit?.translateNY||0)*100}%) scale(${edit?.scale||1}) rotate(${edit?.rotation||0}deg) scaleX(${edit?.flipX?-1:1})`}} ref={ref} src={src} playsInline muted={edit?.muted || muted} preload={allowPlayback && nearViewport && !dataSaverEnabled() ? "auto" : "none"}
+      <video style={{...(fitted ? { width: fitted.width, height: fitted.height, flexShrink: 0 } : {}), objectFit:showFullFrame?"contain":expanded?"cover":(edit?.fit||"cover"),transform:`translate(${(edit?.translateNX||0)*100}%, ${(edit?.translateNY||0)*100}%) scale(${edit?.scale||1}) rotate(${edit?.rotation||0}deg) scaleX(${edit?.flipX?-1:1})`}} ref={ref} playsInline muted={edit?.muted || muted} preload={loadSource && !dataSaverEnabled() ? "auto" : "none"}
         onClick={(e) => { e.stopPropagation(); wrapRef.current?.focus(); togglePlay(); }}
         onDoubleClick={(e) => { e.stopPropagation(); void toggleFullscreen(); }}
         onPlay={() => {
           if (!allowPlayback || !wantsPlayback.current || (activeStop && activeStop !== stop)) { ref.current?.pause(); return; }
           activeStop = stop;
         }}
-        onPlaying={()=>{clearStall();if(!allowPlayback||!wantsPlayback.current||document.documentElement.dataset.platinumCallActive==='true'){stop();return;}setPlaying(true);if(dwellStart.current===null)dwellStart.current=Date.now();}}
+        onPlaying={()=>{clearStall();if(!allowPlayback||!wantsPlayback.current||document.documentElement.dataset.platinumCallActive==='true'){stop();return;}confirmFrame();setPlaying(true);if(dwellStart.current===null)dwellStart.current=Date.now();}}
+        onLoadedData={confirmFrame}
+        onSeeked={confirmFrame}
         onWaiting={waitForData}
         onStalled={waitForData}
         onPause={() => { clearStall(); setPlaying(false); void reportDwell(); }}
@@ -293,8 +377,10 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
         }}
         className="block h-full w-full"
       />
-      {mediaOverlay}
-      <PostCaption captions={edit?.captions} time={time} />
+      {!frameReady ? <div data-video-poster={src} aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#0B1E3D]">
+        {!posterFailed && (poster || edit?.coverUrl) ? <img key={poster || edit?.coverUrl} src={poster || edit?.coverUrl || undefined} alt="" loading="lazy" decoding="async" onError={() => setPosterFailed(true)} style={{ objectFit: showFullFrame ? 'contain' : expanded ? 'cover' : edit?.fit || 'cover' }} className="h-full w-full" /> : <span className="text-sm text-white/80">Video</span>}
+      </div> : null}
+      {frameReady ? <>{mediaOverlay}<PostCaption captions={edit?.captions} time={time} /></> : null}
       </div>
       {soundtrack?<PostSoundtrack selection={soundtrack} active={allowPlayback&&playing&&!muted} clock={{time:Math.max(0,time-range.start),playing,rate:postPlaybackSettings(edit,speed).rate}} autoPlay className="absolute right-3 top-3 z-10"/>:null}
       {!playing && !failed && allowPlayback ? <button type="button" onClick={() => playNow(true)} aria-label="Play video" className={"absolute left-1/2 top-1/2 z-[5] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-ink/70 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl"}><Play size={24} /></button> : null}

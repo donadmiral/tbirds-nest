@@ -2,6 +2,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { hydrateStoryMedia } from "@/lib/contentMedia";
 import { invalidateStoryNavigation, loadStoryNavigation } from './storyNavigation';
+import { withTimeout } from './withTimeout';
 
 export type CatchupUser = {
   user_id: string;
@@ -125,6 +126,7 @@ export type StoryMediaTransform = {
 };
 
 export type StoryRow = {
+  _mediaExpiresAt?: number;
   id: string;
   user_id: string;
   media_url: string | null;
@@ -161,11 +163,21 @@ export async function getCatchupFeed(limit = 30, mode: string = "all"): Promise<
   return (data ?? []) as CatchupUser[];
 }
 
-export async function getUserStories(userId: string): Promise<StoryRow[]> {
+export async function getUserStories(userId: string, signal?: AbortSignal): Promise<StoryRow[]> {
   const supabase = createClient();
-  const { data, error } = await supabase.rpc("get_user_stories", { p_user_id: userId });
-  if (error) throw new Error("Stories could not be loaded. Please try again.");
-  return hydrateStoryMedia((data ?? []) as StoryRow[], supabase);
+  const controller = new AbortController(), abort = () => controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  if (signal?.aborted) controller.abort();
+  try {
+    return await withTimeout((async () => {
+      const { data, error } = await supabase.rpc("get_user_stories", { p_user_id: userId }).abortSignal(controller.signal);
+      if (error || controller.signal.aborted) throw new Error("Stories could not be loaded. Please try again.");
+      const rows = await hydrateStoryMedia((data ?? []) as StoryRow[], { auth: supabase.auth,
+        functions: { invoke: (name, options) => supabase.functions.invoke(name, { ...options, signal: controller.signal }) } });
+      if (controller.signal.aborted) throw new Error('Story loading was cancelled.');
+      return rows;
+    })(), 12_000);
+  } finally { controller.abort(); signal?.removeEventListener('abort', abort); }
 }
 
 export async function markStoryViewed(storyId: string): Promise<void> {

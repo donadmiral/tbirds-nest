@@ -35,7 +35,7 @@ export default async function ContentRecordPage({ params, searchParams }: {
     <div className="pc-content-record">
       <section className="pc-record-panel" aria-labelledby="post-heading">
         <header className="pc-record-heading"><div><h2 id="post-heading">{authorName}</h2><p>{author?.username ? `@${author.username} · ` : ''}<time dateTime={post.created_at}>{new Date(post.created_at).toLocaleString('en-US', { timeZone: 'UTC' })} UTC</time></p></div><Link className="pc-button" href={`/users/${post.user_id}`}>Open author</Link></header>
-        {gallery.length ? <ReviewMediaGallery media={gallery} /> : <p className="pc-record-empty">{unavailableAttachments ? 'Media access could not be verified for this post.' : 'This post has no photo or video attachments.'}</p>}
+        {gallery.length ? <ReviewMediaGallery key={post.id} media={gallery} /> : <p className="pc-record-empty">{unavailableAttachments ? 'Media access could not be verified for this post.' : 'This post has no photo or video attachments.'}</p>}
         {unavailableAttachments > 0 ? <p role="status" className="pc-service-notice">{unavailableAttachments} attachment{unavailableAttachments === 1 ? '' : 's'} could not be authorized. Refresh the review to check access again.</p> : null}
         <div className="pc-record-caption">{post.content || post.body || 'No caption.'}</div>
         <dl className="pc-record-metrics">{[[post.likes_count || 0, 'Likes'], [commentCount, 'Comments'], [post.shares_count || 0, 'Shares'], [reportCount, 'Reports']].map(([value, label]) => <div key={label}><dt>{label}</dt><dd>{fmt(Number(value))}</dd></div>)}</dl>

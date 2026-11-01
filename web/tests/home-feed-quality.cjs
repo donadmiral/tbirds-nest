@@ -76,6 +76,7 @@ test('the actual HomeFeed server rendering includes post content before JavaScri
   const h=harness();const empty=()=>null;
   const overrides={
     '@/lib/navigationCache':{getNavigationStore:()=>({getSnapshot:()=>({owner:null,scope:null}),cache:{read:()=>null}})},
+    '@/lib/mediaPrefs': { dataSaverEnabled: () => false },
     '@/lib/homeFeedController':{createHomeFeedController}, '@/lib/homeFeedScroll':load('lib/homeFeedScroll.ts'), '@/lib/contentMedia':{hydratePostMedia:async rows=>rows}, '@/lib/feedCache':{getFeedCache:()=>h.cache}, '../../shared/feedSnapshot':shared, '../../shared/feedMedia':load('../shared/feedMedia.ts'),
     '@/lib/supabase/client':{createClient:()=>h.client}, 'next/navigation':{useRouter:()=>({push(){},refresh(){},replace(){}}),useSearchParams:()=>new URLSearchParams()},
     '@/components/PostCard':{PostCard:({post})=>React.createElement('article',null,post.content)},
@@ -89,6 +90,58 @@ test('the actual HomeFeed server rendering includes post content before JavaScri
   assert.match(html,/Visible content first/);assert.match(html,/data-feed-content="true"/);
   assert.match(html,/data-feed-owner="alice" data-feed-mode="for_you"/);
   assert.doesNotMatch(html,/animate-pulse/);
+});
+
+test('metadata refresh preserves current exact media grants and same-account session changes reauthorize', async () => {
+  const content = load('../shared/contentMedia.ts');
+  const reuse = load('../shared/feedMediaReuse.ts', { './contentMedia': content });
+  const adapter = load('lib/contentMedia.ts', { '../../shared/contentMedia': content, '../../shared/feedMediaReuse': reuse, './supabase/client': { createClient() {} } });
+  const original = 'https://example.supabase.co/storage/v1/object/public/post-media/author/clip.mp4';
+  const capability = 'https://example.supabase.co/functions/v1/media-content/post-media/author/clip.mp4?token=' + 'a'.repeat(64);
+  const old = { ...row('first'), media: [{ id: 'clip', url: capability, media_type: 'video' }], _mediaExpiresAt: Date.now() + 180000 };
+  const incoming = { ...row('first', 7), media: [{ id: 'clip', url: original, media_type: 'video' }] };
+  const h = harness([old]); h.setReply(async (name, args) => ({ data: args.p_ids ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : [incoming], error: null }));
+  let scope = 'alice:1'; const hydration = [];
+  const c = createHomeFeedController(h.client, h.seed, h.cache, undefined, async rows => { hydration.push(rows); return rows; }, null,
+    { scope: () => scope, retain: adapter.retainFeedMedia });
+  await c.load(false, true);
+  assert.equal(c.getSnapshot().rows[0].media[0].url, capability);
+  assert.equal(c.getSnapshot().rows[0].likes_count, 7);
+  const memory = c.remember(12); assert.equal(memory.tab.mediaScope, 'alice:1');
+  scope = 'alice:2'; c.setMediaSession('alice', scope);
+  assert.equal(c.getSnapshot().rows.length, 0, 'Old decoded media is removed before the next session read');
+  await tick();
+  assert.equal(hydration.at(-1)[0].media[0].url, original, 'New session cannot reuse the old grant');
+  const restored = createHomeFeedController(h.client, { ...h.seed, rows: [] }, h.cache, undefined, undefined, memory,
+    { scope: () => scope, retain: adapter.retainFeedMedia });
+  assert.equal(restored.getSnapshot().rows.length, 0, 'Memory from another session is not displayed');
+  restored.dispose(); c.dispose(); h.controller.dispose();
+});
+
+test('same-account A to B to A session changes fence pending feed hydration', async () => {
+  const h = harness(), delayed = deferred(); let scope = 'alice:1';
+  const c = createHomeFeedController(h.client, h.seed, h.cache, undefined, () => delayed.promise, null,
+    { scope: () => scope, retain: (_old, incoming) => incoming });
+  const old = c.load(); await tick();
+  scope = 'bob:2'; c.setMediaSession('bob', scope);
+  scope = 'alice:3'; c.setMediaSession('alice', scope);
+  delayed.resolve([row('obsolete')]); await old;
+  assert.equal(c.getSnapshot().rows.some(item => item.post_id === 'obsolete'), false);
+  c.dispose(); h.controller.dispose();
+});
+
+test('first Auth initialization replaces a pending null-scope retry without leaving the feed locked', async () => {
+  const h = harness([], 'Initial feed unavailable'), delayed = deferred(); let scope = null, reads = 0;
+  h.setReply(async (name, args) => name === 'get_feed'
+    ? ++reads === 1 ? delayed.promise : { data: [row('authorized')], error: null }
+    : { data: args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null });
+  const c = createHomeFeedController(h.client, h.seed, h.cache, undefined, async rows => rows, null,
+    { scope: () => scope, retain: (_old, incoming) => incoming });
+  const starting = c.start(); scope = 'alice:1'; c.setMediaSession('alice', scope, true); await tick();
+  delayed.resolve({ data: [row('obsolete')], error: null }); await starting;
+  assert.equal(c.getSnapshot().rows[0].post_id, 'authorized');
+  assert.equal(c.getSnapshot().loading, false); assert.equal(c.getSnapshot().loadingMore, false);
+  assert.equal(reads, 2); c.dispose(); h.controller.dispose();
 });
 
 test('switching modes clears previous results while the requested mode is loading or failed', async () => {

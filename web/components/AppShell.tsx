@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getServerViewer } from "@/lib/serverViewer";
+import { loadNavigationProfile } from "@/lib/navigationProfile";
 import { Nav } from "@/components/Nav";
 import { MobileTabBar } from "@/components/MobileTabBar";
 import { WebCallLayer } from "@/components/WebCallLayer";
@@ -50,11 +51,7 @@ export async function AppShell({
     <WebCallLayer /><GlobalMediaLightbox /><ScrollMemory />
     <main id="main-content" tabIndex={-1}>{children}</main>
   </div>;
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, username, account_type, avatar_url, is_verified, verified_tier")
-    .eq("id", data.user.id)
-    .maybeSingle();
+  const profile = await loadNavigationProfile(supabase, data.user.id);
   return (
     <div className="min-h-screen">
       <RememberNavigationChrome identity={{ ownerId: data.user.id, name: profile?.full_name ?? "Member", username: profile?.username ?? "", business: profile?.account_type === "business", avatarUrl: profile?.avatar_url ?? null }} />

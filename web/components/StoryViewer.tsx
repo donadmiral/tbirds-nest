@@ -17,13 +17,15 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { AdjustOverlay, BgLayer, DrawSvg, EngineSticker, animStyle, extraFontCss, STICKER_ANIM_CSS } from "@/components/StoryEngine";
 
 import { SharedPostStory } from "./SharedPostStory";
-import { StoryPhotoLookContext, StoryPixelGrade } from './StoryPixelGrade';
+import { StoryPhotoLookContext } from './StoryPixelGrade';
+import { StoryMedia } from './StoryMedia';
 import { storyPhotoSpatialAdjust } from '../../shared/storyColorMatrix';
 import { stickerCss } from "./storyTextAppearance";
 
 import { currentTextMentions } from "../../shared/storyMentions";
 import { prepareStoryReply } from "../../shared/storyMessageReference";
 import { enqueueMessage, sendOutboxMessage } from "@/lib/messageOutbox";
+import { navigationSessionIdentity } from '../../shared/navigationCache';
 
 const callActive = () => typeof document !== "undefined" && document.documentElement?.dataset?.platinumCallActive === "true";
 
@@ -126,16 +128,6 @@ function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: S
   );
 }
 
-function mediaStyle(mt: StoryMediaTransform | null | undefined): React.CSSProperties {
-  if (!mt || typeof mt !== "object") return { objectFit: "contain" };
-  const hasMove = (mt.scale && mt.scale !== 1) || mt.translateNX !== 0 || mt.translateNY !== 0;
-  const style: React.CSSProperties = { objectFit: mt.fit === "contain" ? "contain" : "cover" };
-  if (hasMove) {
-    style.transform = "translate(" + ((mt.translateNX || 0) * 100) + "%, " + ((mt.translateNY || 0) * 100) + "%) scale(" + (mt.scale || 1) + ")";
-  }
-  return style;
-}
-
 function FilterOverlay({ filterId, amt }: { filterId: string | null | undefined; amt?: number | null }) {
   if (!filterId) return null;
   const f = STORY_FILTERS.find((x) => x.id === filterId);
@@ -159,6 +151,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
 }) {
   const [userIdx, setUserIdx] = useState(startIndex);
   const [stories, setStories] = useState<StoryRow[]>([]);
+  const [storiesOwner, setStoriesOwner] = useState<{ userId: string; epoch: number } | null>(null);
   const [storyLoadFinished, setStoryLoadFinished] = useState(false);
   const [storyLoadError, setStoryLoadError] = useState(false);
   const [storyLoadAttempt, setStoryLoadAttempt] = useState(0);
@@ -171,6 +164,14 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
   const viewerRef = useRef<string | null>(null);
+  const viewerIdentity = useRef<string | null>(null), viewerEpoch = useRef(0);
+  const [authRevision, setAuthRevision] = useState(0), [foreground, setForeground] = useState(true);
+  const claimingPlayback = useRef(false);
+  useLayoutEffect(() => {
+    claimingPlayback.current = true;
+    try { window.dispatchEvent(new Event('platinum:stop-media')); }
+    finally { claimingPlayback.current = false; }
+  }, []);
   const [muted, setMuted] = useState(true);
   const [clock, setClock] = useState<number | null>(null);
   const [poll, setPoll] = useState<StoryPoll | null>(null);
@@ -205,9 +206,14 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const [replyToast, setReplyToast] = useState<string | null>(null);
   const replyOwner = useRef(uid); useLayoutEffect(()=>{replyOwner.current = uid;},[uid]);
   const user = users[userIdx];
-  const story = stories[itemIdx];
+  const ownerMatches = storiesOwner?.userId === user?.user_id && storiesOwner?.epoch === authRevision;
+  const visibleStories = ownerMatches ? stories : [];
+  const selectedStory = visibleStories[itemIdx];
+  const story = selectedStory?.user_id === user?.user_id ? selectedStory : undefined;
+  const loadFinished = ownerMatches && storyLoadFinished, loadFailed = ownerMatches && storyLoadError;
   const storyId=story?.id,storyUserId=story?.user_id;
-  const mediaKey = story ? `${uid}:${story.id}:${story.media_url || ''}:${mediaRetry}` : '';
+  const slotKey = (row: StoryRow) => `${uid}:${authRevision}:${row.id}:${row.media_url || ''}:${row.thumbnail_url || ''}:${JSON.stringify(row.media_transform)}:${row.filter_id || ''}:${mediaRetry}`;
+  const mediaKey = story ? slotKey(story) : '';
   const currentMediaRef = useRef(mediaKey);
   useLayoutEffect(() => { currentMediaRef.current = mediaKey; }, [mediaKey]);
   const currentStoryRef = useRef(story?.id);
@@ -252,20 +258,10 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     startedAt.current = Date.now();
   };
 
-  // Preload the next frame while this one is on screen. A story lasts several
-  // seconds; using that time is the difference between instant and a stall at
-  // every tap.
-  useEffect(() => {
-    const videos: HTMLVideoElement[] = [];
-    [stories[itemIdx + 1], stories[itemIdx + 2]].forEach((next, i) => {
-      if (!next?.media_url) return;
-      const poster = (next as { thumbnail_url?: string | null }).thumbnail_url;
-      if (poster) { const pi = new Image(); pi.src = poster; }
-      if (next.media_type === "video") { if (i === 0) { const v = document.createElement("video"); v.preload = "auto"; v.muted = true; v.playsInline = true; v.src = next.media_url; v.load(); videos.push(v); } }
-      else { const img = new Image(); img.src = next.media_url; }
-    });
-    return () => { videos.forEach(video => { video.removeAttribute("src"); video.load(); }); };
-  }, [stories, itemIdx, uid]);
+  // Keep the actual upcoming media node: no-store responses cannot populate a
+  // reusable HTTP cache for a detached player that is discarded on every tap.
+  const nearbyMedia = story ? [story, ...(foreground && !callActive() ? visibleStories.slice(itemIdx + 1, itemIdx + 2) : [])]
+    .filter(row => row.user_id === user?.user_id && row.media_url && (row === story || !row._mediaExpiresAt || row._mediaExpiresAt > Date.now() + 1000)) : [];
   const [revokedAudioStory,setRevokedAudioStory]=useState<string|null>(null);
   const storySoundId = story?.audio_sound_id || story?.media_transform?.audioSoundId;
   const storyAudioUrl = ORIGINAL_AUDIO_ENABLED && story?.id !== revokedAudioStory ? story?.audio_url ?? null : null;
@@ -309,9 +305,9 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
 
   const advance = useCallback(() => {
     stopTimer();
-    if (itemIdx + 1 < stories.length) setItemIdx(itemIdx + 1);
+    if (itemIdx + 1 < visibleStories.length) setItemIdx(itemIdx + 1);
     else nextUser();
-  }, [itemIdx, stories.length, nextUser, stopTimer]);
+  }, [itemIdx, visibleStories.length, nextUser, stopTimer]);
 
   const back = useCallback(() => {
     if (itemIdx === 0 && userIdx === 0) return;
@@ -446,50 +442,55 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   useEffect(() => {
     const client = createClient();
     let alive = true, version = 0;
-    const accept = (next: string | null) => {
+    const accept = (next: string | null, identity: string | null) => {
       if (!alive) return;
-      if (viewerRef.current !== next) {
+      if (viewerRef.current !== next || viewerIdentity.current !== identity) {
         viewerRef.current = next;
+        viewerIdentity.current = identity;
+        viewerEpoch.current += 1; setAuthRevision(viewerEpoch.current);
         setStories([]); setReplyText(""); setPoll(null); setMyReactions(new Set()); setViewersOpen(false);
       }
       setUid(next);
     };
     const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
-      version++; accept(session?.user.id ?? null);
+      version++; accept(session?.user.id ?? null, navigationSessionIdentity(session));
     });
     const initial = version;
     void client.auth.getSession().then(({ data, error }) => {
-      if (alive && version === initial) accept(error ? null : data.session?.user.id ?? null);
+      if (alive && version === initial) accept(error ? null : data.session?.user.id ?? null, error ? null : navigationSessionIdentity(data.session));
     });
     return () => { alive = false; subscription.unsubscribe(); };
   }, []);
 
   const refreshCurrentMedia = async () => {
     if (!story || !uid) return;
-    const id = story.id, viewer = uid;
+    const id = story.id, viewer = uid, epoch = viewerEpoch.current;
     setFailedStoryId(null); setLoadedStoryId(null); readyStoryRef.current = null;
     try {
       const [current] = await hydrateStoryMedia([story]);
-      if (viewerRef.current !== viewer || currentStoryRef.current !== id) return;
+      if (viewerRef.current !== viewer || viewerEpoch.current !== epoch || currentStoryRef.current !== id) return;
       setStories(rows => rows.map(row => row.id === id ? current : row));
       setMediaRetry(value => value + 1);
-    } catch { if (viewerRef.current === viewer && currentStoryRef.current === id) setFailedStoryId(id); }
+    } catch { if (viewerRef.current === viewer && viewerEpoch.current === epoch && currentStoryRef.current === id) setFailedStoryId(id); }
   };
 
   useEffect(() => {
     if (!user || !uid) return;
     let off = false;
-    queueMicrotask(()=>{if(!off){setStories([]);setStoryLoadFinished(false);setStoryLoadError(false);}});
-    getUserStories(user.user_id).then((rows) => {
-      if (off) return;
-      const target = userIdx === startIndex && initialStoryId ? rows.findIndex((row) => row.id === initialStoryId) : 0;
+    const controller = new AbortController(), epoch = viewerEpoch.current;
+    queueMicrotask(()=>{if(!off){setStoriesOwner({userId:user.user_id,epoch});setStories([]);setStoryLoadFinished(false);setStoryLoadError(false);}});
+    getUserStories(user.user_id, controller.signal).then((rows) => {
+      if (off || viewerEpoch.current !== epoch) return;
+      const owned = rows.filter(row => row.user_id === user.user_id);
+      const target = userIdx === startIndex && initialStoryId ? owned.findIndex((row) => row.id === initialStoryId) : 0;
       // An expired notification must not open an unrelated story instead.
-      setStories(target < 0 ? [] : rows);
+      setStoriesOwner({userId:user.user_id,epoch});
+      setStories(target < 0 ? [] : owned);
       setItemIdx(Math.max(0, target));
       setStoryLoadFinished(true);
-    }, () => { if (!off) { setStories([]); setStoryLoadError(true); setStoryLoadFinished(true); } });
-    return () => { off = true; };
-  }, [user, userIdx, startIndex, initialStoryId, uid, storyLoadAttempt]);
+    }, () => { if (!off && viewerEpoch.current === epoch) { setStoriesOwner({userId:user.user_id,epoch});setStories([]); setStoryLoadError(true); setStoryLoadFinished(true); } });
+    return () => { off = true; controller.abort(); };
+  }, [user, userIdx, startIndex, initialStoryId, uid, authRevision, storyLoadAttempt]);
 
   useEffect(() => {
     const version = ++reactionVersion.current;
@@ -564,6 +565,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   useEffect(() => {
     let pausedByVisibility = false;
     const onVisibility = () => {
+      setForeground(!document.hidden);
       if (document.hidden) {
         pausedByVisibility = !playbackPausedRef.current;
         if (pausedByVisibility) pauseNow();
@@ -578,6 +580,14 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   }, [pauseNow, resumeNow]);
 
   useEffect(() => {
+    if (!story?.media_url || mediaReady || failedStoryId === story.id || !foreground || playbackPaused) return;
+    const timer = setTimeout(() => {
+      if (currentMediaRef.current === mediaKey && readyStoryRef.current !== mediaKey) setFailedStoryId(story.id);
+    }, 20_000);
+    return () => clearTimeout(timer);
+  }, [story?.id, story?.media_url, mediaKey, mediaReady, failedStoryId, foreground, playbackPaused]);
+
+  useEffect(() => {
     if (!story?.expires_at) return;
     const remaining = Date.parse(story.expires_at) - Date.now();
     if (!Number.isFinite(remaining)) return;
@@ -588,7 +598,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   }, [story?.id, story?.expires_at, pauseNow]);
 
   useEffect(() => {
-    const stop = () => { manualPauseRef.current = true; pauseNow(); };
+    const stop = () => { if (claimingPlayback.current) return; manualPauseRef.current = true; pauseNow(); };
     window.addEventListener("platinum:stop-media", stop);
     if (callActive()) stop();
     return () => window.removeEventListener("platinum:stop-media", stop);
@@ -638,7 +648,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   };
 
   return (
-    <StoryPhotoLookContext.Provider value={{ filterId: story?.filter_id, filterAmt: story?.media_transform?.filterAmt, adjust: story?.media_transform?.adjust }}><div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+    <StoryPhotoLookContext.Provider value={{ filterId: story?.filter_id, filterAmt: story?.media_transform?.filterAmt, adjust: story?.media_transform?.adjust }}><div data-story-owner={user.user_id} className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
       <style>{"@keyframes heartpop { 0% { transform: scale(0.3); opacity: 0; } 30% { transform: scale(1.18); opacity: 1; } 70% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.05); opacity: 0; } }"}</style>
       <button onClick={onClose} className="absolute right-4 top-4 z-30 hidden h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 md:flex" aria-label="Close story viewer">
         <X size={20} />
@@ -661,7 +671,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
         onPointerUpCapture={holdEnd} onPointerCancelCapture={holdEnd} onPointerLeave={holdEnd}
         onClickCapture={event => { if (holdConsumedClickRef.current && event.detail !== 0) { holdConsumedClickRef.current = false; event.preventDefault(); event.stopPropagation(); } }}>
         <div className="absolute inset-x-2 top-2 z-10 flex gap-1">
-          {stories.map((s, i) => (
+          {visibleStories.map((s, i) => (
             <span key={s.id} className="h-0.5 flex-1 overflow-hidden rounded-full bg-white/30">
               <span className="block h-full bg-white" style={{ width: (i < itemIdx ? 100 : i === itemIdx ? Math.min(100, progress * 100) : 0) + "%" }} />
             </span>
@@ -694,35 +704,16 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             {story.media_transform?.bg && story.media_transform?.fit === "contain" ? (
               <div className="pointer-events-none absolute inset-0 z-0"><BgLayer bg={story.media_transform.bg} mediaUrl={story.media_type === "image" ? story.media_url : null} /></div>
             ) : null}
-            {story.media_type === "video" && story.media_url ? (
-              <StoryPixelGrade className="h-full w-full"><video
-                ref={videoRef}
-                key={mediaKey}
-                src={story.media_url}
-                poster={story.thumbnail_url || undefined}
-                autoPlay={!playbackPaused && !callActive()}
-                onPlay={() => { if (playbackPausedRef.current || document.hidden || callActive()) videoRef.current?.pause(); }}
-                playsInline
-                preload="auto"
-                muted={muted}
-                onLoadedData={event => { const video = event.currentTarget; if (typeof video.requestVideoFrameCallback === 'function') video.requestVideoFrameCallback(onMediaReady); else onMediaReady(); }}
-                onError={() => { if (currentMediaRef.current === mediaKey) { readyStoryRef.current = null; setFailedStoryId(story.id); } }}
-                onLoadedMetadata={(e) => { const m = (story.media_transform || {}) as StoryMediaTransform; try { (e.target as HTMLVideoElement).playbackRate = Number(m.speed) || 1; } catch {} const t0 = Number(m.trimStart) || 0; if (t0 > 0.05) { try { (e.target as HTMLVideoElement).currentTime = t0; } catch {} } }}
-                onTimeUpdate={(e) => { const el = e.target as HTMLVideoElement; const m = (story.media_transform || {}) as StoryMediaTransform; setClock(el.currentTime); const t1 = Number(m.trimEnd) || 0; if (t1 > 0 && el.currentTime >= t1) advance(); }}
-                className="h-full w-full object-contain"
-                style={mediaStyle(story.media_transform)}
-              /></StoryPixelGrade>
-            ) : story.media_url ? (
-              <StoryPixelGrade className="h-full w-full"><NextImage unoptimized width={1080} height={1920}
-                key={mediaKey}
-                src={story.media_url}
-                alt=""
-                onLoad={onMediaReady}
-                onError={() => { if (currentMediaRef.current === mediaKey) { readyStoryRef.current = null; setFailedStoryId(story.id); } }}
-                className="h-full w-full"
-                style={mediaStyle(story.media_transform)}
-              /></StoryPixelGrade>
-            ) : null}
+            {nearbyMedia.map(row => {
+              const identity = slotKey(row), active = identity === mediaKey;
+              const current = () => currentMediaRef.current === identity;
+              return <StoryMedia key={identity} story={row} active={active} paused={playbackPaused || !foreground} muted={muted} player={videoRef}
+                onReady={() => { if (current()) onMediaReady(); }}
+                onError={() => { if (current()) { readyStoryRef.current = null; setFailedStoryId(row.id); } }}
+                onBlocked={() => { if (current()) pauseNow(); }}
+                onTime={time => { if (current()) setClock(time); }}
+                onEnd={() => { if (current()) advance(); }} />;
+            })}
             {failedStoryId === story.id ? (
               <div role="alert" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/70 px-6 text-center text-sm text-white">
                 <p>This story’s media could not load.</p>
@@ -770,8 +761,8 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
           </>
         ) : (
           <div className="relative z-10 flex h-full flex-col items-center justify-center gap-3 text-sm text-white/70">
-            <p role={storyLoadError ? "alert" : "status"}>{storyLoadError ? "Stories could not load. Check your connection and try again." : storyLoadFinished ? "This story is no longer available." : "Loading"}</p>
-            {storyLoadError ? <button type="button" className="min-h-11 rounded-lg border border-white/30 px-4 py-2 text-white" onClick={() => setStoryLoadAttempt(n => n + 1)}>Try again</button> : null}
+            <p role={loadFailed ? "alert" : "status"}>{loadFailed ? "Stories could not load. Check your connection and try again." : loadFinished ? "This story is no longer available." : "Loading"}</p>
+            {loadFailed ? <button type="button" className="min-h-11 rounded-lg border border-white/30 px-4 py-2 text-white" onClick={() => setStoryLoadAttempt(n => n + 1)}>Try again</button> : null}
           </div>
         )}
 

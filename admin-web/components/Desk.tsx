@@ -29,7 +29,7 @@ const TONE: Record<Tone, { bg: string; fg: string; bd: string }> = {
 };
 
 export type Cell =
-  | { t: 'media'; v: string; sub?: string; thumb?: string | null; video?: boolean }
+  | { t: 'media'; v: string; sub?: string; thumb?: string | null; video?: boolean; poster?: string | null }
   | { t: 'text'; v: string; strong?: boolean }
   | { t: 'dim'; v: string }
   | { t: 'mono'; v: string; tone?: Tone }
@@ -158,7 +158,7 @@ function CellView({ c }: { c: Cell }) {
       <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
         <span style={{ width: 42, height: 42, flex: '0 0 42px', borderRadius: 9, overflow: 'hidden', background: 'rgba(var(--on),0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
           {c.thumb
-            ? <MediaPreview key={c.thumb} url={c.thumb} video={c.video} thumbnail />
+            ? <MediaPreview key={c.thumb} url={c.thumb} video={c.video} poster={c.poster} thumbnail />
             : <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.24)' }}><path d="M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z" /></svg>}
           {c.video && c.thumb ? (
             <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>

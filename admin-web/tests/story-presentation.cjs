@@ -96,3 +96,19 @@ test('video type hints and video URLs are recognized inside shared posts while c
   }
   assert.equal(storyPresentationSource(story({ stickers_json: [postSticker({ postText: '', postArticleTitle: 'A published article' })] })).caption, 'A published article');
 });
+
+test('story and shared-post video posters use their own grants and never raw or cross-source URLs', async () => {
+  const ownVideo = url('story-media/owner/video.mp4'), ownPoster = url('story-media/owner/poster.jpg');
+  const postVideo = url('post-media/owner/video.mp4'), postPoster = url('post-media/owner/poster.jpg');
+  const input = story({media_type:'video',media_url:ownVideo,thumbnail_url:ownPoster,stickers_json:[postSticker({postMediaUrl:postVideo,postMediaType:'video',postThumbnailUrl:postPoster})]});
+  const calls = [];
+  const [result] = await resolveStoryPresentations([input],async(values,kind,ids)=>{
+    calls.push({values:[...values],kind,ids:[...ids]});
+    return kind==='story'?{[ownVideo]:'authorized:story-video',[ownPoster]:'authorized:story-poster',[postPoster]:'wrong-story-grant'}:{[postVideo]:'authorized:post-video'};
+  });
+  assert.deepEqual(calls,[{values:[ownVideo,ownPoster],kind:'story',ids:[storyId]},{values:[postVideo,postPoster],kind:'post',ids:[postId]}]);
+  assert.equal(result.gallery[0].poster,'authorized:story-poster');
+  assert.equal(result.gallery[1].poster,undefined);
+  assert.equal(result.mediaCount,2,'Posters are metadata, not extra attachments');
+  assert.equal(JSON.stringify(result.gallery).includes(postPoster),false);
+});

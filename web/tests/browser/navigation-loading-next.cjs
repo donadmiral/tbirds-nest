@@ -96,6 +96,17 @@ async function main() {
     await page.screenshot({ path: path.join(artifacts, 'held-notifications-collapsed.png') }); release();
     await page.getByRole('heading', { name: 'Notifications', exact: true }).waitFor();
     checks.push({ name: 'collapsed sidebar and content geometry stay aligned during a real cold Notifications transition', passed: true, ...geometry });
+    hold = true;
+    const profileTimeoutStarted = Date.now();
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.getByRole('heading', { name: 'Notifications', exact: true }).waitFor({ timeout: 15000 });
+    assert.ok(held.length > 0, 'The optional navigation profile response stayed held.');
+    assert.equal(await page.locator('[data-navigation-loading]').count(), 0);
+    await page.getByRole('link', { name: 'Profile', exact: true }).first().waitFor();
+    const profileTimeoutElapsed = Date.now() - profileTimeoutStarted;
+    assert.ok(profileTimeoutElapsed < 15000, 'Optional profile lookup cannot hold the page indefinitely.');
+    checks.push({ name: 'actual server navigation renders the authorized Notifications page when its optional profile request never finishes', passed: true, elapsedMs: profileTimeoutElapsed, timeoutMs: 5000 });
+    release();
     assert.deepEqual(errors, []);
     const receipt = { checkedAt: new Date().toISOString(), scope: 'Real Next dev App Router, production proxy/getServerViewer/AppShell/root loading/Jobs/Profile/Notifications modules; synthetic local Supabase HTTP Auth/database. No Next routing adapter and no hosted requests.', runtime: await browser.version(), checks, frames, browserErrors: errors, limits: ['Development compilation and localhost transport prevent production latency claims.', 'This proves visible navigation during held server response, not persistent DOM, GPU paint or faster network.', 'Auth/account replacement is covered by focused helper and actual-recorder tests, not a hosted account switch in this run.'] };
     await fs.writeFile(path.join(artifacts, 'receipt.json'), JSON.stringify(receipt, null, 2) + '\n');

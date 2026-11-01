@@ -2,6 +2,7 @@ import type { PostMediaEditRecipe } from "@/components/VideoPlayer";
 
 // Mirrors the get_feed RPC return table (migration 0095).
 export type FeedRow = {
+  _mediaExpiresAt?: number;
   post_id: string;
   author_id: string;
   content: string | null;

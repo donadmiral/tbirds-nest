@@ -1,0 +1,65 @@
+{
+  "scope": "Actual React components and HTML video decoding over local no-store HTTP; synthetic Auth/grant/visibility inputs. Not hosted backend or physical-device acceptance.",
+  "runtime": "156.0.8078.80",
+  "sourceSha256": {
+    "web/components/VideoPlayer.tsx": "0bce5a85dfab3ead0c58d513f7a6635ef58e7b71a148a1be8eacab613956d070",
+    "web/components/PostCaption.tsx": "93656c045ecafd22db9d33fcd163ec3aeab34bb1e72c3a009bd61faeb503d471",
+    "web/components/SharedPostThumbnail.tsx": "cc3e51226f651310c34c56f1871f955c583bee485e0e98b23cfa0e96340cd133",
+    "web/lib/videoReadiness.ts": "754e34aacb29fa488b9b2093a2e8dffc55983ce7ec81260794291af8414eaa29",
+    "web/lib/mediaPrefs.ts": "37241fa49b841c898ce40c553d6f0a7c1d8294254a1b2b33ff0cf09b705c275c",
+    "web/lib/homeFeedController.ts": "28e087d5edbf61ba6527eec0f2834041cf682d5363b6d28b4838df95a7d72b4a",
+    "web/lib/useSharedPostPreview.ts": "5567766d4bfe491d3ce75fe842623d179ae8a9c2e332df7b2d4e9e95a331e4ac",
+    "web/lib/navigationCache.ts": "64260f2f9c45c7ed8b8f78d15592e6601ce5f4aa1ba6d197d62ad2a0742d3295",
+    "shared/navigationCache.ts": "3c96b45ecbc04af6c214423d83bca2564659906c1781acf1ab265df53e3969ba",
+    "shared/feedMedia.ts": "f9512627a83f21b64f80c47ef3d1a9a32b742b243d41f13d96b0b9c02c3377aa",
+    "shared/feedMediaReuse.ts": "12d7255e760f4fa036938b5fd42142644028dddf96eec50960699082d232002d",
+    "shared/contentMedia.ts": "e883ae1111291b06c0d5d86a49183739a658bc483ee94f8dd4454e4921513a9a",
+    "web/tests/browser/media-readiness-adapter.ts": "4ff0e36ab304113cc9b69c5a419423c8ddf5dd313e53a7d50ccbc3daa8122a4e",
+    "web/tests/browser/media-readiness-fixture.tsx": "0127211a686fdee3dea1beb16ca11887263625f16c7b34d4689c88cf1ce9e434",
+    "web/tests/browser/media-readiness-run.cjs": "79ec2a9c53d3a40f2e75b140f62b337fac47291c042e6629aced46e6a3ec5a5c"
+  },
+  "cases": [
+    "Actual warm elements are bounded to two without autoplay or detached decoders",
+    "Metadata refresh retains the exact video DOM node and capability URL",
+    "A slow replacement keeps only its own poster, then reveals its actual blue frame",
+    "Source text appears before grants/author; media does not wait for an author",
+    "Data saver releases speculative buffers without interrupting explicit playback",
+    "Visibility suspension removes ordinary sources from actual video DOM nodes",
+    "A to B to A session changes cannot restart an old player or restore a stale grant"
+  ],
+  "failures": [],
+  "requests": [
+    {
+      "path": "/functions/v1/media-content/post-media/a.mp4",
+      "range": "bytes=0-"
+    },
+    {
+      "path": "/functions/v1/media-content/post-media/warm-0.mp4",
+      "range": "bytes=0-"
+    },
+    {
+      "path": "/functions/v1/media-content/post-media/warm-1.mp4",
+      "range": "bytes=0-"
+    },
+    {
+      "path": "/functions/v1/media-content/post-media/b.mp4",
+      "range": "bytes=0-"
+    },
+    {
+      "path": "/functions/v1/media-content/post-media/warm-1.mp4",
+      "range": "bytes=0-"
+    },
+    {
+      "path": "/functions/v1/media-content/post-media/b.mp4",
+      "range": "bytes=0-"
+    },
+    {
+      "path": "/functions/v1/media-content/post-media/b.mp4",
+      "range": "bytes=0-"
+    },
+    {
+      "path": "/functions/v1/media-content/post-media/warm-0.mp4",
+      "range": "bytes=0-"
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/client";
 
 import { mediaDeliveryUrl } from '../../shared/mediaDelivery';
 
-const CHAT_URL = /\/storage\/v1\/object\/(?:public\/|sign\/)?(?:chat-media|chat-files)\//;
+const CHAT_URL = /\/storage\/v1\/object\/(?:public\/|sign\/|authenticated\/)?(?:chat-media|chat-files)\//;
 const CACHE_MS = 60 * 1000;
 
 type Pair = { _private_media_url?: string | null; _private_thumbnail_url?: string | null; id: string; media_url?: string | null; thumbnail_url?: string | null; deleted_at?: string | null; view_limit?: number | null };
@@ -37,6 +37,18 @@ function watchAuth(client: Client) {
 
 export function isChatMediaUrl(url?: string | null): boolean {
   return !!url && CHAT_URL.test(url);
+}
+
+/** Publish authorized message text while attachment capabilities are still loading. */
+export function withoutChatMedia<T extends Pair>(rows: T[]): T[] {
+  return rows.map(row => {
+    const media = row._private_media_url || (isChatMediaUrl(row.media_url) ? row.media_url : null);
+    const thumbnail = row._private_thumbnail_url || (isChatMediaUrl(row.thumbnail_url) ? row.thumbnail_url : null);
+    return { ...row,
+      ...(media ? { _private_media_url: media, media_url: null } : {}),
+      ...(thumbnail ? { _private_thumbnail_url: thumbnail, thumbnail_url: null } : {}),
+    };
+  });
 }
 
 export async function signChatMediaMap(pairs: Pair[]): Promise<Record<string, string>> {

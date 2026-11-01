@@ -27,15 +27,15 @@ function scenario(name, { own=true, video=false, hasStories=true, warm=false, ho
   const player={currentTime:0,paused:false,ended:false,playCalls:0,pauseCalls:0,play(){this.paused=false;this.playCalls++;return Promise.resolve();},pause(){this.paused=true;this.pauseCalls++;}};
   const client={auth:{onAuthStateChange:fn=>{authListener=fn;return{data:{subscription:{unsubscribe(){authListener=null;}}}};},getSession:async()=>({data:{session:{user:{id:identity}}}})},rpc:async()=>({data:[],error:null}),from(){const query={select(){return query;},eq(){return query;},in(){return query;},maybeSingle(){return query;},then(ok,bad){return Promise.resolve({data:[],error:null}).then(ok,bad);}};return query;}};
   const document={hidden:false,addEventListener:(n,fn)=>listeners.set(n,fn),removeEventListener:n=>listeners.delete(n),createElement:()=>({removeAttribute(){},load(){}})};
-  const imports={react:hooks,'next/link':{__esModule:true,default:'a'},'@/lib/soundtrack':{soundtrackFromValue:()=>null},'../../shared/storyColorMatrix':shared('storyColorMatrix'),'../../shared/trendingStories':{loadTrendingStories:async()=>[]},'@/lib/contentMedia':{hydrateStoryMedia:async rows=>rows},'react/jsx-runtime':{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})},'@/lib/supabase/client':{createClient:()=>client},'@/lib/media':{displayImageUrl:x=>x},'@/lib/feed':{timeAgo:()=> 'now'},'@/lib/stories':{getCatchupFeed:async()=>hasStories?[user]:[],getUserStories:async()=>identity?[story]:[],getStoryPoll:async()=>null,getMyStoryReactions:async()=>[],markStoryViewed:async()=>{},toggleStoryReaction:async()=>{reactions++;return{reacted:true};},REACTION_EMOJIS:['heart'],STORY_FILTERS:[]}};
+  const imports={react:hooks,'next/link':{__esModule:true,default:'a'},'@/lib/soundtrack':{soundtrackFromValue:()=>null},'../../shared/navigationCache':shared('navigationCache'),'../../shared/storyColorMatrix':shared('storyColorMatrix'),'../../shared/trendingStories':{loadTrendingStories:async()=>[]},'@/lib/contentMedia':{hydrateStoryMedia:async rows=>rows},'react/jsx-runtime':{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})},'@/lib/supabase/client':{createClient:()=>client},'@/lib/media':{displayImageUrl:x=>x},'@/lib/feed':{timeAgo:()=> 'now'},'@/lib/stories':{getCatchupFeed:async()=>hasStories?[user]:[],getUserStories:async()=>identity?[story]:[],getStoryPoll:async()=>null,getMyStoryReactions:async()=>[],markStoryViewed:async()=>{},toggleStoryReaction:async()=>{reactions++;return{reacted:true};},REACTION_EMOJIS:['heart'],STORY_FILTERS:[]}};
   imports['@/lib/navigationCache']={getNavigationStore:()=>navigationStore};
   imports['@/lib/storyNavigation']={storyNavigationMemory:()=>warm&&navSnapshot.scope===warmMemory.scope?warmMemory:null,loadStoryNavigation:async mode=>{if(holdNavigation)await holdNavigation;if(navigationError)throw Error('Offline');return{scope:navSnapshot.scope,owner:identity,mode,checkedAt:Date.now(),users:hasStories?[user]:[],spot:[],avatar:null};}};
   imports['@/lib/stories'].getRingUsers=async()=>{if(holdNavigation)await holdNavigation;return hasStories?[user]:[];};
   imports['@/lib/stories'].invalidateRings=()=>{};
   const timers={setInterval:fn=>{const n=++id;intervals.set(n,fn);return n;},clearInterval:n=>intervals.delete(n),setTimeout:(fn,ms)=>{const n=++id;timeouts.set(n,{fn,ms});return n;},clearTimeout:n=>timeouts.delete(n)};
-  const exports={};vm.runInNewContext(sources[name],{exports,require:n=>imports[n]??new Proxy({},{get:(_,key)=>String(key)}),document,window:{...timers,addEventListener:(n,fn)=>listeners.set(n,fn),removeEventListener:n=>listeners.delete(n)},Image:function(){},console,queueMicrotask,...timers});
+  const exports={};vm.runInNewContext(sources[name],{exports,require:n=>imports[n]??new Proxy({},{get:(_,key)=>String(key)}),document,window:{...timers,dispatchEvent:event=>{listeners.get(event.type)?.(event);return true;},addEventListener:(n,fn)=>listeners.set(n,fn),removeEventListener:n=>listeners.delete(n)},Image:function(){},Event,AbortController,atob,console,queueMicrotask,...timers});
   const props=name==='StoryViewer'?{users:[user],startIndex:0,onClose(){closed++;}}:name==='StoryAvatar'?{userId:'author',name:'Author',avatarUrl:null}:{};
-  function render(){let n=0;while(dirty){if(++n>40)throw Error('Render loop');dirty=false;cursor=0;tree=exports[name](props);nodes(tree).forEach(node=>{if(node.type==='video'&&node.props.ref)node.props.ref.current=player;});const pending=effects;effects=[];pending.forEach(fn=>fn());}return tree;}
+  function render(){let n=0;while(dirty){if(++n>40)throw Error('Render loop');dirty=false;cursor=0;tree=exports[name](props);nodes(tree).forEach(node=>{if(node.type==='video'&&node.props.ref)node.props.ref.current=player;if(node.type==='StoryMedia'&&node.props.active)node.props.player.current=player;});const pending=effects;effects=[];pending.forEach(fn=>fn());}return tree;}
   render();return{get tree(){return render();},get intervals(){return intervals.size;},get reactions(){return reactions;},get closed(){return closed;},player,
     button(label){return nodes(render()).find(n=>n.type==='button'&&n.props['aria-label']===label);},
     async flush(){for(let n=0;n<8;n++){await new Promise(resolve=>setImmediate(resolve));render();}},
@@ -108,9 +108,9 @@ test('manual pause permits Next while a completed long hold consumes its click',
 
 test('signing out immediately clears story media, reply and playback', async()=>{
   const h=scenario('StoryViewer');await h.flush();
-  assert.ok(nodes(h.tree).some(n=>n.props?.src==='https://media.test/story'));
+  assert.ok(nodes(h.tree).some(n=>(n.props?.src??n.props?.story?.media_url)==='https://media.test/story'));
   h.changeViewer(null);await h.flush();
-  assert.ok(!nodes(h.tree).some(n=>n.props?.src==='https://media.test/story'));
+  assert.ok(!nodes(h.tree).some(n=>(n.props?.src??n.props?.story?.media_url)==='https://media.test/story'));
   assert.equal(h.intervals,0);h.unmount();
 });
 

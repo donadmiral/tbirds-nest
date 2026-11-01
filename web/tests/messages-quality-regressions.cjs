@@ -24,6 +24,7 @@ const sources = {
 function moduleFor(code) { const module = { exports: {} }; vm.runInNewContext(code, { module, exports: module.exports, require: name => sources[name] ? moduleFor(sources[name]) : ({}) }); return module.exports; }
 const history = moduleFor(sources['../../shared/messageHistory']);
 const actions = moduleFor(sources['@/lib/messageActions']);
+const safeChatMedia = moduleFor(compile(path.join(root, 'lib/chatMedia.ts')));
 const id = n => '00000000-0000-4000-8000-' + String(n).padStart(12, '0');
 const row = (n, props = {}) => ({ id: id(n), conversation_id: 'a', sender_id: 'me', receiver_id: 'other', text: 'Message ' + n, media_url: null, media_type: null, reply_to_id: null, created_at: '2026-10-20T10:00:00.123456+00:00', ...props });
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
@@ -89,7 +90,7 @@ function scenario(initial = [row(1)], options = {}) {
   const cache = new Map();
   const navValues = options.navigationValues || new Map();
   let navOwner = 'me', navScope = '1:me', navChanged = false, navRevision = 1;
-  const navigationStore = { getSnapshot:()=>({owner:navOwner,scope:navScope,changed:navChanged}), cache:{
+  const navigationStore = { getSnapshot:()=>({owner:navOwner,scope:navScope,changed:navChanged,initialized:true}), cache:{
     read:(scope,key)=>scope===navScope?navValues.get(key)??null:null,
     save:(scope,key,value)=>{if(scope!==navScope)return false;navValues.set(key,value);return true;},
   }};
@@ -107,7 +108,7 @@ function scenario(initial = [row(1)], options = {}) {
     if (name === '@/lib/supabase/client') return { createClient: () => client };
     if (name === '@/lib/navigationCache') return {getNavigationStore:()=>navigationStore};
     if (name === '@/lib/messages') return { loadConversations: async (_owner,context='personal') => convs.filter(row=>row.context===context) };
-    if (name === '@/lib/chatMedia') return { signChatMedia: async rows => rows, isChatMediaUrl: () => false };
+    if (name === '@/lib/chatMedia') return { signChatMedia: options.signChatMedia || (async rows => rows), isChatMediaUrl: safeChatMedia.isChatMediaUrl, withoutChatMedia: safeChatMedia.withoutChatMedia };
     if (name === '@/lib/feed') return { timeAgo: () => 'now' };
     if (name === 'next/link') return { __esModule: true, default: 'Link' };
     if (name === 'next/image') return { __esModule: true, default: 'img' };
@@ -168,6 +169,63 @@ test('history failure is visible and can be retried', async () => {
   const app=scenario(); await app.flush(); app.setRead(call=>call.table==='messages'?{data:null,error:{message:'offline'}}:null);
   await app.open('a'); await app.flush(); assert.ok(app.text.includes('Messages could not be loaded.'));
   app.setRead(null); await app.click('Try again'); await app.flush(); assert.ok(app.text.includes('Message 1')); app.unmount();
+});
+test('authorized text appears while private attachments sign, without exposing canonical URLs', async () => {
+  const media = 'https://media.test/storage/v1/object/authenticated/chat-media/a/one.mp4';
+  const thumbnail = 'https://media.test/storage/v1/object/public/chat-media/a/one.jpg';
+  const original = row(1, { media_type: 'video', media_url: media, thumbnail_url: thumbnail });
+  const gate = deferred(), app = scenario([original], { signChatMedia: () => gate.promise });
+  await app.flush(); const opening = app.open('a'); await app.flush();
+  assert.ok(app.text.includes('Message 1')); assert.ok(app.text.includes('Loading attachment…'));
+  assert.ok(!app.text.includes('Attachment unavailable'));
+  assert.equal(app.all(n => ['img', 'video', 'audio'].includes(n.type)).length, 0);
+  gate.resolve([{ ...original, media_url: 'https://media.test/granted-one.mp4', thumbnail_url: 'https://media.test/granted-one.jpg' }]);
+  await opening; await app.flush();
+  const player = app.find(n => n.type === 'video');
+  assert.equal(player.props.src, 'https://media.test/granted-one.mp4');
+  assert.equal(player.props.poster, 'https://media.test/granted-one.jpg');
+  assert.equal(player.key, original.id + ':https://media.test/granted-one.mp4');
+  assert.ok(!app.text.includes('Loading attachment…')); app.unmount();
+});
+test('attachment failure leaves the authorized conversation readable with a recoverable attachment state', async () => {
+  const original = row(1, { media_type: 'image', media_url: 'https://media.test/storage/v1/object/public/chat-media/a/one.jpg' });
+  const app = scenario([original], { signChatMedia: async () => { throw new Error('signer unavailable'); } });
+  await app.flush(); await app.open('a'); await app.flush();
+  assert.ok(app.text.includes('Message 1')); assert.ok(app.text.includes('Some attachments could not load.'));
+  assert.ok(app.text.includes('Attachment unavailable')); assert.ok(!app.text.includes('Loading attachment…'));
+  assert.equal(app.all(n => n.type === 'img').length, 0); app.unmount();
+});
+test('returning to a still-signing conversation settles its restored pending attachments after failure', async () => {
+  const original = row(1, { media_type: 'image', media_url: 'https://media.test/storage/v1/object/public/chat-media/a/one.jpg' });
+  const gate = deferred(), first = scenario([original], { signChatMedia: () => gate.promise });
+  await first.flush(); const opening = first.open('a'); await first.flush();
+  assert.ok(first.text.includes('Loading attachment…')); first.unmount();
+  gate.resolve([original]); await opening;
+  const next = scenario([original], { navigationValues: first.navigationValues, signChatMedia: async () => { throw new Error('signer unavailable'); } });
+  await next.flush(); assert.ok(next.text.includes('Message 1')); assert.ok(!next.text.includes('Loading attachment…'));
+  assert.ok(next.text.includes('Attachment unavailable')); next.unmount();
+});
+test('an attachment result cannot restore a conversation after its owner changes', async () => {
+  const original = row(1, { media_type: 'audio', media_url: 'https://media.test/storage/v1/object/public/chat-media/a/one.m4a' });
+  const gate = deferred(), app = scenario([original, row(2, { conversation_id: 'b', text: 'B is current' })], {
+    signChatMedia: rows => rows[0]?.conversation_id === 'a' ? gate.promise : Promise.resolve(rows),
+  });
+  await app.flush(); const first = app.open('a'); await app.flush();
+  await app.open('b'); await app.flush();
+  gate.resolve([{ ...original, media_url: 'https://media.test/late-a.m4a' }]); await first; await app.flush();
+  assert.ok(app.text.includes('B is current')); assert.ok(!app.text.includes('Message 1'));
+  assert.equal(app.all(n => n.type === 'audio').length, 0); app.unmount();
+});
+test('a new session for the same account fences old attachment completion and reloads grants', async () => {
+  const original = row(1, { media_type: 'audio', media_url: 'https://media.test/storage/v1/object/public/chat-media/a/one.m4a' });
+  const gate = deferred(); let reads = 0;
+  const app = scenario([original], { signChatMedia: rows => ++reads === 1 ? gate.promise : Promise.resolve(rows.map(message => ({ ...message, media_url: 'https://media.test/current.m4a' }))) });
+  await app.flush(); const old = app.open('a'); await app.flush(); app.changeUser('me');
+  await new Promise(resolve => setTimeout(resolve, 1)); await app.flush();
+  gate.resolve([{ ...original, media_url: 'https://media.test/old-session.m4a' }]); await old; await app.flush();
+  assert.ok(reads >= 2); const player = app.find(n => n.type === 'audio');
+  assert.equal(player.key, original.id + ':https://media.test/current.m4a');
+  assert.equal(app.find(n => n.type === 'source').props.src, 'https://media.test/current.m4a'); app.unmount();
 });
 test('reply and confirmed edit execute through real composer handlers', async () => {
   const app=scenario(); await app.flush(); await app.open('a'); await app.flush();

@@ -27,6 +27,7 @@ export type Msg = {
   receiver_id: string | null;
   text: string | null;
   media_url: string | null;
+  thumbnail_url?: string | null;
   media_type: string | null;
   reply_to_id: string | null;
   payment_id?: string | null;
@@ -42,6 +43,7 @@ export type Msg = {
   _reactions?: { user_id: string; emoji: string }[];
   _private_media_url?: string | null;
   _private_thumbnail_url?: string | null;
+  _mediaPending?: boolean;
   _delivery?: 'pending' | 'rejected' | 'conflict';
 };
 

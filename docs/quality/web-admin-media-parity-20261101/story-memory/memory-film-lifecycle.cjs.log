@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: web initial loading deadline excludes manual pause and restarts on resume
+ok 1 - web initial loading deadline excludes manual pause and restarts on resume
+  ---
+  duration_ms: 409.76201
+  type: 'test'
+  ...
+# Subtest: web initial loading deadline excludes background and restarts on resume
+ok 2 - web initial loading deadline excludes background and restarts on resume
+  ---
+  duration_ms: 151.93263
+  type: 'test'
+  ...
+# Subtest: web initial loading deadline excludes active call and restarts on resume
+ok 3 - web initial loading deadline excludes active call and restarts on resume
+  ---
+  duration_ms: 187.781462
+  type: 'test'
+  ...
+# Subtest: web late image readiness cannot replace the current ready page or satisfy a new loop
+ok 4 - web late image readiness cannot replace the current ready page or satisfy a new loop
+  ---
+  duration_ms: 118.641534
+  type: 'test'
+  ...
+# Subtest: web stale video callbacks cannot replace current progress, readiness, or an actionable failure
+ok 5 - web stale video callbacks cannot replace current progress, readiness, or an actionable failure
+  ---
+  duration_ms: 133.034428
+  type: 'test'
+  ...
+# Subtest: web stalled video stays stopped across foreground and active changes until remount
+ok 6 - web stalled video stays stopped across foreground and active changes until remount
+  ---
+  duration_ms: 95.467345
+  type: 'test'
+  ...
+# Subtest: web memory video waits for an actual decoded frame after metadata and trim seek
+ok 7 - web memory video waits for an actual decoded frame after metadata and trim seek
+  ---
+  duration_ms: 97.281426
+  type: 'test'
+  ...
+# Subtest: web memory video uses a real frame callback and rejects its late unmounted callback
+ok 8 - web memory video uses a real frame callback and rejects its late unmounted callback
+  ---
+  duration_ms: 109.387373
+  type: 'test'
+  ...
+# Subtest: web frame readiness rejects a prerendered frame before the saved trim
+ok 9 - web frame readiness rejects a prerendered frame before the saved trim
+  ---
+  duration_ms: 62.690256
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1372.259097

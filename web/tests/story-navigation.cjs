@@ -45,7 +45,7 @@ function fixture(options={}) {
     './withTimeout':load('web/lib/withTimeout.ts',{}, {setTimeout:timer}),
     '../../shared/trendingStories':load('shared/trendingStories.ts',{}, {Date:clock})};
   const api=load('web/lib/storyNavigation.ts',imports,{Date:clock});
-  const stories=load('web/lib/stories.ts',{'@/lib/supabase/client':{createClient:()=>client},'@/lib/contentMedia':imports['./contentMedia'],'./storyNavigation':api});
+  const stories=load('web/lib/stories.ts',{'@/lib/supabase/client':{createClient:()=>client},'@/lib/contentMedia':imports['./contentMedia'],'./storyNavigation':api,'./withTimeout':imports['./withTimeout']});
   return{api,stories,store,requests,verified,signed,responses,users,
     advance(ms){now+=ms;},switchOwner(owner){session=owner?{user:{id:owner},access_token:owner+'-token'}:null;snapshot={owner,scope:owner?(snapshot.revision+1)+':'+owner:null,revision:snapshot.revision+1,initialized:true,changed:true};cache.setScope(snapshot.scope);}};
 }

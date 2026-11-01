@@ -1,0 +1,184 @@
+TAP version 13
+# Subtest: late initial session cannot restore the previous account after an auth event
+ok 1 - late initial session cannot restore the previous account after an auth event
+  ---
+  duration_ms: 152.946335
+  type: 'test'
+  ...
+# Subtest: late draft list from account A never becomes visible in account B
+ok 2 - late draft list from account A never becomes visible in account B
+  ---
+  duration_ms: 85.515437
+  type: 'test'
+  ...
+# Subtest: recipient hydration cannot repopulate a cleared draft after account change
+ok 3 - recipient hydration cannot repopulate a cleared draft after account change
+  ---
+  duration_ms: 73.898686
+  type: 'test'
+  ...
+# Subtest: upload completion from A cannot populate B and cannot release B upload lock
+ok 4 - upload completion from A cannot populate B and cannot release B upload lock
+  ---
+  duration_ms: 84.836745
+  type: 'test'
+  ...
+# Subtest: unmount cancels pending work and prevents late state updates
+ok 5 - unmount cancels pending work and prevents late state updates
+  ---
+  duration_ms: 81.58273
+  type: 'test'
+  ...
+# Subtest: account change cleans a pending video metadata object immediately
+ok 6 - account change cleans a pending video metadata object immediately
+  ---
+  duration_ms: 74.047031
+  type: 'test'
+  ...
+# Subtest: failed or stalled initial session leaves publishing disabled and shows recovery
+ok 7 - failed or stalled initial session leaves publishing disabled and shows recovery
+  ---
+  duration_ms: 58.974017
+  type: 'test'
+  ...
+# Subtest: a stalled upload releases its button with a recoverable error
+ok 8 - a stalled upload releases its button with a recoverable error
+  ---
+  duration_ms: 43.615182
+  type: 'test'
+  ...
+# Subtest: an explicit initial session error is caught and keeps the composer disabled
+ok 9 - an explicit initial session error is caught and keeps the composer disabled
+  ---
+  duration_ms: 51.558283
+  type: 'test'
+  ...
+# Subtest: account change during publication authentication prevents the story insert
+ok 10 - account change during publication authentication prevents the story insert
+  ---
+  duration_ms: 58.84735
+  type: 'test'
+  ...
+# Subtest: a committed story from A never sends child writes or changes navigation after switching to B
+ok 11 - a committed story from A never sends child writes or changes navigation after switching to B
+  ---
+  duration_ms: 33.939588
+  type: 'test'
+  ...
+# Subtest: a stale submit handler captured for A cannot publish from B
+ok 12 - a stale submit handler captured for A cannot publish from B
+  ---
+  duration_ms: 42.059207
+  type: 'test'
+  ...
+# Subtest: lost story response retries the same atomic request and never creates a fresh publication key
+ok 13 - lost story response retries the same atomic request and never creates a fresh publication key
+  ---
+  duration_ms: 35.554316
+  type: 'test'
+  ...
+# Subtest: saved story draft keeps its filter and stickers in the owner-scoped write
+ok 14 - saved story draft keeps its filter and stickers in the owner-scoped write
+  ---
+  duration_ms: 48.919549
+  type: 'test'
+  ...
+# Subtest: private draft preview capabilities never replace canonical publish or saved references
+ok 15 - private draft preview capabilities never replace canonical publish or saved references
+  ---
+  duration_ms: 49.214391
+  type: 'test'
+  ...
+# Subtest: story audio selection and mix reach the atomic publication without preview tokens
+ok 16 - story audio selection and mix reach the atomic publication without preview tokens
+  ---
+  duration_ms: 52.524951
+  type: 'test'
+  ...
+# Subtest: pending audio upload locks publication and saved drafts retain canonical audio
+ok 17 - pending audio upload locks publication and saved drafts retain canonical audio
+  ---
+  duration_ms: 61.728757
+  type: 'test'
+  ...
+# Subtest: ordered photo/video clips preserve independent edits and one reply setting through atomic publication
+ok 18 - ordered photo/video clips preserve independent edits and one reply setting through atomic publication
+  ---
+  duration_ms: 53.192196
+  type: 'test'
+  ...
+# Subtest: a failed second clip retries its original request without republishing the first clip
+ok 19 - a failed second clip retries its original request without republishing the first clip
+  ---
+  duration_ms: 71.191538
+  type: 'test'
+  ...
+# Subtest: partial draft saving retains clips and retry upserts the same draft IDs
+ok 20 - partial draft saving retains clips and retry upserts the same draft IDs
+  ---
+  duration_ms: 43.999513
+  type: 'test'
+  ...
+# Subtest: drawing applies only to its original clip and preserves other sticker metadata
+ok 21 - drawing applies only to its original clip and preserves other sticker metadata
+  ---
+  duration_ms: 45.168282
+  type: 'test'
+  ...
+# Subtest: drawing cancel and stale account callbacks cannot change the active story
+ok 22 - drawing cancel and stale account callbacks cannot change the active story
+  ---
+  duration_ms: 46.410177
+  type: 'test'
+  ...
+# Subtest: commercial catalogue stays disabled while original audio and source-video mix persist through draft and publication
+ok 23 - commercial catalogue stays disabled while original audio and source-video mix persist through draft and publication
+  ---
+  duration_ms: 104.311184
+  type: 'test'
+  ...
+# Subtest: feed post route opens the editable card and publishes canonical references without extra text
+ok 24 - feed post route opens the editable card and publishes canonical references without extra text
+  ---
+  duration_ms: 40.374977
+  type: 'test'
+  ...
+# Subtest: post preview from an old account cannot populate or unlock the next account
+ok 25 - post preview from an old account cannot populate or unlock the next account
+  ---
+  duration_ms: 48.948924
+  type: 'test'
+  ...
+# Subtest: a failed post preview exposes retry and successful retry opens the same source once
+ok 26 - a failed post preview exposes retry and successful retry opens the same source once
+  ---
+  duration_ms: 40.699778
+  type: 'test'
+  ...
+# Subtest: saved shared-post drafts display signed media and save only canonical media
+ok 27 - saved shared-post drafts display signed media and save only canonical media
+  ---
+  duration_ms: 67.15249
+  type: 'test'
+  ...
+# Subtest: pending story restoration keeps editing disabled until account and media verification finish
+ok 28 - pending story restoration keeps editing disabled until account and media verification finish
+  ---
+  duration_ms: 35.363614
+  type: 'test'
+  ...
+# Subtest: an old pending preview cannot replace the next account story after its restoration completes
+ok 29 - an old pending preview cannot replace the next account story after its restoration completes
+  ---
+  duration_ms: 35.479678
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1742.929592

@@ -14,7 +14,7 @@ export type MediaPreviewEdit = PostFrameRecipe & {
   trimStart?: number | null; trimEnd?: number | null; speed?: number | null; muted?: boolean;
   coverAt?: number | null; coverUrl?: string | null;
 };
-export type ReviewMedia = { url: string; video?: boolean; width?: number | null; height?: number | null; edit?: MediaPreviewEdit | null };
+export type ReviewMedia = { url: string; video?: boolean; poster?: string | null; width?: number | null; height?: number | null; edit?: MediaPreviewEdit | null };
 
 const bounded = (value: number | null | undefined, fallback: number, min: number, max: number) => Number.isFinite(value) ? Math.max(min, Math.min(max, value!)) : fallback;
 
@@ -23,12 +23,13 @@ type PreviewProps = ReviewMedia & { thumbnail?: boolean; expanded?: boolean; onE
 export default function MediaPreview(props: PreviewProps) {
   // Renewed capabilities and a different attachment must get a fresh media
   // lifecycle, including failure, duration and playback state.
-  return <MediaPreviewSource key={`${props.url}:${props.video ? 'video' : 'image'}:${props.edit?.coverUrl ?? ''}`} {...props} />;
+  return <MediaPreviewSource key={JSON.stringify([props.url, !!props.video, props.poster, props.edit?.coverUrl])} {...props} />;
 }
 
-function MediaPreviewSource({ url, video = false, thumbnail = false, expanded = false, onExpand, edit, width, height }: PreviewProps) {
+function MediaPreviewSource({ url, video = false, poster: fallbackPoster, thumbnail = false, expanded = false, onExpand, edit, width, height }: PreviewProps) {
   const router = useRouter();
   const player = useRef<HTMLVideoElement>(null);
+  const frameRequest = useRef<number | null>(null);
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
   const [pending, startTransition] = useTransition();
@@ -36,10 +37,31 @@ function MediaPreviewSource({ url, video = false, thumbnail = false, expanded = 
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [ready, setReady] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
   const [muted, setMuted] = useState(!!edit?.muted);
+  const poster = edit?.coverUrl || fallbackPoster;
+  const readyFrame = (element: HTMLVideoElement) => {
+    const window = postTrimWindow(element.duration, edit?.trimStart, edit?.trimEnd);
+    const withinTrim = (position: number) => window.duration > 0 && Number.isFinite(position) && position >= window.start - .05 && position <= window.end + .05;
+    if (element.seeking || element.readyState < 2 || !withinTrim(element.currentTime)) return;
+    if (typeof element.requestVideoFrameCallback !== 'function') { setReady(true); return; }
+    if (frameRequest.current !== null) element.cancelVideoFrameCallback(frameRequest.current);
+    const id = element.requestVideoFrameCallback((_now, frame) => {
+      if (player.current !== element || frameRequest.current !== id) return;
+      frameRequest.current = null;
+      if (!element.seeking && withinTrim(frame.mediaTime)) setReady(true);
+    });
+    frameRequest.current = id;
+  };
   useEffect(() => {
-    if (!video || thumbnail) return;
+    // Lazy grid images do not start a timeout before the browser requests them.
+    if (thumbnail || ready || failed) return;
+    const timeout = setTimeout(() => setFailed(true), 15_000);
+    return () => clearTimeout(timeout);
+  }, [thumbnail, ready, failed, retry]);
+  useEffect(() => {
+    if (!video || thumbnail || failed) return;
     const element = player.current;
     const pause = () => element?.pause();
     const visibility = () => { if (document.hidden) pause(); };
@@ -47,10 +69,12 @@ function MediaPreviewSource({ url, video = false, thumbnail = false, expanded = 
     window.addEventListener('platinum:stop-media', pause);
     return () => {
       pause();
+      if (frameRequest.current !== null) element?.cancelVideoFrameCallback?.(frameRequest.current);
+      frameRequest.current = null;
       document.removeEventListener('visibilitychange', visibility);
       window.removeEventListener('platinum:stop-media', pause);
     };
-  }, [video, thumbnail, retry]);
+  }, [video, thumbnail, retry, failed]);
   const trim = postTrimWindow(duration, edit?.trimStart, edit?.trimEnd);
   const aspect = postAspectRatio(edit, width, height, width && height ? width / height : 4 / 5);
   const scale = bounded(edit?.scale, 1, .1, 10);
@@ -61,7 +85,7 @@ function MediaPreviewSource({ url, video = false, thumbnail = false, expanded = 
   const filter = STORY_FILTERS.find(item => item.id === edit?.filterId);
   const intensity = bounded(edit?.filterAmt, 100, 0, 100) / 100;
   const cue = video && (thumbnail || !hasStarted) ? null : postCaptionAt(edit?.captions, time);
-  const showCover = video && !!edit?.coverUrl && !coverFailed && !hasStarted;
+  const showCover = video && !!poster && !coverFailed && (!hasStarted || !ready);
   if (failed) return (
     <button type="button" disabled={pending} aria-label="Reload media preview"
       onClick={event => {
@@ -71,6 +95,7 @@ function MediaPreviewSource({ url, video = false, thumbnail = false, expanded = 
         setCoverFailed(false);
         setPlaying(false);
         setHasStarted(false);
+        setReady(false);
         setDuration(0);
         // The server rechecks the staff session and obtains a fresh capability.
         startTransition(() => router.refresh());
@@ -80,11 +105,15 @@ function MediaPreviewSource({ url, video = false, thumbnail = false, expanded = 
       {thumbnail ? '↻' : 'Preview unavailable. Reload preview'}
     </button>
   );
+  // A grid must not create one decoder and private range request per video.
+  // The selected review is the only player; absent posters remain explicit.
+  if (thumbnail && video && (!poster || coverFailed)) return <div role="img" aria-label="Video preview" style={{ width: '100%', height: '100%', minHeight: 42, display: 'grid', placeContent: 'center', gap: 4, textAlign: 'center', background: '#10141C', color: '#FFF' }}><span aria-hidden="true">▶</span><span style={{ fontSize: 12 }}>Video</span></div>;
   return <div style={{ width: '100%', height: thumbnail ? '100%' : undefined }}>
-    <div style={{ position: 'relative', overflow: 'hidden', background: '#10141C', margin: '0 auto',
+    <div aria-busy={!thumbnail && !ready} style={{ position: 'relative', overflow: 'hidden', background: '#10141C', margin: '0 auto',
       width: thumbnail ? '100%' : `min(100%, ${(expanded ? 680 : 320) * aspect}px)`, height: thumbnail ? '100%' : undefined, aspectRatio: aspect }}>
-      {video && !(thumbnail && showCover) ? <video ref={player} key={`${url}:${retry}`} src={url} poster={edit?.coverUrl || undefined} muted={thumbnail || muted} playsInline
-        preload="metadata" onError={() => setFailed(true)} onPlay={() => { setPlaying(true); setHasStarted(true); }} onPause={() => setPlaying(false)}
+      {video && !thumbnail ? <video ref={player} key={`${url}:${retry}`} src={url} muted={muted} playsInline
+        preload="auto" onError={() => setFailed(true)} onPlay={event => { setPlaying(true); setHasStarted(true); readyFrame(event.currentTarget); }} onPause={() => setPlaying(false)}
+        onLoadedData={event => readyFrame(event.currentTarget)} onSeeked={event => readyFrame(event.currentTarget)} onPlaying={event => readyFrame(event.currentTarget)}
         onLoadedMetadata={event => {
           const element = event.currentTarget;
           if (!Number.isFinite(element.duration) || element.duration <= 0) return;
@@ -99,13 +128,14 @@ function MediaPreviewSource({ url, video = false, thumbnail = false, expanded = 
             element.pause(); element.currentTime = trim.start;
           }
           setTime(element.currentTime);
-        }} style={mediaStyle} /> : <Image unoptimized fill sizes="100vw" key={`${url}:${retry}`} src={thumbnail && showCover ? edit!.coverUrl! : url} alt={thumbnail ? '' : 'Content preview'} onError={() => thumbnail && showCover ? setCoverFailed(true) : setFailed(true)} style={mediaStyle} />}
-      {showCover && !thumbnail ? <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}><Image unoptimized fill sizes="100vw" src={edit!.coverUrl!} alt="Selected video cover" onError={() => setCoverFailed(true)} style={mediaStyle} /></div> : null}
+        }} style={mediaStyle} /> : <Image unoptimized fill sizes="100vw" loading={thumbnail ? 'lazy' : 'eager'} key={`${url}:${retry}`} src={thumbnail && showCover ? poster! : url} alt={thumbnail ? '' : 'Content preview'} onLoad={() => setReady(true)} onError={() => setFailed(true)} style={mediaStyle} />}
+      {showCover && !thumbnail ? <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}><Image unoptimized fill sizes="100vw" loading="eager" src={poster!} alt="Selected video cover" onError={() => setCoverFailed(true)} style={mediaStyle} /></div> : null}
+      {!thumbnail && !ready && !showCover ? <div role="status" style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', padding: 16, color: '#FFF', background: '#10141C', pointerEvents: 'none', textAlign: 'center' }}>{video ? 'Loading video preview…' : 'Loading photo preview…'}</div> : null}
       {filter ? <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backdropFilter: filterCss(filter.id, intensity), WebkitBackdropFilter: filterCss(filter.id, intensity) }}>
         {filter.layers.map((layer, index) => <div key={index} style={{ position: 'absolute', inset: 0, backgroundColor: layer.color, opacity: layer.opacity * intensity }} />)}
       </div> : null}
       {edit?.adjust ? <AdjustOverlay adjust={edit.adjust} /> : null}
-      {!video && onExpand ? <button type="button" className="pc-photo-expand-target" aria-label="Open photo in full screen" onClick={onExpand} /> : null}
+      {!video && onExpand ? <button type="button" className="pc-photo-expand-target" aria-label="Open photo in full screen" disabled={expanded} style={expanded ? { display: 'none' } : undefined} onClick={onExpand} /> : null}
       {cue ? <div style={{ position: 'absolute', left: '8%', right: '8%', zIndex: 2, pointerEvents: 'none', textAlign: 'center',
         ...(cue.position === 'top' ? { top: '10%' } : cue.position === 'middle' ? { top: '44%' } : { bottom: '16%' }) }}>
         <span style={{ display: 'inline-block', maxWidth: '100%', padding: '7px 11px', borderRadius: 5, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap',

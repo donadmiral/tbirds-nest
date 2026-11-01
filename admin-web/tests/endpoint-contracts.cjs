@@ -68,7 +68,7 @@ function mediaFixture(options = {}) {
     }
     if (call.path === '/storage/v1/object/authenticated/post-media/owner/photo.jpg') {
       if (options.storageError) throw new TypeError('synthetic upstream outage');
-      return new Response(call.method === 'HEAD' ? null : 'synthetic media bytes', { status: options.partial ? 206 : 200, headers: { 'content-type': 'image/jpeg', 'accept-ranges': 'bytes', ...(options.partial ? { 'content-range': 'bytes 0-3/20' } : {}) } });
+      return new Response(call.method === 'HEAD' ? null : options.partial ? 'synt' : 'synthetic media bytes', { status: options.partial ? 206 : 200, headers: { 'content-type': 'image/jpeg', 'accept-ranges': 'bytes', ...(options.partial ? { 'content-range': 'bytes 0-3/20', 'content-length': '4' } : {}) } });
     }
   } });
   const route = h.load('app/api/moderation-media/route.ts');
@@ -80,7 +80,7 @@ audit(mediaRoute, 'GET, HEAD and range execute real Auth, exact object proof and
     const { h, route, request } = mediaFixture({ partial: method === 'RANGE' });
     const result = await route[method === 'HEAD' ? 'HEAD' : 'GET'](request({ method: method === 'HEAD' ? 'HEAD' : 'GET', ...(method === 'RANGE' ? { headers: { Range: 'bytes=0-3' } } : {}) }));
     assert.equal(result.status, method === 'RANGE' ? 206 : 200);
-    assert.equal(await result.text(), method === 'HEAD' ? '' : 'synthetic media bytes');
+    assert.equal(await result.text(), method === 'HEAD' ? '' : method === 'RANGE' ? 'synt' : 'synthetic media bytes');
     assert.match(result.headers.get('cache-control'), /no-store/);
     assert.equal(h.calls.filter(call => call.path === '/auth/v1/user').length, 2);
     assert.equal(h.calls.filter(call => call.path === '/rest/v1/rpc/admin_bound_content_media_object').length, 2);

@@ -1,0 +1,805 @@
+{
+  "checkedAt": "2026-11-01T23:07:58.335Z",
+  "scope": "Real Next dev App Router, production proxy/getServerViewer/AppShell/root loading/Jobs/Profile/Notifications modules; synthetic local Supabase HTTP Auth/database. No Next routing adapter and no hosted requests.",
+  "runtime": "156.0.8078.80",
+  "checks": [
+    {
+      "name": "cold Jobs to own Profile retains visible passive navigation while actual server AppShell profile response is held",
+      "passed": true,
+      "heldResponses": 1,
+      "observedFrames": 44,
+      "totalTransitionFrames": 127,
+      "framesWithoutChrome": 0,
+      "extraUnreadRequests": 0,
+      "editableInputs": 0,
+      "signedAvatarLocators": 0
+    },
+    {
+      "name": "passive navigation interrupts the held route and late Profile completion does not replace Jobs",
+      "passed": true
+    },
+    {
+      "name": "collapsed sidebar and content geometry stay aligned during a real cold Notifications transition",
+      "passed": true,
+      "sidebarWidth": 76,
+      "sidebarRight": 76,
+      "mainLeft": 76
+    },
+    {
+      "name": "actual server navigation renders the authorized Notifications page when its optional profile request never finishes",
+      "passed": true,
+      "elapsedMs": 5259,
+      "timeoutMs": 5000
+    }
+  ],
+  "frames": [
+    {
+      "at": 0.6999999992549419,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 16,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 32.5,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 51.19999999925494,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 70,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 82.69999999925494,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 99.29999999701977,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 116,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 133.69999999925494,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 150.09999999776483,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 166.19999999925494,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 183.5,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 199.5,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 217.59999999776483,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 232.79999999701977,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 249.89999999850988,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 277.5,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 284.19999999925494,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 300.8999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 316.8999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 332.79999999701977,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 349.79999999701977,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 368,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 383.0999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 399.79999999701977,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 417.0999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 434.0999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 450.29999999701977,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 466.69999999925494,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 483.29999999701977,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 500,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 516.5999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 533,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 549.7999999970198,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 566.6999999992549,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 584.8999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 599.3999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 616.6999999992549,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 632.7999999970198,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 649.7999999970198,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 666.3999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 682.8999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 699.5,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 716.3999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 733.1999999992549,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 749.8999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 766.0999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 783.0999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 800.5999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 817.0999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 833.5,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 849.7999999970198,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 868.7999999970198,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 883.2999999970198,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 899.8999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 916.3999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 933.2999999970198,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 950,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 966.5,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 983.6999999992549,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1000,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1016.5999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1033.199999999255,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1050,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1066.699999999255,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1083.199999999255,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1100,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1116.199999999255,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1133.0999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1149.5,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1166,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1183,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1199.3999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1218.5,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1232.8999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1249.2999999970198,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1265.8999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1282.8999999985099,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1299.5,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1316,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1332.5999999977648,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1366.199999999255,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1373,
+      "fallback": null,
+      "chrome": 2,
+      "path": "/jobs"
+    },
+    {
+      "at": 1394.0999999977648,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1419.199999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1425.7999999970198,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1443.199999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1450.5,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1466.0999999977648,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1482.7999999970198,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1499.3999999985099,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1516.0999999977648,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1532.5999999977648,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1549.3999999985099,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1566.199999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1582.699999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1599.199999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1616.199999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1633.7999999970198,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1649.8999999985099,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1666,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1682.7999999970198,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1699.3999999985099,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1716.0999999977648,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1732.7999999970198,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1749.8999999985099,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1766.3999999985099,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1783,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1799.699999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1816.199999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1832.8999999985099,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1849.5999999977648,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1866.2999999970198,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1883.199999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1899.699999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1916.2999999970198,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1932.7999999970198,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1949.2999999970198,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1966.0999999977648,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1983.699999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 1999.199999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 2015.8999999985099,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 2032.5999999977648,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 2049.199999999255,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 2065.89999999851,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 2082.599999997765,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    },
+    {
+      "at": 2099.2999999970198,
+      "fallback": "verified",
+      "chrome": 2,
+      "path": "/shellfixture"
+    }
+  ],
+  "browserErrors": [],
+  "limits": [
+    "Development compilation and localhost transport prevent production latency claims.",
+    "This proves visible navigation during held server response, not persistent DOM, GPU paint or faster network.",
+    "Auth/account replacement is covered by focused helper and actual-recorder tests, not a hosted account switch in this run."
+  ]
+}

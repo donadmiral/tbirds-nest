@@ -2,18 +2,20 @@ name: Browser interaction and video gates
 
 on:
   push:
-    branches: ['codex/completion-20261101']
+    branches: ['codex/completion-20261101', 'codex/web-admin-media-parity-20261101']
     paths:
       - 'admin-web/**'
       - 'web/**'
       - 'shared/**'
       - '.github/workflows/browser-quality.yml'
+      - 'scripts/quality/install-browser-test-runtime.sh'
   pull_request:
     paths:
       - 'admin-web/**'
       - 'web/**'
       - 'shared/**'
       - '.github/workflows/browser-quality.yml'
+      - 'scripts/quality/install-browser-test-runtime.sh'
   workflow_dispatch:
 
 permissions:
@@ -45,6 +47,9 @@ jobs:
       PLATINUM_REPORT_OUTPUT: /tmp/platinum-admin-reporting
       PLATINUM_REPORT_ARTIFACTS: /tmp/platinum-browser-evidence/admin-reporting
       PLATINUM_CUSTOM_UI_ARTIFACTS: /tmp/platinum-browser-evidence/admin-custom-controls
+      MEDIA_READINESS_OUTPUT: /tmp/platinum-browser-evidence/media-readiness
+      MEDIA_READINESS_EVIDENCE: /tmp/platinum-browser-evidence/media-readiness
+      STORY_MEMORY_QA_OUTPUT: /tmp/platinum-browser-evidence/story-memory-readiness
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         id: checkout
@@ -67,9 +72,9 @@ jobs:
         id: browser_tools
         run: |
           sudo apt-get update
-          sudo apt-get install --yes ffmpeg
-          node web/node_modules/playwright/cli.js install --with-deps chromium
-          node -e 'const p=require("./web/node_modules/playwright").chromium.executablePath(); console.log("PLATINUM_CHROMIUM="+p); console.log("STORY_QA_CHROME="+p)' >> "$GITHUB_ENV"
+          sudo apt-get install --yes ffmpeg unzip
+          node web/node_modules/playwright/cli.js install-deps chromium
+          bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/platinum-browser"
       - name: Exercise actual admin components
         # Run independent gates after an earlier test fails, but only after successful setup.
         # Ordinary step failures still fail the job; cancellation stops further gates.
@@ -77,9 +82,24 @@ jobs:
         run: |
           node admin-web/tests/browser/compile.cjs
           node admin-web/tests/browser/run.cjs
+      - name: Exercise admin thumbnails and uninterrupted full-screen media
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        env:
+          PLATINUM_UI_ENTRY: tests/browser/media-readiness-fixture.tsx
+          PLATINUM_UI_OUTPUT: /tmp/platinum-admin-media-readiness
+          PLATINUM_UI_ARTIFACTS: /tmp/platinum-browser-evidence/admin-media-readiness
+        run: |
+          node admin-web/tests/browser/compile.cjs
+          node admin-web/tests/browser/media-readiness-run.cjs
       - name: Exercise public-web navigation, account changes and recovery
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/social-run.cjs
+      - name: Exercise prepared feed media and shared-post source changes
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node web/tests/browser/media-readiness-run.cjs
+      - name: Exercise story and memory handoff with real decoded video frames
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node web/tests/browser/story-memory-readiness.cjs
       - name: Exercise member read failures, write recovery and actual upload controls
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/member-resilience-run.cjs
@@ -149,5 +169,11 @@ jobs:
             /tmp/platinum-browser-evidence/admin-reporting/*.json
             /tmp/platinum-browser-evidence/admin-custom-controls/*.png
             /tmp/platinum-browser-evidence/admin-custom-controls/*.json
+            /tmp/platinum-browser-evidence/media-readiness/*.png
+            /tmp/platinum-browser-evidence/media-readiness/*.json
+            /tmp/platinum-browser-evidence/story-memory-readiness/*.png
+            /tmp/platinum-browser-evidence/story-memory-readiness/*.json
+            /tmp/platinum-browser-evidence/admin-media-readiness/*.png
+            /tmp/platinum-browser-evidence/admin-media-readiness/*.json
           if-no-files-found: ignore
           retention-days: 7

@@ -8,6 +8,7 @@ type MediaReference = {
   entityId: string;
   width?: number;
   height?: number;
+  poster?: string;
   edit?: ReviewMedia['edit'];
 };
 type StorySource = { id: string; kind: StoryKind; caption: string; references: MediaReference[] };
@@ -72,14 +73,19 @@ export function storyPresentationSource(story: Record<string, unknown>): StorySo
     const key = `${entityKind}:${entityId}:${url}`;
     if (seen.has(key)) return;
     seen.add(key);
-    references.push({ url, entityKind, entityId, video: mediaType(hint) === 'video' || VIDEO.test(url), width: dimension(width), height: dimension(height) });
+    const reference: MediaReference = { url, entityKind, entityId, video: mediaType(hint) === 'video' || VIDEO.test(url), width: dimension(width), height: dimension(height) };
+    references.push(reference);
+    return reference;
   };
   const primary = sourceUrl(story.media_url), primaryType = mediaType(story.media_type);
   // A text story may contain a shared-post sticker; that post is not its
   // primary story media. Thumbnail, author avatar, links and audio are metadata.
   if (primary && (primaryType || (!text(story.media_type) && (VIDEO.test(primary) || IMAGE.test(primary))))) {
-    add(primary, 'story', id, primaryType, story.width, story.height);
-    if (references.length) references[0].edit = storyEdit(story);
+    const reference = add(primary, 'story', id, primaryType, story.width, story.height);
+    if (reference) {
+      reference.edit = storyEdit(story);
+      if (reference.video) reference.poster = sourceUrl(story.thumbnail_url) || undefined;
+    }
   }
   add(story.dual_front_url, 'story', id, 'image');
 
@@ -100,7 +106,8 @@ export function storyPresentationSource(story: Record<string, unknown>): StorySo
     } else if (sticker.kind === 'post' && UUID.test(text(sticker.postId))) {
       sharedPost = true;
       const postId = text(sticker.postId);
-      add(sticker.postMediaUrl, 'post', postId, sticker.postMediaType, sticker.postMediaWidth, sticker.postMediaHeight);
+      const reference = add(sticker.postMediaUrl, 'post', postId, sticker.postMediaType, sticker.postMediaWidth, sticker.postMediaHeight);
+      if (reference?.video) reference.poster = sourceUrl(sticker.postThumbnailUrl) || undefined;
       const caption = text(sticker.postText) || text(sticker.postArticleTitle);
       if (caption) postText.push(caption);
     }
@@ -119,16 +126,17 @@ export async function resolveStoryPresentations(stories: Record<string, unknown>
   const refs = sources.flatMap(source => source.references);
   const own = refs.filter(ref => ref.entityKind === 'story'), posts = refs.filter(ref => ref.entityKind === 'post');
   const [storyUrls, postUrls] = await Promise.all([
-    own.length ? resolve(own.map(ref => ref.url), 'story', [...new Set(own.map(ref => ref.entityId))]) : Promise.resolve({} as Record<string, string>),
-    posts.length ? resolve(posts.map(ref => ref.url), 'post', [...new Set(posts.map(ref => ref.entityId))]) : Promise.resolve({} as Record<string, string>),
+    own.length ? resolve(own.flatMap(ref => [ref.url, ...(ref.poster ? [ref.poster] : [])]), 'story', [...new Set(own.map(ref => ref.entityId))]) : Promise.resolve({} as Record<string, string>),
+    posts.length ? resolve(posts.flatMap(ref => [ref.url, ...(ref.poster ? [ref.poster] : [])]), 'post', [...new Set(posts.map(ref => ref.entityId))]) : Promise.resolve({} as Record<string, string>),
   ]);
   return sources.map(source => ({
     id: source.id, kind: source.kind, caption: source.caption,
     mediaCount: source.references.length,
     hasVideo: source.references.some(ref => ref.video),
     gallery: source.references.flatMap(ref => {
-      const url = (ref.entityKind === 'post' ? postUrls : storyUrls)[ref.url];
-      return url ? [{ url, video: ref.video, width: ref.width, height: ref.height, ...(ref.edit ? { edit: ref.edit } : {}) }] : [];
+      const authorized = ref.entityKind === 'post' ? postUrls : storyUrls;
+      const url = authorized[ref.url], poster = ref.poster ? authorized[ref.poster] : undefined;
+      return url ? [{ url, video: ref.video, width: ref.width, height: ref.height, ...(poster ? { poster } : {}), ...(ref.edit ? { edit: ref.edit } : {}) }] : [];
     }),
   }));
 }

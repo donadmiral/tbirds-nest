@@ -7,7 +7,6 @@ import { BookOpen, Download, Music2, Pause, Play, SkipBack, SkipForward, Volume2
 import type { MemoryPage } from '@/lib/memoryAlbum';
 import { useMemoryPlayback } from '@/lib/useMemoryPlayback';
 import { MEMORY_SCORE_DESCRIPTION, MEMORY_SCORE_DUCK, MEMORY_SCORE_TITLE, MEMORY_SCORE_VOLUME, createMemoryFilmProgressGuard, memoryFilmItems, memoryPageSoundtrack, memoryFilmPhotoDuration, memoryFilmProgress, memoryFilmStep, memoryFilmVideoWindow, type MemoryFilmItem } from '../../../shared/memoryFilm';
-import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 import { MemoryPageImage } from './MemoryPageImage';
 import { MemoryStoryFrame } from './MemoryStoryFrame';
 import { useMemoryDialog } from './useMemoryDialog';
@@ -34,7 +33,8 @@ export function MemoryFilm({ bookId,revision,title, pages, soundtrack, filmSetti
   const dialog = useMemoryDialog(!exportOpen, onClose);
   const index = Math.max(0, items.findIndex(item => item.id === selection.id)), item = items[index];
   const pageMusic = memoryPageSoundtrack(item?.page),hasPageMusic=!!pageMusic;
-  const key = `${item?.id}:${item?.uri}:${selection.run}:${attempt}`;
+  const slotKey = (entry: MemoryFilmItem) => JSON.stringify([entry.id, entry.uri, entry.poster, entry.page.media_transform, entry.page.filter_id, attempt]);
+  const key = `${item ? slotKey(item) : ''}:${selection.run}`;
   const ready = item?.kind === 'text' || readyKey === key, error = failure.key === key ? failure.message : '';
   const active = playing && foreground && !callActive && !error && !exportOpen;
   const current = useRef({ items, index, key, active, music }); useLayoutEffect(()=>{current.current = { items, index, key, active, music };},[items,index,key,active,music]);
@@ -74,10 +74,8 @@ export function MemoryFilm({ bookId,revision,title, pages, soundtrack, filmSetti
     const timer = setTimeout(() => { if (current.current.active) mediaFailed(key, 'This memory is taking too long to load.'); }, 20000);
     return () => clearTimeout(timer);
   }, [key, ready, error, item, active]);
-  useEffect(() => {
-    const next = items[(index + 1) % Math.max(1, items.length)], uri = next?.kind === 'image' ? next.uri : next?.poster;
-    if (uri && privateImageCachePolicy(uri) !== 'none') { const preload = new Image(); preload.src = uri; }
-  }, [items, index]);
+  const upcoming = items.length > 1 && foreground && !callActive && !exportOpen ? items[(index + 1) % items.length] : null;
+  const nearby = item ? [item, ...(upcoming ? [upcoming] : [])] : [];
   const retry = () => { setAttempt(value => value + 1); onRetry(); };
   if (!item) return null;
   return <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`${title} memory film`} className={s.root} onKeyDown={event => {
@@ -92,9 +90,13 @@ export function MemoryFilm({ bookId,revision,title, pages, soundtrack, filmSetti
     <div className={s.timeline} role="progressbar" aria-label={`Memory ${index + 1} of ${items.length}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>{items.map((entry, i) => <span key={entry.id}><i style={{ width: `${i < index ? 100 : i === index ? progress * 100 : 0}%` }} /></span>)}</div>
     <div className={s.stage}>
       {(item.kind === 'image' ? item.uri : item.poster) && <NextImage unoptimized width={1080} height={1920} className={s.backdrop} alt="" aria-hidden src={(item.kind === 'image' ? item.uri : item.poster)!} />}
-      <div key={key} className={s.frame} style={{opacity:visual?.opacity,transform:visual?`translate(${visual.x*100}%,${visual.y*100}%) scale(${visual.scale})`:undefined}}>
-        {item.kind === 'video' && item.uri ? <FilmVideo item={item} active={active} muted={originalMuted} onMetadata={duration=>metadata(item.id,duration)} onReady={() => mediaReady(key)} onError={() => mediaFailed(key, 'This memory video could not play.')} onProgress={value => mediaProgress(key, value)} onEnd={() => advance(1, key)} /> : <MemoryStoryFrame page={item.page as MemoryPage} clock={photoProgress * item.movie.durationSec}>{style => item.kind === 'image' ? <div className={s.photo} style={{ transform: undefined }}><MemoryPageImage src={item.uri} poster={item.poster} style={style} onReady={() => mediaReady(key)} onRetry={retry} /></div> : <div className={item.movie.titleCard?s.titlePage:s.textPage}>{item.excerpt || item.page.story_caption || item.page.caption || ''}</div>}</MemoryStoryFrame>}
-      </div>
+      {nearby.map(entry => {
+        const selected = entry.id === item.id, eventKey = selected ? key : `${slotKey(entry)}:${selection.run + 1}`;
+        return <div key={slotKey(entry)} className={s.frame} aria-hidden={!selected} inert={!selected} data-memory-film-slot={entry.id} data-memory-film-active={selected}
+          style={{ visibility: selected ? 'visible' : 'hidden', pointerEvents: selected ? undefined : 'none', opacity: selected ? visual?.opacity : 1, transform: selected && visual ? `translate(${visual.x*100}%,${visual.y*100}%) scale(${visual.scale})` : undefined }}>
+          {entry.kind === 'video' && entry.uri ? <FilmVideo item={entry} active={selected && active} run={selected ? selection.run : 0} muted={!selected || originalMuted} onMetadata={duration=>metadata(entry.id,duration)} onReady={() => mediaReady(eventKey)} onError={() => mediaFailed(eventKey, 'This memory video could not play.')} onProgress={value => mediaProgress(eventKey, value)} onEnd={() => advance(1, eventKey)} /> : <MemoryStoryFrame page={entry.page as MemoryPage} clock={selected ? photoProgress * entry.movie.durationSec : 0}>{style => entry.kind === 'image' ? <div className={s.photo}><MemoryPageImage active={selected && active} src={entry.uri} poster={entry.poster} style={style} onReady={() => mediaReady(eventKey)} onRetry={retry} /></div> : <div className={entry.movie.titleCard?s.titlePage:s.textPage}>{entry.excerpt || entry.page.story_caption || entry.page.caption || ''}</div>}</MemoryStoryFrame>}
+        </div>;
+      })}
       {!ready && !error && <div className={s.loading} role="status">Loading memory…</div>}
       {!!error && <div className={s.error} role="alert"><p>{error}</p><button type="button" onClick={retry}>Retry</button><button type="button" onClick={() => advance(1)}>Next memory</button></div>}
     </div>
@@ -110,33 +112,48 @@ export function MemoryFilm({ bookId,revision,title, pages, soundtrack, filmSetti
   </div>;
 }
 
-function FilmVideo({ item, active, muted, onMetadata, onReady, onError, onProgress, onEnd }: { item: MemoryFilmItem; active: boolean; muted: boolean; onMetadata?:(duration:number)=>void; onReady: () => void; onError: () => void; onProgress: (value: number) => void; onEnd: () => void }) {
+function FilmVideo({ item, active, run = 0, muted, onMetadata, onReady, onError, onProgress, onEnd }: { item: MemoryFilmItem; active: boolean; run?: number; muted: boolean; onMetadata?:(duration:number)=>void; onReady: () => void; onError: () => void; onProgress: (value: number) => void; onEnd: () => void }) {
   const ref = useRef<HTMLVideoElement>(null), done = useRef(false), initialized = useRef(false);
   const firstFrame = useRef(false), frameCallback = useRef<number|null>(null);
   const progressGuard = useRef(createMemoryFilmProgressGuard());
-  const [clock, setClock] = useState(0), [blocked, setBlocked] = useState(false);
+  const [clock, setClock] = useState(0), [blocked, setBlocked] = useState(false), [decoded, setDecoded] = useState(false);
+  const lastRun = useRef(run);
   const state = useRef({ active, onEnd, onReady, onError, onProgress }); useLayoutEffect(()=>{state.current = { active, onEnd, onReady, onError, onProgress };},[active,onEnd,onReady,onError,onProgress]);
   const allowed = useCallback(() => !!ref.current?.isConnected && !done.current && state.current.active && !document.hidden && document.documentElement.dataset.platinumCallActive !== 'true', []);
   const play = useCallback(() => { const video = ref.current; if (!video) return; if (!allowed() || done.current) { video.pause(); return; } void video.play().then(() => { if (!allowed()) video.pause(); else setBlocked(false); }).catch(error => { if (allowed()) { if (error?.name === 'NotAllowedError') setBlocked(true); else if (error?.name !== 'AbortError') state.current.onError(); } }); }, [allowed]);
   const observeFrame = () => {
     const video = ref.current;
-    if (!video || done.current || firstFrame.current || frameCallback.current !== null) return;
+    if (!video || !initialized.current || done.current || firstFrame.current || frameCallback.current !== null) return;
     if (typeof video.requestVideoFrameCallback === 'function') {
       frameCallback.current = video.requestVideoFrameCallback((_now, metadata) => {
         frameCallback.current = null;
         if (ref.current !== video || !video.isConnected || done.current) return;
         const start = memoryFilmVideoWindow(item.page, video.duration).start;
-        if (video.seeking || metadata.mediaTime < start - .05) { observeFrame(); return; }
-        firstFrame.current = true; state.current.onReady();
+        if (video.seeking || video.readyState < 2 || video.currentTime < start - .05 || metadata.mediaTime < start - .05) { observeFrame(); return; }
+        firstFrame.current = true; setDecoded(true); if (state.current.active) state.current.onReady();
       });
-    } else if (video.readyState >= 2 && !video.seeking) {
-      firstFrame.current = true; state.current.onReady();
+    } else if (video.readyState >= 2 && !video.seeking && video.currentTime >= memoryFilmVideoWindow(item.page, video.duration).start - .05) {
+      firstFrame.current = true; setDecoded(true); if (state.current.active) state.current.onReady();
     }
   };
-  const configure = () => { const video = ref.current; if (!video) return; onMetadata?.(video.duration); const window = memoryFilmVideoWindow(item.page, video.duration); video.playbackRate = window.speed; video.volume = window.volume; video.muted = muted || window.volume === 0; if (!initialized.current) { video.currentTime = window.start; initialized.current = true; setClock(window.start); progressGuard.current.reset(); progressGuard.current.stalled(video.currentTime, Date.now(), allowed()); } observeFrame(); play(); };
+  const configure = () => { const video = ref.current; if (!video) return; onMetadata?.(video.duration); const window = memoryFilmVideoWindow(item.page, video.duration); video.playbackRate = window.speed; video.volume = window.volume; video.muted = muted || window.volume === 0; if (!initialized.current) { if(Math.abs(video.currentTime-window.start)>.01)video.currentTime = window.start; initialized.current = true; setClock(window.start); progressGuard.current.reset(); progressGuard.current.stalled(video.currentTime, Date.now(), allowed()); } observeFrame(); play(); };
+  useLayoutEffect(() => {
+    if (lastRun.current === run) return;
+    lastRun.current = run; done.current = false; initialized.current = false; firstFrame.current = false; setDecoded(false);
+    const video = ref.current;
+    if (frameCallback.current !== null) video?.cancelVideoFrameCallback?.(frameCallback.current);
+    frameCallback.current = null;
+    if (video && video.readyState >= 1) configure();
+  }, [run]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (active && firstFrame.current) state.current.onReady(); }, [active, run]);
+  useEffect(() => {
+    const video = ref.current; if (!video || !item.uri) return;
+    if (video.getAttribute('src') !== item.uri) { video.src = item.uri; video.load(); }
+    return () => { video.pause(); video.removeAttribute('src'); video.load(); };
+  }, [item.uri]);
   const finish = () => { if (!allowed() || done.current) return; done.current = true; ref.current?.pause(); state.current.onProgress(1); state.current.onEnd(); };
   useEffect(() => {
-    play(); const node = ref.current, guard=progressGuard.current;
+    play(); observeFrame(); const node = ref.current, guard=progressGuard.current;
     const reset = () => { guard.reset(); if (node) guard.stalled(node.currentTime, Date.now(), allowed() && initialized.current && !blocked); };
     const stop = () => { reset(); if (!allowed()) node?.pause(); };
     reset(); document.addEventListener('visibilitychange', stop);
@@ -146,6 +163,8 @@ function FilmVideo({ item, active, muted, onMetadata, onReady, onError, onProgre
       }
     }, 500);
     return () => { clearInterval(watchdog); guard.reset(); document.removeEventListener('visibilitychange', stop); node?.pause(); if(frameCallback.current!==null){node?.cancelVideoFrameCallback?.(frameCallback.current);frameCallback.current=null;} };
-  }, [active, blocked, play, allowed]);
-  return <MemoryStoryFrame page={item.page as MemoryPage} clock={clock}>{style => <><video ref={ref} src={item.uri!} poster={item.poster || undefined} preload="auto" playsInline muted={muted} onLoadedMetadata={configure} onCanPlay={configure} onLoadedData={observeFrame} onPlaying={observeFrame} onSeeked={observeFrame} onError={onError} onPlay={event => { if (!allowed()) event.currentTarget.pause(); }} onTimeUpdate={event => { if (!allowed() || done.current) return; const video = event.currentTarget, window = memoryFilmVideoWindow(item.page, video.duration); setClock(video.currentTime); onProgress(memoryFilmProgress(video.currentTime, window.start, window.end)); if (window.end != null && video.currentTime >= window.end - .025) finish(); }} onEnded={finish} style={style} className={s.video} />{blocked && <button type="button" className={s.videoPlay} onClick={play}><Play size={20} /> Play this memory</button>}</>}</MemoryStoryFrame>;
+  }, [active, run, blocked, play, allowed]); // eslint-disable-line react-hooks/exhaustive-deps
+  return <MemoryStoryFrame page={item.page as MemoryPage} clock={clock}>{style => <>
+    {!decoded&&item.poster&&<NextImage unoptimized width={1080} height={1920} src={item.poster} alt="" aria-hidden style={{...style,position:'absolute',inset:0,width:'100%',height:'100%'}}/>}
+    <video ref={ref} src={item.uri!} preload="auto" playsInline muted={muted} data-memory-film-video={item.id} data-memory-frame-ready={decoded} onLoadedMetadata={configure} onCanPlay={configure} onLoadedData={observeFrame} onPlaying={observeFrame} onSeeked={observeFrame} onError={onError} onPlay={event => { if (!allowed()) event.currentTarget.pause(); }} onTimeUpdate={event => { if (!allowed() || done.current) return; const video = event.currentTarget, window = memoryFilmVideoWindow(item.page, video.duration); setClock(video.currentTime); onProgress(memoryFilmProgress(video.currentTime, window.start, window.end)); if (window.end != null && video.currentTime >= window.end - .025) finish(); }} onEnded={finish} style={{...style,opacity:decoded?1:0}} className={s.video} />{blocked && <button type="button" className={s.videoPlay} onClick={play}><Play size={20} /> Play this memory</button>}</>}</MemoryStoryFrame>;
 }

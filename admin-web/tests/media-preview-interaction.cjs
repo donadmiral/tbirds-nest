@@ -17,22 +17,22 @@ function harness(file,props){
   const trigger=new Element();
   const document={activeElement:trigger,body:{style:{overflow:"auto"}},hidden:false,addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
   const window={dispatchEvent:event=>listeners.get(event.type)?.(),addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
-  const exports={};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'admin-web/components',file),'utf8')),{exports,document,window,HTMLElement:Element,Event:class Event{constructor(type){this.type=type;}},require:name=>({'react':react,'next/image':{default:'img'},'react/jsx-runtime':{jsx,jsxs:jsx},'next/navigation':{useRouter:()=>({refresh(){}})},'../../shared/postMediaEditing':shared.exports,'../../shared/postVoiceEffects':voice.exports,'../../shared/storyFilterAppearance':{STORY_FILTERS:[],filterCss:()=>undefined},'../../shared/StoryAdjustOverlay':{AdjustOverlay:'AdjustOverlay'},'./MediaPreview':{default:'MediaPreview'}}[name]??{})});
-  const player={duration:12,currentTime:0,playbackRate:1,pauses:0,pause(){this.pauses++;},play:async()=>{}};
-  const dialog={open:false,showModal(){this.open=true;},close(){this.open=false;}};
+  const exports={};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'admin-web/components',file),'utf8')),{exports,document,window,setTimeout,clearTimeout,HTMLElement:Element,Event:class Event{constructor(type){this.type=type;}},require:name=>({'react':react,'next/image':{default:'img'},'react/jsx-runtime':{jsx,jsxs:jsx},'next/navigation':{useRouter:()=>({refresh(){}})},'../../shared/postMediaEditing':shared.exports,'../../shared/postVoiceEffects':voice.exports,'../../shared/storyFilterAppearance':{STORY_FILTERS:[],filterCss:()=>undefined},'../../shared/StoryAdjustOverlay':{AdjustOverlay:'AdjustOverlay'},'./MediaPreview':{default:'MediaPreview'}}[name]??{})});
+  const player={duration:12,currentTime:0,readyState:2,seeking:false,playbackRate:1,pauses:0,pause(){this.pauses++;},play:async()=>{}};
+  const dialog={open:true,modal:false,isConnected:true,show(){this.open=true;this.modal=false;},showModal(){this.open=true;this.modal=true;},close(){this.open=false;this.modal=false;}};
   let current=props;
-  const render=()=>{cursor=0;let tree=exports.default(current);if(typeof tree?.type==='function')tree=tree.type(tree.props);const dialogNode=walk(tree).find(n=>n.type==='dialog');if(dialogNode?.props.ref)dialogNode.props.ref.current=dialog;const node=walk(tree).find(n=>n.type==='video');if(node?.props.ref)node.props.ref.current=player;while(effects.length)effects.shift()();return tree;};
+  const render=()=>{cursor=0;let tree=exports.default(current);if(typeof tree?.type==='function')tree=tree.type(tree.props);const dialogNode=walk(tree).find(n=>n.type==='dialog');dialog.isConnected=!!dialogNode;if(dialogNode?.props.ref)dialogNode.props.ref.current=dialog;const node=walk(tree).find(n=>n.type==='video');if(node?.props.ref)node.props.ref.current=player;while(effects.length)effects.shift()();return tree;};
   return{render,player,document,listeners,dialog,trigger,setProps:value=>{current=value;},find:fn=>walk(render()).find(fn),unmount:()=>cleanups.forEach(fn=>fn?.())};
 }
 test('admin thumbnails show the authorized uploaded cover instead of decoding and replacing it with a video frame',()=>{
   const h=harness('MediaPreview.tsx',{url:'signed:video',video:true,thumbnail:true,edit:{aspectRatio:.8,coverUrl:'signed:cover',coverAt:3}});
   const nodes=walk(h.render());assert.equal(nodes.filter(n=>n.type==='video').length,0);assert.equal(nodes.find(n=>n.type==='img').props.src,'signed:cover');
-  nodes.find(n=>n.type==='img').props.onError();assert.ok(h.find(n=>n.type==='video'));h.unmount();
+  nodes.find(n=>n.type==='img').props.onError();assert.equal(h.find(n=>n.type==='video'),undefined);assert.ok(h.find(n=>n.props?.['aria-label']==='Reload media preview'));h.unmount();
 });
 test('admin trim seeks, captions and playback stop obey the saved recipe',()=>{
   const h=harness('MediaPreview.tsx',{url:'signed:video',video:true,edit:{aspectRatio:.8,trimStart:2,trimEnd:10,speed:1.5,captions:[{text:'Our weekend',start:2,end:4,style:'bold',position:'bottom'}]}});
   h.find(n=>n.type==='video').props.onLoadedMetadata({currentTarget:h.player});assert.equal(h.player.currentTime,2);assert.equal(h.player.playbackRate,1.5);
-  h.find(n=>n.type==='video').props.onPlay();assert.ok(walk(h.render()).some(n=>n.props?.children==='Our weekend'));
+  h.find(n=>n.type==='video').props.onPlay({currentTarget:h.player});assert.ok(walk(h.render()).some(n=>n.props?.children==='Our weekend'));
   const slider=h.find(n=>n.type==='input');assert.equal(slider.props.max,9.95);slider.props.onChange({target:{value:99}});assert.equal(h.player.currentTime,9.95);
   h.player.currentTime=10;h.find(n=>n.type==='video').props.onTimeUpdate({currentTarget:h.player});assert.equal(h.player.currentTime,2);assert.equal(h.player.pauses,1);
   h.document.hidden=true;h.listeners.get('visibilitychange')();assert.equal(h.player.pauses,2);h.unmount();assert.equal(h.player.pauses,3);assert.equal(h.listeners.size,0);
@@ -48,7 +48,8 @@ test('legacy moderation details preserve the whole unknown-size image or video w
     const legacy=harness('MediaPreview.tsx',{url:'signed:legacy',video});
     assert.equal(legacy.find(n=>n.type===(video?'video':'img')).props.style.objectFit,'contain');legacy.unmount();
     const thumbnail=harness('MediaPreview.tsx',{url:'signed:legacy',video,thumbnail:true});
-    assert.equal(thumbnail.find(n=>n.type===(video?'video':'img')).props.style.objectFit,'cover');thumbnail.unmount();
+    if(video){assert.equal(thumbnail.find(n=>n.type==='video'),undefined);assert.ok(thumbnail.find(n=>n.props?.['aria-label']==='Video preview'));}
+    else assert.equal(thumbnail.find(n=>n.type==='img').props.style.objectFit,'cover');thumbnail.unmount();
     const cropped=harness('MediaPreview.tsx',{url:'signed:authored',video,edit:{fit:'cover',aspectRatio:.8}});
     assert.equal(cropped.find(n=>n.type===(video?'video':'img')).props.style.objectFit,'cover');cropped.unmount();
   }
@@ -67,9 +68,29 @@ test('expanded admin photos consume Escape without closing the record and restor
   h.document.activeElement = null;
   const open=h.render();
   assert.equal(h.dialog.open,true);assert.equal(h.document.body.style.overflow,'hidden');
-  assert.equal(walk(open).filter(n=>n.type==='MediaPreview').length,2,'The inline trigger stays mounted behind the modal');
+  assert.equal(walk(open).filter(n=>n.type==='MediaPreview').length,1,'Only the full-screen media instance remains mounted');
   let prevented=false,stopped=false;
   walk(open).find(n=>n.type==='dialog').props.onKeyDown({key:'Escape',preventDefault(){prevented=true;},stopPropagation(){stopped=true;}});
-  h.render();assert.equal(prevented,true);assert.equal(stopped,true);assert.equal(h.dialog.open,false);assert.equal(h.document.body.style.overflow,'auto');assert.equal(h.trigger.focused,1);
+  h.render();assert.equal(prevented,true);assert.equal(stopped,true);assert.equal(h.dialog.modal,false);assert.equal(h.dialog.open,true);assert.equal(h.document.body.style.overflow,'auto');assert.equal(h.trigger.focused,1);
   h.unmount();
+});
+
+test('a granted video poster remains visible until a decoded frame is ready',()=>{
+  const h=harness('MediaPreview.tsx',{url:'signed:video',poster:'signed:poster',video:true,edit:{trimStart:2,trimEnd:8}});
+  let frame, nextId=0;
+  h.player.requestVideoFrameCallback=callback=>{frame=callback;return ++nextId;};h.player.cancelVideoFrameCallback=()=>{};
+  const video=h.find(n=>n.type==='video');assert.equal(video.props.preload,'auto');
+  video.props.onLoadedMetadata({currentTarget:h.player});video.props.onPlay({currentTarget:h.player});
+  assert.ok(h.find(n=>n.type==='img'&&n.props.src==='signed:poster'));
+  frame(0,{mediaTime:0});assert.ok(h.find(n=>n.type==='img'&&n.props.src==='signed:poster'),'An untrimmed decoded frame cannot replace the poster');
+  video.props.onSeeked({currentTarget:h.player});frame(0,{mediaTime:2});
+  assert.equal(h.find(n=>n.type==='img'),undefined);h.unmount();
+});
+
+test('removing media while full screen is open restores document scrolling',()=>{
+  const h=harness('ReviewMediaGallery.tsx',{media:[{url:'signed:photo'}]});
+  h.find(n=>n.type==='MediaPreview').props.onExpand();h.render();
+  assert.equal(h.document.body.style.overflow,'hidden');
+  h.setProps({media:[]});assert.equal(h.render(),null);
+  assert.equal(h.document.body.style.overflow,'auto');assert.equal(h.dialog.open,false);h.unmount();
 });

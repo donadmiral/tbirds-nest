@@ -6,9 +6,12 @@ import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
-import { pickMedia, isVideoUrl } from '@/lib/media';
+import { pickMedia, isVideoMedia, isVideoUrl } from '@/lib/media';
 import { resolveModerationMedia } from '@/lib/moderationMedia';
 import type { MediaPreviewEdit, ReviewMedia } from '@/components/MediaPreview';
+import RecordPages from '@/components/RecordPages';
+import { DESK_PAGE_SIZE, exactCount, formatCount, recordPage, type DeskSearch } from '@/lib/deskReporting';
+import { completeRead } from '@/lib/completeRead';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +30,7 @@ const IC = {
 
 const isVideo = isVideoUrl;
 
-export default async function ContentPage() {
+export default async function ContentPage({ searchParams }: { searchParams: Promise<DeskSearch> }) {
   const admin = await requireDesk('/content');
   const svc = serviceClient();
 
@@ -36,30 +39,40 @@ export default async function ContentPage() {
   const from14 = new Date(now - 14 * 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
 
-  const [postsRes, totalRes, trendRes, reportsRes, removedRes] = await Promise.all([
-    svc.from('posts').select('id, user_id, content, body, media_url, likes_count, comments_count, shares_count, created_at')
-      .order('created_at', { ascending: false }).limit(200),
+  const [totalRes, posted7Res, postedPrev7Res, removedRes] = await Promise.all([
     svc.from('posts').select('id', { count: 'exact', head: true }),
-    svc.from('trending_snapshot').select('kind, ref_id, user_id, rank, heat, uniq_engagers').eq('kind', 'post').order('rank', { ascending: true }),
-    svc.from('post_reports').select('id, post_id, reason, status, created_at').limit(1000),
-    svc.from('admin_audit_log').select('id, target_id, created_at').eq('action', 'post.remove').order('created_at', { ascending: false }).limit(500),
+    svc.from('posts').select('id', { count: 'exact', head: true }).gte('created_at', from7),
+    svc.from('posts').select('id', { count: 'exact', head: true }).gte('created_at', from14).lt('created_at', from7),
+    svc.from('admin_audit_log').select('id, target_id, created_at').eq('action', 'post.remove').order('created_at', { ascending: false }).order('id', { ascending: false }).limit(6),
   ]);
+  const totalPosts = exactCount(totalRes, 'Post counts could not be loaded. Refresh to retry.');
+  const range = recordPage((await searchParams).page, totalPosts);
+  const postsRes = await svc.from('posts').select('id, user_id, content, body, media_url, likes_count, comments_count, shares_count, created_at')
+    .order('created_at', { ascending: false }).order('id', { ascending: false }).range(range.from, range.to);
+  if (postsRes.error || !Array.isArray(postsRes.data) || removedRes.error || !Array.isArray(removedRes.data)) throw new Error('Posts could not be loaded. Refresh to retry.');
 
   const posts = (postsRes.data ?? []) as {
     id: string; user_id: string; content: string | null; body: string | null; media_url: string | null;
     likes_count: number | null; comments_count: number | null; shares_count: number | null; created_at: string;
   }[];
 
+  const ids = posts.map(post => post.id), uids = Array.from(new Set(posts.map(post => post.user_id)));
+  const empty = { data: [], error: null, count: 0 };
+  const [mediaRes, trendRes, reportsRes, profiles] = await Promise.all([
+    ids.length ? svc.from('post_media').select('post_id, url, sort_order, media_type, width, height, edit', { count: 'exact' }).in('post_id', ids).order('sort_order', { ascending: true }).order('id', { ascending: true }).limit(1000) : Promise.resolve(empty),
+    ids.length ? svc.from('trending_snapshot').select('kind, ref_id, user_id, rank, heat, uniq_engagers').eq('kind', 'post').in('ref_id', ids).order('rank', { ascending: true }).limit(DESK_PAGE_SIZE) : Promise.resolve(empty),
+    ids.length ? svc.from('post_reports').select('id, post_id, reason, status, created_at').in('post_id', ids).order('created_at', { ascending: false }).order('id', { ascending: false }).limit(1000) : Promise.resolve(empty),
+    uids.length ? svc.from('profiles').select('id, full_name, username, avatar_url, is_verified').in('id', uids) : Promise.resolve(empty),
+  ]);
+  if (mediaRes.error || reportsRes.error || trendRes.error || profiles.error || !Array.isArray(reportsRes.data) || !Array.isArray(trendRes.data) || !Array.isArray(profiles.data)) throw new Error('Post review context could not be loaded. Refresh to retry.');
+  completeRead(mediaRes, 'Post attachments');
+
   const mediaByPost: Record<string, string[]> = {};
   const mediaDetails: Record<string, { media_type?: string | null; width?: number | null; height?: number | null; edit?: MediaPreviewEdit | null }> = {};
-  if (posts.length) {
-    const { data: media } = await svc.from('post_media').select('post_id, url, sort_order, media_type, width, height, edit')
-      .in('post_id', posts.map(p => p.id)).order('sort_order', { ascending: true });
-    ((media ?? []) as { post_id: string; url: string; media_type?: string | null; width?: number | null; height?: number | null; edit?: MediaPreviewEdit | null }[]).forEach(m => {
+    ((mediaRes.data ?? []) as { post_id: string; url: string; media_type?: string | null; width?: number | null; height?: number | null; edit?: MediaPreviewEdit | null }[]).forEach(m => {
       (mediaByPost[m.post_id] = mediaByPost[m.post_id] || []).push(m.url);
       mediaDetails[m.post_id + ':' + m.url] = m;
     });
-  }
 
   // Resolve verified post media for the authenticated moderation desk.
   posts.forEach(p => {
@@ -69,8 +82,8 @@ export default async function ContentPage() {
     }
   });
   // only real pictures and videos become tiles; a link inside a caption is not a picture
-  const renderableMedia = (u: string) => /supabase\.co\/storage\/|\.(jpe?g|png|webp|gif|heic|heif|mp4|mov|m4v|webm)(\?|$)/i.test(u);
-  Object.keys(mediaByPost).forEach(k => { mediaByPost[k] = mediaByPost[k].filter(renderableMedia); if (!mediaByPost[k].length) delete mediaByPost[k]; });
+  // Attachment rows are authoritative, including extensionless Storage keys.
+  // The resolver validates their location and current content binding.
   const previewSources = Object.values(mediaByPost).flat();
   const coverSources = posts.flatMap(post => (mediaByPost[post.id] || []).flatMap(url => {
     const cover = mediaDetails[post.id + ':' + url]?.edit?.coverUrl;
@@ -78,12 +91,8 @@ export default async function ContentPage() {
   }));
   const urlMap = await resolveModerationMedia([...previewSources, ...coverSources], 'post', posts.map(p => p.id));
 
-  const uids = Array.from(new Set(posts.map(p => p.user_id)));
   const people: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }> = {};
-  if (uids.length) {
-    const { data } = await svc.from('profiles').select('id, full_name, username, avatar_url, is_verified').in('id', uids);
-    (data ?? []).forEach((p: { id: string; full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }) => { people[p.id] = p; });
-  }
+  (profiles.data ?? []).forEach((p: { id: string; full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }) => { people[p.id] = p; });
 
   const reports = (reportsRes.data ?? []) as { id: string; post_id: string; reason: string; status: string; created_at: string }[];
   const reportsByPost: Record<string, { open: number; total: number; reasons: string[] }> = {};
@@ -100,18 +109,16 @@ export default async function ContentPage() {
 
   const removed = (removedRes.data ?? []) as { id: string; target_id: string; created_at: string }[];
 
-  const totalPosts = totalRes.count ?? posts.length;
   const withMedia = posts.filter(p => (mediaByPost[p.id]?.length || 0) > 0 || p.media_url).length;
-  const videoPosts = posts.filter(p => (mediaByPost[p.id] || []).some(url => mediaDetails[p.id + ':' + url]?.media_type === 'video' || isVideo(url)) || isVideo(p.media_url)).length;
+  const videoPosts = posts.filter(p => (mediaByPost[p.id] || []).some(url => isVideoMedia(mediaDetails[p.id + ':' + url]?.media_type, url)) || isVideo(p.media_url)).length;
   const flagged = posts.filter(p => (reportsByPost[p.id]?.open || 0) > 0).length;
   const engagement = posts.reduce((a, p) => a + (p.likes_count || 0) + (p.comments_count || 0) + (p.shares_count || 0), 0);
 
-  const posted7 = posts.filter(p => p.created_at >= from7).length;
-  const postedPrev7 = posts.filter(p => p.created_at >= from14 && p.created_at < from7).length;
+  const posted7 = exactCount(posted7Res, 'Weekly post counts could not be loaded. Refresh to retry.');
+  const postedPrev7 = exactCount(postedPrev7Res, 'Weekly post counts could not be loaded. Refresh to retry.');
   const pct = (a: number, b: number) => b > 0 ? { text: (a >= b ? '+' : '') + (((a - b) / b) * 100).toFixed(1) + '%', tone: (a >= b ? 'ok' : 'bad') as Tone } : { text: a > 0 ? 'new' : 'flat', tone: (a > 0 ? 'ok' : 'neutral') as Tone };
   const d7 = pct(posted7, postedPrev7);
 
-  const spark = days30.map(d => posts.filter(p => p.created_at.slice(0, 10) === d).length);
   const dayRows = days30.map(d => ({
     day: d,
     media: posts.filter(p => p.created_at.slice(0, 10) === d && ((mediaByPost[p.id]?.length || 0) > 0 || p.media_url)).length,
@@ -125,11 +132,11 @@ export default async function ContentPage() {
     .map((k, i) => ({ label: k.replace(/[._]/g, ' '), value: reasonCount[k], color: SERIES[i % SERIES.length] }));
 
   const cards = [
-    { label: 'Posts on the platform', value: fmt(totalPosts), note: 'all published posts', icon: IC.post, color: 'var(--c1)', spark },
-    { label: 'Posted this week', value: fmt(posted7), delta: d7.text, deltaTone: d7.tone, note: 'against the week before', icon: IC.post, color: 'var(--c2)', spark: spark.slice(-14) },
-    { label: 'Carrying open reports', value: fmt(flagged), note: fmt(reports.filter(r => r.status === 'open').length) + ' open reports in total', icon: IC.flag, color: 'var(--c5)' },
-    { label: 'With media', value: fmt(withMedia), note: fmt(videoPosts) + ' of them video', icon: IC.media, color: 'var(--c4)' },
-    { label: 'Engagement on file', value: fmt(engagement), note: 'likes, comments and shares', icon: IC.heart, color: 'var(--c6)' },
+    { label: 'Posts on the platform', value: formatCount(totalPosts), note: 'all published posts', icon: IC.post, color: 'var(--c1)' },
+    { label: 'Posted this week', value: formatCount(posted7), delta: d7.text, deltaTone: d7.tone, note: 'against the week before', icon: IC.post, color: 'var(--c2)' },
+    { label: 'Reported on this page', value: fmt(flagged), note: fmt(reports.filter(r => r.status === 'open').length) + ' open reports in the loaded context', icon: IC.flag, color: 'var(--c5)' },
+    { label: 'With media on this page', value: fmt(withMedia), note: fmt(videoPosts) + ' of them video', icon: IC.media, color: 'var(--c4)' },
+    { label: 'Engagement on this page', value: fmt(engagement), note: 'likes, comments and shares', icon: IC.heart, color: 'var(--c6)' },
   ];
 
   const rows: DeskRow[] = posts.map(p => {
@@ -139,7 +146,7 @@ export default async function ContentPage() {
     const gallery: ReviewMedia[] = resolvedRaw.map(source => {
       const item = mediaDetails[p.id + ':' + source];
       const recipe = item?.edit && typeof item.edit === 'object' ? item.edit : null;
-      return { url: urlMap[source], video: item?.media_type === 'video' || isVideo(source), width: item?.width, height: item?.height,
+      return { url: urlMap[source], video: isVideoMedia(item?.media_type, source), width: item?.width, height: item?.height,
         edit: recipe ? { ...recipe, coverUrl: recipe.coverUrl ? urlMap[recipe.coverUrl] || null : null } : null };
     });
     const first = urls[0] || null;
@@ -164,7 +171,7 @@ export default async function ContentPage() {
       search: [text, a.full_name, a.username, kind].map(x => String(x || '').toLowerCase()).join(' '),
       facets: { type: kind, status: status.v },
       cells: [
-        { t: 'media', v: text || (mediaCount ? kind + ' post' : 'Empty post'), sub: '@' + (a.username || 'member'), thumb: first, video },
+        { t: 'media', v: text || (mediaCount ? kind + ' post' : 'Empty post'), sub: '@' + (a.username || 'member'), thumb: first, video, poster: gallery[0]?.edit?.coverUrl },
         { t: 'user', v: a.full_name || 'Unnamed', sub: '@' + (a.username || 'member'), img: a.avatar_url },
         { t: 'pill', v: kind, tone: kind === 'Video' ? 'info' : kind === 'Text' ? 'neutral' : 'accent' },
         { t: 'pill', v: status.v, tone: status.tone },
@@ -197,7 +204,7 @@ export default async function ContentPage() {
           { label: 'Type', value: kind },
           { label: 'Media items', value: String(mediaCount) },
           { label: 'Posted', value: new Date(p.created_at).toLocaleString() },
-          ...(rep ? [{ label: 'Reports', value: rep.open + ' open of ' + rep.total + ' total' }] : []),
+          ...(rep ? [{ label: 'Recent reports', value: rep.open + ' open of ' + rep.total + ' loaded' }] : []),
           ...(trend ? [{ label: 'Trending', value: 'rank ' + trend.rank + ', ' + trend.engagers + ' unique engagers' }] : []),
         ],
         body: [
@@ -216,7 +223,7 @@ export default async function ContentPage() {
   });
 
   const tabs = [
-    { key: 'all', label: 'All posts', count: rows.length },
+    { key: 'all', label: 'Posts on this page', count: rows.length },
     { key: 'reported', label: 'Reported', count: rows.filter(r => r.tabs.includes('reported')).length },
     { key: 'trending', label: 'Trending', count: rows.filter(r => r.tabs.includes('trending')).length },
     { key: 'media', label: 'With media', count: rows.filter(r => r.tabs.includes('media')).length },
@@ -227,10 +234,13 @@ export default async function ContentPage() {
   return (
     <Shell admin={admin} active="/content" title="Posts" sub="Review photos, videos and conversations. Open a post to see its context, engagement and moderation actions.">
       <StatStrip cards={cards} />
+      <RecordPages path="/content" range={range} loaded={rows.length} label="Posts" />
+      <p className="text-sm text-[var(--txt-muted)]">Filters and charts describe this page. Open a post for its full report history.</p>
 
       <div className="mt-5 flex min-w-0 flex-col gap-5">
         <div>
           <Desk
+            key={range.page}
             presentation="media"
             tabs={tabs}
             columns={[{ label: 'Post' }, { label: 'Author' }, { label: 'Type' }, { label: 'Status' }, { label: 'Likes', align: 'right' }, { label: 'Comments', align: 'right' }, { label: 'Shares', align: 'right' }, { label: 'Posted', align: 'right' }]}
@@ -240,10 +250,10 @@ export default async function ContentPage() {
               { key: 'type', label: 'Type', options: ['Photo', 'Video', 'Gallery', 'Text'] },
               { key: 'status', label: 'Status', options: ['Published', 'Reported', 'Trending'] },
             ]}
-            searchHint="Search captions, authors, media"
+            searchHint="Filter this page by caption, author or media"
             detailTitle="Post details"
             minWidth={1020}
-            pageSize={12}
+            pageSize={DESK_PAGE_SIZE}
             actions={[
               { key: 'remove', label: 'Remove this post everywhere', tone: 'bad', action: adminRemovePost, idName: 'pid' },
             ]}
@@ -254,17 +264,17 @@ export default async function ContentPage() {
           <div style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>Why posts get reported</div>
-              <div style={H_SUB}>Reasons reported by members</div>
+              <div style={H_SUB}>Recent reports for posts on this page</div>
             </div>
             <div style={{ padding: 16 }}>
-              {reasonSlices.length === 0 ? <Empty note="No post has been reported yet." /> : <Donut slices={reasonSlices} centerLabel="reports" size={148} />}
+              {reasonSlices.length === 0 ? <Empty note="No recent reports for these posts." /> : <Donut slices={reasonSlices} centerLabel="reports" size={148} />}
             </div>
           </div>
 
           <div className="mt-4" style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>What gets posted</div>
-              <div style={H_SUB}>Media against text, last 30 days</div>
+              <div style={H_SUB}>Posts on this page during the last 30 days</div>
             </div>
             <div style={{ padding: '18px 16px 14px' }}>
               <StackBars days={dayRows} height={130} series={[

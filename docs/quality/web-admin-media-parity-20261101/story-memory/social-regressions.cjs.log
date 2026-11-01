@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: duplicate cards share one hydration and observe the same optimistic and confirmed state
+ok 1 - duplicate cards share one hydration and observe the same optimistic and confirmed state
+  ---
+  duration_ms: 1.916741
+  type: 'test'
+  ...
+# Subtest: old viewer hydration cannot overwrite the next viewer
+ok 2 - old viewer hydration cannot overwrite the next viewer
+  ---
+  duration_ms: 7.513702
+  type: 'test'
+  ...
+# Subtest: sign-out invalidates a pending follow mutation
+ok 3 - sign-out invalidates a pending follow mutation
+  ---
+  duration_ms: 0.319203
+  type: 'test'
+  ...
+# Subtest: an auth event releases hydration even if getSession remains pending
+ok 4 - an auth event releases hydration even if getSession remains pending
+  ---
+  duration_ms: 0.232512
+  type: 'test'
+  ...
+# Subtest: late getSession cannot undo a newer sign-out
+ok 5 - late getSession cannot undo a newer sign-out
+  ---
+  duration_ms: 0.210649
+  type: 'test'
+  ...
+# Subtest: returned query errors stay unknown and retry rehydrates
+ok 6 - returned query errors stay unknown and retry rehydrates
+  ---
+  duration_ms: 0.309639
+  type: 'test'
+  ...
+# Subtest: ambiguous mutation failures reconcile instead of blindly toggling again
+ok 7 - ambiguous mutation failures reconcile instead of blindly toggling again
+  ---
+  duration_ms: 0.349319
+  type: 'test'
+  ...
+# Subtest: actual request_cancelled RPC result clears a pending request
+ok 8 - actual request_cancelled RPC result clears a pending request
+  ---
+  duration_ms: 0.344822
+  type: 'test'
+  ...
+# Subtest: self controls never write
+ok 9 - self controls never write
+  ---
+  duration_ms: 0.432775
+  type: 'test'
+  ...
+# Subtest: payment and reaction notifications point into their conversation
+ok 10 - payment and reaction notifications point into their conversation
+  ---
+  duration_ms: 0.77957
+  type: 'test'
+  ...
+# Subtest: job applications, posts, marketplace and invitations preserve relevant destinations
+ok 11 - job applications, posts, marketplace and invitations preserve relevant destinations
+  ---
+  duration_ms: 0.23177
+  type: 'test'
+  ...
+# Subtest: hiring decisions open applicant history and withdrawals open the employer applicants desk
+ok 12 - hiring decisions open applicant history and withdrawals open the employer applicants desk
+  ---
+  duration_ms: 0.154093
+  type: 'test'
+  ...
+# Subtest: routing escapes path/query values and rejects non-string metadata
+ok 13 - routing escapes path/query values and rejects non-string metadata
+  ---
+  duration_ms: 0.110727
+  type: 'test'
+  ...
+# Subtest: search reads q from navigation links
+ok 14 - search reads q from navigation links
+  ---
+  duration_ms: 168.941653
+  type: 'test'
+  ...
+# Subtest: a late old search cannot replace the newer query results
+ok 15 - a late old search cannot replace the newer query results
+  ---
+  duration_ms: 77.647951
+  type: 'test'
+  ...
+# Subtest: clearing search hides old results and prevents an in-flight response from restoring them
+ok 16 - clearing search hides old results and prevents an in-flight response from restoring them
+  ---
+  duration_ms: 101.077671
+  type: 'test'
+  ...
+# Subtest: returned search RPC errors show retry instead of a false empty result
+ok 17 - returned search RPC errors show retry instead of a false empty result
+  ---
+  duration_ms: 68.062051
+  type: 'test'
+  ...
+# Subtest: story notification opens its exact asynchronously loaded story
+ok 18 - story notification opens its exact asynchronously loaded story
+  ---
+  duration_ms: 3.544915
+  type: 'test'
+  ...
+# Subtest: expired story target never falls through to an unrelated story
+ok 19 - expired story target never falls through to an unrelated story
+  ---
+  duration_ms: 1.325907
+  type: 'test'
+  ...
+# Subtest: moving to another story owner starts at their first story
+ok 20 - moving to another story owner starts at their first story
+  ---
+  duration_ms: 1.401241
+  type: 'test'
+  ...
+# Subtest: unmounted story loading does not replace the current viewer
+ok 21 - unmounted story loading does not replace the current viewer
+  ---
+  duration_ms: 4.299367
+  type: 'test'
+  ...
+# Subtest: story cleanup aborts the actual read and late session epochs cannot repopulate it
+ok 22 - story cleanup aborts the actual read and late session epochs cannot repopulate it
+  ---
+  duration_ms: 2.436417
+  type: 'test'
+  ...
+# Subtest: story rows belonging to another owner never enter the selected viewer
+ok 23 - story rows belonging to another owner never enter the selected viewer
+  ---
+  duration_ms: 1.503396
+  type: 'test'
+  ...
+# Subtest: failed story loading exposes a retry state instead of pretending it expired
+ok 24 - failed story loading exposes a retry state instead of pretending it expired
+  ---
+  duration_ms: 1.599441
+  type: 'test'
+  ...
+# Subtest: search continuation appends beyond twenty without duplicates
+ok 25 - search continuation appends beyond twenty without duplicates
+  ---
+  duration_ms: 86.94739
+  type: 'test'
+  ...
+# Subtest: one unavailable search vertical does not hide successful results
+ok 26 - one unavailable search vertical does not hide successful results
+  ---
+  duration_ms: 68.627468
+  type: 'test'
+  ...
+# Subtest: account change invalidates in-flight search data
+ok 27 - account change invalidates in-flight search data
+  ---
+  duration_ms: 60.418563
+  type: 'test'
+  ...
+# Subtest: market order notifications accept only a listing UUID destination
+ok 28 - market order notifications accept only a listing UUID destination
+  ---
+  duration_ms: 0.393435
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 668.006021

@@ -1,0 +1,40 @@
+{
+  "browser": "156.0.8078.80",
+  "cases": [
+    {
+      "name": "Decorative video cover uses no video element, decoder or byte request",
+      "passed": true
+    },
+    {
+      "name": "Story handoff retains the warmed video node and its no-store bytes with one playing owner",
+      "passed": true
+    },
+    {
+      "name": "Next and back across owners with held reads never pair an old source with the next header",
+      "passed": true
+    },
+    {
+      "name": "Opening stories stops an already-playing browser media consumer without pausing its own player",
+      "passed": true
+    },
+    {
+      "name": "Book cover prewarms real pages; opening, page turns and metadata refresh retain exact nodes and playback position",
+      "passed": true
+    },
+    {
+      "name": "Book A-to-B-to-A account changes discard old media and pending owner work",
+      "passed": true
+    },
+    {
+      "name": "Film handoff retains the next player, limits playback ownership and releases every source on close",
+      "passed": true
+    },
+    {
+      "name": "Every observed first revealed frame has the correct distinct clip pixels after the saved trim",
+      "passed": true,
+      "frames": 9
+    }
+  ],
+  "frames": 9,
+  "output": "/tmp/platinum-story-memory-readiness-final"
+}

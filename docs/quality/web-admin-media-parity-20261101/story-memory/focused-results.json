@@ -1,0 +1,149 @@
+{
+  "scope": "Focused source/behavior regressions. Harness wall time is not user playback performance. Browser evidence uses actual components with synthetic Auth/RPC and generated same-origin no-store video; it is not hosted-account playback acceptance.",
+  "files": 10,
+  "cases": 130,
+  "passed": 130,
+  "failed": 0,
+  "results": [
+    {
+      "file": "web/tests/memory-film-lifecycle.cjs",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/memory-film-lifecycle.cjs"
+      ],
+      "exitCode": 0,
+      "cases": 9,
+      "passed": 9,
+      "failed": 0,
+      "harnessElapsedSeconds": 1.633,
+      "log": "memory-film-lifecycle.cjs.log"
+    },
+    {
+      "file": "web/tests/memory-film.cjs",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/memory-film.cjs"
+      ],
+      "exitCode": 0,
+      "cases": 10,
+      "passed": 10,
+      "failed": 0,
+      "harnessElapsedSeconds": 1.974,
+      "log": "memory-film.cjs.log"
+    },
+    {
+      "file": "web/tests/quality/social-regressions.cjs",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/quality/social-regressions.cjs"
+      ],
+      "exitCode": 0,
+      "cases": 28,
+      "passed": 28,
+      "failed": 0,
+      "harnessElapsedSeconds": 1.112,
+      "log": "social-regressions.cjs.log"
+    },
+    {
+      "file": "web/tests/story-controls-regressions.cjs",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/story-controls-regressions.cjs"
+      ],
+      "exitCode": 0,
+      "cases": 14,
+      "passed": 14,
+      "failed": 0,
+      "harnessElapsedSeconds": 1.579,
+      "log": "story-controls-regressions.cjs.log"
+    },
+    {
+      "file": "web/tests/story-navigation.cjs",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/story-navigation.cjs"
+      ],
+      "exitCode": 0,
+      "cases": 8,
+      "passed": 8,
+      "failed": 0,
+      "harnessElapsedSeconds": 1.266,
+      "log": "story-navigation.cjs.log"
+    },
+    {
+      "file": "web/tests/story-memory-readiness.cjs",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/story-memory-readiness.cjs"
+      ],
+      "exitCode": 0,
+      "cases": 8,
+      "passed": 8,
+      "failed": 0,
+      "harnessElapsedSeconds": 0.497,
+      "log": "story-memory-readiness.cjs.log"
+    },
+    {
+      "file": "web/tests/memory-book-shelf-refresh.cjs",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/memory-book-shelf-refresh.cjs"
+      ],
+      "exitCode": 0,
+      "cases": 3,
+      "passed": 3,
+      "failed": 0,
+      "harnessElapsedSeconds": 0.628,
+      "log": "memory-book-shelf-refresh.cjs.log"
+    },
+    {
+      "file": "web/tests/memory-hook-boundary.cjs",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/memory-hook-boundary.cjs"
+      ],
+      "exitCode": 0,
+      "cases": 1,
+      "passed": 1,
+      "failed": 0,
+      "harnessElapsedSeconds": 1.611,
+      "log": "memory-hook-boundary.cjs.log"
+    },
+    {
+      "file": "web/tests/story-quality-regressions.cjs",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/story-quality-regressions.cjs"
+      ],
+      "exitCode": 0,
+      "cases": 20,
+      "passed": 20,
+      "failed": 0,
+      "harnessElapsedSeconds": 1.038,
+      "log": "story-quality-regressions.cjs.log"
+    },
+    {
+      "file": "web/tests/story-owner-regressions.cjs",
+      "command": [
+        "node",
+        "--test-reporter=tap",
+        "web/tests/story-owner-regressions.cjs"
+      ],
+      "exitCode": 0,
+      "cases": 29,
+      "passed": 29,
+      "failed": 0,
+      "harnessElapsedSeconds": 2.442,
+      "log": "story-owner-regressions.cjs.log"
+    }
+  ]
+}

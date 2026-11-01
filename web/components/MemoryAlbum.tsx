@@ -3,11 +3,15 @@ import { SoundtrackPicker } from './SoundtrackPicker';
 
 import { MessageButton } from "@/components/MessageButton";
 
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, Settings2, Trash2, X, Check, ArrowUp, ArrowDown, Volume2, VolumeX, Play, Pause } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { getNavigationStore } from '@/lib/navigationCache';
+import { memoryPageMediaKey } from '@/lib/memoryReadiness';
+import { watchStoryVideoFrame } from '@/lib/storyMediaReadiness';
+import { contentMediaUrls } from '../../shared/contentMedia';
 import { notifyMemoryBookShelfChanged } from "@/lib/memoryBookEvents";
 import {
   getMemoryBook, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
@@ -58,18 +62,33 @@ function fmtDate(s: string | null) {
 // when you are looking at someone else's album.
 function MemoryVideo({ src, poster, page, ownerId, active, onRetry, onEnd, onProgress }: { src: string; poster?: string; page: MemoryPage; ownerId: string; active: boolean; onRetry: () => void; onEnd?:()=>void; onProgress?:(progress:number)=>void }) {
   const recipe=memoryStoryRecipe(page.media_transform);
+  const transformKey=JSON.stringify(page.media_transform);
   const [clock,setClock]=useState(recipe.start);
   const [muted, setMuted] = useState(true);
   const [failed, setFailed] = useState(false);
-  const ref=useRef<HTMLVideoElement|null>(null),resumeAfterTurn=useRef(false);
+  const [ready,setReady]=useState(false);
+  const ref=useRef<HTMLVideoElement|null>(null),resumeAfterTurn=useRef(false),started=useRef(false),currentActive=useRef(active);
+  useLayoutEffect(()=>{currentActive.current=active;},[active]);
   const playbackWindow=useRef(recipe);
   const completion=useRef({onEnd,onProgress,done:false});useLayoutEffect(()=>{completion.current.onEnd=onEnd;completion.current.onProgress=onProgress;},[onEnd,onProgress]);
   const finish=(video:HTMLVideoElement)=>{if(!completion.current.onEnd)return false;video.pause();if(!completion.current.done){completion.current.done=true;completion.current.onProgress?.(1);completion.current.onEnd();}return true;};
   const advancesOnEnd=!!onEnd;
   useEffect(()=>{completion.current.done=false;},[src,advancesOnEnd]);
   useEffect(()=>{if(advancesOnEnd&&active){const video=ref.current;if(video&&!document.hidden&&document.documentElement.dataset.platinumCallActive!=='true')void video.play().catch(()=>{});}},[src,active,advancesOnEnd]);
-  const configure=useCallback((video:HTMLVideoElement,seek=false)=>{const window=memoryStoryRecipe(page.media_transform,video.duration);playbackWindow.current=window;video.playbackRate=window.speed;video.volume=window.volume;if(window.volume===0)video.muted=true;if(seek||memoryStorySeek(video.currentTime,window)!=null){try{video.currentTime=window.start;}catch{}}},[page.media_transform]);
+  const configure=useCallback((video:HTMLVideoElement,seek=false)=>{const window=memoryStoryRecipe(page.media_transform,video.duration);playbackWindow.current=window;video.playbackRate=window.speed;video.volume=window.volume;if(window.volume===0)video.muted=true;if(seek||memoryStorySeek(video.currentTime,window)!=null){try{video.currentTime=window.start;}catch{}}},[transformKey]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(()=>{const video=ref.current;if(video)configure(video,true);},[src,configure]);
+  useEffect(()=>{
+    const video=ref.current;if(!video)return;
+    let live=true;
+    if(video.getAttribute('src')!==src){video.src=src;video.load();}
+    const cancel=watchStoryVideoFrame(video,{source:src,start:()=>memoryStoryRecipe(page.media_transform,video.duration).start,current:()=>live&&ref.current===video,ready:()=>setReady(true)});
+    return()=>{live=false;cancel();video.pause();video.removeAttribute('src');video.load();};
+  },[src,transformKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(()=>{
+    if(!active||ready||failed)return;
+    const timer=setTimeout(()=>setFailed(true),20_000);
+    return()=>clearTimeout(timer);
+  },[active,ready,failed]);
   // timeupdate can be hundreds of milliseconds apart. Guard the excerpt on
   // decoded frames, while keeping the same video element and pause intent.
   useEffect(()=>{
@@ -82,12 +101,18 @@ function MemoryVideo({ src, poster, page, ownerId, active, onRetry, onEnd, onPro
     video.addEventListener('play',schedule);video.addEventListener('pause',cancel);schedule();
     return()=>{disposed=true;cancel();video.removeEventListener('play',schedule);video.removeEventListener('pause',cancel);};
   },[src,active,recipe.start,recipe.end]);
-  useEffect(()=>{const video=ref.current;if(!video)return;if(!active){resumeAfterTurn.current=!video.paused;video.pause();}else if(resumeAfterTurn.current&&!document.hidden&&document.documentElement.dataset.platinumCallActive!=='true'){resumeAfterTurn.current=false;void video.play().catch(()=>{});}},[active]);
+  useEffect(()=>{const video=ref.current;if(!video)return;if(!active){resumeAfterTurn.current=!video.paused;video.pause();}else if((!started.current||resumeAfterTurn.current)&&!document.hidden&&document.documentElement.dataset.platinumCallActive!=='true'){started.current=true;resumeAfterTurn.current=false;void video.play().then(()=>{if(ref.current!==video||!video.isConnected||!currentActive.current||document.hidden||document.documentElement.dataset.platinumCallActive==='true')video.pause();}).catch(()=>{});}},[active]);
   useEffect(()=>{const stop=()=>ref.current?.pause();const hidden=()=>{if(document.hidden)stop();};window.addEventListener("platinum:stop-media",stop);document.addEventListener("visibilitychange",hidden);return()=>{stop();window.removeEventListener("platinum:stop-media",stop);document.removeEventListener("visibilitychange",hidden);};},[]);
   if(!src||failed)return <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-[#0B1E3D] p-4 text-center text-sm text-white"><p>This memory video could not play.</p><button type="button" className="min-h-11 rounded-full border border-white/35 px-4 py-2 font-semibold" onClick={()=>{setFailed(false);onRetry();}}>Retry memory video</button></div>;
   return (
     <div className="relative h-full w-full">
-      <MemoryStoryFrame page={page} clock={clock}>{style=><video ref={ref} src={src} poster={poster} controls playsInline loop={!onEnd} muted={muted||recipe.volume===0} onError={()=>setFailed(true)} onLoadedMetadata={event=>{configure(event.currentTarget,true);setClock(recipe.start);}} onPlay={event=>{if(!active||document.hidden||document.documentElement.dataset.platinumCallActive==='true')event.currentTarget.pause();else configure(event.currentTarget);}} onTimeUpdate={event=>{const video=event.currentTarget;if(!active)return;const window=playbackWindow.current;if(window.end!=null)completion.current.onProgress?.(Math.max(0,Math.min(1,(video.currentTime-window.start)/(window.end-window.start))));if(window.end!=null&&video.currentTime>=window.end-.025&&finish(video))return;const seek=memoryStorySeek(video.currentTime,window);if(seek!=null)video.currentTime=seek;setClock(seek??video.currentTime);}} onEnded={event=>{if(active)finish(event.currentTarget);}} onSeeking={event=>{if(active)configure(event.currentTarget);}} style={style} className="h-full w-full object-contain" />}</MemoryStoryFrame>
+      <MemoryStoryFrame page={page} clock={clock}>{style=><>
+        {!ready&&poster&&(
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={poster} alt="" aria-hidden className="absolute inset-0 h-full w-full object-contain" style={style}/>
+        )}
+        <video ref={ref} src={src} preload="auto" controls playsInline loop={!onEnd} muted={muted||recipe.volume===0} data-memory-video={page.id} data-memory-frame-ready={ready} onError={()=>setFailed(true)} onLoadedMetadata={event=>{configure(event.currentTarget,true);setClock(recipe.start);}} onPlay={event=>{if(!active||document.hidden||document.documentElement.dataset.platinumCallActive==='true')event.currentTarget.pause();else configure(event.currentTarget);}} onTimeUpdate={event=>{const video=event.currentTarget;if(!active)return;const window=playbackWindow.current;if(window.end!=null)completion.current.onProgress?.(Math.max(0,Math.min(1,(video.currentTime-window.start)/(window.end-window.start))));if(window.end!=null&&video.currentTime>=window.end-.025&&finish(video))return;const seek=memoryStorySeek(video.currentTime,window);if(seek!=null)video.currentTime=seek;setClock(seek??video.currentTime);}} onEnded={event=>{if(active)finish(event.currentTarget);}} onSeeking={event=>{if(active)configure(event.currentTarget);}} style={{...style,opacity:ready?1:0}} className="h-full w-full object-contain" />
+      </>}</MemoryStoryFrame>
       <div className="pointer-events-none absolute right-2 top-2 z-10 flex items-center gap-2">
         <button type="button" disabled={recipe.volume===0} onClick={() => setMuted((v) => !v)} aria-label={recipe.volume===0?"Original video sound is off":muted ? "Unmute original video sound" : "Mute original video sound"} className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur hover:bg-white/30">
           {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
@@ -99,9 +124,11 @@ function MemoryVideo({ src, poster, page, ownerId, active, onRetry, onEnd, onPro
 }
 
 export function MemoryAlbumView(props: { ownerId: string }) {
-  return <MemoryAlbumController key={props.ownerId} {...props}/>;
+  const [store] = useState(getNavigationStore);
+  const session = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
+  return <MemoryAlbumController key={`${props.ownerId}:${session.revision}`} {...props} store={store} session={session}/>;
 }
-function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
+function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId: string; store: ReturnType<typeof getNavigationStore>; session: ReturnType<ReturnType<typeof getNavigationStore>['getSnapshot']> }) {
   const ownerId = albumRef;
   const [supabase] = useState(createClient);
   const [album, setAlbum] = useState<MemoryAlbum | null>(null);
@@ -125,7 +152,9 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
   const [adding, setAdding] = useState(false);
   const [mutationError, setMutationError] = useState('');
   const [nextBook, setNextBook] = useState<MemoryBookInfo | null>(null);
-  const [uid, setUid] = useState<string | null>(null);
+  const uid = session.owner;
+  const displayedAlbum = useRef(album), mediaScope = useRef<string | null>(null), request = useRef<AbortController | null>(null);
+  useLayoutEffect(() => { displayedAlbum.current = album; }, [album]);
 
   const loadGeneration = useRef(0);
   const soundtrackSave = useMemorySoundtrackSave({ client: supabase, owner: uid, book: album?.id ?? ownerId,
@@ -139,16 +168,25 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const load = useCallback(async () => {
     const generation = ++loadGeneration.current;
-    if (!uid) return;
+    request.current?.abort();
+    if (!uid || !session.scope) return;
+    const scope = session.scope, controller = new AbortController();
+    request.current = controller;
+    const current = () => generation === loadGeneration.current && store.getSnapshot().scope === scope;
     try {
-      const next = await getMemoryBook(ownerId);
-      if (generation !== loadGeneration.current) return;
+      const next = await getMemoryBook(ownerId, { signal: controller.signal, previous: displayedAlbum.current, previousScope: mediaScope.current, scope });
+      if (!current()) return;
+      mediaScope.current = scope; displayedAlbum.current = next;
       setAlbum(next); setLoadError(next ? null : "This album is unavailable.");
     } catch {
-      if (generation !== loadGeneration.current) return;
-      setAlbum(null); setLoadError("The album could not load. Please retry.");
-    }
-  }, [ownerId, uid]);
+      if (!current()) return;
+      const previous = displayedAlbum.current;
+      const valid = previous && mediaScope.current === scope && (typeof previous._mediaExpiresAt === 'number'
+        ? previous._mediaExpiresAt > Date.now() : !contentMediaUrls(previous, process.env.NEXT_PUBLIC_SUPABASE_URL!).length);
+      if (!valid) { displayedAlbum.current = null; setAlbum(null); }
+      setLoadError("The album could not refresh. Please retry.");
+    } finally { if (request.current === controller) request.current = null; }
+  }, [ownerId, uid, session.scope, store]);
   const reloadAfterChange = () => {
     if (uid) notifyMemoryBookShelfChanged(uid);
     void load();
@@ -160,20 +198,8 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
     const refresh = () => { if (document.visibilityState === "visible") void load(); };
     const timer = setInterval(refresh, 240000);
     window.addEventListener("focus", refresh); document.addEventListener("visibilitychange", refresh);
-    return () => { live=false; loadGeneration.current += 1; clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+    return () => { live=false; loadGeneration.current += 1; request.current?.abort(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [load]);
-  useEffect(() => {
-    let alive = true, authVersion = 0, viewer: string | null = null;
-    const apply = (next: string | null) => {
-      if (!alive) return;
-      if (viewer !== next) { loadGeneration.current += 1; setAlbum(null); setLikedPages(new Set()); setManage(false); setAdding(false); setIdx(0); setFilmVisible(false); }
-      viewer = next; setUid(next); setLoadError(next ? null : "Sign in to view this album.");
-    };
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authVersion++; apply(session?.user.id ?? null); });
-    const initial = authVersion;
-    void supabase.auth.getSession().then(({ data }) => { if (initial === authVersion) apply(data.session?.user.id ?? null); }).catch(() => { if (alive && initial === authVersion) setLoadError("Your account could not load. Please retry."); });
-    return () => { alive = false; loadGeneration.current += 1; subscription.unsubscribe(); };
-  }, [supabase]);
   useEffect(() => { let live=true; if(!album?.user_id)return; void getMemoryBooks(album.user_id).then(shelf=>{if(!live)return;const at=shelf.books.findIndex(b=>b.id===album.id);setNextBook(at>=0?shelf.books[at+1]??null:null);}).catch(()=>{});return()=>{live=false;}; }, [album?.id,album?.user_id]);
   // Seed the hearts with what this person already liked.
   useEffect(() => {
@@ -214,7 +240,7 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
 
   const retryMedia=()=>{setMediaAttempt(value=>value+1);void load();};
 
-  if (!album) return <div className="py-24 text-center text-sm text-muted"><p>{loadError ?? "Opening the album"}</p>{loadError && <button className="mt-3 underline" onClick={() => void load()}>Retry</button>}</div>;
+  if (!album) return <div className="py-24 text-center text-sm text-muted"><p>{loadError ?? (session.initialized && !uid ? 'Sign in to view this album.' : "Opening the album")}</p>{loadError && <button className="mt-3 underline" onClick={() => void load()}>Retry</button>}</div>;
   if (!album.is_owner && !album.can_view) {
     return (
       <div className="flex flex-col items-center gap-3 py-24">
@@ -246,6 +272,7 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
       <PostSoundtrack key={album.id} selection={album.soundtrack} use="memory_album" active={view==='book'&&foreground&&!filmVisible&&(!playMode||playing)&&!manage&&!adding&&!musicOpen} autoPlay={playMode} controls={!playMode} className="mb-3" />
       {filmVisible && pages.length > 0 && <MemoryFilm key={`${album.id}:${uid}`} bookId={album.id} revision={album.presentation_revision} filmSettings={album.film_settings} title={album.title} pages={pages} soundtrack={album.soundtrack} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} />}
       {mutationError&&<p role="alert" className="mb-3 text-sm text-danger">{mutationError}</p>}
+      {loadError&&<p role="alert" className="mb-3 text-sm text-muted">{loadError} <button type="button" className="underline" onClick={() => void load()}>Retry</button></p>}
       {view === "cover" ? (
         <section className="mx-auto flex max-w-[360px] flex-col items-center px-5 pb-8 pt-8 sm:pt-10">
           <button type="button" aria-label={'Open '+album.title} onClick={openBook} className="w-full max-w-[300px] text-left transition-transform hover:-translate-y-1"><ResponsiveMemoryBookCover coverPages={album.cover_pages??pages} artwork={album.cover_artwork} title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))}/></button>
@@ -273,18 +300,22 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
             </button>
           ))}
         </div>
-      ) : (
-        <div>
+      ) : null}
+      {pages.length>0&&!filmVisible&&(
+        <div hidden={view!=='book'} aria-hidden={view!=='book'} inert={view!=='book'}>
           <MemoryPageTurn ref={pageTurn} key={album.id} pageIds={pages.map(p=>p.id)} index={idx} active={view==='book'&&!manage&&!adding&&!musicOpen} spine={artwork.spine} title={album.title} onCommit={setIdx} onTurningChange={setTurning} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
                 <p className="mb-4 text-center font-display text-[11px] tracking-widest text-[#6F614A]">{String(idx+1).padStart(2,'0')} ─</p>
                 {page ? (
                   <div className={"flex min-h-0 flex-1 flex-col "+(page.style === "polaroid" ? "border border-[#DCD4C7] bg-[#FFFCF6] p-1.5 pb-3" : "")}>
                     <div className="media-frame relative min-h-0 flex-1 overflow-hidden bg-ink">
-                      {page.media_type === "video" && (page.media_url || !postSticker(page)) ? (
-                        <MemoryVideo key={[page.id,page.media_url,mediaAttempt,playRun].join(':')} src={page.media_url ?? ''} poster={page.thumbnail_url ?? undefined} page={page} ownerId={album.user_id ?? ownerId} active={view==='book'&&foreground&&!filmVisible&&(!playMode||playing)&&!turning&&!manage&&!adding&&!musicOpen} onRetry={retryMedia} onEnd={playMode?finishPage:undefined} onProgress={progress=>setVideoPlayback({page:page.id,progress})} />
-                      ) : page.media_url || page.thumbnail_url || (page.media_type === "image" && !postSticker(page)) ? (
-                        <MemoryStoryFrame key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt,playRun].join(':')} page={page}>{style=><MemoryPageImage src={page.media_url} poster={page.thumbnail_url} style={{...style,transform:`${style.transform||''} scale(${playMode&&!reduceMotion?1+photoProgress*.06:1})`,transition:reduceMotion?'none':'transform .15s linear'}} onRetry={retryMedia} onReady={()=>setReadyPage(page.id)} />}</MemoryStoryFrame>
-                      ) : postSticker(page) ? (() => { const ps = postSticker(page)!; return (
+                      {pages.slice(idx,idx+(foreground?2:1)).map(entry=>{
+                        const selected=entry.id===page.id;
+                        return <div key={memoryPageMediaKey(entry,mediaAttempt)} className="absolute inset-0" style={{visibility:selected?'visible':'hidden',pointerEvents:selected?undefined:'none'}} aria-hidden={!selected} inert={!selected} data-memory-page={entry.id} data-memory-page-active={selected}>
+                      {entry.media_type === "video" && (entry.media_url || !postSticker(entry)) ? (
+                        <MemoryVideo key={[entry.id,entry.media_url,mediaAttempt,playRun].join(':')} src={entry.media_url ?? ''} poster={entry.thumbnail_url ?? undefined} page={entry} ownerId={album.user_id ?? ownerId} active={selected&&view==='book'&&foreground&&!filmVisible&&(!playMode||playing)&&!turning&&!manage&&!adding&&!musicOpen} onRetry={retryMedia} onEnd={playMode?finishPage:undefined} onProgress={progress=>setVideoPlayback({page:entry.id,progress})} />
+                      ) : entry.media_url || entry.thumbnail_url || (entry.media_type === "image" && !postSticker(entry)) ? (
+                        <MemoryStoryFrame key={[entry.id,entry.media_url,entry.thumbnail_url,mediaAttempt,playRun].join(':')} page={entry}>{style=><MemoryPageImage active={selected&&view==='book'&&foreground&&!turning&&!manage&&!adding&&!musicOpen} src={entry.media_url} poster={entry.thumbnail_url} style={{...style,transform:`${style.transform||''} scale(${playMode&&!reduceMotion?1+photoProgress*.06:1})`,transition:reduceMotion?'none':'transform .15s linear'}} onRetry={retryMedia} onReady={()=>{if(selected)setReadyPage(entry.id);}} />}</MemoryStoryFrame>
+                      ) : postSticker(entry) ? (() => { const ps = postSticker(entry)!; return (
                         <div className="flex h-full w-full flex-col justify-center gap-2 bg-[#101826] p-5">
                           <p className="text-[11px] font-bold uppercase tracking-wide text-white/50">Shared post</p>
                           <p className="text-[15px] font-bold text-white">{ps.postAuthorName || "Post"}</p>
@@ -296,10 +327,12 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
                           {ps.postId&&<Link href={"/post/"+ps.postId} className="mt-2 rounded-full bg-white/15 px-3 py-2 text-center text-sm text-white">View full post</Link>}
                         </div>
                       ); })() : (
-                        <MemoryStoryFrame key={page.id} page={page}>{()=> <div className="flex h-full w-full items-center justify-center p-6">
-                          <p className="text-center font-display text-[19px] leading-relaxed text-white">{page.story_caption}</p>
+                        <MemoryStoryFrame key={entry.id} page={entry}>{()=> <div className="flex h-full w-full items-center justify-center p-6">
+                          <p className="text-center font-display text-[19px] leading-relaxed text-white">{entry.story_caption}</p>
                         </div>}</MemoryStoryFrame>
                       )}
+                        </div>;
+                      })}
                     </div>
                     <PageCaption key={page.id + "-cap"} page={page} isOwner={album.is_owner&&!movieActive} onSaved={reloadAfterChange} />
                   </div>

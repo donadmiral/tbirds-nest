@@ -1,7 +1,7 @@
 import 'server-only';
 import { requirePermission } from './adminAuth';
 import { serviceClient } from './supabaseAdmin';
-import { isVideoUrl, pickAllMedia } from './media';
+import { isVideoMedia, isVideoUrl, pickAllMedia } from './media';
 import { resolveModerationMedia } from './moderationMedia';
 import { completeRead } from './completeRead';
 import type { MediaPreviewEdit, ReviewMedia } from '@/components/MediaPreview';
@@ -57,7 +57,7 @@ export async function loadContentReview(id: string, commentPage = 1, reportPage 
   if (authorsResult.error) throw new Error('Author details could not be loaded. Please retry.');
   const authors = Object.fromEntries(((authorsResult.data || []) as ReviewAuthor[]).map(author => [author.id, author]));
   const gallery: ReviewMedia[] = media.filter(item => !!urls[item.url]).map(item => ({
-    url: urls[item.url], video: item.media_type === 'video' || isVideoUrl(item.url), width: item.width, height: item.height,
+    url: urls[item.url], video: isVideoMedia(item.media_type, item.url), width: item.width, height: item.height,
     edit: item.edit ? { ...item.edit, coverUrl: item.edit.coverUrl ? urls[item.edit.coverUrl] || null : null } : null,
   }));
   return { post, authors, gallery, unavailableAttachments: media.length - gallery.length, comments, reports, commentCount: commentResult.count, reportCount: reportResult.count };

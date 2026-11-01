@@ -134,13 +134,13 @@ test('returned search RPC errors show retry instead of a false empty result',asy
 
 function storyLoadHarness({ initialStoryId='target', userIdx=0, startIndex=0 }={}) {
   const source=fs.readFileSync(path.join(__dirname,'../../components/StoryViewer.tsx'),'utf8');
-  const end=source.indexOf('  }, [user, userIdx, startIndex, initialStoryId, uid, storyLoadAttempt]);');
+  const end=source.indexOf('  }, [user, userIdx, startIndex, initialStoryId, uid, authRevision, storyLoadAttempt]);');
   const start=source.lastIndexOf('  useEffect(() => {',end);
   assert.ok(start>=0&&end>start,'story loading effect is present');
-  const pending=defer(), observed={stories:[],finished:false,error:false};let cleanup;
+  const pending=defer(), observed={stories:[],finished:false,error:false},epoch={current:1};let cleanup,signal;
   const code=source.slice(start,end)+'  }, []);';
-  vm.runInNewContext(code,{queueMicrotask,uid:'viewer',user:{user_id:'owner'},userIdx,startIndex,initialStoryId,useEffect:fn=>cleanup=fn(),getUserStories:()=>pending.promise,setStories:value=>observed.stories=value,setItemIdx:value=>observed.index=value,setStoryLoadFinished:value=>observed.finished=value,setStoryLoadError:value=>observed.error=value});
-  return {pending,observed,cleanup};
+  vm.runInNewContext(code,{AbortController,viewerEpoch:epoch,queueMicrotask,uid:'viewer',user:{user_id:'owner'},userIdx,startIndex,initialStoryId,useEffect:fn=>cleanup=fn(),getUserStories:(_owner,value)=>{signal=value;return pending.promise;},setStoriesOwner:value=>observed.owner=value,setStories:value=>observed.stories=value,setItemIdx:value=>observed.index=value,setStoryLoadFinished:value=>observed.finished=value,setStoryLoadError:value=>observed.error=value});
+  return {pending:{resolve:value=>pending.resolve(Array.isArray(value)?value.map(row=>({user_id:'owner',...row})):value)},observed,cleanup,epoch,get signal(){return signal;}};
 }
 test('story notification opens its exact asynchronously loaded story',async()=>{
  const h=storyLoadHarness();h.pending.resolve([{id:'earlier'},{id:'target'},{id:'later'}]);await flush();assert.equal(h.observed.index,1);assert.equal(h.observed.finished,true);
@@ -153,6 +153,13 @@ test('moving to another story owner starts at their first story',async()=>{
 });
 test('unmounted story loading does not replace the current viewer',async()=>{
  const h=storyLoadHarness();h.cleanup();h.pending.resolve([{id:'target'}]);await flush();assert.equal(h.observed.finished,false);assert.equal(h.observed.stories.length,0);
+});
+
+test('story cleanup aborts the actual read and late session epochs cannot repopulate it',async()=>{
+ const h=storyLoadHarness();await flush();h.epoch.current+=2;h.pending.resolve([{id:'target'}]);await flush();assert.equal(h.observed.finished,false);assert.equal(h.observed.stories.length,0);h.cleanup();assert.equal(h.signal.aborted,true);
+});
+test('story rows belonging to another owner never enter the selected viewer',async()=>{
+ const h=storyLoadHarness();h.pending.resolve([{id:'target',user_id:'another-owner'}]);await flush();assert.equal(h.observed.stories.length,0);assert.equal(h.observed.finished,true);
 });
 
 test('failed story loading exposes a retry state instead of pretending it expired',async()=>{

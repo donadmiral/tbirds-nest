@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-01T23:05:55.475Z",
+  "scope": "Retarget five existing QA Preview environment entries to the reviewed repair branch. No values requested or supplied.",
+  "previousBranch": "codex/completion-20261101",
+  "branch": "codex/web-admin-media-parity-20261101",
+  "teamId": "team_yu7fUehO2z7E6QHF6Nvxp3tC",
+  "changes": [
+    {
+      "project": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "previousBranch": "codex/completion-20261101",
+      "gitBranch": "codex/web-admin-media-parity-20261101",
+      "targets": [
+        "preview"
+      ],
+      "valuesRead": false,
+      "valuesChanged": false
+    },
+    {
+      "project": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "previousBranch": "codex/completion-20261101",
+      "gitBranch": "codex/web-admin-media-parity-20261101",
+      "targets": [
+        "preview"
+      ],
+      "valuesRead": false,
+      "valuesChanged": false
+    },
+    {
+      "project": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+      "key": "SUPABASE_SERVICE_ROLE_KEY",
+      "previousBranch": "codex/completion-20261101",
+      "gitBranch": "codex/web-admin-media-parity-20261101",
+      "targets": [
+        "preview"
+      ],
+      "valuesRead": false,
+      "valuesChanged": false
+    },
+    {
+      "project": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "previousBranch": "codex/completion-20261101",
+      "gitBranch": "codex/web-admin-media-parity-20261101",
+      "targets": [
+        "preview"
+      ],
+      "valuesRead": false,
+      "valuesChanged": false
+    },
+    {
+      "project": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "previousBranch": "codex/completion-20261101",
+      "gitBranch": "codex/web-admin-media-parity-20261101",
+      "targets": [
+        "preview"
+      ],
+      "valuesRead": false,
+      "valuesChanged": false
+    }
+  ],
+  "readback": [
+    {
+      "project": "platinum-web",
+      "previewKeys": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "branch": "codex/web-admin-media-parity-20261101",
+      "productionMetadataUnchanged": true
+    },
+    {
+      "project": "admin-web",
+      "previewKeys": [
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      ],
+      "branch": "codex/web-admin-media-parity-20261101",
+      "productionMetadataUnchanged": true
+    }
+  ],
+  "productionVariablesChanged": false,
+  "protectionChanged": false,
+  "baselineFailure": "Both latest Git preview builds failed the existing prebuild presence checks because their branch had no matching QA environment entries."
+}

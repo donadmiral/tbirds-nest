@@ -3,9 +3,9 @@
 import { createHomeFeedController, type FeedSeed, type FeedMode, type HomeFeedMemory } from "@/lib/homeFeedController";
 import { getNavigationStore } from "@/lib/navigationCache";
 import { restoreHomeFeedScroll } from "@/lib/homeFeedScroll";
-import { hydratePostMedia } from "@/lib/contentMedia";
+import { hydratePostMedia, retainFeedMedia } from "@/lib/contentMedia";
 import { getFeedCache } from "@/lib/feedCache";
-import { feedPrefetchUrls } from "../../shared/feedSnapshot";
+import { dataSaverEnabled } from '@/lib/mediaPrefs';
 import { renewFeedMedia } from "../../shared/feedMedia";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -59,7 +59,8 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
     window.dispatchEvent(new CustomEvent('pc-performance', { detail: { event: 'feed', ...value } }));
   }, rows => renewFeedMedia(rows, value => hydratePostMedia(value)),
     navigationStore.getSnapshot().owner === seed.owner
-      ? navigationStore.cache.read<HomeFeedMemory>(navigationStore.getSnapshot().scope, 'home:personal') : null));
+      ? navigationStore.cache.read<HomeFeedMemory>(navigationStore.getSnapshot().scope, 'home:personal') : null,
+    { scope: () => navigationStore.getSnapshot().scope, retain: retainFeedMedia }));
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   const { mode, rows: posts, loading, loadingMore, hasMore, error, pending: pendingNew } = state;
   const uidRef = useRef<string | null>(seed.owner);
@@ -131,6 +132,12 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
     lastFeedScroll.current = controller.getSnapshot().scrollRestore?.top ?? window.scrollY;
     const rememberScroll = () => { if (window.location.pathname === '/home') lastFeedScroll.current = window.scrollY; };
     window.addEventListener('scroll', rememberScroll, { passive: true });
+    const syncMediaSession = () => {
+      const session = navigationStore.getSnapshot();
+      if (session.initialized) controller.setMediaSession(session.owner, session.scope, !session.changed);
+    };
+    const unsubscribeNavigation = navigationStore.subscribe(syncMediaSession);
+    syncMediaSession();
     void controller.start();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id ?? null;
@@ -162,7 +169,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       const initialScope = !session.changed && session.owner === seed.owner ? session.scope : null;
       if (memory) navigationStore.cache.save(cacheScope ?? initialScope, 'home:personal', memory);
       window.removeEventListener('scroll', rememberScroll);
-      clearInterval(mediaRefresh); subscription.unsubscribe(); controller.dispose();
+      clearInterval(mediaRefresh); subscription.unsubscribe(); unsubscribeNavigation(); controller.dispose();
       window.removeEventListener('pc-refresh-feed', onRefresh); window.removeEventListener('pc-feed-hidden', onHidden);
       window.removeEventListener('pc-feed-author-hidden', onAuthorHidden);
       document.removeEventListener('visibilitychange', onVisibility);
@@ -194,13 +201,22 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
 
   // Infinite scroll: the sentinel near the bottom triggers the next page.
   useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting && controller.getSnapshot().hasMore && !controller.getSnapshot().loadingMore) load(true);
-    }, { rootMargin: "600px 0px" });
-    io.observe(el);
-    return () => io.disconnect();
+    let io: IntersectionObserver | null = null;
+    const observe = () => {
+      io?.disconnect();
+      const cards = listRef.current?.querySelectorAll<HTMLElement>('[data-pid]');
+      const el = !dataSaverEnabled() && cards?.length ? cards[Math.max(0, cards.length - 7)] : sentinelRef.current;
+      if (!el) return;
+      io = new IntersectionObserver((entries) => {
+        const current = controller.getSnapshot();
+        if (entries[0]?.isIntersecting && !document.hidden && current.hasMore && !current.loadingMore && !current.loading && !current.error) void load(true);
+      }, { rootMargin: "600px 0px" });
+      io.observe(el);
+    };
+    observe();
+    window.addEventListener('pc-media-preferences', observe);
+    document.addEventListener('visibilitychange', observe);
+    return () => { io?.disconnect(); window.removeEventListener('pc-media-preferences', observe); document.removeEventListener('visibilitychange', observe); };
   }, [load, posts.length, controller]);
 
   // Seen reporting: the phone's exact batch semantics - 6s flush, retry on failure.
@@ -251,14 +267,8 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
     return () => { supabase.removeChannel(ch); if (newDebounceRef.current) clearTimeout(newDebounceRef.current); };
   }, [supabase, load]);
 
-  const prefetched = useRef(new Set<string>());
-  useEffect(() => {
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-    if (document.visibilityState !== 'visible' || connection?.saveData || connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g') return;
-    const urls = feedPrefetchUrls(posts, 0, false).filter(url => !prefetched.current.has(url));
-    if (prefetched.current.size > 80) prefetched.current.clear();
-    urls.forEach(url => { prefetched.current.add(url); const image = new Image(); image.decoding = 'async'; image.src = url; });
-  }, [posts]);
+  // Lazy image elements prepare their own nearby pixels. Detached Image warms
+  // cannot be reused for private no-store responses and duplicate those reads.
 
   useEffect(() => {
     function onQuote(e: Event) { setQuote((e as CustomEvent).detail); }

@@ -8,18 +8,27 @@ const jsx = require('react/jsx-runtime');
 
 const source = fs.readFileSync(path.join(__dirname, '../components/AppShell.tsx'), 'utf8');
 const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
+function loadProfileHelper(name) {
+ const module = { exports: {} };
+ const code = ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib', name + '.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+ vm.runInNewContext(code, { module, exports: module.exports, AbortController, setTimeout, clearTimeout,
+  require: id => { assert.equal(id, './withTimeout'); return loadProfileHelper('withTimeout'); } });
+ return module.exports;
+}
+const navigationProfile = loadProfileHelper('navigationProfile');
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 function fixture(viewer, profileRead) {
  const queries = [];
  const supabase = { from(table) {
   const query = { table, filters: [] }; queries.push(query);
-  const builder = { select: columns => { query.columns = columns; return builder; }, eq: (key, value) => { query.filters.push([key, value]); return builder; }, maybeSingle: () => profileRead() };
+  const builder = { select: columns => { query.columns = columns; return builder; }, eq: (key, value) => { query.filters.push([key, value]); return builder; }, abortSignal: signal => { query.signal = signal; return builder; }, maybeSingle: () => profileRead() };
   return builder;
  } };
  const module = { exports: {} };
  vm.runInNewContext(output, { module, exports: module.exports, require(name) {
   if (name === 'react/jsx-runtime') return jsx;
   if (name === '@/lib/serverViewer') return { getServerViewer: async () => ({ supabase, user: await viewer }) };
+  if (name === '@/lib/navigationProfile') return navigationProfile;
   if (name === 'next/link') return { __esModule: true, default: 'a' };
   if (name === '@/components/NavigationLoading') return { RememberNavigationChrome: 'RememberNavigationChrome' };
   if (name.endsWith('.module.css')) return { __esModule: true, default: { professionalMain: 'professional-main', skipLink: 'skip-link' } };
@@ -50,7 +59,7 @@ test('professional branch still waits for the authenticated viewer and preserves
  assert.ok(find(result, 'header')); assert.equal(find(result, 'WebCallLayer'), null); assert.equal(h.queries.length, 0);
  assert.equal(find(result, 'RememberNavigationChrome').props.identity, null, 'A verified guest clears remembered chrome without recording an identity.');
 });
-test('standard navigation still reads and renders the authenticated profile rather than falling back while it is pending', async () => {
+test('standard navigation reads and renders the authenticated profile within its optional-read budget', async () => {
  const profile = deferred(), h = fixture({ id: 'viewer' }, () => profile.promise);
  let settled = false; const work = h.render({ children: 'Feed' }).then(value => { settled = true; return value; });
  await new Promise(resolve => setImmediate(resolve));
@@ -60,4 +69,5 @@ test('standard navigation still reads and renders the authenticated profile rath
  assert.equal(nav.props.name, 'A member'); assert.equal(nav.props.business, true); assert.equal(nav.props.verified, true); assert.equal(tabs.props.userId, 'viewer');
  const remembered = find(result, 'RememberNavigationChrome').props.identity;
  assert.equal(remembered.ownerId, 'viewer'); assert.equal(remembered.name, 'A member'); assert.equal(remembered.username, 'member'); assert.equal(remembered.business, true);
+ assert.equal(h.queries[0].signal.aborted, true);
 });

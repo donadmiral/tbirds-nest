@@ -4,6 +4,8 @@ import { hydrateMemoryAlbumMedia, hydrateStoryMedia } from "@/lib/contentMedia";
 import { createClient } from "@/lib/supabase/client";
 import type { StoryMediaTransform, StoryRow } from "@/lib/stories";
 import { memoryAlbumStoryLayers } from '../../shared/memoryStoryPresentation';
+import { withTimeout } from './withTimeout';
+import { retainMemoryBookMedia } from './memoryReadiness';
 
 export type MemoryPage = {
   id: string; media_url: string | null; media_type: string;
@@ -15,6 +17,7 @@ export type MemoryPage = {
   duration_sec?: number | null; dual_front_url?: string | null; audio_url?: string | null; audio_title?: string | null;
 };
 export type MemoryAlbum = {
+  _mediaExpiresAt?: number;
   cover_artwork?: import('../../shared/memoryBookCreative').MemoryCoverArtwork; film_settings?: import('../../shared/memoryBookCreative').MemoryFilmSettings; presentation_revision?: number;
   subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null; cover_pages?: import('../../shared/memoryBookDesign').MemoryCoverPage[];
   id: string; user_id?: string; is_default?: boolean; cover_design?: string; soundtrack?: import("../../shared/soundtrack").SoundtrackSelection | null;
@@ -54,13 +57,26 @@ export async function saveBookPresentation(albumId:string,title:string,color:str
   return !error;
 }
 
-export async function getMemoryBook(albumId: string): Promise<MemoryAlbum | null> {
+export async function getMemoryBook(albumId: string, options: { signal?: AbortSignal; previous?: MemoryAlbum | null; previousScope?: string | null; scope?: string | null } = {}): Promise<MemoryAlbum | null> {
   const supabase = createClient();
-  const { data, error } = await supabase.rpc("get_memory_book", { p_album: albumId });
-  if (error) throw error;
-  if (!data) return null;
-  const [album] = await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(data as MemoryAlbum)], supabase);
-  return album;
+  const controller = new AbortController(), abort = () => controller.abort();
+  options.signal?.addEventListener('abort', abort, { once: true });
+  if (options.signal?.aborted) controller.abort();
+  try {
+    return await withTimeout((async () => {
+      const { data, error } = await supabase.rpc("get_memory_book", { p_album: albumId }).abortSignal(controller.signal);
+      if (error) throw error;
+      if (controller.signal.aborted) throw new Error('Memory loading was cancelled.');
+      if (!data) return null;
+      const incoming = memoryAlbumStoryLayers(data as MemoryAlbum);
+      const retained = retainMemoryBookMedia(options.previous, incoming, process.env.NEXT_PUBLIC_SUPABASE_URL!, options.previousScope, options.scope);
+      if (retained !== incoming) return retained;
+      const [album] = await hydrateMemoryAlbumMedia([incoming], { auth: supabase.auth,
+        functions: { invoke: (name, request) => supabase.functions.invoke(name, { ...request, signal: controller.signal }) } });
+      if (controller.signal.aborted) throw new Error('Memory loading was cancelled.');
+      return album;
+    })(), 12_000);
+  } finally { controller.abort(); options.signal?.removeEventListener('abort', abort); }
 }
 
 export async function addMemoryPage(storyId: string, albumId?: string): Promise<boolean> {

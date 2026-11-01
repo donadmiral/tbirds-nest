@@ -16,22 +16,26 @@ export default function ReviewMediaGallery({ media }: { media: ReviewMedia[] }) 
     setExpanded(true);
   };
   const current = Math.max(0, Math.min(index, media.length - 1));
+  const hasMedia = media.length > 0;
   useEffect(() => {
-    if (!expanded) return;
+    if (!expanded || !hasMedia) return;
     const node = dialog.current;
     const previousFocus = returnFocus.current;
     const fallbackFocus = expandButton.current;
     const overflow = document.body.style.overflow;
-    window.dispatchEvent(new Event('platinum:stop-media'));
+    // Keep the same player DOM and buffer in both modes. A dialog must be
+    // closed before promoting its nonmodal inline presentation to showModal.
+    node?.close();
     node?.showModal();
     document.body.style.overflow = 'hidden';
     return () => {
       node?.close();
+      if (node?.isConnected) node.show();
       document.body.style.overflow = overflow;
       const focusTarget = previousFocus?.isConnected ? previousFocus : fallbackFocus;
       if (focusTarget?.isConnected) focusTarget.focus({ preventScroll: true });
     };
-  }, [expanded]);
+  }, [expanded, hasMedia]);
   if (!media.length) return null;
   const navigation = media.length > 1 ? <>
     <div className="pc-review-gallery-nav">
@@ -45,13 +49,13 @@ export default function ReviewMediaGallery({ media }: { media: ReviewMedia[] }) 
     </div>
   </> : null;
   return <div className="pc-review-gallery">
-    <div hidden={expanded}><MediaPreview key={`${current}:${media[current].url}`} {...media[current]} onExpand={openGallery} />{navigation}</div>
-    <button ref={expandButton} type="button" className="pc-button pc-gallery-expand" onClick={openGallery}><AdminIcon name="expand" size={17} /> Full screen</button>
-    <dialog ref={dialog} className="pc-media-dialog" aria-label="Full screen media review"
-      onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setExpanded(false); } else trapDialogTab(event); }}
-      onCancel={event => { event.preventDefault(); event.stopPropagation(); setExpanded(false); }} onClose={() => setExpanded(false)}>
-      <header><h2>Attachment {current + 1} of {media.length}</h2><button type="button" className="pc-button pc-button-square" aria-label="Close full screen media" onClick={() => setExpanded(false)}><AdminIcon name="close" size={20} /></button></header>
-      {expanded ? <><MediaPreview key={`${current}:${media[current].url}`} {...media[current]} expanded />{navigation}</> : null}
+    <dialog ref={dialog} open className={expanded ? 'pc-media-dialog' : 'pc-media-inline'} role={expanded ? 'dialog' : 'group'} aria-label={expanded ? 'Full screen media review' : 'Media attachments'} aria-modal={expanded || undefined}
+      style={expanded ? undefined : { position: 'static', width: '100%', maxWidth: 'none', maxHeight: 'none', margin: 0, padding: 0, border: 0, background: 'transparent', color: 'inherit', overflow: 'visible' }}
+      onKeyDown={event => { if (!expanded) return; if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setExpanded(false); } else trapDialogTab(event); }}
+      onCancel={event => { event.preventDefault(); event.stopPropagation(); setExpanded(false); }} onClose={event => { if (!event.currentTarget.open) setExpanded(false); }}>
+      {expanded ? <header><h2>Attachment {current + 1} of {media.length}</h2><button type="button" className="pc-button pc-button-square" aria-label="Close full screen media" onClick={() => setExpanded(false)}><AdminIcon name="close" size={20} /></button></header> : null}
+      <MediaPreview key={`${current}:${media[current].url}`} {...media[current]} expanded={expanded} onExpand={openGallery} />{navigation}
     </dialog>
+    <button ref={expandButton} type="button" className="pc-button pc-gallery-expand" onClick={openGallery}><AdminIcon name="expand" size={17} /> Full screen</button>
   </div>;
 }

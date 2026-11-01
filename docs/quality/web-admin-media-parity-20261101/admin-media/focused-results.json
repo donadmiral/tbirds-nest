@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "scope": "Focused production-function/component contracts and actual endpoint regressions with synthetic services. Direct node execution counts individual cases.",
+  "cases": 84,
+  "passed": 84,
+  "failed": 0,
+  "checks": [
+    {
+      "suite": "admin-web/tests/moderation-media-response.cjs",
+      "command": "node admin-web/tests/moderation-media-response.cjs",
+      "cases": 26,
+      "passed": 26,
+      "failed": 0,
+      "sourceSha256": "5901a65a1d628f369466939df3a9840f5ac2d92ab64bc318d4b9e29dccedeefb",
+      "outputSha256": "fb817087fd9bd5714aac5c99fa13af70125e9f0c60489751c30971118b292f91"
+    },
+    {
+      "suite": "admin-web/tests/media-preview-interaction.cjs",
+      "command": "node admin-web/tests/media-preview-interaction.cjs",
+      "cases": 8,
+      "passed": 8,
+      "failed": 0,
+      "sourceSha256": "0522bddf62ad23824592a599d7e4358302466b50bbebffa20031fbf10eaba5a9",
+      "outputSha256": "7a5ec12fc75a6cff4d790505825329e3ae47989211f66fdaf48988cb29533de1"
+    },
+    {
+      "suite": "admin-web/tests/story-presentation.cjs",
+      "command": "node admin-web/tests/story-presentation.cjs",
+      "cases": 8,
+      "passed": 8,
+      "failed": 0,
+      "sourceSha256": "f9de1c218d0ae359a20ee8e410217ae028854cb7864ca4a4ca38952f9d5f3778",
+      "outputSha256": "c6998b98be266b421004743d22d1e3bac1e6815fc845d5ba79cf85254ef7801e"
+    },
+    {
+      "suite": "admin-web/tests/media-readiness-page.cjs",
+      "command": "node admin-web/tests/media-readiness-page.cjs",
+      "cases": 5,
+      "passed": 5,
+      "failed": 0,
+      "sourceSha256": "388566196682c499ed291b7207d96b445c6b74eae313ab2426a1e443550c123f",
+      "outputSha256": "60c722fc7bcc0c9003a90a35d65eeb5ede0b237641d02c54f0f53fddeb7f21b8"
+    },
+    {
+      "suite": "admin-web/tests/content-review.cjs",
+      "command": "node admin-web/tests/content-review.cjs",
+      "cases": 8,
+      "passed": 8,
+      "failed": 0,
+      "sourceSha256": "397eb4752cccafc740361f8db05c3b6d5bfb5fe67509205821a10d61c9771c35",
+      "outputSha256": "d8ab35122a713facd490c655a308fb8e05692d09c670c9c84986a5b39e171fe1"
+    },
+    {
+      "suite": "admin-web/tests/endpoint-contracts.cjs",
+      "command": "node admin-web/tests/endpoint-contracts.cjs",
+      "cases": 29,
+      "passed": 29,
+      "failed": 0,
+      "sourceSha256": "592087ca72d41e32be2b7730b41c5c59723d6b35cd3ddce3910e0397703586b7",
+      "outputSha256": "01e49e35ece3e7bc4f94b3d58f2b1303d4ff3612bff3ab17b338c624302285a7"
+    }
+  ],
+  "typescript": {
+    "command": "node node_modules/typescript/bin/tsc --noEmit",
+    "cwd": "admin-web",
+    "passed": true
+  },
+  "diffCheck": {
+    "command": "git diff --check -- admin-web",
+    "passed": true
+  },
+  "hostedAuthenticatedAcceptance": false
+}

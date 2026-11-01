@@ -84,7 +84,7 @@ function endpointHarness(options = {}) {
       return req(name);
     };
     vm.runInNewContext(code, { module: mod, exports: mod.exports, require: local, process: { env: environment }, fetch: fetchFixture,
-      Buffer, URL, URLSearchParams, Request, Response, Headers, FormData, File, Blob, TextEncoder, TextDecoder,
+      Buffer, URL, URLSearchParams, Request, Response, Headers, FormData, File, Blob, TextEncoder, TextDecoder, ReadableStream,
       AbortSignal, AbortController, setTimeout: (fn, ms) => { timers.push(ms); return setTimeout(fn, options.fastDeadline ? 1 : ms); }, clearTimeout, Date, Promise, Map, Set, WeakMap, Uint8Array, Array, Object, String, Number, Math, Error, TypeError, RegExp, JSON, console, crypto: crypto.webcrypto }, { filename: full });
     return mod.exports;
   }

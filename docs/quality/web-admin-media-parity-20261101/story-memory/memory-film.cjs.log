@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: web film advances and loops its hydrated photos while retaining one continuous score
+ok 1 - web film advances and loops its hydrated photos while retaining one continuous score
+  ---
+  duration_ms: 394.384391
+  type: 'test'
+  ...
+# Subtest: web film has working pause, previous/next, music mute, read-book and close controls
+ok 2 - web film has working pause, previous/next, music mute, read-book and close controls
+  ---
+  duration_ms: 226.219182
+  type: 'test'
+  ...
+# Subtest: web film pauses on background/call state and requires a click when browser audio permission rejects
+ok 3 - web film pauses on background/call state and requires a click when browser audio permission rejects
+  ---
+  duration_ms: 174.017615
+  type: 'test'
+  ...
+# Subtest: web film waits for each photo and exposes retry after its bounded loading deadline
+ok 4 - web film waits for each photo and exposes retry after its bounded loading deadline
+  ---
+  duration_ms: 137.487717
+  type: 'test'
+  ...
+# Subtest: web film video uses the saved excerpt and speed, and emits one completion across time/end events
+ok 5 - web film video uses the saved excerpt and speed, and emits one completion across time/end events
+  ---
+  duration_ms: 129.291022
+  type: 'test'
+  ...
+# Subtest: web film video pauses immediately on visibility changes and cannot finish an inactive page
+ok 6 - web film video pauses immediately on visibility changes and cannot finish an inactive page
+  ---
+  duration_ms: 122.1273
+  type: 'test'
+  ...
+# Subtest: a late successful browser play cannot reactivate audio after the film unmounts
+ok 7 - a late successful browser play cannot reactivate audio after the film unmounts
+  ---
+  duration_ms: 111.337249
+  type: 'test'
+  ...
+# Subtest: web film surfaces a video stall after readiness, once, and releases its timer
+ok 8 - web film surfaces a video stall after readiness, once, and releases its timer
+  ---
+  duration_ms: 94.378922
+  type: 'test'
+  ...
+# Subtest: web film does not treat pauses, background time or blocked autoplay as stalled media
+ok 9 - web film does not treat pauses, background time or blocked autoplay as stalled media
+  ---
+  duration_ms: 182.57374
+  type: 'test'
+  ...
+# Subtest: web film photo artwork uses elapsed playback and stays fixed while paused
+ok 10 - web film photo artwork uses elapsed playback and stays fixed while paused
+  ---
+  duration_ms: 128.511221
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1726.279778

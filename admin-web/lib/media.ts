@@ -4,12 +4,17 @@ import { publicMediaUrl } from './publicMedia';
 
 /** Discover content media references, then resolve only explicitly public content buckets. */
 
-const VIDEO_RX = /\.(mp4|mov|m4v|webm|hevc|avi|mkv|3gp)(\?|$)/i;
+const VIDEO_RX = /\.(mp4|mov|m4v|webm|hevc|avi|mkv|3gp)([?#]|$)/i;
 const IMAGE_RX = /\.(jpg|jpeg|png|gif|webp|heic|heif|avif|bmp)(\?|$)/i;
 const MEDIA_KEY_RX = /(media|image|img|photo|picture|thumb|cover|banner|avatar|video|url|asset|attachment|file)/i;
 
 export function isVideoUrl(u: string | null | undefined): boolean {
   return !!u && VIDEO_RX.test(u);
+}
+
+export function isVideoMedia(type: string | null | undefined, url: string | null | undefined): boolean {
+  const hint = type?.trim().toLowerCase();
+  return hint === 'video' || !!hint?.startsWith('video/') || isVideoUrl(url);
 }
 
 function looksLikeMedia(value: string): boolean {

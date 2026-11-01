@@ -62,17 +62,74 @@ async function staffAllowed(admin: Admin | null): Promise<boolean> {
   return !!admin && canPerform(admin.role, 'post_moderate') && await canAccessOperations(admin);
 }
 
+function responseSize(response: Response): bigint | null {
+  const length = response.headers.get('Content-Length');
+  if (length !== null && !/^\d{1,20}$/.test(length)) throw new Error('Invalid media length');
+  const size = length === null ? null : BigInt(length);
+  if (response.status !== 206) return size;
+  const range = /^bytes (\d+)-(\d+)\/(\d+|\*)$/.exec(response.headers.get('Content-Range') || '');
+  if (!range) throw new Error('Invalid media range');
+  const start = BigInt(range[1]), end = BigInt(range[2]);
+  if (end < start || (range[3] !== '*' && BigInt(range[3]) <= end)) throw new Error('Invalid media range');
+  const rangedSize = end - start + BigInt(1);
+  if (size !== null && size !== rangedSize) throw new Error('Mismatched media length');
+  return rangedSize;
+}
+
+type DeliveryOptions = { startupTimeoutMs?: number; streamIdleTimeoutMs?: number };
+
 /** Each image/video range request verifies a current staff session and the
  * exact, still-referenced Storage object. No bearer capability reaches the UI. */
-export async function moderationMediaResponse(request: Request): Promise<Response> {
+export async function moderationMediaResponse(request: Request, options: DeliveryOptions = {}): Promise<Response> {
   const head = request.method === 'HEAD';
   if (!head && request.method !== 'GET') return unavailable(405, head);
+  if (request.headers.get('Sec-Fetch-Site') === 'cross-site') return unavailable(403, head);
+  const controller = new AbortController();
   let upstream: Response | undefined;
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  let output: ReadableStreamDefaultController<Uint8Array> | undefined;
+  let startupTimer: ReturnType<typeof setTimeout> | undefined;
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
+  let finished = false;
+  const cancelUpstream = () => {
+    // Cancellation may itself remain pending. Refusals and client aborts must
+    // never wait for an unresponsive Storage connection to acknowledge it.
+    try { void (reader ? reader.cancel() : upstream?.body?.cancel())?.catch(() => {}); } catch { /* Already closed. */ }
+  };
+  const stop = (failed = false) => {
+    if (finished) return;
+    finished = true;
+    clearTimeout(startupTimer); clearTimeout(idleTimer);
+    request.signal.removeEventListener('abort', clientAbort);
+    controller.abort(new Error('Media preview stopped'));
+    cancelUpstream();
+    if (failed) { try { output?.error(new Error('Media preview interrupted')); } catch { /* Already closed. */ } }
+  };
+  const clientAbort = () => stop(true);
+  const wait = <T,>(work: PromiseLike<T>): Promise<T> => {
+    const pending = Promise.resolve(work);
+    if (controller.signal.aborted) { void pending.catch(() => {}); return Promise.reject(new Error('Media preview stopped')); }
+    return new Promise<T>((resolve, reject) => {
+      const abort = () => reject(new Error('Media preview stopped'));
+      controller.signal.addEventListener('abort', abort, { once: true });
+      pending.then(resolve, reject).finally(() => controller.signal.removeEventListener('abort', abort));
+    });
+  };
+  const reject = (status: number) => { stop(); return unavailable(status, head); };
+  const readNext = async () => {
+    // Bound only an outstanding read, never time spent waiting for a paused
+    // browser to consume a queued chunk. Healthy long videos have no time cap.
+    idleTimer = setTimeout(() => stop(true), options.streamIdleTimeoutMs ?? 15_000);
+    try { return await wait(reader!.read()); }
+    finally { clearTimeout(idleTimer); idleTimer = undefined; }
+  };
+  request.signal.addEventListener('abort', clientAbort, { once: true });
+  if (request.signal.aborted) { stop(true); return unavailable(499, head); }
+  startupTimer = setTimeout(() => stop(true), options.startupTimeoutMs ?? 12_000);
   try {
-    if (request.headers.get('Sec-Fetch-Site') === 'cross-site') return unavailable(403, head);
-    const admin = await getAdmin();
-    if (!admin) return unavailable(401, head);
-    if (!await staffAllowed(admin)) return unavailable(403, head);
+    const admin = await wait(getAdmin());
+    if (!admin) return reject(401);
+    if (!await wait(staffAllowed(admin))) return reject(403);
 
     const url = new URL(request.url);
     const kind = url.searchParams.get('kind');
@@ -81,58 +138,88 @@ export async function moderationMediaResponse(request: Request): Promise<Respons
     const path = url.searchParams.get('path') || '';
     if ((kind !== 'post' && kind !== 'story') || !UUID.test(entityId) || !BUCKETS.has(bucket) ||
         !path || path.length > 1024 || /[%\\\x00-\x1f\x7f]/.test(path) ||
-        path.split('/').some(part => !part || part === '.' || part === '..')) return unavailable(400, head);
+        path.split('/').some(part => !part || part === '.' || part === '..')) return reject(400);
     const range = request.headers.get('Range');
-    if (range && !validMediaRange(range)) return unavailable(416, head);
+    if (range && !validMediaRange(range)) return reject(416);
 
     const configured = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || '');
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-    if (configured.protocol !== 'https:' || configured.username || configured.password || !serviceKey) return unavailable(503, head);
+    if (configured.protocol !== 'https:' || configured.username || configured.password || !serviceKey) return reject(503);
     const svc = serviceClient();
     const proof = async () => {
-      const { data, error } = await svc.rpc('admin_bound_content_media_object', {
+      const { data, error } = await wait(svc.rpc('admin_bound_content_media_object', {
         p_kind: kind, p_entity_id: entityId, p_bucket: bucket, p_path: path, p_origin: configured.origin,
-      });
+      }).abortSignal(controller.signal));
       if (error) throw new Error('Media authorization unavailable');
       return boundObject(data);
     };
     const before = await proof();
-    if (!before) return unavailable(404, head);
+    if (!before) return reject(404);
 
     const source = new URL(`/storage/v1/object/authenticated/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`, configured.origin);
     // This server-only nonce prevents a stale Storage CDN response from being
     // reused after a processor replaces an object at the same path.
     source.searchParams.set('cacheNonce', before.object_version + '-' + crypto.randomUUID());
-    const controller = new AbortController();
-    const headerDeadline = setTimeout(() => controller.abort(), 20_000);
-    try {
-      upstream = await fetch(source, {
-        method: head ? 'HEAD' : 'GET', cache: 'no-store', redirect: 'error',
-        signal: AbortSignal.any([request.signal, controller.signal]),
-        headers: { Authorization: 'Bearer ' + serviceKey, apikey: serviceKey, 'Cache-Control': 'no-store', ...(range ? { Range: range } : {}) },
-      });
-    } finally { clearTimeout(headerDeadline); }
-    if (upstream.status !== 200 && upstream.status !== 206) {
-      await upstream.body?.cancel();
-      return unavailable(upstream.status === 416 ? 416 : upstream.status === 404 ? 404 : 503, head);
+    await wait(fetch(source, {
+      method: head ? 'HEAD' : 'GET', cache: 'no-store', redirect: 'error', signal: controller.signal,
+      headers: { Authorization: 'Bearer ' + serviceKey, apikey: serviceKey, 'Cache-Control': 'no-store', 'Accept-Encoding': 'identity', ...(range ? { Range: range } : {}) },
+    }).then(response => {
+      upstream = response;
+      if (controller.signal.aborted) { cancelUpstream(); throw new Error('Media preview stopped'); }
+    }));
+    if (!upstream) throw new Error('Media preview unavailable');
+    if (upstream.redirected || (upstream.status !== 200 && upstream.status !== 206)) {
+      return reject(upstream.status === 416 ? 416 : upstream.status === 404 ? 404 : 503);
     }
-    const after = await proof();
-    const currentAdmin = await getAdmin();
+    const [after, currentAdmin] = await Promise.all([proof(), wait(getAdmin())]);
     if (!after || after.object_id !== before.object_id || after.object_version !== before.object_version ||
-        !currentAdmin || currentAdmin.id !== admin.id || currentAdmin.sessionId !== admin.sessionId || !await staffAllowed(currentAdmin)) {
-      await upstream.body?.cancel();
-      return unavailable(403, head);
+        !currentAdmin || currentAdmin.id !== admin.id || currentAdmin.sessionId !== admin.sessionId || !await wait(staffAllowed(currentAdmin))) {
+      return reject(403);
     }
     const mime = displayMime(upstream.headers.get('Content-Type'), path);
-    if (!mime) { await upstream.body?.cancel(); return unavailable(415, head); }
+    if (!mime) return reject(415);
+    // fetch can decode compressed bytes while retaining their original length.
+    // Those headers cannot safely describe the delivered range.
+    const encoding = upstream.headers.get('Content-Encoding')?.trim().toLowerCase();
+    if (encoding && encoding !== 'identity') throw new Error('Unexpected media encoding');
+    const expectedBytes = responseSize(upstream);
     const headers = new Headers({ ...PRIVATE_HEADERS, 'Content-Type': mime, 'Content-Disposition': 'inline' });
     for (const name of ['Content-Length', 'Content-Range', 'Accept-Ranges']) {
       const value = upstream.headers.get(name);
       if (value) headers.set(name, value);
     }
-    return new Response(head ? null : upstream.body, { status: upstream.status, headers });
+    if (head || !upstream.body || expectedBytes === BigInt(0)) {
+      if (!head && expectedBytes !== null && expectedBytes > BigInt(0)) throw new Error('Missing media body');
+      stop(); return new Response(null, { status: upstream.status, headers });
+    }
+    reader = upstream.body.getReader();
+    const first = await wait(reader.read());
+    if (first.done && expectedBytes !== null && expectedBytes > BigInt(0)) throw new Error('Truncated media body');
+    if (!first.done && expectedBytes !== null && BigInt(first.value.byteLength) > expectedBytes) throw new Error('Excess media bytes');
+    clearTimeout(startupTimer);
+    let pendingFirst: ReadableStreamReadResult<Uint8Array> | null = first, bytesRead = BigInt(0);
+    const body = new ReadableStream<Uint8Array>({
+      start(stream) { output = stream; },
+      async pull(stream) {
+        if (finished) return;
+        try {
+          const next = pendingFirst ?? await readNext(); pendingFirst = null;
+          if (finished) return;
+          if (next.done) {
+            if (expectedBytes !== null && bytesRead !== expectedBytes) throw new Error('Truncated media body');
+            stream.close(); stop(); return;
+          }
+          bytesRead += BigInt(next.value.byteLength);
+          if (expectedBytes !== null && bytesRead > expectedBytes) throw new Error('Excess media bytes');
+          stream.enqueue(next.value);
+          if (expectedBytes !== null && bytesRead === expectedBytes) { stream.close(); stop(); }
+        } catch { stop(true); }
+      },
+      cancel() { stop(true); },
+    });
+    return new Response(body, { status: upstream.status, headers });
   } catch {
-    try { await upstream?.body?.cancel(); } catch { /* The upstream may already be cancelled. */ }
-    return unavailable(503, head);
+    stop(true);
+    return unavailable(request.signal.aborted ? 499 : 503, head);
   }
 }

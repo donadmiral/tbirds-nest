@@ -53,14 +53,14 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
 
   const stories = (storiesRes.data ?? []) as Record<string, unknown>[];
 
-  const presentations = await resolveStoryPresentations(stories, resolveModerationMedia);
-
   const uids = Array.from(new Set(stories.map(s => String(s.user_id || '')).filter(Boolean)));
+  const [presentations, profiles] = await Promise.all([
+    resolveStoryPresentations(stories, resolveModerationMedia),
+    uids.length ? svc.from('profiles').select('id, full_name, username, avatar_url, is_verified').in('id', uids) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (profiles.error) throw new Error('Story authors could not be loaded. Refresh to retry.');
   const people: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }> = {};
-  if (uids.length) {
-    const { data } = await svc.from('profiles').select('id, full_name, username, avatar_url, is_verified').in('id', uids);
-    (data ?? []).forEach((p: { id: string; full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }) => { people[p.id] = p; });
-  }
+  (profiles.data ?? []).forEach((p: { id: string; full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }) => { people[p.id] = p; });
 
   const totalViews = stories.reduce((a, s) => a + (Number(s.views_count) || 0), 0);
   const withMedia = presentations.filter(s => s.mediaCount > 0).length;
@@ -125,7 +125,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
       search: [caption, a.full_name, a.username, kind].map(x => String(x || '').toLowerCase()).join(' '),
       facets: { type: kind, state: isLive ? 'Live' : 'Expired' },
       cells: [
-        { t: 'media', v: caption || kind + ' story', sub: '@' + (a.username || 'member'), thumb: url, video },
+        { t: 'media', v: caption || kind + ' story', sub: '@' + (a.username || 'member'), thumb: url, video, poster: first?.edit?.coverUrl || first?.poster },
         { t: 'user', v: a.full_name || 'Unnamed', sub: '@' + (a.username || 'member'), img: a.avatar_url },
         { t: 'pill', v: kind, tone },
         { t: 'pill', v: isLive ? hoursLeft + 'h left' : 'Expired', tone: (isLive ? 'ok' : 'neutral') as Tone },

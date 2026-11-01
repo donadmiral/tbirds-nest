@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: story strip and every avatar share one session-scoped, coalesced metadata read
+ok 1 - story strip and every avatar share one session-scoped, coalesced metadata read
+  ---
+  duration_ms: 259.239393
+  type: 'test'
+  ...
+# Subtest: story navigation expires after60seconds and invalidation forces a fresh verified read
+ok 2 - story navigation expires after60seconds and invalidation forces a fresh verified read
+  ---
+  duration_ms: 107.026675
+  type: 'test'
+  ...
+# Subtest: A to B to A clears story metadata, aborts pending transport and cannot repopulate the old cache
+ok 3 - A to B to A clears story metadata, aborts pending transport and cannot repopulate the old cache
+  ---
+  duration_ms: 72.786442
+  type: 'test'
+  ...
+# Subtest: late Auth lookup cannot dispatch a story read after a same-user session round trip
+ok 4 - late Auth lookup cannot dispatch a story read after a same-user session round trip
+  ---
+  duration_ms: 67.907238
+  type: 'test'
+  ...
+# Subtest: a hung story refresh reaches its deadline and preserves the prior authorized snapshot for retry
+ok 5 - a hung story refresh reaches its deadline and preserves the prior authorized snapshot for retry
+  ---
+  duration_ms: 100.00728
+  type: 'test'
+  ...
+# Subtest: private spotlight hydration uses the initiating JWT, abort signal and no-store media capabilities
+ok 6 - private spotlight hydration uses the initiating JWT, abort signal and no-store media capabilities
+  ---
+  duration_ms: 83.500503
+  type: 'test'
+  ...
+# Subtest: account change during private verification stops the next signing transport
+ok 7 - account change during private verification stops the next signing transport
+  ---
+  duration_ms: 78.709757
+  type: 'test'
+  ...
+# Subtest: malformed or failed catchup reads do not establish a successful empty cache
+ok 8 - malformed or failed catchup reads do not establish a successful empty cache
+  ---
+  duration_ms: 199.318674
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 978.103144

@@ -43,12 +43,16 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
   const window = { document, innerWidth: 1200, innerHeight: 900, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), addEventListener: add, removeEventListener: remove,
     localStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value) } };
   const client = { auth: { getSession: async () => ({ data: { session: null } }) }, from: () => ({ select() { return this; }, in() { return this; }, then: fn => Promise.resolve(fn({ data: [] })) }) };
+  const sessionListeners = new Set(); let session = { initialized: true, scope: 'account-a:1' };
+  const navigationStore = { getSnapshot: () => session, subscribe: fn => { sessionListeners.add(fn); return () => sessionListeners.delete(fn); } };
   const runtime = { jsx: (type, props, key) => ({ type, props, key }), jsxs: (type, props, key) => ({ type, props, key }), Fragment: 'Fragment' };
   const requireModule = name => {
     if (name === 'react') return new Proxy({}, { get: (_, key) => (...args) => currentHooks[key](...args) });
     if (name === 'react/jsx-runtime') return runtime;
     if (name === 'next/image') return {__esModule:true,default:'img'};
     if (name === '@/lib/videoPlayback') return helper;
+    if (name === '@/lib/videoReadiness') return preloadModule;
+    if (name === '@/lib/navigationCache') return { getNavigationStore: () => navigationStore };
     if (name.includes('shared/soundtrack')) return soundtrackHelpers;
     if (name.includes('shared/discover')) return discoverHelpers;
     if (name.includes('shared/carouselNavigation')) return sharedModule('carouselNavigation.ts');
@@ -66,16 +70,21 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     const module = { exports: {} };
     vm.runInNewContext(code, { module, exports: module.exports, require: requireModule, window, document, crypto: { randomUUID: () => 'test-session' },
       IntersectionObserver: class { constructor(callback, options) { if (options?.rootMargin) warmCallback = callback; else ioCallback = callback; } observe() {} disconnect() {} },
-      ResizeObserver: class { observe() {} disconnect() {} }, setTimeout, clearTimeout });
+      ResizeObserver: class { observe() {} disconnect() {} }, setTimeout: (...args) => { const timer = setTimeout(...args); timer.unref(); return timer; }, clearTimeout });
     return module.exports;
   }
+  const preloadModule = moduleFor(compile('lib/videoReadiness.ts'));
   const module = moduleFor(playerCode), gallery = moduleFor(galleryCode);
   function mount(extra = {}, kind = 'player') {
     let slots = [], cursor = 0, effects = [], tree, props = { src: 'synthetic.mp4', postId: 'test-post', ...extra };
-    const element = { duration, currentTime: 0, videoWidth: 1920, videoHeight: 1080, paused: true, ended: false, muted: true, playbackRate: 1,
+    let sourceAttribute = null;
+    const element = { duration, currentTime: 0, currentSrc: '', readyState: 0, seeking: false, videoWidth: 1920, videoHeight: 1080, paused: true, ended: false, muted: true, playbackRate: 1,
+      get src() { return sourceAttribute || ''; }, set src(value) { sourceAttribute = value; },
+      getAttribute: name => name === 'src' ? sourceAttribute : null,
+      removeAttribute(name) { if (name === 'src') sourceAttribute = null; },
       playCalls: 0, pauseCalls: 0, loadCalls: 0, pipCalls: 0, playResult: null,
       play() { this.playCalls++; this.paused = false; return this.playResult || Promise.resolve(); },
-      pause() { this.pauseCalls++; this.paused = true; }, load() { this.loadCalls++; },
+      pause() { this.pauseCalls++; this.paused = true; }, load() { this.loadCalls++; this.currentSrc = sourceAttribute || ''; },
       requestPictureInPicture() { this.pipCalls++; document.pictureInPictureElement = this; return Promise.resolve(); },
       addEventListener: add, removeEventListener: remove };
     const focusNode = () => ({ isConnected: true, tabIndex: 0, hasAttribute: () => false, getClientRects: () => [{}],
@@ -88,7 +97,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     const closeButton = focusNode();
     const wrapper = { ...focusNode(), contains: target => target === inlineOpener || modal.contains(target),
       clientWidth: 600, clientHeight: 400,
-      getBoundingClientRect: () => ({ width: 600, height: 400 }), querySelectorAll: () => [], querySelector: () => inlineOpener,
+      getBoundingClientRect: () => ({ width: 600, height: 400, top: 0, bottom: 400 }), querySelectorAll: () => [], querySelector: () => inlineOpener,
       requestFullscreen: async () => { document.fullscreenElement = wrapper; } };
     const same = (a, b) => a && b && a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
     const hooks = {
@@ -127,6 +136,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
         for (const node of nodes) if (node.props?.ref) node.props.ref.current = node.type === 'video' ? element
           : node.props.role === 'dialog' ? modal : node.props['aria-label'] === 'Close viewer' ? closeButton : wrapper;
         const video = allNodes(tree).find(node => node.type === 'video'); if (video?.props.muted !== undefined) element.muted = video.props.muted;
+        if (video && Object.hasOwn(video.props, 'src')) { if (video.props.src) element.src = video.props.src; else element.removeAttribute('src'); }
         const pending = effects; effects = []; pending.forEach(fn => fn());
       },
       find(predicate) { return allNodes(tree).find(predicate); },
@@ -144,6 +154,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     screen.render(); return screen;
   }
   return { mount, document, storage,
+    session(scope) { session = { initialized: true, scope }; sessionListeners.forEach(fn => fn()); },
     visibility(value) { document.hidden = value; [...(listeners.get('visibilitychange') || [])].forEach(fn => fn()); },
     intersect(ratio) { ioCallback?.([{ intersectionRatio: ratio }]); },
     approach(near) { warmCallback?.([{ isIntersecting: near }]); },
@@ -227,7 +238,7 @@ test('play rejection and load errors display truthful recovery actions', async (
   screen.click('Play video'); await flush(screen); assert.match(screen.text, /Playback could not start/);
   screen.element.playResult = null; screen.videoEvent('onError');
   assert.match(screen.text, /could not load/); assert.doesNotMatch(screen.text, /still being prepared|plays in the Platinum/);
-  screen.click('Retry video'); assert.equal(screen.element.loadCalls, 1);
+  const before = screen.element.loadCalls; screen.click('Retry video'); assert.ok(screen.element.loadCalls > before);
 });
 test('creator-muted video cannot be unmuted with a keyboard shortcut', () => {
   const screen = scenario({ prefs: { muted: false } }).mount({ edit: { muted: true } });
@@ -530,4 +541,29 @@ test('nearby feed videos buffer before entering the viewport without starting pl
   assert.equal(screen.element.playCalls, 0);
   s.approach(false); screen.render();
   assert.equal(screen.find(n => n.type === 'video').props.preload, 'none');
+});
+
+test('a source poster survives metadata and an untrimmed frame until the correct decoded frame is presented', () => {
+  const s = scenario(), screen = s.mount({ poster: 'cover-a.jpg', edit: { trimStart: 2, trimEnd: 8 } });
+  const frames = new Map(); let sequence = 0;
+  screen.element.requestVideoFrameCallback = fn => { frames.set(++sequence, fn); return sequence; };
+  screen.element.cancelVideoFrameCallback = id => frames.delete(id);
+  s.approach(true); screen.render(); screen.element.readyState = 3;
+  screen.videoEvent('onLoadedMetadata');
+  assert.ok(screen.find(node => node.props?.['data-video-poster'] === 'synthetic.mp4'));
+  screen.videoEvent('onLoadedData');
+  let [id, fn] = frames.entries().next().value; frames.delete(id); fn(1, { mediaTime: 0 }); screen.render();
+  assert.ok(screen.find(node => node.props?.['data-video-poster'] === 'synthetic.mp4'));
+  [id, fn] = frames.entries().next().value; frames.delete(id); fn(2, { mediaTime: 2 }); screen.render();
+  assert.equal(screen.find(node => node.props?.['data-video-poster']), undefined); screen.unmount();
+});
+
+test('hidden pages release speculative sources and an A to B to A session cannot restart the old element', () => {
+  const s = scenario(), screen = s.mount(); s.approach(true); screen.render();
+  assert.equal(screen.element.getAttribute('src'), 'synthetic.mp4');
+  s.visibility(true); screen.render(); assert.equal(screen.element.getAttribute('src'), null);
+  s.visibility(false); screen.render(); screen.click('Play video'); const plays = screen.element.playCalls;
+  s.session('account-b:2'); s.session('account-a:3'); screen.render(); screen.click('Play video');
+  assert.equal(screen.element.playCalls, plays); assert.equal(screen.element.getAttribute('src'), null);
+  screen.unmount();
 });

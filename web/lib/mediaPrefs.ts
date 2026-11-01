@@ -10,7 +10,9 @@ export function dataSaverEnabled(): boolean {
 }
 export function setAutoplay(on: boolean): void {
   try { localStorage.setItem(AUTO, on ? "on" : "off"); } catch { /* fine */ }
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('pc-media-preferences'));
 }
 export function setDataSaver(on: boolean): void {
   try { localStorage.setItem(SAVER, on ? "on" : "off"); } catch { /* fine */ }
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('pc-media-preferences'));
 }
