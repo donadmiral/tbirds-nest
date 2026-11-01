@@ -1,0 +1,20 @@
+{
+  "producerSourceCommit": "d32ce7e755f78d2efe084ccc4aaea30b28f1d73c",
+  "rendererAndBridgeInputsExactlyMatch": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "workflowRun": 41260485021,
+  "jobId": 124712546319,
+  "artifactId": 13064903905,
+  "artifactBytes": 977414,
+  "artifactSha256": "8766a3211fd876a31e73f7ab1804114b6b7385d037251faf550aea9838df0ea4",
+  "receiptSha256": "303a785b8251a45b7384c9d0e9d4d8810065f023ef1604a3dd18e4ad0c379c16",
+  "sourceFilesVerified": 3,
+  "nativeSourcesCompiledToObjects": true,
+  "applicationExecutableLinked": true,
+  "simulatorArchitecture": "x86_64",
+  "sourceMemoryCapability": 0,
+  "qaCapabilityOverlayUsed": false,
+  "passed": true,
+  "installedRuntimeAcceptance": false,
+  "deviceOrProviderAcceptance": false,
+  "archiveOrIpaCreated": false
+}

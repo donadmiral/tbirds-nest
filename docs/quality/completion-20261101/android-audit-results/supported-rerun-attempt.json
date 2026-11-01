@@ -1,0 +1,19 @@
+{
+  "tool": "github_rerun_workflow_job",
+  "arguments": {
+    "repo_full_name": "donadmiral/tbirds-nest",
+    "job_id": 124713934076
+  },
+  "waitElapsedSeconds": 1121.5,
+  "localTerminalText": "aborted by user after 1121.5s",
+  "interruptionInitiator": "coordinator",
+  "userCancellation": false,
+  "remoteCancellationEstablished": false,
+  "providerResponse": null,
+  "providerRequestId": null,
+  "functionsCellId": null,
+  "automaticApprovalRejectionObserved": false,
+  "remoteOutcome": "unknown",
+  "repeatRequestSubmitted": false,
+  "replacementConsumer": "Source-bound original 31-case consumer using a fresh emulator and the verified existing APK"
+}

@@ -1,0 +1,42 @@
+{
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "binarySha256": "a2a7cc10b33619d96ecdd461c8401fc360c47a592e94eded2e7c183863cdbd85",
+  "verifiedAt": "2026-11-01T02:08:21.457457+00:00",
+  "artifacts": [
+    {
+      "shard": "social",
+      "jobId": 124713934076,
+      "artifactId": 13064963897,
+      "bytes": 1821317,
+      "sha256": "42a2d54ab4f7ac35f11a7e3acaa3b625b88981d6020602148d85978b889016db",
+      "caseCount": 31,
+      "passed": 21,
+      "failed": 10,
+      "junitAndFixtureIndependentlyRevalidated": true
+    },
+    {
+      "shard": "settings",
+      "jobId": 124713934077,
+      "artifactId": 13064734608,
+      "bytes": 3334882,
+      "sha256": "020816ce6a874806b38d9f4026ccf20f0733880ca2d15a2be349ed5503735468",
+      "caseCount": 27,
+      "passed": 27,
+      "failed": 0,
+      "junitAndFixtureIndependentlyRevalidated": true
+    },
+    {
+      "shard": "account",
+      "jobId": 124713934088,
+      "artifactId": 13065931310,
+      "bytes": 5354562,
+      "sha256": "68756024fc3afb566a2353d35b88b3e0591d3cb6270f06a8bb8d1f6b093a87d6",
+      "caseCount": 27,
+      "passed": 27,
+      "failed": 0,
+      "junitAndFixtureIndependentlyRevalidated": true
+    }
+  ]
+}

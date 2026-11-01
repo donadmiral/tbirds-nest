@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T02:08:14.548601+00:00",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "producerArtifactId": 13065102124,
+  "filesSha256": {
+    "scripts/quality/completion-android-social.py": "1d1a99af73749118219358400f4a3fbfef4f446f8915c97c64b4fbb76c52a8ce",
+    "scripts/quality/completion-android-social.test.py": "8d35993f945baed424dbb6749dd4fd4b34f24d568b172a4cf04d94c5e47a4104",
+    ".github/workflows/completion-android-social.yml": "ccacd753655da38a2301f484770a01bbe82ca788ef2880c3ba451a300c9f8faa"
+  },
+  "review": {
+    "exactIndependentProducerBindingMatches": true,
+    "actualDownloadedApkDigestRequired": true,
+    "baselineCommitTreeAndPinnedOriginalHelpersRequired": true,
+    "original31CasesRequired": true,
+    "originalCaseDeadlinesUnchanged": true,
+    "trackedSourceAndApkCheckedBeforeAndAfter": true,
+    "producerAndConsumerCommitsReportedSeparately": true,
+    "rebuild": false,
+    "rebundle": false,
+    "resign": false,
+    "allExpectedCasesInitiallyCountedUnexecuted": true,
+    "setupExceptionCannotBecomePass": true,
+    "knownInitialCaseListRequiresReviewedManifestDigest": true,
+    "originalJunitAndFixtureRevalidated": true,
+    "all3OriginalReceiptsAndUiCaptureRequired": true,
+    "missingDuplicateRetriedOrFailedCasesCannotPass": true
+  },
+  "independentValidation": {
+    "focusedTestsPassed": 3,
+    "failed": 0,
+    "historicalArtifact": "native-audit-results-android-social from producer41259529351",
+    "historicalPassed": 21,
+    "historicalFailed": 10,
+    "historicalUnexecuted": 0,
+    "historicalInconsistencyIssues": 0,
+    "historicalFalsePassRejected": true,
+    "requiredReceiptAndCaptureAvailabilityInAll21HistoricalSuccessesVerified": true,
+    "testOutput": "android-social-consumer-independent-tests.txt"
+  },
+  "runtimeAcceptanceClaimed": false,
+  "conclusion": "No material binding, accounting or unchanged-case blocker identified. The fresh emulator result is still required."
+}

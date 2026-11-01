@@ -1,0 +1,613 @@
+{
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "platform": "android",
+  "expected": 85,
+  "attempted": 85,
+  "passed": 75,
+  "failed": 10,
+  "notAttempted": 0,
+  "caseResults": [
+    {
+      "id": "navigation-feedmain",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 40652
+    },
+    {
+      "id": "navigation-marketmain",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 40706
+    },
+    {
+      "id": "navigation-jobsmain",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 37589
+    },
+    {
+      "id": "navigation-conversations",
+      "shard": "social",
+      "status": "failed",
+      "attempts": 1,
+      "elapsedMs": 36904
+    },
+    {
+      "id": "navigation-profilemain",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 37732
+    },
+    {
+      "id": "feed-search",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36217
+    },
+    {
+      "id": "feed-notifications",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36090
+    },
+    {
+      "id": "feed-articlecompose",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36764
+    },
+    {
+      "id": "feed-post",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35517
+    },
+    {
+      "id": "feed-trendfeed",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35610
+    },
+    {
+      "id": "market-listingdetail",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36569
+    },
+    {
+      "id": "market-createlisting",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36715
+    },
+    {
+      "id": "market-marketinbox",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36341
+    },
+    {
+      "id": "jobs-jobdetail",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35551
+    },
+    {
+      "id": "jobs-savedjobs",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35453
+    },
+    {
+      "id": "jobs-myapplications",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36413
+    },
+    {
+      "id": "jobs-jobsinbox",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35014
+    },
+    {
+      "id": "messages-findpeople",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36164
+    },
+    {
+      "id": "messages-creategroup",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36590
+    },
+    {
+      "id": "messages-messagerequests",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 37116
+    },
+    {
+      "id": "messages-savedmessages",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36665
+    },
+    {
+      "id": "messages-starredmessages",
+      "shard": "social",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36277
+    },
+    {
+      "id": "messages-calllog",
+      "shard": "social",
+      "status": "failed",
+      "attempts": 1,
+      "elapsedMs": 37424
+    },
+    {
+      "id": "messages-chat",
+      "shard": "social",
+      "status": "failed",
+      "attempts": 1,
+      "elapsedMs": 3949
+    },
+    {
+      "id": "navigation-warm-tabs",
+      "shard": "social",
+      "status": "failed",
+      "attempts": 1,
+      "elapsedMs": 3945
+    },
+    {
+      "id": "feed-search-controls",
+      "shard": "social",
+      "status": "failed",
+      "attempts": 1,
+      "elapsedMs": 4052
+    },
+    {
+      "id": "notifications-empty-controls",
+      "shard": "social",
+      "status": "failed",
+      "attempts": 1,
+      "elapsedMs": 3993
+    },
+    {
+      "id": "market-offer-cancel",
+      "shard": "social",
+      "status": "failed",
+      "attempts": 1,
+      "elapsedMs": 3893
+    },
+    {
+      "id": "jobs-application-entry",
+      "shard": "social",
+      "status": "failed",
+      "attempts": 1,
+      "elapsedMs": 4054
+    },
+    {
+      "id": "messages-recipient-search",
+      "shard": "social",
+      "status": "failed",
+      "attempts": 1,
+      "elapsedMs": 3845
+    },
+    {
+      "id": "feed-article-draft",
+      "shard": "social",
+      "status": "failed",
+      "attempts": 1,
+      "elapsedMs": 3952
+    },
+    {
+      "id": "settings-settings",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35879
+    },
+    {
+      "id": "settings-hiddenwords",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34714
+    },
+    {
+      "id": "settings-mutedwords",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33870
+    },
+    {
+      "id": "settings-archive",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 32698
+    },
+    {
+      "id": "settings-youractivity",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33759
+    },
+    {
+      "id": "settings-loginactivity",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33415
+    },
+    {
+      "id": "settings-blockedaccounts",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34395
+    },
+    {
+      "id": "settings-restrictedaccounts",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34173
+    },
+    {
+      "id": "settings-savedposts",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 32908
+    },
+    {
+      "id": "settings-mutedstories",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33855
+    },
+    {
+      "id": "settings-followrequests",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34198
+    },
+    {
+      "id": "settings-terms",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 32528
+    },
+    {
+      "id": "settings-privacypolicy",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33670
+    },
+    {
+      "id": "settings-helpsupport",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34062
+    },
+    {
+      "id": "settings-changeusername",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33562
+    },
+    {
+      "id": "settings-accountstanding",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33258
+    },
+    {
+      "id": "settings-applyverification",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34028
+    },
+    {
+      "id": "settings-twofactor",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33007
+    },
+    {
+      "id": "settings-monetization",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 32748
+    },
+    {
+      "id": "stories-storycreationmenu",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34572
+    },
+    {
+      "id": "stories-storycomposer",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 46131
+    },
+    {
+      "id": "stories-storylayout",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33043
+    },
+    {
+      "id": "stories-storyviewer",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 41509
+    },
+    {
+      "id": "directories-channels",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35443
+    },
+    {
+      "id": "settings-hidden-word-write",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 42058
+    },
+    {
+      "id": "settings-muted-word-write",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 41179
+    },
+    {
+      "id": "settings-appearance",
+      "shard": "settings",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 43504
+    },
+    {
+      "id": "profile-editprofile",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35733
+    },
+    {
+      "id": "profile-userprofile",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35149
+    },
+    {
+      "id": "profile-followlist",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35151
+    },
+    {
+      "id": "profile-mynetwork",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33158
+    },
+    {
+      "id": "support-contactsupport",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34011
+    },
+    {
+      "id": "support-ticket",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33296
+    },
+    {
+      "id": "business-businessapply",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33721
+    },
+    {
+      "id": "business-businessaccess",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33980
+    },
+    {
+      "id": "business-createbusiness",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34057
+    },
+    {
+      "id": "business-businesses",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33990
+    },
+    {
+      "id": "memory-memoryalbum",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33048
+    },
+    {
+      "id": "support-original-body",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33226
+    },
+    {
+      "id": "support-missing-ticket",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33688
+    },
+    {
+      "id": "support-ticket-read-error",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 40365
+    },
+    {
+      "id": "support-history-error",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 39766
+    },
+    {
+      "id": "support-list-error",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 40104
+    },
+    {
+      "id": "support-fresh-ticket-body",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 60951
+    },
+    {
+      "id": "support-reopen-error",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 46649
+    },
+    {
+      "id": "support-reply-error",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 47333
+    },
+    {
+      "id": "memory-reader-controls",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 45784
+    },
+    {
+      "id": "memory-cover-settings",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 62061
+    },
+    {
+      "id": "memory-film-export-entry",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 58848
+    },
+    {
+      "id": "memory-capture-session",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 69488
+    },
+    {
+      "id": "auth-empty-signin",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 12379
+    },
+    {
+      "id": "auth-forgot-password",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 15741
+    },
+    {
+      "id": "auth-signup-entry",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 18683
+    },
+    {
+      "id": "auth-business-entry",
+      "shard": "account",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 18517
+    }
+  ],
+  "allDeclaredCasesPassed": false,
+  "allControlsAccepted": false,
+  "hostedBackendAcceptance": false,
+  "physicalDeviceAcceptance": false,
+  "recoveryAcceptancePending": true
+}

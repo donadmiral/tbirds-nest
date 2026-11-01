@@ -1,0 +1,8 @@
+{
+  "yamlParsed": true,
+  "exactProducerCheckout": true,
+  "readOnlyArtifactPermissions": true,
+  "downloadBoundToProducerRun": true,
+  "alwaysPreservesEvidence": true,
+  "noBuildCommand": true
+}

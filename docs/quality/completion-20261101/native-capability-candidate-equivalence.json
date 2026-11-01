@@ -71,7 +71,25 @@
       "ios"
     ],
     "requiredBehavior": "Installed app enters capture, cancels and retries in the same session, exports through the real native bridge, and the retained output decodes with verified dimensions/timeline/audio.",
-    "promotionAuthorizedByThisProof": false
+    "promotionAuthorizedByThisProof": false,
+    "platformEvidence": {
+      "android": {
+        "passed": true,
+        "verificationPath": "android-audit-results/memory-capture-session/verification.json",
+        "verificationSha256": "3d5b3ab6be3000bd5db9117b8e68d59736257064f80eb380c6994eaa2de250bc",
+        "artifactId": 13065931310,
+        "binarySha256": "a2a7cc10b33619d96ecdd461c8401fc360c47a592e94eded2e7c183863cdbd85",
+        "movieSha256": "69073a04abd6782a533a6ed0694572cb1c2b8a5dee05636c1450ff9101d75b84",
+        "originalAndLocalDecodedReceiptsMatch": true
+      },
+      "ios": {
+        "passed": false,
+        "status": "Awaiting original account feature group capture result",
+        "consumerRunId": 41263707729,
+        "jobId": 124721993308
+      }
+    },
+    "reviewedAtUtc": "2026-11-01T02:08:41.904070+00:00"
   },
   "scope": "Whole-file bridge equivalence to independently retained platform compilation inputs. Existing f5 artifacts keep their original source identity. This proof does not substitute standalone tests for installed capture, hosted backend, signed release or physical-device acceptance.",
   "nextActionAfterInstalledCapturePasses": "Change only both version constants from 0 to 1, recheck the complete production input diff and candidate hashes, then append the actual promotion commit and final installed evidence."

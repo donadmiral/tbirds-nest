@@ -1,0 +1,26 @@
+{
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "platform": "android",
+  "selectedGroups": [
+    "directories",
+    "settings",
+    "stories"
+  ],
+  "unselectedGroups": [
+    "auth",
+    "business",
+    "feed",
+    "jobs",
+    "market",
+    "memory",
+    "messages",
+    "navigation",
+    "profile",
+    "support"
+  ],
+  "attempted": 27,
+  "passed": 27,
+  "failed": 0,
+  "allControlsAccepted": false
+}

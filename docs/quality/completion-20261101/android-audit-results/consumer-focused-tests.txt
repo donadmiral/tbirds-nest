@@ -1,0 +1,8 @@
+test_absent_execution_accounts_for_all_31_cases (__main__.ConsumerBoundaries.test_absent_execution_accounts_for_all_31_cases) ... ok
+test_complete_unit_evidence_and_failure_boundaries (__main__.ConsumerBoundaries.test_complete_unit_evidence_and_failure_boundaries) ... ok
+test_exact_producer_and_full_social_partition (__main__.ConsumerBoundaries.test_exact_producer_and_full_social_partition) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.367s
+
+OK

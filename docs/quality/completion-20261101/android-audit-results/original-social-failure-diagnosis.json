@@ -1,0 +1,345 @@
+{
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "workflowRunId": 41259529351,
+  "jobId": 124713934076,
+  "originalResultsPreserved": true,
+  "passed": 21,
+  "failed": 10,
+  "failures": [
+    {
+      "id": "navigation-conversations",
+      "originalStatus": "failed",
+      "classification": "infrastructure-or-missing-evidence",
+      "stage": "receipt-collection-after-ui-pass",
+      "reason": "Original Maestro flow and JUnit passed. Device went offline during driver teardown; all three private receipts could not be collected. Product acceptance remains failed because evidence is incomplete.",
+      "productAssertionFailureObserved": false,
+      "files": [
+        {
+          "path": "navigation-conversations/maestro.log",
+          "bytes": 1420,
+          "sha256": "e52cde2f5a0de5d9189d3bb5119eb83d014b4bf7586dbdaaf4bbd5212c8b3d20"
+        },
+        {
+          "path": "navigation-conversations/junit.xml",
+          "bytes": 431,
+          "sha256": "9b29a25e54d921dc59e1eca93a509262117066b08746e200446ac6fa6b1300dd"
+        },
+        {
+          "path": "navigation-conversations/native-ui-receipt.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "navigation-conversations/native-ui-auth-diagnostics.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "navigation-conversations/native-ui-navigation-timing.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "captures": [
+        {
+          "path": "navigation-conversations/maestro/2026-11-01_012815/Audit Conversations/takeScreenshot/navigation-conversations.png",
+          "bytes": 33168,
+          "sha256": "e4d744c7eb32d9e52f92e04afa0bdc99fb3c0faf5995d7aef2ca60345c062a14"
+        }
+      ]
+    },
+    {
+      "id": "messages-calllog",
+      "originalStatus": "failed",
+      "classification": "infrastructure-or-missing-evidence",
+      "stage": "sign-in-launch-before-product-assertion",
+      "reason": "Device was not found while the original sign-in flow tried to clear state and launch the app. The CallLog product assertion was not reached.",
+      "productAssertionFailureObserved": false,
+      "files": [
+        {
+          "path": "messages-calllog/maestro.log",
+          "bytes": 1425,
+          "sha256": "17a3c9151700386ce7493fae74523207ccdb2dd0a3634238e4da3516fbc4137a"
+        },
+        {
+          "path": "messages-calllog/junit.xml",
+          "bytes": 457,
+          "sha256": "f523eb75d2b6fd2d7ef343153a5afdca5cc544efabd5158d7a0347e09a75458a"
+        },
+        {
+          "path": "messages-calllog/native-ui-receipt.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "messages-calllog/native-ui-auth-diagnostics.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "messages-calllog/native-ui-navigation-timing.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "captures": []
+    },
+    {
+      "id": "messages-chat",
+      "originalStatus": "failed",
+      "classification": "infrastructure-or-missing-evidence",
+      "stage": "device-unavailable-before-app-launch",
+      "reason": "Maestro reported that emulator-5556 was requested but not connected. No app flow, JUnit or fixture receipt completed.",
+      "productAssertionFailureObserved": false,
+      "files": [
+        {
+          "path": "messages-chat/maestro.log",
+          "bytes": 62,
+          "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+        },
+        {
+          "path": "messages-chat/native-ui-receipt.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "messages-chat/native-ui-auth-diagnostics.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "messages-chat/native-ui-navigation-timing.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "captures": []
+    },
+    {
+      "id": "navigation-warm-tabs",
+      "originalStatus": "failed",
+      "classification": "infrastructure-or-missing-evidence",
+      "stage": "device-unavailable-before-app-launch",
+      "reason": "Maestro reported that emulator-5556 was requested but not connected. No app flow, JUnit or fixture receipt completed.",
+      "productAssertionFailureObserved": false,
+      "files": [
+        {
+          "path": "navigation-warm-tabs/maestro.log",
+          "bytes": 62,
+          "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+        },
+        {
+          "path": "navigation-warm-tabs/native-ui-receipt.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "navigation-warm-tabs/native-ui-auth-diagnostics.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "navigation-warm-tabs/native-ui-navigation-timing.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "captures": []
+    },
+    {
+      "id": "feed-search-controls",
+      "originalStatus": "failed",
+      "classification": "infrastructure-or-missing-evidence",
+      "stage": "device-unavailable-before-app-launch",
+      "reason": "Maestro reported that emulator-5556 was requested but not connected. No app flow, JUnit or fixture receipt completed.",
+      "productAssertionFailureObserved": false,
+      "files": [
+        {
+          "path": "feed-search-controls/maestro.log",
+          "bytes": 62,
+          "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+        },
+        {
+          "path": "feed-search-controls/native-ui-receipt.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "feed-search-controls/native-ui-auth-diagnostics.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "feed-search-controls/native-ui-navigation-timing.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "captures": []
+    },
+    {
+      "id": "notifications-empty-controls",
+      "originalStatus": "failed",
+      "classification": "infrastructure-or-missing-evidence",
+      "stage": "device-unavailable-before-app-launch",
+      "reason": "Maestro reported that emulator-5556 was requested but not connected. No app flow, JUnit or fixture receipt completed.",
+      "productAssertionFailureObserved": false,
+      "files": [
+        {
+          "path": "notifications-empty-controls/maestro.log",
+          "bytes": 62,
+          "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+        },
+        {
+          "path": "notifications-empty-controls/native-ui-receipt.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "notifications-empty-controls/native-ui-auth-diagnostics.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "notifications-empty-controls/native-ui-navigation-timing.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "captures": []
+    },
+    {
+      "id": "market-offer-cancel",
+      "originalStatus": "failed",
+      "classification": "infrastructure-or-missing-evidence",
+      "stage": "device-unavailable-before-app-launch",
+      "reason": "Maestro reported that emulator-5556 was requested but not connected. No app flow, JUnit or fixture receipt completed.",
+      "productAssertionFailureObserved": false,
+      "files": [
+        {
+          "path": "market-offer-cancel/maestro.log",
+          "bytes": 62,
+          "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+        },
+        {
+          "path": "market-offer-cancel/native-ui-receipt.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "market-offer-cancel/native-ui-auth-diagnostics.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "market-offer-cancel/native-ui-navigation-timing.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "captures": []
+    },
+    {
+      "id": "jobs-application-entry",
+      "originalStatus": "failed",
+      "classification": "infrastructure-or-missing-evidence",
+      "stage": "device-unavailable-before-app-launch",
+      "reason": "Maestro reported that emulator-5556 was requested but not connected. No app flow, JUnit or fixture receipt completed.",
+      "productAssertionFailureObserved": false,
+      "files": [
+        {
+          "path": "jobs-application-entry/maestro.log",
+          "bytes": 62,
+          "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+        },
+        {
+          "path": "jobs-application-entry/native-ui-receipt.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "jobs-application-entry/native-ui-auth-diagnostics.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "jobs-application-entry/native-ui-navigation-timing.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "captures": []
+    },
+    {
+      "id": "messages-recipient-search",
+      "originalStatus": "failed",
+      "classification": "infrastructure-or-missing-evidence",
+      "stage": "device-unavailable-before-app-launch",
+      "reason": "Maestro reported that emulator-5556 was requested but not connected. No app flow, JUnit or fixture receipt completed.",
+      "productAssertionFailureObserved": false,
+      "files": [
+        {
+          "path": "messages-recipient-search/maestro.log",
+          "bytes": 62,
+          "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+        },
+        {
+          "path": "messages-recipient-search/native-ui-receipt.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "messages-recipient-search/native-ui-auth-diagnostics.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "messages-recipient-search/native-ui-navigation-timing.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "captures": []
+    },
+    {
+      "id": "feed-article-draft",
+      "originalStatus": "failed",
+      "classification": "infrastructure-or-missing-evidence",
+      "stage": "device-unavailable-before-app-launch",
+      "reason": "Maestro reported that emulator-5556 was requested but not connected. No app flow, JUnit or fixture receipt completed.",
+      "productAssertionFailureObserved": false,
+      "files": [
+        {
+          "path": "feed-article-draft/maestro.log",
+          "bytes": 62,
+          "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+        },
+        {
+          "path": "feed-article-draft/native-ui-receipt.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "feed-article-draft/native-ui-auth-diagnostics.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "feed-article-draft/native-ui-navigation-timing.json",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "captures": []
+    }
+  ],
+  "hostEvidence": {
+    "emulatorLogSha256": "28ea2138ff856a0fc11aff2ecb1ae9d87f08d37d5079b96690cc60f71beb93f4",
+    "observed": [
+      "Device offline during early driver teardown",
+      "Device disappeared before final nine cases",
+      "Emulator log contains libunwind errors and null graphics context failures; process exited with segmentation fault"
+    ]
+  },
+  "interpretation": "No product assertion failure was observed in these ten failed results. They are not accepted until a fresh unchanged-case run supplies complete evidence."
+}
