@@ -23,7 +23,10 @@ DIAGNOSTIC_FLOW = 'tests/native/diagnostics/ios-warm-tabs-reader.yaml'
 DIAGNOSTIC_SHA = '11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82'
 DIRECT_FLOW = 'tests/native/diagnostics/ios-direct-reader-controls.yaml'
 DIRECT_NAME = 'Diagnostic direct saved memory reader controls'
-DIRECT_SHA = '4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1'
+DIRECT_SHA = '008099f1ee207ab6c91022d410b04873b67a3ee3ea2f5b3ad586180b0a5c67af'
+SIGNIN_FLOW = 'tests/native/audit/flows/_signin.yaml'
+SIGNIN_SHA = '847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a'
+DIRECT_SIGNIN_REFERENCE = '../../../../baseline/' + SIGNIN_FLOW
 HELPERS = {
     'native-ui-ios-audit-recovery.py': '428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2',
     'native-ui-ios-compatibility.py': '0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9',
@@ -170,14 +173,32 @@ def direct_diagnostic_junit(path):
         return {'passed': False, 'issue': type(error).__name__}
 
 
-def run_direct_reader_diagnostic(helper, runner, execute, baseline, tools_root, output, device, scenarios):
-    if digest(tools_root / DIRECT_FLOW) != DIRECT_SHA:
+def verify_direct_reader_flow(tools_root, baseline):
+    flow = tools_root / DIRECT_FLOW
+    if digest(flow) != DIRECT_SHA:
         raise ValueError('Reviewed direct reader diagnostic bytes changed')
+    # Maestro resolves runFlow file paths while parsing, before environment
+    # substitution. Keep a literal path to the separate immutable checkout.
+    if flow.read_text().splitlines()[3] != '- runFlow: ' + DIRECT_SIGNIN_REFERENCE:
+        raise ValueError('The direct diagnostic must include the literal baseline sign-in path')
+    try:
+        included = (flow.parent / DIRECT_SIGNIN_REFERENCE).resolve(strict=True)
+        expected = (baseline / SIGNIN_FLOW).resolve(strict=True)
+    except OSError as error:
+        raise ValueError('The direct diagnostic baseline sign-in file is unavailable') from error
+    if included != expected or not included.is_file() or digest(included) != SIGNIN_SHA:
+        raise ValueError('The direct diagnostic must use the exact original d46 sign-in file')
+    return {'reference': DIRECT_SIGNIN_REFERENCE, 'baselinePath': SIGNIN_FLOW,
+            'sha256': SIGNIN_SHA, 'resolvedBeforeMaestro': True}
+
+
+def run_direct_reader_diagnostic(helper, runner, execute, baseline, tools_root, output, device, scenarios):
+    sign_in = verify_direct_reader_flow(tools_root, baseline)
     target = output / 'diagnostic-direct-reader-controls'
     target.mkdir()
     diagnostic = {'id': 'diagnostic-direct-reader-controls', 'kind': 'direct-reader-diagnostic-only',
         'name': DIRECT_NAME, 'countedInBaseline85': False, 'fixtureCaseId': 'memory-reader-controls',
-        'flow': DIRECT_FLOW, 'flowSha256': DIRECT_SHA, 'timeoutSeconds': 600,
+        'flow': DIRECT_FLOW, 'flowSha256': DIRECT_SHA, 'signIn': sign_in, 'timeoutSeconds': 600,
         'watchdogScope': 'Entire Maestro CLI including driver startup, original sign-in and controls',
         'readerRequirementMs': 15000, 'pageAssertionsUnchanged': True, 'centerElement': False,
         'attempts': 1, 'startedAtEpochMs': round(time.time() * 1000)}
@@ -186,7 +207,7 @@ def run_direct_reader_diagnostic(helper, runner, execute, baseline, tools_root, 
         try:
             diagnostic['exitCode'] = execute(['maestro', '--device', device, 'test', '--format', 'junit',
                 '--output', str(target / 'junit.xml'), '--debug-output', str(target / 'maestro'),
-                '--test-output-dir', str(target / 'maestro'), '-e', 'D46_BASELINE=' + str(baseline),
+                '--test-output-dir', str(target / 'maestro'),
                 DIRECT_FLOW], timeout=600, cwd=tools_root, stdout=stream, stderr=subprocess.STDOUT).returncode
         except subprocess.TimeoutExpired:
             diagnostic.update({'exitCode': None, 'timedOut': True})
@@ -287,8 +308,7 @@ def main():
     if args.warm_reader_diagnostic:
         if 'memory' not in groups or digest(baseline / DIAGNOSTIC_FLOW) != DIAGNOSTIC_SHA:
             raise ValueError('The warm reader diagnostic requires memory and its unchanged original flow')
-    if args.direct_reader_diagnostic_only and digest(tools_root / DIRECT_FLOW) != DIRECT_SHA:
-        raise ValueError('The direct diagnostic requires its reviewed exact flow')
+    direct_sign_in = verify_direct_reader_flow(tools_root, baseline) if args.direct_reader_diagnostic_only else None
     output = baseline / 'native-audit-results'
     output.mkdir(exist_ok=False)
     logs = baseline / 'native-ui-logs'
@@ -309,6 +329,7 @@ def main():
         'selectedCaseIds': selected_case_ids, 'unselectedCaseIds': unselected_case_ids,
         'caseSelection': 'diagnostic-only' if args.direct_reader_diagnostic_only else ('explicit-subset' if args.cases is not None else 'all-selected-groups'),
         'diagnosticOnly': args.direct_reader_diagnostic_only, 'warmDiagnosticRequested': args.warm_reader_diagnostic,
+        'directSignIn': direct_sign_in,
         'selectedCaseCount': len(cases), 'declaredCaseCount': len(scenarios['cases']),
         'separateDiagnostics': ([{'id': 'diagnostic-warm-tabs-reader', 'flow': DIAGNOSTIC_FLOW,
             'flowSha256': DIAGNOSTIC_SHA, 'countedInBaseline85': False, 'readerRequirementMs': 15000}]
@@ -415,8 +436,8 @@ def main():
             raise ValueError('Original d46 case/source/binary bytes changed during recovery')
         if args.warm_reader_diagnostic and digest(baseline / DIAGNOSTIC_FLOW) != DIAGNOSTIC_SHA:
             raise ValueError('Original warm reader diagnostic bytes changed during recovery')
-        if args.direct_reader_diagnostic_only and digest(tools_root / DIRECT_FLOW) != DIRECT_SHA:
-            raise ValueError('Direct diagnostic bytes changed during recovery')
+        if args.direct_reader_diagnostic_only:
+            verify_direct_reader_flow(tools_root, baseline)
         return int(summary['failed'] != 0 or (diagnostic is not None and not diagnostic['passed']))
     finally:
         try:
