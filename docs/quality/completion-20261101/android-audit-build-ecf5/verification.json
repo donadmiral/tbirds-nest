@@ -54,5 +54,123 @@
   "installedProductAcceptancePassed": false,
   "limits": "Producer/source proof only. Current-run installed audit results are tracked separately. The existing f5 85/85 and capture evidence is retained separately and is not relabelled as this build.",
   "independentPackagedAbiReinspectionPassed": true,
-  "independentPackagedAbiEvidence": "independent-packaged-abi.json"
+  "independentPackagedAbiEvidence": "independent-packaged-abi.json",
+  "documentationEvidencePackaging": {
+    "reason": "Retained TypeScript/TSX source snapshots use .txt suffixes so the unchanged native tsconfig does not compile them as additional application files.",
+    "originalSourceReceiptPath": "source.json",
+    "originalSourceReceiptSha256": "cbb0f4d88e4acd1a9c1a055b5951114ca2e5f12d3472fd7af928863963f45736",
+    "originalSourceReceiptBytesPreserved": true,
+    "retainedPathInterpretation": "Paths inside the immutable original source.json identify the downloaded CI artifact layout. The explicit mapping below resolves those original paths to documentation copies.",
+    "renamedCopies": [
+      {
+        "oldPath": "docs/quality/completion-20261101/android-audit-build-ecf5/overlays/audit__src__navigation__AppNavigator.tsx",
+        "newPath": "docs/quality/completion-20261101/android-audit-build-ecf5/overlays/audit__src__navigation__AppNavigator.tsx.txt",
+        "originalArtifactRetainedPath": "overlays/audit__src__navigation__AppNavigator.tsx",
+        "documentationRetainedPath": "overlays/audit__src__navigation__AppNavigator.tsx.txt",
+        "bytes": 38408,
+        "sha256": "6b8f7b062d51a6a3aa749bfc276639a70fa4d8cf3698586a89c822fffef99d4a"
+      },
+      {
+        "oldPath": "docs/quality/completion-20261101/android-audit-build-ecf5/overlays/src__navigation__AppNavigator.tsx",
+        "newPath": "docs/quality/completion-20261101/android-audit-build-ecf5/overlays/src__navigation__AppNavigator.tsx.txt",
+        "originalArtifactRetainedPath": "overlays/src__navigation__AppNavigator.tsx",
+        "documentationRetainedPath": "overlays/src__navigation__AppNavigator.tsx.txt",
+        "bytes": 38270,
+        "sha256": "eb068269c6439417f817e281ce369ecf8d81812e35fd9908ba950d008d349a10"
+      },
+      {
+        "oldPath": "docs/quality/completion-20261101/android-audit-build-ecf5/overlays/src__screens__messages__ConversationsScreen.tsx",
+        "newPath": "docs/quality/completion-20261101/android-audit-build-ecf5/overlays/src__screens__messages__ConversationsScreen.tsx.txt",
+        "originalArtifactRetainedPath": "overlays/src__screens__messages__ConversationsScreen.tsx",
+        "documentationRetainedPath": "overlays/src__screens__messages__ConversationsScreen.tsx.txt",
+        "bytes": 36423,
+        "sha256": "554b1bf47c0968f0eb0885753dff872460f6e8e7116565568a61bcf89e53357b"
+      },
+      {
+        "oldPath": "docs/quality/completion-20261101/android-audit-build-ecf5/overlays/src__services__supabase.ts",
+        "newPath": "docs/quality/completion-20261101/android-audit-build-ecf5/overlays/src__services__supabase.ts.txt",
+        "originalArtifactRetainedPath": "overlays/src__services__supabase.ts",
+        "documentationRetainedPath": "overlays/src__services__supabase.ts.txt",
+        "bytes": 5251,
+        "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5"
+      }
+    ],
+    "retainedFiles": [
+      {
+        "originalArtifactRetainedPath": "overlays/src__services__supabase.ts",
+        "documentationRetainedPath": "overlays/src__services__supabase.ts.txt",
+        "sourcePath": "src/services/supabase.ts",
+        "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+        "bytes": 5251
+      },
+      {
+        "originalArtifactRetainedPath": "overlays/modules__boomerang__ios__BoomerangModule.swift",
+        "documentationRetainedPath": "overlays/modules__boomerang__ios__BoomerangModule.swift",
+        "sourcePath": "modules/boomerang/ios/BoomerangModule.swift",
+        "sha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+        "bytes": 16619
+      },
+      {
+        "originalArtifactRetainedPath": "overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt",
+        "documentationRetainedPath": "overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt",
+        "sourcePath": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+        "sha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+        "bytes": 2990
+      },
+      {
+        "originalArtifactRetainedPath": "overlays/src__screens__messages__ConversationsScreen.tsx",
+        "documentationRetainedPath": "overlays/src__screens__messages__ConversationsScreen.tsx.txt",
+        "sourcePath": "src/screens/messages/ConversationsScreen.tsx",
+        "sha256": "554b1bf47c0968f0eb0885753dff872460f6e8e7116565568a61bcf89e53357b",
+        "bytes": 36423
+      },
+      {
+        "originalArtifactRetainedPath": "overlays/src__navigation__AppNavigator.tsx",
+        "documentationRetainedPath": "overlays/src__navigation__AppNavigator.tsx.txt",
+        "sourcePath": "src/navigation/AppNavigator.tsx",
+        "sha256": "eb068269c6439417f817e281ce369ecf8d81812e35fd9908ba950d008d349a10",
+        "bytes": 38270
+      },
+      {
+        "originalArtifactRetainedPath": "overlays/metro.config.js",
+        "documentationRetainedPath": "overlays/metro.config.js",
+        "sourcePath": "metro.config.js",
+        "sha256": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534",
+        "bytes": 72
+      },
+      {
+        "originalArtifactRetainedPath": "overlays/index.js",
+        "documentationRetainedPath": "overlays/index.js",
+        "sourcePath": "index.js",
+        "sha256": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c",
+        "bytes": 33
+      },
+      {
+        "originalArtifactRetainedPath": "overlays/audit__tests__native__entry.js",
+        "documentationRetainedPath": "overlays/audit__tests__native__entry.js",
+        "sourcePath": "tests/native/entry.js",
+        "sha256": "0eb0e30cfe55e1022e070333ce1e246f75497f0616ef71d6ae3eeebadcb3901a",
+        "bytes": 4423
+      },
+      {
+        "originalArtifactRetainedPath": "overlays/audit__src__navigation__AppNavigator.tsx",
+        "documentationRetainedPath": "overlays/audit__src__navigation__AppNavigator.tsx.txt",
+        "sourcePath": "src/navigation/AppNavigator.tsx",
+        "sha256": "6b8f7b062d51a6a3aa749bfc276639a70fa4d8cf3698586a89c822fffef99d4a",
+        "bytes": 38408
+      }
+    ],
+    "appSourceChanged": false,
+    "tsconfigChanged": false,
+    "canonicalRunnerChanged": false,
+    "nativeTypeScriptCheck": {
+      "command": "npx tsc --noEmit",
+      "workingDirectory": "repository root",
+      "exitCode": 0,
+      "completedAtUtc": "2026-11-01T03:30:50.991229+00:00",
+      "output": "native-typescript-after-evidence-packaging.txt",
+      "outputSha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f",
+      "normalCheckUnchanged": true
+    }
+  }
 }
