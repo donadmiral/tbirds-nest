@@ -111,6 +111,38 @@ def select_cases(scenarios, groups, requested_ids=None):
     return [case for case in eligible if case['id'] in set(identifiers)]
 
 
+def select_existing_device(inventory_text, manifest, verifier):
+    expected = manifest.get('nativeCompatibility', {})
+    if expected.get('abi') != 'x86_64' or expected.get('runtimeIdentifier') != verifier.RUNTIME:
+        raise ValueError('Only the pinned x86_64 iOS18.5 profile may select a device')
+    inventory = json.loads(inventory_text)
+    if not isinstance(inventory, dict) or not isinstance(inventory.get('devices'), dict):
+        raise ValueError('Missing Simulator device inventory')
+    eligible = []
+    seen = set()
+    for runtime, rows in inventory['devices'].items():
+        if not isinstance(runtime, str) or not isinstance(rows, list):
+            raise ValueError('Malformed Simulator device inventory')
+        for row in rows:
+            if (not isinstance(row, dict) or type(row.get('isAvailable')) is not bool
+                    or not isinstance(row.get('state'), str)
+                    or not isinstance(row.get('deviceTypeIdentifier'), str)):
+                raise ValueError('Malformed Simulator device row')
+            device = verifier.validate_device_identifier(row.get('udid'))
+            if device.lower() in seen:
+                raise ValueError('Ambiguous duplicate Simulator device UUID')
+            seen.add(device.lower())
+            if (runtime == verifier.RUNTIME and row['deviceTypeIdentifier'] == verifier.DEVICE_TYPE
+                    and row['isAvailable'] is True and row['state'] == 'Shutdown'):
+                eligible.append(device)
+    eligible.sort(key=str.lower)
+    return {'mode': 'existing-shutdown' if eligible else 'fresh-creation',
+            'selectedDevice': eligible[0] if eligible else None, 'eligibleCount': len(eligible),
+            'runtimeIdentifier': verifier.RUNTIME, 'deviceTypeIdentifier': verifier.DEVICE_TYPE,
+            'expectedAbi': 'x86_64', 'selectionOrder': 'lexicographic UUID among exact eligible devices',
+            'enumeration': 'bounded preboot simctl list devices --json'}
+
+
 def select_execution_cases(scenarios, groups, requested_ids=None, warm=False, direct=False):
     if direct:
         if groups != {'memory'} or requested_ids is not None or warm:
@@ -292,6 +324,7 @@ def main():
         'observationOverhead': 'Bounded snapshots and samples add diagnostic work. Original case deadlines and gate outcomes are unchanged.'}
     helper.atomic_json(output / 'recovery-provenance.json', provenance)
     device = None
+    device_created = False
     log_process = None
     active_observer = None
     budget = {'used': False}
@@ -306,21 +339,34 @@ def main():
             app, manifest, setup_records, output / 'setup-commands.json')
         helper.atomic_json(output / 'recovery-provenance.json', provenance)
         runtime = manifest['nativeCompatibility']['runtimeIdentifier']
-        created = helper.setup_read(['xcrun', 'simctl', 'create', 'Platinum d46 audit ' + os.environ.get('GITHUB_RUN_ID', ''),
-                                     'com.apple.CoreSimulator.SimDeviceType.iPhone-16', runtime],
-                                    'create', 120, setup_records, output / 'setup-commands.json')
-        device = created_verifier.validate_device_identifier(created)
-        provenance['createdDeviceVerification'] = created_verifier.verify_created_device(
+        inventory_text = helper.setup_read(['xcrun', 'simctl', 'list', 'devices', '--json'],
+            'select-existing-device', 30, setup_records, output / 'setup-commands.json')
+        selection = select_existing_device(inventory_text, manifest, created_verifier)
+        provenance['deviceSelection'] = selection
+        helper.atomic_json(output / 'recovery-provenance.json', provenance)
+        device = selection['selectedDevice']
+        if device is None:
+            created = helper.setup_read(['xcrun', 'simctl', 'create', 'Platinum d46 audit ' + os.environ.get('GITHUB_RUN_ID', ''),
+                                         'com.apple.CoreSimulator.SimDeviceType.iPhone-16', runtime],
+                                        'create', 120, setup_records, output / 'setup-commands.json')
+            device = created_verifier.validate_device_identifier(created)
+            device_created = True
+            selection['selectedDevice'] = device
+        selection['createdByThisInvocation'] = device_created
+        provenance['prebootDeviceVerification'] = created_verifier.verify_created_device(
             manifest, device, helper.setup_compatibility_reader(app, setup_records, output / 'setup-commands.json'))
+        provenance['prebootDeviceVerification']['scope'] = (
+            'Exact selected Shutdown device and runtime identity verified before boot; '
+            'selection provenance distinguishes reused and newly created devices. Exact-UUID boot readiness remains required.')
         provenance['device'] = device
         helper.atomic_json(output / 'recovery-provenance.json', provenance)
         helper.setup_read(['xcrun', 'simctl', 'boot', device], 'boot', 120, setup_records, output / 'setup-commands.json')
         helper.setup_read(['xcrun', 'simctl', 'bootstatus', device, '-b'], 'bootstatus', 300, setup_records, output / 'setup-commands.json')
         provenance['bootedRuntimeVerification'] = {
-            'runtimeIdentifier': runtime, 'runtimeVersion': provenance['createdDeviceVerification']['runtimeVersion'],
-            'selectedDevice': device, 'deviceTypeIdentifier': provenance['createdDeviceVerification']['deviceTypeIdentifier'],
+            'runtimeIdentifier': runtime, 'runtimeVersion': provenance['prebootDeviceVerification']['runtimeVersion'],
+            'selectedDevice': device, 'deviceTypeIdentifier': provenance['prebootDeviceVerification']['deviceTypeIdentifier'],
             'bootstatusCompleted': True,
-            'scope': 'Fresh runtime/device identity checked before boot; boot and bootstatus -b succeeded for that exact UUID. App launch remains required.'}
+            'scope': 'Selected runtime/device identity checked before boot; boot and bootstatus -b succeeded for that exact UUID. App launch remains required.'}
         helper.atomic_json(output / 'recovery-provenance.json', provenance)
         if runner.binary_digest(app) != binding['binarySha256']:
             raise ValueError('Verified app bytes changed before installation')
@@ -383,7 +429,7 @@ def main():
         if log_process:
             helper.stop_group(log_process)
         if device:
-            for action in ['shutdown', 'delete']:
+            for action in (['shutdown', 'delete'] if device_created else ['shutdown']):
                 try:
                     helper.bounded_command(['xcrun', 'simctl', action, device], timeout=10)
                 except (OSError, ValueError, subprocess.TimeoutExpired):
