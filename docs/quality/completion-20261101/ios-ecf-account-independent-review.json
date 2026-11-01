@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T03:21:08.363213+00:00",
+  "applicationSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "applicationSourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "producerRunId": 41266020074,
+  "producerArtifactId": 13067374445,
+  "binarySha256": "a14a059ea235b4db779c17ba0bd09ee9d7e8eadd76224d3fe1061e3f21768ca8",
+  "reviewedFiles": [
+    {
+      "path": ".github/workflows/completion-ios-ecf-account.yml",
+      "sha256": "0ff27a80162c5978c65a1a5b8f5d9f6049ba20fcf98d7a4c46922c03ff0fe0c0"
+    },
+    {
+      "path": "scripts/quality/completion-ios-ecf-account.py",
+      "sha256": "42a4b654ad8c0fb3236c0a7b5dd262f592090d77b0c85aeebec31b7fdbe3f501"
+    },
+    {
+      "path": "scripts/quality/completion-ios-ecf-account.json",
+      "sha256": "790729732b19ad6cc723bf64994bd6b3d7a45b95cfa9307036242cd43f375707"
+    },
+    {
+      "path": "tests/quality/native-completion-ecf-account.cjs",
+      "sha256": "19d6cb3f5e3ec79a9f0a650284c61ee5d9e8856fb8571de40b78ee74239850bc"
+    }
+  ],
+  "actualRetainedFilesVerified": [
+    "source.json",
+    "binary-manifest.json",
+    "qa.app.tar.gz",
+    "PlatinumQA.app entire directory"
+  ],
+  "actualSourceInputsVerified": {
+    "sourceInputs": 607,
+    "auditInputs": 9
+  },
+  "originalRunnerSha256": "78f277998834d10dc93a2aaaa7d3e3df65fbd84b6997d3012d3018a8a6c0856a",
+  "selectedOriginalCases": 27,
+  "originalCaseOrderPreserved": true,
+  "includesInstalledCapture": true,
+  "immutableChecksRunBeforeCreation": true,
+  "postbootImmutableOrInventoryQueryAdded": false,
+  "perCaseDeadlinesOrResetBehaviorChanged": false,
+  "firstInstallCommandWaitSeconds": 120,
+  "workflowJobMinutes": 100,
+  "workflowJobBudgetMatchesNormalProducer": true,
+  "rebuildOrRebundleOrResign": false,
+  "focusedEmbeddedChecksPassed": 7,
+  "testReceipt": "ios-ecf-account-independent.tap",
+  "testReceiptSha256": "59332877d64a4dc96707748fb8e1f8c7cd525daa73ae3fe9685dae2acf276828",
+  "independentReviewPassed": true,
+  "publicationBlocker": false,
+  "runtimePassClaimed": false,
+  "scope": "Independently ran the consumer download/source verifier against actual retained current producer bytes and all607+9 matching inputs, rehashed the complete app through the original runner, and reviewed the narrowly reordered account-only execution and failure accounting. Actual future runtime acceptance remains pending.",
+  "strictIntegerAttemptsVerified": true
+}

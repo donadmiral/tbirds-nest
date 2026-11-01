@@ -1,0 +1,153 @@
+{
+  "formatVersion": 1,
+  "operation": "supabase_apply_migration",
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "migrationName": "qa_notification_event_dispatch_capabilities_20261101",
+  "source": {
+    "path": "supabase/ops/qa/notification-event-dispatch/20261031022749_notification_event_dispatch_capabilities.sql",
+    "sha256": "9a5a7ea2d9acfc9c21185ac5b2654cfebd9d8f5aba29363cd5a5b5616f4bf081",
+    "bytes": 10807
+  },
+  "preflight": {
+    "observed_at": "2026-11-01 02:43:07.107629+00",
+    "executor": "postgres",
+    "business_stage": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "call_origins_present": true,
+    "call_guard_present": true,
+    "pg_net_present": true,
+    "crypto_random_present": true,
+    "crypto_digest_present": true,
+    "event_settings_present": false,
+    "event_jobs_present": false,
+    "legacy_settings_present": false,
+    "matching_active_statements": 0,
+    "conflicting_functions": 0,
+    "conflicting_triggers": 0,
+    "matching_migrations": 0,
+    "relevant_tables": [
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "_http_response",
+        "owner": "supabase_admin",
+        "schema": "net"
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "call_origins",
+        "owner": "postgres",
+        "schema": "notification_delivery"
+      },
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "http_request_queue",
+        "owner": "supabase_admin",
+        "schema": "net"
+      }
+    ],
+    "private_schema": {
+      "acl": "{postgres=UC/postgres}",
+      "owner": "postgres",
+      "anonUsage": false,
+      "serviceUsage": false,
+      "authenticatedUsage": false
+    },
+    "existing_guards": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "64a6e64e2b3513de0fdac026e279994b",
+        "signature": "call_push_dispatch_allowed(uuid,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "86836c7568738f29e8928c1dd520cc59",
+        "signature": "claim_call_push_dispatch(uuid,uuid)"
+      }
+    ]
+  },
+  "preflightPassed": true,
+  "independence": "The unchanged candidate only adds disabled notification event settings/jobs, guarded functions and insert triggers. It does not touch business_auth, support RPCs, music state, existing handlers or production. No prior request for this candidate exists in this session.",
+  "sqlClassification": "Explicit bounded-retention DELETE remains unchanged in its private operator-only function; normal supported classification is preserved.",
+  "localVerification": {
+    "sql": {
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "receipt": "notification-event-fixture-after.tap"
+    },
+    "handler": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "receipt": "notification-event-handler-check.tap"
+    }
+  },
+  "requestState": "submitted; provider outcome unknown",
+  "priorBusinessAndSupportRequestsRetried": false,
+  "submittedAtUtc": "2026-11-01T02:44:25Z",
+  "functionsCellId": "g2:133",
+  "initialYieldSeconds": 1,
+  "providerResult": null,
+  "providerRequestId": null,
+  "automaticApprovalRejected": false,
+  "confirmationTokenExposed": false,
+  "localWait": {
+    "requestedYieldMs": 1000,
+    "actualBlockedSeconds": 1636.6,
+    "terminalToolText": "aborted by user after 1636.6s",
+    "interruptedBy": "coordinator",
+    "meaning": "Only the local wait was interrupted. No remote cancellation, rejection or success was established."
+  },
+  "oneRecoveryPoll": {
+    "requestedYieldMs": 1,
+    "wallSeconds": 0,
+    "terminalToolText": "exec cell 133 not found"
+  },
+  "postInterruptionObservation": {
+    "observed_at": "2026-11-01 03:12:37.554049+00",
+    "executor": "postgres",
+    "event_settings_present": false,
+    "event_jobs_present": false,
+    "candidate_functions": [],
+    "candidate_triggers": [],
+    "candidate_migrations": [],
+    "candidate_active_statements": 0,
+    "pg_net_tables": [
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "_http_response",
+        "owner": "supabase_admin"
+      },
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "http_request_queue",
+        "owner": "supabase_admin"
+      }
+    ],
+    "business_schema_marker": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "support_reply_functions": 0,
+    "music_schema_present": false,
+    "readiness_migration": [
+      {
+        "name": "private_media_readiness_storage_references",
+        "version": "20261101021335"
+      }
+    ]
+  },
+  "furtherMutationSubmitted": false,
+  "alternateDdlRouteUsed": false,
+  "intendedInstallationEffects": {
+    "dispatchEnabled": false,
+    "historicalJobsReplayed": false,
+    "providerCredentialsProvisioned": false,
+    "pgNetAclChanged": false,
+    "messagesSent": false,
+    "retentionInvoked": false
+  }
+}

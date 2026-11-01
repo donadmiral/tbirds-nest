@@ -1,0 +1,33 @@
+{
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "validatorPath": "scripts/quality/native-ui-android-media-abi.py",
+  "validatorSha256": "4a0103fcc06b3e3040524acdb38bdb564e39ce764c827ed576866028ea95e2f7",
+  "apkSha256": "b9c4baf39e15bda681c15b73ebad8d0fed437ecadabf1400cc978123b477785b",
+  "independentActualDexInspectionPassed": true,
+  "allPackagedClassDefinitionsMatchOriginalReceipt": true,
+  "abi": {
+    "passed": true,
+    "abstractMethodsChecked": 1,
+    "expoOverridesChecked": 10,
+    "requiredSignatures": [
+      [
+        "getAllocator",
+        [
+          "Landroidx/media3/exoplayer/analytics/PlayerId;"
+        ],
+        "Landroidx/media3/exoplayer/upstream/Allocator;"
+      ],
+      [
+        "shouldContinuePreloading",
+        [
+          "Landroidx/media3/exoplayer/analytics/PlayerId;",
+          "Landroidx/media3/common/Timeline;",
+          "Landroidx/media3/exoplayer/source/MediaSource$MediaPeriodId;",
+          "J"
+        ],
+        "Z"
+      ]
+    ]
+  },
+  "scope": "Actual retained APK DEX reinspection; no rebuild and no claim of runtime playback or encoded-media acceptance."
+}

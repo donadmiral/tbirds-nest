@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T03:17:32.731336+00:00",
+  "kind": "independent-current-producer-whole-file-capability-candidate-review",
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "sourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "producerRunId": 41266020074,
+  "platforms": [
+    {
+      "platform": "ios",
+      "sourcePath": "modules/boomerang/ios/BoomerangModule.swift",
+      "sourceCapability": 0,
+      "sourceWholeFileSha256": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+      "proposedCapability": 1,
+      "candidateWholeFileSha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+      "compiledPreparedWholeFileSha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+      "candidateBytes": 16619,
+      "wholeFileBytesIdentical": true,
+      "compiledPreparedProof": "ios-audit-build-ecf5e5a/verification.json",
+      "compiledPreparedProofSha256": "291eb7e6973d2a560d301d18519238b3741224da6d7457a46b799c303164e970",
+      "producerArtifactId": 13067374445,
+      "producerBinarySha256": "a14a059ea235b4db779c17ba0bd09ee9d7e8eadd76224d3fe1061e3f21768ca8",
+      "producerBuildLogArtifactId": 13068247505
+    },
+    {
+      "platform": "android",
+      "sourcePath": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "sourceCapability": 0,
+      "sourceWholeFileSha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+      "proposedCapability": 1,
+      "candidateWholeFileSha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+      "compiledPreparedWholeFileSha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+      "candidateBytes": 2990,
+      "wholeFileBytesIdentical": true,
+      "compiledPreparedProof": "android-audit-build-ecf5/verification.json",
+      "compiledPreparedProofSha256": "8c4094e6f9a807877476ec9691231ac7b89e909db9fb2bd7ed8a713323a03a24",
+      "producerArtifactId": 13067587426,
+      "producerBinarySha256": "b9c4baf39e15bda681c15b73ebad8d0fed437ecadabf1400cc978123b477785b",
+      "producerBuildLogArtifactId": 13068106417
+    }
+  ],
+  "productionFlagsChanged": false,
+  "promotionApplied": false,
+  "installedIosCaptureGatePassed": false,
+  "oldF5ArtifactsRelabeled": false,
+  "currentProducerInstalledAcceptanceInferred": false,
+  "scope": "Independently compared actual retained prepared Swift and Kotlin whole-file bytes with each current production source after exactly one hypothetical capability constant change. The current ecf QA producers compiled those prepared bridge files. This is a candidate byte-equivalence check only; iOS installed same-session capture/decode and explicit final source promotion remain required. The earlier f5 evidence keeps its original identity.",
+  "promotionRequirements": [
+    "Accept actual iOS installed same-session capture/cancel/retry/export and complete output decode",
+    "Retain each installed platform source and artifact identity",
+    "Change only the two capability constants and recheck these full-file hashes",
+    "Record actual promotion commit and subsequent signed/release artifacts separately"
+  ]
+}

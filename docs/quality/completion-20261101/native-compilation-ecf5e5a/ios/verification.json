@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-11-01T03:14:29.157042+00:00",
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "sourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "workflowRun": 41266020115,
+  "jobId": 124728875112,
+  "artifactId": 13067562589,
+  "artifactBytes": 1013124,
+  "artifactSha256": "c82c30e00fba75d3026e83b37ea1094674cd43ce0a090be5f666abffb329611d",
+  "receiptSha256": "cba470c87f8665d8a18079b832f58514558e0fbf925ddc7c741e407038aa4e71",
+  "xcodebuildLogSha256": "748436eacb30c586db46d83c5cfa16826a3dea908d36fb1c688c2d0269457d7d",
+  "passed": true,
+  "nativeSourceReceiptHashesMatchedExactCommit": 3,
+  "actualSwiftCompileObserved": [
+    "BoomerangModule.swift",
+    "MemoryMovieComposition.swift"
+  ],
+  "appExecutableLinkObserved": true,
+  "buildSucceededObserved": true,
+  "architecture": "x86_64",
+  "productionMemoryCapability": 0,
+  "compiledObjectsRetainedInDiagnostics": false,
+  "installedProductAcceptance": false,
+  "encodedMediaAcceptanceInferredFromCompilation": false,
+  "physicalOrProviderAcceptance": false,
+  "signedReleaseCreated": false,
+  "scope": "Exact current native source hashes, actual Swift compiler and app linker log. Standalone encoder evidence and installed QA product evidence are separate gates."
+}

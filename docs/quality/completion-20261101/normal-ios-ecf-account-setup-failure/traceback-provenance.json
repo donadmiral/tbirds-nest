@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-11-01T03:16:43.670347+00:00",
+  "workflowRun": 41266020074,
+  "jobId": 124734744421,
+  "applicationSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "fullJobLogSha256": "f9309a6c37084647258bd077a5d2048aa01df7c5f71bc118904e7914728425da",
+  "fullJobLogBytes": 33844,
+  "tracebackSha256": "bf4b44c05c6ffc6f4813674e7911ca18f3e98126d100128f176f7a284fda4ab0",
+  "tracebackBytes": 2570,
+  "failedCommand": [
+    "xcrun",
+    "--sdk",
+    "iphonesimulator",
+    "--show-sdk-version"
+  ],
+  "configuredCommandWaitSeconds": 30,
+  "stage": "postboot immutable toolchain validation, before app installation and cases",
+  "exception": "TimeoutExpired",
+  "specificServiceCauseEstablished": false,
+  "tracebackIsVerbatimExcerpt": true,
+  "fullLogRetainedLocally": true,
+  "fullLogPublished": false
+}

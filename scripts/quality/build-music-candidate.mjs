@@ -199,7 +199,7 @@ const manifest = {
   projects: {qa: 'uaulhuelcfkjwojtymmw', production: 'prlkikhckbifseosbukl'},
   observedQaState: {evidence: file(installationEvidence), observedAt: observation.postflight.observedAt, businessSchemaAbsent: observation.postflight.businessSchemaAbsent, musicSchemaAbsent: observation.postflight.musicSchemaAbsent, dependentEdgeDeploymentsStarted: observation.postflight.dependentEdgeDeploymentsStarted},
   hostedStatus: 'Apply connector stalled; schemas absent at recorded postflight. No dependent Edge rollout or readiness activation. Recheck actual state before resuming.',
-  productionStatus: 'Held. This is not an authorization to skip production prerequisites, client compatibility, exact target preflights or separate postflight.',
+  productionStatus: 'Not deployed: production prerequisites, installed-client compatibility, exact target preflights and separate postflight must pass. Current user authorization covers the coordinated rollout once these technical gates pass.',
   functionConfiguration: file('supabase/config.toml'),
   functionConfigurationDocumentation: 'https://supabase.com/docs/guides/functions/function-configuration',
   functionConfigurationDocumentationVerified: '2026-10-30; current official documentation confirms JWT verification defaults on and entrypoint/import-map paths are relative to config.toml.',

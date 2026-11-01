@@ -6,7 +6,7 @@
   "sourceHeadAtGeneration": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
   "candidate": {
     "path": "docs/quality/music-operations-20261030/candidate.json",
-    "sha256": "e77d62ae33c8a95f72b592a1abe6e6f264a8ac4303bcb6ed098f13dd10d8d444"
+    "sha256": "d1a6518c528845e4be38a22ac8cd55ad6e0c38c5f6dee5c591c78d5d7849b223"
   },
   "builder": {
     "path": "scripts/quality/completion-edge-packages.py",

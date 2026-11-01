@@ -1,0 +1,1 @@
+{"result":"verified","candidate":"docs/quality/music-operations-20261030/candidate.json","pendingMigrations":5,"affectedEdgeBundles":14,"prerequisiteEdgeBundles":2,"uniqueBundledFiles":42}

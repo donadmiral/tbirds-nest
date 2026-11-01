@@ -1,0 +1,21 @@
+test_binding_accepts_only_current_producer (__main__.CurrentAccountBoundary.test_binding_accepts_only_current_producer) ... ok
+test_changed_source_path_and_alias_fail_before_execution (__main__.CurrentAccountBoundary.test_changed_source_path_and_alias_fail_before_execution) ... ok
+test_exact_original_account_partition (__main__.CurrentAccountBoundary.test_exact_original_account_partition) ... ok
+test_immutable_checks_precede_owned_boot_and_no_postboot_query (__main__.CurrentAccountBoundary.test_immutable_checks_precede_owned_boot_and_no_postboot_query) ... ok
+test_immutable_failure_cannot_create_a_device (__main__.CurrentAccountBoundary.test_immutable_failure_cannot_create_a_device) ... ok
+test_invalid_prepared_proof_cleans_up_only_its_created_device (__main__.CurrentAccountBoundary.test_invalid_prepared_proof_cleans_up_only_its_created_device) ... ok
+test_partial_execution_remains_partial (__main__.CurrentAccountBoundary.test_partial_execution_remains_partial) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.006s
+
+OK
+✔ current iPhone account consumer rejects provenance changes and preserves preboot verification order (87.034527ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 148.421768

@@ -1,0 +1,30 @@
+{
+  "commit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "workflow_run": "41266020115",
+  "result": "unsigned iOS Simulator compile passed",
+  "native_sources": {
+    "modules/boomerang/ios/BoomerangModule.swift": {
+      "sha256": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/BoomerangModule.o"
+      ]
+    },
+    "modules/boomerang/ios/StoryVideoView.swift": {
+      "sha256": "1601cd03287a4c42e395a1c7f7163cf3465daaab6f0f6957a1264569725749ac",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoView.o"
+      ]
+    },
+    "modules/boomerang/ios/StoryVideoComposition.swift": {
+      "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoComposition.o"
+      ]
+    }
+  },
+  "simulator_architecture": "x86_64",
+  "app_executable_linked": true,
+  "device_or_provider_acceptance": false,
+  "archive_or_ipa_created": false,
+  "app_uploaded_or_submitted": false
+}

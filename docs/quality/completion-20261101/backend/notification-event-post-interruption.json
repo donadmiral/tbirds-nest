@@ -1,0 +1,41 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "operation": "supabase_execute_sql",
+  "readOnly": true,
+  "observedState": {
+    "observed_at": "2026-11-01 03:12:37.554049+00",
+    "executor": "postgres",
+    "event_settings_present": false,
+    "event_jobs_present": false,
+    "candidate_functions": [],
+    "candidate_triggers": [],
+    "candidate_migrations": [],
+    "candidate_active_statements": 0,
+    "pg_net_tables": [
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "_http_response",
+        "owner": "supabase_admin"
+      },
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "http_request_queue",
+        "owner": "supabase_admin"
+      }
+    ],
+    "business_schema_marker": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "support_reply_functions": 0,
+    "music_schema_present": false,
+    "readiness_migration": [
+      {
+        "name": "private_media_readiness_storage_references",
+        "version": "20261101021335"
+      }
+    ]
+  },
+  "interpretation": "The unchanged notification candidate is not observed installed. The prior supported apply request has no terminal provider result; this readback does not establish cancellation or rejection.",
+  "newMutationSubmitted": false
+}

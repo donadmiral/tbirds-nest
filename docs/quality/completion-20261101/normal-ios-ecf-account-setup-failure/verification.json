@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-11-01T03:20:07.731718+00:00",
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "sourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "workflowRun": 41266020074,
+  "jobId": 124734744421,
+  "artifactId": 13067734279,
+  "artifactBytes": 3450,
+  "artifactSha256": "4743e9ffd8182bdeb2a7966b8cc6a70da93f777ebcd879c6c0aef908446fbddf",
+  "binaryArtifactId": 13067374445,
+  "binaryDirectorySha256": "a14a059ea235b4db779c17ba0bd09ee9d7e8eadd76224d3fe1061e3f21768ca8",
+  "sourceReceiptSha256": "cbb0f4d88e4acd1a9c1a055b5951114ca2e5f12d3472fd7af928863963f45736",
+  "selectedGroup": "account",
+  "declaredCases": 27,
+  "attemptedCases": 0,
+  "passedCases": 0,
+  "blockedBeforeInstallation": true,
+  "installationAttempted": false,
+  "appLaunched": false,
+  "captureAccepted": false,
+  "failedBoundary": "Postboot immutable SDK query xcrun --sdk iphonesimulator --show-sdk-version timed out after its unchanged 30-second command budget.",
+  "setupStages": [
+    {
+      "stage": "simulator-create",
+      "status": "completed",
+      "exitCode": 0,
+      "elapsedSeconds": 48.31303946100002,
+      "timeoutSeconds": 120
+    },
+    {
+      "stage": "simulator-list",
+      "status": "completed",
+      "exitCode": 0,
+      "elapsedSeconds": 1.2704013179999833,
+      "timeoutSeconds": 30
+    },
+    {
+      "stage": "simulator-list",
+      "status": "completed",
+      "exitCode": 0,
+      "elapsedSeconds": 0.6449416589999828,
+      "timeoutSeconds": 30
+    },
+    {
+      "stage": "simulator-boot",
+      "status": "completed",
+      "exitCode": 0,
+      "elapsedSeconds": 4.405672255000013,
+      "timeoutSeconds": 120
+    },
+    {
+      "stage": "simulator-bootstatus",
+      "status": "completed",
+      "exitCode": 0,
+      "elapsedSeconds": 134.064058724,
+      "timeoutSeconds": 300
+    }
+  ],
+  "ownedDeviceCleanupCompleted": true,
+  "retainedHashes": {
+    "device-setup-commands.json": "49a63e577d3f21b2b860333f8ee4082c31de502ed58ebcee7fbf5c42f0779770",
+    "traceback.log": "bf4b44c05c6ffc6f4813674e7911ca18f3e98126d100128f176f7a284fda4ab0",
+    "device-setup-cleanup.json": "71b4574b16a839b8c1671a2a210ba2ad1c220e0b6a57ffc9c7e4fd7f6821ca06",
+    "device-setup.json": "b9ebc55d573908be4deeacf58ea1321063140360aceb946f097758b55bf4dbe0",
+    "app.log": "e4c8fb1dc5d33e64b673cb772e16cd7ffe4e007666f2f19e07979df13b99c23a",
+    "traceback-provenance.json": "2289bf9d02793a3fe40673064d4e7732ca7fe9f85a28158c164a3a282cd8e883"
+  },
+  "recoveryChange": "Perform the same immutable compatibility checks before owned device creation; consume exact preboot identity and completed bootstatus, then retain actual installation and all original case deadlines.",
+  "newRecoveryTriggeredByThisVerification": false
+}

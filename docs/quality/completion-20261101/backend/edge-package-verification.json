@@ -24,5 +24,21 @@
   "packagesCheckPassed": true,
   "requests": 16,
   "uniqueSourceFiles": 42,
-  "providerCalls": 0
+  "providerCalls": 0,
+  "authorizationWordingRefresh": {
+    "sourceHeadAtGeneration": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+    "changedFields": [
+      "generatedAt",
+      "builder",
+      "productionStatus"
+    ],
+    "productionStatus": "Not deployed: production prerequisites, installed-client compatibility, exact target preflights and separate postflight must pass. Current user authorization covers the coordinated rollout once these technical gates pass.",
+    "allSourceBundlesUnchanged": true,
+    "all16DeploymentArgumentBytesUnchanged": true,
+    "checkPassed": true,
+    "packagesCheckPassed": true,
+    "candidateSha256": "d1a6518c528845e4be38a22ac8cd55ad6e0c38c5f6dee5c591c78d5d7849b223",
+    "indexSha256": "4b1bf1eeefc0a5affcab659495dcf9cba743b413bf4c1b461fb00de1fbd864f3",
+    "reason": "Current authorization already covers rollout. Only actual technical dependencies and acceptance gates remain."
+  }
 }

@@ -150,13 +150,16 @@
     {
       "order": "independent",
       "scope": "QA notification event dispatch",
-      "operation": "Use the existing reviewed per-event authorization candidate rather than putting a long-lived server credential into provider-readable pg_net tables. It remains uninstalled. Ordinary pushes and call origins are present, event dispatch hooks are absent. Real provider/device acceptance requires installation and activation through its ordinary supported path.",
+      "operation": "One unchanged supported apply was submitted after exact independent preflight. The request returned no provider terminal result. The latest read-only postflight still shows no installed candidate objects or journal. Preserve the unknown request and use only an exposed supported provider recovery mechanism; do not duplicate or route DDL elsewhere. No provider delivery was enabled.",
       "source": {
         "path": "supabase/ops/qa/notification-event-dispatch/20261031022749_notification_event_dispatch_capabilities.sql",
         "bytes": 10807,
         "sha256": "9a5a7ea2d9acfc9c21185ac5b2654cfebd9d8f5aba29363cd5a5b5616f4bf081"
       },
-      "reference": "supabase/ops/qa/notification-event-dispatch/README.md"
+      "reference": "supabase/ops/qa/notification-event-dispatch/README.md",
+      "executionState": "submitted; provider outcome unknown",
+      "evidence": "docs/quality/completion-20261101/backend/notification-event-supported-attempt.json",
+      "latestObservedAtUtc": "2026-11-01T03:12:37.554049+00:00"
     }
   ],
   "production": {
@@ -169,7 +172,7 @@
   "currentProviderBoundary": {
     "normalSupportedReadinessMigration": "Terminal success; provider journal20261101021335 and exact hosted postflight verified. The connector is not universally unavailable.",
     "businessStage4Resume": "Cellg2:99 returned no provider result. A subsequent local read-only exec blocked953.9seconds before coordinator interruption. Short poll then reported cellnotfound. Remote outcome remains unknown.",
-    "latestReadOnlyStage": "Exactstage3, no stage4journal and0active matching statements at02:31:56UTC.",
+    "latestReadOnlyStage": "Exact stage3, support absent, music absent and notification candidate absent at03:12:37UTC; readiness repair remains journaled.",
     "priorRequestOutcomes": [
       {
         "scope": "earlier business stage4",
@@ -185,7 +188,8 @@
     "automaticReviewRejected": false,
     "earlierRequestsMislabelledCanceled": false,
     "alternateDdlRouteUsed": false,
-    "furtherStage4AttemptSubmittedAfterLatestUnknown": false
+    "furtherStage4AttemptSubmittedAfterLatestUnknown": false,
+    "notificationDispatch": "One unchanged independent apply yielded g2:133, then a requested 1000ms wait blocked1636.6seconds before coordinator interruption. The one recovery poll reported cellnotfound. Postflight shows no candidate objects/journal/activity. Outcome remains unknown, with no exposed approval/rejection/request ID."
   },
   "notificationReadOnlyObservation": {
     "observedAt": "2026-11-01T01:40:33.45471+00:00",
@@ -200,5 +204,5 @@
     "longLivedCredentialDispatchActivated": false
   },
   "limits": "Local tests, worker heartbeat and private ACL checks do not claim actual disposable-user erasure, physical notification receipt or successful uninstalled service contracts.",
-  "latestStageObservationUtc": "2026-11-01 02:31:56 UTC"
+  "latestStageObservationUtc": "2026-11-01 03:12:37 UTC"
 }

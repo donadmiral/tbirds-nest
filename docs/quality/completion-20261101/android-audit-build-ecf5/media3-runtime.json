@@ -1,0 +1,157 @@
+{
+    "project": ":app",
+    "configuration": "releaseRuntimeClasspath",
+    "expectedVersion": "1.11.1",
+    "aligned": true,
+    "components": [
+        {
+            "group": "androidx.media3",
+            "module": "media3-common",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-container",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-database",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-datasource",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-datasource-okhttp",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-decoder",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-effect",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-exoplayer",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-exoplayer-dash",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-exoplayer-hls",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-exoplayer-smoothstreaming",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-extractor",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-muxer",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-session",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-transformer",
+            "version": "1.11.1"
+        },
+        {
+            "group": "androidx.media3",
+            "module": "media3-ui",
+            "version": "1.11.1"
+        }
+    ],
+    "expoVideoCompile": {
+        "project": ":expo-video",
+        "configuration": "releaseCompileClasspath",
+        "components": [
+            {
+                "group": "androidx.media3",
+                "module": "media3-common",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-container",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-database",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-datasource",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-datasource-okhttp",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-decoder",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-exoplayer",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-exoplayer-dash",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-exoplayer-hls",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-extractor",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-session",
+                "version": "1.11.1"
+            },
+            {
+                "group": "androidx.media3",
+                "module": "media3-ui",
+                "version": "1.11.1"
+            }
+        ],
+        "sourceSelected": true,
+        "aligned": true
+    },
+    "scope": "Resolved runtime version alignment; separate from security or encoded-media acceptance."
+}

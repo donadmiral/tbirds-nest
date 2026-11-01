@@ -1,12 +1,12 @@
 {
   "formatVersion": 1,
-  "generatedAt": "2026-11-01T02:40:00.723Z",
+  "generatedAt": "2026-11-01T03:14:07.945Z",
   "sourceHeadAtGeneration": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
   "scope": "Complete local file manifest and ordered handoff; not hosted installation or commercial activation evidence.",
   "builder": {
     "path": "scripts/quality/build-music-candidate.mjs",
-    "sha256": "9d8e0d85763eda48058bb979a143deaf6b67197664b76ad9a6ac110e2b9ad0c9",
-    "bytes": 22586
+    "sha256": "7b27d0b2d33677581dc96543a02317a16f72e5fbec27b371562eb8b45fe227f4",
+    "bytes": 22669
   },
   "checkCommand": "node scripts/quality/build-music-candidate.mjs --check",
   "projects": {
@@ -25,7 +25,7 @@
     "dependentEdgeDeploymentsStarted": false
   },
   "hostedStatus": "Apply connector stalled; schemas absent at recorded postflight. No dependent Edge rollout or readiness activation. Recheck actual state before resuming.",
-  "productionStatus": "Held. This is not an authorization to skip production prerequisites, client compatibility, exact target preflights or separate postflight.",
+  "productionStatus": "Not deployed: production prerequisites, installed-client compatibility, exact target preflights and separate postflight must pass. Current user authorization covers the coordinated rollout once these technical gates pass.",
   "functionConfiguration": {
     "path": "supabase/config.toml",
     "sha256": "8d0c2344fa4ca5483bfd92b02de7c0a5d27fc35b5fbd442ce4db9acab1bdc88a",

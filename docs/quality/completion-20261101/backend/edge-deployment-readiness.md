@@ -1,6 +1,9 @@
 # Current Edge deployment packages
 
-The package is bound to source commit `ecf5e5a960106d7cb04c211ee99e9e89c09642cc`.
+The unchanged bundle source was verified at `ecf5e5a960106d7cb04c211ee99e9e89c09642cc`.
+The manifest was refreshed to make clear that current authorization covers rollout
+after the actual technical gates. Its source commit and individual current-file
+hashes are recorded explicitly in the package index.
 It contains exact arguments for the normal `supabase_deploy_edge_function` tool,
 including complete file contents, repository-relative paths, entrypoints,
 the one explicit import map, and each function's JWT setting. The 16 request

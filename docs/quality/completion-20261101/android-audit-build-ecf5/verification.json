@@ -1,0 +1,58 @@
+{
+  "formatVersion": 1,
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "sourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "workflowRun": 41266020074,
+  "jobId": 124728874765,
+  "jobConclusion": "success",
+  "binaryArtifact": {
+    "id": 13067587426,
+    "bytes": 63632797,
+    "sha256": "beb02caa270e9cd2626f2f5091086287115910b8bf7943380e5dc82b9205599d"
+  },
+  "logsArtifact": {
+    "id": 13068106417,
+    "bytes": 97537,
+    "sha256": "4838d79eba05ca2d56be24b9174a579a0e6c5c01da8e99d3f6bc2ce86d5c144d"
+  },
+  "apkSha256": "b9c4baf39e15bda681c15b73ebad8d0fed437ecadabf1400cc978123b477785b",
+  "binaryManifestSha256": "255e1af846e7c06c58960cd009eb00fd08fad1be968c18bef9d5a9c4c1ed2348",
+  "sourceReceiptSha256": "cbb0f4d88e4acd1a9c1a055b5951114ca2e5f12d3472fd7af928863963f45736",
+  "auditManifestSha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+  "retainedSourceHashesVerified": 607,
+  "auditInputHashesVerified": 9,
+  "overlayRecordsVerified": 10,
+  "retainedFinalOverlayFilesVerified": 9,
+  "sequentialAuditEntryEditsReplayedAndBothIntermediateHashesVerified": true,
+  "fullReleaseApkAndBundlePresent": true,
+  "jsBundleBytes": 8579268,
+  "nativeAbi": "x86_64",
+  "media3PackagedAbiPassed": true,
+  "media3RuntimeAligned": true,
+  "capabilityMode": "qa-capability-overlay",
+  "capabilityPromotionCandidate": [
+    {
+      "path": "modules/boomerang/ios/BoomerangModule.swift",
+      "sourceSha256": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+      "compiledQaSha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+      "promotionCandidateSha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+      "entireFileMatches": true,
+      "compiledOnThisPlatform": false,
+      "retained": "overlays/modules__boomerang__ios__BoomerangModule.swift"
+    },
+    {
+      "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "sourceSha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+      "compiledQaSha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+      "promotionCandidateSha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+      "entireFileMatches": true,
+      "compiledOnThisPlatform": true,
+      "retained": "overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt"
+    }
+  ],
+  "capabilityPromotionApplied": false,
+  "installedProductAcceptancePassed": false,
+  "limits": "Producer/source proof only. Current-run installed audit results are tracked separately. The existing f5 85/85 and capture evidence is retained separately and is not relabelled as this build.",
+  "independentPackagedAbiReinspectionPassed": true,
+  "independentPackagedAbiEvidence": "independent-packaged-abi.json"
+}

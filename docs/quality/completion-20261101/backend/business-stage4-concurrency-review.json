@@ -1,0 +1,109 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "observedAtUtc": "2026-11-01 03:21:29.979656+00",
+  "serverVersion": "17.11",
+  "source": {
+    "path": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+    "sha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749"
+  },
+  "functionUniqueness": {
+    "name": "pg_proc_proname_args_nsp_index",
+    "valid": true,
+    "unique": true,
+    "immediate": true,
+    "definition": "CREATE UNIQUE INDEX pg_proc_proname_args_nsp_index ON pg_catalog.pg_proc USING btree (proname, proargtypes, pronamespace)"
+  },
+  "stage4FunctionPresent": false,
+  "businessStageMarker": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+  "activeMatchingStatements": 0,
+  "ddlTriggers": [
+    {
+      "name": "ensure_rls",
+      "event": "ddl_command_end",
+      "enabled": "O",
+      "tags": [
+        "CREATE TABLE",
+        "CREATE TABLE AS",
+        "SELECT INTO"
+      ],
+      "handler": "rls_auto_enable()",
+      "appliesToStage4": false,
+      "effect": "Trigger tags/event do not cover this stage's statements"
+    },
+    {
+      "name": "issue_graphql_placeholder",
+      "event": "sql_drop",
+      "enabled": "O",
+      "tags": [
+        "DROP EXTENSION"
+      ],
+      "handler": "set_graphql_placeholder()",
+      "appliesToStage4": false,
+      "effect": "Trigger tags/event do not cover this stage's statements"
+    },
+    {
+      "name": "issue_pg_cron_access",
+      "event": "ddl_command_end",
+      "enabled": "O",
+      "tags": [
+        "CREATE EXTENSION"
+      ],
+      "handler": "grant_pg_cron_access()",
+      "appliesToStage4": false,
+      "effect": "Trigger tags/event do not cover this stage's statements"
+    },
+    {
+      "name": "issue_pg_graphql_access",
+      "event": "ddl_command_end",
+      "enabled": "O",
+      "tags": [
+        "CREATE EXTENSION"
+      ],
+      "handler": "grant_pg_graphql_access()",
+      "appliesToStage4": false,
+      "effect": "Trigger tags/event do not cover this stage's statements"
+    },
+    {
+      "name": "issue_pg_net_access",
+      "event": "ddl_command_end",
+      "enabled": "O",
+      "tags": [
+        "CREATE EXTENSION"
+      ],
+      "handler": "grant_pg_net_access()",
+      "appliesToStage4": false,
+      "effect": "Trigger tags/event do not cover this stage's statements"
+    },
+    {
+      "name": "pgrst_ddl_watch",
+      "event": "ddl_command_end",
+      "enabled": "O",
+      "tags": null,
+      "handler": "pgrst_ddl_watch()",
+      "appliesToStage4": true,
+      "effect": "Transactional NOTIFY pgrst, reload schema"
+    },
+    {
+      "name": "pgrst_drop_watch",
+      "event": "sql_drop",
+      "enabled": "O",
+      "tags": null,
+      "handler": "pgrst_drop_watch()",
+      "appliesToStage4": false,
+      "effect": "Trigger tags/event do not cover this stage's statements"
+    }
+  ],
+  "assessment": "For concurrent or delayed byte-identical stage4 transactions against freshly verified stage3, at most one candidate function/catalog advancement can commit. A later guard failure, uniqueness conflict, lock/statement timeout or other SQL error aborts the unsuccessful transaction. No installed function body or provider operation is invoked.",
+  "conditions": [
+    "Same exact SQL, guards, timeouts and transaction boundaries.",
+    "Fresh complete catalog/data/session/ACL preflight; no unrelated privileged concurrent writer.",
+    "Only the normal supported migration path; no altered destructive classification.",
+    "Every prior request remains recorded unknown until authoritative result/postflight, even if another identical transaction wins."
+  ],
+  "notAssessed": [
+    "Retry safety for support, notification, another business stage or arbitrary future migrations.",
+    "Provider tool availability, internal confirmation presentation or journal implementation beyond normal supported behavior."
+  ],
+  "mutationExecutedByThisReview": false
+}

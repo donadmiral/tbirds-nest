@@ -1,0 +1,39 @@
+{
+  "device": "24DB076B-2743-48CB-9F0F-ADC0E5C9C22A",
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "commands": [
+    {
+      "stage": "shutdown",
+      "timeoutSeconds": 20,
+      "startedAtEpochMs": 1793502881285,
+      "status": "completed",
+      "stdoutBytes": 0,
+      "stdoutTail": "",
+      "stdoutTruncated": false,
+      "stderrBytes": 0,
+      "stderrTail": "",
+      "stderrTruncated": false,
+      "exitCode": 0,
+      "elapsedSeconds": 5.0892689439999685,
+      "leaderCompletedBeforePipeEOF": false,
+      "finishedAtEpochMs": 1793502886404
+    },
+    {
+      "stage": "delete",
+      "timeoutSeconds": 20,
+      "startedAtEpochMs": 1793502886420,
+      "status": "completed",
+      "stdoutBytes": 0,
+      "stdoutTail": "",
+      "stdoutTruncated": false,
+      "stderrBytes": 0,
+      "stderrTail": "",
+      "stderrTruncated": false,
+      "exitCode": 0,
+      "elapsedSeconds": 0.4024994549999974,
+      "leaderCompletedBeforePipeEOF": false,
+      "finishedAtEpochMs": 1793502886830
+    }
+  ],
+  "completed": true
+}

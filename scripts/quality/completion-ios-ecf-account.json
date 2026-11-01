@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "ready": true,
+  "applicationSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "applicationSourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "producerRunId": 41266020074,
+  "producerArtifactName": "native-audit-ios-binary",
+  "producerArtifactId": 13067374445,
+  "producerArtifactZipSha256": "23dac3e9bbc09a4f5a6359d228b09d3a3a268a531207a551cefc577e5ff8f760",
+  "producerArtifactZipBytes": 49154766,
+  "appArchiveSha256": "6054e098cd9d14924899e573bbfa37ad35034978c2512e03cb2bed5f5bd9dbbd",
+  "binaryManifestSha256": "2a145a7a443ab4a290eecd65b999da8b15172b0a04d9a9ac57c5bbd311f26b0c",
+  "binarySha256": "a14a059ea235b4db779c17ba0bd09ee9d7e8eadd76224d3fe1061e3f21768ca8",
+  "sourceReceiptSha256": "cbb0f4d88e4acd1a9c1a055b5951114ca2e5f12d3472fd7af928863963f45736"
+}
