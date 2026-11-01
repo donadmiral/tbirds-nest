@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "kind": "second-independent-read-only-existing-simulator-source-review",
+  "reviewedAtUtc": "2026-11-01T00:19:14.007861+00:00",
+  "accepted": true,
+  "sourceHashes": {
+    "scripts/quality/native-ui-ios-d46-recovery.py": "8a5bda5bd684f0f5bb199637f71bb3e8c541e3ee7ac1043bba5710b4e9777b7c",
+    "tests/quality/native-ios-d46-recovery.cjs": "96ce4ad2f96171c1571e9375626194caf2959403e4d466c66ecae2fb5a2627a2",
+    ".github/workflows/native-audit-ios-d46-recovery.yml": "10529f3da3d4b63db2f906c9e0bbf86e73c3e6c82612db63c9e27f8b0ab6c228",
+    "tests/native/diagnostics/ios-direct-reader-controls.yaml": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1",
+    "scripts/quality/native-ui-ios-created-device.py": "d2ffc477184b8a55f3e557facf1928ac5e11976caf84f78f8050c356e172d3b7",
+    "scripts/quality/native-ui-ios-audit-recovery.py": "428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2",
+    "scripts/quality/native-ui-ios-compatibility.py": "0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9",
+    "scripts/quality/native-ui-ios-d46-recovery.json": "3775b6b5fd3bd4e3d0fd2ac5674943aa8ddd71fc8b849c06f7ad24f78bae1310"
+  },
+  "applicationSourceCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+  "applicationTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+  "criticalOriginalGuards": [
+    {
+      "path": "scripts/quality/native-ui-audit-runner.py",
+      "sha256": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352"
+    },
+    {
+      "path": "tests/native/audit/flows/_signin.yaml",
+      "sha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a"
+    },
+    {
+      "path": "tests/native/audit/flows/memory-reader-controls.yaml",
+      "sha256": "bb1043029586a692530261b9c0a3ed63b7cc77dd9f34e0129a854ee26e2d7a42"
+    },
+    {
+      "path": "tests/native/audit/manifest.json",
+      "sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d"
+    },
+    {
+      "path": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+      "sha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82"
+    }
+  ],
+  "workspaceBoundary": {
+    "comparedOriginalPaths": 89,
+    "matchingCurrentPaths": 88,
+    "localDifferences": [
+      {
+        "path": "tests/native/audit/flows/memory-cover-settings.yaml",
+        "d46Sha256": "c441efc557a5a3adcfad5f5ebbaa2db92870ae93710c20fb59c29eefcf6dd409",
+        "workingTreeSha256": "463692341e6784e55633091fea0e1e1c4eafd089c96946f407418b2a85c9bf59"
+      }
+    ],
+    "interpretation": "The working tree contains a separate authorized Save-flow repair. It is not the consumer baseline: workflow checks out literal d46 separately, and the wrapper verifies HEAD/tree and git diff --exit-code HEAD before runtime. This review does not claim all local working-tree flows equal d46."
+  },
+  "findings": [
+    "Existing selection requires exact available Shutdown iPhone 16 on pinned iOS 18.5 with x86_64 manifest, after immutable host/SDK/Mach-O/signature proof.",
+    "Malformed inventory, case-insensitive duplicate UUIDs or bounded enumeration timeout fails; it does not trigger fallback.",
+    "Only a valid inventory without an eligible exact device permits one 120-second creation. Existing selection is deterministic and records eligible count.",
+    "Preboot verification rechecks runtime/version/device uniqueness/type/state. Boot, bootstatus and install use the same exact UUID; app digest is checked before install.",
+    "Provenance records existing-shutdown versus fresh-creation and createdByThisInvocation, with no claim that a reused device is newly created.",
+    "Cleanup shuts down only the selected UUID and deletes only a device created by this invocation. Original iOS sign-in still clears application state and keychain.",
+    "Direct diagnostic retains 15-second reader readiness, both page/title assertions, Next memory, strict fixture and JUnit gates, 600-second CLI budget and 25-minute job cap.",
+    "All 85 original cases are unselected and receive no pass credit; warm diagnostic is not requested. No app rebuild, rebundle or re-sign is introduced."
+  ],
+  "verification": {
+    "thisReviewRanTests": false,
+    "reason": "Native reviewer already executed the frozen focused file independently; no third execution.",
+    "independentFocusedRunReceipt": {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-existing-device-review/independent-review.json",
+      "sha256": "77c9edd73b3f78d15dbbdea5eb14dffedc6fc7732ffa4d1eab57494d34b56217",
+      "formalPassed": 6,
+      "formalFailed": 0,
+      "nestedPythonChecks": 48,
+      "nestedCountNotAdditive": true
+    },
+    "ownerReceipt": {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-existing-device-preparation/acceptance.json",
+      "sha256": "347e5779ff2f50f521224295b70cb0dff892719917b216650354d50185186be4"
+    }
+  },
+  "limits": [
+    "Read-only source, exact byte and retained test-output review; no live macOS Simulator commands executed by this reviewer.",
+    "Exact existing-device availability is not guaranteed; metadata, boot or reader runtime can still fail.",
+    "This remains the original d46 app and does not include the later local reader recoverability repair."
+  ],
+  "remoteActions": false,
+  "sourceEdits": false
+}

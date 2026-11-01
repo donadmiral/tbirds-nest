@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "jobs": [
+    {
+      "id": 124697671752,
+      "run_id": 41255492904,
+      "head_sha": "06637178191f5b6c9bb6fd9fd72847f9fc70a2d8",
+      "name": "Recover d46 iPhone group memory",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-11-01T00:09:36Z",
+      "completed_at": "2026-11-01T00:13:37Z",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:09:38Z",
+          "completed_at": "2026-11-01T00:09:42Z"
+        },
+        {
+          "number": 2,
+          "name": "Check out the reviewed consumer tools",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:09:42Z",
+          "completed_at": "2026-11-01T00:09:53Z"
+        },
+        {
+          "number": 3,
+          "name": "Require the independently verified producer binding",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:09:53Z",
+          "completed_at": "2026-11-01T00:09:54Z"
+        },
+        {
+          "number": 4,
+          "name": "Check out the exact original binary and all85 case source",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:09:54Z",
+          "completed_at": "2026-11-01T00:10:04Z"
+        },
+        {
+          "number": 5,
+          "name": "Retrieve only the verified already-built Simulator app",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:10:04Z",
+          "completed_at": "2026-11-01T00:10:11Z"
+        },
+        {
+          "number": 6,
+          "name": "Prepare consumer tools without rebuilding",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:10:11Z",
+          "completed_at": "2026-11-01T00:11:07Z"
+        },
+        {
+          "number": 7,
+          "name": "Install the original pinned Maestro CLI",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:11:07Z",
+          "completed_at": "2026-11-01T00:11:15Z"
+        },
+        {
+          "number": 8,
+          "name": "Run only the separately counted direct reader diagnostic",
+          "status": "completed",
+          "conclusion": "failure",
+          "started_at": "2026-11-01T00:11:15Z",
+          "completed_at": "2026-11-01T00:13:27Z"
+        },
+        {
+          "number": 9,
+          "name": "Retain completed, failed and interrupted observations",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:13:27Z",
+          "completed_at": "2026-11-01T00:13:31Z"
+        },
+        {
+          "number": 17,
+          "name": "Post Check out the exact original binary and all85 case source",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:13:31Z",
+          "completed_at": "2026-11-01T00:13:33Z"
+        },
+        {
+          "number": 18,
+          "name": "Post Check out the reviewed consumer tools",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:13:33Z",
+          "completed_at": "2026-11-01T00:13:34Z"
+        },
+        {
+          "number": 19,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-01T00:13:34Z",
+          "completed_at": "2026-11-01T00:13:35Z"
+        }
+      ]
+    }
+  ],
+  "artifact": {
+    "id": 13062054813,
+    "name": "native-audit-ios-d46-memory-recovery-results",
+    "bytes": 43755,
+    "digest": "sha256:8c914b89a8541383c759053edba6c327d8c213f048a0944550b3c25e9a5dae79",
+    "created_at": "2026-11-01T00:13:31Z",
+    "expires_at": "2026-11-08T00:13:30Z",
+    "workflow_run": {
+      "id": 41255492904,
+      "repository_id": 1314826575,
+      "head_repository_id": 1314826575,
+      "head_branch": "codex/native-audit-ios-d46-recovery-20261031",
+      "head_sha": "06637178191f5b6c9bb6fd9fd72847f9fc70a2d8"
+    }
+  },
+  "observations": [
+    {
+      "observedAtUtc": "2026-11-01 00:11:04 UTC",
+      "jobs": [
+        {
+          "id": 124697671752,
+          "status": "in_progress",
+          "conclusion": null,
+          "active": [
+            {
+              "name": "Prepare consumer tools without rebuilding",
+              "status": "in_progress",
+              "conclusion": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "observedAtUtc": "2026-11-01 00:11:58 UTC",
+      "jobs": [
+        {
+          "id": 124697671752,
+          "status": "in_progress",
+          "conclusion": null,
+          "active": [
+            {
+              "name": "Run only the separately counted direct reader diagnostic",
+              "status": "in_progress",
+              "conclusion": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "observedAtUtc": "2026-11-01 00:12:58 UTC",
+      "jobs": [
+        {
+          "id": 124697671752,
+          "status": "in_progress",
+          "conclusion": null,
+          "active": [
+            {
+              "name": "Run only the separately counted direct reader diagnostic",
+              "status": "in_progress",
+              "conclusion": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "observedAtUtc": "2026-11-01 00:13:52 UTC",
+      "jobs": [
+        {
+          "id": 124697671752,
+          "status": "completed",
+          "conclusion": "failure",
+          "active": [
+            {
+              "name": "Run only the separately counted direct reader diagnostic",
+              "status": "completed",
+              "conclusion": "failure"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

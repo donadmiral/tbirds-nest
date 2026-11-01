@@ -1,0 +1,40 @@
+{
+  "kind": "independent-existing-simulator-setup-review",
+  "accepted": true,
+  "sourceHashes": {
+    "scripts/quality/native-ui-ios-d46-recovery.py": "8a5bda5bd684f0f5bb199637f71bb3e8c541e3ee7ac1043bba5710b4e9777b7c",
+    "tests/quality/native-ios-d46-recovery.cjs": "96ce4ad2f96171c1571e9375626194caf2959403e4d466c66ecae2fb5a2627a2",
+    ".github/workflows/native-audit-ios-d46-recovery.yml": "10529f3da3d4b63db2f906c9e0bbf86e73c3e6c82612db63c9e27f8b0ab6c228",
+    "tests/native/diagnostics/ios-direct-reader-controls.yaml": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1"
+  },
+  "formalTests": {
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "nestedPythonChecks": 48,
+    "durationMs": 565.130849,
+    "nestedCountsAreNotAdditionalFormalTests": true
+  },
+  "testCommand": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-ios-d46-recovery.cjs",
+  "tap": {
+    "path": "docs/quality/full-platform-audit-20261031/iphone-reader-existing-device-review/independent-tests.tap",
+    "sha256": "86cfd06b9371ca546290d5d529e38d7861f088a542515ab1841e1815d6910248"
+  },
+  "findings": [
+    "Exact x86_64 manifest, iOS18.5 runtime, iPhone16 type, available boolean and Shutdown state required for existing selection.",
+    "Malformed inventory, invalid or duplicated UUID, or enumeration timeout fails; none silently falls back to creation. Multiple exact eligible devices use deterministic UUID order.",
+    "Selection happens after immutable host/Xcode/SDK/app Mach-O/signature verification. Actual runtime/version and selected device identity/state are rechecked before boot.",
+    "Both boot and bootstatus -b must succeed for the same verified UUID before app digest recheck and install. Existing setup budgets remain unchanged.",
+    "Provenance distinguishes existing-shutdown versus fresh-creation and explicitly records createdByThisInvocation. Preboot proof no longer claims a reused device was freshly created.",
+    "Cleanup targets only the selected UUID; shutdown is allowed for either path, delete only for a device created by this invocation. No global reset, cache purge or service termination.",
+    "Original iOS sign-in retains clearState:true and clearKeychain:true; unchanged diagnostic flow requires actual reader, page titles and next-page assertions.",
+    "No rebuild, rebundle, resign, application source edits, UI deadline change or acceptance weakening."
+  ],
+  "limits": [
+    "Controlled actual Python selector/setup/cleanup execution, not a new macOS Simulator result.",
+    "The next host may still have CoreSimulator metadata or boot delays; this change avoids unnecessary create only when an exact verified preexisting device is available.",
+    "Native app/UI readiness still requires the unchanged diagnostic to pass.",
+    "The tested app remains original d46, not the newly restored local reader deadline code."
+  ]
+}

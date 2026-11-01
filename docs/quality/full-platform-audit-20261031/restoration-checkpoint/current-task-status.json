@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-01T00:11:46.777672+00:00",
+  "recordedAt": "2026-11-01T00:20:30.326441+00:00",
   "task": "Post poll fixture and iPhone memory reader; restore earlier authorized fixes lost during workspace interruption",
   "sourceBranch": "codex/reader-recoverability-20261031",
   "sourceCommit": "a65f2b0b089308857085d7183ec176aad9e57372",
@@ -54,7 +54,7 @@
       "run": 41255492904,
       "job": 124697671752,
       "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41255492904",
-      "status": "in_progress",
+      "status": "completed",
       "consumerCommit": "06637178191f5b6c9bb6fd9fd72847f9fc70a2d8",
       "flow": "tests/native/diagnostics/ios-direct-reader-controls.yaml",
       "flowSha256": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1",
@@ -72,7 +72,41 @@
       ],
       "preparationReceipt": "iphone-reader-retained-41253722308/direct-diagnostic-preparation/acceptance.json",
       "independentReview": "iphone-direct-reader-diagnostic-review/independent-review.json",
-      "newAppBuild": false
+      "newAppBuild": false,
+      "conclusion": "failure",
+      "diagnosticAttempted": false,
+      "failureBoundary": "simctl create timed out after120.002seconds, with no device UUID. No app/UI test attempted.",
+      "receipt": "iphone-direct-reader-41255492904/setup-failure-acceptance.json",
+      "artifactId": 13062054813,
+      "artifactSha256": "8c914b89a8541383c759053edba6c327d8c213f048a0944550b3c25e9a5dae79"
+    },
+    "currentDirectPageDiagnostic": {
+      "run": 41256168598,
+      "job": 124699678969,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41256168598",
+      "status": "in_progress",
+      "consumerCommit": "7fbfe97ea019c5ec724de92e5221a1c3978b12bc",
+      "flow": "tests/native/diagnostics/ios-direct-reader-controls.yaml",
+      "flowSha256": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1",
+      "cliWatchdogSeconds": 600,
+      "jobCapMinutes": 25,
+      "readerReadinessMs": 15000,
+      "allOriginal85CasesUnselected": true,
+      "warmDiagnosticUnselected": true,
+      "mandatory": [
+        "Edit memory book within15seconds",
+        "Open book",
+        "Page1 and exact caption",
+        "Next memory",
+        "Page2 and exact caption"
+      ],
+      "preparationReceipt": "iphone-reader-retained-41253722308/direct-diagnostic-preparation/acceptance.json",
+      "independentReview": "iphone-direct-reader-diagnostic-review/independent-review.json",
+      "newAppBuild": false,
+      "conclusion": null,
+      "setupChange": "Prefer exact availableShutdown iPhone16/iOS18.5 device on isolated runner; bounded inventory and same-UUID compatibility recheck; create once onlyifvalid inventory has no eligible device.",
+      "setupPreparation": "iphone-direct-reader-existing-device-preparation/acceptance.json",
+      "setupIndependentReview": "iphone-reader-existing-device-review/independent-review.json"
     }
   },
   "restoration": {

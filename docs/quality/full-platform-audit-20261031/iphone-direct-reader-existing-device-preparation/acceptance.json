@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "preparedAtUtc": "2026-11-01T00:18:04.871580+00:00",
+  "status": "LOCAL_CHECKS_PASSED_RUNTIME_PENDING",
+  "applicationCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+  "applicationTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+  "failedPreviousRunId": 41255492904,
+  "problem": "Previous diagnostic stopped in simctl create after120.002s, before any device UUID, boot or reader test. There was no reader failure from that run.",
+  "change": "Prefer an already provisioned exact compatible available Shutdown simulator on the isolated GitHub runner; retain single creation fallback only when a valid inventory contains no eligible device.",
+  "changedFiles": [
+    {
+      "path": "scripts/quality/native-ui-ios-d46-recovery.py",
+      "bytes": 28035,
+      "sha256": "8a5bda5bd684f0f5bb199637f71bb3e8c541e3ee7ac1043bba5710b4e9777b7c"
+    },
+    {
+      "path": "tests/quality/native-ios-d46-recovery.cjs",
+      "bytes": 35158,
+      "sha256": "96ce4ad2f96171c1571e9375626194caf2959403e4d466c66ecae2fb5a2627a2"
+    }
+  ],
+  "unchangedInputs": [
+    {
+      "path": ".github/workflows/native-audit-ios-d46-recovery.yml",
+      "bytes": 3486,
+      "sha256": "10529f3da3d4b63db2f906c9e0bbf86e73c3e6c82612db63c9e27f8b0ab6c228"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-d46-recovery.json",
+      "bytes": 810,
+      "sha256": "3775b6b5fd3bd4e3d0fd2ac5674943aa8ddd71fc8b849c06f7ad24f78bae1310"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-created-device.py",
+      "bytes": 2718,
+      "sha256": "d2ffc477184b8a55f3e557facf1928ac5e11976caf84f78f8050c356e172d3b7"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-audit-recovery.py",
+      "bytes": 36037,
+      "sha256": "428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-compatibility.py",
+      "bytes": 3981,
+      "sha256": "0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9"
+    },
+    {
+      "path": "tests/native/diagnostics/ios-direct-reader-controls.yaml",
+      "bytes": 841,
+      "sha256": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1"
+    },
+    {
+      "path": "scripts/quality/native-ui-audit-runner.py",
+      "bytes": 15481,
+      "sha256": "fd855d4daebddd0a23cc9d1cc261b2a883d3ac15f1f08b64b6718321775e3352"
+    },
+    {
+      "path": "tests/native/audit/manifest.json",
+      "bytes": 91086,
+      "sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d"
+    },
+    {
+      "path": "tests/native/audit/flows/_signin.yaml",
+      "bytes": 1100,
+      "sha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a"
+    },
+    {
+      "path": "tests/native/audit/flows/memory-reader-controls.yaml",
+      "bytes": 775,
+      "sha256": "bb1043029586a692530261b9c0a3ed63b7cc77dd9f34e0129a854ee26e2d7a42"
+    },
+    {
+      "path": "tests/native/diagnostics/ios-warm-tabs-reader.yaml",
+      "bytes": 709,
+      "sha256": "11ddee124546458271269419f66f997f452634a884e3fb2444a3eedbf438bc82"
+    }
+  ],
+  "selection": {
+    "inventoryCommand": [
+      "xcrun",
+      "simctl",
+      "list",
+      "devices",
+      "--json"
+    ],
+    "inventoryBudgetSeconds": 30,
+    "requiredManifestAbi": "x86_64",
+    "requiredRuntime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+    "requiredDeviceType": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+    "requiredState": "Shutdown",
+    "isAvailableMustBeBooleanTrue": true,
+    "duplicateUuidsRejectedCaseInsensitively": true,
+    "malformedInventoryOrTimeoutFailsClosed": true,
+    "multipleExactCandidates": "Select smallest lexicographic UUID deterministically; record eligibleCount and exact selected identity.",
+    "fallback": "Only valid inventory with0eligible devices; exactly one existing create command with120sbudget.",
+    "prebootRecheck": "Existing exact runtime/version/availability/UUID uniqueness/device type/Shutdown verifier runs before boot; no postboot whole-host enumeration added.",
+    "signatureArchitectureAndSdkChecks": "Existing immutable checks precede selection; final app digest remains required before install.",
+    "provenance": "deviceSelection.mode distinguishes existing-shutdown/fresh-creation and createdByThisInvocation. prebootDeviceVerification removes false fresh-device wording.",
+    "cleanup": "Always addresses selected UUID only. Reused device is shut down; only own newly created device is also deleted.",
+    "applicationIsolation": "Original d46 iOS _signin remains unchanged: clearState:true and clearKeychain:true."
+  },
+  "preservedDiagnostic": {
+    "originalAuditCasesAttempted": 0,
+    "originalAuditCasesUnselected": 85,
+    "warmDiagnosticRuns": 0,
+    "directDiagnosticId": "diagnostic-direct-reader-controls",
+    "wholeCliWatchdogSeconds": 600,
+    "readerReadinessMs": 15000,
+    "outerJobWatchdogMinutes": 25,
+    "centerElement": false,
+    "page1AndCaptionMandatory": true,
+    "nextMemoryMandatory": true,
+    "page2AndCaptionMandatory": true,
+    "originalFixtureAndStrictJunitGates": true,
+    "appBuildOrRebundleOrResign": false
+  },
+  "verification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-ios-d46-recovery.cjs",
+    "formalTests": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "nestedPythonChecks": 48,
+    "nestedCountNotAdditive": true,
+    "durationMs": 596.629592,
+    "pythonCompileExitCode": 0,
+    "nodeSyntaxExitCode": 0,
+    "scopedEslintExitCode": 0,
+    "whitespaceExitCode": 0,
+    "coverage": [
+      "Actual selection rejects malformed/ambiguous metadata, wrongprofile/ABI and ineligible states; exact candidates selected deterministically.",
+      "Extracted actual setup branch proves no create for exact existing device, sameUUID boot/bootstatus/install and unchanged budgets.",
+      "Enumeration error/timeout does not fall back to create. Valid no-candidate path retains one creation.",
+      "Actual cleanup loop proves reused shutdownonly versus created shutdown+delete.",
+      "Existing diagnostic/count/fixture/JUnit/immutable-source/setup tests remain green."
+    ],
+    "limit": "Controlled local command results; no live Simulator command or runtime test was invoked."
+  },
+  "remoteActionsByThisAgent": {
+    "publication": false,
+    "testLaunch": false,
+    "build": false,
+    "deployment": false
+  },
+  "limits": [
+    "Existing-device preference avoids the observed create path only if the runner exposes an exact eligible simulator. It does not prove the simulator or reader will pass.",
+    "No runtime/model/ABI/signature/checksum/assertion threshold was relaxed.",
+    "The retained d46 app excludes later local product changes."
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-existing-device-preparation/focused.tap",
+      "bytes": 1779,
+      "sha256": "482b7becad2b643305b1ed1c6d8a13ec8f8357b7f88b1156841b83410dcf67eb"
+    },
+    {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-existing-device-preparation/eslint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

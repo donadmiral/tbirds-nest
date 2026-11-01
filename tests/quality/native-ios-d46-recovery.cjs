@@ -7,6 +7,50 @@ const YAML = require('yaml');
 const root = path.resolve(__dirname, '../..');
 const consumer = path.join(root, 'scripts/quality/native-ui-ios-d46-recovery.py');
 
+test('existing simulator selection is exact, bounded and preserves cleanup ownership', () => {
+  const script = String.raw`
+import ast,copy,importlib.util,json,pathlib,types,unittest
+p=pathlib.Path(__import__('sys').argv[1]);spec=importlib.util.spec_from_file_location('consumer',p);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+v=m.load_module('verifier',p.with_name('native-ui-ios-created-device.py'))
+class Tests(unittest.TestCase):
+ def setUp(self):
+  self.manifest={'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':v.RUNTIME}};self.row={'udid':'01234567-89AB-CDEF-0123-456789ABCDEF','deviceTypeIdentifier':v.DEVICE_TYPE,'isAvailable':True,'state':'Shutdown'}
+ def select(self,rows=None,inventory=None,manifest=None):return m.select_existing_device(json.dumps(inventory if inventory is not None else {'devices':{v.RUNTIME:rows if rows is not None else [self.row]}}),manifest or self.manifest,v)
+ def test_exact_existing_device_selected(self):
+  r=self.select();self.assertEqual(r['mode'],'existing-shutdown');self.assertEqual(r['selectedDevice'],self.row['udid']);self.assertEqual(r['eligibleCount'],1);self.assertEqual(r['expectedAbi'],'x86_64')
+ def test_valid_no_eligible_device_allows_only_fresh_fallback(self):
+  for change in [{'state':'Booted'},{'state':'Creating'},{'isAvailable':False},{'deviceTypeIdentifier':'com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro'}]:
+   row={**self.row,**change};r=self.select([row]);self.assertEqual(r['mode'],'fresh-creation');self.assertIsNone(r['selectedDevice']);self.assertEqual(r['eligibleCount'],0)
+  self.assertIsNone(self.select(inventory={'devices':{'other-runtime':[self.row]}})['selectedDevice']);self.assertIsNone(self.select([])['selectedDevice'])
+ def test_multiple_exact_devices_choose_a_deterministic_uuid(self):
+  other={**self.row,'udid':'11234567-89AB-CDEF-0123-456789ABCDEF'};self.assertEqual(self.select([other,self.row])['selectedDevice'],self.row['udid']);self.assertEqual(self.select([other,self.row])['eligibleCount'],2)
+ def test_duplicate_uuid_even_case_or_runtime_changes_rejected(self):
+  for inventory in [{'devices':{v.RUNTIME:[self.row,copy.deepcopy(self.row)]}},{'devices':{v.RUNTIME:[self.row],'other':[{**self.row,'udid':self.row['udid'].lower()}]}}]:
+   with self.subTest(inventory=inventory),self.assertRaises(ValueError):self.select(inventory=inventory)
+ def test_malformed_inventory_rejected(self):
+  for inventory in [{},{'devices':[]},{'devices':{v.RUNTIME:{}}},{'devices':{v.RUNTIME:[None]}}]:
+   with self.subTest(inventory=inventory),self.assertRaises(ValueError):self.select(inventory=inventory)
+  with self.assertRaises(ValueError):m.select_existing_device('not-json',self.manifest,v)
+ def test_invalid_uuid_boolean_or_missing_profile_rejected(self):
+  for change in [{'udid':'booted'},{'udid':None},{'isAvailable':'true'},{'state':None},{'deviceTypeIdentifier':None}]:
+   with self.subTest(change=change),self.assertRaises(ValueError):self.select([{**self.row,**change}])
+ def test_wrong_abi_or_runtime_rejected_before_selection(self):
+  for c in [{'abi':'arm64','runtimeIdentifier':v.RUNTIME},{'abi':'x86_64','runtimeIdentifier':'other'}]:
+   with self.subTest(c=c),self.assertRaises(ValueError):self.select(manifest={'nativeCompatibility':c})
+ def test_actual_cleanup_only_deletes_a_device_created_by_this_invocation(self):
+  main=next(n for n in ast.parse(p.read_text()).body if isinstance(n,ast.FunctionDef) and n.name=='main')
+  loop=next(n for n in ast.walk(main) if isinstance(n,ast.For) and isinstance(n.target,ast.Name) and n.target.id=='action')
+  code=compile(ast.Module(body=[loop],type_ignores=[]),str(p),'exec')
+  for created,actions in [(False,['shutdown']),(True,['shutdown','delete'])]:
+   calls=[];helper=types.SimpleNamespace(bounded_command=lambda args,timeout:calls.append((args,timeout)))
+   exec(code,{**m.__dict__,'device_created':created,'device':self.row['udid'],'helper':helper});self.assertEqual(calls,[(['xcrun','simctl',action,self.row['udid']],10) for action in actions])
+unittest.main(argv=['existing-selection'],verbosity=2)
+`;
+  const result = spawnSync('python3', ['-c', script, consumer], { cwd: root, encoding: 'utf8', timeout: 10000 });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stderr, /Ran 8 tests/);
+});
+
 test('direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes', () => {
   const script = String.raw`
 import ast,importlib.util,json,pathlib,subprocess,tempfile,types,unittest
@@ -120,7 +164,7 @@ class Tests(unittest.TestCase):
  def inventory(self):
   runtime=created.RUNTIME;device='01234567-89AB-CDEF-0123-456789ABCDEF'
   return {'runtimes':[{'identifier':runtime,'version':'18.5','isAvailable':True}]},{'devices':{runtime:[{'udid':device,'deviceTypeIdentifier':created.DEVICE_TYPE,'isAvailable':True,'state':'Shutdown'}]}}
- def setup_statements(self,phase_error=None,changed=False,inventory=None,returned_device=None,phase_timeout=True):
+ def setup_statements(self,phase_error=None,changed=False,inventory=None,returned_device=None,phase_timeout=True,existing=False,selection_inventory=None):
   main=next(n for n in ast.parse(p.read_text()).body if isinstance(n,ast.FunctionDef) and n.name=='main')
   setup=next(n for n in main.body if isinstance(n,ast.Try) and any(isinstance(child,ast.Attribute) and child.attr=='verify_setup_immutable' for child in ast.walk(n)))
   stop=next(i for i,n in enumerate(setup.body) if isinstance(n,ast.With));code=compile(ast.Module(body=setup.body[:stop],type_ignores=[]),str(p),'exec')
@@ -143,22 +187,30 @@ class Tests(unittest.TestCase):
    if phase_error==stage:
     if phase_timeout:raise subprocess.TimeoutExpired(args,budget)
     raise ValueError('controlled nonzero setup exit')
+   if stage=='select-existing-device':return json.dumps(selection_inventory if selection_inventory is not None else (device_rows if existing else {'devices':{created.RUNTIME:[]}}))
    if stage=='boot':booted[0]=True
    return (returned_device if returned_device is not None else device) if stage=='create' else ''
   old_helper=m.load_module('old_compatibility',p.with_name('native-ui-ios-compatibility.py'))
   helper=types.SimpleNamespace(verify_setup_immutable=phase('immutable'),verify_setup_booted_runtime=lambda app,manifest,selected,*args:old_helper.verify_booted_runtime(manifest,selected,read),setup_compatibility_reader=lambda *args:read,atomic_json=lambda *a:None,setup_read=setup_read,read_command=lambda args,timeout:events.append(('install',timeout)) or commands.append(args))
-  ns={**m.__dict__,'helper':helper,'created_verifier':created,'app':self.root/'app','manifest':{'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':created.RUNTIME}},'binding':self.binding(),'setup_records':[],'output':self.root,'provenance':{},'runner':types.SimpleNamespace(binary_digest=lambda app:'b'*64 if changed else 'a'*64)}
+  ns={**m.__dict__,'helper':helper,'created_verifier':created,'app':self.root/'app','manifest':{'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':created.RUNTIME}},'binding':self.binding(),'setup_records':[],'output':self.root,'provenance':{},'device_created':False,'runner':types.SimpleNamespace(binary_digest=lambda app:'b'*64 if changed else 'a'*64)}
   try:exec(code,ns)
   except (ValueError,subprocess.TimeoutExpired):return events,commands,False,ns
   return events,commands,True,ns
  def test_actual_setup_avoids_postboot_whole_host_query_without_changing_budget_or_identity(self):
   events,commands,passed,ns=self.setup_statements();self.assertTrue(passed,'Controlled postboot metadata timeout must not block already verified identity')
-  self.assertEqual(events,['immutable',('create',120),'runtimes','devices',('boot',120),('bootstatus',300),('install',120)])
+  self.assertEqual(events,['immutable',('select-existing-device',30),('create',120),'runtimes','devices',('boot',120),('bootstatus',300),('install',120)])
   create=next(args for args in commands if args[:3]==['xcrun','simctl','create']);self.assertEqual(create[-2:],[created.DEVICE_TYPE,created.RUNTIME])
   for action in ['boot','bootstatus','install']:
    command=next(args for args in commands if args[:3]==['xcrun','simctl',action]);self.assertEqual(command[3],'01234567-89AB-CDEF-0123-456789ABCDEF')
   self.assertEqual(next(args for args in commands if args[:3]==['xcrun','simctl','bootstatus'])[-1],'-b')
-  self.assertEqual(ns['provenance']['createdDeviceVerification']['stateAtVerification'],'Shutdown');self.assertTrue(ns['provenance']['bootedRuntimeVerification']['bootstatusCompleted'])
+  self.assertEqual(ns['provenance']['prebootDeviceVerification']['stateAtVerification'],'Shutdown');self.assertTrue(ns['provenance']['bootedRuntimeVerification']['bootstatusCompleted'])
+ def test_existing_exact_shutdown_device_avoids_create_and_preserves_all_preboot_checks(self):
+  events,commands,passed,ns=self.setup_statements(existing=True);self.assertTrue(passed);self.assertEqual(events,['immutable',('select-existing-device',30),'runtimes','devices',('boot',120),('bootstatus',300),('install',120)])
+  self.assertFalse(ns['device_created']);self.assertEqual(ns['provenance']['deviceSelection']['mode'],'existing-shutdown');self.assertFalse(ns['provenance']['deviceSelection']['createdByThisInvocation']);self.assertNotIn('createdDeviceVerification',ns['provenance'])
+  self.assertEqual([a[3] for a in commands if a[:3] in [['xcrun','simctl','boot'],['xcrun','simctl','bootstatus'],['xcrun','simctl','install']]],['01234567-89AB-CDEF-0123-456789ABCDEF']*3)
+ def test_selection_timeout_or_malformed_inventory_never_falls_back_to_create(self):
+  for kwargs in [{'phase_error':'select-existing-device'},{'selection_inventory':{'devices':[]}}]:
+   events,commands,passed,ns=self.setup_statements(**kwargs);self.assertFalse(passed);self.assertNotIn(('create',120),events);self.assertNotIn(('boot',120),events);self.assertNotIn(('install',120),events)
  def test_rejected_proof_or_changed_app_prevents_install(self):
   for phase in ['immutable','metadata']:
    events,commands,passed,ns=self.setup_statements(phase_error=phase);self.assertFalse(passed);self.assertNotIn(('install',120),events)
@@ -195,7 +247,7 @@ unittest.main(argv=['review'],verbosity=2)
 `;
   const result = spawnSync('python3', ['-c', script, consumer], { cwd: root, encoding: 'utf8', timeout: 10000 });
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stderr, /Ran 11 tests/);
+  assert.match(result.stderr, /Ran 13 tests/);
 });
 
 test('prepared d46 workflow selects only the separately counted direct reader diagnostic without rebuilding', () => {

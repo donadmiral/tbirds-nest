@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-11-01T00:14:56.901211+00:00",
+  "status": "SETUP_FAILED_NO_READER_EXECUTION",
+  "runId": 41255492904,
+  "jobId": 124697671752,
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41255492904",
+  "firstTerminalObservationUtc": "2026-11-01T00:13:52Z",
+  "conclusion": "failure",
+  "consumerCommit": "06637178191f5b6c9bb6fd9fd72847f9fc70a2d8",
+  "consumerTree": "d5897ff55528788da39fefc011f40540251b1956",
+  "artifact": {
+    "id": 13062054813,
+    "name": "native-audit-ios-d46-memory-recovery-results",
+    "zipBytes": 43755,
+    "zipSha256": "8c914b89a8541383c759053edba6c327d8c213f048a0944550b3c25e9a5dae79",
+    "singleVerifiedDownload": true,
+    "safeExtraction": true,
+    "fileCount": 7
+  },
+  "source": {
+    "applicationCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "applicationTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+    "producerBinding": {
+      "schemaVersion": 1,
+      "ready": true,
+      "applicationSourceCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+      "applicationSourceTree": "b9816fb408382a5e4ae4277111128e458b1d524f",
+      "producerRunId": 41235679679,
+      "producerArtifactName": "native-audit-ios-binary",
+      "producerArtifactId": 13056677052,
+      "producerArtifactZipSha256": "3c55aa17d81e231ec70175709f0014494d9510e2d078d9f8939cd93c6ba13909",
+      "producerArtifactZipBytes": 49161063,
+      "appArchiveSha256": "dd5964e468167a36f5dea5922c957bca15f2265be66e7934d4dc275af4759b5a",
+      "binaryManifestSha256": "c0d9df2f3265ba0f387565ad4e28e87758bac57f594450242f410dcdc353cfec",
+      "binarySha256": "485540b05dc964f8602c7e7d83b03c53e0d78c5bec15da9d1ffaa82f160d6774",
+      "sourceReceiptSha256": "cb2d155446c9bf3148089fec50757fa982574735c90ded43c53387e5f3aa9168"
+    },
+    "sourceManifestIdenticalToPriorVerifiedRun41253722308": true,
+    "consumerSha256": "ba9f1861dd10af48524e52991d387074b2a6f96f58b24a423dcfc806385bcfe6",
+    "workflowSha256": "10529f3da3d4b63db2f906c9e0bbf86e73c3e6c82612db63c9e27f8b0ab6c228",
+    "diagnosticSha256": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1",
+    "rebuild": false,
+    "rebundle": false,
+    "resign": false
+  },
+  "failure": {
+    "stage": "create",
+    "command": "xcrun simctl create \"Platinum d46 audit 41255492904\" com.apple.CoreSimulator.SimDeviceType.iPhone-16 com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+    "timeoutSeconds": 120,
+    "elapsedSeconds": 120.00211793800008,
+    "startedAtEpochMs": 1793491887511,
+    "finishedAtEpochMs": 1793492007547,
+    "startedAtUtc": "2026-11-01T00:11:27.511000+00:00",
+    "finishedAtUtc": "2026-11-01T00:13:27.547000+00:00",
+    "leaderExitCodeAtTimeout": null,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "deviceUuidReturned": false,
+    "classification": "Simulator device-creation command exceeded its existing watchdog. No faulting host component or underlying reason is established by retained evidence."
+  },
+  "passedBeforeFailure": {
+    "hostArchitecture": "x86_64",
+    "actualExecutableArchitecture": "x86_64",
+    "xcode": "Xcode 16.4\nBuild version 16F6",
+    "sdkVersion": "18.5",
+    "codeSignatureVerified": true,
+    "guestUnameInvoked": false,
+    "scope": "Actual host, producer toolchain, Simulator bundle metadata, Mach-O and signature. Runtime/device checks remain required."
+  },
+  "executionBoundary": {
+    "originalCasesSelected": 0,
+    "originalCasesAttempted": 0,
+    "originalCasesUnselected": 85,
+    "warmDiagnosticAttempted": false,
+    "directDiagnosticConfigured": true,
+    "directDiagnosticAttempted": false,
+    "directDiagnosticPassed": false,
+    "directDiagnosticFailedAtUiAssertion": false,
+    "deviceBootAttempted": false,
+    "appInstallAttempted": false,
+    "readerReadinessAttempted": false,
+    "page1": "not-attempted",
+    "nextMemory": "not-attempted",
+    "page2": "not-attempted",
+    "screenshots": 0,
+    "junitPresent": false,
+    "authFixtureTracesPresent": false,
+    "appLogPresent": false,
+    "processSamplesPresent": false,
+    "countDerivation": "Source execution order and retained setup/provenance place the terminal exception in create before device identity, boot, install or diagnostic CLI. No final summary/results/JUnit was produced."
+  },
+  "retainedBudgets": {
+    "deviceCreationSeconds": 120,
+    "diagnosticWholeCliSeconds": 600,
+    "readerReadinessMs": 15000,
+    "outerJobMinutes": 25,
+    "diagnosticAndReaderBudgetsStarted": false
+  },
+  "actions": {
+    "runtimeAttemptCount": 1,
+    "retryStarted": false,
+    "newBuildStarted": false,
+    "sourceOrRefModifiedByReview": false,
+    "remoteMutationByReview": false
+  },
+  "limits": [
+    "This run supplies no new reader performance or page-control outcome.",
+    "The previous run41253722308 remains the latest actual reader evidence: required readiness passed, then original whole-case budget expired before Open book dispatch.",
+    "No simulator snapshot, screenshot, app trace or stack exists for this run; absence is explained by the pre-boot boundary, not app behavior."
+  ],
+  "evidence": [
+    {
+      "artifactRelativePath": "native-audit-results/audit-manifest.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-41255492904/raw/audit-manifest.json",
+      "bytes": 91086,
+      "sha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/binary-manifest.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-41255492904/raw/binary-manifest.json",
+      "bytes": 2621,
+      "sha256": "c0d9df2f3265ba0f387565ad4e28e87758bac57f594450242f410dcdc353cfec"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/direct-reader-diagnostic.yaml",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-41255492904/raw/direct-reader-diagnostic.yaml",
+      "bytes": 841,
+      "sha256": "4218812c2f5827f9f2f2966e28cf7968f1145e779360bc48db9ccc48362593e1"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/recovery-provenance.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-41255492904/raw/recovery-provenance.json",
+      "bytes": 6066,
+      "sha256": "6106d7e7ca61e43f6a7667985a1c3f06fb0cbbbec925c5242b9199015a81048c"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/setup-commands.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-41255492904/raw/setup-commands.json",
+      "bytes": 2845,
+      "sha256": "bffb1328b870a1c77bd6474cb4e4726d6a7ed788c4d4d1b8a4dfdac023a43840"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/source.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-41255492904/raw/source.json",
+      "bytes": 74153,
+      "sha256": "cb2d155446c9bf3148089fec50757fa982574735c90ded43c53387e5f3aa9168"
+    },
+    {
+      "artifactRelativePath": "native-audit-results/verified-producer-binding.json",
+      "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-41255492904/raw/verified-producer-binding.json",
+      "bytes": 810,
+      "sha256": "3775b6b5fd3bd4e3d0fd2ac5674943aa8ddd71fc8b849c06f7ad24f78bae1310"
+    }
+  ],
+  "githubMetadata": {
+    "path": "docs/quality/full-platform-audit-20261031/iphone-direct-reader-41255492904/github-terminal-metadata.json",
+    "sha256": "58e7b069ed62758c07899dc030b9afa770d40c71627a72f1bf2c2a5c09d89a58"
+  }
+}
