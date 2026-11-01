@@ -1,0 +1,1 @@
+cat: /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-navigation-timing.json: No such file or directory

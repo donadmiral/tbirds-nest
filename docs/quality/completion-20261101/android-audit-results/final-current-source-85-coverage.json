@@ -1,0 +1,902 @@
+{
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "binarySha256": "a2a7cc10b33619d96ecdd461c8401fc360c47a592e94eded2e7c183863cdbd85",
+  "platform": "android",
+  "expected": 85,
+  "passed": 85,
+  "failed": 0,
+  "notExecuted": 0,
+  "duplicateCaseIds": [],
+  "sourceBoundGroups": {
+    "settings": {
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608,
+      "passed": 27,
+      "failed": 0,
+      "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1"
+    },
+    "account": {
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310,
+      "passed": 27,
+      "failed": 0,
+      "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1"
+    },
+    "social": {
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146,
+      "passed": 31,
+      "failed": 0,
+      "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1"
+    }
+  },
+  "caseResults": [
+    {
+      "id": "settings-settings",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35879,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-hiddenwords",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34714,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-mutedwords",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33870,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-archive",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 32698,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-youractivity",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33759,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-loginactivity",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33415,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-blockedaccounts",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34395,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-restrictedaccounts",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34173,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-savedposts",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 32908,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-mutedstories",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33855,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-followrequests",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34198,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-terms",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 32528,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-privacypolicy",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33670,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-helpsupport",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34062,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-changeusername",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33562,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-accountstanding",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33258,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-applyverification",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34028,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-twofactor",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33007,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-monetization",
+      "group": "settings",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 32748,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "stories-storycreationmenu",
+      "group": "stories",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34572,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "stories-storycomposer",
+      "group": "stories",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 46131,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "stories-storylayout",
+      "group": "stories",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33043,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "stories-storyviewer",
+      "group": "stories",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 41509,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "directories-channels",
+      "group": "directories",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35443,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-hidden-word-write",
+      "group": "settings",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 42058,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-muted-word-write",
+      "group": "settings",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 41179,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "settings-appearance",
+      "group": "settings",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 43504,
+      "workflowRunId": 41259529351,
+      "artifactId": 13064734608
+    },
+    {
+      "id": "profile-editprofile",
+      "group": "profile",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35733,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "profile-userprofile",
+      "group": "profile",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35149,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "profile-followlist",
+      "group": "profile",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35151,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "profile-mynetwork",
+      "group": "profile",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33158,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "support-contactsupport",
+      "group": "support",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34011,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "support-ticket",
+      "group": "support",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33296,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "business-businessapply",
+      "group": "business",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33721,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "business-businessaccess",
+      "group": "business",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33980,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "business-createbusiness",
+      "group": "business",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34057,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "business-businesses",
+      "group": "business",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33990,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "memory-memoryalbum",
+      "group": "memory",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33048,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "support-original-body",
+      "group": "support",
+      "kind": "error-or-content-contract",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33226,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "support-missing-ticket",
+      "group": "support",
+      "kind": "error-or-content-contract",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 33688,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "support-ticket-read-error",
+      "group": "support",
+      "kind": "error-or-content-contract",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 40365,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "support-history-error",
+      "group": "support",
+      "kind": "error-or-content-contract",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 39766,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "support-list-error",
+      "group": "support",
+      "kind": "error-contract",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 40104,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "support-fresh-ticket-body",
+      "group": "support",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 60951,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "support-reopen-error",
+      "group": "support",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 46649,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "support-reply-error",
+      "group": "support",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 47333,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "memory-reader-controls",
+      "group": "memory",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 45784,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "memory-cover-settings",
+      "group": "memory",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 62061,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "memory-film-export-entry",
+      "group": "memory",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 58848,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "memory-capture-session",
+      "group": "memory",
+      "kind": "same-session-memory-capture",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 69488,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "auth-empty-signin",
+      "group": "auth",
+      "kind": "signed-out-control",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 12379,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "auth-forgot-password",
+      "group": "auth",
+      "kind": "signed-out-control",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 15741,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "auth-signup-entry",
+      "group": "auth",
+      "kind": "signed-out-control",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 18683,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "auth-business-entry",
+      "group": "auth",
+      "kind": "signed-out-control",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 18517,
+      "workflowRunId": 41259529351,
+      "artifactId": 13065931310
+    },
+    {
+      "id": "navigation-feedmain",
+      "group": "navigation",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 39728,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "navigation-marketmain",
+      "group": "navigation",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 39567,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "navigation-jobsmain",
+      "group": "navigation",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36366,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "navigation-conversations",
+      "group": "navigation",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36631,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "navigation-profilemain",
+      "group": "navigation",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36616,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "feed-search",
+      "group": "feed",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35893,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "feed-notifications",
+      "group": "feed",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35498,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "feed-articlecompose",
+      "group": "feed",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36680,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "feed-post",
+      "group": "feed",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34310,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "feed-trendfeed",
+      "group": "feed",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35858,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "market-listingdetail",
+      "group": "market",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36169,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "market-createlisting",
+      "group": "market",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36292,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "market-marketinbox",
+      "group": "market",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35433,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "jobs-jobdetail",
+      "group": "jobs",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35265,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "jobs-savedjobs",
+      "group": "jobs",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34816,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "jobs-myapplications",
+      "group": "jobs",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35477,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "jobs-jobsinbox",
+      "group": "jobs",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35142,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "messages-findpeople",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36330,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "messages-creategroup",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35643,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "messages-messagerequests",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36507,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "messages-savedmessages",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36066,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "messages-starredmessages",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 36087,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "messages-calllog",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 35138,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "messages-chat",
+      "group": "messages",
+      "kind": "entry-smoke",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 34894,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "navigation-warm-tabs",
+      "group": "navigation",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 80475,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "feed-search-controls",
+      "group": "feed",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 45876,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "notifications-empty-controls",
+      "group": "feed",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 37733,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "market-offer-cancel",
+      "group": "market",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 45186,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "jobs-application-entry",
+      "group": "jobs",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 45175,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "messages-recipient-search",
+      "group": "messages",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 42948,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    },
+    {
+      "id": "feed-article-draft",
+      "group": "feed",
+      "kind": "control-journey",
+      "status": "passed",
+      "attempts": 1,
+      "elapsedMs": 62079,
+      "workflowRunId": 41264003990,
+      "artifactId": 13066804146
+    }
+  ],
+  "allDeclaredAndroidCasesPassed": true,
+  "originalFailedAttemptPreserved": "original-coverage.json",
+  "recovery": "recovered-social-41264003990/artifact-verification.json",
+  "originalSocialFailuresRemaining": [],
+  "messagesAppFrameTimingsMs": [
+    122.353,
+    69.103,
+    85.427
+  ],
+  "messagesAppFrameBudgetMs": 1000,
+  "messagesAppFrameBudgetPassed": true,
+  "installedSameSessionMemoryCaptureGate": "memory-capture-session/verification.json",
+  "allControlsAccepted": false,
+  "hostedBackendAcceptance": false,
+  "physicalDeviceAcceptance": false,
+  "measurementBoundary": "Current-source disposable Android app and synthetic transport. App timing is recorded JS tab press to focused populated inbox frame; it does not measure real-provider or physical-display latency."
+}

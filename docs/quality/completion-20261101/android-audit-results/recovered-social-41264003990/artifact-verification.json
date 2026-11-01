@@ -1,0 +1,18 @@
+{
+  "workflowRunId": 41264003990,
+  "jobId": 124722884246,
+  "consumerCommit": "e92a7cd710c10bb264771ceda60bef8300cea383",
+  "artifactId": 13066804146,
+  "artifactBytes": 4004098,
+  "artifactSha256": "dc1b35de1bfc61c22862019e3151f275b033ba30ef37974ded6ffb852c1b7dd6",
+  "safeExtractionVerified": true,
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "binarySha256": "a2a7cc10b33619d96ecdd461c8401fc360c47a592e94eded2e7c183863cdbd85",
+  "originalRunnerRevalidatedSha256": "2eebacb4baca5b5231367c749fba465e13235c85a1d8dee4b5503eb72dbde3b4",
+  "all31OriginalCasesPassed": true,
+  "all10OriginalInfrastructureFailuresRecovered": true,
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false
+}

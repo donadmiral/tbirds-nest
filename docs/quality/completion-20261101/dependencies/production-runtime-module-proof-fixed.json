@@ -1,0 +1,101 @@
+{
+  "profile": "production",
+  "entry": "index.js",
+  "syntheticHarness": false,
+  "sourceMapsEnabled": true,
+  "baseCommit": "71292eb90742988759ac619aeea3a8c0a4d780e5",
+  "packageLockSha256": "3d69706a46f51105e55e9b9b377708707346805adeba060cb82bed4fb5240b1d",
+  "platforms": [
+    {
+      "platform": "ios",
+      "startedAt": "2026-11-01T02:30:23.683642+00:00",
+      "exitCode": 0,
+      "finishedAt": "2026-11-01T02:31:06.081534+00:00",
+      "sourceMaps": [
+        {
+          "path": "ios/_expo/static/js/ios/index-48b5b1f24bb27eeedb7807ef65ff3a9d.hbc.map",
+          "sha256": "93b3cfb28c306588c79cc2f275c951b86c5ace60cdbfb3d986e7e26a27a35811",
+          "modules": 2810,
+          "auditedToolingModules": {
+            "glob": [],
+            "minimatch": [],
+            "@expo/cli": [
+              "/node_modules/@expo/cli/build/metro-require/require.js"
+            ],
+            "@expo/config": [],
+            "@expo/config-plugins": [],
+            "@expo/fingerprint": [],
+            "@expo/metro-config": [],
+            "@typescript-eslint/typescript-estree": [],
+            "eslint": []
+          }
+        }
+      ],
+      "bundles": [
+        {
+          "path": "ios/_expo/static/js/ios/index-48b5b1f24bb27eeedb7807ef65ff3a9d.hbc",
+          "bytes": 8504560,
+          "sha256": "dff422b4e4431bde3575b98cd02a420c15fbf9aa6c0fc240e147b4a693703085"
+        }
+      ],
+      "globAndMinimatchAbsent": true,
+      "previousProductionExportCommit": "eb64204b434287c1707aa2d733ef5dddf9998825",
+      "bundleAndMapByteComparison": [
+        {
+          "path": "ios/_expo/static/js/ios/index-48b5b1f24bb27eeedb7807ef65ff3a9d.hbc.map",
+          "identical": true
+        },
+        {
+          "path": "ios/_expo/static/js/ios/index-48b5b1f24bb27eeedb7807ef65ff3a9d.hbc",
+          "identical": true
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "startedAt": "2026-11-01T02:31:06.406747+00:00",
+      "exitCode": 0,
+      "finishedAt": "2026-11-01T02:31:47.278659+00:00",
+      "sourceMaps": [
+        {
+          "path": "android/_expo/static/js/android/index-2e20fc18107ddd8a0937e43ffff571b7.hbc.map",
+          "sha256": "7b020af7f78664fce83dc6f7ffdb6b280a5c83043dc40ff7f17c67b865bc306e",
+          "modules": 2809,
+          "auditedToolingModules": {
+            "glob": [],
+            "minimatch": [],
+            "@expo/cli": [
+              "/node_modules/@expo/cli/build/metro-require/require.js"
+            ],
+            "@expo/config": [],
+            "@expo/config-plugins": [],
+            "@expo/fingerprint": [],
+            "@expo/metro-config": [],
+            "@typescript-eslint/typescript-estree": [],
+            "eslint": []
+          }
+        }
+      ],
+      "bundles": [
+        {
+          "path": "android/_expo/static/js/android/index-2e20fc18107ddd8a0937e43ffff571b7.hbc",
+          "bytes": 8510356,
+          "sha256": "16d5ca660578352c41441d0ed931fdbf1797feb9e94b23f8e59ce7df7cbf6b3c"
+        }
+      ],
+      "globAndMinimatchAbsent": true,
+      "previousProductionExportCommit": "eb64204b434287c1707aa2d733ef5dddf9998825",
+      "bundleAndMapByteComparison": [
+        {
+          "path": "android/_expo/static/js/android/index-2e20fc18107ddd8a0937e43ffff571b7.hbc.map",
+          "identical": true
+        },
+        {
+          "path": "android/_expo/static/js/android/index-2e20fc18107ddd8a0937e43ffff571b7.hbc",
+          "identical": true
+        }
+      ]
+    }
+  ],
+  "claimLimit": "These are real production-entry Metro exports. They do not prove a signed native binary, installation, device-only features, or release distribution."
+}

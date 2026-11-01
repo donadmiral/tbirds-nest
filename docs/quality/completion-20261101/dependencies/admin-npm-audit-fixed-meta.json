@@ -1,0 +1,17 @@
+{
+  "scope": "admin",
+  "observedAt": "2026-11-01T02:29:14.672094+00:00",
+  "exitCode": 1,
+  "packageLockSha256": "9897e446fe54964708b0a3c09cc14ccc01963295ee1a12f0c3c9c6fbb75d6ae2",
+  "reportSha256": "ffc9b7d9b3fe108c6d4e897642ac3d6bf680b7ebdd935dc5d2dd438f8e1ac576",
+  "stderr": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n",
+  "counts": {
+    "info": 0,
+    "low": 0,
+    "moderate": 15,
+    "high": 0,
+    "critical": 0,
+    "total": 15
+  },
+  "error": null
+}

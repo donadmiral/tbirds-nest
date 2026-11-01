@@ -1,0 +1,95 @@
+{
+  "advisory": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+  "registryRange": "<11.0.1",
+  "review": "All remaining registry hits resolve to legacy3.1.5, which has neither of the level2 preprocessing mechanisms described by this advisory. The callable legacy API is intentionally preserved. This finding is not a zero-audit claim.",
+  "instances": [
+    {
+      "project": "native",
+      "path": "node_modules/@eslint/config-array/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    },
+    {
+      "project": "native",
+      "path": "node_modules/@eslint/eslintrc/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    },
+    {
+      "project": "native",
+      "path": "node_modules/@react-native/codegen/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    },
+    {
+      "project": "native",
+      "path": "node_modules/eslint-plugin-import/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    },
+    {
+      "project": "native",
+      "path": "node_modules/eslint-plugin-react/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    },
+    {
+      "project": "native",
+      "path": "node_modules/eslint/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    },
+    {
+      "project": "native",
+      "path": "node_modules/react-native/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    },
+    {
+      "project": "native",
+      "path": "node_modules/rimraf/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    },
+    {
+      "project": "native",
+      "path": "node_modules/test-exclude/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    },
+    {
+      "project": "web",
+      "path": "web/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    },
+    {
+      "project": "admin",
+      "path": "admin-web/node_modules/minimatch",
+      "version": "3.1.5",
+      "sourceSha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+      "hasFirstPhasePreProcess": false,
+      "hasOptimizationLevel": false
+    }
+  ]
+}

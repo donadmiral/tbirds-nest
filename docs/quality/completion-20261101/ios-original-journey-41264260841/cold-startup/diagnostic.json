@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "kind": "read-only-core-simulator-client-diagnostic",
+  "startedAtEpochMs": 1793499244462,
+  "changesVerdict": false,
+  "appLaunched": false,
+  "readsProcessArguments": false,
+  "readsProcessEnvironment": false,
+  "samples": [
+    {
+      "role": "simctl",
+      "pid": 3025,
+      "uid": 501,
+      "startSeconds": 1793499234,
+      "startMicroseconds": 431036,
+      "executableName": "simctl",
+      "identityStable": true,
+      "durationSeconds": 3,
+      "intervalMilliseconds": 10,
+      "wallBudgetSeconds": 8,
+      "exitCode": 0,
+      "issue": null,
+      "complete": true,
+      "file": "simctl.sample.txt",
+      "bytes": 104376,
+      "sha256": "3e614e5b8a1cbb4cacea8709407e667740b0a7fc7e03502eb023800ac6db5fea"
+    },
+    {
+      "role": "com.apple.CoreSimulator.CoreSimulatorService",
+      "pid": 3130,
+      "uid": 501,
+      "startSeconds": 1793499237,
+      "startMicroseconds": 249170,
+      "executableName": "com.apple.CoreSimulator.CoreSimulatorService",
+      "identityStable": true,
+      "durationSeconds": 3,
+      "intervalMilliseconds": 10,
+      "wallBudgetSeconds": 8,
+      "exitCode": 0,
+      "issue": null,
+      "complete": true,
+      "file": "com.apple.CoreSimulator.CoreSimulatorService.sample.txt",
+      "bytes": 102428,
+      "sha256": "bae5f63893268ac5306982bd5d2b6177572fc6ff1519eceb5c1bd1c89147a15c"
+    }
+  ],
+  "jobConfiguration": {
+    "DEVELOPER_DIR": "/Applications/Xcode_16.4.app/Contents/Developer",
+    "ImageOS": "macos15",
+    "ImageVersion": "20260824.0482.1",
+    "RUNNER_ARCH": "X64",
+    "RUNNER_OS": "macOS"
+  },
+  "processes": [
+    {
+      "pid": 3025,
+      "uid": 501,
+      "startSeconds": 1793499234,
+      "startMicroseconds": 431036,
+      "executable": "/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/Resources/bin/simctl",
+      "parentPid": 2979,
+      "state": "S<s",
+      "processElapsed": "00:10",
+      "cpuTime": "0:00.30"
+    },
+    {
+      "pid": 3130,
+      "uid": 501,
+      "startSeconds": 1793499237,
+      "startMicroseconds": 249170,
+      "executable": "/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/XPCServices/com.apple.CoreSimulator.CoreSimulatorService.xpc/Contents/MacOS/com.apple.CoreSimulator.CoreSimulatorService",
+      "parentPid": 1,
+      "state": "S",
+      "processElapsed": "00:07",
+      "cpuTime": "0:00.28"
+    }
+  ],
+  "toolPaths": {
+    "systemDeveloperDirectory": {
+      "value": "/Applications/Xcode_16.4.app/Contents/Developer"
+    },
+    "selectedSimctl": {
+      "value": "/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/simctl"
+    }
+  },
+  "finishedAtEpochMs": 1793499255765
+}

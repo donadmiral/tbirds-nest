@@ -1,0 +1,451 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/modules/boomerang/storyVideo.tsx
+  42:103  warning  React Hook useMemo has a missing dependency: 'setup'. Either include it or remove the dependency array. If 'setup' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/shared/contentMedia.ts
+  170:39  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/ChannelSettingsSheet.tsx
+  76:6   warning  React Hook useCallback has a missing dependency: 'current'. Either include it or remove the dependency array                                                                                                                                                           react-hooks/exhaustive-deps
+  82:53  warning  The ref value 'scope.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'scope.current' to a variable inside the effect, and use that variable in the cleanup function              react-hooks/exhaustive-deps
+  82:76  warning  The ref value 'loadRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'loadRequest.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  99:6   warning  React Hook useEffect has a missing dependency: 'current'. Either include it or remove the dependency array                                                                                                                                                             react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/ChatImageEditor.tsx
+   78:6   warning  React Hook useEffect has missing dependencies: 'savedScale', 'savedTx', 'savedTy', 'scale', 'tx', and 'ty'. Either include them or remove the dependency array    react-hooks/exhaustive-deps
+   99:6   warning  React Hook useCallback has missing dependencies: 'savedScale', 'savedTx', 'savedTy', 'scale', 'tx', and 'ty'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  107:68  warning  React Hook useMemo has missing dependencies: 'pan' and 'pinch'. Either include them or remove the dependency array                                                react-hooks/exhaustive-deps
+  121:6   warning  React Hook useCallback has missing dependencies: 'savedScale', 'savedTx', 'savedTy', 'scale', 'tx', and 'ty'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  209:6   warning  React Hook useCallback has missing dependencies: 'scale.value', 'tx.value', and 'ty.value'. Either include them or remove the dependency array                    react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/ChatInfoSections.tsx
+  32:23  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/CreatorPayoutForm.tsx
+  19:27  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/ErrorBoundary.tsx
+  24:5  warning  Caution: `analytics` also has a named export `trackError`. Check if you meant to write `import {trackError} from '../services/analytics'` instead  import/no-named-as-default-member
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/FullscreenVideo.tsx
+   98:6    warning  React Hook useCallback has a missing dependency: 'player.currentTime'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  165:135  warning  Expected an assignment or function call and instead saw an expression                                                    no-unused-expressions
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/LinkAttachSheet.tsx
+  36:38  warning  The ref value 'requestGeneration.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'requestGeneration.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/LinkIntoBankSheet.tsx
+  10:7  warning  'NAVY' is assigned a value but never used                                                                   @typescript-eslint/no-unused-vars
+  34:6  warning  React Hook useEffect has a missing dependency: 'visible'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/MediaRenderer.tsx
+   38:7   warning  'looksLikeUuid' is assigned a value but never used                                                                                        @typescript-eslint/no-unused-vars
+  121:6   warning  React Hook useEffect has a missing dependency: 'mediaIds'. Either include it or remove the dependency array                               react-hooks/exhaustive-deps
+  121:7   warning  React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked  react-hooks/exhaustive-deps
+  643:21  warning  'setZoomIndex' is assigned a value but never used                                                                                         @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/PlatinumCirclesLogo.tsx
+  15:9  warning  's' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/PollCard.tsx
+  70:7  warning  'st' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/PostCarousel.tsx
+   65:7  warning  'HEIGHT_RATIO' is assigned a value but never used                                                                @typescript-eslint/no-unused-vars
+  364:6  warning  React Hook useCallback has an unnecessary dependency: 'media'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/PostDraftPreview.tsx
+  27:95   warning  React Hook useEffect has a missing dependency: 'edit?.trimStart'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  29:170  warning  React Hook useEffect has a missing dependency: 'edit'. Either include it or remove the dependency array             react-hooks/exhaustive-deps
+  43:57   warning  Expected an assignment or function call and instead saw an expression                                               no-unused-expressions
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/PostMediaEditSheet.tsx
+   89:22   warning  The ref value 'frameRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'frameRequest.current' to a variable inside the effect, and use that variable in the cleanup function                         react-hooks/exhaustive-deps
+  181:89   warning  React Hook useEffect has a missing dependency: 'edit'. Either include it or remove the dependency array                                                                                                                                                                                         react-hooks/exhaustive-deps
+  209:369  warning  React Hook React.useEffect has missing dependencies: 'durationSec', 'initial', and 'mediaType'. Either include them or remove the dependency array. If 'setEdit' needs the current value of 'initial', you can also switch to useReducer instead of useState and read 'initial' in the reducer  react-hooks/exhaustive-deps
+  227:6    warning  React Hook useEffect has missing dependencies: 'durationSec' and 'mediaType'. Either include them or remove the dependency array                                                                                                                                                                react-hooks/exhaustive-deps
+  343:181  warning  Expected an assignment or function call and instead saw an expression                                                                                                                                                                                                                           no-unused-expressions
+  350:968  warning  Expected an assignment or function call and instead saw an expression                                                                                                                                                                                                                           no-unused-expressions
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/ProductPickerSheet.tsx
+  87:6  warning  React Hook useEffect has a missing dependency: 'selected'. Either include it or remove the dependency array. If 'setDraft' needs the current value of 'selected', you can also switch to useReducer instead of useState and read 'selected' in the reducer  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/ProfileHeader.tsx
+  131:6  warning  React Hook useEffect has a missing dependency: 'profile'. Either include it or remove the dependency array                                react-hooks/exhaustive-deps
+  131:7  warning  React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/SendMoneySheet.tsx
+  16:7  warning  'NAVY' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/VideoFeedModal.tsx
+  64:190  warning  React Hook useEffect has missing dependencies: 'actions' and 'item.id'. Either include them or remove the dependency array                                                                                                                           react-hooks/exhaustive-deps
+  68:84   warning  React Hook useEffect has a missing dependency: 'item.edit'. Either include it or remove the dependency array                                                                                                                                         react-hooks/exhaustive-deps
+  72:6    warning  React Hook useEffect has missing dependencies: 'item.id' and 'reportTime'. Either include them or remove the dependency array. If 'reportTime' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+  82:6    warning  React Hook useCallback has missing dependencies: 'heartO', 'heartS', 'heartX', and 'heartY'. Either include them or remove the dependency array                                                                                                      react-hooks/exhaustive-deps
+  89:122  warning  React Hook useEffect has missing dependencies: 'scale', 'tx', and 'ty'. Either include them or remove the dependency array                                                                                                                           react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/feed/CommentsPanel.tsx
+   27:7   warning  'NAVY' is assigned a value but never used                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   28:7   warning  'TEXT_PRIMARY' is assigned a value but never used                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   29:7   warning  'TEXT_SECONDARY' is assigned a value but never used                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   30:7   warning  'HAIRLINE' is assigned a value but never used                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  203:14  warning  'e' is defined but never used                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  219:35  warning  The ref value 'loadRevision.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'loadRevision.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/feed/DiscoverViewer.tsx
+  61:167  warning  The ref value 'owner.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'owner.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/jobs/JobListRow.tsx
+  10:7  warning  'NAVY' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  11:7  warning  'PLATINUM' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/market/MarketOrderPanel.tsx
+  37:26  warning  The ref value 'scope.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'scope.current' to a variable inside the effect, and use that variable in the cleanup function            react-hooks/exhaustive-deps
+  37:48  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/market/ReportListingSheet.tsx
+  54:18  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/market/SellerReviews.tsx
+  177:18  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/memory/MemoryAudienceEditor.tsx
+  8:472  warning  The ref value 'gen.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'gen.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/messages/PrivateCameraGuard.tsx
+  91:6  warning  React Hook useEffect has missing dependencies: 'permission' and 'requestPermission'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/BloomSystem.tsx
+  50:6  warning  React Hook useCallback has missing dependencies: 'invokeRotation', 'labelOpacity', and 'toolAnims'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  63:6  warning  React Hook useCallback has missing dependencies: 'invokeRotation', 'labelOpacity', and 'toolAnims'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/CategoryPicker.tsx
+  6:7  warning  'NAVY' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/CountdownStickerCard.tsx
+  45:10  warning  'now' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/DraggableSticker.tsx
+   41:7  warning  'SNAP_CENTER_EXIT' is assigned a value but never used                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   56:7  warning  'SPRING_RUBBER' is assigned a value but never used                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  315:6  warning  React Hook useEffect has a missing dependency: 'mountProgress'. Either include it or remove the dependency array                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+  331:6  warning  React Hook useEffect has missing dependencies: 'posNx', 'posNy', 'startNx', 'startNy', 'translateX', and 'translateY'. Either include them or remove the dependency array                                                                                                                                                                                                  react-hooks/exhaustive-deps
+  339:6  warning  React Hook useEffect has missing dependencies: 'pinchBase' and 'scale'. Either include them or remove the dependency array                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  347:6  warning  React Hook useEffect has missing dependencies: 'rotation' and 'rotationBase'. Either include them or remove the dependency array                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+  351:6  warning  React Hook useEffect has a missing dependency: 'opacity'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  606:5  warning  React Hook useMemo has missing dependencies: 'alignedX', 'alignedY', 'hapticFiredCenter', 'hapticFiredDelete', 'inDeleteZone', 'isSnappedCenter', 'isSnappedX', 'isSnappedY', 'opacity', 'panActive', 'pickupScale', 'posNx', 'posNy', 'scale', 'startNx', 'startNy', 'sticker.scale', 'translateX', and 'translateY'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  644:5  warning  React Hook useMemo has missing dependencies: 'pinchBase' and 'scale'. Either include them or remove the dependency array                                                                                                                                                                                                                                                   react-hooks/exhaustive-deps
+  692:5  warning  React Hook useMemo has missing dependencies: 'rotation' and 'rotationBase'. Either include them or remove the dependency array                                                                                                                                                                                                                                             react-hooks/exhaustive-deps
+  711:5  warning  React Hook useMemo has a missing dependency: 'scale'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/DualArrangementOverlay.tsx
+  166:6  warning  React Hook useEffect has missing dependencies: 'controlsOpacity', 'controlsTransY', 'dimOpacity', 'doneOpacity', and 'guidesOpacity'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/EnvironmentLayer.tsx
+  52:6  warning  React Hook useEffect has a missing dependency: 'breathSV'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/MediaCanvas.tsx
+  222:6  warning  React Hook useEffect has missing dependencies: 'imgScale', 'imgTx', and 'imgTy'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/MemoryProgressArc.tsx
+  104:6  warning  React Hook useEffect has a missing dependency: 'emberSV'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/PostStoryCard.tsx
+  37:157  warning  React Hook useEffect has a missing dependency: 'playback'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/QuizStickerCard.tsx
+  36:6  warning  React Hook useEffect has a missing dependency: 'fill'. Either include it or remove the dependency array       react-hooks/exhaustive-deps
+  87:6  warning  React Hook useCallback has a missing dependency: 'options'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/SaveToMemorySheet.tsx
+   2:34   warning  '/workspace/scratch/d6c5cb891d7b/platinum-circles/shared/memoryBookDesign.ts' imported multiple times                                                                                                                                                      import/no-duplicates
+   9:59   warning  '/workspace/scratch/d6c5cb891d7b/platinum-circles/shared/memoryBookDesign.ts' imported multiple times                                                                                                                                                      import/no-duplicates
+  17:171  warning  The ref value 'epoch.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'epoch.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/SliderStickerCard.tsx
+  53:6  warning  React Hook useEffect has a missing dependency: 'value'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/StickerResponsesSheet.tsx
+   80:32  warning  The ref value 'loadVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'loadVersion.current' to a variable inside the effect, and use that variable in the cleanup function          react-hooks/exhaustive-deps
+  134:6   warning  React Hook useCallback has missing dependencies: 'onMessageResponder' and 'onShareResponse'. Either include them or remove the dependency array. If 'onMessageResponder' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/StorySettingsSheet.tsx
+  39:88  warning  The ref value 'scope.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'scope.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/composerTheme.ts
+  24:7  warning  'ARC_R3_TOP' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  25:7  warning  'ARC_R3_MID' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  26:7  warning  'ARC_R3_BOT' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  29:7  warning  'ARC_R4_MID3' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  34:7  warning  'ARC_R5_3' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  37:7  warning  'ARC_L3_TOP' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  38:7  warning  'ARC_L3_MID' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  39:7  warning  'ARC_L3_BOT' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  42:7  warning  'ARC_L4_MID3' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  47:7  warning  'ARC_L5_3' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/components/stories/storyPanels.tsx
+   17:7   warning  'SCREEN_W' is assigned a value but never used                                                                                @typescript-eslint/no-unused-vars
+  183:94  warning  React Hook useEffect has missing dependencies: 'adjust' and 'filterAmt'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/contexts/CallContext.tsx
+  412:6  warning  React Hook useCallback has a missing dependency: 'doStartCall'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/controllers/messages/useVoiceRecorder.ts
+  77:40  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/controllers/stories/useArrangementController.ts
+  92:6  warning  React Hook useCallback has missing dependencies: 'screenH' and 'screenW'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/controllers/stories/usePublishOrchestrator.ts
+  267:6  warning  React Hook useCallback has an unnecessary dependency: 'publishing'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/hooks/useStudioResource.ts
+  29:55  warning  The ref value 'version.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'version.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/lib/videoEngine.ts
+  59:6  warning  React Hook useEffect has missing dependencies: 'o.loop', 'o.muted', 'o.postId', 'o.preservesPitch', and 'o.rate'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/auth/AuthCallbackScreen.tsx
+   13:7   warning  'GRAY_100' is assigned a value but never used                                                                      @typescript-eslint/no-unused-vars
+  132:10  warning  'showManualContinue' is assigned a value but never used                                                            @typescript-eslint/no-unused-vars
+  217:6   warning  React Hook useEffect has a missing dependency: 'setRecoveryUrl'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  233:12  warning  'handleManualContinue' is defined but never used                                                                   @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/auth/BusinessSignInScreen.tsx
+  53:56  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/auth/LoginScreen.tsx
+  31:7  warning  'WHITE_08' is assigned a value but never used                                                                                                @typescript-eslint/no-unused-vars
+  67:6  warning  React Hook useEffect has missing dependencies: 'fadeAnim', 'logoScale', and 'slideAnim'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/auth/SetupProfileScreen.tsx
+   59:101  warning  The ref value 'usernameRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'usernameRequest.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+   92:6    warning  React Hook useEffect has a missing dependency: 'username'. Either include it or remove the dependency array                                                                                                                                                                    react-hooks/exhaustive-deps
+  117:36   warning  The ref value 'usernameRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'usernameRequest.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/auth/SignUpScreen.tsx
+  26:7  warning  'GRAY_100' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  33:7  warning  'INDIGO_700' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/channels/ChannelScreen.tsx
+  102:6   warning  React Hook useCallback has a missing dependency: 'valid'. Either include it or remove the dependency array                                                                                                                                                 react-hooks/exhaustive-deps
+  143:22  warning  The ref value 'scope.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'scope.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/feed/PostScreen.tsx
+  197:14  warning  'error' is defined but never used                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  209:30  warning  The ref value 'loadEpoch.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'loadEpoch.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  235:14  warning  'e' is defined but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/feed/SavedPostsScreen.tsx
+   78:93  warning  The ref value 'request.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'request.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  130:28  warning  The ref value 'request.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'request.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/feed/SearchScreen.tsx
+   80:93  warning  The ref value 'request.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'request.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  178:28  warning  The ref value 'request.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'request.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/jobs/ApplicantsScreen.tsx
+  25:7   warning  'NAVY' is assigned a value but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  78:33  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function            react-hooks/exhaustive-deps
+  78:60  warning  The ref value 'sheetGeneration.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'sheetGeneration.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/jobs/JobDetailScreen.tsx
+   29:7  warning  'NAVY' is assigned a value but never used                                                                                                          @typescript-eslint/no-unused-vars
+   30:7  warning  'PLATINUM' is assigned a value but never used                                                                                                      @typescript-eslint/no-unused-vars
+   45:6  warning  React Hook useEffect has a missing dependency: 'job.category'. Either include it or remove the dependency array                                    react-hooks/exhaustive-deps
+  103:6  warning  React Hook useCallback has missing dependencies: 'routeJob?.posted_by' and 'routeJob.profile'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  135:6  warning  React Hook useCallback has a missing dependency: 'job'. Either include it or remove the dependency array                                           react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/jobs/SavedJobsScreen.tsx
+  14:7  warning  'NAVY' is assigned a value but never used                                                                        @typescript-eslint/no-unused-vars
+  36:6  warning  React Hook useCallback has an unnecessary dependency: 'retry'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/market/CreateListingScreen.tsx
+  22:7  warning  'NAVY' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  23:7  warning  'BG' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  24:7  warning  'GRAY_100' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  26:7  warning  'GRAY_500' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  27:7  warning  'GRAY_900' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/messages/CallScreen.tsx
+   59:32  warning  'dailyReady' is assigned a value but never used                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  109:6   warning  React Hook useEffect has missing dependencies: 'callerAvatar', 'callerName', 'groupCallName', 'isIncoming', 'isVideo', 'params?.callId', 'params?.conversationId', and 'startCall'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  120:6   warning  React Hook useEffect has missing dependencies: 'clearCallState' and 'navigation'. Either include them or remove the dependency array                                                                                                    react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/messages/ChatScreen.tsx
+    79:7   warning  'BUBBLE_OTHER' is assigned a value but never used                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    80:7   warning  'TEXT_PRIMARY' is assigned a value but never used                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    81:7   warning  'TEXT_SECONDARY' is assigned a value but never used                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   259:33  warning  The ref value 'gifRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'gifRequest.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+   368:6   warning  React Hook useEffect has a missing dependency: 'onDims'. Either include it or remove the dependency array. If 'onDims' changes too often, find the parent component that defines it and wrap that definition in useCallback                                          react-hooks/exhaustive-deps
+   463:6   warning  React Hook useEffect has a missing dependency: 'otherUser'. Either include it or remove the dependency array                                                                                                                                                         react-hooks/exhaustive-deps
+   504:10  warning  'sending' is assigned a value but never used                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   698:6   warning  React Hook useEffect has missing dependencies: 'dot1', 'dot2', 'dot3', and 'typingOpacity'. Either include them or remove the dependency array                                                                                                                       react-hooks/exhaustive-deps
+   702:6   warning  React Hook useEffect has a missing dependency: 'toolbarH'. Either include it or remove the dependency array                                                                                                                                                          react-hooks/exhaustive-deps
+   704:9   warning  'sortDesc' is assigned a value but never used                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   827:75  warning  React Hook useEffect has a missing dependency: 'loadGroupMembers'. Either include it or remove the dependency array                                                                                                                                                  react-hooks/exhaustive-deps
+   890:14  warning  'e' is defined but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  1075:6   warning  React Hook useEffect has a missing dependency: 'isGroup'. Either include it or remove the dependency array                                                                                                                                                           react-hooks/exhaustive-deps
+  1084:6   warning  React Hook useCallback has missing dependencies: 'conversationId', 'isGroup', and 'mentionQuery'. Either include them or remove the dependency array                                                                                                                 react-hooks/exhaustive-deps
+  1135:6   warning  React Hook useCallback has a missing dependency: 'navigation'. Either include it or remove the dependency array                                                                                                                                                      react-hooks/exhaustive-deps
+  1520:6   warning  React Hook useEffect has missing dependencies: 'funCamNav' and 'funCamRoute.params'. Either include them or remove the dependency array                                                                                                                              react-hooks/exhaustive-deps
+  1520:7   warning  React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked                                                                                                                             react-hooks/exhaustive-deps
+  1612:6   warning  React Hook useCallback has an unnecessary dependency: 'currentUserId'. Either exclude it or remove the dependency array                                                                                                                                              react-hooks/exhaustive-deps
+  1645:6   warning  React Hook useEffect has a missing dependency: 'offersMap'. Either include it or remove the dependency array                                                                                                                                                         react-hooks/exhaustive-deps
+  1708:6   warning  React Hook useCallback has a missing dependency: 'SENDER_COLORS'. Either include it or remove the dependency array                                                                                                                                                   react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/messages/CreateGroupScreen.tsx
+  90:16  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/messages/IncomingCallScreen.tsx
+   27:9  warning  'myId' is assigned a value but never used                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  104:6  warning  React Hook useEffect has a missing dependency: 'dismiss'. Either include it or remove the dependency array                                                                                                      react-hooks/exhaustive-deps
+  128:6  warning  React Hook useEffect has missing dependencies: 'callId', 'dismiss', 'fadeIn', 'isGroupCall', 'r1o', 'r2o', 'r3o', 'ring1', 'ring2', 'ring3', and 'slideUp'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/messages/NewMessageScreen.tsx
+  32:31  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/network/NetworkScreen.tsx
+   90:93   warning  The ref value 'request.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'request.current' to a variable inside the effect, and use that variable in the cleanup function              react-hooks/exhaustive-deps
+   90:118  warning  The ref value 'memberRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'memberRequest.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  281:6    warning  React Hook useMemo has an unnecessary dependency: 'tab'. Either exclude it or remove the dependency array                                                                                                                                                                  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/profile/AccountStandingScreen.tsx
+  17:7  warning  'NAVY' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/profile/BusinessApplyScreen.tsx
+  103:59   warning  The ref value 'actionVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'actionVersion.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  103:82   warning  The ref value 'readVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'readVersion.current' to a variable inside the effect, and use that variable in the cleanup function      react-hooks/exhaustive-deps
+  103:107  warning  The ref value 'handleVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'handleVersion.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/profile/ChangeUsernameScreen.tsx
+  28:93  warning  The ref value 'request.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'request.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/profile/FollowRequestsScreen.tsx
+  116:15  warning  'data' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/stories/BoomerangWeb.tsx
+  15:132  warning  React Hook useMemo has unnecessary dependencies: 'effect' and 'inputUri'. Either exclude them or remove the dependency array  react-hooks/exhaustive-deps
+  19:369  warning  React Hook useEffect has a missing dependency: 'fail'. Either include it or remove the dependency array                       react-hooks/exhaustive-deps
+  23:5    warning  React Hook useEffect has missing dependencies: 'fail' and 'isCurrent'. Either include them or remove the dependency array     react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/stories/CameraKitLensView.tsx
+  67:124  warning  The ref value 'bridge.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'bridge.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  67:182  warning  The ref value 'webRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'webRef.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/stories/MemoryArrangementScreen.tsx
+   59:7   warning  'EDGE_SNAP_DIST' is assigned a value but never used                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  116:10  warning  'distance' is defined but never used                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  176:9   warning  'swapNewFullscreenOpacity' is assigned a value but never used                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  261:6   warning  React Hook useEffect has missing dependencies: 'animBubbleOpacity', 'animScale', 'bottomStripOpacity', 'bottomStripTransY', 'initialScale', 'presetStripOpacity', and 'topBarOpacity'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  284:11  warning  'clamped' is assigned a value but never used                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  395:6   warning  React Hook useCallback has missing dependencies: 'animX' and 'animY'. Either include them or remove the dependency array                                                                                                                   react-hooks/exhaustive-deps
+  487:6   warning  React Hook useCallback has missing dependencies: 'animX' and 'animY'. Either include them or remove the dependency array                                                                                                                   react-hooks/exhaustive-deps
+  502:6   warning  React Hook useCallback has missing dependencies: 'animScale', 'animX', and 'animY'. Either include them or remove the dependency array                                                                                                     react-hooks/exhaustive-deps
+  551:6   warning  React Hook useCallback has missing dependencies: 'animScale', 'animX', and 'animY'. Either include them or remove the dependency array                                                                                                     react-hooks/exhaustive-deps
+  583:6   warning  React Hook useCallback has missing dependencies: 'swapBubbleOpacity' and 'swapFullscreenOpacity'. Either include them or remove the dependency array                                                                                       react-hooks/exhaustive-deps
+  615:6   warning  React Hook useCallback has missing dependencies: 'animScale', 'animX', and 'animY'. Either include them or remove the dependency array                                                                                                     react-hooks/exhaustive-deps
+  670:6   warning  React Hook useCallback has missing dependencies: 'animScale', 'bottomStripOpacity', 'bottomStripTransY', 'presetStripOpacity', and 'topBarOpacity'. Either include them or remove the dependency array                                     react-hooks/exhaustive-deps
+  678:9   warning  'bubbleTransform' is assigned a value but never used                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  681:11  warning  'offsetX' is assigned a value but never used                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  682:11  warning  'offsetY' is assigned a value but never used                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  692:6   warning  React Hook useMemo has missing dependencies: 'animBubbleOpacity', 'animScale', 'animX', 'animY', and 'swapBubbleOpacity'. Either include them or remove the dependency array                                                               react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/stories/StoryCameraScreen.tsx
+   13:7  warning  'AnimatedCircle' is assigned a value but never used                                                                 @typescript-eslint/no-unused-vars
+  121:9  warning  'capturefns' is assigned a value but never used                                                                     @typescript-eslint/no-unused-vars
+  281:6  warning  React Hook useCallback has a missing dependency: 'startProgress'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  368:6  warning  React Hook useEffect has a missing dependency: 'progressAnim'. Either include it or remove the dependency array     react-hooks/exhaustive-deps
+  443:9  warning  'progressOffset' is assigned a value but never used                                                                 @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/stories/StoryComposerScreen.tsx
+  186:258   warning  React Hook useCallback has missing dependencies: 'alignXOp', 'alignYOp', 'deleteHotSV', 'guideXOp', and 'guideYOp'. Either include them or remove the dependency array                                                                                                                                                                   react-hooks/exhaustive-deps
+  198:6     warning  React Hook useEffect has a missing dependency: 'deleteZoneOpacity'. Either include it or remove the dependency array                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  253:9     warning  'seedCaption' is assigned a value but never used                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  254:9     warning  'seedText' is assigned a value but never used                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  393:6     warning  React Hook useEffect has missing dependencies: 'mediaOpacity' and 'mediaScale'. Either include them or remove the dependency array                                                                                                                                                                                                       react-hooks/exhaustive-deps
+  452:6     warning  React Hook useEffect has missing dependencies: 'audience', 'bubble', 'drafts.length', 'initialAssets', 'mode', 'openTextEditor', 'reach', and 'seedStickers'. Either include them or remove the dependency array. You can also replace multiple useState variables with useReducer if 'setDrafts' needs the current value of 'audience'  react-hooks/exhaustive-deps
+  535:10    warning  'traySearch' is assigned a value but never used                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  535:22    warning  'setTraySearch' is assigned a value but never used                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  536:10    warning  'trayCat' is assigned a value but never used                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  536:19    warning  'setTrayCat' is assigned a value but never used                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  557:10    warning  'layoutOpen' is assigned a value but never used                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  578:6     warning  React Hook useEffect has a missing dependency: 'active'. Either include it or remove the dependency array                                                                                                                                                                                                                                react-hooks/exhaustive-deps
+  586:9     warning  'cutoutSubject' is assigned a value but never used                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  625:6     warning  React Hook useCallback has an unnecessary dependency: 'active'. Either exclude it or remove the dependency array                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  636:9     warning  'applyLayout' is assigned a value but never used                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  650:6     warning  React Hook useCallback has an unnecessary dependency: 'active'. Either exclude it or remove the dependency array                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  825:6     warning  React Hook useEffect has a missing dependency: 'active'. Either include it or remove the dependency array                                                                                                                                                                                                                                react-hooks/exhaustive-deps
+  912:1739  warning  React Hook useCallback has missing dependencies: 'openCellMenu', 'openEmojiTray', 'openQuestionModal', 'openQuizModal', and 'openSliderModal'. Either include them or remove the dependency array                                                                                                                                        react-hooks/exhaustive-deps
+  913:163   warning  React Hook useCallback has an unnecessary dependency: 'active'. Either exclude it or remove the dependency array                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  914:155   warning  React Hook useCallback has an unnecessary dependency: 'active'. Either exclude it or remove the dependency array                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  915:159   warning  React Hook useCallback has an unnecessary dependency: 'active'. Either exclude it or remove the dependency array                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  916:122   warning  React Hook useCallback has an unnecessary dependency: 'active'. Either exclude it or remove the dependency array                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  924:812   warning  React Hook useCallback has a missing dependency: 'active?.pollData'. Either include it or remove the dependency array                                                                                                                                                                                                                    react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/stories/StoryCreationMenuScreen.tsx
+  143:6  warning  React Hook useEffect has missing dependencies: 'bgOpacity', 'footerOpacity', 'headerOpacity', 'row1Opacity', 'row1TransY', 'row2Opacity', 'row2TransY', 'row3Opacity', 'row3TransY', 'row4Opacity', 'row4TransY', 'row5Opacity', and 'row5TransY'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/stories/StoryDualCaptureScreen.tsx
+   25:7   warning  'SCREEN_W' is assigned a value but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   26:7   warning  'SCREEN_H' is assigned a value but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   99:25  warning  The ref value 'captureGeneration.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'captureGeneration.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  102:23  warning  The ref value 'cameraRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'cameraRef.current' to a variable inside the effect, and use that variable in the cleanup function                  react-hooks/exhaustive-deps
+  104:6   warning  React Hook useEffect has a missing dependency: 'uiOpacity'. Either include it or remove the dependency array                                                                                                                                                                       react-hooks/exhaustive-deps
+  108:6   warning  React Hook useEffect has a missing dependency: 'requestPermission'. Either include it or remove the dependency array                                                                                                                                                               react-hooks/exhaustive-deps
+  130:6   warning  React Hook useCallback has a missing dependency: 'flashOpacity'. Either include it or remove the dependency array                                                                                                                                                                  react-hooks/exhaustive-deps
+  239:6   warning  React Hook useCallback has missing dependencies: 'bubbleOpacity', 'bubbleScale', 'freezeOpacity', 'shutterScale', and 'triggerFlash'. Either include them or remove the dependency array                                                                                           react-hooks/exhaustive-deps
+  283:6   warning  React Hook useEffect has missing dependencies: 'countdownNumOpacity', 'countdownNumScale', and 'overlayOpacity'. Either include them or remove the dependency array                                                                                                                react-hooks/exhaustive-deps
+  327:18  warning  'err' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  341:6   warning  React Hook useEffect has missing dependencies: 'processCapture', 'resetToIdle', 'resultOpacity', 'resultScale', and 'triggerFlash'. Either include them or remove the dependency array                                                                                             react-hooks/exhaustive-deps
+  371:6   warning  React Hook useCallback has missing dependencies: 'navigation' and 'resetToIdle'. Either include them or remove the dependency array                                                                                                                                                react-hooks/exhaustive-deps
+  394:6   warning  React Hook useCallback has missing dependencies: 'bubbleOpacity', 'bubbleScale', 'freezeOpacity', 'overlayOpacity', and 'resultOpacity'. Either include them or remove the dependency array                                                                                        react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/stories/StoryLayoutScreen.tsx
+  61:96  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/stories/StoryViewerScreen.tsx
+  306:20   warning  'setCaughtUp' is assigned a value but never used                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  316:9    warning  'headerChromeStyle' is assigned a value but never used                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  317:9    warning  'bottomChromeStyle' is assigned a value but never used                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  318:9    warning  'progressChromeStyle' is assigned a value but never used                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  324:50   warning  The ref value 'nextUserCache.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'nextUserCache.current' to a variable inside the effect, and use that variable in the cleanup function    react-hooks/exhaustive-deps
+  426:78   warning  The ref value 'loadGeneration.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'loadGeneration.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  509:6    warning  React Hook useEffect has a missing dependency: 'currentStory'. Either include it or remove the dependency array                                                                                                                                                              react-hooks/exhaustive-deps
+  511:142  warning  React Hook useEffect has a missing dependency: 'currentStory'. Either include it or remove the dependency array                                                                                                                                                              react-hooks/exhaustive-deps
+  528:143  warning  React Hook useEffect has a missing dependency: 'currentStory'. Either include it or remove the dependency array                                                                                                                                                              react-hooks/exhaustive-deps
+  544:6    warning  React Hook useEffect has a missing dependency: 'currentStory'. Either include it or remove the dependency array                                                                                                                                                              react-hooks/exhaustive-deps
+  590:7    warning  React Hook useMemo has missing dependencies: 'pinchScale', 'pinchTX', and 'pinchTY'. Either include them or remove the dependency array                                                                                                                                      react-hooks/exhaustive-deps
+  655:88   warning  React Hook useEffect has missing dependencies: 'pickerOpen' and 'resumeFrom'. Either include them or remove the dependency array                                                                                                                                             react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/studio/StudioHiringAdsSegs.tsx
+   21:7   warning  'NAVY' is assigned a value but never used                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  143:6   warning  React Hook useCallback has an unnecessary dependency: 'userId'. Either exclude it or remove the dependency array                                                                                                                                                       react-hooks/exhaustive-deps
+  147:59  warning  The ref value 'jobsRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'jobsRequest.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  147:82  warning  The ref value 'appsRequest.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'appsRequest.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  148:6   warning  React Hook useEffect has a missing dependency: 'chooseJob'. Either include it or remove the dependency array                                                                                                                                                           react-hooks/exhaustive-deps
+  164:6   warning  React Hook useCallback has an unnecessary dependency: 'userId'. Either exclude it or remove the dependency array                                                                                                                                                       react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/studio/StudioMoreSegs.tsx
+   17:7  warning  'NAVY' is assigned a value but never used                                                                                                                                                     @typescript-eslint/no-unused-vars
+  291:9  warning  The 'orders' logical expression could make the dependencies of useMemo Hook (at line 320) change on every render. To fix this, wrap the initialization of 'orders' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/screens/studio/StudioScreen.tsx
+   24:7   warning  'NAVY' is assigned a value but never used                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  314:61  warning  The ref value 'editorVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'editorVersion.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  519:10  warning  'pctLabel' is defined but never used                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/services/audioService.ts
+  30:10  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/services/messageService.ts
+  9:34  warning  'findError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d6c5cb891d7b/platinum-circles/src/services/supabase.ts
+  23:7  warning  'devFetch' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 270 problems (0 errors, 270 warnings)
+  0 errors and 3 warnings potentially fixable with the `--fix` option.
+

@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="platinum_audit" tests="1" failures="0" time="36.158" timestamp="2026-11-01T02:30:08">
+    <testcase id="Audit direct message recipient search" name="Audit direct message recipient search" classname="Audit direct message recipient search" file="tests/native/audit/flows/messages-recipient-search.yaml" time="36.136" timestamp="2026-11-01T02:30:08" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

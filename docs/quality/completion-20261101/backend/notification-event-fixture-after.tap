@@ -1,0 +1,24 @@
+✔ installation is disabled and does not replay historical events (3944.490539ms)
+✔ private jobs remain inaccessible even though the provider queue stays readable (14.731369ms)
+✔ queued data contains only an opaque job and one short-lived event capability (17.679962ms)
+✔ an observed token cannot select another event, recipient, body or SQL operation (17.248362ms)
+✔ atomic claim and completion fence duplicate requests and stale acknowledgements (20.480712ms)
+✔ expired and paused event capabilities do not dispatch (9.002025ms)
+✔ legacy mode enabled after enqueue prevents claiming and after claim prevents forwarding (12.226575ms)
+✔ pause and expiry after claim prevent a fresh forward but do not prevent final acknowledgement (15.626147ms)
+✔ deleted notifications and deactivated recipients cannot consume a capability (10.390898ms)
+✔ canceled calls and revoked initiating sessions cannot consume a capability (21.637155ms)
+✔ ringing calls map only to the canonical call and never ordinary incoming-call pushes (10.789609ms)
+✔ current call authorization still rejects a session revoked after the event claim (21.676936ms)
+✔ group call insertion commits invitations together before one queued call is consumed (18.483033ms)
+✔ outbox uniqueness prevents re-enqueue and existing legacy mode prevents double dispatch (8.250132ms)
+✔ queue failure preserves the app event and cannot produce a usable failed capability (4.750449ms)
+✔ operator retention is bounded, keeps recent jobs and preserves canonical notifications (11.587691ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4181.310913

@@ -5,7 +5,6 @@ function declaration(name){let found;function visit(node){if(ts.isFunctionDeclar
 function compile(code,globals={}){const module={exports:{}};vm.runInNewContext(ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,Error,Map,Set,Date,Promise,AbortController,setTimeout,clearTimeout,console,...globals});return module.exports;}
 const helpers=['PAGE_SIZE','trendRow','buildExactTagRegex','readTrendPage'].map(declaration).join('\n');
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return{promise,resolve};};
-const turn=()=>new Promise(done=>setImmediate(done));
 function queries(respond){const calls=[];function q(table,args){const call={table,args,headers:{},filters:{}};const chain={setHeader(k,v){call.headers[k]=v;return chain;},abortSignal(signal){call.signal=signal;return chain;},then(ok,bad){calls.push(call);return Promise.resolve().then(()=>respond(call)).then(ok,bad);}};for(const m of ['select','order'])chain[m]=()=>chain;for(const m of ['in','ilike'])chain[m]=(k,v)=>{call.filters[k]=v;return chain;};chain.range=(a,b)=>{call.range=[a,b];return chain;};return chain;}return{calls,client:{rpc:(name,args)=>q(name,args),from:table=>q(table)}};}
 
 test('topic reads pin the owner token and never mask a network error with a compatibility query',async()=>{

@@ -1,0 +1,13 @@
+✔ the installed modern glob stops filesystem traversal when its caller cancels (168.121455ms)
+✔ each app toolchain bounds the advisory pattern amplification in its actual modern matcher (39.666478ms)
+✔ Expo fingerprint keeps ordered exclusions, reinclusions and directory matching (1.482694ms)
+✔ the installed glob preserves sync and async project file discovery (20.745445ms)
+✔ legacy lint consumers retain their callable minimatch API and regexp compatibility (8.931045ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 311.907976

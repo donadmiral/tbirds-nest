@@ -1,0 +1,285 @@
+{
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "consumerSourceCommit": "f60006c77575feead98a60bd216987f40c351252",
+  "consumerRunId": 41263707729,
+  "reviewedShards": {
+    "account": {
+      "jobId": 124721993308,
+      "artifactId": 13066261880,
+      "artifactBytes": 74584,
+      "artifactSha256": "9d2b5241b7c4f1e9d377786e1afec4dac35e75bee4095ff59b76e3167a75fc5e",
+      "sourceAndBinaryBindingVerified": true,
+      "ownedCreatedDevice": "A320BE0F-335F-4DF0-82C3-48A3CAB5E5A4",
+      "prebootIdentityAndAvailabilityVerified": true,
+      "bootstatusCompleted": true,
+      "failureStage": "postboot global runtime inventory",
+      "initialFailure": "TimeoutExpired30seconds",
+      "timeoutCleanupMaskedInitialFailure": true,
+      "topLevelExecutionIssue": "PermissionError",
+      "caseCount": 27,
+      "casesExecuted": 0,
+      "applicationInstalled": false,
+      "applicationLaunched": false,
+      "cleanup": [
+        {
+          "operation": "shutdown",
+          "completed": false,
+          "issue": "TimeoutExpired"
+        },
+        {
+          "operation": "delete",
+          "completed": false,
+          "issue": "TimeoutExpired"
+        }
+      ],
+      "commandTimings": [
+        {
+          "stage": "compatibility-host-architecture",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 0.002201891999959571,
+          "stdoutBytes": 7,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-xcode-version",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 0.11588541499997973,
+          "stdoutBytes": 30,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-simulator-sdk",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 2.6516260100000295,
+          "stdoutBytes": 5,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-actual-mach-o",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 0.8808684269999958,
+          "stdoutBytes": 7,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-app-signature",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 0.4442387749999739,
+          "stdoutBytes": 0,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "create-owned-device",
+          "status": "completed",
+          "budgetSeconds": 120,
+          "elapsedSeconds": 55.15284031700003,
+          "stdoutBytes": 37,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-available-runtimes",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 0.90758811500001,
+          "stdoutBytes": 127609,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-created-device",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 0.5061177380000004,
+          "stdoutBytes": 69507,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "boot",
+          "status": "completed",
+          "budgetSeconds": 120,
+          "elapsedSeconds": 7.076718555000014,
+          "stdoutBytes": 0,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "bootstatus",
+          "status": "completed",
+          "budgetSeconds": 300,
+          "elapsedSeconds": 191.25529302,
+          "stdoutBytes": 30777,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-available-runtimes",
+          "status": "failed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": null,
+          "stdoutBytes": null,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "shutdown",
+          "status": "timed-out",
+          "budgetSeconds": 20,
+          "elapsedSeconds": 20.108833350000054,
+          "stdoutBytes": 0,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "delete",
+          "status": "timed-out",
+          "budgetSeconds": 20,
+          "elapsedSeconds": 20.00134123299995,
+          "stdoutBytes": 0,
+          "leaderExitCodeAtTimeout": null
+        }
+      ]
+    },
+    "settings": {
+      "jobId": 124721993219,
+      "artifactId": 13066117164,
+      "artifactBytes": 74670,
+      "artifactSha256": "ae802e4afee01109b23eddce5dccfabe2decc9b38797584e6ebcb941e58a87d3",
+      "sourceAndBinaryBindingVerified": true,
+      "ownedCreatedDevice": "71FE3E33-CDFE-4CC6-9B57-AAF3A75327AA",
+      "prebootIdentityAndAvailabilityVerified": true,
+      "bootstatusCompleted": true,
+      "failureStage": "postboot global runtime inventory",
+      "initialFailure": "TimeoutExpired30seconds",
+      "timeoutCleanupMaskedInitialFailure": false,
+      "topLevelExecutionIssue": "TimeoutExpired",
+      "caseCount": 27,
+      "casesExecuted": 0,
+      "applicationInstalled": false,
+      "applicationLaunched": false,
+      "cleanup": [
+        {
+          "operation": "shutdown",
+          "completed": false,
+          "issue": "TimeoutExpired"
+        },
+        {
+          "operation": "delete",
+          "completed": false,
+          "issue": "TimeoutExpired"
+        }
+      ],
+      "commandTimings": [
+        {
+          "stage": "compatibility-host-architecture",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 0.003434706999996706,
+          "stdoutBytes": 7,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-xcode-version",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 0.16442194500001506,
+          "stdoutBytes": 30,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-simulator-sdk",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 4.073065874000008,
+          "stdoutBytes": 5,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-actual-mach-o",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 1.3738643620000062,
+          "stdoutBytes": 7,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-app-signature",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 0.6060744929999942,
+          "stdoutBytes": 0,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "create-owned-device",
+          "status": "completed",
+          "budgetSeconds": 120,
+          "elapsedSeconds": 87.96257025300002,
+          "stdoutBytes": 37,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-available-runtimes",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 1.1848312430000192,
+          "stdoutBytes": 127609,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-created-device",
+          "status": "completed",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 0.5688601449999737,
+          "stdoutBytes": 69507,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "boot",
+          "status": "completed",
+          "budgetSeconds": 120,
+          "elapsedSeconds": 6.3436861660000545,
+          "stdoutBytes": 0,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "bootstatus",
+          "status": "completed",
+          "budgetSeconds": 300,
+          "elapsedSeconds": 157.61652045699998,
+          "stdoutBytes": 20242,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "compatibility-available-runtimes",
+          "status": "timed-out",
+          "budgetSeconds": 30,
+          "elapsedSeconds": 30.93743425599996,
+          "stdoutBytes": 0,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "shutdown",
+          "status": "timed-out",
+          "budgetSeconds": 20,
+          "elapsedSeconds": 20.000861142999952,
+          "stdoutBytes": 0,
+          "leaderExitCodeAtTimeout": null
+        },
+        {
+          "stage": "delete",
+          "status": "timed-out",
+          "budgetSeconds": 20,
+          "elapsedSeconds": 20.001960118000056,
+          "stdoutBytes": 0,
+          "leaderExitCodeAtTimeout": null
+        }
+      ]
+    }
+  },
+  "socialShard": "awaiting terminal artifact",
+  "appAcceptanceClaimed": false,
+  "proposedRepair": "Use the reviewed two exact-device getenv queries after preboot identity verification and completed exact-UUID bootstatus. Preserve all30-second metadata and original app deadlines.",
+  "separateCleanupDefect": "Account traceback retains original runtime-inventory TimeoutExpired followed by PermissionError from os.killpg during timeout cleanup."
+}

@@ -153,7 +153,7 @@ def main():
         prepared = JOURNEY.prepare_simulator(manifest, starter, created, helper, records, setup)
         device = prepared['device']
         helper.atomic_json(output / 'device-setup.json', prepared)
-        proof['bootedRuntime'] = helper.verify_setup_booted_runtime(app, manifest, device, records, setup)
+        proof['bootedRuntime'] = JOURNEY.verify_selected_booted_runtime(manifest, prepared, created, helper, records, setup)
         helper.setup_read(['xcrun', 'simctl', 'install', device, str(app)], 'install', 120, records, setup)
         with (output / 'app.log').open('wb') as log:
             logger = subprocess.Popen(['xcrun', 'simctl', 'spawn', device, 'log', 'stream', '--style', 'compact',

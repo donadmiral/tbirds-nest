@@ -1,0 +1,25 @@
+✔ compatibility changes only the legacy public-bucket prerequisite and leaves the activation separate (3061.433022ms)
+✔ private objects cannot be read by anonymous or unrelated users despite broad legacy policies (49.641601ms)
+✔ public avatars and catalog images remain intentionally public (7.736562ms)
+✔ private bucket transition preserves authorized content and still enforces followers and blocks (47.245827ms)
+✔ reviewed ownerless legacy reads survive private cutover without manufacturing ownership (22.735631ms)
+✔ legacy object replacement, author changes or removed provenance fail closed (11.429182ms)
+✔ unreviewed ownerless files remain inaccessible and show an explicit cutover blocker (13.54215ms)
+✔ new uploads require real ownership and an allowed actor path; published bytes are immutable (20.82711ms)
+✔ ordinary chat participants can read their attachment; unrelated people cannot (19.094306ms)
+✔ limited-view recipients cannot bypass consumption by signing the object directly (14.077287ms)
+✔ a new limited-view upload cannot reuse an existing ordinary attachment (11.542173ms)
+✔ a limited file cannot later become an ordinary message or group photo (20.259204ms)
+✔ preexisting limited/unlimited reuse is denied by both RLS and the ordinary signer manifest (24.322905ms)
+✔ cutover report is service-only and leaks no object paths or account identifiers (8.957935ms)
+✔ cutover readiness excludes external URLs from Storage object counts (5.994033ms)
+✔ cutover readiness still reports a real missing Storage object alongside external URLs (6.335828ms)
+✔ cutover readiness preserves actual owned Storage references in mixed content (5.867422ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3376.148599

@@ -1,0 +1,25 @@
+{
+  "observedFailure": {
+    "workflowRunId": 41264260937,
+    "jobId": 124723651063,
+    "case": "operator retention is bounded, keeps recent jobs and preserves canonical notifications",
+    "sqlstate": "23514",
+    "constraint": "event_jobs_check1"
+  },
+  "rootCause": "Each fixture used two volatile clock_timestamp() evaluations to construct an exactly two-minute interval. A clock tick between calls makes expires_at exceed created_at plus two minutes.",
+  "fix": "Use statement_timestamp() for both endpoints in all three affected local fixture updates.",
+  "testFile": "supabase/tests/rpc-authorization/test-notification-event-dispatch.mjs",
+  "testFileSha256": "c32de44ebd864c55fa7dbd8a8248f7df71db6b69a65041d3d48b3e7a77081521",
+  "productionSqlChanged": false,
+  "productionConstraintWeakened": false,
+  "skippedTests": 0,
+  "focusedSuite": {
+    "command": "node supabase/tests/rpc-authorization/test-notification-event-dispatch.mjs",
+    "tests": 16,
+    "passed": 16,
+    "failed": 0,
+    "exitCode": 0,
+    "receipt": "notification-event-fixture-after.tap"
+  },
+  "deterministicConstraintReproduction": "notification-event-clock-boundary.json"
+}

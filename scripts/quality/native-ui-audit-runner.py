@@ -198,7 +198,16 @@ def run_owned(args, timeout, **kwargs):
         raise
 
 
-def validate_device(platform, device, compatibility, binary=None, toolchain=None):
+def ios_setup_helper():
+    path = Path(__file__).with_name('native-ui-ios-audit-recovery.py')
+    spec = importlib.util.spec_from_file_location('ios_bounded_setup', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def validate_device(platform, device, compatibility, binary=None, toolchain=None,
+                    prepared=None, source_commit=None):
     def read(args):
         return subprocess.check_output(args, stderr=subprocess.PIPE, timeout=30).decode().strip()
     if platform == 'android':
@@ -209,13 +218,20 @@ def validate_device(platform, device, compatibility, binary=None, toolchain=None
         if read(['adb', '-s', device, 'shell', 'id', '-u']) != '0':
             raise ValueError('The isolated AOSP diagnostic-root image is required for private synthetic receipts')
     else:
-        if binary is None or not toolchain:
-            raise ValueError('Actual Simulator app and producer toolchain are required')
+        if binary is None or not toolchain or prepared is None or source_commit is None:
+            raise ValueError('Actual Simulator app, producer toolchain and source-bound setup receipt are required')
         helper = Path(__file__).with_name('native-ui-ios-compatibility.py')
         spec = importlib.util.spec_from_file_location('ios_compatibility', helper)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        return module.verify_compatibility(binary, {'nativeCompatibility': compatibility, 'toolchain': toolchain}, device, read)
+        manifest = {'nativeCompatibility': compatibility, 'toolchain': toolchain,
+                    'applicationSourceCommit': source_commit}
+        runtime = module.verify_prepared_booted_runtime(manifest, device, prepared)
+        bounded = ios_setup_helper()
+        immutable = module.verify_immutable_compatibility(
+            binary, manifest, lambda args: bounded.read_command(args, timeout=30))
+        return {**immutable, **runtime,
+                'scope': 'Actual host/toolchain/app bytes verified; exact runtime/type/availability verified before boot; exact owned UUID bootstatus completed. No postboot metadata read. Actual installation and app launch remain required.'}
 
 
 def collect(platform, device, target):
@@ -300,6 +316,7 @@ def main():
     parser.add_argument('--device', required=True)
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--binary-manifest', type=Path, required=True)
+    parser.add_argument('--device-setup', type=Path)
     parser.add_argument('--expected-source', required=True)
     parser.add_argument('--expected-tree', required=True)
     parser.add_argument('--groups', default='all')
@@ -316,8 +333,15 @@ def main():
     validate_binary(binary_manifest, args.binary, args.platform, args.expected_source, args.expected_tree)
     if sha256_file(manifest_path) != binary_manifest['auditManifestSha256']:
         raise ValueError('Audit scenarios differ from the compiled binary')
-    validate_device(args.platform, args.device, binary_manifest['nativeCompatibility'],
-                    binary=args.binary, toolchain=binary_manifest['toolchain'])
+    prepared = None
+    if args.platform == 'ios':
+        if (args.device_setup is None or args.device_setup.is_symlink()
+                or not args.device_setup.is_file() or not 0 < args.device_setup.stat().st_size <= 65536):
+            raise ValueError('The fresh bounded iOS device-setup receipt is required')
+        prepared = json.loads(args.device_setup.read_text())
+    device_proof = validate_device(args.platform, args.device, binary_manifest['nativeCompatibility'],
+                    binary=args.binary, toolchain=binary_manifest['toolchain'],
+                    prepared=prepared, source_commit=args.expected_source)
     selected = set(manifest['groups']) if args.groups == 'all' else set(args.groups.split(','))
     if not selected or not selected <= set(manifest['groups']):
         raise ValueError('Unknown or empty feature group selection')
@@ -325,9 +349,20 @@ def main():
     args.output.mkdir(parents=True, exist_ok=False)
     shutil.copyfile(args.binary_manifest, args.output / 'binary-manifest.json')
     shutil.copyfile(manifest_path, args.output / 'audit-manifest.json')
+    if args.platform == 'ios':
+        (args.output / 'device-setup.json').write_text(json.dumps(prepared, indent=2) + '\n')
+        (args.output / 'device-compatibility.json').write_text(json.dumps(device_proof, indent=2) + '\n')
     install = ['adb', '-s', args.device, 'install', '-r', str(args.binary)] if args.platform == 'android' else ['xcrun', 'simctl', 'install', args.device, str(args.binary)]
     # Install the same bytes once per feature shard. Never build, rebundle, or sign.
-    if command(install).returncode:
+    if args.platform == 'ios':
+        try:
+            ios_setup_helper().setup_read(install, 'install', 120, [], args.output / 'install-commands.json')
+            installed = True
+        except (OSError, ValueError, subprocess.SubprocessError):
+            installed = False
+    else:
+        installed = command(install).returncode == 0
+    if not installed:
         (args.output / 'setup-failure.json').write_text(json.dumps({'stage': 'install', 'attemptedCases': 0, 'status': 'blocked'}) + '\n')
         return 1
     results = run_cases(cases, args.platform, args.device, args.output)

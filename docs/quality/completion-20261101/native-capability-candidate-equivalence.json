@@ -84,13 +84,49 @@
       },
       "ios": {
         "passed": false,
-        "status": "Awaiting original account feature group capture result",
+        "status": "The account consumer stopped before installation at the postboot global runtime inventory; awaiting the reviewed recovery run.",
         "consumerRunId": 41263707729,
-        "jobId": 124721993308
+        "jobId": 124721993308,
+        "terminalSetupEvidence": "ios-audit-41263707729/setup-failures-verified.json",
+        "casesExecuted": 0
       }
     },
     "reviewedAtUtc": "2026-11-01T02:08:41.904070+00:00"
   },
   "scope": "Whole-file bridge equivalence to independently retained platform compilation inputs. Existing f5 artifacts keep their original source identity. This proof does not substitute standalone tests for installed capture, hosted backend, signed release or physical-device acceptance.",
-  "nextActionAfterInstalledCapturePasses": "Change only both version constants from 0 to 1, recheck the complete production input diff and candidate hashes, then append the actual promotion commit and final installed evidence."
+  "nextActionAfterInstalledCapturePasses": "Change only both version constants from 0 to 1, recheck the complete production input diff and candidate hashes, then append the actual promotion commit and final installed evidence.",
+  "currentProductionInputComparison": {
+    "comparedAtUtc": "2026-11-01T02:27:16.973785+00:00",
+    "sourceInputsCompared": 474,
+    "changedInputs": [
+      {
+        "path": "package.json",
+        "producerSha256": "76dc10731480fa4f4f80650db90aad1bbbc0b751ecd56a0c71b723dd6162f296",
+        "currentSha256": "03cc90dc982f290d2ac8d62c4a1e907cc8358198e190e31ae2416bc09426dcac"
+      },
+      {
+        "path": "package-lock.json",
+        "producerSha256": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+        "currentSha256": "3d69706a46f51105e55e9b9b377708707346805adeba060cb82bed4fb5240b1d"
+      }
+    ],
+    "productionInputsUnchangedSinceProducer": false,
+    "differenceScope": "Reviewed build/lint glob and minimatch dependency overrides and lock resolution. The actual application/framework/native runtime source versions are unchanged; normal release artifacts must use the final lock.",
+    "nativeBridgeCandidateHashesStillMatchCompiledPreparedBytes": true,
+    "oldProducerArtifactsRelabeled": false,
+    "normalReleaseMustUseFinalLock": true
+  },
+  "initialComparisonScope": "The platform sourceProductInputsChanged arrays above record the original comparison at verifiedAtUtc, before the separate build-tool dependency update. Current differences are explicitly recorded below.",
+  "currentQaFixtureInputComparison": {
+    "comparedAtUtc": "2026-11-01T02:30:21.018876+00:00",
+    "changedInputs": [
+      {
+        "path": "tests/native/memory-capture-observer.cjs",
+        "producerSha256": "9f341201ee67393a29ac614afd3bf1e91b84430c46c27f784d54d84a43e6e6a4",
+        "currentSha256": "eaaf976b9f2ec0b8968e9a7610188ee398fb17648f29c73724333913020256ff"
+      }
+    ],
+    "differenceScope": "Explanatory comment in existing empty cleanup catch for ESLint. New producer manifests must record the changed source hash. The retained f5 consumers continue using their original source and exact binary receipts.",
+    "oldProducerArtifactsRelabeled": false
+  }
 }

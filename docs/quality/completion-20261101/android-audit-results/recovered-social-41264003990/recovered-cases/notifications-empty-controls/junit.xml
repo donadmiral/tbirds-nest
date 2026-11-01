@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="platinum_audit" tests="1" failures="0" time="30.791" timestamp="2026-11-01T02:28:01">
+    <testcase id="Audit empty notifications" name="Audit empty notifications" classname="Audit empty notifications" file="tests/native/audit/flows/notifications-empty-controls.yaml" time="30.767" timestamp="2026-11-01T02:28:01" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

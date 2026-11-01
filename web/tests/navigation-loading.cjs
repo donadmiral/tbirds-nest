@@ -77,7 +77,7 @@ function component(h, options = {}) {
   const icon = () => React.createElement('i');
   const Link = ({ href, children, prefetch, ...props }) => React.createElement('a', { href, ...props, 'data-prefetch': String(prefetch) }, children);
   return load('web/components/NavigationLoading.tsx', {
-    react: options.react || React, 'react/jsx-runtime': require('react/jsx-runtime'), 'next/link': { default: Link }, 'next/image': { default: ({ unoptimized, ...props }) => React.createElement('img', props) },
+    react: options.react || React, 'react/jsx-runtime': require('react/jsx-runtime'), 'next/link': { default: Link }, 'next/image': { default: ({ unoptimized, ...props }) => React.createElement('img', { ...props, 'data-unoptimized': String(unoptimized) }) },
     'next/navigation': { usePathname: () => options.path || '/jobs' }, 'lucide-react': new Proxy({}, { get: () => icon }),
     '@/lib/navigationCache': { getNavigationStore: () => h.store }, '@/lib/navigationChromeMemory': api, '@/lib/navigation': navigation,
     './NavigationActions': { NAV_ICONS: new Proxy({}, { get: () => icon }) }, './Wordmark': { Wordmark: () => 'Platinum Circles' },

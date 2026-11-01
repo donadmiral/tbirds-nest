@@ -244,78 +244,119 @@ print('Only the exact newly created device is cleaned after failed metadata')
   assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 5000 }), /exact newly created device/);
 });
 
-test('postboot proof requires exact running-device identity/version and keeps both30-second deadlines', () => {
+test('completion setup restores the original preboot proof then exact UUID readiness and120-second install', () => {
   const code = String.raw`
-import copy,importlib.util,os,subprocess,tempfile,types
+import copy,importlib.util,json,subprocess,tempfile,types
 from pathlib import Path
 def load(name,file):
  s=importlib.util.spec_from_file_location(name,file);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
-m=load('consumer','scripts/quality/completion-ios-journey.py');created=load('created','scripts/quality/native-ui-ios-created-device.py')
+m=load('consumer','scripts/quality/completion-ios-journey.py');created=load('created','scripts/quality/native-ui-ios-created-device.py');starter=load('starter','scripts/quality/native-ui-start-ios-device.py');compat=load('compat','scripts/quality/native-ui-ios-compatibility.py')
 uuid='11111111-1111-4111-8111-111111111111'
 manifest={'applicationSourceCommit':m.SOURCE,'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':created.RUNTIME}}
-prepared={'device':uuid,'created':True,'bootReady':True,'sourceCommit':m.SOURCE,'runtimeIdentifier':created.RUNTIME,'deviceTypeIdentifier':created.DEVICE_TYPE,'verification':{'selectedDevice':uuid,'runtimeIdentifier':created.RUNTIME,'runtimeVersion':created.VERSION,'deviceTypeIdentifier':created.DEVICE_TYPE,'runtimeAvailabilityVerified':True,'stateAtVerification':'Shutdown'}}
-values={'SIMULATOR_UDID':uuid,'SIMULATOR_RUNTIME_VERSION':'18.5'};calls=[]
-def read(command,stage,timeout,records,output):calls.append((command,stage,timeout));return values[command[-1]]
-helper=types.SimpleNamespace(setup_read=read)
+calls=[];booted=[False]
+def read(command,stage,timeout,records,output):
+ calls.append((command,stage,timeout))
+ if command[2]=='create':return uuid
+ if command[2] in ['list','getenv'] and booted[0]:raise subprocess.TimeoutExpired(command,30)
+ if command[2:4]==['list','runtimes']:return json.dumps({'runtimes':[{'identifier':created.RUNTIME,'version':'18.5','isAvailable':True}]})
+ if command[2:4]==['list','devices']:return json.dumps({'devices':{created.RUNTIME:[{'udid':uuid,'state':'Shutdown','isAvailable':True,'deviceTypeIdentifier':created.DEVICE_TYPE}]}})
+ if command[2]=='boot':booted[0]=True
+ return ''
+helper=types.SimpleNamespace(setup_read=read,atomic_json=lambda *args:None,compatibility_module=compat)
 with tempfile.TemporaryDirectory() as directory:
  output=Path(directory)/'setup.json'
+ prepared=m.prepare_simulator(manifest,starter,created,helper,[],output)
  proof=m.verify_selected_booted_runtime(manifest,prepared,created,helper,[],output)
- assert proof['postbootIdentityAndVersionReadFromDevice'] and proof['runtimeVersion']=='18.5' and proof['selectedDevice']==uuid
+ helper.setup_read(['xcrun','simctl','install',prepared['device'],'retained.app'],'install',120,[],output)
+ assert [row[0][2] for row in calls]==['create','list','list','boot','bootstatus','install']
+ assert [row[2] for row in calls]==[120,30,30,120,300,120]
+ assert all(row[0][3]==uuid for row in calls if row[0][2] in ['boot','bootstatus','install'])
+ assert calls[-2][0]==['xcrun','simctl','bootstatus',uuid,'-b']
+ assert proof['runtimeVersion']=='18.5' and proof['selectedDevice']==uuid and proof['exactUuidBootstatusCompleted']
+ assert proof['proofMethod']=='verified-preboot-identity-and-completed-exact-uuid-bootstatus'
+ assert not proof['postbootMetadataRead'] and not proof['postbootIdentityAndVersionReadFromDevice']
  assert not proof['globalInventoryRepeatedAfterBoot'] and not proof['guestArchitectureMeasured']
- assert [row[0] for row in calls]==[['xcrun','simctl','getenv',uuid,'SIMULATOR_UDID'],['xcrun','simctl','getenv',uuid,'SIMULATOR_RUNTIME_VERSION']]
- assert all(row[2]==30 for row in calls)
- for field,value in [('created',False),('bootReady',False),('sourceCommit','wrong'),('deviceTypeIdentifier','wrong')]:
-  invalid=copy.deepcopy(prepared);invalid[field]=value;before=len(calls)
+ before=len(calls)
+ for field,value in [('created',False),('bootReady',False),('sourceCommit','b'*40),('deviceTypeIdentifier','wrong'),('runtimeIdentifier','wrong'),('device','invalid')]:
+  invalid=copy.deepcopy(prepared);invalid[field]=value
   try:m.verify_selected_booted_runtime(manifest,invalid,created,helper,[],output)
   except ValueError:pass
-  else:raise AssertionError('Invalid preboot evidence accepted: '+field)
-  assert len(calls)==before
- for field,value in [('runtimeAvailabilityVerified',False),('runtimeVersion','18.6'),('selectedDevice','22222222-2222-4222-8222-222222222222'),('stateAtVerification','Booted')]:
+  else:raise AssertionError('Invalid setup proof accepted: '+field)
+ for field,value in [('runtimeAvailabilityVerified',False),('runtimeVersion','18.6'),('selectedDevice','22222222-2222-4222-8222-222222222222'),('stateAtVerification','Booted'),('deviceTypeIdentifier','wrong'),('runtimeIdentifier','wrong')]:
   invalid=copy.deepcopy(prepared);invalid['verification'][field]=value
   try:m.verify_selected_booted_runtime(manifest,invalid,created,helper,[],output)
   except ValueError:pass
   else:raise AssertionError('Changed preboot metadata accepted: '+field)
- for variable,bad in [('SIMULATOR_UDID','22222222-2222-4222-8222-222222222222'),('SIMULATOR_UDID',''),('SIMULATOR_RUNTIME_VERSION','18.6'),('SIMULATOR_RUNTIME_VERSION','')]:
-  original=values[variable];values[variable]=bad
-  try:m.verify_selected_booted_runtime(manifest,prepared,created,helper,[],output)
-  except ValueError:pass
-  else:raise AssertionError('Wrong or missing live device value accepted')
-  values[variable]=original
- for variable in ['SIMULATOR_UDID','SIMULATOR_RUNTIME_VERSION']:
-  name='SIMCTL_CHILD_'+variable;os.environ[name]=values[variable];before=len(calls)
-  try:
-   try:m.verify_selected_booted_runtime(manifest,prepared,created,helper,[],output)
-   except ValueError:pass
-   else:raise AssertionError('Caller-supplied proof override accepted')
-   assert len(calls)==before
-  finally:del os.environ[name]
- timeout=subprocess.TimeoutExpired(['xcrun','simctl','getenv'],30)
- def fail(*args):raise timeout
- helper.setup_read=fail
- try:m.verify_selected_booted_runtime(manifest,prepared,created,helper,[],output)
- except subprocess.TimeoutExpired as error:assert error is timeout
- else:raise AssertionError('Unavailable running device became a pass')
-print('Exact postboot identity and version required without global inventory or widened timeouts')
+ assert len(calls)==before
+ for stage in ['boot','bootstatus']:
+  calls.clear();booted[0]=False
+  def failing(command,name,timeout,*rest):
+   if name==stage:raise subprocess.TimeoutExpired(command,timeout)
+   return read(command,name,timeout,*rest)
+  helper.setup_read=failing
+  try:m.prepare_simulator(manifest,starter,created,helper,[],output)
+  except subprocess.TimeoutExpired:pass
+  else:raise AssertionError('Incomplete exact-device boot readiness accepted')
+  assert not any(row[0][2]=='install' for row in calls)
+print('Original preboot identity, exact UUID readiness and install ordering remain strict')
 `;
-  assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 5000 }), /Exact postboot identity and version/);
+  assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 5000 }), /install ordering remain strict/);
 });
 
-test('cold startup evidence selects only fixed Simulator executables without arguments or environment', () => {
+test('startup observation reads public PID metadata without launching ps and rejects changed or unbounded identities', () => {
   const code = String.raw`
-import importlib.util
+import ctypes,importlib.util,json,os,subprocess,tempfile
 from pathlib import Path
-p=Path('scripts/quality/completion-ios-startup-diagnostics.py');s=importlib.util.spec_from_file_location('observer',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
-paths={11:'/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/simctl',12:'/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/XPCServices/com.apple.CoreSimulator.CoreSimulatorService.xpc/Contents/MacOS/com.apple.CoreSimulator.CoreSimulatorService',13:'/tmp/simctl',14:'/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/other',15:'/System/Library/PrivateFrameworks/CoreSimulator.framework/Resources/simdiskimaged',16:'/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/simctl'}
+from unittest import mock
+def load(name):
+ p=Path('scripts/quality')/(name+'.py');s=importlib.util.spec_from_file_location(name,p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+m=load('completion-ios-startup-diagnostics');h=load('native-ui-ios-audit-recovery')
+paths={11:'/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/simctl',12:'/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/XPCServices/com.apple.CoreSimulator.CoreSimulatorService.xpc/Contents/MacOS/com.apple.CoreSimulator.CoreSimulatorService',13:'/tmp/simctl',14:'/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/other',15:'/System/Library/PrivateFrameworks/CoreSimulator.framework/Resources/simdiskimaged',16:'/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/simctl',17:'/Applications/Xcode_16.4.app/Contents/Developer/usr/bin/simctl'}
 owners={pid:501 for pid in paths};owners[15]=0;owners[16]=502
-def identify(pid):return {'pid':pid,'uid':owners[pid],'startSeconds':1,'startMicroseconds':2,'executable':paths[pid]}
-rows='\n'.join(f'{pid} 1 {owners[pid]} S 00:12 0:00.01' for pid in paths)
-selected=m.selected_processes(rows,identify,501)
+class Function:
+ def __init__(self,call):self.call=call
+ def __call__(self,*args):return self.call(*args)
+class Library:
+ def __init__(self):
+  self.count=10;self.reads={};self.path_reads=[];self.proc_listallpids=Function(self.list);self.proc_pidinfo=Function(self.info);self.proc_pidpath=Function(self.path)
+ def list(self,buffer,size):
+  assert size==8192*ctypes.sizeof(ctypes.c_int)
+  for i,pid in enumerate([0,11,12,13,14,15,16,17,11,18]):buffer[i]=pid
+  return self.count
+ def info(self,pid,flavor,arg,buffer,size):
+  assert flavor==3 and arg==0 and size==ctypes.sizeof(h.ProcBsdInfo)
+  if pid==18:return 0
+  row=ctypes.cast(buffer,ctypes.POINTER(h.ProcBsdInfo)).contents
+  self.reads[pid]=self.reads.get(pid,0)+1
+  row.pid=pid;row.ppid=1;row.uid=owners[pid];row.status=2;row.pgid=pid
+  row.startSeconds=2 if pid==17 and self.reads[pid]>1 else 1;row.startMicroseconds=2
+  return size
+ def path(self,pid,buffer,size):
+  self.path_reads.append(pid);data=paths[pid].encode()+b'\0';assert len(data)<=size
+  ctypes.memmove(buffer,data,len(data));return len(data)-1
+library=Library();selected=m.direct_processes(h,501,library)
 assert [row['pid'] for row in selected]==[11,12,15]
-assert all(set(row)=={'pid','uid','startSeconds','startMicroseconds','executable','parentPid','state','processElapsed','cpuTime'} for row in selected)
-try:m.selected_processes('unexpected output',identify,501)
-except ValueError:pass
-else:raise AssertionError('Malformed process inventory accepted')
-print('Only fixed Simulator process identity and state are retained')
+assert 16 not in library.path_reads
+assert all(set(row)=={'pid','uid','startSeconds','startMicroseconds','executable','parentPid','bsdStatus','processGroupId'} for row in selected)
+for count in [0,-1,8192,8193]:
+ library=Library();library.count=count
+ try:m.direct_processes(h,501,library)
+ except ValueError:pass
+ else:raise AssertionError('Missing or truncated native PID table accepted')
+after=[{**row,'startSeconds':3 if row['pid']==15 else row['startSeconds']} for row in selected]
+def failing_tool(command,timeout):
+ assert command[0]!='/bin/ps' and timeout==2
+ raise subprocess.TimeoutExpired(command,timeout)
+with tempfile.TemporaryDirectory() as temp:
+ with mock.patch.object(m,'direct_processes',side_effect=[selected,after]),mock.patch.object(m.os,'getuid',return_value=501),mock.patch.object(h,'read_command',side_effect=failing_tool),mock.patch.object(h,'sample_process',return_value={'complete':False,'issue':'controlled-sample-timeout'}) as sample:
+  m.capture_startup(h,Path(temp)/'proof')
+  record=json.loads((Path(temp)/'proof/diagnostic.json').read_text())
+  assert record['processInventory']=='public-libproc-in-process' and len(record['processSnapshots'])==2
+  assert record['processSnapshots'][1]['processes'][-1]['startSeconds']==3
+  assert sample.call_count==2 and [x.args[0]['pid'] for x in sample.call_args_list]==[11,12]
+  assert record['changesVerdict'] is False and record['readsProcessArguments'] is False and record['readsProcessEnvironment'] is False
+  assert len(record['samples'])==2 and 'issue' not in record
+print('Public PID metadata preserves bounded identity snapshots despite host-client startup failures')
 `;
-  assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 5000 }), /Only fixed Simulator/);
+  assert.match(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 5000 }), /Public PID metadata preserves/);
 });

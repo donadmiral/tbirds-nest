@@ -1,0 +1,35 @@
+2026-11-01T02:12:28.1925090Z Traceback (most recent call last):
+2026-11-01T02:12:28.2940000Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py", line 105, in bounded_command
+2026-11-01T02:12:28.3006230Z     raise error
+2026-11-01T02:12:28.4218760Z subprocess.TimeoutExpired: Command '['xcrun', 'simctl', 'list', 'runtimes', '--json']' timed out after 30 seconds
+2026-11-01T02:12:28.5243260Z 
+2026-11-01T02:12:28.6337250Z During handling of the above exception, another exception occurred:
+2026-11-01T02:12:28.7372040Z 
+2026-11-01T02:12:28.8671830Z Traceback (most recent call last):
+2026-11-01T02:12:28.9715960Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/completion-ios-audit.py", line 198, in <module>
+2026-11-01T02:12:29.0173440Z     raise SystemExit(main())
+2026-11-01T02:12:29.1217910Z                      ~~~~^^
+2026-11-01T02:12:29.2248830Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/completion-ios-audit.py", line 156, in main
+2026-11-01T02:12:29.3265160Z     proof['bootedRuntime'] = helper.verify_setup_booted_runtime(app, manifest, device, records, setup)
+2026-11-01T02:12:29.4291640Z                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-01T02:12:29.5299190Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py", line 233, in verify_setup_booted_runtime
+2026-11-01T02:12:29.6541210Z     return compatibility_module.verify_booted_runtime(
+2026-11-01T02:12:29.7545780Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2026-11-01T02:12:29.8979730Z         manifest, device, setup_compatibility_reader(app, records, output))
+2026-11-01T02:12:30.0006940Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-01T02:12:30.0924060Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-compatibility.py", line 47, in verify_booted_runtime
+2026-11-01T02:12:30.1994850Z     runtimes = json.loads(read(['xcrun', 'simctl', 'list', 'runtimes', '--json']))['runtimes']
+2026-11-01T02:12:30.3172520Z                           ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-01T02:12:30.4083250Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py", line 223, in read
+2026-11-01T02:12:30.5206480Z     return setup_read(args, 'compatibility-' + stage, 30, records, output)
+2026-11-01T02:12:30.6319880Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py", line 154, in setup_read
+2026-11-01T02:12:30.9991100Z     result = bounded_command(args, timeout)
+2026-11-01T02:12:31.0135820Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py", line 125, in bounded_command
+2026-11-01T02:12:31.0535110Z     stop_group(process)
+2026-11-01T02:12:31.1535860Z     ~~~~~~~~~~^^^^^^^^^
+2026-11-01T02:12:31.2540700Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py", line 70, in stop_group
+2026-11-01T02:12:31.3545140Z     os.killpg(process.pid, sig)
+2026-11-01T02:12:31.4551840Z     ~~~~~~~~~^^^^^^^^^^^^^^^^^^
+2026-11-01T02:12:31.5560520Z PermissionError: [Errno 1] Operation not permitted
+2026-11-01T02:12:31.7426700Z ##[error]Process completed with exit code 1.
+

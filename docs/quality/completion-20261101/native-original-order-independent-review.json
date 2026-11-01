@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "native_completion",
+  "reviewedAtUtc": "2026-11-01T02:34:10.969115+00:00",
+  "kind": "independent-coordinated-original-setup-order-review",
+  "filesSha256": {
+    "scripts/quality/completion-ios-journey.py": "e7e1d7076a9cfde889b6cbeb13fcddc61bf4f901e3b96988dbf65916226fa8a9",
+    "scripts/quality/completion-ios-audit.py": "a0669fcafc2b649bec7c48a68c8e7e17e235d72b9d0e69377b2bb0ca5955b597",
+    "scripts/quality/completion-ios-startup-diagnostics.py": "341f470d77ddbc2700535a860f6373810c8e088337d6f86b0d6924749fa66af8",
+    "scripts/quality/native-ui-ios-compatibility.py": "db15610540e1ca63f6ffbdb4cdb12bf556a2acf12609d01c272b3a6c0d24915b",
+    "scripts/quality/native-ui-audit-runner.py": "78f277998834d10dc93a2aaaa7d3e3df65fbd84b6997d3012d3018a8a6c0856a",
+    "scripts/quality/native-ui-start-ios-device.py": "3e74d112f68ca46975787a77feccaec588e0a178c1a4b0fbaaa63bc3616ba2d9",
+    "scripts/quality/native-ui-ios-audit-recovery.py": "fbc06c7c27f0676b480055a666deabb60a4411d8b9b01d984d8b2bc73997520a",
+    "scripts/quality/native-ui-ios-d46-recovery.py": "34ae91ffec25f828432de34f46935b5a168fbc573cfd1618baf6a03caef2edbe",
+    "scripts/quality/prepare-native-ui-audit.cjs": "3d63d56ce3c413dde5aa3a1f5b9577844efb7204e23e13565e23325ddbafc080",
+    "scripts/quality/run-native-ui-audit-device.sh": "e5d5c0218792144412033cab701e04cb661dac51833bb8cb480418949cebbfaf",
+    "tests/quality/native-completion-journey.cjs": "276e673e8ef8d5d756b504fb15cf54a1c4df50b32a9d1f8bed06b1406f361490",
+    "tests/quality/native-completion-runner.cjs": "bbbb0859045e7265fd7b3ebec87fa54450ef8f6faa334f4036d7e62f23069616",
+    "tests/quality/native-ios-audit-compatibility.cjs": "aa106950f9d5ab5a18e5d9410c9cf9ca40870430bfcac707eb59ddbebe8af002",
+    "tests/quality/native-ios-audit-recovery.cjs": "0495c9d9c4b5dc177fa4accd843a2668bff89cbcdcd81cd5b4c4578b815021af",
+    "tests/quality/native-platform-audit-pack.cjs": "94c30895cc47002fc74a26e592758fa243e024b6bf7af1d85b86edc09a1abd3e"
+  },
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "producerArtifactId": 13065158785,
+  "producerBindingUnchanged": true,
+  "originalRunnerSha256StillRequiredForRetainedConsumers": "2eebacb4baca5b5231367c749fba465e13235c85a1d8dee4b5503eb72dbde3b4",
+  "originalDiagnosticFlowSha256Unchanged": true,
+  "reviewedHelperPinsMatchActualBytes": true,
+  "publicationBlockers": [],
+  "setupProof": {
+    "actualPrebootRuntimeVersionTypeAvailabilityRequired": true,
+    "ownedReturnedUuidRequired": true,
+    "completedExactUuidBootstatusRequired": true,
+    "sameApplicationSourceRequired": true,
+    "postbootMetadataReadClaimed": false,
+    "nextLiveDeviceAction": "actual installation under original120-second budget",
+    "actualHostToolchainMachOAndSignatureChecksPreserved": true,
+    "creationBudgetSeconds": 120,
+    "metadataReadBudgetSeconds": 30,
+    "bootBudgetSeconds": 120,
+    "bootstatusBudgetSeconds": 300,
+    "installBudgetSeconds": 120,
+    "cleanupCommandBudgetSeconds": 20
+  },
+  "normalRunner": {
+    "sourceBoundStarterReceiptRequired": true,
+    "receiptSizeAndSymlinkChecked": true,
+    "installFailureRunsZeroCases": true,
+    "setupAndCompatibilityReceiptsRetained": true,
+    "newProducerSetupSourceInputsRecorded": 9,
+    "androidBehaviorUnchanged": true
+  },
+  "caseGates": {
+    "originalCaseCount": 85,
+    "originalCaseDeadlinesChanged": false,
+    "readerDeadlineMs": 15000,
+    "messagesFocusedPopulatedFrameTargetMs": 1000,
+    "genericCaseRetriesAdded": false,
+    "binaryRebuildOrResignAddedToConsumer": false
+  },
+  "cleanupAndDiagnostics": {
+    "originalTimeoutPreservedOnGroupPermissionDenial": true,
+    "fallbackTargetsOnlyOriginalChild": true,
+    "noEscalation": true,
+    "publicLibprocIdentityReadOnly": true,
+    "processArgumentsOrEnvironmentRead": false,
+    "observerDoesNotChangeCommandVerdict": true
+  },
+  "independentVerification": {
+    "command": "node --test --test-name-pattern='completion setup restores|normal audit requires|normal iOS runner requires|normal startup CLI' --test-reporter=tap tests/quality/native-completion-journey.cjs tests/quality/native-ios-audit-compatibility.cjs tests/quality/native-completion-runner.cjs",
+    "nodeTestsPassed": 4,
+    "failed": 0,
+    "shellSyntaxPassed": true,
+    "diffCheckPassed": true
+  },
+  "runtimeAcceptanceClaimed": false,
+  "scope": "Restores the already-reviewed successful preboot identity -> exact owned UUID bootstatus -> installation order. It removes the extra postboot metadata operation introduced by the completion consumers, without removing runtime identity, readiness, binary or app behavior checks. Actual new runtime results remain required."
+}

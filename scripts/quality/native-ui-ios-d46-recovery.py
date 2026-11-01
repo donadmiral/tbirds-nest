@@ -32,8 +32,8 @@ WARM_CONTROLS_FLOW = 'tests/native/diagnostics/ios-warm-reader-controls.yaml'
 WARM_CONTROLS_NAME = 'Diagnostic original tabs to saved memory reader controls'
 WARM_CONTROLS_SHA = '044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f'
 HELPERS = {
-    'native-ui-ios-audit-recovery.py': '428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2',
-    'native-ui-ios-compatibility.py': '0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9',
+    'native-ui-ios-audit-recovery.py': 'fbc06c7c27f0676b480055a666deabb60a4411d8b9b01d984d8b2bc73997520a',
+    'native-ui-ios-compatibility.py': 'db15610540e1ca63f6ffbdb4cdb12bf556a2acf12609d01c272b3a6c0d24915b',
     'native-ui-ios-created-device.py': 'd2ffc477184b8a55f3e557facf1928ac5e11976caf84f78f8050c356e172d3b7',
 }
 BINDING_FIELDS = {

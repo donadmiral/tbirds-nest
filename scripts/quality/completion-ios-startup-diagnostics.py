@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bounded, read-only evidence while the first CoreSimulator client is live."""
+import ctypes
 import os
 from pathlib import Path
 import subprocess
@@ -8,26 +9,44 @@ import time
 
 PROCESS_NAMES = {'simctl', 'com.apple.CoreSimulator.CoreSimulatorService', 'simdiskimaged', 'Simulator'}
 PROCESS_ROOTS = ('/Applications/Xcode_', '/Library/Developer/', '/System/Library/')
+MAX_PROCESS_IDS = 8192
 
 
-def selected_processes(rows, identify, uid):
-    """Read executable identity, never process arguments or environment."""
+def direct_processes(helper, uid, library=None):
+    """Read the public libproc PID table without starting another host client."""
+    library = library or ctypes.CDLL('/usr/lib/libproc.dylib', use_errno=True)
+    library.proc_listallpids.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    library.proc_listallpids.restype = ctypes.c_int
+    library.proc_pidinfo.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_uint64,
+                                    ctypes.c_void_p, ctypes.c_int]
+    library.proc_pidinfo.restype = ctypes.c_int
+    library.proc_pidpath.argtypes = [ctypes.c_int, ctypes.c_void_p, ctypes.c_uint32]
+    library.proc_pidpath.restype = ctypes.c_int
+    pids = (ctypes.c_int * MAX_PROCESS_IDS)()
+    # proc_listallpids takes bytes and returns a PID count, unlike proc_listpids.
+    count = library.proc_listallpids(pids, ctypes.sizeof(pids))
+    if not 0 < count < MAX_PROCESS_IDS:
+        raise ValueError('Missing or truncated public process inventory')
     selected = []
-    for line in rows.splitlines():
-        parts = line.split(None, 5)
-        if len(parts) != 6 or not all(value.isdigit() for value in parts[:3]):
-            raise ValueError('Unexpected read-only process inventory')
-        pid, ppid, owner = map(int, parts[:3])
-        if owner not in (0, uid):
+    seen = set()
+    for pid in pids[:count]:
+        if pid <= 0 or pid in seen:
             continue
-        identity = identify(pid)
-        if not identity or identity['pid'] != pid or identity['uid'] != owner:
+        seen.add(pid)
+        info = helper.ProcBsdInfo()
+        size = library.proc_pidinfo(pid, 3, 0, ctypes.byref(info), ctypes.sizeof(info))
+        if size != ctypes.sizeof(info) or info.pid != pid or info.uid not in (0, uid):
+            continue
+        identity = helper.process_identity(pid, library)
+        if (not identity or identity['uid'] != info.uid or identity['pid'] != pid
+                or identity['startSeconds'] != info.startSeconds
+                or identity['startMicroseconds'] != info.startMicroseconds):
             continue
         executable = identity['executable']
         if Path(executable).name not in PROCESS_NAMES or not executable.startswith(PROCESS_ROOTS):
             continue
-        selected.append({**identity, 'parentPid': ppid, 'state': parts[3],
-                         'processElapsed': parts[4], 'cpuTime': parts[5]})
+        selected.append({**identity, 'parentPid': int(info.ppid),
+                         'bsdStatus': int(info.status), 'processGroupId': int(info.pgid)})
     if len(selected) > 16:
         raise ValueError('Unexpected number of Simulator service processes')
     return selected
@@ -40,13 +59,19 @@ def capture_startup(helper, target):
     record = {'schemaVersion': 1, 'kind': 'read-only-core-simulator-client-diagnostic',
               'startedAtEpochMs': round(time.time() * 1000), 'changesVerdict': False,
               'appLaunched': False, 'readsProcessArguments': False,
-              'readsProcessEnvironment': False, 'samples': [],
+              'readsProcessEnvironment': False, 'samples': [], 'processSnapshots': [],
+              'processInventory': 'public-libproc-in-process',
               'jobConfiguration': {name: os.environ.get(name) for name in
                                    ['DEVELOPER_DIR', 'ImageOS', 'ImageVersion', 'RUNNER_ARCH', 'RUNNER_OS']}}
     helper.atomic_json(target / 'diagnostic.json', record)
     try:
-        rows = helper.read_command(['/bin/ps', '-axo', 'pid=,ppid=,uid=,stat=,etime=,time='], timeout=2)
-        record['processes'] = selected_processes(rows, helper.process_identity, os.getuid())
+        def snapshot(label):
+            rows = direct_processes(helper, os.getuid())
+            record['processSnapshots'].append({'label': label,
+                'atEpochMs': round(time.time() * 1000), 'processes': rows})
+            helper.atomic_json(target / 'diagnostic.json', record)
+            return rows
+        record['processes'] = snapshot('before-samples')
         helper.atomic_json(target / 'diagnostic.json', record)
         record['toolPaths'] = {}
         for role, command in [('systemDeveloperDirectory', ['/usr/bin/xcode-select', '-p']),
@@ -73,6 +98,7 @@ def capture_startup(helper, target):
             except (OSError, ValueError, subprocess.SubprocessError) as error:
                 record['samples'].append({'role': name, 'complete': False, 'issue': type(error).__name__})
             helper.atomic_json(target / 'diagnostic.json', record)
+        snapshot('after-samples')
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         record['issue'] = type(error).__name__
     finally:

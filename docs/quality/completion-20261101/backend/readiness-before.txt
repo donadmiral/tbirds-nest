@@ -1,0 +1,78 @@
+✔ compatibility changes only the legacy public-bucket prerequisite and leaves the activation separate (3255.25215ms)
+✔ private objects cannot be read by anonymous or unrelated users despite broad legacy policies (47.570955ms)
+✔ public avatars and catalog images remain intentionally public (8.779948ms)
+✔ private bucket transition preserves authorized content and still enforces followers and blocks (47.567009ms)
+✔ reviewed ownerless legacy reads survive private cutover without manufacturing ownership (23.21297ms)
+✔ legacy object replacement, author changes or removed provenance fail closed (12.717214ms)
+✔ unreviewed ownerless files remain inaccessible and show an explicit cutover blocker (16.467308ms)
+✔ new uploads require real ownership and an allowed actor path; published bytes are immutable (22.557681ms)
+✔ ordinary chat participants can read their attachment; unrelated people cannot (18.520935ms)
+✔ limited-view recipients cannot bypass consumption by signing the object directly (14.59107ms)
+✔ a new limited-view upload cannot reuse an existing ordinary attachment (11.570396ms)
+✔ a limited file cannot later become an ordinary message or group photo (31.840948ms)
+✔ preexisting limited/unlimited reuse is denied by both RLS and the ordinary signer manifest (21.246104ms)
+✔ cutover report is service-only and leaks no object paths or account identifiers (11.734563ms)
+✖ cutover readiness excludes external URLs from Storage object counts (7.499518ms)
+✖ cutover readiness still reports a real missing Storage object alongside external URLs (6.721884ms)
+✖ cutover readiness preserves actual owned Storage references in mixed content (5.972485ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 14
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3587.258958
+
+✖ failing tests:
+
+test at supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs:163:1
+✖ cutover readiness excludes external URLs from Storage object counts (7.499518ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 0
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/d6c5cb891d7b/platinum-circles/supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs:167:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs:171:1
+✖ cutover readiness still reports a real missing Storage object alongside external URLs (6.721884ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/d6c5cb891d7b/platinum-circles/supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs:176:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs:179:1
+✖ cutover readiness preserves actual owned Storage references in mixed content (5.972485ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/d6c5cb891d7b/platinum-circles/supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs:183:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

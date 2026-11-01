@@ -1,0 +1,13 @@
+{
+  "productionSqlSha256": "9a5a7ea2d9acfc9c21185ac5b2654cfebd9d8f5aba29363cd5a5b5616f4bf081",
+  "exactProductionTableDdlUsed": true,
+  "productionSqlChanged": false,
+  "controlledSchedulingDelayMs": 10,
+  "oldVolatileClockError": {
+    "code": "23514",
+    "constraint": "event_jobs_check1"
+  },
+  "newStatementClockDurationMs": 120000,
+  "newStatementClockAccepted": true,
+  "scope": "Local PGlite reproduction only; no hosted write"
+}

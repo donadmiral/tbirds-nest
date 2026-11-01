@@ -16,13 +16,14 @@ device=''
 emulator_pid=''
 xvfb_pid=''
 log_pid=''
+device_setup_args=()
 cleanup() {
   status=$?
   trap - EXIT
   if [[ -n "$log_pid" ]]; then kill "$log_pid" >/dev/null 2>&1 || true; fi
   if [[ "$platform" == ios && -n "$device" ]]; then
-    xcrun simctl shutdown "$device" >/dev/null 2>&1 || true
-    xcrun simctl delete "$device" >/dev/null 2>&1 || true
+    python3 scripts/quality/native-ui-start-ios-device.py --manifest "$binary_manifest" \
+      --output native-ui-logs/device-setup.json --cleanup-device "$device" || true
   fi
   if [[ -n "$emulator_pid" ]]; then
     timeout 10 adb -s "$device" emu kill >/dev/null 2>&1 || true
@@ -45,6 +46,7 @@ if [[ "$platform" == ios ]]; then
   test -s "$binary/main.jsbundle"
   codesign --verify --deep --strict "$binary"
   device="$(python3 scripts/quality/native-ui-start-ios-device.py --manifest "$binary_manifest" --output native-ui-logs/device-setup.json)"
+  device_setup_args=(--device-setup "$PWD/native-ui-logs/device-setup.json")
   xcrun simctl spawn "$device" log stream --style compact --level info --predicate 'process == "PlatinumQA"' > native-ui-logs/app.log 2>&1 &
   log_pid=$!
 elif [[ "$platform" == android ]]; then
@@ -104,4 +106,4 @@ fi
 python3 scripts/quality/native-ui-audit-runner.py --platform "$platform" --device "$device" \
   --binary "$binary" --binary-manifest "$binary_manifest" \
   --expected-source "$GITHUB_SHA" --expected-tree "$source_tree" \
-  --groups "$groups" --output native-audit-results
+  --groups "$groups" --output native-audit-results "${device_setup_args[@]}"

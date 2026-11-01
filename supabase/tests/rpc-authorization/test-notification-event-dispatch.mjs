@@ -86,7 +86,8 @@ test('atomic claim and completion fence duplicate requests and stale acknowledge
 });
 test('expired and paused event capabilities do not dispatch',async()=>{
  await activate();await notification();const body=await queued();
- await q("update notification_delivery.event_jobs set created_at=clock_timestamp()-interval '3 minutes',expires_at=clock_timestamp()-interval '1 minute'");assert.equal(await claim(body),null);
+ // One statement clock preserves the inclusive two-minute lifetime constraint.
+ await q("update notification_delivery.event_jobs set created_at=statement_timestamp()-interval '3 minutes',expires_at=statement_timestamp()-interval '1 minute'");assert.equal(await claim(body),null);
  await notification();const next=await queued();await q('update notification_delivery.event_settings set enabled=false where singleton');assert.equal(await claim(next),null);
 });
 test('legacy mode enabled after enqueue prevents claiming and after claim prevents forwarding',async()=>{
@@ -98,7 +99,7 @@ test('legacy mode enabled after enqueue prevents claiming and after claim preven
 test('pause and expiry after claim prevent a fresh forward but do not prevent final acknowledgement',async()=>{
  await activate();await notification();const body=await queued(),result=await claim(body);
  await q('update notification_delivery.event_settings set enabled=false where singleton');assert.equal(await allowed(body,result.claimId),false);assert.equal(await finish(body,result.claimId,'skipped'),true);
- await activate();await notification();const next=await queued(),nextClaim=await claim(next);await q("update notification_delivery.event_jobs set created_at=clock_timestamp()-interval '3 minutes',expires_at=clock_timestamp()-interval '1 minute' where id=$1",[next.jobId]);assert.equal(await allowed(next,nextClaim.claimId),false);
+ await activate();await notification();const next=await queued(),nextClaim=await claim(next);await q("update notification_delivery.event_jobs set created_at=statement_timestamp()-interval '3 minutes',expires_at=statement_timestamp()-interval '1 minute' where id=$1",[next.jobId]);assert.equal(await allowed(next,nextClaim.claimId),false);
 });
 test('deleted notifications and deactivated recipients cannot consume a capability',async()=>{
  await activate();const id=await notification(),body=await queued();await q('delete from public.notifications where id=$1',[id]);assert.equal(await claim(body),null);assert.equal(await value('select count(*)::int from notification_delivery.event_jobs'),0);
@@ -131,7 +132,7 @@ test('queue failure preserves the app event and cannot produce a usable failed c
  assert.deepEqual((await q('select state,error_code,request_id from notification_delivery.event_jobs'))[0],{state:'failed',error_code:'P0001',request_id:null});
 });
 test('operator retention is bounded, keeps recent jobs and preserves canonical notifications',async()=>{
- await activate();const old=await notification();await q("update notification_delivery.event_jobs set created_at=clock_timestamp()-interval '8 days',expires_at=clock_timestamp()-interval '8 days'+interval '2 minutes'");
+ await activate();const old=await notification();await q("update notification_delivery.event_jobs set created_at=statement_timestamp()-interval '8 days',expires_at=statement_timestamp()-interval '8 days'+interval '2 minutes'");
  await notification();assert.equal(await value('select notification_delivery.cleanup_event_jobs(1)'),1);
  assert.equal(await value('select count(*)::int from notification_delivery.event_jobs'),1);assert.equal(await value('select count(*)::int from public.notifications where id=$1',[old]),1);
  for(const role of ['anon','authenticated','service_role'])await assert.rejects(as(role,'owner','select notification_delivery.cleanup_event_jobs(1)'),/permission denied/);

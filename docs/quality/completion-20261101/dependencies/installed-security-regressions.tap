@@ -1,0 +1,24 @@
+✔ the installed modern glob stops filesystem traversal when its caller cancels (190.210966ms)
+✔ each app toolchain bounds the advisory pattern amplification in its actual modern matcher (68.031027ms)
+✔ Expo fingerprint keeps ordered exclusions, reinclusions and directory matching (2.338541ms)
+✔ the installed glob preserves sync and async project file discovery (42.090681ms)
+✔ legacy lint consumers retain their callable minimatch API and regexp compatibility (7.895026ms)
+✔ Expo and React Native resolve one compatible Metro maintenance family and load their real config (477.314146ms)
+✔ both actual Metro asset pipelines preserve dimensions, scale variants and non-image assets (34.258729ms)
+✔ disguised zero-length ICNS, HEIF and JXL containers are rejected without hanging Metro (490.172676ms)
+✔ PostCSS does not read an absolute or parent source-map path from untrusted CSS (67.927259ms)
+✔ Expo actual PostCSS loader still runs configured plugins, nested rules and source maps (14.51833ms)
+✔ tooling UUID implementations reject undersized v5 output buffers (23.649245ms)
+✔ the actual Xcode project generator retains unique 24-character identifiers (101.730482ms)
+✔ the actual ngrok wrapper generates a v4 tunnel name without starting a process or network request (17.391514ms)
+✔ installed CallKeep exposes one Android React method per name and keeps the four-argument call bridge (26.409561ms)
+✔ CallKeep config plugin matches Expo 54 and retains explicit calling permissions in modifier preview (88.084859ms)
+✔ Daily supports the installed storage and WebRTC peers and preserves its real iOS bundle-cache behavior (41.887203ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1609.674231

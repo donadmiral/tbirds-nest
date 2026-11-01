@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "native_completion",
+  "reviewedAtUtc": "2026-11-01T02:25:05.089569+00:00",
+  "kind": "independent-permanent-startup-and-cleanup-review",
+  "filesSha256": {
+    "scripts/quality/native-ui-start-ios-device.py": "8acabd8210ffce6a65d536b90557862f10948bd3da44f2b7c65c78060d2a8c68",
+    "scripts/quality/native-ui-ios-audit-recovery.py": "fbc06c7c27f0676b480055a666deabb60a4411d8b9b01d984d8b2bc73997520a",
+    "scripts/quality/native-ui-ios-d46-recovery.py": "28d677e39eb27ab795d8be285ebf75ea9261255744c33175cdc468a408077b80",
+    "tests/quality/native-completion-runner.cjs": "d771ee7555e8c1bca0b43bf2536e0fafe9d87e5475ff6583e6baa8bfbb2dd072",
+    "tests/quality/native-ios-audit-recovery.cjs": "0495c9d9c4b5dc177fa4accd843a2668bff89cbcdcd81cd5b4c4578b815021af"
+  },
+  "reviewedHelperPinsMatchActualBytes": true,
+  "publicationBlockers": [],
+  "retainedInvariants": [
+    "normal CLI uses bounded command supervisor and keeps every setup command record",
+    "one owned exact iPhone16/iOS18.5 creation precedes metadata",
+    "creation120s metadata30s boot120s bootstatus300s and cleanup20s unchanged",
+    "boot or metadata failure cleans only its returned UUID",
+    "original command timeout remains the thrown exception if process-group signaling is denied",
+    "group permission denial is retained as structured cleanup evidence",
+    "fallback signals only the original Popen child when still running",
+    "both signal phases and waits remain bounded to a combined0.6-second cleanup budget",
+    "no elevation broad process killing or service reset",
+    "deliberate reviewed helper pin update matches bytes"
+  ],
+  "independentVerification": {
+    "command": "node --test --test-name-pattern='normal startup CLI|actual recovery helper' --test-reporter=tap tests/quality/native-completion-runner.cjs tests/quality/native-ios-audit-recovery.cjs",
+    "nodeTestsPassed": 2,
+    "embeddedRecoveryCasesPassed": 23,
+    "failed": 0,
+    "realProcessChecks": [
+      "normal CLI successful creation with inherited service output writer",
+      "exact owned cleanup on boot command exit9",
+      "owned child actual timeout with group PermissionError",
+      "original timeout and stdout retained after bounded direct-child termination",
+      "denied group plus denied leader stays bounded"
+    ]
+  },
+  "unresolvedPlatformIssue": "Live postboot CoreSimulator service queries still time out on the retained Intel runner. These repairs preserve evidence and remove proven startup/cleanup bugs; they do not claim to fix that separate service failure.",
+  "actualRuntimeAcceptanceClaimed": false
+}

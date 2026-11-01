@@ -40,7 +40,7 @@ test('navigation observers compile against exact production components without r
   }
 });
 
-test('Simulator setup selects only the exact available shutdown device and bounds boot failures', () => {
+test('normal Simulator setup creates one owned pinned device and bounds exact-device failure cleanup', () => {
   const script = String.raw`
 import importlib.util,json,types,subprocess
 from pathlib import Path
@@ -54,17 +54,94 @@ assert m.select_existing({'devices':{'other':[good]}}) is None
 calls=[]
 def read(args,timeout):
  calls.append((args,timeout))
- return json.dumps({'devices':{m.RUNTIME:[good]}})
+ return uuid
 def run(args,timeout):
  calls.append((args,timeout))
  if 'bootstatus' in args: raise subprocess.TimeoutExpired(args,timeout)
 helper=types.SimpleNamespace(validate_device_identifier=lambda x:None,verify_created_device=lambda *args:{'verified':True})
-try:m.prepare({'applicationSourceCommit':'a'*40},read,run,helper)
+try:m.prepare({'applicationSourceCommit':'a'*40,'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':m.RUNTIME}},read,run,helper)
 except subprocess.TimeoutExpired:pass
 else:raise AssertionError('Boot timeout was accepted')
-assert [x[0][2] for x in calls]==['list','boot','bootstatus','shutdown']
-assert [x[1] for x in calls]==[30,120,300,20]
-print('Simulator selection and bounded cleanup passed')
+assert [x[0][2] for x in calls]==['create','boot','bootstatus','shutdown','delete']
+assert [x[1] for x in calls]==[120,120,300,20,20]
+assert calls[0][0][-2:]==[m.DEVICE_TYPE,m.RUNTIME]
+assert all(row[0][-1]==uuid for row in calls[-2:])
+assert calls[0][0][3].startswith('Platinum completion ')
+before=len(calls)
+try:m.prepare({'nativeCompatibility':{'abi':'arm64','runtimeIdentifier':m.RUNTIME}},read,run,helper)
+except ValueError:pass
+else:raise AssertionError('Another runtime ABI was accepted')
+assert len(calls)==before
+print('Owned Simulator startup and bounded cleanup passed')
 `;
   assert.match(execFileSync('python3', ['-c', script], { encoding: 'utf8' }), /passed/);
+});
+
+test('normal startup CLI uses bounded inherited-pipe reads and retains exact-device cleanup evidence', () => {
+  const script = String.raw`
+import json,os,signal,subprocess,sys,tempfile,time
+from pathlib import Path
+starter=Path('scripts/quality/native-ui-start-ios-device.py').resolve()
+uuid='11111111-1111-4111-8111-111111111111'
+runtime='com.apple.CoreSimulator.SimRuntime.iOS-18-5'
+device_type='com.apple.CoreSimulator.SimDeviceType.iPhone-16'
+with tempfile.TemporaryDirectory() as directory:
+ root=Path(directory);marker=root/'children';calls=root/'calls.jsonl';fake=root/'xcrun'
+ devices=json.dumps({'devices':{runtime:[{'udid':uuid,'state':'Shutdown','isAvailable':True,'deviceTypeIdentifier':device_type}]}})
+ runtimes=json.dumps({'runtimes':[{'identifier':runtime,'version':'18.5','isAvailable':True}]})
+ fake.write_text('#!'+sys.executable+'\n'+
+  'import json,os,subprocess,sys\nfrom pathlib import Path\nargs=sys.argv[1:]\n'+
+  'with Path('+repr(str(calls))+').open("a") as out:out.write(json.dumps(args)+"\\n")\n'+
+  'if args[:2]==["simctl","create"]:\n'+
+  ' child=subprocess.Popen([sys.executable,"-c","import time;time.sleep(30)"])\n'+
+  ' with Path('+repr(str(marker))+').open("a") as out:out.write(str(child.pid)+"\\n")\n'+
+  ' print('+repr(uuid)+',flush=True)\n'+
+  'elif args==["simctl","list","runtimes","--json"]:print('+repr(runtimes)+',flush=True)\n'+
+  'elif args==["simctl","list","devices","--json"]:print('+repr(devices)+',flush=True)\n'+
+  'elif args[:2]==["simctl","bootstatus"] and os.environ.get("TEST_BOOT_FAILURE")=="1":raise SystemExit(9)\n'+
+  'elif args[:2] not in [["simctl","boot"],["simctl","bootstatus"],["simctl","shutdown"],["simctl","delete"]]:raise SystemExit(2)\n')
+ fake.chmod(0o755)
+ manifest=root/'manifest.json';manifest.write_text(json.dumps({'applicationSourceCommit':'a'*40,'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':runtime}}))
+ environment={**os.environ,'CI':'true','PATH':str(root)+os.pathsep+os.environ['PATH']}
+ try:
+  output=root/'device-setup.json';start=time.monotonic()
+  result=subprocess.run([sys.executable,str(starter),'--manifest',str(manifest),'--output',str(output)],env=environment,capture_output=True,text=True,timeout=10)
+  assert result.returncode==0,result.stderr
+  assert result.stdout==uuid+'\n' and time.monotonic()-start<5
+  proof=json.loads(output.read_text());assert proof['created'] and proof['bootReady'] and proof['device']==uuid
+  saved=json.loads((root/'device-setup-commands.json').read_text())['commands']
+  assert [row['timeoutSeconds'] for row in saved]==[120,30,30,120,300]
+  assert saved[0]['leaderCompletedBeforePipeEOF'] and saved[0]['exitCode']==0
+  executed=[json.loads(line) for line in calls.read_text().splitlines()]
+  assert [row[1] for row in executed]==['create','list','list','boot','bootstatus']
+  assert executed[0][-2:]==[device_type,runtime]
+  calls.write_text('');original=output.read_bytes()
+  result=subprocess.run([sys.executable,str(starter),'--manifest',str(manifest),'--output',str(output),'--cleanup-device',uuid],env=environment,capture_output=True,text=True,timeout=10)
+  assert result.returncode==0,result.stderr
+  assert output.read_bytes()==original
+  cleanup=json.loads((root/'device-setup-cleanup.json').read_text())
+  assert cleanup['completed'] and cleanup['device']==uuid
+  assert [row['timeoutSeconds'] for row in cleanup['commands']]==[20,20]
+  assert [json.loads(line) for line in calls.read_text().splitlines()]==[['simctl','shutdown',uuid],['simctl','delete',uuid]]
+  calls.write_text('')
+  result=subprocess.run([sys.executable,str(starter),'--manifest',str(manifest),'--output',str(output),'--cleanup-device','22222222-2222-4222-8222-222222222222'],env=environment,capture_output=True,text=True,timeout=10)
+  assert result.returncode!=0 and not calls.read_text()
+  calls.write_text('');failure=root/'failure.json'
+  result=subprocess.run([sys.executable,str(starter),'--manifest',str(manifest),'--output',str(failure)],env={**environment,'TEST_BOOT_FAILURE':'1'},capture_output=True,text=True,timeout=10)
+  assert result.returncode!=0 and not failure.exists()
+  saved=json.loads((root/'failure-commands.json').read_text())['commands']
+  assert saved[4]['status']=='failed' and saved[4]['exitCode']==9
+  assert [row['stage'] for row in saved[-2:]]==['simulator-shutdown','simulator-delete']
+  assert all(row['status']=='completed' and row['timeoutSeconds']==20 for row in saved[-2:])
+  executed=[json.loads(line) for line in calls.read_text().splitlines()]
+  assert executed[-2:]==[['simctl','shutdown',uuid],['simctl','delete',uuid]]
+  assert proof['name']!=executed[0][2]
+ finally:
+  if marker.exists():
+   for pid in marker.read_text().splitlines():
+    try:os.kill(int(pid),signal.SIGTERM)
+    except ProcessLookupError:pass
+print('Actual normal startup CLI handles inherited pipes and preserves owned cleanup')
+`;
+  assert.match(execFileSync('python3', ['-c', script], { encoding: 'utf8', timeout: 25000 }), /Actual normal startup CLI/);
 });

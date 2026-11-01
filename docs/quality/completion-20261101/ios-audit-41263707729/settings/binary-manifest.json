@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "kind": "disposable-native-audit",
+  "configuration": "Release",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "platform": "ios",
+  "packageId": "app.platinumcircles.mobile.qa",
+  "binaryName": "PlatinumQA.app",
+  "binarySha256": "c43aa346fabae4c656bc14602cb982bcbb7018ccfcfd4658d33a37742e40084c",
+  "auditManifestSha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+  "sourceReceiptSha256": "cb4762c4caaa3aebff83cf6071cd9b18db3e5377fbcb1903c4017f5c2e1df302",
+  "nativeCompatibility": {
+    "abi": "x86_64",
+    "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+    "minimumOSVersion": "15.1",
+    "sdk": "iphonesimulator18.5",
+    "bundleVersion": "1",
+    "platform": "iphonesimulator",
+    "configurationInputs": {
+      "app.config.js": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+      "package-lock.json": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+      "modules/boomerang/android/build.gradle": "41a9669ced148051cd4c5a5409fb5617f83e3dd1542bc5b7ca077bfce5bd42d1",
+      "modules/boomerang/ios/BoomerangModule.swift": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+      "modules/boomerang/ios/MemoryMovieComposition.swift": "920fc4a01277f3712863909ca8188ef7b3a7efa3b4e560d9caeba056addc0d11",
+      "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+      "modules/boomerang/ios/StoryVideoView.swift": "1601cd03287a4c42e395a1c7f7163cf3465daaab6f0f6957a1264569725749ac",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+      "modules/boomerang/memoryComposition.ts": "38debdfe443ebdc3b728cb5a3f8605f203866a8dfc7c56daab14896686e9eead"
+    }
+  },
+  "toolchain": {
+    "xcode": "Xcode 16.4\nBuild version 16F6",
+    "sdkVersion": "18.5"
+  },
+  "rebuildPerCase": false,
+  "resignOrRebundlePermitted": false
+}

@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "kind": "coordinated-native-startup-restoration",
+  "status": "focused-source-checks-and-independent-review-passed-runtime-pending",
+  "applicationSourceCommitForRetainedConsumers": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTreeForRetainedConsumers": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunIdForRetainedConsumers": 41259529351,
+  "retainedArtifactId": 13065158785,
+  "newBinaryBuiltByThisPatch": false,
+  "runtimeAcceptanceEstablished": false,
+  "basis": {
+    "historicalSuccessfulJourneyRun": 41257372139,
+    "historicalHelper": "scripts/quality/native-ui-ios-d46-recovery.py",
+    "historicalEvidence": "docs/quality/attached-repairs-completion-20261031/ios-runtime/recovery-provenance.json",
+    "observedFailures": [
+      41262989185,
+      41263618167,
+      41264260841
+    ],
+    "explanation": "Historical successful ordering verified exact available runtime/type/version before boot, then booted and completed blocking bootstatus on that UUID before the120-second install. The completion consumer introduced additional postboot global-inventory/getenv reads that failed before installation. The coordinated patch restores the historical proof and ordering without claiming a postboot metadata read."
+  },
+  "changes": [
+    "Both retained completion consumers validate strict source-bound owned-device preboot metadata plus completed exact-UUID boot readiness, then retain the original120-second install.",
+    "Normal startup creates one uniquely named owned pinned Simulator first, uses bounded reads, preserves setup evidence and cleans only its exact UUID with20-second shutdown/delete budgets.",
+    "Normal audit requires the starter receipt, keeps actual host/toolchain/Mach-O/signature checks through bounded reads, retains combined compatibility evidence and prevents cases after a failed120-second iOS install.",
+    "Normal iOS installation and shell cleanup had no wall-time bound; the patch applies the existing reviewed consumer setup budgets to these operations.",
+    "The bounded helper preserves original timeouts when process-group cleanup is denied, records the denial and signals only its original live Popen child; no escalation or unbounded final wait.",
+    "Producer audit provenance now hashes all9 setup/runner/scenario inputs, including the starter, preboot verifier, bounded helper and shell.",
+    "Optional startup observation uses the public libproc API without launching ps, filters to allowlisted Simulator processes, rejects changed identities, retains before/after service metadata and never changes the command verdict."
+  ],
+  "unchangedGates": {
+    "readerDeadlineMs": 15000,
+    "messagesPopulatedFrameMs": 1000,
+    "originalCaseCount": 85,
+    "appRebuildRebundleResignAllowedInRetainedConsumers": false,
+    "nativeProductSourceChangedByThisPatch": false,
+    "producerBindingConstantsChanged": false,
+    "caseAttempts": 1,
+    "caseRetries": 0
+  },
+  "verification": {
+    "focusedNodeTests": 43,
+    "failed": 0,
+    "skipped": 0,
+    "embeddedRecoveryCasesWithinSuite": 23,
+    "finalConsumerLabelOnlyRecheck": "native-original-order-final-consumer.tap",
+    "suite": "native-original-order-coordinated-tests.tap",
+    "pythonCompilation": "passed",
+    "shellSyntax": "passed",
+    "javascriptSyntax": "passed",
+    "diffWhitespace": "passed",
+    "scope": "Controlled source/runner regression tests; actual current app runtime acceptance is still required."
+  },
+  "diagnosticPrimaryApi": "https://github.com/apple-oss-distributions/xnu/blob/main/libsyscall/wrappers/libproc/libproc.c",
+  "files": [
+    {
+      "path": "scripts/quality/completion-ios-audit.py",
+      "sha256": "a0669fcafc2b649bec7c48a68c8e7e17e235d72b9d0e69377b2bb0ca5955b597"
+    },
+    {
+      "path": "scripts/quality/completion-ios-journey.py",
+      "sha256": "e7e1d7076a9cfde889b6cbeb13fcddc61bf4f901e3b96988dbf65916226fa8a9"
+    },
+    {
+      "path": "scripts/quality/completion-ios-startup-diagnostics.py",
+      "sha256": "341f470d77ddbc2700535a860f6373810c8e088337d6f86b0d6924749fa66af8"
+    },
+    {
+      "path": "scripts/quality/native-ui-audit-runner.py",
+      "sha256": "78f277998834d10dc93a2aaaa7d3e3df65fbd84b6997d3012d3018a8a6c0856a"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-audit-recovery.py",
+      "sha256": "fbc06c7c27f0676b480055a666deabb60a4411d8b9b01d984d8b2bc73997520a"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-compatibility.py",
+      "sha256": "db15610540e1ca63f6ffbdb4cdb12bf556a2acf12609d01c272b3a6c0d24915b"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-d46-recovery.py",
+      "sha256": "34ae91ffec25f828432de34f46935b5a168fbc573cfd1618baf6a03caef2edbe"
+    },
+    {
+      "path": "scripts/quality/native-ui-start-ios-device.py",
+      "sha256": "3e74d112f68ca46975787a77feccaec588e0a178c1a4b0fbaaa63bc3616ba2d9"
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui-audit.cjs",
+      "sha256": "3d63d56ce3c413dde5aa3a1f5b9577844efb7204e23e13565e23325ddbafc080"
+    },
+    {
+      "path": "scripts/quality/run-native-ui-audit-device.sh",
+      "sha256": "e5d5c0218792144412033cab701e04cb661dac51833bb8cb480418949cebbfaf"
+    },
+    {
+      "path": "tests/quality/native-completion-journey.cjs",
+      "sha256": "276e673e8ef8d5d756b504fb15cf54a1c4df50b32a9d1f8bed06b1406f361490"
+    },
+    {
+      "path": "tests/quality/native-completion-runner.cjs",
+      "sha256": "bbbb0859045e7265fd7b3ebec87fa54450ef8f6faa334f4036d7e62f23069616"
+    },
+    {
+      "path": "tests/quality/native-ios-audit-compatibility.cjs",
+      "sha256": "aa106950f9d5ab5a18e5d9410c9cf9ca40870430bfcac707eb59ddbebe8af002"
+    },
+    {
+      "path": "tests/quality/native-ios-audit-recovery.cjs",
+      "sha256": "0495c9d9c4b5dc177fa4accd843a2668bff89cbcdcd81cd5b4c4578b815021af"
+    },
+    {
+      "path": "tests/quality/native-platform-audit-pack.cjs",
+      "sha256": "94c30895cc47002fc74a26e592758fa243e024b6bf7af1d85b86edc09a1abd3e"
+    }
+  ],
+  "independentReview": "native-original-order-independent-review.json"
+}

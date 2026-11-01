@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-iOS-consumer-setup-outcome",
+  "consumerSourceCommit": "71292eb90742988759ac619aeea3a8c0a4d780e5",
+  "consumerRunId": 41264260841,
+  "jobId": 124723650567,
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "producerArtifactId": 13065158785,
+  "artifact": {
+    "id": 13066493441,
+    "bytes": 68655,
+    "sha256": "8d100f9e563c3d17dbfb2250dec1e869ee61c03516c328cb9340b41ce85c3c70",
+    "independentlyDownloadedAndVerified": true
+  },
+  "sourceAndBinaryRebuilt": false,
+  "appInstalled": false,
+  "appLaunched": false,
+  "originalJourneyAccepted": false,
+  "performanceAccepted": false,
+  "countedIn85Cases": false,
+  "commandSummary": [
+    {
+      "stage": "compatibility-host-architecture",
+      "status": "completed",
+      "elapsedSeconds": 0.0032106549999753042,
+      "timeoutSeconds": 30,
+      "stdoutBytes": 7,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "compatibility-xcode-version",
+      "status": "completed",
+      "elapsedSeconds": 0.2422780069999817,
+      "timeoutSeconds": 30,
+      "stdoutBytes": 30,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "compatibility-simulator-sdk",
+      "status": "completed",
+      "elapsedSeconds": 4.5237252939999735,
+      "timeoutSeconds": 30,
+      "stdoutBytes": 5,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "compatibility-actual-mach-o",
+      "status": "completed",
+      "elapsedSeconds": 1.5094642889999932,
+      "timeoutSeconds": 30,
+      "stdoutBytes": 7,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "compatibility-app-signature",
+      "status": "completed",
+      "elapsedSeconds": 0.7496051469999543,
+      "timeoutSeconds": 30,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "create-owned-device",
+      "status": "completed",
+      "elapsedSeconds": 72.79829338799999,
+      "timeoutSeconds": 120,
+      "stdoutBytes": 37,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "compatibility-available-runtimes",
+      "status": "completed",
+      "elapsedSeconds": 1.1251314360000038,
+      "timeoutSeconds": 30,
+      "stdoutBytes": 127609,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "compatibility-created-device",
+      "status": "completed",
+      "elapsedSeconds": 0.5736853440000118,
+      "timeoutSeconds": 30,
+      "stdoutBytes": 69507,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "boot",
+      "status": "completed",
+      "elapsedSeconds": 4.58101612300004,
+      "timeoutSeconds": 120,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "bootstatus",
+      "status": "completed",
+      "elapsedSeconds": 202.77580476300005,
+      "timeoutSeconds": 300,
+      "stdoutBytes": 31918,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "postboot-simulator_udid",
+      "status": "timed-out",
+      "elapsedSeconds": 30.000594661000036,
+      "timeoutSeconds": 30,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "shutdown",
+      "status": "timed-out",
+      "elapsedSeconds": 20.01983644500001,
+      "timeoutSeconds": 20,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    },
+    {
+      "stage": "delete",
+      "status": "completed",
+      "elapsedSeconds": 15.921702883999956,
+      "timeoutSeconds": 20,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "leaderExitCodeAtTimeout": null
+    }
+  ],
+  "observations": [
+    "Immutable host, exact producer toolchain, actual x86_64 Mach-O, code signature, created UUID, available pinned iOS18.5 runtime and iPhone16 type all passed.",
+    "The exact owned UUID bootstatus completed with terminal Finished.",
+    "The subsequent exact-owned-device SIMULATOR_UDID query stayed live with zero output until its original 30-second deadline.",
+    "The cold samples show simctl and CoreSimulatorService waiting for SimDiskImageManager XPC responses. Creation nevertheless completed within its existing 120-second budget.",
+    "The postboot observer failed at its process-inventory command before retaining any process sample. Its cold samples cannot establish the postboot wait mechanism.",
+    "No runtime/app assertion or deadline was relaxed; no further retry is counted as a pass."
+  ],
+  "interpretation": {
+    "globalInventoryAloneExplainsFailure": false,
+    "postbootServiceFailureMechanismEstablished": false,
+    "jetsamOrMemoryPressureEstablished": false,
+    "priorCreateFirstRepairRuntimeProven": true,
+    "exactGetenvRepairRuntimeProven": false
+  },
+  "primaryContext": [
+    {
+      "url": "https://github.com/actions/runner-images/issues/14888",
+      "relationship": "Unresolved upstream report on the same image/OS describes a zero-output simctl timeout. It does not establish this run's cause."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/Xcode-Release-Notes/xcode-26_4-release-notes?changes=_4",
+      "relationship": "Apple documents resolved simdiskimaged jetsam-loop hangs and dyld-cache generation defects. Applicability to this exact postboot failure is unproven; Xcode26.4 requires macOS26.2 or later."
+    }
+  ],
+  "retainedFiles": [
+    {
+      "path": "binary-manifest.json",
+      "bytes": 2621,
+      "sha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707"
+    },
+    {
+      "path": "cold-startup/com.apple.CoreSimulator.CoreSimulatorService.sample.txt",
+      "bytes": 102428,
+      "sha256": "bae5f63893268ac5306982bd5d2b6177572fc6ff1519eceb5c1bd1c89147a15c"
+    },
+    {
+      "path": "cold-startup/diagnostic.json",
+      "bytes": 2677,
+      "sha256": "1573a9197809f90e0f88cbe726086f003635e4a099122a8646df213db2f36b4b"
+    },
+    {
+      "path": "cold-startup/simctl.sample.txt",
+      "bytes": 104376,
+      "sha256": "3e614e5b8a1cbb4cacea8709407e667740b0a7fc7e03502eb023800ac6db5fea"
+    },
+    {
+      "path": "completion-proof.json",
+      "bytes": 2076,
+      "sha256": "d679f3eef2486201c2b46709da55b5cbaee22c544dda51eeb2e24f3d2cd94ceb"
+    },
+    {
+      "path": "device-ownership.json",
+      "bytes": 349,
+      "sha256": "b79a3a2edc49bb92380a017bcf6a5c3b47fa58e213701f22ad883cc60cdf538c"
+    },
+    {
+      "path": "device-setup.json",
+      "bytes": 841,
+      "sha256": "ffbed88fe2659f0374b83ea5200c3392a1012afe98fe6746eff8ad40395ef76e"
+    },
+    {
+      "path": "postboot-simulator_udid/diagnostic.json",
+      "bytes": 540,
+      "sha256": "6de77d1e675b342efc779e2872284a5b19c076c779fac071729581a42f89b568"
+    },
+    {
+      "path": "setup-commands.json",
+      "bytes": 19306,
+      "sha256": "c8049ad673051a29ed326d74f49c9a6723826f7b267876db94e34572af2449d0"
+    }
+  ]
+}

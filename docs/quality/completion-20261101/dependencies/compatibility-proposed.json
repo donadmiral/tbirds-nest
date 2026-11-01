@@ -1,0 +1,82 @@
+{
+  "mode": "after",
+  "globVersion": "14.0.2",
+  "actualExpoConfiguration": "9435f6762e0c32bd50424158be1b7745d28149cb8de6dea041661e543cd7e49f",
+  "glob": [
+    {
+      "pattern": "src/**/*.{ts,tsx}",
+      "matches": 365,
+      "hash": "063fabd8e717bf4525919541c6116ea5a731d4074eec0f68c2440e1df72957ad"
+    },
+    {
+      "pattern": "modules/**/*.{swift,kt}",
+      "matches": 8,
+      "hash": "073ed433a600ae7836b7c7e629137a985cb499a148f595d44806cc0f5272164f"
+    },
+    {
+      "pattern": "plugins/*.js",
+      "matches": 2,
+      "hash": "e92d70921c41f4afbaddf1b637948f6892eb6d8ce39d799475c91da0f1716b85"
+    },
+    {
+      "pattern": "*.{js,json}",
+      "matches": 10,
+      "hash": "7eaf1399202a570dfe44d97d72fd730a67d2497d8a515d86d7b61837240cfa7a"
+    },
+    {
+      "pattern": "web/app/**/{page,layout}.tsx",
+      "matches": 115,
+      "hash": "560bbd118013252c81cf9fd4d0f5dae7c05a19b17fb1048334d26d01e2ae8069"
+    }
+  ],
+  "fingerprint": [
+    {
+      "patterns": [
+        "**/node_modules/**",
+        "!src/**"
+      ],
+      "matchedFiles": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "directoryPatterns": [
+        "**/node_modules"
+      ]
+    },
+    {
+      "patterns": [
+        "src/**",
+        "!src/lib/**"
+      ],
+      "matchedFiles": "024553249164cf388ae0455a332e92f6069743c37258abe50e7a0e6fc7e9b81f",
+      "directoryPatterns": []
+    },
+    {
+      "patterns": [
+        "**/*.json",
+        "!package.json"
+      ],
+      "matchedFiles": "1631cbe017f596640a6299ff529c87e0cf65da6c124dd04138714e40e7b91306",
+      "directoryPatterns": []
+    },
+    {
+      "patterns": [
+        "docs/**",
+        "tests/**"
+      ],
+      "matchedFiles": "ec8ec37eae02701acc6c64151ecea41b814b771f3cbbd76e027b7cb44ff8bafe",
+      "directoryPatterns": [
+        "docs",
+        "tests"
+      ]
+    }
+  ],
+  "abort": {
+    "rejectedWithOriginalReason": true,
+    "readsAtRejection": 1,
+    "readsAfterRejection": 0,
+    "totalReads": 1
+  },
+  "patternAmplification": {
+    "inputSegments": 120,
+    "limit": 64,
+    "actualPatterns": 64
+  }
+}

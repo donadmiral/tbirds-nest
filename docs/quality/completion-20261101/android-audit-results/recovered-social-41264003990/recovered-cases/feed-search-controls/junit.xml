@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="platinum_audit" tests="1" failures="0" time="36.6" timestamp="2026-11-01T02:27:17">
+    <testcase id="Audit search entry and clear" name="Audit search entry and clear" classname="Audit search entry and clear" file="tests/native/audit/flows/feed-search-controls.yaml" time="36.575" timestamp="2026-11-01T02:27:17" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

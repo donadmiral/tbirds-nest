@@ -1,0 +1,138 @@
+{
+  "native": [
+    {
+      "path": "node_modules/@expo/fingerprint/node_modules/balanced-match",
+      "before": "4.0.4",
+      "after": null
+    },
+    {
+      "path": "node_modules/@expo/fingerprint/node_modules/brace-expansion",
+      "before": "5.0.12",
+      "after": null
+    },
+    {
+      "path": "node_modules/@expo/fingerprint/node_modules/minimatch",
+      "before": "10.2.5",
+      "after": null
+    },
+    {
+      "path": "node_modules/@isaacs/nonrecursive-glob-match",
+      "before": null,
+      "after": "1.0.3"
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/node_modules/balanced-match",
+      "before": "4.0.4",
+      "after": null
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/node_modules/brace-expansion",
+      "before": "5.0.12",
+      "after": null
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/node_modules/minimatch",
+      "before": "10.2.6",
+      "after": null
+    },
+    {
+      "path": "node_modules/brace-expansion",
+      "before": "2.1.7",
+      "after": "5.0.12"
+    },
+    {
+      "path": "node_modules/brace-expansion/node_modules/balanced-match",
+      "before": null,
+      "after": "4.0.4"
+    },
+    {
+      "path": "node_modules/glob",
+      "before": "13.0.6",
+      "after": "14.0.2"
+    },
+    {
+      "path": "node_modules/glob/node_modules/balanced-match",
+      "before": "4.0.4",
+      "after": null
+    },
+    {
+      "path": "node_modules/glob/node_modules/brace-expansion",
+      "before": "5.0.12",
+      "after": null
+    },
+    {
+      "path": "node_modules/glob/node_modules/minimatch",
+      "before": "10.2.5",
+      "after": null
+    },
+    {
+      "path": "node_modules/minimatch",
+      "before": "9.0.9",
+      "after": "11.0.1"
+    },
+    {
+      "path": "node_modules/path-scurry",
+      "before": "2.0.2",
+      "after": "3.0.0"
+    },
+    {
+      "path": "node_modules/path-scurry/node_modules/lru-cache",
+      "before": "11.3.5",
+      "after": "11.5.3"
+    }
+  ],
+  "web": [
+    {
+      "path": "node_modules/@isaacs/nonrecursive-glob-match",
+      "before": null,
+      "after": "1.0.3"
+    },
+    {
+      "path": "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@emnapi/core",
+      "before": null,
+      "after": "1.11.1"
+    },
+    {
+      "path": "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@emnapi/runtime",
+      "before": null,
+      "after": "1.11.1"
+    },
+    {
+      "path": "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@emnapi/wasi-threads",
+      "before": null,
+      "after": "1.2.2"
+    },
+    {
+      "path": "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@napi-rs/wasm-runtime",
+      "before": null,
+      "after": "1.1.4"
+    },
+    {
+      "path": "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@tybys/wasm-util",
+      "before": null,
+      "after": "0.10.2"
+    },
+    {
+      "path": "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/tslib",
+      "before": null,
+      "after": "2.8.1"
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/node_modules/minimatch",
+      "before": "10.2.6",
+      "after": "11.0.1"
+    }
+  ],
+  "admin": [
+    {
+      "path": "node_modules/@isaacs/nonrecursive-glob-match",
+      "before": null,
+      "after": "1.0.3"
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/node_modules/minimatch",
+      "before": "10.2.6",
+      "after": "11.0.1"
+    }
+  ]
+}

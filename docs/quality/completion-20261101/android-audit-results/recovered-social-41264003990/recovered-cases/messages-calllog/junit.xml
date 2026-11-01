@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="platinum_audit" tests="1" failures="0" time="28.459" timestamp="2026-11-01T02:24:44">
+    <testcase id="Audit CallLog" name="Audit CallLog" classname="Audit CallLog" file="tests/native/audit/flows/messages-calllog.yaml" time="28.44" timestamp="2026-11-01T02:24:44" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

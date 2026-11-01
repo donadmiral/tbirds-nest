@@ -1,0 +1,95 @@
+{
+  "tool": "supabase_apply_migration",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "name": "private_media_readiness_storage_references",
+  "sourcePath": "supabase/migrations/20261101013831_private_media_readiness_storage_references.sql",
+  "sourceSha256": "e9832d2e138d5267d157bf949000f65741070928b13429ef496d00a130fce073",
+  "plannedInvocationUtc": "2026-11-01 02:13:24 UTC",
+  "preflight": {
+    "function": {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "bodyMd5": "d0ece2842505adddcdd7edbf95d4fdf0",
+      "signature": "private_media_cutover_readiness()",
+      "volatility": "s",
+      "anonExecute": false,
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "serviceExecute": true,
+      "securityDefiner": true,
+      "authenticatedExecute": false
+    },
+    "observedAtUtc": "2026-11-01T02:13:03.162707+00:00",
+    "migrationHistory": [],
+    "otherActiveMatchingStatements": 0
+  },
+  "mutationScope": "Replace only the service-only metadata readiness helper with its independently reviewed exact forward fix; no policies, assets or app data change",
+  "supportedAttemptCount": 1,
+  "state": "completed and hosted postflight verified",
+  "providerResult": {
+    "success": true
+  },
+  "providerOutcome": "committed",
+  "functionsCellId": "g2:88",
+  "postflight": {
+    "function": {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "bodyMd5": "6830911bf6c431dab59988eab8e55b43",
+      "signature": "private_media_cutover_readiness()",
+      "volatility": "s",
+      "anonExecute": false,
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "serviceExecute": true,
+      "securityDefiner": true,
+      "authenticatedExecute": false
+    },
+    "readiness": {
+      "buckets": [
+        {
+          "id": "chat-files",
+          "public": false
+        },
+        {
+          "id": "chat-media",
+          "public": false
+        },
+        {
+          "id": "media",
+          "public": false
+        },
+        {
+          "id": "post-media",
+          "public": false
+        },
+        {
+          "id": "story-media",
+          "public": false
+        }
+      ],
+      "missingObjects": 0,
+      "chatObjectCount": 0,
+      "contentReferences": 13,
+      "unboundReferences": 0,
+      "missingChatObjects": 0,
+      "restrictedPolicyCount": 10,
+      "reviewedLegacyReferences": 0,
+      "legacyRequiresPublicBucket": false,
+      "limitedObjectsWithOrdinaryReferences": 0
+    },
+    "observedAtUtc": "2026-11-01T02:14:10.285422+00:00",
+    "migrationHistory": [
+      {
+        "name": "private_media_readiness_storage_references",
+        "version": "20261101021335"
+      }
+    ],
+    "otherActiveMatchingStatements": 0
+  },
+  "readinessBugResolved": true,
+  "productionMutated": false,
+  "businessOrSupportRequestReplayed": false
+}

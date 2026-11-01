@@ -61,7 +61,7 @@ async function observeExport(actualExport, options) {
           attempt.captures.push({ ...retained, page: value.item.page.id, kind: value.item.kind,
             card: value.item.movie.titleCard, layer: value.layer, clock: value.clock, duration: value.item.movie.durationSec });
           update(); return uri;
-        } catch (error) { try { new File(uri).delete(); } catch {} throw error; }
+        } catch (error) { try { new File(uri).delete(); } catch { /* Preserve the original capture failure if cleanup also fails. */ } throw error; }
       },
       progress: value => { attempt.progress.push(value); update(); options.progress(value); },
     });

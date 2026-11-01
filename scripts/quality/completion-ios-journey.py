@@ -119,41 +119,14 @@ def prepare_simulator(manifest, starter, created, helper, records, output):
 
 
 def verify_selected_booted_runtime(manifest, prepared, created, helper, records, output):
-    """Read live identity/version from the exact already-verified owned device."""
+    """Preserve the successful historical preboot/bootstatus/install ordering."""
     device = created.validate_device_identifier(prepared.get('device'))
-    expected = manifest.get('nativeCompatibility', {})
-    verified = prepared.get('verification', {})
-    if (manifest.get('applicationSourceCommit') != SOURCE
-            or expected.get('abi') != 'x86_64' or expected.get('runtimeIdentifier') != created.RUNTIME
-            or prepared.get('created') is not True or prepared.get('bootReady') is not True
-            or prepared.get('sourceCommit') != manifest.get('applicationSourceCommit')
-            or prepared.get('runtimeIdentifier') != created.RUNTIME
-            or prepared.get('deviceTypeIdentifier') != created.DEVICE_TYPE
-            or verified.get('selectedDevice') != device
-            or verified.get('runtimeIdentifier') != created.RUNTIME
-            or verified.get('runtimeVersion') != created.VERSION
-            or verified.get('deviceTypeIdentifier') != created.DEVICE_TYPE
-            or verified.get('runtimeAvailabilityVerified') is not True
-            or verified.get('stateAtVerification') != 'Shutdown'):
-        raise ValueError('Exact owned-device metadata and completed boot readiness are required')
-    if any(name in os.environ for name in
-           ['SIMCTL_CHILD_SIMULATOR_UDID', 'SIMCTL_CHILD_SIMULATOR_RUNTIME_VERSION']):
-        raise ValueError('Caller overrides cannot supply the Simulator identity or runtime evidence')
-    startup = load_module('completion_live_runtime', Path(__file__).with_name('completion-ios-startup-diagnostics.py'))
-    actual = {}
-    for variable, expected_value in [('SIMULATOR_UDID', device), ('SIMULATOR_RUNTIME_VERSION', created.VERSION)]:
-        stage = 'postboot-' + variable.lower()
-        actual[variable] = startup.observed_read(['xcrun', 'simctl', 'getenv', device, variable], 30,
-            lambda command, seconds: helper.setup_read(command, stage, seconds, records, output),
-            lambda: startup.capture_startup(helper, Path(output).parent / stage))
-        if actual[variable] != expected_value:
-            raise ValueError('The live selected Simulator ' + variable + ' differs')
-    return {'runtimeIdentifier': created.RUNTIME, 'runtimeVersion': actual['SIMULATOR_RUNTIME_VERSION'],
-            'selectedDevice': actual['SIMULATOR_UDID'], 'deviceTypeIdentifier': created.DEVICE_TYPE,
-            'prebootRuntimeAvailabilityVerified': True, 'exactUuidBootstatusCompleted': True,
-            'postbootIdentityAndVersionReadFromDevice': True, 'globalInventoryRepeatedAfterBoot': False,
-            'guestArchitectureMeasured': False,
-            'scope': 'Pinned runtime/type/availability verified before boot; bootstatus completed for that owned UUID; live running-device UDID and runtime version then matched exactly. Host/app ABI is checked separately. App launch remains required.'}
+    if manifest.get('applicationSourceCommit') != SOURCE:
+        raise ValueError('The retained completion app source is required')
+    # The successful original journey made install the next live-device action.
+    # Its proof combines actual preboot metadata with completed exact-UUID
+    # bootstatus; it does not assert that another postboot query was performed.
+    return helper.compatibility_module.verify_prepared_booted_runtime(manifest, device, prepared)
 
 
 def main():
@@ -208,13 +181,11 @@ def main():
     result = 1
     try:
         proof['immutableCompatibility'] = helper.verify_setup_immutable(app, manifest, records, setup)
-        def metadata(command, timeout):
-            return helper.setup_read(command, 'simulator-setup', timeout, records, setup)
         prepared = prepare_simulator(manifest, starter, created, helper, records, setup)
         device = prepared['device']
         helper.atomic_json(output / 'device-setup.json', prepared)
         proof['bootedRuntime'] = verify_selected_booted_runtime(manifest, prepared, created, helper, records, setup)
-        metadata(['xcrun', 'simctl', 'install', device, str(app)], 120)
+        helper.setup_read(['xcrun', 'simctl', 'install', device, str(app)], 'install', 120, records, setup)
         with (output / 'app.log').open('wb') as log:
             logger = subprocess.Popen(['xcrun', 'simctl', 'spawn', device, 'log', 'stream', '--style', 'compact',
                 '--level', 'info', '--predicate', 'process == "PlatinumQA"'], stdout=log, stderr=subprocess.STDOUT,

@@ -1,0 +1,135 @@
+{
+  "observedAt": "2026-11-01T02:31:28.246601+00:00",
+  "baseCommit": "71292eb90742988759ac619aeea3a8c0a4d780e5",
+  "fixes": {
+    "glob": {
+      "advisory": "https://github.com/advisories/GHSA-3g3m-2fjr-6pw4",
+      "from": "13.0.6",
+      "to": "14.0.2",
+      "scope": "Modern glob >=9 and <=14.0.1 only; legacy7unchanged"
+    },
+    "minimatch": {
+      "advisory": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+      "to": "11.0.1",
+      "scope": "Modern minimatch >=9 and <11.0.1 only; callable legacy3APIunchanged"
+    }
+  },
+  "installation": {
+    "native": {
+      "packages": 1056,
+      "exitCode": 0
+    },
+    "web": {
+      "packages": 443,
+      "exitCode": 0
+    },
+    "admin": {
+      "packages": 376,
+      "exitCode": 0
+    }
+  },
+  "typeScript": {
+    "native": 0,
+    "web": 0,
+    "admin": 0
+  },
+  "functionalDependencyRegressions": {
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0,
+    "receipt": "installed-security-regressions.tap"
+  },
+  "realExpoConfiguration": {
+    "baselineHash": "9435f6762e0c32bd50424158be1b7745d28149cb8de6dea041661e543cd7e49f",
+    "installedHash": "426afcde2c0412856d200347b86ecdcd1d9bcbcabf6a1367cd1e7e8e46084c91",
+    "installedHashAfterExcludingOnlyDeclaredOverrides": "9435f6762e0c32bd50424158be1b7745d28149cb8de6dea041661e543cd7e49f",
+    "otherConfigurationUnchanged": true
+  },
+  "actualGlobAndFingerprintOutputsUnchanged": true,
+  "cancellationProbe": {
+    "before": {
+      "rejectedWithOriginalReason": true,
+      "readsAtRejection": 3,
+      "readsAfterRejection": 60,
+      "totalReads": 63
+    },
+    "installed": {
+      "rejectedWithOriginalReason": true,
+      "readsAtRejection": 1,
+      "readsAfterRejection": 0,
+      "totalReads": 1
+    }
+  },
+  "patternAmplificationProbe": {
+    "inputSegments": 120,
+    "limit": 64,
+    "actualPatterns": 64
+  },
+  "registryCountsAfter": {
+    "native": {
+      "info": 0,
+      "low": 0,
+      "moderate": 24,
+      "high": 0,
+      "critical": 0,
+      "total": 24
+    },
+    "web": {
+      "info": 0,
+      "low": 0,
+      "moderate": 15,
+      "high": 0,
+      "critical": 0,
+      "total": 15
+    },
+    "admin": {
+      "info": 0,
+      "low": 0,
+      "moderate": 15,
+      "high": 0,
+      "critical": 0,
+      "total": 15
+    }
+  },
+  "remainingRegistryFindings": "All remaining direct findings resolve to minimatch3.1.5, with no optimizationLevel or firstPhasePreProcess implementation; see legacy-minimatch-advisory-review.json. We do not claim npm audit returnszero.",
+  "lockfileNotes": [
+    "The web lock records bundled optional WASI metadata already shipped by unchanged @tailwindcss/oxide-wasm32-wasi; its package version/integrity are unchanged.",
+    "The new glob major introduces path-scurry3 and modern minimatch11. Actual current consumers and full production bundling are verified separately."
+  ],
+  "productionRuntimeProof": {
+    "receipt": "production-runtime-module-proof-fixed.json",
+    "iosExitCode": 0,
+    "androidExitCode": 0,
+    "globAndMinimatchAbsent": true,
+    "bundleAndSourceMapBytesIdenticalToEarlierProductionExports": true
+  },
+  "eslint": {
+    "native": {
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 270,
+      "receipt": "native-eslint-fixed-final.txt"
+    },
+    "web": {
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "receipt": "web-eslint-fixed.txt"
+    },
+    "admin": {
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "receipt": "admin-eslint-fixed.txt"
+    }
+  },
+  "lintFixtureRepairs": [
+    "Documented capture cleanup catch preserves original exception",
+    "Removed unused test helper",
+    "Mocked Next image records its unoptimized attribute"
+  ],
+  "fixtureRegressions": {
+    "receipt": "lint-fixture-regressions.tap",
+    "exitCode": 0
+  }
+}

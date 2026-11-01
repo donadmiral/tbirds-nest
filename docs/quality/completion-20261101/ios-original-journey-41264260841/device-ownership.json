@@ -1,0 +1,8 @@
+{
+  "device": "758055C3-87A3-40A1-9391-FA1BDB66320E",
+  "created": true,
+  "name": "Platinum completion b8abd44695084f198dd016606ad856ba",
+  "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+  "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+  "sourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1"
+}

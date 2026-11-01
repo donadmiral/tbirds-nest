@@ -1,0 +1,17 @@
+✔ fresh original-journey consumer refuses unrelated, incomplete or changed producer bytes (60.001188ms)
+✔ fresh original journey keeps the exact reviewed path and reports a separate source-bound result (26.746041ms)
+✔ native app timing requires the exact visit count and a populated frame before leaving (26.661063ms)
+✔ reader timing requires both original pages and captions and catches a driver deadline overrun (27.06776ms)
+✔ owned cold Simulator creation and metadata complete when an exited parent leaves a service holding the output pipe (418.879039ms)
+✔ cold startup observation preserves the exact command, deadline and timeout without retrying (191.723198ms)
+✔ owned startup rejects another runtime and cleans only its returned UUID after metadata failure (52.022324ms)
+✔ completion setup restores the original preboot proof then exact UUID readiness and120-second install (43.127053ms)
+✔ startup observation reads public PID metadata without launching ps and rejects changed or unbounded identities (77.749429ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1007.569422

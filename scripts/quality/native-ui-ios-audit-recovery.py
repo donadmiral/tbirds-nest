@@ -65,16 +65,32 @@ def atomic_json(path, value):
 
 
 def stop_group(process):
+    cleanup = {'scope': 'owned command group and original child leader only',
+               'permissionIssues': [], 'directLeaderSignals': [], 'wallBudgetSeconds': 0.6}
     for sig, seconds in [(signal.SIGTERM, 0.3), (signal.SIGKILL, 0.3)]:
         try:
             os.killpg(process.pid, sig)
         except ProcessLookupError:
             pass
+        except PermissionError:
+            # CoreSimulator may leave a protected service in the child's
+            # original group. Never elevate or target that service directly.
+            cleanup['permissionIssues'].append({'operation': 'signal-owned-group', 'signal': sig.name})
+            if process.poll() is None:
+                try:
+                    process.send_signal(sig)
+                    cleanup['directLeaderSignals'].append(sig.name)
+                except ProcessLookupError:
+                    pass
+                except PermissionError:
+                    cleanup['permissionIssues'].append({'operation': 'signal-original-leader', 'signal': sig.name})
         try:
             process.wait(timeout=seconds)
         except subprocess.TimeoutExpired:
             continue
-    process.wait()
+    cleanup['leaderExitCode'] = process.poll()
+    cleanup['leaderReaped'] = cleanup['leaderExitCode'] is not None
+    return cleanup
 
 
 def bounded_command(args, timeout=5, limit=128 * 1024):
@@ -122,7 +138,7 @@ def bounded_command(args, timeout=5, limit=128 * 1024):
                 error.stderr = bytes(chunks['stderr'])
                 error.leader_exit_code = process.poll()
                 error.elapsed_seconds = time.monotonic() - started
-            stop_group(process)
+            error.cleanup = stop_group(process)
             raise
         finally:
             process.stdout.close()
@@ -162,9 +178,13 @@ def setup_read(args, stage, timeout, records, output):
         retain(error.output, error.stderr)
         row.update({'status': 'timed-out', 'leaderExitCodeAtTimeout': getattr(error, 'leader_exit_code', None),
                     'elapsedSeconds': getattr(error, 'elapsed_seconds', None)})
+        if hasattr(error, 'cleanup'):
+            row['cleanup'] = error.cleanup
         raise
     except BaseException as error:
         row.update({'status': 'failed' if isinstance(error, Exception) else 'interrupted', 'issue': type(error).__name__})
+        if hasattr(error, 'cleanup'):
+            row['cleanup'] = error.cleanup
         raise
     finally:
         row['finishedAtEpochMs'] = round(time.time() * 1000)

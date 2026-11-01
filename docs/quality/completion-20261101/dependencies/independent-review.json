@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-narrow-dependency-and-fixture-review",
+  "observedAt": "2026-11-01T02:36:44.973534+00:00",
+  "reviewer": "status_scope_check",
+  "verdict": "no-publication-blocker-found",
+  "baseCommit": "71292eb90742988759ac619aeea3a8c0a4d780e5",
+  "reviewedFiles": [
+    {
+      "path": "package.json",
+      "sha256": "03cc90dc982f290d2ac8d62c4a1e907cc8358198e190e31ae2416bc09426dcac"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "3d69706a46f51105e55e9b9b377708707346805adeba060cb82bed4fb5240b1d"
+    },
+    {
+      "path": "web/package.json",
+      "sha256": "8db3fb5d8b1c29c66a4481301c22905c5526aa42c151a5f4b446887ba334419a"
+    },
+    {
+      "path": "web/package-lock.json",
+      "sha256": "525a799b6b4b48938d3263a542ecfbd279f351ec0991f174fee7244663fdbf24"
+    },
+    {
+      "path": "admin-web/package.json",
+      "sha256": "6a7f4f689516eb324c74e4f73b88c757ae55c5881a9c9bddb19f965434e53ab6"
+    },
+    {
+      "path": "admin-web/package-lock.json",
+      "sha256": "9897e446fe54964708b0a3c09cc14ccc01963295ee1a12f0c3c9c6fbb75d6ae2"
+    },
+    {
+      "path": "tests/quality/dependency-glob-security.cjs",
+      "sha256": "2eb69dc50d3512b18cf6a8c1c7cf70d90302fab5810f593b04aef6f236031c6d"
+    },
+    {
+      "path": "tests/native/memory-capture-observer.cjs",
+      "sha256": "eaaf976b9f2ec0b8968e9a7610188ee398fb17648f29c73724333913020256ff"
+    },
+    {
+      "path": "tests/quality/navigation-screens.cjs",
+      "sha256": "6afe0088dfdd0298f7970da0aa204bee93769ad8c55879394b10def40c3b656f"
+    },
+    {
+      "path": "web/tests/navigation-loading.cjs",
+      "sha256": "66b61a41ca623cccdcb88e63199d157cf44ca388c5f41accbc1c712acde75ff1"
+    }
+  ],
+  "findings": {
+    "packageChanges": "Only declared override maps changed in all three package manifests; scripts and direct dependency declarations are unchanged. Modern glob9\u201314.0.1 maps to14.0.2; modern minimatch9\u201311.0.0 maps to11.0.1. Callable glob7/minimatch3 consumers are preserved.",
+    "lockScope": "Native changes are confined to the modern glob/minimatch dependency family, expected path-scurry3 and lru-cache11 maintenance update, brace-expansion/balanced-match deduplication and the matcher dependency. Web/admin upgrade the TypeScript ESLint matcher.",
+    "wasiMetadata": "The web lock adds six inBundle/optional/dev child records under @tailwindcss/oxide-wasm32-wasi4.3.3. The entire parent lock record, including version and integrity, is unchanged; none of these child rows introduces a separate resolved artifact.",
+    "actualConsumers": "Reviewed Expo fingerprint uses stable Minimatch constructor/pattern/negate/match APIs; Expo config/config-plugins/Metro tooling use supported sync/async discovery APIs. Actual installed regression cases cover their relevant behavior. Node22 CI meets the updated dependency engine requirements.",
+    "legacyAdvisory": "All11 retained minimatch3.1.5 source files match the documented hashes. Their source has neither modern preprocessing phase nor optimizationLevel; the advisory-shaped120-segment pattern produces one pattern set. This supports non-applicability of the specifically described amplification mechanism, not a blanket assertion about all vulnerabilities.",
+    "fixtureScope": "The three lint fixes add a cleanup-exception comment, remove an unused test helper and record the consumed unoptimized prop in the Next-image test double. No production component, assertion or timeout was weakened."
+  },
+  "independentChecks": {
+    "installedSecurityAndConsumerTests": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "receipt": "independent-security-regressions.tap"
+    },
+    "npmLsGlobMinimatchPathScurry": {
+      "exitCode": 0,
+      "dependencyProblems": []
+    },
+    "productionFiles": [
+      {
+        "platform": "ios",
+        "path": "ios/_expo/static/js/ios/index-48b5b1f24bb27eeedb7807ef65ff3a9d.hbc.map",
+        "bytes": 21937111,
+        "sha256": "93b3cfb28c306588c79cc2f275c951b86c5ace60cdbfb3d986e7e26a27a35811",
+        "identicalToRetainedEarlierExport": true,
+        "sourceModules": 2810,
+        "globOrMinimatchModules": 0
+      },
+      {
+        "platform": "ios",
+        "path": "ios/_expo/static/js/ios/index-48b5b1f24bb27eeedb7807ef65ff3a9d.hbc",
+        "bytes": 8504560,
+        "sha256": "dff422b4e4431bde3575b98cd02a420c15fbf9aa6c0fc240e147b4a693703085",
+        "identicalToRetainedEarlierExport": true
+      },
+      {
+        "platform": "android",
+        "path": "android/_expo/static/js/android/index-2e20fc18107ddd8a0937e43ffff571b7.hbc.map",
+        "bytes": 21956321,
+        "sha256": "7b020af7f78664fce83dc6f7ffdb6b280a5c83043dc40ff7f17c67b865bc306e",
+        "identicalToRetainedEarlierExport": true,
+        "sourceModules": 2809,
+        "globOrMinimatchModules": 0
+      },
+      {
+        "platform": "android",
+        "path": "android/_expo/static/js/android/index-2e20fc18107ddd8a0937e43ffff571b7.hbc",
+        "bytes": 8510356,
+        "sha256": "16d5ca660578352c41441d0ed931fdbf1797feb9e94b23f8e59ce7df7cbf6b3c",
+        "identicalToRetainedEarlierExport": true
+      }
+    ],
+    "legacyInstances": [
+      {
+        "project": "native",
+        "path": "node_modules/@eslint/config-array/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      },
+      {
+        "project": "native",
+        "path": "node_modules/@eslint/eslintrc/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      },
+      {
+        "project": "native",
+        "path": "node_modules/@react-native/codegen/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      },
+      {
+        "project": "native",
+        "path": "node_modules/eslint-plugin-import/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      },
+      {
+        "project": "native",
+        "path": "node_modules/eslint-plugin-react/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      },
+      {
+        "project": "native",
+        "path": "node_modules/eslint/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      },
+      {
+        "project": "native",
+        "path": "node_modules/react-native/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      },
+      {
+        "project": "native",
+        "path": "node_modules/rimraf/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      },
+      {
+        "project": "native",
+        "path": "node_modules/test-exclude/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      },
+      {
+        "project": "web",
+        "path": "web/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      },
+      {
+        "project": "admin",
+        "path": "admin-web/node_modules/minimatch",
+        "version": "3.1.5",
+        "sha256": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d",
+        "advisoryPatternParts": 120,
+        "generatedPatternSets": 1,
+        "callableLegacyApi": true,
+        "modernPreprocessMechanismPresent": false
+      }
+    ],
+    "actualByteEqualityAndMapModuleChecks": true
+  },
+  "rootEvidenceReviewed": [
+    "verification.json",
+    "compatibility-before.json",
+    "compatibility-proposed.json",
+    "compatibility-installed.json",
+    "lockfile-change-inventory.json",
+    "legacy-minimatch-advisory-review.json",
+    "production-runtime-module-proof-fixed.json",
+    "installed-security-regressions.tap",
+    "lint-fixture-regressions.tap"
+  ],
+  "remainingRegistryFindings": {
+    "nativeModerate": 24,
+    "webModerate": 15,
+    "adminModerate": 15,
+    "high": 0,
+    "critical": 0,
+    "auditSuppressed": false,
+    "zeroAuditClaimed": false
+  },
+  "primarySources": [
+    "https://github.com/advisories/GHSA-3g3m-2fjr-6pw4",
+    "https://github.com/advisories/GHSA-g3hv-75wg-m249"
+  ],
+  "claimLimits": [
+    "Byte equality applies to the retained actual production Metro/Hermes exports and their maps. It does not establish native installation, device performance or signed distribution.",
+    "A new final source-bound producer is still required for the changed dependency lock and runner source; the retainedf5 artifact must not be relabeled."
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "nonNavigationOptionalTimingUnavailable": [
+    {
+      "caseId": "market-offer-cancel",
+      "timingAvailable": false,
+      "retainedOriginalError": "recovered-cases/market-offer-cancel/native-ui-navigation-timing-unavailable.txt"
+    },
+    {
+      "caseId": "notifications-empty-controls",
+      "timingAvailable": false,
+      "retainedOriginalError": "recovered-cases/notifications-empty-controls/native-ui-navigation-timing-unavailable.txt"
+    },
+    {
+      "caseId": "jobs-application-entry",
+      "timingAvailable": false,
+      "retainedOriginalError": "recovered-cases/jobs-application-entry/native-ui-navigation-timing-unavailable.txt"
+    },
+    {
+      "caseId": "messages-calllog",
+      "timingAvailable": false,
+      "retainedOriginalError": "recovered-cases/messages-calllog/native-ui-navigation-timing-unavailable.txt"
+    },
+    {
+      "caseId": "messages-chat",
+      "timingAvailable": false,
+      "retainedOriginalError": "recovered-cases/messages-chat/native-ui-navigation-timing-unavailable.txt"
+    },
+    {
+      "caseId": "feed-article-draft",
+      "timingAvailable": false,
+      "retainedOriginalError": "recovered-cases/feed-article-draft/native-ui-navigation-timing-unavailable.txt"
+    },
+    {
+      "caseId": "messages-recipient-search",
+      "timingAvailable": false,
+      "retainedOriginalError": "recovered-cases/messages-recipient-search/native-ui-navigation-timing-unavailable.txt"
+    },
+    {
+      "caseId": "feed-search-controls",
+      "timingAvailable": false,
+      "retainedOriginalError": "recovered-cases/feed-search-controls/native-ui-navigation-timing-unavailable.txt"
+    }
+  ],
+  "warmTabsTimingAvailableAndVerified": true,
+  "performanceEvidence": "performance.json",
+  "boundary": "The original collector treated a nonempty adb cat error as collected metadata for cases without timing events. Those files are retained as text and never used as app-timing measurements."
+}

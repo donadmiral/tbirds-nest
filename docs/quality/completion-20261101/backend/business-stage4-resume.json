@@ -1,0 +1,85 @@
+{
+  "scope": "QA only",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "priorUnknownRequestsRemainUnknown": true,
+  "normalSupportedPathObservedHealthy": "private_media_readiness_storage_references terminal success and exact hosted postflight",
+  "stage": 4,
+  "name": "qa_business_auth_04_private_member_signin_20261101",
+  "source": {
+    "number": 4,
+    "name": "private_member_signin",
+    "path": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+    "bytes": 7894,
+    "sha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+    "requiresDestructiveConfirmation": true,
+    "originalStatementIndices": [
+      29
+    ],
+    "expectedBeforeFingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "expectedAfterFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+    "publicActivation": false
+  },
+  "preflight": {
+    "observedAt": "2026-11-01T02:15:34.204104+00:00",
+    "fingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "schemaComment": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "catalogRows": 99,
+    "fences": {
+      "journal": [
+        {
+          "name": "qa_business_auth_01_foundation_20261031",
+          "version": "20261031020659"
+        },
+        {
+          "name": "qa_business_auth_02_private_guards_20261031",
+          "version": "20261031021053"
+        },
+        {
+          "name": "qa_business_auth_03_private_device_20261031",
+          "version": "20261031021956"
+        }
+      ],
+      "observedAt": "2026-11-01T02:15:41.471286+00:00",
+      "privateTableAccess": 0,
+      "privateSchemaAccess": [
+        {
+          "role": "anon",
+          "usage": false
+        },
+        {
+          "role": "authenticated",
+          "usage": false
+        },
+        {
+          "role": "service_role",
+          "usage": false
+        }
+      ],
+      "privateFunctionExecute": 0,
+      "activeMatchingStatements": 0,
+      "existingBusinessSessions": 0
+    }
+  },
+  "startUtc": "2026-11-01 02:15:58 UTC",
+  "state": "provider outcome unknown after coordinator interruption",
+  "providerOutcome": "unknown",
+  "functionsCellId": "g2:99",
+  "initialYieldSeconds": 1,
+  "providerResult": null,
+  "providerRequestId": null,
+  "approvalOrRejectionObserved": false,
+  "followupReadOnlyExecInterruptedAfterSeconds": 953.9,
+  "interruptionInitiator": "coordinator",
+  "userCancellation": false,
+  "remoteCancellationEstablished": false,
+  "sameCellShortPollResult": "exec cell 99 not found",
+  "latestCoordinatorReadOnlyObservation": {
+    "observedAtUtc": "2026-11-01 02:31:56 UTC",
+    "schemaStage": 3,
+    "catalogFingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "stage4MigrationJournalPresent": false,
+    "activeMatchingStatements": 0
+  },
+  "furtherApplyAttemptsSubmitted": false,
+  "alternateDdlRouteUsed": false
+}

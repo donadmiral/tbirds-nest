@@ -190,7 +190,13 @@ class RecoveryTests(unittest.TestCase):
   code='import subprocess,sys,time;from pathlib import Path;p=subprocess.Popen([sys.executable,"-c",'+repr(child)+']);Path(sys.argv[1]).write_text(str(p.pid));time.sleep(30)'
   with self.assertRaises(subprocess.TimeoutExpired):m.bounded_command([sys.executable,'-c',code,str(marker)],timeout=.3)
   pid=int(marker.read_text());proc=Path('/proc')/str(pid)/'stat'
-  if proc.exists():self.assertEqual(proc.read_text().split()[2],'Z')
+  # SIGKILL delivery is asynchronous even after the direct parent is reaped.
+  def state():
+   try:return proc.read_text().split()[2]
+   except FileNotFoundError:return None
+  deadline=time.monotonic()+.5
+  while state() not in [None,'Z'] and time.monotonic()<deadline:time.sleep(.01)
+  self.assertIn(state(),[None,'Z'])
  def test_actual_command_output_limit_stops_owned_process(self):
   with self.assertRaises(ValueError):m.bounded_command([sys.executable,'-c','import sys,time;sys.stdout.write("x"*100000);sys.stdout.flush();time.sleep(30)'],timeout=2,limit=1024)
  def test_completed_leader_does_not_wait_for_inherited_service_pipe_eof(self):
@@ -217,6 +223,30 @@ class RecoveryTests(unittest.TestCase):
   closed=[sys.executable,'-c','import os,time;os.write(1,b"before close");os.close(1);os.close(2);time.sleep(30)']
   with self.assertRaises(subprocess.TimeoutExpired) as ended:m.bounded_command(closed,timeout=.2)
   self.assertEqual(ended.exception.output,b'before close');self.assertIsNone(ended.exception.leader_exit_code)
+ def test_group_permission_denial_preserves_real_timeout_and_reaps_only_original_child(self):
+  path=self.root/'denied-group.json';records=[]
+  args=[sys.executable,'-c','import time;print("owned child pending",flush=True);time.sleep(30)']
+  with mock.patch.object(m.os,'killpg',side_effect=PermissionError('controlled group denial')):
+   with self.assertRaises(subprocess.TimeoutExpired) as caught:m.setup_read(args,'postboot-runtime',.2,records,path)
+  self.assertEqual(caught.exception.output,b'owned child pending\n')
+  cleanup=caught.exception.cleanup;self.assertTrue(cleanup['leaderReaped']);self.assertEqual(cleanup['leaderExitCode'],-signal.SIGTERM)
+  self.assertEqual(cleanup['directLeaderSignals'],['SIGTERM']);self.assertTrue(cleanup['permissionIssues'])
+  self.assertTrue(all(row['operation']=='signal-owned-group' for row in cleanup['permissionIssues']))
+  saved=json.loads(path.read_text())['commands'][0]
+  self.assertEqual(saved['status'],'timed-out');self.assertEqual(saved['cleanup'],cleanup)
+  self.assertEqual(saved['timeoutSeconds'],.2);self.assertEqual(saved['stdoutTail'],'owned child pending\n')
+ def test_denied_group_and_leader_cleanup_are_bounded_without_escalation(self):
+  class DeniedLeader:
+   pid=12345
+   def __init__(self):self.waits=[];self.signals=[]
+   def poll(self):return None
+   def wait(self,timeout):self.waits.append(timeout);raise subprocess.TimeoutExpired(['owned-child'],timeout)
+   def send_signal(self,sig):self.signals.append(sig);raise PermissionError('controlled leader denial')
+  child=DeniedLeader()
+  with mock.patch.object(m.os,'killpg',side_effect=PermissionError('controlled group denial')):cleanup=m.stop_group(child)
+  self.assertEqual(child.waits,[.3,.3]);self.assertEqual(child.signals,[signal.SIGTERM,signal.SIGKILL])
+  self.assertFalse(cleanup['leaderReaped']);self.assertEqual(len(cleanup['permissionIssues']),4)
+  self.assertEqual(cleanup['wallBudgetSeconds'],.6)
  def test_diagnostic_junit_rejects_empty_failed_skipped_and_wrong_case(self):
   p=self.root/'junit.xml';good='<testsuites><testsuite tests="1" failures="0"><testcase name="Diagnostic warm tabs then saved memory reader" file="tests/native/diagnostics/ios-warm-tabs-reader.yaml" status="SUCCESS"/></testsuite></testsuites>'
   p.write_text(good);self.assertTrue(m.diagnostic_junit(p)['passed'])
@@ -226,7 +256,7 @@ unittest.main(argv=['recovery-tests'],verbosity=2)
 `;
   const result = spawnSync('python3', ['-c', code, helper], { encoding: 'utf8', timeout: 30000 });
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stderr, /Ran 21 tests/);
+  assert.match(result.stderr, /Ran 23 tests/);
 });
 
 test('recovery workflow consumes the exact existing app and separates helper provenance', () => {

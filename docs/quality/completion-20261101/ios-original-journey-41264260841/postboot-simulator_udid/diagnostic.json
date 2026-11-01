@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "read-only-core-simulator-client-diagnostic",
+  "startedAtEpochMs": 1793499540561,
+  "changesVerdict": false,
+  "appLaunched": false,
+  "readsProcessArguments": false,
+  "readsProcessEnvironment": false,
+  "samples": [],
+  "jobConfiguration": {
+    "DEVELOPER_DIR": "/Applications/Xcode_16.4.app/Contents/Developer",
+    "ImageOS": "macos15",
+    "ImageVersion": "20260824.0482.1",
+    "RUNNER_ARCH": "X64",
+    "RUNNER_OS": "macOS"
+  },
+  "issue": "TimeoutExpired",
+  "finishedAtEpochMs": 1793499544350
+}

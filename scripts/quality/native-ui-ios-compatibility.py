@@ -57,6 +57,39 @@ def verify_booted_runtime(manifest, device, read):
             'scope': 'Live available runtime/version and the exact selected Booted device. App launch remains required.'}
 
 
+def verify_prepared_booted_runtime(manifest, device, prepared):
+    """Validate the original preboot identity plus exact-UUID readiness proof."""
+    runtime = expected_runtime(manifest)
+    version = runtime.rsplit('.iOS-', 1)[1].replace('-', '.')
+    source = manifest.get('applicationSourceCommit')
+    device_type = 'com.apple.CoreSimulator.SimDeviceType.iPhone-16'
+    if (not isinstance(device, str)
+            or not re.fullmatch(r'[A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12}', device)
+            or not isinstance(source, str) or not re.fullmatch(r'[0-9a-f]{40}', source)
+            or not isinstance(prepared, dict)):
+        raise ValueError('An exact source-bound owned Simulator setup receipt is required')
+    verified = prepared.get('verification')
+    if (not isinstance(verified, dict) or prepared.get('device') != device
+            or prepared.get('created') is not True or prepared.get('bootReady') is not True
+            or prepared.get('sourceCommit') != source
+            or prepared.get('runtimeIdentifier') != runtime
+            or prepared.get('deviceTypeIdentifier') != device_type
+            or verified.get('selectedDevice') != device
+            or verified.get('runtimeIdentifier') != runtime
+            or verified.get('runtimeVersion') != version
+            or verified.get('deviceTypeIdentifier') != device_type
+            or verified.get('runtimeAvailabilityVerified') is not True
+            or verified.get('stateAtVerification') != 'Shutdown'):
+        raise ValueError('Verified preboot identity and completed exact-UUID boot readiness are required')
+    return {'runtimeIdentifier': runtime, 'runtimeVersion': version, 'selectedDevice': device,
+            'deviceTypeIdentifier': device_type, 'prebootRuntimeAvailabilityVerified': True,
+            'exactUuidBootstatusCompleted': True, 'postbootMetadataRead': False,
+            'postbootIdentityAndVersionReadFromDevice': False,
+            'globalInventoryRepeatedAfterBoot': False, 'guestArchitectureMeasured': False,
+            'proofMethod': 'verified-preboot-identity-and-completed-exact-uuid-bootstatus',
+            'scope': 'Exact runtime/version/type/availability verified before boot; boot and blocking bootstatus completed for that owned UUID. No postboot metadata read is claimed. Actual installation and app launch remain required.'}
+
+
 def verify_compatibility(app, manifest, device, read, host_system=None):
     immutable = verify_immutable_compatibility(app, manifest, read, host_system)
     runtime = verify_booted_runtime(manifest, device, read)
