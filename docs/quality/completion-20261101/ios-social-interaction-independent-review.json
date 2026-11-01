@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T03:27:36.737Z",
+  "reviewedFiles": [
+    {
+      "path": "tests/native/audit/flows/jobs-application-entry.yaml",
+      "originalSha256": "4b32d33b23a4c43260bcf2cb841209f5f7e9479540ab42350ebffa9564521ef3",
+      "currentSha256": "cf022f31991d07d8e2a3298674ce537c26f6fb6a06eb08849fcf4fd851063c78"
+    },
+    {
+      "path": "tests/native/audit/flows/feed-article-draft.yaml",
+      "originalSha256": "87af3111e5d879c1a760e0469a831f438a213b96391c8ac6aadfde9fe86be540",
+      "currentSha256": "1fd283b617325b75aa8b967b98dc746a4aa4edd796b25e3d7b4e56f60e0f70e7"
+    }
+  ],
+  "exactParsedChangesVerified": true,
+  "allOtherCommandsAndDeadlinesUnchanged": true,
+  "appSourceChanged": false,
+  "findings": {
+    "jobs": "The retained screenshot shows the complete Apply now fixed footer; the original command fails while trying to center that non-scrolling footer. Full visibility and actual tap/Cancel assertion remain required.",
+    "article": "The retained screenshot shows the paragraph appended to the title, the body placeholder still visible, zero body words and the keyboard open. The selected multiline field now receives a point near its visible top, and the additional paragraph assertion makes wrong-field input fail earlier."
+  },
+  "independentlyInspectedEvidence": [
+    "jobs-application-entry original failing scroll command and screenshot",
+    "feed-article-draft original body tap/input/title scroll command trace and screenshot"
+  ],
+  "primaryReferences": [
+    "https://docs.maestro.dev/reference/commands-available/scrolluntilvisible",
+    "https://docs.maestro.dev/reference/commands-available/tapon"
+  ],
+  "reviewPassed": true,
+  "runtimeSuccessClaimed": false,
+  "scope": "Evidence-based automation interaction corrections; no visibility threshold, timeout, app assertion or real-user requirement was relaxed. Actual installed rerun remains required.",
+  "sourceFailureEvidence": {
+    "path": "ios-audit-41263707729/social/flow-target-diagnosis.json",
+    "sha256": "fef381daa56646785666ceb36f9280ec425639ab20c6d496f33f53c54c94b94f",
+    "workflowRun": 41263707729,
+    "artifactId": 13067932941,
+    "sourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1"
+  },
+  "articleGeometry": {
+    "recordedBodyBoundsBeforeTap": [
+      16,
+      373,
+      377,
+      693
+    ],
+    "recordedDefaultTap": [
+      196,
+      533
+    ],
+    "keyboardBoundsAtLaterFailure": [
+      0,
+      516,
+      393,
+      852
+    ],
+    "proposedElementRelativePoint": "50%,10%",
+    "pointUsingRecordedBodyBounds": [
+      196.5,
+      405.0
+    ],
+    "simultaneousTapAndKeyboardMeasurementClaimed": false,
+    "limitation": "Keyboard bounds are retained in the failure hierarchy; the earlier driver log separately records the exact body bounds and actual tap coordinate. No app focus cause is asserted beyond the observed missed target."
+  }
+}

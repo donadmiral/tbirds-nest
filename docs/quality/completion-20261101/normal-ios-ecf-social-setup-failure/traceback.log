@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+2026-11-01T03:21:50.8381940Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/scripts/quality/native-ui-audit-runner.py", line 378, in <module>
+2026-11-01T03:21:50.9395610Z     sys.exit(main())
+2026-11-01T03:21:51.0805120Z              ~~~~^^
+2026-11-01T03:21:51.0807760Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/scripts/quality/native-ui-audit-runner.py", line 342, in main
+2026-11-01T03:21:51.1814670Z     device_proof = validate_device(args.platform, args.device, binary_manifest['nativeCompatibility'],
+2026-11-01T03:21:51.2813240Z                     binary=args.binary, toolchain=binary_manifest['toolchain'],
+2026-11-01T03:21:51.3818320Z                     prepared=prepared, source_commit=args.expected_source)
+2026-11-01T03:21:51.4842760Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/scripts/quality/native-ui-audit-runner.py", line 231, in validate_device
+2026-11-01T03:21:51.5851420Z     immutable = module.verify_immutable_compatibility(
+2026-11-01T03:21:51.6856930Z         binary, manifest, lambda args: bounded.read_command(args, timeout=30))
+2026-11-01T03:21:51.7864700Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/scripts/quality/native-ui-ios-compatibility.py", line 27, in verify_immutable_compatibility
+2026-11-01T03:21:51.8872580Z     if read(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version']) != manifest['toolchain']['sdkVersion']:
+2026-11-01T03:21:51.9877780Z        ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-01T03:21:52.0937440Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/scripts/quality/native-ui-audit-runner.py", line 232, in <lambda>
+2026-11-01T03:21:52.2015140Z     binary, manifest, lambda args: bounded.read_command(args, timeout=30))
+2026-11-01T03:21:52.3397260Z                                    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+2026-11-01T03:21:52.4406400Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/scripts/quality/native-ui-ios-audit-recovery.py", line 153, in read_command
+2026-11-01T03:21:52.5416130Z     result = bounded_command(args, timeout)
+2026-11-01T03:21:52.6427390Z   File "/Users/runner/work/tbirds-nest/tbirds-nest/scripts/quality/native-ui-ios-audit-recovery.py", line 121, in bounded_command
+2026-11-01T03:21:52.7462700Z     raise error
+2026-11-01T03:21:52.8476100Z subprocess.TimeoutExpired: Command '['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version']' timed out after 30 seconds
+2026-11-01T03:22:06.0290150Z

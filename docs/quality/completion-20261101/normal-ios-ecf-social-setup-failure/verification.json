@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-11-01T03:28:41.288495+00:00",
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "sourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "workflowRun": 41266020074,
+  "jobId": 124734744440,
+  "artifactId": 13067678598,
+  "artifactBytes": 3442,
+  "artifactSha256": "e92d66e348231430414c805739e51e4263852af3b13e1b8f3c3b0717a6f8b9e9",
+  "binaryArtifactId": 13067374445,
+  "binaryDirectorySha256": "a14a059ea235b4db779c17ba0bd09ee9d7e8eadd76224d3fe1061e3f21768ca8",
+  "selectedGroup": "social",
+  "declaredCases": 31,
+  "attemptedCases": 0,
+  "passedCases": 0,
+  "installationAttempted": false,
+  "appLaunched": false,
+  "blockedBeforeInstallation": true,
+  "failedBoundary": "The identical postboot SDK query xcrun --sdk iphonesimulator --show-sdk-version timed out after its unchanged30-second command budget.",
+  "setupStages": [
+    {
+      "stage": "simulator-create",
+      "status": "completed",
+      "exitCode": 0,
+      "elapsedSeconds": 71.41372947700003,
+      "timeoutSeconds": 120
+    },
+    {
+      "stage": "simulator-list",
+      "status": "completed",
+      "exitCode": 0,
+      "elapsedSeconds": 1.1609141860000136,
+      "timeoutSeconds": 30
+    },
+    {
+      "stage": "simulator-list",
+      "status": "completed",
+      "exitCode": 0,
+      "elapsedSeconds": 0.6944684610000422,
+      "timeoutSeconds": 30
+    },
+    {
+      "stage": "simulator-boot",
+      "status": "completed",
+      "exitCode": 0,
+      "elapsedSeconds": 7.209489094999981,
+      "timeoutSeconds": 120
+    },
+    {
+      "stage": "simulator-bootstatus",
+      "status": "completed",
+      "exitCode": 0,
+      "elapsedSeconds": 160.444107858,
+      "timeoutSeconds": 300
+    }
+  ],
+  "ownedDeviceCleanupCompleted": true,
+  "sourceJobLogSha256": "2caa1dcf00409a2d372b9c5839281d851ac5d7201e4732e26484941ab7d3ed78",
+  "retainedHashes": {
+    "device-setup-commands.json": "04e0e1b6a1527f2ed0924e9c3b3f53eca3f999dd1138c30f20691be2b0755949",
+    "traceback.log": "2dc220876b8f67cab50499645e2ad78a2a6da92892d4c113507b4cbf9ee10c65",
+    "device-setup-cleanup.json": "d45f6a93770a82cf885368eb2390b641f0428c1f209ef844542ad17f0c88ef24",
+    "device-setup.json": "15ff59ee812f08b5b05e7b8ed7dd8a5966e5403499e72475ec5f9b86b825a76f",
+    "app.log": "e4c8fb1dc5d33e64b673cb772e16cd7ffe4e007666f2f19e07979df13b99c23a"
+  },
+  "previousF5Social29PassesRelabeled": false,
+  "recoveryChangeNeeded": "Use the reviewed preboot immutable ordering against this exact existing app; retain the original cases and report any reviewed interaction-flow corrections separately."
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-11-01T03:34:12.613102+00:00",
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "sourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "producerRunId": 41266020074,
+  "producerArtifactId": 13067374445,
+  "actualDownloadedProducerFilesVerified": true,
+  "exactSourceInputsVerified": 607,
+  "auditInputsVerified": 9,
+  "copiedAuditFlowInputsVerified": 88,
+  "canonicalSourceInputsReverifiedAfterCopy": true,
+  "actualExecutedCorrectionsEqualReviewedCanonicalCandidates": true,
+  "originalSignInSha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+  "caseCounts": {
+    "social": 31,
+    "settings": 27
+  },
+  "accountOrOriginalJourneyIncluded": false,
+  "reviewedFiles": {
+    ".github/workflows/completion-ios-ecf-remaining.yml": "6053288b77ffc6ad5c622891c7013b17e257a18f7a89d6b75783078039754f5b",
+    "scripts/quality/completion-ios-ecf-remaining.py": "fce50e84edda8c26e52a9231910b04b51eb581e9030c6978dd55cebed447fded",
+    "scripts/quality/completion-ios-social-flow-corrections.py": "a2c0a3a2f70b0ebcc73c3631b6b92f7cc56014aed68bea1b6a36e0f62ec74876",
+    "tests/quality/native-completion-remaining.cjs": "ae8845412cd8584aec34a4cb7ec56d363e46979a7399010d10331710ead4096c",
+    "tests/quality/fixtures/completion-ios-social/_signin.yaml": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+    "tests/quality/fixtures/completion-ios-social/feed-article-draft.yaml": "87af3111e5d879c1a760e0469a831f438a213b96391c8ac6aadfde9fe86be540",
+    "tests/quality/fixtures/completion-ios-social/jobs-application-entry.yaml": "4b32d33b23a4c43260bcf2cb841209f5f7e9479540ab42350ebffa9564521ef3"
+  },
+  "focusedEmbeddedTestsPassed": 5,
+  "workflowGuardChecksPassed": 1,
+  "executedFlowProof": "ios-ecf-remaining-executed-flow-proof.json",
+  "executedFlowProofSha256": "7e91e5f01469cdfebcd70ed60cac8fe295367f53c160267fd59b0c46087c131f",
+  "runtimePassClaimed": false,
+  "scope": "Actual retained ecf source/binary binding and all88 original audit YAML inputs verified. The two complete executed YAML copies equal the independently reviewed canonical candidates and reverse exactly to producer source. The canonical source/app stay unchanged."
+}

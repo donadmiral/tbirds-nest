@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-11-01T03:33:51.783978+00:00",
+  "workflowRun": 41266020074,
+  "jobId": 124734744493,
+  "applicationSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "applicationSourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "artifact": {
+    "id": 13067808885,
+    "name": "native-audit-ios-settings-results",
+    "zipBytes": 3494,
+    "zipSha256": "a5d262c7c2a734dc757032aec95e499ab87c117677e06723a35dba3ce92b2a33",
+    "githubDigestMatched": true
+  },
+  "failedCommand": [
+    "xcrun",
+    "--sdk",
+    "iphonesimulator",
+    "--show-sdk-version"
+  ],
+  "configuredCommandWaitSeconds": 30,
+  "exception": "TimeoutExpired",
+  "stage": "postboot immutable toolchain validation, before app installation and cases",
+  "runtimeAndOwnedReadiness": {
+    "verifiedPreboot": true,
+    "exactUuidBootstatusCompleted": true,
+    "postbootMetadataReadClaimed": false,
+    "installAttempted": false
+  },
+  "setupTimings": [
+    {
+      "stage": "simulator-create",
+      "commandWaitSeconds": 120,
+      "innerElapsedSeconds": 65.65777714299998,
+      "fullStageWallSeconds": 65.663,
+      "exitCode": 0
+    },
+    {
+      "stage": "simulator-list",
+      "commandWaitSeconds": 30,
+      "innerElapsedSeconds": 1.1014665190000414,
+      "fullStageWallSeconds": 1.109,
+      "exitCode": 0
+    },
+    {
+      "stage": "simulator-list",
+      "commandWaitSeconds": 30,
+      "innerElapsedSeconds": 0.5599261439999736,
+      "fullStageWallSeconds": 0.564,
+      "exitCode": 0
+    },
+    {
+      "stage": "simulator-boot",
+      "commandWaitSeconds": 120,
+      "innerElapsedSeconds": 5.229019182999991,
+      "fullStageWallSeconds": 5.234,
+      "exitCode": 0
+    },
+    {
+      "stage": "simulator-bootstatus",
+      "commandWaitSeconds": 300,
+      "innerElapsedSeconds": 169.10806713800002,
+      "fullStageWallSeconds": 169.195,
+      "exitCode": 0
+    }
+  ],
+  "coverage": {
+    "shard": "settings",
+    "expected": 27,
+    "attempted": 0,
+    "passed": 0,
+    "failedAppCases": 0,
+    "notAttempted": 27,
+    "caseIds": [
+      "settings-settings",
+      "settings-hiddenwords",
+      "settings-mutedwords",
+      "settings-archive",
+      "settings-youractivity",
+      "settings-loginactivity",
+      "settings-blockedaccounts",
+      "settings-restrictedaccounts",
+      "settings-savedposts",
+      "settings-mutedstories",
+      "settings-followrequests",
+      "settings-terms",
+      "settings-privacypolicy",
+      "settings-helpsupport",
+      "settings-changeusername",
+      "settings-accountstanding",
+      "settings-applyverification",
+      "settings-twofactor",
+      "settings-monetization",
+      "stories-storycreationmenu",
+      "stories-storycomposer",
+      "stories-storylayout",
+      "stories-storyviewer",
+      "directories-channels",
+      "settings-hidden-word-write",
+      "settings-muted-word-write",
+      "settings-appearance"
+    ],
+    "sourceManifestSha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+    "reason": "Runner exits in validate_device before installation and its original case loop."
+  },
+  "ownedCleanupPassed": true,
+  "specificServiceCauseEstablished": false,
+  "fullJobLogSha256": "b95921ece012f4728cf22780954745142bfda347adf3cff6b492df5034607f1f",
+  "fullJobLogBytes": 34356,
+  "tracebackIsVerbatimExcerpt": true,
+  "fullLogRetainedLocally": true,
+  "fullLogPublished": false,
+  "files": {
+    "device-setup-cleanup.json": {
+      "sha256": "e392a1ba8dbaf3e39912547e6b7cab4b816aa67e6a3f1574a2045e8c40d06f91",
+      "bytes": 1053
+    },
+    "device-setup-commands.json": {
+      "sha256": "973f574c5da7cbf4f8d60afbd265d7e9272b4c942abe6e6707063a6ebd89f28a",
+      "bytes": 15578
+    },
+    "device-setup.json": {
+      "sha256": "6cf99f4d2ff6b56da2afc9497bf207c8d71bc36c9bf1c2ef685c176fe00c2ded",
+      "bytes": 841
+    },
+    "traceback.log": {
+      "sha256": "5961fa9c25c011dd3e6318c9ee2ba0aa964a62708a7ffd9d4dab418cdf23090d",
+      "bytes": 2496
+    }
+  },
+  "limits": [
+    "This is an independently preserved setup failure, not an application acceptance failure or a device case pass.",
+    "No command budgets, app assertions, fixtures or binary bytes were changed by this verification."
+  ]
+}

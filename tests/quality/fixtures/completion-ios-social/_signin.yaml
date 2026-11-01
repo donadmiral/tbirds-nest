@@ -1,0 +1,48 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit synthetic sign-in
+---
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - launchApp:
+          clearState: true
+          permissions:
+            notifications: deny
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - launchApp:
+          clearState: true
+          clearKeychain: true
+          permissions:
+            notifications: deny
+- extendedWaitUntil:
+    visible: Sign in
+    timeout: 30000
+- tapOn: Username or email
+- inputText: qa.alex@example.invalid
+# On compact Android displays the open email keyboard covers the next field.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn: Password
+- inputText: FixtureOnly-2026!
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # The iOS keyboard has no standard dismiss button; use the real scroll-view dismissal.
+      - tapOn: Platinum Circles
+- tapOn: Sign in
+- extendedWaitUntil:
+    visible: Native audit launcher
+    timeout: 30000

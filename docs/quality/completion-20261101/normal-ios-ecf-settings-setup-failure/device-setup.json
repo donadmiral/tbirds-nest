@@ -1,0 +1,18 @@
+{
+  "device": "55984731-28E2-4D95-BFC4-F8DC0FB7CC34",
+  "created": true,
+  "name": "Platinum completion b1b906267be24212914cfa2d9d5e7f63",
+  "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+  "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+  "verification": {
+    "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+    "runtimeVersion": "18.5",
+    "selectedDevice": "55984731-28E2-4D95-BFC4-F8DC0FB7CC34",
+    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+    "stateAtVerification": "Shutdown",
+    "runtimeAvailabilityVerified": true,
+    "scope": "Fresh runtime and created-device identity verified before boot. Exact-UUID boot readiness remains required."
+  },
+  "bootReady": true,
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc"
+}

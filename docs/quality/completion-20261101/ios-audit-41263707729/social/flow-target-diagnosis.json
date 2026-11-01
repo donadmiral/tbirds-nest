@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "workflowRun": 41263707729,
+  "artifactId": 13067932941,
+  "failures": {
+    "jobs-application-entry": {
+      "junit": "cases/jobs-application-entry/junit.xml",
+      "screen": "cases/jobs-application-entry/failure.png",
+      "screenSha256": "ea364488209cdbe0c8b7c7207e6b234ca741e30fe0f28f3694de265f5959c6a2",
+      "hierarchy": "cases/jobs-application-entry/failure-hierarchy.json",
+      "hierarchySha256": "5c792003effaec814b12808cccb940656b254fe418065cf9f4cfebc9cfe956e0",
+      "commandsSha256": "f5d380cd2c2330ca1d07526204e8fc5a5acfce3195fd6ac11f0f065cd668b25e",
+      "driverLogSha256": "8d294152d925f29de50e67ca109af4649c6bed9ef2a99e5b37d8c65474a09b77"
+    },
+    "feed-article-draft": {
+      "junit": "cases/feed-article-draft/junit.xml",
+      "screen": "cases/feed-article-draft/failure.png",
+      "screenSha256": "bd54c9e54bc7c5e35e33e2c5fe2c176fe06c0261b3f484117c28b3aa8edd2460",
+      "hierarchy": "cases/feed-article-draft/failure-hierarchy.json",
+      "hierarchySha256": "cac15ca69b6f80f3eb47617ba42fad4837fceeb71b0528350b0a212a033b8678",
+      "commandsSha256": "cfc63ebe88ed0dd05a7daeaed301239c5ec499c3be45739dcc77d868c4218a86",
+      "driverLogSha256": "a175a1097b32bca0e812ea05d0864757ac7b44015de6d6f944dd3a3e5fa974af"
+    }
+  },
+  "jobs": {
+    "failure": "scrollUntilVisible requires centering of a fixed footer button",
+    "buttonBoundsAtFailure": [
+      16,
+      771,
+      377,
+      818
+    ],
+    "screenBounds": [
+      0,
+      0,
+      393,
+      852
+    ],
+    "fullyVisibleButtonIndependentlyViewed": true,
+    "buttonCannotReachRequiredCenteredViewportPosition": true,
+    "proposedCorrection": "Keep the full-visibility scroll and Apply now/Cancel assertions, with centerElement false."
+  },
+  "article": {
+    "matchedBodyBoundsBeforeTap": [
+      16,
+      373,
+      377,
+      693
+    ],
+    "actualDefaultCenterTap": [
+      196,
+      533
+    ],
+    "keyboardBoundsObservedAtFailure": [
+      0,
+      516,
+      393,
+      852
+    ],
+    "defaultCenterOverlapsObservedKeyboard": true,
+    "paragraphObservedAppendedToTitle": true,
+    "bodyPlaceholderStillVisible": true,
+    "proposedRelativeUpperBodyPoint": "50%,10%",
+    "upperPointUsingRecordedBounds": [
+      196.5,
+      405.0
+    ],
+    "titleReadbackStillRequired": true,
+    "explicitExactBodyTextAssertionAdded": true,
+    "caveat": "Keyboard bounds are retained in the failure hierarchy; the earlier driver log separately records the exact body bounds and actual tap coordinate. No app focus cause is asserted beyond the observed missed target."
+  },
+  "primaryDocumentation": [
+    {
+      "url": "https://docs.maestro.dev/reference/commands-available/scrolluntilvisible",
+      "supports": "Centering adds a viewport-edge positioning requirement beyond full visibility; default scroll deadline remains20000ms."
+    },
+    {
+      "url": "https://docs.maestro.dev/reference/commands-available/tapon",
+      "supports": "A text selector may be combined with an element-relative percentage point."
+    }
+  ],
+  "canonicalCorrectionsOnly": [
+    "tests/native/audit/flows/jobs-application-entry.yaml",
+    "tests/native/audit/flows/feed-article-draft.yaml"
+  ],
+  "productSourceChanged": false,
+  "correctedFlowsExecuted": false
+}

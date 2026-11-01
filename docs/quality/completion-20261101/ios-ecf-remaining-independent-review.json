@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T03:34:50.606363+00:00",
+  "reviewer": "status_scope_check independent review",
+  "verdict": "No publication blocker found; actual device acceptance remains pending.",
+  "applicationSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "producerRun": 41266020074,
+  "producerArtifact": 13067374445,
+  "selectedCases": {
+    "social": 31,
+    "settings": 27,
+    "account": 0,
+    "originalJourney": 0
+  },
+  "reviewedSourceHashes": {
+    ".github/workflows/completion-ios-ecf-remaining.yml": "6053288b77ffc6ad5c622891c7013b17e257a18f7a89d6b75783078039754f5b",
+    "scripts/quality/completion-ios-ecf-remaining.py": "fce50e84edda8c26e52a9231910b04b51eb581e9030c6978dd55cebed447fded",
+    "scripts/quality/completion-ios-social-flow-corrections.py": "a2c0a3a2f70b0ebcc73c3631b6b92f7cc56014aed68bea1b6a36e0f62ec74876",
+    "tests/quality/native-completion-remaining.cjs": "ae8845412cd8584aec34a4cb7ec56d363e46979a7399010d10331710ead4096c",
+    "tests/quality/fixtures/completion-ios-social/_signin.yaml": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+    "tests/quality/fixtures/completion-ios-social/jobs-application-entry.yaml": "4b32d33b23a4c43260bcf2cb841209f5f7e9479540ab42350ebffa9564521ef3",
+    "tests/quality/fixtures/completion-ios-social/feed-article-draft.yaml": "87af3111e5d879c1a760e0469a831f438a213b96391c8ac6aadfde9fe86be540"
+  },
+  "sharedAccountConsumerSha256": "42a4b654ad8c0fb3236c0a7b5dd262f592090d77b0c85aeebec31b7fdbe3f501",
+  "currentBindingSha256": "790729732b19ad6cc723bf64994bd6b3d7a45b95cfa9307036242cd43f375707",
+  "independentActualSourceMaterialization": {
+    "originalProducerYamlFlows": 88,
+    "changedExecutionInputs": 2,
+    "canonicalInputBytesUnchanged": true,
+    "currentReviewedFlowBytesMatched": true,
+    "signInResetHash": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+    "completeReversalAndFinalExecutionHashesVerified": true
+  },
+  "checks": {
+    "outerFocusedTestsPassed": 2,
+    "embeddedBoundaryTestsPassed": 5,
+    "testOutputSha256": "031b5c6c94ee531816674f2dc97e1616fa696437bf5bb3f3f47ed9acf1c9e333",
+    "sourceAndWholeAppVerificationBeforeAfter": true,
+    "onlyTwoFullHashBoundSocialFlowCopies": true,
+    "allOriginalCaseIdentitiesAndOrderRequired": true,
+    "settingsOriginalFlowsUnchanged": true,
+    "originalSigninAndBetweenCaseResetsUnchanged": true,
+    "originalInstallAndCaseAndReaderDeadlinesUnchanged": true,
+    "originalJUnitAndFixtureValidatorsUnchanged": true,
+    "partialAndNotAttemptedAccountingPreserved": true,
+    "ownedDeviceCleanupPreserved": true,
+    "existingAccountAndOriginalJourneyRunsNotTriggeredByNewPaths": true,
+    "compiledAppRebuildRebundleResign": false
+  },
+  "actualRuntimePassClaimed": false,
+  "limits": [
+    "This review verifies consumer provenance and allowed interaction transformations, not iPhone runtime success.",
+    "The Market original-journey failure is a separate unaccepted gate and is not changed by these social/settings corrections."
+  ]
+}

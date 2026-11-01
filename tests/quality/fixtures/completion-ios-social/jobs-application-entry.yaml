@@ -1,0 +1,30 @@
+appId: app.platinumcircles.mobile.qa
+name: Audit job application entry
+---
+- runFlow: _signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: jobs-application-entry
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: "About the role"
+    timeout: 15000
+
+- scrollUntilVisible:
+    element: Apply now
+    direction: DOWN
+    centerElement: true
+- tapOn: Apply now
+- assertVisible: Cancel
+- takeScreenshot: jobs-application-entry
