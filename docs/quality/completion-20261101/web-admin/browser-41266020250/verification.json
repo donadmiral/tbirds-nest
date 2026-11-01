@@ -1,0 +1,104 @@
+{
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "runId": 41266020250,
+  "jobId": 124728875390,
+  "runConclusion": "success",
+  "artifactId": 13067217383,
+  "artifactSha256": "6b43792b83ca3a4826a597d69ff0c8cb9a6e8b7ce671dca8095feaf5d1dee00b",
+  "artifactBytes": 11413631,
+  "receiptGroups": [
+    {
+      "path": "admin/browser-receipt.json",
+      "casesOrChecks": 39,
+      "sha256": "73f0f105b092212f0c8ee96f96d307f33e774163a10e739565a78bd832318ed8",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "admin-custom-controls/custom-controls-browser.json",
+      "casesOrChecks": 21,
+      "sha256": "dc32580d26e425220e8c5c2fd4a073d12a97448a763cb42b648be4f70933a1b8",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "admin-reporting/reporting-browser.json",
+      "casesOrChecks": 12,
+      "sha256": "7ad64ddb31257bac45aecc29d1733e694d576e96c5415f2a128bb2e52df91d09",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "commerce/browser-receipt.json",
+      "casesOrChecks": 26,
+      "sha256": "288ebc0200da303ea376f2b82de85368847dfcccb19dd86731b4b8ec88120cc1",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "member-resilience/receipt.json",
+      "casesOrChecks": 64,
+      "sha256": "a4670f40098daead75e7265e31ec1e1dec647a9e602c74bc2fd53597b921cd34",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "memory/browser-receipt.json",
+      "casesOrChecks": 27,
+      "sha256": "88b989aedf6a9ff27b7b46bd2a3914195370385efc4df6e0096cf029efa68b09",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "memory-cover/browser-receipt.json",
+      "casesOrChecks": 5,
+      "sha256": "fdeeb8044c170210139e1697b3069106744255aee4cc563a8470a7560e37efde",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "music/browser-receipt.json",
+      "casesOrChecks": 5,
+      "sha256": "8f3299a176681584b886758381f5eda8ae1b52e569f30ec744d7cf32f665d3ae",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "shell/receipt.json",
+      "casesOrChecks": 3,
+      "sha256": "2bcb2d9b3584b75edf56b6c946ca3772943979699b3837b16e8097404bf31e27",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "studio/browser-receipt.json",
+      "casesOrChecks": 25,
+      "sha256": "fc71c9de5b9cfd08f75ee67e4a0efae69463ea414057a78d5cb17cbb1f03d005",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "support/browser-audit.json",
+      "casesOrChecks": 32,
+      "sha256": "d63a9538a061b92a713cd084ad548790bcbbdc3ff0a767374499baed55be98c1",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "video/browser-receipt.json",
+      "casesOrChecks": 12,
+      "sha256": "c6ff6f00c7638e52e5edface753c650b82479de945164dea79ea744e7d2c4b47",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    },
+    {
+      "path": "web/browser-receipt.json",
+      "casesOrChecks": 41,
+      "sha256": "a03367592f6c6294e90473f3a2f444d228deaa68405bf0a98a0248189b225371",
+      "recordedFailureOrUnexpectedBrowserError": false,
+      "verification": "Named success records and/or measured-output assertions in the successful producer run; media measurements are retained in the receipt."
+    }
+  ],
+  "boundary": "Actual browser screens and browser-produced encoded media under the recorded synthetic transport; does not establish hosted migration installation, external delivery, licensed music availability, or installed native app behavior.",
+  "groupsVerified": 13
+}

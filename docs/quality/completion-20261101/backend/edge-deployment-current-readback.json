@@ -1,0 +1,568 @@
+{
+  "formatVersion": 1,
+  "observedAtUtc": "2026-11-01T02:42:01.916942+00:00",
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "method": "Supported list_edge_functions and get_edge_function readback. Only metadata and content hashes are retained. No source was deployed.",
+  "newFunctionsAbsent": [
+    "business-owner-access",
+    "music-asset-finalize",
+    "music-maintenance",
+    "music-catalogue-ingest"
+  ],
+  "bundles": [
+    {
+      "name": "business-signin",
+      "exists": true,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/business-signin/index.ts",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "candidateSha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/business-session/handler.ts",
+          "candidateSha256": "bb0eb68831fc5213d985d0348781fde9ded16f72a1cbeeb7a006970eb3ae353f",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/business-session/runtime.ts",
+          "candidateSha256": "e80f5b829184acc0dc2071a507c298f6418b64d53e75b37996b1c8ac733dacf9",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/business-signin/index.ts",
+          "candidateSha256": "9ce1cde6b74e99a5f8545bf3af043160943240c3d1c922b3c5eff7321a4174ba",
+          "deployedSha256": "9a57921ab1ecaa8fd3c7638199348fe83472abee792eb778417b184926555099",
+          "deployedBytes": 4311,
+          "matches": false
+        }
+      ],
+      "version": 17,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": true,
+      "verifyJwtMatches": false,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": false
+    },
+    {
+      "name": "business-owner-access",
+      "exists": false,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/business-owner-access/index.ts",
+      "files": []
+    },
+    {
+      "name": "daily-get-token",
+      "exists": true,
+      "candidateVerifyJwt": true,
+      "candidateEntrypoint": "supabase/functions/daily-get-token/index.ts",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "candidateSha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "candidateSha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "candidateSha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/daily-get-token/deno.json",
+          "candidateSha256": "776494746017e3d2b06d84933befb734499e53c2ef2e951566801b8cb65882ba",
+          "deployedSha256": "776494746017e3d2b06d84933befb734499e53c2ef2e951566801b8cb65882ba",
+          "deployedBytes": 85,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/daily-get-token/index.ts",
+          "candidateSha256": "31e7f5dfb9b6635f96d2a5231c1cab0436c9c4172778ac10fc4d3402ce5bcb8d",
+          "deployedSha256": "5c73a5ede9d12c5c449cade74c117c93068ff74eeae5e44ddedf873e7a94195b",
+          "deployedBytes": 8682,
+          "matches": false
+        }
+      ],
+      "version": 36,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": true,
+      "verifyJwtMatches": true,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": false
+    },
+    {
+      "name": "crisp-bridge",
+      "exists": true,
+      "candidateVerifyJwt": true,
+      "candidateEntrypoint": "supabase/functions/crisp-bridge/index.ts",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "candidateSha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "candidateSha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "candidateSha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/crisp-bridge/handler.ts",
+          "candidateSha256": "d2203c15d8ac9dee9deeb8d47cbdd02b2b7821b1a4a7ccd5dfe45e684b8366cf",
+          "deployedSha256": "d2203c15d8ac9dee9deeb8d47cbdd02b2b7821b1a4a7ccd5dfe45e684b8366cf",
+          "deployedBytes": 12138,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/crisp-bridge/index.ts",
+          "candidateSha256": "3ad65fba3f5aa66becbe0ed3d1df0ede623e2c91edee90380393c7da36b08197",
+          "deployedSha256": "4e5a5e96c5355f977e744a56a1af0e37e53f89f87a169e688c1d53296da33417",
+          "deployedBytes": 525,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/crisp-bridge/paymentRecovery.ts",
+          "candidateSha256": "799f90ef5841e2d59133b0c696c85d4b189a980adb2fe8fae25f612d4f2784a7",
+          "deployedSha256": "799f90ef5841e2d59133b0c696c85d4b189a980adb2fe8fae25f612d4f2784a7",
+          "deployedBytes": 7452,
+          "matches": true
+        }
+      ],
+      "version": 32,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": false,
+      "verifyJwtMatches": false,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": false
+    },
+    {
+      "name": "link-preview",
+      "exists": true,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/link-preview/index.ts",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "candidateSha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "candidateSha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "candidateSha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/link-preview/denoTransport.ts",
+          "candidateSha256": "b56554f8e32cf9e1de19ebf9bd732c4ec54fb76ca5777df4ee6d5d4d5d92b99a",
+          "deployedSha256": "b56554f8e32cf9e1de19ebf9bd732c4ec54fb76ca5777df4ee6d5d4d5d92b99a",
+          "deployedBytes": 9509,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/link-preview/handler.ts",
+          "candidateSha256": "b0b4979cfbf2cfa414ace29bab9a084a5f08e29eaa60a2571522ba8e8e98f149",
+          "deployedSha256": "b0b4979cfbf2cfa414ace29bab9a084a5f08e29eaa60a2571522ba8e8e98f149",
+          "deployedBytes": 10561,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/link-preview/index.ts",
+          "candidateSha256": "ba538924c931d806f4e2421667849e6b597f6e21fb82f60aebda94e3c711797f",
+          "deployedSha256": "bccd626c01ea2b0cd3aaff3433490336785668c2b5ad9e7761f9dd0e8f9c5c53",
+          "deployedBytes": 2079,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/link-preview/networkPolicy.ts",
+          "candidateSha256": "fa325525dbcab85eeacd5920d606ea313dbaecbd739620c302f8d0c7725c5f94",
+          "deployedSha256": "fa325525dbcab85eeacd5920d606ea313dbaecbd739620c302f8d0c7725c5f94",
+          "deployedBytes": 3083,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/link-preview/transport.ts",
+          "candidateSha256": "8ba42c01bdeb1c47626ff981992a57bff3a131a4730d9e9d7c017a1abbe1b82a",
+          "deployedSha256": "8ba42c01bdeb1c47626ff981992a57bff3a131a4730d9e9d7c017a1abbe1b82a",
+          "deployedBytes": 7284,
+          "matches": true
+        }
+      ],
+      "version": 20,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": false,
+      "verifyJwtMatches": true,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": false
+    },
+    {
+      "name": "apple-music",
+      "exists": true,
+      "candidateVerifyJwt": true,
+      "candidateEntrypoint": "supabase/functions/apple-music/index.ts",
+      "files": [
+        {
+          "path": "shared/appleMusic.ts",
+          "candidateSha256": "db28575b3032a1300c571531a7a661d6992f197d9e3a1929ae96dc9678ce61b5",
+          "deployedSha256": "db28575b3032a1300c571531a7a661d6992f197d9e3a1929ae96dc9678ce61b5",
+          "deployedBytes": 2556,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "candidateSha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "candidateSha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "candidateSha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/apple-music/handler.ts",
+          "candidateSha256": "882e2924fe00d2c6f17533a124cbd70c2977a64b44500d52152fe809ff4810f2",
+          "deployedSha256": "882e2924fe00d2c6f17533a124cbd70c2977a64b44500d52152fe809ff4810f2",
+          "deployedBytes": 6543,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/apple-music/index.ts",
+          "candidateSha256": "653b8f5b1be36ab226f48b56c7a4e71136093b8f98f6c525dee903ae42eda22c",
+          "deployedSha256": "192ce7d771f95e5be3e75678c9d2dd81f618ad07c631bdc442b353926fc57095",
+          "deployedBytes": 752,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/apple-music/token.ts",
+          "candidateSha256": "da4c6037358a67374cdcc51dbeb60bfb11d07502b410f6c532b56b01713a20b1",
+          "deployedSha256": "da4c6037358a67374cdcc51dbeb60bfb11d07502b410f6c532b56b01713a20b1",
+          "deployedBytes": 1357,
+          "matches": true
+        }
+      ],
+      "version": 1,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": true,
+      "verifyJwtMatches": true,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": false
+    },
+    {
+      "name": "replicate-proxy",
+      "exists": true,
+      "candidateVerifyJwt": true,
+      "candidateEntrypoint": "supabase/functions/replicate-proxy/index.ts",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "candidateSha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "candidateSha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "candidateSha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/replicate-proxy/index.ts",
+          "candidateSha256": "487ddfd78f4eb098465fe3af9538e789b4ed10a11e9221ebabff732d6b56fbdf",
+          "deployedSha256": "608f2de5f69ec6ce6c10a338478030e975e07020b5e4ba8e6e1dff463ea3cc8a",
+          "deployedBytes": 5136,
+          "matches": false
+        }
+      ],
+      "version": 9,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": true,
+      "verifyJwtMatches": true,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": false
+    },
+    {
+      "name": "create-business",
+      "exists": true,
+      "candidateVerifyJwt": true,
+      "candidateEntrypoint": "supabase/functions/create-business/index.ts",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "candidateSha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "candidateSha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "candidateSha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "deployedSha256": null,
+          "deployedBytes": null,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/create-business/index.ts",
+          "candidateSha256": "c3453e54f045688887e8781d43999d4b8d75b7d0e512617a3c3c3fbf86f89581",
+          "deployedSha256": "76c3cc43721c38a54fc352cb03949de68c8a940b7d3d2e782c07279617ad210f",
+          "deployedBytes": 4180,
+          "matches": false
+        }
+      ],
+      "version": 18,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": true,
+      "verifyJwtMatches": true,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": false
+    },
+    {
+      "name": "music-asset-finalize",
+      "exists": false,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/music-asset-finalize/index.ts",
+      "files": []
+    },
+    {
+      "name": "content-media-sign",
+      "exists": true,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/content-media-sign/index.ts",
+      "files": [
+        {
+          "path": "shared/contentMedia.ts",
+          "candidateSha256": "a744a17a33a5b0f93be5b84ec943f4a5a05c94059ddd128109077031a2667664",
+          "deployedSha256": "5ffbff3cb3771058a22a021704acd68820b4161cd0c5dfe1cbed012c530d94ff",
+          "deployedBytes": 11263,
+          "matches": false
+        },
+        {
+          "path": "shared/mediaDelivery.ts",
+          "candidateSha256": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+          "deployedSha256": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+          "deployedBytes": 1637,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/content-media-sign/handler.ts",
+          "candidateSha256": "9fc8a12d93641046a06ec122062e5817e9473f281a7c521e51e9b314781a7d3f",
+          "deployedSha256": "e9c82b800e309d3b98fe085e3806eec8b35999ff1b84adacd29279c7b7f3d9df",
+          "deployedBytes": 5321,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/content-media-sign/index.ts",
+          "candidateSha256": "99cb4805e16148680ef4c322ce288f84766a72882ccf118ce698d48e85cc7220",
+          "deployedSha256": "99cb4805e16148680ef4c322ce288f84766a72882ccf118ce698d48e85cc7220",
+          "deployedBytes": 2108,
+          "matches": true
+        }
+      ],
+      "version": 3,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": false,
+      "verifyJwtMatches": true,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": false
+    },
+    {
+      "name": "media-content",
+      "exists": true,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/media-content/index.ts",
+      "files": [
+        {
+          "path": "supabase/functions/media-content/handler.ts",
+          "candidateSha256": "3ebe70908160a5ded596284d43eb9ffa47f24bb7be277710d89bee95275c672a",
+          "deployedSha256": "609f048486dd0a1740ddc588f3ece883ee80ec06771b8b92dbac064ad68158ee",
+          "deployedBytes": 6094,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/media-content/index.ts",
+          "candidateSha256": "1f5ab0dd6151589f61d9de231e729e68f65582181acae9bd3853b63dd668ff88",
+          "deployedSha256": "1f5ab0dd6151589f61d9de231e729e68f65582181acae9bd3853b63dd668ff88",
+          "deployedBytes": 661,
+          "matches": true
+        }
+      ],
+      "version": 1,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": false,
+      "verifyJwtMatches": true,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": false
+    },
+    {
+      "name": "account-storage-erasure",
+      "exists": true,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/account-storage-erasure/index.ts",
+      "files": [
+        {
+          "path": "supabase/functions/account-storage-erasure/handler.ts",
+          "candidateSha256": "1bc4d4e88886441d70cdb6671077e68166a51e861e0a41af68dfa7371333fee8",
+          "deployedSha256": "e7025b576abbfc24fe4e3c950cc2e321f4b418583628cdb8c24c93d978151caa",
+          "deployedBytes": 6630,
+          "matches": false
+        },
+        {
+          "path": "supabase/functions/account-storage-erasure/index.ts",
+          "candidateSha256": "2d702130678cdd0b6eec1821948f634bb68864b9a5c08fedfff4ca250ca387c6",
+          "deployedSha256": "2d702130678cdd0b6eec1821948f634bb68864b9a5c08fedfff4ca250ca387c6",
+          "deployedBytes": 360,
+          "matches": true
+        }
+      ],
+      "version": 1,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": false,
+      "verifyJwtMatches": true,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": false
+    },
+    {
+      "name": "music-maintenance",
+      "exists": false,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/music-maintenance/index.ts",
+      "files": []
+    },
+    {
+      "name": "music-catalogue-ingest",
+      "exists": false,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/music-catalogue-ingest/index.ts",
+      "files": []
+    },
+    {
+      "name": "limited-media-file",
+      "exists": true,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/limited-media-file/index.ts",
+      "files": [
+        {
+          "path": "supabase/functions/limited-media-file/index.ts",
+          "candidateSha256": "7ff81f4742a4a6501abf9fcf9c12985363134580f551179bdcaa6598d2a4477d",
+          "deployedSha256": "7ff81f4742a4a6501abf9fcf9c12985363134580f551179bdcaa6598d2a4477d",
+          "deployedBytes": 448,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/private-media-session/handler.ts",
+          "candidateSha256": "11b53d74da4607c6a89bc5ef11d258694a8d4e6409f3c2f5606c00e133add1ac",
+          "deployedSha256": "11b53d74da4607c6a89bc5ef11d258694a8d4e6409f3c2f5606c00e133add1ac",
+          "deployedBytes": 9583,
+          "matches": true
+        }
+      ],
+      "version": 1,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": false,
+      "verifyJwtMatches": true,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": true
+    },
+    {
+      "name": "chat-media-sign",
+      "exists": true,
+      "candidateVerifyJwt": false,
+      "candidateEntrypoint": "supabase/functions/chat-media-sign/index.ts",
+      "files": [
+        {
+          "path": "shared/mediaDelivery.ts",
+          "candidateSha256": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+          "deployedSha256": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+          "deployedBytes": 1637,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/chat-media-sign/deno.json",
+          "candidateSha256": "c3e35c3fa9f31537196d35670e608adacf3af7ee2d4bb8f61d8f24c72e27176a",
+          "deployedSha256": "c3e35c3fa9f31537196d35670e608adacf3af7ee2d4bb8f61d8f24c72e27176a",
+          "deployedBytes": 84,
+          "matches": true
+        },
+        {
+          "path": "supabase/functions/chat-media-sign/index.ts",
+          "candidateSha256": "ccc74a28ae1330763e9a0a1bddef8df51503ff28a168ddf0cda7c6e485b9a4e1",
+          "deployedSha256": "ccc74a28ae1330763e9a0a1bddef8df51503ff28a168ddf0cda7c6e485b9a4e1",
+          "deployedBytes": 7548,
+          "matches": true
+        }
+      ],
+      "version": 17,
+      "status": "ACTIVE",
+      "deployedVerifyJwt": false,
+      "verifyJwtMatches": true,
+      "unmappedHostedFiles": [],
+      "exactSourceAndConfigMatch": true
+    }
+  ],
+  "limitations": "Provider status ACTIVE does not establish current source equality or user/provider acceptance. The historical package remains blocked on business/music database contracts."
+}

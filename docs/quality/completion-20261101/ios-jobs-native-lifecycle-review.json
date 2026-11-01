@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T03:03:58.851806+00:00",
+  "kind": "targeted-Jobs-native-lifecycle-and-accessibility-review",
+  "consumerRunId": 41266020146,
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "currentSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "reviewedProductAndFixtureFilesMatchExactProducer": true,
+  "reviewedFilesSha256": {
+    "src/screens/jobs/JobsScreen.tsx": "915b2cf3129244763d729cea4b32031ea5541c40bf1d44ca9ed2438b7891341d",
+    "src/navigation/AppNavigator.tsx": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+    "src/screens/feed/FeedScreen.tsx": "63716b02d5d188293b1995a89fc4d3b08f26097bb7ad56aebf4728224f296f17",
+    "src/components/PostCarousel.tsx": "bce07e1476ac91502fb95ee95434b45a3efa540478a66a5d6ba2be7f5dc97d58",
+    "src/lib/videoEngine.ts": "6e28ff0c1edd814feda25aaaa3e1290f63476625718aa1f83d1ecaee9d1e8b66",
+    "src/components/Skeleton.tsx": "e299519d53e333ad67ba1c385f8e71e49fb91c37cb6e3d4a4771d5662c29f3c7",
+    "src/components/skeletons/index.tsx": "b5184dadb2b0d4dea692b6f824e684bab78f66c9206a8240b79327993eb0471e",
+    "src/components/AdaptiveTabBar.tsx": "f2a34985aedaf394a0b3462809d7a20c7ecc01ad16bbd6f92eee65a358d8d32f",
+    "src/components/TapTopList.tsx": "95d91fdbe95a269f1e18965dbabe4f2bcd6c5992341e0f778caef573809c2e7c",
+    "tests/native/backend-fixture.cjs": "69990b3708b68e8693544e124fefe0550930f404cedf2cdbca64243cdb2195c3"
+  },
+  "relevantInstalledDependencyVersions": {
+    "node_modules/@react-navigation/bottom-tabs": {
+      "version": "6.6.1",
+      "sameLockedPackageAsProducer": true
+    },
+    "node_modules/@react-navigation/elements": {
+      "version": "1.3.31",
+      "sameLockedPackageAsProducer": true
+    },
+    "node_modules/react-native-screens": {
+      "version": "4.16.0",
+      "sameLockedPackageAsProducer": true
+    },
+    "node_modules/expo-video": {
+      "version": "3.0.16",
+      "sameLockedPackageAsProducer": true
+    }
+  },
+  "observedFailure": "Jobs tab tap completed; the following native accessibility hierarchy query did not reach the app main thread within30 seconds. No native main-thread sample was obtained.",
+  "reviewFindings": [
+    {
+      "area": "Jobs data and layout",
+      "finding": "One fixture job, no avatar/media, a FlatList with8 initial rows and6 per batch, stable memoized focus/load dependencies; no synchronous loop or recursive UI work found."
+    },
+    {
+      "area": "Loading and animations",
+      "finding": "Jobs uses the shared loading skeleton. Its native opacity loops stop on unmount; no spinner is rendered in the loaded default Jobs path. Receipt contains one Jobs GET and no unhandled fixture request. The artifact does not prove whether the skeleton remained mounted at the stalled query."
+    },
+    {
+      "area": "Offscreen accessibility",
+      "finding": "The installed React Navigation Screen wrapper sets accessibilityElementsHidden and no-hide-descendants for unfocused tabs. The React Native Screens fallback also applies display:none to inactive screens when native screens are disabled. Keeping tab React state does not expose the full inactive AX subtree."
+    },
+    {
+      "area": "Feed media lifecycle",
+      "finding": "Feed passes focus/app-state into PostCarousel. PostCarousel pauses the owner when unfocused and shared-video ownership cleanup pauses/releases it. This fixture Feed has no media, so background Feed video is not evidenced as the current mechanism."
+    },
+    {
+      "area": "Tab bar",
+      "finding": "The adaptive bar runs a finite native spring only on a state-changing scroll direction, resets on accessibility preference change, and has no repeat animation in its idle path."
+    },
+    {
+      "area": "Native callback evidence",
+      "finding": "The app emitted the30-second XCTest main-thread busy error and later executed the callback. This proves a responsiveness failure at the observed boundary but does not identify a product-specific deadlock or a safe product repair."
+    }
+  ],
+  "requests": {
+    "jobsGetCount": 1,
+    "jobSavesGetCount": 1,
+    "jobApplicationsGetCount": 1,
+    "unhandledFixtureRequests": 0
+  },
+  "productPatchJustifiedByCurrentEvidence": false,
+  "productSourceChanged": false,
+  "nextEvidenceNeeded": "A completed next original route with unchanged app deadlines, or a valid sample of the already-owned app main thread during a repeated stall. No diagnostic-only rerun is authorized by this review.",
+  "mainThreadStallAccepted": false,
+  "JobsContentAccepted": false,
+  "MessagesAccepted": false,
+  "readerAccepted": false
+}

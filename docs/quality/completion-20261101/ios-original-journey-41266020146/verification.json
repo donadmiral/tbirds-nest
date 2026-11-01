@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-11-01T03:04:33.605823+00:00",
+  "consumerRunId": 41266020146,
+  "consumerJobId": 124728874775,
+  "consumerSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerBinding": {
+    "schemaVersion": 1,
+    "ready": true,
+    "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+    "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+    "producerRunId": 41259529351,
+    "producerArtifactName": "native-audit-ios-binary",
+    "producerArtifactId": 13065158785,
+    "producerArtifactZipSha256": "00c9a0651dfe7d5d495c30ab5f5d09a0406b388b77b875e6041ee255b57ba7e8",
+    "producerArtifactZipBytes": 49157981,
+    "appArchiveSha256": "547488ec4e545c9eb5c1cde4ce906cd36e1bf546d566f1c1ca5764793468fafa",
+    "binaryManifestSha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+    "binarySha256": "c43aa346fabae4c656bc14602cb982bcbb7018ccfcfd4658d33a37742e40084c",
+    "sourceReceiptSha256": "cb4762c4caaa3aebff83cf6071cd9b18db3e5377fbcb1903c4017f5c2e1df302"
+  },
+  "artifact": {
+    "id": 13068325685,
+    "bytes": 277056,
+    "sha256": "4da81c2dab25fb26d5e1032f830a03f30627ae30a20761b2d56690829d6806b5"
+  },
+  "result": "failed-before-Messages-and-reader",
+  "appInstalled": true,
+  "routeAccepted": false,
+  "messagesAccepted": false,
+  "readerAccepted": false,
+  "installation": {
+    "exitCode": 0,
+    "configuredCommandWaitSeconds": 120,
+    "innerCommandElapsedSeconds": 107.44532933899995,
+    "fullRecordedStageWallSeconds": 135.73,
+    "timerStartsAfterPopen": true,
+    "inclusive120SecondWallTimeClaimed": false
+  },
+  "watchdog": {
+    "seconds": 600,
+    "scope": "Entire Maestro CLI including driver startup, original sign-in and controls",
+    "timedOut": true,
+    "startupBeforeFirstFlowCommandSeconds": 214.472,
+    "originalLaunchClearStateCommandSeconds": 221.601,
+    "clearStateToLaunchCallSeconds": 201.604,
+    "startupPlusLaunchFraction": 0.72679
+  },
+  "lastCompletedNavigation": "Jobs tab tap at 02:55:30.388 UTC",
+  "lastIncompleteAssertion": "Product designer / Desert Studio content",
+  "lastDriverHierarchyRead": {
+    "startedAtUtc": "2026-11-01T02:55:30.454Z",
+    "completionObserved": false,
+    "pendingBeforeWatchdogSeconds": 25.385
+  },
+  "mainThreadObservation": {
+    "logSha256": "0ffa0c8de716d26d900c767c190537f6ffe73119a700f641568b7d750564d9c6",
+    "requestQueuedUtc": "2026-11-01T02:55:30.457+00:00",
+    "thirtySecondBusyErrorUtc": "2026-11-01T02:56:00.458+00:00",
+    "mainThreadCallbackArrivedUtc": "2026-11-01T02:56:06.060+00:00",
+    "sampleObtained": false,
+    "specificProductCauseIdentified": false
+  },
+  "diagnosticLimitations": {
+    "threadSampleObtained": false,
+    "sampleFailures": [
+      "TimeoutExpired",
+      "TimeoutExpired"
+    ],
+    "screenshotPresent": false,
+    "junitPresent": false,
+    "completeCommandTracePresent": false,
+    "specificProductOrHostCauseEstablished": false
+  },
+  "receiptCollectionPassed": true,
+  "syntheticFixtureContractPassed": true,
+  "requestCount": 124,
+  "messagesVisitObserved": false,
+  "readerEntered": false,
+  "secondaryError": "Every expected actual Messages tab visit must be observed exactly once",
+  "secondaryErrorIsNotPerformanceMeasurement": true,
+  "cleanup": [
+    {
+      "operation": "shutdown",
+      "completed": true
+    },
+    {
+      "operation": "delete",
+      "completed": true
+    }
+  ],
+  "unchangedReaderRequirementMs": 15000,
+  "unchangedMessagesTargetMs": 1000,
+  "retainedFiles": [
+    {
+      "path": "binary-manifest.json",
+      "sha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+      "bytes": 2621
+    },
+    {
+      "path": "completion-proof.json",
+      "sha256": "d2ca4db357b29b993cb94acd743327632249c76de834c7da3ae01595b325fd4d",
+      "bytes": 4985
+    },
+    {
+      "path": "device-ownership.json",
+      "sha256": "5ce01a789d605d47668bd735b721e97dfc32c115f52957154edcd23d98791012",
+      "bytes": 349
+    },
+    {
+      "path": "device-setup.json",
+      "sha256": "0eb146c372156187971ae0418c654028b55bed44add87eedfeb0e44f5fd6f883",
+      "bytes": 841
+    },
+    {
+      "path": "setup-commands.json",
+      "sha256": "de5708e37d9feb25490becde11553782b4bfb1bbac33f806d5b91073c5716f53",
+      "bytes": 19342
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/result.json",
+      "sha256": "7535bbb03a51244e0f0c65692f8f06d4a891cee73e9dadd4d5f6ab297cffa871",
+      "bytes": 1995
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/native-ui-navigation-timing.json",
+      "sha256": "15e8771fe667d9c0c9300a6d24d5391dbbbc8e7cbecf4a5089dc2091a652532f",
+      "bytes": 510
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/failure-threads/sampling.json",
+      "sha256": "ef220c6aabd0c7f39092e9bb5474456c5f4ba2074ce763d583a79e9cf4f0e6ba",
+      "bytes": 370
+    }
+  ],
+  "rawArtifactFileInventory": [
+    {
+      "path": "app.log",
+      "sha256": "0ffa0c8de716d26d900c767c190537f6ffe73119a700f641568b7d750564d9c6",
+      "bytes": 1720927
+    },
+    {
+      "path": "binary-manifest.json",
+      "sha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+      "bytes": 2621
+    },
+    {
+      "path": "cold-startup/com.apple.CoreSimulator.CoreSimulatorService.sample.txt",
+      "sha256": "085d370e6b85677331565b47a7414ef4c1343445a3f9b724436c6a2a86ddb5b5",
+      "bytes": 334279
+    },
+    {
+      "path": "cold-startup/diagnostic.json",
+      "sha256": "2095632313bbe2207773fe424c1aae70014e522560cbbcbfb7ddd4faeb590010",
+      "bytes": 4032
+    },
+    {
+      "path": "completion-proof.json",
+      "sha256": "d2ca4db357b29b993cb94acd743327632249c76de834c7da3ae01595b325fd4d",
+      "bytes": 4985
+    },
+    {
+      "path": "device-ownership.json",
+      "sha256": "5ce01a789d605d47668bd735b721e97dfc32c115f52957154edcd23d98791012",
+      "bytes": 349
+    },
+    {
+      "path": "device-setup.json",
+      "sha256": "0eb146c372156187971ae0418c654028b55bed44add87eedfeb0e44f5fd6f883",
+      "bytes": 841
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/failure-threads/sampling.json",
+      "sha256": "ef220c6aabd0c7f39092e9bb5474456c5f4ba2074ce763d583a79e9cf4f0e6ba",
+      "bytes": 370
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro/2026-11-01_024702/Diagnostic original tabs to saved memory reader controls/logs/maestro.log",
+      "sha256": "f27f3d6ec331d2dfe13b50c61a43b278ab2a848aca26870926b8767b46eca3b9",
+      "bytes": 21292
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro/2026-11-01_024702/xctest_runner_2026-11-01_024801.log",
+      "sha256": "ad497a9fb028a33d28ec135936f87860d9e48d686080a5fca9b1903836b2bca7",
+      "bytes": 119259
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro.log",
+      "sha256": "f76a45c125b5d28213a507315bcde8a513c821b4b8e436b90f4fa5921669b573",
+      "bytes": 34
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/native-ui-auth-diagnostics.json",
+      "sha256": "5a78de59abd470a3ab64b5346087e36e7fb7aedbae664e106264a59a32866e57",
+      "bytes": 88023
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/native-ui-navigation-timing.json",
+      "sha256": "15e8771fe667d9c0c9300a6d24d5391dbbbc8e7cbecf4a5089dc2091a652532f",
+      "bytes": 510
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/native-ui-receipt.json",
+      "sha256": "435b07d8d24c94c260e4680ad03fe64f0efe4abc49201cbfd4f8f93ecd08c1b8",
+      "bytes": 12418
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/result.json",
+      "sha256": "7535bbb03a51244e0f0c65692f8f06d4a891cee73e9dadd4d5f6ab297cffa871",
+      "bytes": 1995
+    },
+    {
+      "path": "setup-commands.json",
+      "sha256": "de5708e37d9feb25490becde11553782b4bfb1bbac33f806d5b91073c5716f53",
+      "bytes": 19342
+    }
+  ],
+  "independentTimelineReview": "../ios-original-41266020146-native-review.json",
+  "publicEvidencePolicy": "Credential-bearing command logs and detailed synthetic Auth request content are retained in the original provider artifact and local review copy; only exact hashes, numeric timing and selected setup/result receipts are included here.",
+  "scope": "Actual source-bound app installation succeeded. The unchanged journey failed within its original whole-CLI watchdog while awaiting Jobs accessibility content. No Messages, reader, app-performance or physical/provider acceptance is claimed. First-launch clearState redundancy is assessed separately; no result is retroactively changed."
+}

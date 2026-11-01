@@ -1,0 +1,39 @@
+{
+  "status": "independent-review-passed",
+  "reviewer": "status_scope_check",
+  "reviewedSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "files": {
+    "supabase/tests/rpc-authorization/test-notification-event-dispatch.mjs": "c32de44ebd864c55fa7dbd8a8248f7df71db6b69a65041d3d48b3e7a77081521",
+    "docs/quality/completion-20261101/backend/notification-event-clock-boundary.mjs": "784c52191b5bc3e2548d5442bbb45f1dfefe2522ce6256a83d7d2a26551ccffd",
+    "supabase/ops/qa/notification-event-dispatch/20261031022749_notification_event_dispatch_capabilities.sql": "9a5a7ea2d9acfc9c21185ac5b2654cfebd9d8f5aba29363cd5a5b5616f4bf081"
+  },
+  "scope": "Three local SQL fixtures only; production SQL and assertions are unchanged.",
+  "findings": [
+    "Both endpoints of each two-minute boundary fixture now use the same statement_timestamp value.",
+    "Separate clock_timestamp calls can cross the inclusive two-minute check constraint under scheduling delay.",
+    "The exact production CREATE TABLE reproducer demonstrates the old failure and the repaired boundary without weakening the constraint."
+  ],
+  "reproduction": {
+    "productionSqlSha256": "9a5a7ea2d9acfc9c21185ac5b2654cfebd9d8f5aba29363cd5a5b5616f4bf081",
+    "exactProductionTableDdlUsed": true,
+    "productionSqlChanged": false,
+    "controlledSchedulingDelayMs": 10,
+    "oldVolatileClockError": {
+      "code": "23514",
+      "constraint": "event_jobs_check1"
+    },
+    "newStatementClockDurationMs": 120000,
+    "newStatementClockAccepted": true,
+    "scope": "Local PGlite reproduction only; no hosted write"
+  },
+  "actualSuite": {
+    "command": "node --test supabase/tests/rpc-authorization/test-notification-event-dispatch.mjs",
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0,
+    "evidence": "notification-event-fixture-independent.tap"
+  },
+  "limits": [
+    "This is a local PGlite regression test; no hosted write or provider acceptance is claimed."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "trigger": "reader-diagnostic-failed",
+  "changesVerdict": false,
+  "samples": [
+    {
+      "role": "app",
+      "complete": false,
+      "issue": "TimeoutExpired"
+    },
+    {
+      "role": "driver",
+      "complete": false,
+      "issue": "TimeoutExpired"
+    }
+  ],
+  "attempted": true,
+  "startedAtEpochMs": 1793501757615,
+  "updatedAtEpochMs": 1793501764391
+}

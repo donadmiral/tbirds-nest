@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "observedAt": "2026-11-01 02:40:22.445475+00",
+  "discovery": "The exposed Supabase tool inventory has no apply_migration request-status, approval-token completion, cancellation, or request-history operation.",
+  "getProject": {
+    "projectRef": "uaulhuelcfkjwojtymmw",
+    "result": "NotFoundException: Project not found",
+    "limit": "This endpoint result does not establish loss of project access: the same project's SQL and Edge list succeeded in the same read-only batch."
+  },
+  "database": {
+    "observed_at": "2026-11-01 02:40:22.445475+00",
+    "business_schema_marker": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "music_schema_present": false,
+    "support_reply_present": false,
+    "relevant_journal": [
+      {
+        "name": "qa_business_auth_01_foundation_20261031",
+        "version": "20261031020659"
+      },
+      {
+        "name": "qa_business_auth_02_private_guards_20261031",
+        "version": "20261031021053"
+      },
+      {
+        "name": "qa_business_auth_03_private_device_20261031",
+        "version": "20261031021956"
+      },
+      {
+        "name": "private_media_readiness_storage_references",
+        "version": "20261101021335"
+      }
+    ],
+    "matching_active_statements": 0
+  },
+  "logs": {
+    "windowStart": "2026-11-01T02:15:50Z",
+    "windowEnd": "2026-11-01T02:40:30Z",
+    "filter": "Postgres log attributes containing the exact stage4 migration request name or member_support_atomic_reply",
+    "matchingRows": 0,
+    "limit": "Absence of matching log rows is not proof of provider rejection, cancellation or success."
+  },
+  "pendingOperationOutcome": "unknown",
+  "mutationSubmitted": false,
+  "priorPendingRequestsRetried": false
+}

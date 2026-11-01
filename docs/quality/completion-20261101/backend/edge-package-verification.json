@@ -1,0 +1,28 @@
+{
+  "formatVersion": 1,
+  "sourceHeadAtGeneration": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "builder": "scripts/quality/build-music-candidate.mjs",
+  "checkCommand": "node scripts/quality/build-music-candidate.mjs --check",
+  "checkPassed": true,
+  "changedFields": [
+    "generatedAt",
+    "sourceHeadAtGeneration",
+    "functionConfiguration",
+    "tests",
+    "persistentDatabaseRunner"
+  ],
+  "all14AffectedEdgeBundlesUnchanged": true,
+  "bothExistingPrerequisiteBundlesUnchanged": true,
+  "changedSourceRecords": [
+    "supabase/config.toml",
+    "admin-web/tests/music-operations.cjs",
+    "supabase/tests/rpc-authorization/run-all.mjs"
+  ],
+  "historicalHostedObservationPreserved": true,
+  "currentHostedState": "docs/quality/completion-20261101/backend/provider-request-status-observation.json",
+  "packagesCheckCommand": "python3 scripts/quality/completion-edge-packages.py --check",
+  "packagesCheckPassed": true,
+  "requests": 16,
+  "uniqueSourceFiles": 42,
+  "providerCalls": 0
+}

@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
-  "generatedAt": "2026-10-30T21:08:22.284Z",
-  "sourceHeadAtGeneration": "ddc968bd11be40d37af7a5aeff1c134e53c397d8",
+  "generatedAt": "2026-11-01T02:40:00.723Z",
+  "sourceHeadAtGeneration": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
   "scope": "Complete local file manifest and ordered handoff; not hosted installation or commercial activation evidence.",
   "builder": {
     "path": "scripts/quality/build-music-candidate.mjs",
@@ -28,8 +28,8 @@
   "productionStatus": "Held. This is not an authorization to skip production prerequisites, client compatibility, exact target preflights or separate postflight.",
   "functionConfiguration": {
     "path": "supabase/config.toml",
-    "sha256": "1c657b8bd6d9c0e3fa2afbe52e0fd40f3ee1382fbbad2a546dab7800cf742019",
-    "bytes": 16511
+    "sha256": "8d0c2344fa4ca5483bfd92b02de7c0a5d27fc35b5fbd442ce4db9acab1bdc88a",
+    "bytes": 16849
   },
   "functionConfigurationDocumentation": "https://supabase.com/docs/guides/functions/function-configuration",
   "functionConfigurationDocumentationVerified": "2026-10-30; current official documentation confirms JWT verification defaults on and entrypoint/import-map paths are relative to config.toml.",
@@ -1075,8 +1075,8 @@
     },
     {
       "path": "admin-web/tests/music-operations.cjs",
-      "sha256": "945a2df8b7010df0e48214ace35b107eb4469cd8c4bd6898166c655e01c4ed9a",
-      "bytes": 5511,
+      "sha256": "c5455882db13f7770a1917bd8ab748aa5f75953a333615a9490c79b74626ff65",
+      "bytes": 5769,
       "commands": [
         "node admin-web/tests/music-operations.cjs"
       ]
@@ -1089,8 +1089,8 @@
   },
   "persistentDatabaseRunner": {
     "path": "supabase/tests/rpc-authorization/run-all.mjs",
-    "sha256": "6a476ee1d9c3cefd84d35041ee32db38fdb67e69912666d7d35a91972b1ac2e3",
-    "bytes": 3779
+    "sha256": "b8d1149589ddee1fa0a48d7c2d028e50b14c2b90241a78c323af44dfef924fa3",
+    "bytes": 4201
   },
   "references": [
     "docs/quality/music-operations-20261030/README.md",

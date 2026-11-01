@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T03:09:21.366392+00:00",
+  "consumerBaselineCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "producerArtifactId": 13065158785,
+  "triggeringFailure": "ios-original-journey-41266020146/verification.json",
+  "upstreamSemantics": {
+    "maestroVersion": "2.11.0",
+    "tagCommit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+    "officialReleaseArchiveSha256": "5384593cb4e7a106489e75a821d157dd43f4e438df6bc308b72e82c685e1283a",
+    "source": {
+      "path": "maestro-ios-driver/src/main/kotlin/util/LocalSimulatorUtils.kt",
+      "upstreamBlobSha": "2f8c6b2e20ccb4032c1a6d3046ca9e961cba5994",
+      "retrievedGitBlobSha": "2f8c6b2e20ccb4032c1a6d3046ca9e961cba5994",
+      "gitBlobMatches": true,
+      "sha256": "22ef8443efede84655fc329fac737cf8c64ad62f9e83c22ee3ce7c148ae9ac39",
+      "bytes": 23135,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-driver/src/main/kotlin/util/LocalSimulatorUtils.kt"
+    },
+    "officialCurrentDocumentation": "https://docs.maestro.dev/reference/commands-available/clearstate",
+    "verifiedBehavior": "clearAppState terminates/stops the app, copies the whole installed bundle, uninstalls the bundle, and reinstalls the copied app. This was redundant immediately after the successful first install on the unique newly created device.",
+    "keychainPermissionsLaunchSource": {
+      "path": "maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt",
+      "upstreamBlobSha": "4127338828db0a14de0488873bac3bd5dfa6be66",
+      "retrievedGitBlobSha": "4127338828db0a14de0488873bac3bd5dfa6be66",
+      "gitBlobMatches": true,
+      "sha256": "06e8e2803af1c9704783452a22bf4a3652f89574f384e893afd97d5fcc9007b5",
+      "bytes": 77165,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt"
+    },
+    "keychainPermissionsLaunchVerified": "At the exact pinned commit, launchAppCommand independently executes clearKeychain before the separate clearState condition, then sets permissions and launches with stopIfRunning default true. Setting only clearState false preserves those operations."
+  },
+  "observedClearStateToLaunchCallSeconds": 201.604,
+  "guaranteedRuntimeSavingsClaimed": false,
+  "changedBehavior": "The original-journey consumer materializes one disposable sign-in copy after strict successful fresh-device/first-install proof. Only the first iOS clearState value and the include path differ. The original source files, existing 85-case isolation and application binary remain unchanged.",
+  "guards": [
+    "Exact complete original YAML SHA-256 values before preparation and execution",
+    "Strict owned UUID, unique generated name, preboot identity/type/availability and completed exact-UUID bootstatus proof",
+    "Exact successful setup-command sequence ending in one first install",
+    "Original/copy byte reversal permits only the reviewed clearState/include changes",
+    "One-use command guard preserves exact arguments, target UUID and 600-second envelope",
+    "Executed-source hashes and actual first-install timing retained",
+    "Original diagnostic verifier/hash and failure callback restored in finally",
+    "Existing clearKeychain, notification permissions, all sign-in/content/reader assertions retained"
+  ],
+  "unchangedBounds": {
+    "wholeMaestroSeconds": 600,
+    "readerMs": 15000,
+    "focusedPopulatedMessagesFrameMs": 1000,
+    "firstInstallCommandWaitSeconds": 120
+  },
+  "failureReporting": "Failed route remains failed and does not get replaced by secondary missing-Messages/reader timing exceptions.",
+  "jobsObservation": {
+    "mainThreadDelayObserved": true,
+    "specificProductOrHostCauseProven": false,
+    "productEditMade": false,
+    "knownIssueReview": "Pinned hierarchy handling uses XCTest snapshots. The documented native table/collection lazy-pagination issue was considered, but the reviewed one-record React Native Jobs fixture had no repeated requests or demonstrated applicable mechanism. No animations, accessibility idle behavior or app deadline were disabled."
+  },
+  "ownedSamplingReview": {
+    "readOnly": true,
+    "processInventory": "public libproc, current UID only",
+    "boundary": "Exact owned UUID application bundle path plus package, executable, PID and start-time identity",
+    "noMetadataClientDependency": true,
+    "processArgumentsOrEnvironmentRead": false,
+    "signalsAdded": false,
+    "maximumSamplePairs": 1,
+    "sampleDurationSeconds": 3,
+    "sampleCommandWaitSeconds": 8,
+    "changesVerdict": false,
+    "independentEmbeddedCases": 10
+  },
+  "verification": {
+    "combinedOuterChecks": 11,
+    "passed": 11,
+    "failed": 0,
+    "freshSignInEmbeddedCases": 6,
+    "invalidSetupVariants": 16,
+    "ownedSamplingEmbeddedCases": 10,
+    "pythonCompilePassed": true,
+    "tapPath": "ios-first-launch-and-sampling-coordinated.tap",
+    "tapSha256": "cd127b9ad2a561f0a8d7a317d078137cf86d057aa7736aba4c25331d3efa88d6"
+  },
+  "reviewedFiles": [
+    {
+      "path": ".github/workflows/native-completion-journey.yml",
+      "sha256": "06faa6354db779459c4b953447c6bea0ecb1047feed1e19fab828774b38a09cc"
+    },
+    {
+      "path": "scripts/quality/completion-ios-journey.py",
+      "sha256": "702449ff5d5be7c87b143cc951cb86ba64a09f077af9caf5cc63c898375395a5"
+    },
+    {
+      "path": "scripts/quality/completion-ios-fresh-signin.py",
+      "sha256": "7b74c3ca0b3f96398a35dbc22db9d8cca073d84bc3de13f51b5910bcf588f0bd"
+    },
+    {
+      "path": "scripts/quality/completion-ios-owned-sampling.py",
+      "sha256": "f5adc3557ab011fb97ab51d130ffe277d93d32cad593a9f004e1dd5c03072751"
+    },
+    {
+      "path": "tests/quality/native-completion-journey.cjs",
+      "sha256": "4cb74a3fd438817b7ff54776ba1a40008fcb2568c05488cfe3c9000d0dc0a72c"
+    },
+    {
+      "path": "tests/quality/native-completion-owned-sampling.cjs",
+      "sha256": "59806ca35427ad9121c20a7819b59d64fe6e7db6fd6feb793e9685ab66c8ba0c"
+    }
+  ],
+  "actualNextRunStarted": false,
+  "runtimeSuccessClaimed": false,
+  "scope": "Consumer-only evidence-based correction. It removes a known duplicate first reinstall and improves bounded failure sampling without changing the app, historical source, app assertions, timing targets or the interpretation of the failed run."
+}

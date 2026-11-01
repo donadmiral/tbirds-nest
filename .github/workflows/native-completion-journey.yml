@@ -8,6 +8,8 @@ on:
       - scripts/quality/completion-ios-journey.py
       - scripts/quality/completion-ios-journey.json
       - scripts/quality/completion-ios-startup-diagnostics.py
+      - scripts/quality/completion-ios-fresh-signin.py
+      - scripts/quality/completion-ios-owned-sampling.py
   workflow_dispatch:
 
 permissions:

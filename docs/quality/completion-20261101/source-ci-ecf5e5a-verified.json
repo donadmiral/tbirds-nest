@@ -1,0 +1,115 @@
+{
+  "observedAt": "2026-11-01T02:48:46Z",
+  "repository": "donadmiral/tbirds-nest",
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "runId": 41266020096,
+  "conclusion": "success",
+  "jobs": [
+    {
+      "name": "Phone app",
+      "id": 124728874942,
+      "conclusion": "success"
+    },
+    {
+      "name": "Operations app",
+      "id": 124728874912,
+      "conclusion": "success"
+    },
+    {
+      "name": "Web app",
+      "id": 124728874925,
+      "conclusion": "success"
+    },
+    {
+      "name": "Link preview Edge TLS",
+      "id": 124728874706,
+      "conclusion": "success"
+    }
+  ],
+  "native": {
+    "tests": 2357,
+    "suites": 0,
+    "pass": 2357,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 99808.19108
+  },
+  "paymentAndDatabase": {
+    "tests": 331,
+    "suites": 0,
+    "pass": 328,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 3,
+    "todo": 0,
+    "duration_ms": 85041.175254
+  },
+  "rpc": {
+    "groups": 43,
+    "tests": 889,
+    "pass": 886,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 3,
+    "todo": 0,
+    "additionalDirectAssertionSuites": "Passed in the same successful command; not added to the registered Node count."
+  },
+  "web": {
+    "tests": 700,
+    "suites": 0,
+    "pass": 700,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 35026.374915
+  },
+  "admin": {
+    "tests": 287,
+    "suites": 0,
+    "pass": 287,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 18346.447726
+  },
+  "typeScript": {
+    "native": "passed",
+    "web": "passed",
+    "admin": "passed"
+  },
+  "edgeTls": {
+    "passed": 2,
+    "failed": 0
+  },
+  "conditionalVariants": [
+    {
+      "name": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "passedInApplicableVariant": true
+    },
+    {
+      "name": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "passedInApplicableVariant": true
+    },
+    {
+      "name": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "passedInApplicableVariant": true
+    },
+    {
+      "name": "a real bound business session works until device revocation",
+      "passedInApplicableVariant": true
+    },
+    {
+      "name": "a current exact business binding supports creative persistence and revoked devices stop it",
+      "passedInApplicableVariant": true
+    },
+    {
+      "name": "sound publication is owner-bound, attested and idempotent",
+      "passedInApplicableVariant": true
+    }
+  ],
+  "boundary": "Current source tests, local database fixtures and Edge TLS. Native installed runtime, hosted migrations and external provider delivery have separate receipts."
+}

@@ -1,0 +1,170 @@
+{
+  "status": "independent-offline-review-passed",
+  "sourceHeadAtGeneration": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "verifiedQaRequests": [
+    {
+      "name": "business-signin",
+      "fileCount": 4,
+      "sha256": "7798c551d5ecec2b6f9248017552f00651f0816396003c3e0ecca0690dd10dfd",
+      "verifyJwt": false,
+      "importMapPath": null
+    },
+    {
+      "name": "business-owner-access",
+      "fileCount": 4,
+      "sha256": "b8820911545b0ae5f964bc53a78bfdae62c4d2ea7f50cfa60df057ac44ded1c1",
+      "verifyJwt": false,
+      "importMapPath": null
+    },
+    {
+      "name": "daily-get-token",
+      "fileCount": 5,
+      "sha256": "958a4b810ae521420e2219d261c5f4660698fb852154eb0c79a4224abed59c5d",
+      "verifyJwt": true,
+      "importMapPath": "supabase/functions/daily-get-token/deno.json"
+    },
+    {
+      "name": "crisp-bridge",
+      "fileCount": 6,
+      "sha256": "af118f1ec18e903389d5003aa80bd7e3dc46a78a86038f25979e5681a1b55e42",
+      "verifyJwt": true,
+      "importMapPath": null
+    },
+    {
+      "name": "link-preview",
+      "fileCount": 8,
+      "sha256": "99c6f8c7a5ed3b0f35a30b999c32a56b389fa1f1a62e8786a65454819e0a87f3",
+      "verifyJwt": false,
+      "importMapPath": null
+    },
+    {
+      "name": "apple-music",
+      "fileCount": 7,
+      "sha256": "fd7cb2c2b0519d05f0173034ea3cc28d03c3c6d7e4cd17cb3cbdc39b59a5d48a",
+      "verifyJwt": true,
+      "importMapPath": null
+    },
+    {
+      "name": "replicate-proxy",
+      "fileCount": 4,
+      "sha256": "f059850398359a47f229f8cab61db32556ff51c19687b566f2a0005fb50f6943",
+      "verifyJwt": true,
+      "importMapPath": null
+    },
+    {
+      "name": "create-business",
+      "fileCount": 4,
+      "sha256": "8f5d8612c15185ebd450fe0d0bc4024ee47fc4b58044f927a0cd2a0ffb12bd32",
+      "verifyJwt": true,
+      "importMapPath": null
+    },
+    {
+      "name": "music-asset-finalize",
+      "fileCount": 3,
+      "sha256": "139e7117a780b05e0a933ccb8a255d6f7b701658eb2afd426ade3080fd7ad301",
+      "verifyJwt": false,
+      "importMapPath": null
+    },
+    {
+      "name": "content-media-sign",
+      "fileCount": 4,
+      "sha256": "5fbed9819587e311ce189e6263af8fb908fd4232bb6a45784f8f4f6551fcfebd",
+      "verifyJwt": false,
+      "importMapPath": null
+    },
+    {
+      "name": "media-content",
+      "fileCount": 2,
+      "sha256": "87c9bd6005e10d733d078a4f5dd38ff878fbb2e8dae9dac76f84141a592ab292",
+      "verifyJwt": false,
+      "importMapPath": null
+    },
+    {
+      "name": "account-storage-erasure",
+      "fileCount": 2,
+      "sha256": "94d41241bb7f0a656b9aecddf350c8918a8669a98ed66851e988f2bc31ff1454",
+      "verifyJwt": false,
+      "importMapPath": null
+    },
+    {
+      "name": "music-maintenance",
+      "fileCount": 2,
+      "sha256": "e2ec64030d3bce1af723b006e24014e91afb168134fbb388a3c889fd252124c2",
+      "verifyJwt": false,
+      "importMapPath": null
+    },
+    {
+      "name": "music-catalogue-ingest",
+      "fileCount": 3,
+      "sha256": "29915ebb409b26301654aa2c772adc4aaadc2f5c16be6a3ff6c91f1be8e30a5f",
+      "verifyJwt": false,
+      "importMapPath": null
+    },
+    {
+      "name": "limited-media-file",
+      "fileCount": 2,
+      "sha256": "afdcdc5ce761e26401ff9130d1cd185bd7a9e1ca9c6b499f38ea5559e94b2fb6",
+      "verifyJwt": false,
+      "importMapPath": null
+    },
+    {
+      "name": "chat-media-sign",
+      "fileCount": 3,
+      "sha256": "9f61dc79998baf83bb63cd8884142ae18e669ceadf98052dd13427d7acf396fa",
+      "verifyJwt": false,
+      "importMapPath": null
+    }
+  ],
+  "notification": {
+    "name": "dispatch-notification-event",
+    "requestSha256": "a6081eb12e8bb2c1a31a9f3e37a153089ec3104cc6be683bff1d31479e89186d",
+    "fileCount": 4,
+    "templatesRenamedOnly": true,
+    "relativeImportsResolveInsidePayload": true,
+    "verifyJwt": false,
+    "authentication": "Handler accepts only an exact canonical-event capability, claimed atomically through service-only RPC. This package contains no readiness activation."
+  },
+  "candidateChanges": [
+    "/functionConfiguration/bytes",
+    "/functionConfiguration/sha256",
+    "/generatedAt",
+    "/persistentDatabaseRunner/bytes",
+    "/persistentDatabaseRunner/sha256",
+    "/tests/6/bytes",
+    "/tests/6/sha256",
+    "/sourceHeadAtGeneration"
+  ],
+  "functionBundleRecordsUnchangedFromPublishedCandidate": true,
+  "configurationComparedUsing": "Python standard-library tomllib, with explicit true default matching official Supabase documentation.",
+  "pathAndHashNegativeChecks": 4,
+  "providerCalls": 0,
+  "hostedDeployments": 0,
+  "activationProvided": false,
+  "productionRequestProvided": false,
+  "limits": [
+    "Local source/package checks do not establish a hosted deployment, provider delivery or device receipt.",
+    "Dependency resolution during a real hosted bundle build and exact ACTIVE source readback remain required.",
+    "Prerequisite migrations and disabled-state postflight must pass before any dependent deployment."
+  ],
+  "references": [
+    "https://supabase.com/docs/guides/functions/function-configuration"
+  ],
+  "reviewedFiles": {
+    "scripts/quality/completion-edge-packages.py": "7af9f22afebd9a539598eda8569829c0b405a186abc8efe84f9afe9e1813c5ed",
+    "docs/quality/completion-20261101/backend/edge-deployment-packages/index.json": "62be6764fd739746820ff1b80ced63e021df473a9825c5662448e9e2bc55479e",
+    "docs/quality/completion-20261101/backend/notification-dispatch-edge-manifest.json": "1c0cd208b52d4ec157cf7c41ff7da0dafe4b0e9944df2bc2111b31d7b4ba56be",
+    "docs/quality/completion-20261101/backend/notification-dispatch-edge-request.json": "a6081eb12e8bb2c1a31a9f3e37a153089ec3104cc6be683bff1d31479e89186d",
+    "docs/quality/music-operations-20261030/candidate.json": "e77d62ae33c8a95f72b592a1abe6e6f264a8ac4303bcb6ed098f13dd10d8d444"
+  },
+  "licensedCatalogueActivationIncluded": false,
+  "actualLocalChecks": {
+    "recursiveImportGraphCheck": "passed",
+    "exactArgumentPackageCheck": "passed",
+    "notificationHandler": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "notification-edge-dispatch-independent.tap"
+    }
+  }
+}

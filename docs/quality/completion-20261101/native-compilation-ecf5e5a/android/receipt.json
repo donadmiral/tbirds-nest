@@ -1,0 +1,781 @@
+{
+  "commit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "workflow_run": "41266020120",
+  "result": "unsigned Android QA native compile passed",
+  "native_source": {
+    "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+    "sha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+    "compiled_classes": [
+      "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/BoomerangModule.class"
+    ]
+  },
+  "native_sources": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": {
+      "sha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+      "compiled_classes": [
+        "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/BoomerangModule.class"
+      ]
+    },
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": {
+      "sha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+      "compiled_classes": [
+        "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/StoryVideoComposition.class"
+      ]
+    },
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": {
+      "sha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+      "compiled_classes": [
+        "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/StoryCanvasEffect.class"
+      ]
+    },
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": {
+      "sha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+      "compiled_classes": [
+        "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/MemoryMovieComposition.class"
+      ]
+    }
+  },
+  "media3_runtime": {
+    "project": ":app",
+    "configuration": "debugRuntimeClasspath",
+    "expectedVersion": "1.11.1",
+    "aligned": true,
+    "components": [
+      {
+        "group": "androidx.media3",
+        "module": "media3-common",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-container",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-database",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-datasource",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-datasource-okhttp",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-decoder",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-effect",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-exoplayer",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-exoplayer-dash",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-exoplayer-hls",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-exoplayer-smoothstreaming",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-extractor",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-muxer",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-session",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-transformer",
+        "version": "1.11.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-ui",
+        "version": "1.11.1"
+      }
+    ],
+    "expoVideoCompile": {
+      "project": ":expo-video",
+      "configuration": "debugCompileClasspath",
+      "components": [
+        {
+          "group": "androidx.media3",
+          "module": "media3-common",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-container",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-database",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-datasource",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-datasource-okhttp",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-decoder",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-exoplayer",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-exoplayer-dash",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-exoplayer-hls",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-extractor",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-session",
+          "version": "1.11.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-ui",
+          "version": "1.11.1"
+        }
+      ],
+      "sourceSelected": true,
+      "aligned": true
+    },
+    "scope": "Resolved runtime version alignment; separate from security or encoded-media acceptance."
+  },
+  "media3_packaged_abi": {
+    "schema": 1,
+    "passed": true,
+    "scope": "Packaged class-definition ABI and adapted-source proof; not playback or encoded-media acceptance.",
+    "apk": {
+      "path": "android/app/build/outputs/apk/debug/app-debug-unsigned.apk",
+      "sha256": "8bd010ccff004c3d29c47be833ce34735683e68fdb46c7a6d796f2c30c28aab0"
+    },
+    "classes": [
+      {
+        "class": "Lexpo/modules/video/player/DefaultLoadControl;",
+        "flags": 1,
+        "super": "Ljava/lang/Object;",
+        "interfaces": [
+          "Landroidx/media3/exoplayer/LoadControl;"
+        ],
+        "methods": [
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "-$$Nest$smassertGreaterOrEqual",
+            "parameters": [
+              "I",
+              "I",
+              "Ljava/lang/String;",
+              "Ljava/lang/String;"
+            ],
+            "returns": "V",
+            "flags": 4168,
+            "hasCode": true,
+            "kind": "direct"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "<init>",
+            "parameters": [],
+            "returns": "V",
+            "flags": 65537,
+            "hasCode": true,
+            "kind": "direct"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "<init>",
+            "parameters": [
+              "Landroidx/media3/exoplayer/upstream/DefaultAllocator;",
+              "I",
+              "I",
+              "I",
+              "I",
+              "I",
+              "Z",
+              "I",
+              "Z"
+            ],
+            "returns": "V",
+            "flags": 65540,
+            "hasCode": true,
+            "kind": "direct"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "assertGreaterOrEqual",
+            "parameters": [
+              "I",
+              "I",
+              "Ljava/lang/String;",
+              "Ljava/lang/String;"
+            ],
+            "returns": "V",
+            "flags": 10,
+            "hasCode": true,
+            "kind": "direct"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "getDefaultBufferSize",
+            "parameters": [
+              "I"
+            ],
+            "returns": "I",
+            "flags": 10,
+            "hasCode": true,
+            "kind": "direct"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "removePlayer",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "V",
+            "flags": 2,
+            "hasCode": true,
+            "kind": "direct"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "resetPlayerLoadingState",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "V",
+            "flags": 2,
+            "hasCode": true,
+            "kind": "direct"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "calculateTargetBufferBytes",
+            "parameters": [
+              "[Landroidx/media3/exoplayer/Renderer;",
+              "[Landroidx/media3/exoplayer/trackselection/ExoTrackSelection;"
+            ],
+            "returns": "I",
+            "flags": 20,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "calculateTargetBufferBytes",
+            "parameters": [
+              "[Landroidx/media3/exoplayer/trackselection/ExoTrackSelection;"
+            ],
+            "returns": "I",
+            "flags": 4,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "calculateTotalTargetBufferBytes",
+            "parameters": [],
+            "returns": "I",
+            "flags": 0,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "getAllocator",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "Landroidx/media3/exoplayer/upstream/Allocator;",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "getBackBufferDurationUs",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "J",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "onPrepared",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "onReleased",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "onStopped",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "onTracksSelected",
+            "parameters": [
+              "Landroidx/media3/exoplayer/LoadControl$Parameters;",
+              "Landroidx/media3/exoplayer/source/TrackGroupArray;",
+              "[Landroidx/media3/exoplayer/trackselection/ExoTrackSelection;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "retainBackBufferFromKeyframe",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "shouldContinueLoading",
+            "parameters": [
+              "Landroidx/media3/exoplayer/LoadControl$Parameters;"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "shouldContinuePreloading",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;",
+              "Landroidx/media3/common/Timeline;",
+              "Landroidx/media3/exoplayer/source/MediaSource$MediaPeriodId;",
+              "J"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "shouldStartPlayback",
+            "parameters": [
+              "Landroidx/media3/exoplayer/LoadControl$Parameters;"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Lexpo/modules/video/player/DefaultLoadControl;",
+            "name": "updateAllocator",
+            "parameters": [],
+            "returns": "V",
+            "flags": 4,
+            "hasCode": true,
+            "kind": "virtual"
+          }
+        ],
+        "dex": "classes2.dex",
+        "dexSha256": "5ac5cce08a9872006166646f09d5251e7977abd59cf931575e1693b59b1d1544"
+      },
+      {
+        "class": "Landroidx/media3/exoplayer/LoadControl;",
+        "flags": 1537,
+        "super": "Ljava/lang/Object;",
+        "interfaces": [],
+        "methods": [
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "<clinit>",
+            "parameters": [],
+            "returns": "V",
+            "flags": 65544,
+            "hasCode": true,
+            "kind": "direct"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "getAllocator",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "Landroidx/media3/exoplayer/upstream/Allocator;",
+            "flags": 1025,
+            "hasCode": false,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "getBackBufferDurationUs",
+            "parameters": [],
+            "returns": "J",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "getBackBufferDurationUs",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "J",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "onPrepared",
+            "parameters": [],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "onPrepared",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "onReleased",
+            "parameters": [],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "onReleased",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "onStopped",
+            "parameters": [],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "onStopped",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "onTracksSelected",
+            "parameters": [
+              "Landroidx/media3/common/Timeline;",
+              "Landroidx/media3/exoplayer/source/MediaSource$MediaPeriodId;",
+              "[Landroidx/media3/exoplayer/Renderer;",
+              "Landroidx/media3/exoplayer/source/TrackGroupArray;",
+              "[Landroidx/media3/exoplayer/trackselection/ExoTrackSelection;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "onTracksSelected",
+            "parameters": [
+              "Landroidx/media3/exoplayer/LoadControl$Parameters;",
+              "Landroidx/media3/exoplayer/source/TrackGroupArray;",
+              "[Landroidx/media3/exoplayer/trackselection/ExoTrackSelection;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "onTracksSelected",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;",
+              "Landroidx/media3/common/Timeline;",
+              "Landroidx/media3/exoplayer/source/MediaSource$MediaPeriodId;",
+              "[Landroidx/media3/exoplayer/Renderer;",
+              "Landroidx/media3/exoplayer/source/TrackGroupArray;",
+              "[Landroidx/media3/exoplayer/trackselection/ExoTrackSelection;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "onTracksSelected",
+            "parameters": [
+              "[Landroidx/media3/exoplayer/Renderer;",
+              "Landroidx/media3/exoplayer/source/TrackGroupArray;",
+              "[Landroidx/media3/exoplayer/trackselection/ExoTrackSelection;"
+            ],
+            "returns": "V",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "retainBackBufferFromKeyframe",
+            "parameters": [],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "retainBackBufferFromKeyframe",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "shouldContinueLoading",
+            "parameters": [
+              "J",
+              "J",
+              "F"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "shouldContinueLoading",
+            "parameters": [
+              "Landroidx/media3/exoplayer/LoadControl$Parameters;"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "shouldContinuePreloading",
+            "parameters": [
+              "Landroidx/media3/exoplayer/analytics/PlayerId;",
+              "Landroidx/media3/common/Timeline;",
+              "Landroidx/media3/exoplayer/source/MediaSource$MediaPeriodId;",
+              "J"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "shouldStartPlayback",
+            "parameters": [
+              "J",
+              "F",
+              "Z",
+              "J"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "shouldStartPlayback",
+            "parameters": [
+              "Landroidx/media3/common/Timeline;",
+              "Landroidx/media3/exoplayer/source/MediaSource$MediaPeriodId;",
+              "J",
+              "F",
+              "Z",
+              "J"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          },
+          {
+            "owner": "Landroidx/media3/exoplayer/LoadControl;",
+            "name": "shouldStartPlayback",
+            "parameters": [
+              "Landroidx/media3/exoplayer/LoadControl$Parameters;"
+            ],
+            "returns": "Z",
+            "flags": 1,
+            "hasCode": true,
+            "kind": "virtual"
+          }
+        ],
+        "dex": "classes6.dex",
+        "dexSha256": "312fc3c0269984666484e8aab42ecf76dae3974987d0aa55ddd7e7d8ad1843c0"
+      }
+    ],
+    "abi": {
+      "passed": true,
+      "abstractMethodsChecked": 1,
+      "expoOverridesChecked": 10,
+      "requiredSignatures": [
+        [
+          "getAllocator",
+          [
+            "Landroidx/media3/exoplayer/analytics/PlayerId;"
+          ],
+          "Landroidx/media3/exoplayer/upstream/Allocator;"
+        ],
+        [
+          "shouldContinuePreloading",
+          [
+            "Landroidx/media3/exoplayer/analytics/PlayerId;",
+            "Landroidx/media3/common/Timeline;",
+            "Landroidx/media3/exoplayer/source/MediaSource$MediaPeriodId;",
+            "J"
+          ],
+          "Z"
+        ]
+      ]
+    },
+    "source": {
+      "expoVideoVersion": "3.0.16",
+      "buildFromSource": [
+        "expo-video"
+      ],
+      "appliedHashes": {
+        "android/src/main/java/expo/modules/video/player/DefaultLoadControl.java": "f628d5385071a6c2139cd17d9c7adf833dfd27e6eef52958101558b2849deb0d",
+        "android/build.gradle": "843508193c2f3d9e2bd214c01fe15f66a2684891058c8023ec3745fbc7e2e3f6"
+      }
+    }
+  },
+  "expo_module_registration_verified": true,
+  "android_abi": "arm64-v8a",
+  "apk": {
+    "path": "android/app/build/outputs/apk/debug/app-debug-unsigned.apk",
+    "sha256": "8bd010ccff004c3d29c47be833ce34735683e68fdb46c7a6d796f2c30c28aab0",
+    "bytes": 135188601
+  },
+  "application_id": "app.platinumcircles.mobile.qa",
+  "apk_signed": false,
+  "javascript_bundle_included": false,
+  "android_story_encoder_compiled": true,
+  "advertised_story_video_version": 1,
+  "advertised_story_audio_export_version": 1,
+  "android_memory_movie_encoder_compiled": true,
+  "advertised_memory_movie_version": 0,
+  "encoded_media_acceptance_inferred": false,
+  "device_or_provider_acceptance": false,
+  "app_installed_uploaded_or_submitted": false
+}

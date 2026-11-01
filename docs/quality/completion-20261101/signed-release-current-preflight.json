@@ -1,0 +1,50 @@
+{
+  "observedAt": "2026-11-01T02:57:31.867283+00:00",
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "expoProjectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+  "cliVersion": "27.2.0",
+  "targetProfiles": {
+    "preview": {
+      "distribution": "internal",
+      "channel": "qa-preview",
+      "bundleEnvironment": "qa",
+      "androidBuildType": "apk",
+      "iosSimulator": false
+    },
+    "production": {
+      "autoIncrement": true,
+      "appVersionSource": "remote",
+      "bundleEnvironment": "production",
+      "appStoreConnectAppId": "6764038613",
+      "appleTeamId": "6PHMSMFKSF",
+      "androidTrack": "internal"
+    }
+  },
+  "configurationHashes": {
+    "eas.json": "2743117e9493cb0e2ef3eb452f3c7bf166700adf0ac4088a3dcc5ba89e85efd7",
+    "app.config.js": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710"
+  },
+  "observedExpoAccount": "donadmiral",
+  "observedExpoProject": "platinum-circles",
+  "authenticationBoundary": {
+    "cliSessionAvailable": false,
+    "productionArchiveInspect": "Required EAS login; no archive/build created",
+    "existingBrowserSession": "Project and existing signing/submission settings visible",
+    "supportedPath": "EAS CLI device login, completed by the human through BrowserAuth",
+    "earlierDeviceRequest": "Expired; obtain a fresh request only for the actual human authentication handoff",
+    "githubBuildEntry": "Unavailable without a new GitHub connection; no new OAuth grant made"
+  },
+  "releaseOrder": [
+    "Complete installed-app acceptance and the explicit native capability promotion",
+    "Complete compatible QA and production backend contracts and postflights",
+    "Use the current exact checkout and existing signing profile for the correct target",
+    "Retain source-bound signed artifact and submission result",
+    "Verify the agreed installed physical-device behavior"
+  ],
+  "claims": {
+    "signedFinalBuild": false,
+    "testFlightDelivery": false,
+    "physicalDeviceAcceptance": false
+  },
+  "authorization": "The current instruction authorizes completing the work. This document records a service authentication boundary, not a new request for general permission."
+}

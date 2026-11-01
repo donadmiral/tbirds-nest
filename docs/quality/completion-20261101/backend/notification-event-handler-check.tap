@@ -1,0 +1,22 @@
+✔ canonical DB claim controls the fixed target and all outgoing fields (25.746337ms)
+✔ only a canonical call claim selects the call endpoint (1.144174ms)
+✔ arbitrary routing, recipient, body, credential and SQL fields fail before privileged lookup (3.408496ms)
+✔ expired, stale and replayed claims never reach the downstream service (0.403247ms)
+✔ a pause or legacy-mode switch after claim prevents forwarding, but still records the skip (0.499452ms)
+✔ an unavailable recheck records uncertainty instead of forwarding or reusing the token (0.529588ms)
+✔ invalid DB receipts cannot choose another target or an arbitrary event (0.679794ms)
+✔ production and missing service configuration are refused before any claim (0.280042ms)
+✔ method and body size bounds reject oversized inputs without dispatch (0.460054ms)
+✔ uncertain provider outcomes remain one-shot and never echo sensitive failure bodies (0.842079ms)
+✔ recipient skip and provider rejection are persisted with exact terminal outcomes (4.441563ms)
+✔ failed acknowledgement never reports completion or retries the forward call (0.863811ms)
+✔ cancellation before lookup or while the claim result is uncertain never forwards (1.162592ms)
+✔ cancellation during forwarding records uncertainty using an independent acknowledgement deadline (0.587796ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 48.19825

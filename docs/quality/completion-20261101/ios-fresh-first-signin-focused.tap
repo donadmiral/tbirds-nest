@@ -1,0 +1,79 @@
+TAP version 13
+# test_altered_disposable_assertion_or_original_after_preparation_cannot_execute (__main__.FirstInstallTests.test_altered_disposable_assertion_or_original_after_preparation_cannot_execute) ... ok
+# test_altered_original_is_rejected_before_any_copy (__main__.FirstInstallTests.test_altered_original_is_rejected_before_any_copy) ... ok
+# test_changed_execution_budget_is_rejected_before_running_maestro (__main__.FirstInstallTests.test_changed_execution_budget_is_rejected_before_running_maestro) ... ok
+# test_missing_failed_reused_or_unbound_install_never_gets_an_exemption (__main__.FirstInstallTests.test_missing_failed_reused_or_unbound_install_never_gets_an_exemption) ... ok
+# test_original_watchdog_failure_is_retained_and_cannot_be_retried (__main__.FirstInstallTests.test_original_watchdog_failure_is_retained_and_cannot_be_retried) ... ok
+# test_real_diagnostic_has_exact_one_value_change_and_accurate_executed_provenance (__main__.FirstInstallTests.test_real_diagnostic_has_exact_one_value_change_and_accurate_executed_provenance) ... ok
+# ----------------------------------------------------------------------
+# Ran 6 tests in 0.015s
+# OK
+# Subtest: first iOS sign-in skips only a proven redundant reinstall and retains strict one-use source and UI boundaries
+ok 1 - first iOS sign-in skips only a proven redundant reinstall and retains strict one-use source and UI boundaries
+  ---
+  duration_ms: 85.649202
+  type: 'test'
+  ...
+# Subtest: fresh original-journey consumer refuses unrelated, incomplete or changed producer bytes
+ok 2 - fresh original-journey consumer refuses unrelated, incomplete or changed producer bytes
+  ---
+  duration_ms: 73.732446
+  type: 'test'
+  ...
+# Subtest: fresh original journey keeps the exact reviewed path and reports a separate source-bound result
+ok 3 - fresh original journey keeps the exact reviewed path and reports a separate source-bound result
+  ---
+  duration_ms: 33.603812
+  type: 'test'
+  ...
+# Subtest: native app timing requires the exact visit count and a populated frame before leaving
+ok 4 - native app timing requires the exact visit count and a populated frame before leaving
+  ---
+  duration_ms: 29.538826
+  type: 'test'
+  ...
+# Subtest: reader timing requires both original pages and captions and catches a driver deadline overrun
+ok 5 - reader timing requires both original pages and captions and catches a driver deadline overrun
+  ---
+  duration_ms: 27.847543
+  type: 'test'
+  ...
+# Subtest: owned cold Simulator creation and metadata complete when an exited parent leaves a service holding the output pipe
+ok 6 - owned cold Simulator creation and metadata complete when an exited parent leaves a service holding the output pipe
+  ---
+  duration_ms: 403.183031
+  type: 'test'
+  ...
+# Subtest: cold startup observation preserves the exact command, deadline and timeout without retrying
+ok 7 - cold startup observation preserves the exact command, deadline and timeout without retrying
+  ---
+  duration_ms: 197.074973
+  type: 'test'
+  ...
+# Subtest: owned startup rejects another runtime and cleans only its returned UUID after metadata failure
+ok 8 - owned startup rejects another runtime and cleans only its returned UUID after metadata failure
+  ---
+  duration_ms: 47.133104
+  type: 'test'
+  ...
+# Subtest: completion setup restores the original preboot proof then exact UUID readiness and120-second install
+ok 9 - completion setup restores the original preboot proof then exact UUID readiness and120-second install
+  ---
+  duration_ms: 49.188741
+  type: 'test'
+  ...
+# Subtest: startup observation reads public PID metadata without launching ps and rejects changed or unbounded identities
+ok 10 - startup observation reads public PID metadata without launching ps and rejects changed or unbounded identities
+  ---
+  duration_ms: 91.718779
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1128.918144

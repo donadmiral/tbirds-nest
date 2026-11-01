@@ -7,6 +7,88 @@ const YAML = require('yaml');
 
 const root = path.resolve(__dirname, '../..');
 
+test('first iOS sign-in skips only a proven redundant reinstall and retains strict one-use source and UI boundaries', () => {
+  const code = String.raw`
+import copy,importlib.util,json,shutil,subprocess,tempfile,types,unittest
+from pathlib import Path
+def load(name,file):
+ s=importlib.util.spec_from_file_location(name,file);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+fresh=load('fresh','scripts/quality/completion-ios-fresh-signin.py')
+compat=load('compat','scripts/quality/native-ui-ios-compatibility.py')
+diagnostic=load('diagnostic','scripts/quality/native-ui-ios-d46-recovery.py')
+class FirstInstallTests(unittest.TestCase):
+ def setUp(self):
+  self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name)
+  self.tools=self.root/'recovery-tools';self.baseline=self.root/'baseline';self.output=self.baseline/'native-completion-results';self.output.mkdir(parents=True)
+  for source,target in [(Path(fresh.FLOW),self.tools/fresh.FLOW),(Path(fresh.SIGNIN),self.baseline/fresh.SIGNIN)]:
+   target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,target)
+  self.uuid='11111111-1111-4111-8111-111111111111';runtime='com.apple.CoreSimulator.SimRuntime.iOS-18-5';kind='com.apple.CoreSimulator.SimDeviceType.iPhone-16'
+  self.manifest={'applicationSourceCommit':fresh.SOURCE,'applicationSourceTree':fresh.TREE,'binarySha256':'b'*64,'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':runtime}}
+  self.prepared={'device':self.uuid,'created':True,'name':'Platinum completion '+'a'*32,'deviceTypeIdentifier':kind,'runtimeIdentifier':runtime,'sourceCommit':fresh.SOURCE,'bootReady':True,'verification':{'runtimeIdentifier':runtime,'runtimeVersion':'18.5','selectedDevice':self.uuid,'deviceTypeIdentifier':kind,'stateAtVerification':'Shutdown','runtimeAvailabilityVerified':True}}
+  self.records=[{'stage':name,'timeoutSeconds':timeout,'startedAtEpochMs':1000+i*100,'finishedAtEpochMs':1050+i*100,'elapsedSeconds':0.04,'status':'completed','exitCode':0,'stdoutTail':self.uuid+'\n' if name=='create-owned-device' else ''} for i,(name,timeout) in enumerate(fresh.STAGES)]
+  def write(path,value):Path(path).write_text(json.dumps(value))
+  self.helper=types.SimpleNamespace(compatibility_module=compat,atomic_json=write)
+  self.runner=types.SimpleNamespace(collect=lambda *args:[],validate_receipt=lambda *args:{'passed':True})
+  self.scenarios={'cases':[{'id':'navigation-warm-tabs'}]}
+ def tearDown(self):self.temp.cleanup()
+ def prepare(self):return fresh.prepare(self.tools,self.baseline,self.output,self.manifest,self.prepared,self.records,self.helper)
+ def execute(self,command,**options):
+  self.assertEqual(options['timeout'],600);self.assertEqual(command[-1],fresh.FLOW)
+  output=Path(command[command.index('--output')+1]);output.write_text('<testsuites tests="1"><testsuite tests="1"><testcase name="'+diagnostic.WARM_CONTROLS_NAME+'" file="'+fresh.FLOW+'" status="SUCCESS"/></testsuite></testsuites>')
+  return types.SimpleNamespace(returncode=0)
+ def test_real_diagnostic_has_exact_one_value_change_and_accurate_executed_provenance(self):
+  state=self.prepare();copied=state['executedSignIn'].read_text();original=state['originalSignIn'].read_text()
+  self.assertEqual(copied.replace(fresh.IOS_FRESH,fresh.IOS_ORIGINAL,1),original)
+  self.assertEqual(copied.count('clearState: false'),1);self.assertEqual(copied.count('clearState: true'),1)
+  self.assertIn('clearKeychain: true',copied);self.assertEqual(copied.count('notifications: deny'),2)
+  original_verifier=diagnostic.verify_direct_reader_flow
+  result=fresh.run(state,diagnostic,self.helper,self.runner,self.execute,self.baseline,self.output,self.uuid,self.scenarios,{'used':False})
+  self.assertTrue(result['passed']);self.assertEqual(result['flowSha256'],fresh.digest(state['executedFlow']))
+  self.assertEqual(result['signIn']['sha256'],fresh.digest(state['executedSignIn']))
+  self.assertEqual(result['signIn']['originalSha256'],fresh.SIGNIN_SHA)
+  self.assertEqual(result['timeoutSeconds'],600);self.assertEqual(result['readerRequirementMs'],15000)
+  self.assertTrue(state['record']['used']);self.assertTrue(state['record']['sourceUnchangedAfterAttempt'])
+  self.assertIs(diagnostic.verify_direct_reader_flow,original_verifier);self.assertEqual(diagnostic.WARM_CONTROLS_SHA,fresh.FLOW_SHA)
+  self.assertEqual(fresh.digest(self.tools/fresh.FLOW),fresh.FLOW_SHA);self.assertEqual(fresh.digest(self.baseline/fresh.SIGNIN),fresh.SIGNIN_SHA)
+  with self.assertRaises(ValueError):fresh.run(state,diagnostic,self.helper,self.runner,self.execute,self.baseline,self.output,self.uuid,self.scenarios,{'used':False})
+ def test_missing_failed_reused_or_unbound_install_never_gets_an_exemption(self):
+  mutations=[lambda p,r,m:p.update(created=False),lambda p,r,m:p.update(name='pre-existing device'),lambda p,r,m:p.update(bootReady=False),lambda p,r,m:p['verification'].update(stateAtVerification='Booted'),lambda p,r,m:p.update(device='22222222-2222-4222-8222-222222222222'),lambda p,r,m:m.update(applicationSourceCommit='c'*40),lambda p,r,m:m.update(applicationSourceTree='d'*40),lambda p,r,m:r.pop(),lambda p,r,m:r.append(dict(r[-1])),lambda p,r,m:r[-1].update(exitCode=1),lambda p,r,m:r[-1].update(exitCode=False),lambda p,r,m:r[-1].update(status='timed-out'),lambda p,r,m:r[-1].update(timeoutSeconds=600),lambda p,r,m:r[-1].update(elapsedSeconds=float('nan')),lambda p,r,m:r[-1].update(startedAtEpochMs=1),lambda p,r,m:r[5].update(stdoutTail='unrelated UUID')]
+  for mutation in mutations:
+   with self.subTest(mutation=mutations.index(mutation)):
+    p,r,m=copy.deepcopy(self.prepared),copy.deepcopy(self.records),copy.deepcopy(self.manifest);mutation(p,r,m)
+    with self.assertRaises(ValueError):fresh.verify_first_install(m,p,r,self.helper)
+  self.assertFalse((self.output/'fresh-first-launch').exists())
+ def test_altered_original_is_rejected_before_any_copy(self):
+  path=self.baseline/fresh.SIGNIN;path.write_text(path.read_text().replace('clearKeychain: true','clearKeychain: false'))
+  with self.assertRaises(ValueError):self.prepare()
+  self.assertFalse((self.output/'fresh-first-launch').exists())
+ def test_altered_disposable_assertion_or_original_after_preparation_cannot_execute(self):
+  state=self.prepare();path=state['executedFlow'];path.write_text(path.read_text().replace('timeout: 15000','timeout: 30000',1))
+  with self.assertRaises(ValueError):fresh.run(state,diagnostic,self.helper,self.runner,lambda *a,**k:self.fail('Must not execute'),self.baseline,self.output,self.uuid,self.scenarios,{'used':False})
+  self.assertFalse(state['record']['used'])
+ def test_original_watchdog_failure_is_retained_and_cannot_be_retried(self):
+  state=self.prepare();original_verifier=diagnostic.verify_direct_reader_flow
+  def timeout(command,**options):raise subprocess.TimeoutExpired(command,options['timeout'])
+  result=fresh.run(state,diagnostic,self.helper,self.runner,timeout,self.baseline,self.output,self.uuid,self.scenarios,{'used':False})
+  self.assertFalse(result['passed']);self.assertTrue(result['timedOut']);self.assertEqual(result['timeoutSeconds'],600)
+  self.assertIs(diagnostic.verify_direct_reader_flow,original_verifier);self.assertEqual(diagnostic.WARM_CONTROLS_SHA,fresh.FLOW_SHA)
+  with self.assertRaises(ValueError):fresh.run(state,diagnostic,self.helper,self.runner,self.execute,self.baseline,self.output,self.uuid,self.scenarios,{'used':False})
+ def test_changed_execution_budget_is_rejected_before_running_maestro(self):
+  state=self.prepare();real=diagnostic.run_warm_reader_controls_diagnostic
+  def altered(helper,runner,execute,baseline,tools,output,device,scenarios,budget):
+   target=output/'diagnostic-warm-reader-controls';target.mkdir()
+   command=['maestro','--device',device,'test','--format','junit','--output',str(target/'junit.xml'),'--debug-output',str(target/'maestro'),'--test-output-dir',str(target/'maestro'),fresh.FLOW]
+   return execute(command,timeout=601,cwd=tools,stdout=None,stderr=subprocess.STDOUT)
+  diagnostic.run_warm_reader_controls_diagnostic=altered
+  try:
+   with self.assertRaises(ValueError):fresh.run(state,diagnostic,self.helper,self.runner,lambda *a,**k:self.fail('Must not execute'),self.baseline,self.output,self.uuid,self.scenarios,{'used':False})
+  finally:diagnostic.run_warm_reader_controls_diagnostic=real
+  self.assertFalse(state['record']['used']);self.assertEqual(diagnostic.WARM_CONTROLS_SHA,fresh.FLOW_SHA)
+unittest.main(argv=['fresh-first-sign-in'],verbosity=2)
+`;
+  assert.equal(execFileSync('python3', ['-c', code], { cwd: root, encoding: 'utf8', timeout: 30000 }).trim(), '');
+});
+
 test('fresh original-journey consumer refuses unrelated, incomplete or changed producer bytes', () => {
   const code = String.raw`
 import copy,importlib.util,json,tempfile,unittest

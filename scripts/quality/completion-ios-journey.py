@@ -160,6 +160,8 @@ def main():
     starter = load_module('completion_device_starter', scripts / 'native-ui-start-ios-device.py')
     created = load_module('completion_created_device', scripts / 'native-ui-ios-created-device.py')
     timing = load_module('completion_app_timing', tools_root / 'docs/quality/completion-20261101/native_runtime_analysis.py')
+    fresh_signin = load_module('completion_fresh_signin', tools_root / 'scripts/quality/completion-ios-fresh-signin.py')
+    owned_sampling = load_module('completion_owned_sampling', tools_root / 'scripts/quality/completion-ios-owned-sampling.py')
     binary_dir = baseline / 'native-audit-binary'
     scenario_manifest = baseline / 'tests/native/audit/manifest.json'
     manifest = verify_download(binary_dir, binding, scenario_manifest)
@@ -186,23 +188,39 @@ def main():
         helper.atomic_json(output / 'device-setup.json', prepared)
         proof['bootedRuntime'] = verify_selected_booted_runtime(manifest, prepared, created, helper, records, setup)
         helper.setup_read(['xcrun', 'simctl', 'install', device, str(app)], 'install', 120, records, setup)
+        fresh = fresh_signin.prepare(tools_root, baseline, output, manifest, prepared, records, helper)
+        proof['freshFirstSignIn'] = fresh['record']
         with (output / 'app.log').open('wb') as log:
             logger = subprocess.Popen(['xcrun', 'simctl', 'spawn', device, 'log', 'stream', '--style', 'compact',
                 '--level', 'info', '--predicate', 'process == "PlatinumQA"'], stdout=log, stderr=subprocess.STDOUT,
                 start_new_session=True)
             os.chdir(baseline)
-            observed = diagnostic.run_warm_reader_controls_diagnostic(helper, runner, runner.run_owned,
-                baseline, tools_root, output, device, json.loads(scenario_manifest.read_text()), {'used': False})
+            original_capture = diagnostic.capture_failed_reader_threads
+            def capture_owned(helper, selected, target, budget):
+                return owned_sampling.capture_failed_reader_threads(helper, selected, target, budget,
+                    manifest=manifest, prepared=prepared)
+            try:
+                diagnostic.capture_failed_reader_threads = capture_owned
+                observed = fresh_signin.run(fresh, diagnostic, helper, runner, runner.run_owned,
+                    baseline, output, device, json.loads(scenario_manifest.read_text()), {'used': False})
+            finally:
+                diagnostic.capture_failed_reader_threads = original_capture
             proof['diagnostic'] = observed
-            timing_file = output / 'diagnostic-warm-reader-controls/native-ui-navigation-timing.json'
-            proof['appTiming'] = timing.analyze_timing(json.loads(timing_file.read_text()),
-                observed['startedAtEpochMs'], observed['finishedAtEpochMs'], expected_visits=1)
-            command_files = [file for file in (output / 'diagnostic-warm-reader-controls/maestro').rglob('commands.json')
-                             if file.parent.name == diagnostic.WARM_CONTROLS_NAME]
-            if len(command_files) != 1:
-                raise ValueError('Expected one complete original journey command trace')
-            proof['readerTiming'] = timing.analyze_reader_commands(json.loads(command_files[0].read_text()),
-                observed['startedAtEpochMs'], observed['finishedAtEpochMs'])
+            if observed['passed']:
+                timing_file = output / 'diagnostic-warm-reader-controls/native-ui-navigation-timing.json'
+                proof['appTiming'] = timing.analyze_timing(json.loads(timing_file.read_text()),
+                    observed['startedAtEpochMs'], observed['finishedAtEpochMs'], expected_visits=1)
+                command_files = [file for file in (output / 'diagnostic-warm-reader-controls/maestro').rglob('commands.json')
+                                 if file.parent.name == diagnostic.WARM_CONTROLS_NAME]
+                if len(command_files) != 1:
+                    raise ValueError('Expected one complete original journey command trace')
+                proof['readerTiming'] = timing.analyze_reader_commands(json.loads(command_files[0].read_text()),
+                    observed['startedAtEpochMs'], observed['finishedAtEpochMs'])
+            else:
+                # Retain the actual route/watchdog failure instead of replacing
+                # it with a secondary missing-Messages/reader exception.
+                proof['appTiming'] = {'withinLimit': False, 'issue': 'OriginalJourneyFailed'}
+                proof['readerTiming'] = {'withinOriginalDeadline': False, 'issue': 'OriginalJourneyFailed'}
             runner.validate_binary(manifest, app, 'ios', SOURCE, TREE)
             verify_download(binary_dir, binding, scenario_manifest)
             subprocess.run(['git', '-C', str(baseline), 'diff', '--exit-code', 'HEAD', '--'], check=True,

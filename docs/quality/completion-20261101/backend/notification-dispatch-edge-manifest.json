@@ -1,0 +1,58 @@
+{
+  "formatVersion": 1,
+  "scope": "Offline exact supported deployment arguments, with templates renamed but their contents unchanged. No endpoint has been deployed or delivery enabled by this package.",
+  "requestFile": "docs/quality/completion-20261101/backend/notification-dispatch-edge-request.json",
+  "requestSha256": "a6081eb12e8bb2c1a31a9f3e37a153089ec3104cc6be683bff1d31479e89186d",
+  "requestBytes": 12572,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "verifyJwt": false,
+  "gatewayReason": "The reviewed handler authenticates one canonical event capability through a service-only atomic RPC. Gateway JWT verification cannot authenticate this format. Missing, forged, expired, consumed and disabled-state capabilities are rejected by the handler and RPC.",
+  "sourceFiles": [
+    {
+      "source": "supabase/ops/qa/notification-event-dispatch/index.ts.template",
+      "deployedName": "supabase/ops/qa/notification-event-dispatch/index.ts",
+      "bytes": 1092,
+      "sha256": "c5486be58e068af37de3f4875234a87e13607e28449f0b494b7b7dab053e4745"
+    },
+    {
+      "source": "supabase/ops/qa/notification-event-dispatch/handler.ts.template",
+      "deployedName": "supabase/ops/qa/notification-event-dispatch/handler.ts",
+      "bytes": 4856,
+      "sha256": "16c815d2b5ac0a9e48c21454b1f7922ce12cee5ca00f7b59825d01c08a9a27f6"
+    },
+    {
+      "source": "supabase/functions/_shared/boundedFetch.ts",
+      "deployedName": "supabase/functions/_shared/boundedFetch.ts",
+      "bytes": 676,
+      "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147"
+    },
+    {
+      "source": "supabase/functions/_shared/pushDelivery.ts",
+      "deployedName": "supabase/functions/_shared/pushDelivery.ts",
+      "bytes": 5157,
+      "sha256": "184cfbc43490c00dd267c0c4079ba6e1478996769d9307a454d9c39f50afbafb"
+    }
+  ],
+  "prerequisites": [
+    "Terminal migration success and exact disabled-state, private ACL/RLS and RPC/trigger postflight.",
+    "Read back ACTIVE deployed source and exact settings; record all four file hashes.",
+    "Keep event_settings.enabled=false and do not insert canonical notification or call test events targeting ordinary users."
+  ],
+  "activation": "Not provided by this package. Provider/device acceptance and the reviewed operator retention schedule are separate and require actual evidence.",
+  "sourceTests": {
+    "dispatcher": {
+      "command": "node tests/quality/notification-event-dispatch.cjs",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "sql": {
+      "command": "node supabase/tests/rpc-authorization/test-notification-event-dispatch.mjs",
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "destructiveSqlClassificationPreserved": true,
+  "productionPayloadCreated": false
+}

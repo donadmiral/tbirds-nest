@@ -1,0 +1,555 @@
+{
+  "browser": "153.0.8010.12",
+  "cases": [
+    {
+      "mode": "original",
+      "bytes": 153192,
+      "codec": "vp9",
+      "duration": 7.007799,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "trimmed": [
+        126,
+        0,
+        0
+      ],
+      "first": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        0,
+        254,
+        0
+      ],
+      "untimed": [
+        237,
+        179,
+        67
+      ],
+      "red": [
+        126,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        125
+      ],
+      "last": [
+        21,
+        68,
+        92
+      ],
+      "sound": {
+        "before": 0,
+        "during": 0.03530909356053397,
+        "after": 0,
+        "voiceBefore": 0,
+        "voiceAfter": 0,
+        "originalDuring": 0.04986674115025885
+      },
+      "audioClosed": true,
+      "tracksEnded": true
+    },
+    {
+      "mode": "silent",
+      "bytes": 117117,
+      "codec": "vp9",
+      "duration": 7.005099,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "trimmed": [
+        126,
+        0,
+        0
+      ],
+      "first": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        0,
+        254,
+        0
+      ],
+      "untimed": [
+        237,
+        179,
+        67
+      ],
+      "red": [
+        126,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        125
+      ],
+      "last": [
+        21,
+        68,
+        92
+      ],
+      "sound": null,
+      "audioClosed": true,
+      "tracksEnded": true
+    },
+    {
+      "mode": "score",
+      "bytes": 257167,
+      "codec": "vp9",
+      "duration": 7.0064,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "trimmed": [
+        126,
+        0,
+        0
+      ],
+      "first": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        0,
+        254,
+        0
+      ],
+      "untimed": [
+        237,
+        179,
+        67
+      ],
+      "red": [
+        126,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        125
+      ],
+      "last": [
+        21,
+        68,
+        92
+      ],
+      "sound": {
+        "before": 0.038354191290372396,
+        "during": 0.035511851133478496,
+        "after": 0.02530916428250141,
+        "voiceBefore": 0.0009962720762511429,
+        "voiceAfter": 0.008665642174442576,
+        "originalDuring": 0.049834524180820815
+      },
+      "audioClosed": true,
+      "tracksEnded": true
+    },
+    {
+      "mode": "local_once",
+      "bytes": 181197,
+      "codec": "vp9",
+      "duration": 7.0007,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "trimmed": [
+        126,
+        0,
+        0
+      ],
+      "first": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        0,
+        254,
+        0
+      ],
+      "untimed": [
+        237,
+        179,
+        67
+      ],
+      "red": [
+        126,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        125
+      ],
+      "last": [
+        21,
+        68,
+        92
+      ],
+      "sound": {
+        "before": 0.06189557596316239,
+        "during": 0.03534583273635531,
+        "after": 1.401298464324817e-45,
+        "voiceBefore": 0.08755504412646682,
+        "voiceAfter": 1.1092618751087618e-61,
+        "originalDuring": 0.04991521786257833
+      },
+      "audioClosed": true,
+      "tracksEnded": true
+    },
+    {
+      "mode": "local_loop",
+      "bytes": 261056,
+      "codec": "vp9",
+      "duration": 7.001099,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "trimmed": [
+        126,
+        0,
+        0
+      ],
+      "first": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        0,
+        254,
+        0
+      ],
+      "untimed": [
+        237,
+        179,
+        67
+      ],
+      "red": [
+        126,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        125
+      ],
+      "last": [
+        21,
+        68,
+        92
+      ],
+      "sound": {
+        "before": 0.0619533550280748,
+        "during": 0.07106455140984033,
+        "after": 0.06193392781577627,
+        "voiceBefore": 0.08762896388453156,
+        "voiceAfter": 0.08758763935005255,
+        "originalDuring": 0.04976832488973385
+      },
+      "audioClosed": true,
+      "tracksEnded": true
+    },
+    {
+      "mode": "static_images",
+      "bytes": 144262,
+      "codec": "vp9",
+      "duration": 7.0163,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "trimmed": [
+        126,
+        0,
+        0
+      ],
+      "first": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        26,
+        84,
+        163
+      ],
+      "untimed": [
+        237,
+        179,
+        67
+      ],
+      "red": [
+        126,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        125
+      ],
+      "last": [
+        21,
+        68,
+        92
+      ],
+      "sound": {
+        "before": 0,
+        "during": 0.035327725529068606,
+        "after": 0,
+        "voiceBefore": 0,
+        "voiceAfter": 0,
+        "originalDuring": 0.04990880958327528
+      },
+      "audioClosed": true,
+      "tracksEnded": true
+    },
+    {
+      "mode": "unadjusted_no_webgl",
+      "bytes": 149599,
+      "codec": "vp9",
+      "duration": 7.0095,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "trimmed": [
+        254,
+        0,
+        0
+      ],
+      "first": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        0,
+        254,
+        0
+      ],
+      "untimed": [
+        237,
+        179,
+        67
+      ],
+      "red": [
+        254,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        252
+      ],
+      "last": [
+        21,
+        68,
+        92
+      ],
+      "sound": {
+        "before": 0,
+        "during": 0.03531313475116831,
+        "after": 0,
+        "voiceBefore": 0,
+        "voiceAfter": 0,
+        "originalDuring": 0.04987788282720054
+      },
+      "audioClosed": true,
+      "tracksEnded": true
+    },
+    {
+      "mode": "automatic",
+      "duration": 12.209599,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "titlePixels": 5172,
+      "closingPixels": 9406,
+      "start": [
+        3,
+        3,
+        3
+      ],
+      "photo": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        0,
+        254,
+        0
+      ],
+      "clip": [
+        126,
+        0,
+        0
+      ],
+      "text": [
+        21,
+        68,
+        92
+      ],
+      "sound": {
+        "before": 0,
+        "original": 0.048663550902992195,
+        "after": 0
+      }
+    },
+    {
+      "mode": "frame_gap_first",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "timing": {
+        "schemaVersion": 1,
+        "frameGapMs": 1154.5,
+        "elapsedMs": 1154.5,
+        "lastDrawMs": 2,
+        "lastFrameWorkMs": 0,
+        "renderedFrames": 0,
+        "sceneIndex": 0,
+        "visibility": "visible",
+        "playingDocumentMedia": 0
+      }
+    },
+    {
+      "mode": "frame_gap_mid",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "timing": {
+        "schemaVersion": 1,
+        "frameGapMs": 1160.3000000000466,
+        "elapsedMs": 1168.4000000000233,
+        "lastDrawMs": 0,
+        "lastFrameWorkMs": 0,
+        "renderedFrames": 2,
+        "sceneIndex": 0,
+        "visibility": "visible",
+        "playingDocumentMedia": 0
+      }
+    },
+    {
+      "mode": "revoked",
+      "noDownloadAfterInvalidation": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "changed",
+      "noDownloadAfterInvalidation": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "account_roundtrip",
+      "noDownloadAfterInvalidation": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "cancel",
+      "noPartialDownload": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "call",
+      "noPartialDownload": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "hidden",
+      "noPartialDownload": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "unmount",
+      "noPartialDownload": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "missing",
+      "noPartialDownload": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "overflow",
+      "noPartialDownload": true,
+      "resourcesClosed": true
+    },
+    {
+      "mode": "animated_primary",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "rejectedBeforeRecording": true
+    },
+    {
+      "mode": "animated_sticker",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "rejectedBeforeRecording": true
+    },
+    {
+      "mode": "animated_background",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "rejectedBeforeRecording": true
+    },
+    {
+      "mode": "animated_data",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "rejectedBeforeRecording": true
+    },
+    {
+      "mode": "image_inspection_cancel",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "imageReadAborted": true
+    },
+    {
+      "mode": "graded_no_webgl",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "rejectedBeforeRecording": true
+    },
+    {
+      "mode": "unsupported_composition",
+      "limits": {
+        "gif": "Memory 1: Animated GIF export is not available yet. Remove the GIF to export this edited video.",
+        "animated": "Memory 1: Animated sticker export is not available yet. Set sticker animations to None to export this edited video.",
+        "nested": "Memory 1: a shared-post card layered over another memory cannot be exported yet. The card will not be left out.",
+        "dual": "Memory 1: dual-camera composition cannot be exported yet. The second camera will not be discarded.",
+        "savedAudio": "Memory 1: this older added audio needs verification. Upload the original and select it again before exporting.",
+        "soundtrack": "Choose the book soundtrack again before exporting.",
+        "missing": "Memory 1: the original media is unavailable. Refresh the book and try again.",
+        "tooMany": "A memory movie can contain up to 80 memories. Create a shorter book before exporting."
+      }
+    },
+    {
+      "mode": "film_entry_exit",
+      "keepsPaused": true,
+      "mobileNoOverflow": true
+    }
+  ],
+  "consoleErrors": []
+}

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T03:00:24.499742+00:00",
+  "consumerRunId": 41266020146,
+  "jobId": 124728874775,
+  "consumerSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "producerArtifactId": 13065158785,
+  "result": "failed-before-Messages-and-reader",
+  "originalFlowUnchanged": true,
+  "originalReaderDeadlineMs": 15000,
+  "originalCliWatchdogSeconds": 600,
+  "logsSha256": {
+    "originalDiagnosticResult": "7535bbb03a51244e0f0c65692f8f06d4a891cee73e9dadd4d5f6ab297cffa871",
+    "detailedMaestroLog": "f27f3d6ec331d2dfe13b50c61a43b278ab2a848aca26870926b8767b46eca3b9",
+    "xctestDriverLog": "ad497a9fb028a33d28ec135936f87860d9e48d686080a5fca9b1903836b2bca7",
+    "completionProof": "d2ca4db357b29b993cb94acd743327632249c76de834c7da3ae01595b325fd4d"
+  },
+  "timeline": {
+    "watchdogStartedUtc": "2026-11-01T02:45:55.839000+00:00",
+    "firstFlowCommandUtc": "2026-11-01T02:49:30.311000+00:00",
+    "cliAndDriverStartupBeforeFirstFlowCommandSeconds": 214.472,
+    "originalLaunchClearStateStartedUtc": "2026-11-01T02:49:30.653000+00:00",
+    "originalLaunchClearStateCompletedUtc": "2026-11-01T02:53:12.254000+00:00",
+    "originalLaunchClearStateCommandSeconds": 221.601,
+    "clearStateToLaunchCallSeconds": 201.604,
+    "startupPlusLaunchClearStateSeconds": 436.073,
+    "startupPlusLaunchClearStateFractionOfWatchdog": 0.72679,
+    "remainingWatchdogAfterLaunchSeconds": 163.585,
+    "lastDriverHierarchyReadStartedUtc": "2026-11-01T02:55:30.454000+00:00",
+    "lastDriverHierarchyReadCompleted": false,
+    "lastDriverHierarchyReadObservedPendingUntilWatchdogSeconds": 25.385,
+    "watchdogDeadlineUtc": "2026-11-01T02:55:55.839000+00:00"
+  },
+  "completedEvidence": [
+    "actual installation",
+    "original sign-in",
+    "Feed content",
+    "Latest and For You controls",
+    "Market content",
+    "return to Feed",
+    "Jobs tab tap"
+  ],
+  "lastIncompleteAssertion": "Product designer / Desert Studio content after Jobs tab tap",
+  "MessagesTapObserved": false,
+  "readerEntered": false,
+  "allThreeOriginalReceiptsCollected": true,
+  "fixtureContractPassed": true,
+  "missingMessagesErrorIsSecondaryToTimedOutFlow": true,
+  "appFreezeProven": false,
+  "appOrReaderLatencyAccepted": false,
+  "physicalOrProviderAcceptance": false,
+  "scope": "Separates actual installation, CLI startup, original clear-state/launch overhead and incomplete UI traversal. No watchdog or application deadline has been relaxed, and this failed run receives no navigation or reader acceptance.",
+  "actualInstallCommandExitedSuccessfully": true,
+  "installationTiming": {
+    "configuredCommandWaitSeconds": 120,
+    "measuredInnerCommandSeconds": 107.44532933899995,
+    "recordedFullStageWallSeconds": 135.73,
+    "includesPopenAndSetupInInnerTimer": false,
+    "inclusive120SecondWallTimeClaimed": false
+  },
+  "mainThreadObservation": {
+    "logSha256": "0ffa0c8de716d26d900c767c190537f6ffe73119a700f641568b7d750564d9c6",
+    "requestQueuedUtc": "2026-11-01T02:55:30.457+00:00",
+    "thirtySecondBusyErrorUtc": "2026-11-01T02:56:00.458+00:00",
+    "mainThreadCallbackArrivedUtc": "2026-11-01T02:56:06.060+00:00",
+    "sampleObtained": false,
+    "specificProductCauseIdentified": false
+  }
+}

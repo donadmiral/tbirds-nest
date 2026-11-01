@@ -1,0 +1,135 @@
+{
+  "kind": "source-bound-original-navigation-and-reader",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "producerBinding": {
+    "schemaVersion": 1,
+    "ready": true,
+    "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+    "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+    "producerRunId": 41259529351,
+    "producerArtifactName": "native-audit-ios-binary",
+    "producerArtifactId": 13065158785,
+    "producerArtifactZipSha256": "00c9a0651dfe7d5d495c30ab5f5d09a0406b388b77b875e6041ee255b57ba7e8",
+    "producerArtifactZipBytes": 49157981,
+    "appArchiveSha256": "547488ec4e545c9eb5c1cde4ce906cd36e1bf546d566f1c1ca5764793468fafa",
+    "binaryManifestSha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+    "binarySha256": "c43aa346fabae4c656bc14602cb982bcbb7018ccfcfd4658d33a37742e40084c",
+    "sourceReceiptSha256": "cb4762c4caaa3aebff83cf6071cd9b18db3e5377fbcb1903c4017f5c2e1df302"
+  },
+  "consumerSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "consumerRunId": "41266020146",
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false,
+  "countedInBaseline85": false,
+  "passed": false,
+  "immutableCompatibility": {
+    "hostArchitecture": "x86_64",
+    "actualExecutableArchitecture": "x86_64",
+    "xcode": "Xcode 16.4\nBuild version 16F6",
+    "sdkVersion": "18.5",
+    "codeSignatureVerified": true,
+    "guestUnameInvoked": false,
+    "scope": "Actual host, producer toolchain, Simulator bundle metadata, Mach-O and signature. Runtime/device checks remain required."
+  },
+  "bootedRuntime": {
+    "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+    "runtimeVersion": "18.5",
+    "selectedDevice": "5D2188B0-2CD3-4DF9-AF52-3D3FCC44282B",
+    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+    "prebootRuntimeAvailabilityVerified": true,
+    "exactUuidBootstatusCompleted": true,
+    "postbootMetadataRead": false,
+    "postbootIdentityAndVersionReadFromDevice": false,
+    "globalInventoryRepeatedAfterBoot": false,
+    "guestArchitectureMeasured": false,
+    "proofMethod": "verified-preboot-identity-and-completed-exact-uuid-bootstatus",
+    "scope": "Exact runtime/version/type/availability verified before boot; boot and blocking bootstatus completed for that owned UUID. No postboot metadata read is claimed. Actual installation and app launch remain required."
+  },
+  "diagnostic": {
+    "id": "diagnostic-warm-reader-controls",
+    "kind": "original-navigation-reader-diagnostic-only",
+    "name": "Diagnostic original tabs to saved memory reader controls",
+    "countedInBaseline85": false,
+    "fixtureCaseId": "navigation-warm-tabs",
+    "flow": "tests/native/diagnostics/ios-warm-reader-controls.yaml",
+    "flowSha256": "044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f",
+    "signIn": {
+      "reference": "../../../../baseline/tests/native/audit/flows/_signin.yaml",
+      "baselinePath": "tests/native/audit/flows/_signin.yaml",
+      "sha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+      "resolvedBeforeMaestro": true
+    },
+    "timeoutSeconds": 600,
+    "watchdogScope": "Entire Maestro CLI including driver startup, original sign-in and controls",
+    "readerRequirementMs": 15000,
+    "navigationCycles": 1,
+    "pageAssertionsUnchanged": true,
+    "attempts": 1,
+    "startedAtEpochMs": 1793501155839,
+    "exitCode": null,
+    "timedOut": true,
+    "failureCapture": {
+      "trigger": "reader-diagnostic-failed",
+      "changesVerdict": false,
+      "samples": [
+        {
+          "role": "app",
+          "complete": false,
+          "issue": "TimeoutExpired"
+        },
+        {
+          "role": "driver",
+          "complete": false,
+          "issue": "TimeoutExpired"
+        }
+      ],
+      "attempted": true,
+      "startedAtEpochMs": 1793501757615,
+      "updatedAtEpochMs": 1793501764391
+    },
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 12418
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 88023
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": true,
+        "bytes": 510
+      }
+    ],
+    "fixture": {
+      "passed": true,
+      "requestCount": 124,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "junit": {
+      "passed": false,
+      "issue": "FileNotFoundError"
+    },
+    "passed": false,
+    "finishedAtEpochMs": 1793501768765
+  },
+  "executionIssue": "ValueError",
+  "executionDetail": "Every expected actual Messages tab visit must be observed exactly once",
+  "cleanup": [
+    {
+      "operation": "shutdown",
+      "completed": true
+    },
+    {
+      "operation": "delete",
+      "completed": true
+    }
+  ]
+}

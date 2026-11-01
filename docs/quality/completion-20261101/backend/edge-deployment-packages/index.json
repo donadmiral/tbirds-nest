@@ -1,0 +1,608 @@
+{
+  "formatVersion": 1,
+  "scope": "Offline exact QA tool arguments. No provider call, activation, or production argument is generated.",
+  "tool": "mcp__codex_apps__supabase_deploy_edge_function",
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "sourceHeadAtGeneration": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "candidate": {
+    "path": "docs/quality/music-operations-20261030/candidate.json",
+    "sha256": "e77d62ae33c8a95f72b592a1abe6e6f264a8ac4303bcb6ed098f13dd10d8d444"
+  },
+  "builder": {
+    "path": "scripts/quality/completion-edge-packages.py",
+    "sha256": "7af9f22afebd9a539598eda8569829c0b405a186abc8efe84f9afe9e1813c5ed"
+  },
+  "deployGroupsInOrder": [
+    [
+      "business-signin",
+      "business-owner-access",
+      "daily-get-token",
+      "crisp-bridge",
+      "link-preview",
+      "apple-music",
+      "replicate-proxy",
+      "create-business"
+    ],
+    [
+      "music-asset-finalize",
+      "content-media-sign",
+      "media-content",
+      "account-storage-erasure"
+    ],
+    [
+      "music-maintenance",
+      "music-catalogue-ingest"
+    ]
+  ],
+  "existingPrerequisiteRule": "Read back the existing limited-media-file and chat-media-sign bundles first; deploy only if absent or differing and after their separate private-media prerequisites.",
+  "requiredBeforeDeployment": "Current business Auth activation and exact postflight, then all three music contracts and postflight. No dependent function may be replaced while the target remains at private stage 3.",
+  "requiredAfterEachDeployment": "Require terminal success, ACTIVE version, exact verify_jwt and entrypoint/import map, then retrieve every bundled source file and compare its bytes to sourceFiles. Retain rejection probes and the real authorized journey separately.",
+  "originalReadiness": "Keep production off. Enable only disposable QA after all required contracts and bundles pass, run upload/finalization/delivery/revocation/cleanup/erasure acceptance, and disable QA on failure.",
+  "licensedCatalogue": "Keep ingestion and playback disabled; these files grant no commercial rights or provider credentials.",
+  "unknownRequestRule": "A nonterminal provider result stays unknown. Do not duplicate it, route DDL through SQL, or claim local packages are hosted acceptance.",
+  "uniqueSourceFiles": 42,
+  "requests": [
+    {
+      "name": "business-signin",
+      "file": "business-signin.json",
+      "bytes": 13809,
+      "sha256": "7798c551d5ecec2b6f9248017552f00651f0816396003c3e0ecca0690dd10dfd",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/business-signin/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/business-session/handler.ts",
+          "sha256": "bb0eb68831fc5213d985d0348781fde9ded16f72a1cbeeb7a006970eb3ae353f",
+          "bytes": 10044
+        },
+        {
+          "path": "supabase/functions/business-session/runtime.ts",
+          "sha256": "e80f5b829184acc0dc2071a507c298f6418b64d53e75b37996b1c8ac733dacf9",
+          "bytes": 2235
+        },
+        {
+          "path": "supabase/functions/business-signin/index.ts",
+          "sha256": "9ce1cde6b74e99a5f8545bf3af043160943240c3d1c922b3c5eff7321a4174ba",
+          "bytes": 117
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "business-owner-access",
+      "file": "business-owner-access.json",
+      "bytes": 13828,
+      "sha256": "b8820911545b0ae5f964bc53a78bfdae62c4d2ea7f50cfa60df057ac44ded1c1",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/business-owner-access/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/business-owner-access/index.ts",
+          "sha256": "417ee201d011b8b59314363d72baa577be0ca266ee62d816342344f6c55a49c0",
+          "bytes": 118
+        },
+        {
+          "path": "supabase/functions/business-session/handler.ts",
+          "sha256": "bb0eb68831fc5213d985d0348781fde9ded16f72a1cbeeb7a006970eb3ae353f",
+          "bytes": 10044
+        },
+        {
+          "path": "supabase/functions/business-session/runtime.ts",
+          "sha256": "e80f5b829184acc0dc2071a507c298f6418b64d53e75b37996b1c8ac733dacf9",
+          "bytes": 2235
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "daily-get-token",
+      "file": "daily-get-token.json",
+      "bytes": 12753,
+      "sha256": "958a4b810ae521420e2219d261c5f4660698fb852154eb0c79a4224abed59c5d",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/daily-get-token/index.ts",
+      "verifyJwt": true,
+      "importMapPath": "supabase/functions/daily-get-token/deno.json",
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/daily-get-token/deno.json",
+          "sha256": "776494746017e3d2b06d84933befb734499e53c2ef2e951566801b8cb65882ba",
+          "bytes": 85
+        },
+        {
+          "path": "supabase/functions/daily-get-token/index.ts",
+          "sha256": "31e7f5dfb9b6635f96d2a5231c1cab0436c9c4172778ac10fc4d3402ce5bcb8d",
+          "bytes": 8922
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "crisp-bridge",
+      "file": "crisp-bridge.json",
+      "bytes": 24465,
+      "sha256": "af118f1ec18e903389d5003aa80bd7e3dc46a78a86038f25979e5681a1b55e42",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/crisp-bridge/index.ts",
+      "verifyJwt": true,
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/crisp-bridge/handler.ts",
+          "sha256": "d2203c15d8ac9dee9deeb8d47cbdd02b2b7821b1a4a7ccd5dfe45e684b8366cf",
+          "bytes": 12138
+        },
+        {
+          "path": "supabase/functions/crisp-bridge/index.ts",
+          "sha256": "3ad65fba3f5aa66becbe0ed3d1df0ede623e2c91edee90380393c7da36b08197",
+          "bytes": 599
+        },
+        {
+          "path": "supabase/functions/crisp-bridge/paymentRecovery.ts",
+          "sha256": "799f90ef5841e2d59133b0c696c85d4b189a980adb2fe8fae25f612d4f2784a7",
+          "bytes": 7452
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "link-preview",
+      "file": "link-preview.json",
+      "bytes": 37084,
+      "sha256": "99c6f8c7a5ed3b0f35a30b999c32a56b389fa1f1a62e8786a65454819e0a87f3",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/link-preview/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/link-preview/denoTransport.ts",
+          "sha256": "b56554f8e32cf9e1de19ebf9bd732c4ec54fb76ca5777df4ee6d5d4d5d92b99a",
+          "bytes": 9509
+        },
+        {
+          "path": "supabase/functions/link-preview/handler.ts",
+          "sha256": "b0b4979cfbf2cfa414ace29bab9a084a5f08e29eaa60a2571522ba8e8e98f149",
+          "bytes": 10561
+        },
+        {
+          "path": "supabase/functions/link-preview/index.ts",
+          "sha256": "ba538924c931d806f4e2421667849e6b597f6e21fb82f60aebda94e3c711797f",
+          "bytes": 2202
+        },
+        {
+          "path": "supabase/functions/link-preview/networkPolicy.ts",
+          "sha256": "fa325525dbcab85eeacd5920d606ea313dbaecbd739620c302f8d0c7725c5f94",
+          "bytes": 3083
+        },
+        {
+          "path": "supabase/functions/link-preview/transport.ts",
+          "sha256": "8ba42c01bdeb1c47626ff981992a57bff3a131a4730d9e9d7c017a1abbe1b82a",
+          "bytes": 7284
+        }
+      ],
+      "externalImports": [
+        "node:buffer",
+        "node:dns/promises",
+        "node:http",
+        "node:https",
+        "node:net",
+        "node:tls",
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "apple-music",
+      "file": "apple-music.json",
+      "bytes": 15132,
+      "sha256": "fd7cb2c2b0519d05f0173034ea3cc28d03c3c6d7e4cd17cb3cbdc39b59a5d48a",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/apple-music/index.ts",
+      "verifyJwt": true,
+      "sourceFiles": [
+        {
+          "path": "shared/appleMusic.ts",
+          "sha256": "db28575b3032a1300c571531a7a661d6992f197d9e3a1929ae96dc9678ce61b5",
+          "bytes": 2556
+        },
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/apple-music/handler.ts",
+          "sha256": "882e2924fe00d2c6f17533a124cbd70c2977a64b44500d52152fe809ff4810f2",
+          "bytes": 6543
+        },
+        {
+          "path": "supabase/functions/apple-music/index.ts",
+          "sha256": "653b8f5b1be36ab226f48b56c7a4e71136093b8f98f6c525dee903ae42eda22c",
+          "bytes": 837
+        },
+        {
+          "path": "supabase/functions/apple-music/token.ts",
+          "sha256": "da4c6037358a67374cdcc51dbeb60bfb11d07502b410f6c532b56b01713a20b1",
+          "bytes": 1357
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "replicate-proxy",
+      "file": "replicate-proxy.json",
+      "bytes": 8778,
+      "sha256": "f059850398359a47f229f8cab61db32556ff51c19687b566f2a0005fb50f6943",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/replicate-proxy/index.ts",
+      "verifyJwt": true,
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/replicate-proxy/index.ts",
+          "sha256": "487ddfd78f4eb098465fe3af9538e789b4ed10a11e9221ebabff732d6b56fbdf",
+          "bytes": 5146
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "create-business",
+      "file": "create-business.json",
+      "bytes": 7769,
+      "sha256": "8f5d8612c15185ebd450fe0d0bc4024ee47fc4b58044f927a0cd2a0ffb12bd32",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/create-business/index.ts",
+      "verifyJwt": true,
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/create-business/index.ts",
+          "sha256": "c3453e54f045688887e8781d43999d4b8d75b7d0e512617a3c3c3fbf86f89581",
+          "bytes": 4190
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "music-asset-finalize",
+      "file": "music-asset-finalize.json",
+      "bytes": 16815,
+      "sha256": "139e7117a780b05e0a933ccb8a255d6f7b701658eb2afd426ade3080fd7ad301",
+      "purpose": "Original audio, private byte delivery or account erasure; deploy before upload readiness",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/music-asset-finalize/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "shared/originalAudio.ts",
+          "sha256": "527377ecfb0f17c1805e8db06803bf7ecc4f9599e4239060f19c3c66bde8ea4a",
+          "bytes": 6978
+        },
+        {
+          "path": "supabase/functions/music-asset-finalize/handler.ts",
+          "sha256": "9377de1a11b0a67c02ff36aa6013513a49272b407cf4305c713f1bca9bd06c62",
+          "bytes": 7228
+        },
+        {
+          "path": "supabase/functions/music-asset-finalize/index.ts",
+          "sha256": "8baaa840b234476713a7b7f7f240762635ad1d2c92c885bd25b775a7c933299a",
+          "bytes": 1924
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "content-media-sign",
+      "file": "content-media-sign.json",
+      "bytes": 21630,
+      "sha256": "5fbed9819587e311ce189e6263af8fb908fd4232bb6a45784f8f4f6551fcfebd",
+      "purpose": "Original audio, private byte delivery or account erasure; deploy before upload readiness",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/content-media-sign/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "shared/contentMedia.ts",
+          "sha256": "a744a17a33a5b0f93be5b84ec943f4a5a05c94059ddd128109077031a2667664",
+          "bytes": 11290
+        },
+        {
+          "path": "shared/mediaDelivery.ts",
+          "sha256": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+          "bytes": 1637
+        },
+        {
+          "path": "supabase/functions/content-media-sign/handler.ts",
+          "sha256": "9fc8a12d93641046a06ec122062e5817e9473f281a7c521e51e9b314781a7d3f",
+          "bytes": 5695
+        },
+        {
+          "path": "supabase/functions/content-media-sign/index.ts",
+          "sha256": "99cb4805e16148680ef4c322ce288f84766a72882ccf118ce698d48e85cc7220",
+          "bytes": 2108
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "media-content",
+      "file": "media-content.json",
+      "bytes": 7266,
+      "sha256": "87c9bd6005e10d733d078a4f5dd38ff878fbb2e8dae9dac76f84141a592ab292",
+      "purpose": "Original audio, private byte delivery or account erasure; deploy before upload readiness",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/media-content/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/media-content/handler.ts",
+          "sha256": "3ebe70908160a5ded596284d43eb9ffa47f24bb7be277710d89bee95275c672a",
+          "bytes": 6106
+        },
+        {
+          "path": "supabase/functions/media-content/index.ts",
+          "sha256": "1f5ab0dd6151589f61d9de231e729e68f65582181acae9bd3853b63dd668ff88",
+          "bytes": 661
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "account-storage-erasure",
+      "file": "account-storage-erasure.json",
+      "bytes": 7529,
+      "sha256": "94d41241bb7f0a656b9aecddf350c8918a8669a98ed66851e988f2bc31ff1454",
+      "purpose": "Original audio, private byte delivery or account erasure; deploy before upload readiness",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/account-storage-erasure/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/account-storage-erasure/handler.ts",
+          "sha256": "1bc4d4e88886441d70cdb6671077e68166a51e861e0a41af68dfa7371333fee8",
+          "bytes": 6645
+        },
+        {
+          "path": "supabase/functions/account-storage-erasure/index.ts",
+          "sha256": "2d702130678cdd0b6eec1821948f634bb68864b9a5c08fedfff4ca250ca387c6",
+          "bytes": 360
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "music-maintenance",
+      "file": "music-maintenance.json",
+      "bytes": 7603,
+      "sha256": "e2ec64030d3bce1af723b006e24014e91afb168134fbb388a3c889fd252124c2",
+      "purpose": "Music operations; requires both new migrations and explicit scoped caller authentication",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/music-maintenance/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/music-maintenance/handler.ts",
+          "sha256": "d111e7a50e852dc952263aab1afeeed9a3d034d5845f5de5a34a0b6f97fabe3f",
+          "bytes": 6477
+        },
+        {
+          "path": "supabase/functions/music-maintenance/index.ts",
+          "sha256": "80709e750f339de4984ee509b8454b3bab02d540b3aebd3d297193e61ded230e",
+          "bytes": 630
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "music-catalogue-ingest",
+      "file": "music-catalogue-ingest.json",
+      "bytes": 15171,
+      "sha256": "29915ebb409b26301654aa2c772adc4aaadc2f5c16be6a3ff6c91f1be8e30a5f",
+      "purpose": "Music operations; requires both new migrations and explicit scoped caller authentication",
+      "existingPrerequisite": false,
+      "entrypointPath": "supabase/functions/music-catalogue-ingest/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "shared/originalAudio.ts",
+          "sha256": "527377ecfb0f17c1805e8db06803bf7ecc4f9599e4239060f19c3c66bde8ea4a",
+          "bytes": 6978
+        },
+        {
+          "path": "supabase/functions/music-catalogue-ingest/handler.ts",
+          "sha256": "a239a2e8dfa8d31ccf95e31df04a67766c6c9d3b1e6fa1a066858fef8dc594f6",
+          "bytes": 5541
+        },
+        {
+          "path": "supabase/functions/music-catalogue-ingest/index.ts",
+          "sha256": "449fec2818d6b8401be14aebc6b79523a12f7f8e5c1deb786a2c08918e98d198",
+          "bytes": 2000
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "limited-media-file",
+      "file": "limited-media-file.json",
+      "bytes": 10838,
+      "sha256": "afdcdc5ce761e26401ff9130d1cd185bd7a9e1ca9c6b499f38ea5559e94b2fb6",
+      "purpose": "Existing bounded private-media prerequisite; verify target deployment, use its separate rollout if absent",
+      "existingPrerequisite": true,
+      "entrypointPath": "supabase/functions/limited-media-file/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "supabase/functions/limited-media-file/index.ts",
+          "sha256": "7ff81f4742a4a6501abf9fcf9c12985363134580f551179bdcaa6598d2a4477d",
+          "bytes": 448
+        },
+        {
+          "path": "supabase/functions/private-media-session/handler.ts",
+          "sha256": "11b53d74da4607c6a89bc5ef11d258694a8d4e6409f3c2f5606c00e133add1ac",
+          "bytes": 9583
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "chat-media-sign",
+      "file": "chat-media-sign.json",
+      "bytes": 9882,
+      "sha256": "9f61dc79998baf83bb63cd8884142ae18e669ceadf98052dd13427d7acf396fa",
+      "purpose": "Existing bounded private-media prerequisite; verify target deployment, use its separate rollout if absent",
+      "existingPrerequisite": true,
+      "entrypointPath": "supabase/functions/chat-media-sign/index.ts",
+      "verifyJwt": false,
+      "sourceFiles": [
+        {
+          "path": "shared/mediaDelivery.ts",
+          "sha256": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+          "bytes": 1637
+        },
+        {
+          "path": "supabase/functions/chat-media-sign/deno.json",
+          "sha256": "c3e35c3fa9f31537196d35670e608adacf3af7ee2d4bb8f61d8f24c72e27176a",
+          "bytes": 84
+        },
+        {
+          "path": "supabase/functions/chat-media-sign/index.ts",
+          "sha256": "ccc74a28ae1330763e9a0a1bddef8df51503ff28a168ddf0cda7c6e485b9a4e1",
+          "bytes": 7548
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    }
+  ]
+}

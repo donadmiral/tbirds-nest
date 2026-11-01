@@ -1,0 +1,65 @@
+{
+  "observedAt": "2026-11-01T02:44:34Z",
+  "applicationSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "publication": {
+    "commit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+    "tree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+    "verifiedFiles": 146,
+    "mismatches": []
+  },
+  "deployments": [
+    {
+      "name": "platinum-web",
+      "id": "dpl_BK38kaW2FZoJgRPd2eK2nF5DiAMG",
+      "url": "platinum-9mrtq0ms0-intobank.vercel.app",
+      "readyState": "READY",
+      "target": null,
+      "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+      "sourceBranch": "codex/completion-20261101",
+      "verifiedFromProviderMetadata": true
+    },
+    {
+      "name": "admin-web",
+      "id": "dpl_HmC5tNrpXufMExVVovktCQYke4mK",
+      "url": "admin-ny1b3p91t-intobank.vercel.app",
+      "readyState": "READY",
+      "target": null,
+      "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+      "sourceBranch": "codex/completion-20261101",
+      "verifiedFromProviderMetadata": true
+    }
+  ],
+  "retainedQaAliases": {
+    "member": "platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+    "operations": "admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+    "sameProjectAndQaBackend": true,
+    "productionDomainsChanged": false,
+    "protectionChanged": false,
+    "authenticationCredentialsExported": false
+  },
+  "adminDuplicateDeployment": {
+    "id": "dpl_5GjhbhmV8yxK8KWE6VSQUazaiyqQ",
+    "outcome": "Canceled by the configured ignored-build check because the exact commit had already built successfully in dpl_HmC5tNrpXufMExVVovktCQYke4mK.",
+    "overrideOrForceRebuildUsed": false
+  },
+  "browserAcceptance": {
+    "memberHome": "Authenticated QA feed and navigation loaded.",
+    "profile": "Profile and its three retained books loaded after normal navigation.",
+    "retainedBook": "QA memories retained its saved title and opened the reader with the expected synthetic-video caption.",
+    "privateVideo": {
+      "loadedVia": "Authenticated private media-content delivery",
+      "width": 640,
+      "height": 360,
+      "durationSeconds": 12,
+      "readyState": 4,
+      "error": null,
+      "playbackStarted": true,
+      "observedCurrentTimeSeconds": 0.039535,
+      "paused": false
+    },
+    "operations": "Authenticated operations dashboard loaded its QA data and reported successful page queries.",
+    "console": "Observed error messages came from chrome-extension: browser metadata forwarding; no app-origin error was recorded in the inspected20-entry window.",
+    "hostedWritesPerformed": false,
+    "noClaimOfFullBackendAcceptance": true
+  }
+}
