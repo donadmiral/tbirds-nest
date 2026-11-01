@@ -1,0 +1,59 @@
+name: Focused iOS story and memory playback runtime
+
+on:
+  push:
+    branches: ['codex/media-crash-recovery-*']
+    paths:
+      - 'modules/boomerang/ios/StoryVideoView.swift'
+      - 'modules/boomerang/ios/StoryVideoComposition.swift'
+      - 'scripts/quality/StoryPlaybackExpoAdapter.swift'
+      - 'scripts/quality/StoryVideoPlaybackHarness.swift'
+      - 'scripts/quality/story-playback-runtime.py'
+      - 'scripts/quality/test-ios-story-playback.sh'
+      - '.github/workflows/ios-story-playback-runtime.yml'
+  workflow_dispatch:
+    inputs:
+      baseline_ref:
+        description: Exact shipped player revision to compare with this workflow revision
+        default: cf795f1
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-story-playback-runtime-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  player-runtime:
+    name: Actual native player (${{ matrix.player }})
+    runs-on: macos-15
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        player: [shipped-baseline, repaired]
+    # Preserve a baseline crash as evidence; the repaired runtime must pass.
+    continue-on-error: ${{ matrix.player == 'shipped-baseline' }}
+    env:
+      CI: 'true'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      STORY_PLAYBACK_SOURCE_REF: ${{ matrix.player == 'shipped-baseline' && (inputs.baseline_ref || 'cf795f1') || github.sha }}
+    steps:
+      - name: Read exact current harness and both player revisions
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Exercise real warm handoff display switching expiry and OS lifecycle
+        run: bash scripts/quality/test-ios-story-playback.sh
+      - name: Retain source hashes native receipts and crash evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: story-playback-runtime-${{ matrix.player }}
+          path: native-story-playback-logs/
+          if-no-files-found: warn
+          retention-days: 7

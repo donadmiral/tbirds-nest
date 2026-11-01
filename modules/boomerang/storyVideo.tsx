@@ -9,12 +9,13 @@ import { storyPhotoColorMatrix, type StoryPhotoLook } from '../../shared/storyCo
 const NativeView: any = storyVideoPreviewAvailable ? requireNativeViewManager('Boomerang') : null;
 const nativeWarmPool = storyVideoPreviewAvailable ? requireOptionalNativeModule('Boomerang') as any : null;
 export function prewarmStoryVideo(uri: string | null | undefined, scope: string | null, expiresAt?: number) {
-  if (!scope || !uri || !/^https:\/\//.test(uri) || (expiresAt && expiresAt <= Date.now() + 5000)) return;
-  // Older installed builds keep their normal loading path until rebuilt.
-  void nativeWarmPool?.warmStoryVideo?.(uri, scope, expiresAt || 0)?.catch(() => {});
+  if (!scope || !uri || !/^https:\/\//.test(uri) || (expiresAt !== undefined && !Number.isFinite(expiresAt)) || (expiresAt && expiresAt <= Date.now() + 5000)) return;
+  // Prewarming is optional. An unavailable or incompatible native bridge must
+  // not turn opening a story or memory book into an unhandled JS exception.
+  try { void Promise.resolve(nativeWarmPool?.warmStoryVideo?.(uri, scope, expiresAt || 0)).catch(() => {}); } catch { /* The viewer still loads normally. */ }
 }
 export function clearStoryVideoWarmPool() {
-  void nativeWarmPool?.clearStoryVideoWarmPool?.()?.catch(() => {});
+  try { void Promise.resolve(nativeWarmPool?.clearStoryVideoWarmPool?.()).catch(() => {}); } catch { /* No usable pool in this installed module. */ }
 }
 type Listener = (event: any) => void;
 /** The small player interface used by story clocks and trim controls. No second audio player. */

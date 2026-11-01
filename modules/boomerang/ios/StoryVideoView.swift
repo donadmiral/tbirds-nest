@@ -2,35 +2,37 @@ import ExpoModulesCore
 import AVFoundation
 import UIKit
 
-/// Only the next two authorized clips are warmed. Items are transferred once,
-/// never written to disk, and discarded on session change or capability expiry.
+/// Warm metadata for only the next two authorized clips. AVPlayerItem owns
+/// mutable playback state and must never move from a preroll player to a view's
+/// player. Only the immutable asset is transferred; every view creates its own
+/// item. Nothing is written to disk, and unused assets expire with their scope.
 @MainActor final class StoryVideoWarmPool {
-  private final class Entry {
+  @MainActor private final class Entry {
     let uri: String
     let asset: AVURLAsset
-    let item: AVPlayerItem
-    let player: AVPlayer
     let deadline: TimeInterval
-    var observation: NSKeyValueObservation?
-    var prerollStarted = false
+    var loadTask: Task<Void, Never>?
     init(uri: String, url: URL, deadline: TimeInterval) {
       self.uri = uri; self.deadline = deadline
-      let preparedAsset = AVURLAsset(url: url)
-      let preparedItem = AVPlayerItem(asset: preparedAsset)
-      asset = preparedAsset; item = preparedItem
-      player = AVPlayer(playerItem: preparedItem)
-      item.preferredForwardBufferDuration = 3
-      player.isMuted = true
+      asset = AVURLAsset(url: url)
+      let asset = self.asset
+      loadTask = Task {
+        do {
+          async let playable = asset.load(.isPlayable)
+          async let duration = asset.load(.duration)
+          async let tracks = asset.loadTracks(withMediaType: .video)
+          _ = try await (playable, duration, tracks)
+        } catch { /* The active viewer owns the recoverable loading error. */ }
+      }
     }
-    func detach() {
-      observation = nil; player.cancelPendingPrerolls(); player.pause()
-      player.replaceCurrentItem(with: nil)
+    func cancel() {
+      loadTask?.cancel(); loadTask = nil; asset.cancelLoading()
     }
   }
   private static var scope = ""
   private static var entries: [Entry] = []
   static func clear() {
-    entries.forEach { $0.detach() }; entries.removeAll(); scope = ""
+    entries.forEach { $0.cancel() }; entries.removeAll(); scope = ""
   }
   static func warm(uri: String, session: String, expiresAt: Double) {
     guard !session.isEmpty, let url = URL(string: uri), url.scheme == "https" else { return }
@@ -39,31 +41,25 @@ import UIKit
     let deadline = min(now + 20, expiresAt.isFinite && expiresAt > 0 ? expiresAt / 1000 - 5 : now + 20)
     guard deadline > now else { return }
     entries.removeAll { entry in
-      if entry.deadline <= now { entry.detach(); return true }; return false
+      if entry.deadline <= now { entry.cancel(); return true }; return false
     }
     guard !entries.contains(where: { $0.uri == uri }) else { return }
-    if entries.count >= 2 { entries.removeFirst().detach() }
+    if entries.count >= 2 { entries.removeFirst().cancel() }
     let entry = Entry(uri: uri, url: url, deadline: deadline)
     entries.append(entry)
-    entry.observation = entry.player.observe(\.status, options: [.initial, .new]) { [weak entry] _, _ in
-      DispatchQueue.main.async {
-        guard let entry, entries.contains(where: { $0 === entry }), entry.player.status == .readyToPlay,
-          !entry.prerollStarted, entry.player.rate == 0 else { return }
-        entry.prerollStarted = true
-        entry.player.preroll(atRate: 1, completionHandler: nil)
-      }
-    }
     DispatchQueue.main.asyncAfter(deadline: .now() + max(0, deadline - now)) { [weak entry] in
       guard let entry, let index = entries.firstIndex(where: { $0 === entry }) else { return }
-      entries.remove(at: index).detach()
+      entries.remove(at: index).cancel()
     }
   }
-  static func take(_ uri: String) -> (asset: AVURLAsset, item: AVPlayerItem)? {
+  static func take(_ uri: String) -> AVURLAsset? {
     guard let index = entries.firstIndex(where: { $0.uri == uri }) else { return nil }
     let entry = entries.remove(at: index)
-    entry.detach()
-    guard entry.deadline > Date().timeIntervalSince1970 else { return nil }
-    return (entry.asset, entry.item)
+    guard entry.deadline > Date().timeIntervalSince1970 else { entry.cancel(); return nil }
+    // A taken asset belongs to the viewer. Pool expiry/clear must not cancel its
+    // in-flight metadata read or the playback loading that follows it.
+    entry.loadTask = nil
+    return entry.asset
   }
 }
 
@@ -77,6 +73,7 @@ final class StoryVideoView: ExpoView {
   private var timeObserver: Any?
   private var notifications: [NSObjectProtocol] = []
   private var loadTask: Task<Void, Never>?
+  private var loadedAsset: AVURLAsset?
   private var generation = 0
   private var loadedURI: String?
   private var loadedRevision = -1
@@ -102,10 +99,6 @@ final class StoryVideoView: ExpoView {
     super.init(appContext: appContext)
     clipsToBounds = true
     layer.addSublayer(playerLayer)
-    displayStatus = playerLayer.observe(\.isReadyForDisplay, options: [.new]) { [weak self] layer, _ in
-      guard let self, layer.isReadyForDisplay else { return }; let expected = self.generation
-      DispatchQueue.main.async { [weak self] in self?.reportFirstFrame(expected) }
-    }
     timeObserver = player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 20), queue: .main) { [weak self] time in
       guard let self, time.seconds.isFinite else { return }
       self.onPlayback(["type": "timeUpdate", "currentTime": time.seconds, "playing": self.player.rate > 0])
@@ -141,8 +134,7 @@ final class StoryVideoView: ExpoView {
       if seekSeconds <= 0.001 && player.currentTime().seconds <= 0.001 {
         initialSeekCompleted = true; playerLayer.player = player; reportFirstFrame(expected)
       } else {
-        // Keep the layer detached until the saved trim is applied. A warmed
-        // item can already have frame zero decoded when it enters the viewer.
+        // Keep frame zero hidden until the saved trim has been applied.
         if !initialSeekCompleted { playerLayer.player = nil }
         player.seek(to: CMTime(seconds: max(0, seekSeconds), preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] finished in
           DispatchQueue.main.async {
@@ -183,12 +175,18 @@ final class StoryVideoView: ExpoView {
     generation += 1; let expected = generation
     loadedURI = uri; loadedRevision = reloadRevision; appliedSeek = -1; renderedMatrix = []; loadTask?.cancel()
     initialSeekCompleted = false; firstFrameReported = false
-    player.pause(); playerLayer.player = nil; itemStatus = nil; player.replaceCurrentItem(with: nil)
+    player.pause(); displayStatus = nil; playerLayer.player = nil; itemStatus = nil; player.replaceCurrentItem(with: nil)
+    loadedAsset?.cancelLoading(); loadedAsset = nil
     guard !uri.isEmpty else { onPlayback(["type": "statusChange", "status": "idle"]); return }
     guard let url = URL(string: uri), url.isFileURL || url.scheme == "https" else { onPlayback(["type": "statusChange", "status": "error", "error": "This video URL is unsupported."]); return }
     onPlayback(["type": "statusChange", "status": "loading"])
-    let prepared = StoryVideoWarmPool.take(uri)
-    let asset = prepared?.asset ?? AVURLAsset(url: url)
+    // KVO may arrive on AVFoundation's worker queue. Capture only this load's
+    // immutable generation there; read the layer and view on the main queue.
+    displayStatus = playerLayer.observe(\.isReadyForDisplay, options: [.new]) { @Sendable [weak self] _, _ in
+      DispatchQueue.main.async { [weak self] in self?.reportFirstFrame(expected) }
+    }
+    let asset = StoryVideoWarmPool.take(uri) ?? AVURLAsset(url: url)
+    loadedAsset = asset
     loadTask = Task { [weak self] in
       do {
         async let playableLoad = asset.load(.isPlayable)
@@ -199,13 +197,13 @@ final class StoryVideoView: ExpoView {
         await MainActor.run {
           guard let self, expected == self.generation else { return }
           guard playable, !tracks.isEmpty, duration.seconds.isFinite, duration.seconds > 0 else { self.onPlayback(["type": "statusChange", "status": "error", "error": "This video could not be read."]); return }
-          let item = prepared?.item ?? AVPlayerItem(asset: asset)
+          let item = AVPlayerItem(asset: asset)
           item.preferredForwardBufferDuration = 3
           self.applyGrade(item)
           self.player.replaceCurrentItem(with: item)
-          self.itemStatus = item.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
+          self.itemStatus = item.observe(\.status, options: [.initial, .new]) { @Sendable [weak self] _, _ in
             DispatchQueue.main.async {
-              guard let self, expected == self.generation else { return }
+              guard let self, expected == self.generation, let item = self.player.currentItem else { return }
               if item.status == .readyToPlay {
                 self.onPlayback(["type": "statusChange", "status": "readyToPlay", "duration": duration.seconds])
                 self.update()
@@ -221,7 +219,7 @@ final class StoryVideoView: ExpoView {
     }
   }
   deinit {
-    generation += 1; loadTask?.cancel(); player.pause(); player.replaceCurrentItem(with: nil)
+    generation += 1; loadTask?.cancel(); player.pause(); player.replaceCurrentItem(with: nil); loadedAsset?.cancelLoading()
     if let observer = timeObserver { player.removeTimeObserver(observer) }
     notifications.forEach(NotificationCenter.default.removeObserver)
   }
