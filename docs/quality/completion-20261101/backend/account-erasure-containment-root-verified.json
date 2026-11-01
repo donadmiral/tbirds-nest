@@ -1,0 +1,189 @@
+{
+  "scope": "QA cleanup containment only; coding pass closed under user five-minute stop instruction",
+  "project": "uaulhuelcfkjwojtymmw",
+  "originalFailedSourceSha256": "70331fb15db6e1a2e7e4f3b3a69950f83ce68438dc013ef9b04105fe7913cae7",
+  "originalFailure": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"error\":{\"name\":\"HttpException\",\"message\":\"Failed to apply database migration: ERROR:  42501: permission denied for table job\\nCONTEXT:  SQL statement \\\"select jobid             from cron.job where jobname='platinum-account-storage-erasure'for update\\\"\\nPL/pgSQL function inline_code_block line 34 at SQL statement\\n\"}}"
+      }
+    ],
+    "structuredContent": {
+      "error_code": "INVALID_ARGUMENT"
+    },
+    "isError": true
+  },
+  "correctedSourceSha256": "6d265704d3c01d4ace6da1ac568ea905fea7b330855cfab4035002396bdc2233",
+  "preflight": {
+    "cron": [
+      {
+        "active": true,
+        "jobName": "platinum-account-storage-erasure",
+        "schedule": "* * * * *",
+        "username": "postgres",
+        "commandMd5": "d0c0f30abe2c07bdab2eed11ab48e761"
+      }
+    ],
+    "scope": "Only the exact legacy schedule and reusable worker credential are contained. No job, identity, Storage, Vault, provider queue or application row is erased. A late already-authenticated no-job claim can update heartbeat, but cannot restore the null credential or readiness.",
+    "worker": [
+      {
+        "singleton": true,
+        "lastSeenAt": "2026-11-01T05:10:03.181598+00:00",
+        "credentialConfigured": true
+      }
+    ],
+    "journal": [],
+    "executor": "postgres",
+    "jobCount": 0,
+    "readOnly": true,
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "3c720864cb3b0b65f16830792920c341",
+        "signature": "public.claim_account_erasure(uuid)",
+        "volatility": "v",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "32b6ca5fad7b2c6bcc1aff2f89e3588e",
+        "signature": "public.request_account_erasure(uuid,text)",
+        "volatility": "v",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "b2c1c98f33f5f2b6f0dfc6332946b233",
+        "signature": "public.triniti_admin_erasure_review(uuid,uuid,uuid,text,uuid,text,text,text,text)",
+        "volatility": "v",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "4f14082ef9e61c34036a2e12b9a6df73",
+        "signature": "public.validate_account_erasure_worker(text)",
+        "volatility": "s",
+        "securityDefiner": true
+      }
+    ],
+    "observedAt": "2026-11-01T05:10:25.773481+00:00",
+    "dispatchAbsent": true,
+    "activeLeaseCount": 0,
+    "cronApiAvailable": true,
+    "preparedTransactions": 0,
+    "otherErasureCronCount": 0,
+    "otherActiveOrOpenClientTransactions": 0
+  },
+  "applyResult": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"success\":true}"
+      }
+    ],
+    "structuredContent": null,
+    "isError": false
+  },
+  "postflight": {
+    "cron": [
+      {
+        "active": false,
+        "jobName": "platinum-account-storage-erasure",
+        "schedule": "* * * * *",
+        "username": "postgres",
+        "commandMd5": "d0c0f30abe2c07bdab2eed11ab48e761"
+      }
+    ],
+    "scope": "Only the exact legacy schedule and reusable worker credential are contained. No job, identity, Storage, Vault, provider queue or application row is erased. A late already-authenticated no-job claim can update heartbeat, but cannot restore the null credential or readiness.",
+    "worker": [
+      {
+        "singleton": true,
+        "lastSeenAt": null,
+        "credentialConfigured": false
+      }
+    ],
+    "journal": [
+      {
+        "name": "qa_account_erasure_containment_provider_api",
+        "version": "20261101051041",
+        "queryBytes": 4060,
+        "querySha256": "6d265704d3c01d4ace6da1ac568ea905fea7b330855cfab4035002396bdc2233",
+        "statementCount": 1
+      }
+    ],
+    "executor": "postgres",
+    "jobCount": 0,
+    "readOnly": true,
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "3c720864cb3b0b65f16830792920c341",
+        "signature": "public.claim_account_erasure(uuid)",
+        "volatility": "v",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "32b6ca5fad7b2c6bcc1aff2f89e3588e",
+        "signature": "public.request_account_erasure(uuid,text)",
+        "volatility": "v",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "b2c1c98f33f5f2b6f0dfc6332946b233",
+        "signature": "public.triniti_admin_erasure_review(uuid,uuid,uuid,text,uuid,text,text,text,text)",
+        "volatility": "v",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "bodyMd5": "4f14082ef9e61c34036a2e12b9a6df73",
+        "signature": "public.validate_account_erasure_worker(text)",
+        "volatility": "s",
+        "securityDefiner": true
+      }
+    ],
+    "observedAt": "2026-11-01T05:10:50.34133+00:00",
+    "dispatchAbsent": true,
+    "activeLeaseCount": 0,
+    "cronApiAvailable": true,
+    "preparedTransactions": 0,
+    "otherErasureCronCount": 0,
+    "otherActiveOrOpenClientTransactions": 0
+  },
+  "checked": true
+}

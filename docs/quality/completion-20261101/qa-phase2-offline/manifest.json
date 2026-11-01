@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "frozenAtUtc": "2026-11-01T05:09:38.376930+00:00",
+  "status": "offline-preparation-only-user-ended-extended-acceptance",
+  "baseCommit": "f318c7ce5312956a903482320ec1a773e28b28f9",
+  "phaseOneDependency": {
+    "path": "admin-web/scripts/completion-qa-auth-acceptance.mjs",
+    "sha256": "645c869d6a78f9c30008b9138e0e7705b446168008fd68630dad425a4b59f3ac",
+    "unchanged": true,
+    "notPartOfThisFourFilePackage": true
+  },
+  "files": [
+    {
+      "path": "admin-web/scripts/completion-qa-fixtures.mjs",
+      "bytes": 15001,
+      "sha256": "a6024482c41414c89744738aea7517fdca10e9b4b1ed55bdd4fd45b4b00d36ce",
+      "gitBlob": "cdd3a3a2f858530d22997503146f32d4c1ba68cf",
+      "mode": "100644"
+    },
+    {
+      "path": "admin-web/scripts/completion-qa-interactions-acceptance.mjs",
+      "bytes": 19537,
+      "sha256": "9d13844c705a2893f378f488e57d08254f5ed474c651ee581f67398eaf142d31",
+      "gitBlob": "c37eedd5cdc4565befa25da1a44d06076349422d",
+      "mode": "100644"
+    },
+    {
+      "path": "admin-web/scripts/completion-qa-erasure-acceptance.mjs",
+      "bytes": 14250,
+      "sha256": "a1fbf717c803e35c7a8f9861e78f7c693cc78586b2aeb887d6c64d46ebf05f51",
+      "gitBlob": "136b6fc5ac52b3b3f9e8803f8ef300f98aa58d53",
+      "mode": "100644"
+    },
+    {
+      "path": "admin-web/scripts/completion-qa-phase2.test.mjs",
+      "bytes": 28316,
+      "sha256": "2661c7cf126d38a94f47cb748890e90bcbe2322be9c10b45ffbbe4533d7fc00d",
+      "gitBlob": "d12acd666f2ef8da50aac2d25bc10373d6db6ae6",
+      "mode": "100644"
+    }
+  ],
+  "verification": {
+    "command": "node --test admin-web/scripts/completion-qa-phase2.test.mjs",
+    "passed": 25,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "kind": "Offline stateful SDK/provider doubles with whole-flow failure injections; no hosted or real-provider acceptance.",
+    "report": "docs/quality/completion-20261101/qa-phase2-offline/focused.tap",
+    "reportSha256": "6db4b06d2d2f739b500e5f617b6b7b11242bc230614f3891413063f8f8ec3bbb"
+  },
+  "independentReviewCompleted": false,
+  "executableReadinessBindingPresent": false,
+  "hostedFixtureCreated": false,
+  "providerMutationSubmitted": false,
+  "deploymentStarted": false,
+  "outstandingAcceptanceDemand": false,
+  "reasonForStopping": "User narrowed scope to clear current run/build errors and finish within five minutes. This package is preserved only for a durable checkpoint; it is not requested as a new completion gate."
+}

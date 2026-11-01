@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "allGatesPassed": true,
+  "observedAtUtc": "2026-11-01T04:37:17.776087+00:00",
+  "sourceSha256": "d60f5b0e782295d770bb1cf0a4ec066c275b3a90fe0b26364c4226ac55f7b55d",
+  "providerMigrationVersion": "20261101043649",
+  "actualFingerprint": "4118b84248861a45c179522e1d30337e",
+  "staticCatalogRowsVerified": 113,
+  "eligibleHostedTables": 190,
+  "exactRestrictivePoliciesVerified": 190,
+  "privateAccessClosed": true,
+  "excludedProviderMetadataRetainedClosed": [
+    "buckets_vectors",
+    "migrations",
+    "vector_indexes"
+  ],
+  "supportedPolicyAuthorityVerified": true,
+  "exactAccountSeedVerified": true,
+  "scope": "Exact installed activation and actual policy coverage; no Auth issuance or provider acceptance inferred.",
+  "observationSha256": "0be86695f078a12420f442e3206b1571206262adcd815912bc5cd76e877bb17d",
+  "expectedCatalogSha256": "5a4be1f483e683eef492949479d112b4b33e7296c2ca8c384cfbd7a870596897"
+}

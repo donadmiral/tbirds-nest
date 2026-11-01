@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "phase": "postflight",
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "sourceSha256": "24255e33d3c8f5aeb1f791313d511919a7fa4fde749ebdf8248f796557b3ce19",
+  "observedAt": "2026-11-01T04:54:40.254125+00:00",
+  "checks": {
+    "exactSourceRequest": true,
+    "readOnly": true,
+    "executor": true,
+    "exactFunctionBodiesAndPrivileges": true,
+    "musicSchemaAbsent": true,
+    "legacyAudioAbsent": true,
+    "legacyBookColumn": true,
+    "exactBusinessJournal": true,
+    "noConcurrentClientTransaction": true,
+    "noPreparedTransaction": true,
+    "migrationJournal": true
+  },
+  "allGatesPassed": true,
+  "providerVersion": "20261101045330",
+  "scope": "Exact publisher source/ACL transition and unchanged surrounding story contract only; no music installation or provider acceptance inferred."
+}

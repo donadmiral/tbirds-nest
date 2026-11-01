@@ -1,0 +1,33 @@
+✔ contract rejects absent, wrong, stale and unproved gates before any client or mutation (5.263962ms)
+✔ exact project/source/origin guard and scoped fetch reject other environments without a request (1.433581ms)
+✔ offers full path proves one response/message and removes exactly the synthetic graph (10.138516ms)
+✔ offers block unrelated alerts before Auth creation (3.338831ms)
+✔ offers reject missingOfferAck and still clean exact fixtures (2.106524ms)
+✔ offers reject doubleWinner and still clean exact fixtures (2.424493ms)
+✔ offers reject raceTransport and still clean exact fixtures (2.012262ms)
+✔ offers reject duplicateOfferMessage and still clean exact fixtures (1.973554ms)
+✔ support full path exercises actual receipt recovery, reopen and both denials with exact cleanup (3.490249ms)
+✔ support rejects missingReopen (1.846973ms)
+✔ support rejects replayReopens (2.784055ms)
+✔ uncertain application cleanup prevents Auth deletion (2.369471ms)
+✔ foreign fixture metadata never authorizes app or Auth cleanup (1.727353ms)
+✔ erasure full path observes real-double file-before-Auth progression, revoked session and warmed URL absence (25.131057ms)
+✔ erasure ambiguousErasureAck cannot fall back to admin Auth or file deletion (4.311727ms)
+✔ erasure booleanFiles cannot fall back to admin Auth or file deletion (4.248571ms)
+✔ erasure workerNoProgress cannot fall back to admin Auth or file deletion (5.726078ms)
+✔ erasure completedButFileRemains cannot fall back to admin Auth or file deletion (2.32274ms)
+✔ erasure completedButAuthRemains cannot fall back to admin Auth or file deletion (2.358594ms)
+✔ erasure storage403 cannot fall back to admin Auth or file deletion (1.981105ms)
+✔ erasure cdnRetained stays failed even when worker completes and cleanup is verified (2.419305ms)
+✔ erasure refreshUnknown stays failed even when worker completes and cleanup is verified (6.15207ms)
+✔ wrong signed CDN origin aborts before erasure and performs ordinary scoped cleanup (1.915106ms)
+✔ expected denials never accept generic 500, transport errors, wrong messages or forged values (0.355676ms)
+✔ phase-1 bytes remain frozen and erasure contains no worker-token or Auth-delete invocation (1.186929ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 162.444091

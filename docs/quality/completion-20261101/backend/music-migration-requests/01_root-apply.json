@@ -1,0 +1,27 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "migrationName": "original_music_library_and_delivery",
+  "sourceSha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11",
+  "sourceBytes": 67268,
+  "submittedAtUtc": "2026-11-01T04:55:47.263Z",
+  "supportedTool": "supabase_apply_migration",
+  "preflightPassed": true,
+  "package37FilesVerified": true,
+  "status": "terminal tool result received",
+  "completedAtUtc": "2026-11-01T05:01:53.585Z",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"status\":\"expired\",\"message\":\"This confirmation expired after 2 minutes. Call `apply_migration` again to get a new confirmation.\"}"
+      }
+    ],
+    "structuredContent": {
+      "status": "expired",
+      "message": "This confirmation expired after 2 minutes. Call `apply_migration` again to get a new confirmation.",
+      "error_code": "INVALID_ARGUMENT"
+    },
+    "isError": true
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "sourceSha256": "9a5a7ea2d9acfc9c21185ac5b2654cfebd9d8f5aba29363cd5a5b5616f4bf081",
+  "unchangedSource": true,
+  "priorRequest": {
+    "cell": "g2:133",
+    "outcome": "unknown; not labeled canceled or rejected"
+  },
+  "scope": "Only the exact atomic disabled notification candidate. No general retry policy.",
+  "preflight": {
+    "tables": [],
+    "journal": [],
+    "executor": "postgres",
+    "readOnly": true,
+    "triggers": [],
+    "functions": [],
+    "observedAt": "2026-11-01T04:42:49.409936+00:00",
+    "jobsPresent": false,
+    "pgNetTables": [
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "_http_response",
+        "owner": "supabase_admin"
+      },
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "http_request_queue",
+        "owner": "supabase_admin"
+      }
+    ],
+    "prerequisites": {
+      "calls": true,
+      "digest": true,
+      "random": true,
+      "httpPost": true,
+      "callGuard": true,
+      "callOrigins": true,
+      "notifications": true
+    },
+    "privateSchema": {
+      "owner": "postgres",
+      "anonUsage": false,
+      "serviceUsage": false,
+      "authenticatedUsage": false
+    },
+    "settingsPresent": false,
+    "preparedTransactions": 0,
+    "pgClassNameUniqueness": 1,
+    "candidateActiveStatements": 0,
+    "otherActiveOrOpenTransactions": 0
+  },
+  "sourceSafety": {
+    "explicitAtomicTransaction": true,
+    "installedGuardRejectsLateCall": true,
+    "firstCreateTableUniqueNamespaceAndName": true,
+    "atMostOneCommittedInstallationWhileMarkerTableRemains": true,
+    "dispatchStartsDisabled": true,
+    "noProviderCallOrRetentionInvocationDuringInstall": true,
+    "pgNetOwnershipAndAclUnchanged": true
+  },
+  "independentReview": "notification-event-installer-independent-source-review.json",
+  "localExistingChecks": {
+    "sqlPassed": 16,
+    "handlerPassed": 14,
+    "sourceUnchanged": true
+  },
+  "supportedTool": "supabase_apply_migration",
+  "status": "terminal tool result received",
+  "submittedAtUtc": "2026-11-01T04:43:03.522Z",
+  "completedAtUtc": "2026-11-01T04:48:50.663Z",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"status\":\"expired\",\"message\":\"This confirmation expired after 2 minutes. Call `apply_migration` again to get a new confirmation.\"}"
+      }
+    ],
+    "structuredContent": {
+      "status": "expired",
+      "message": "This confirmation expired after 2 minutes. Call `apply_migration` again to get a new confirmation.",
+      "error_code": "INVALID_ARGUMENT"
+    },
+    "isError": true
+  }
+}
