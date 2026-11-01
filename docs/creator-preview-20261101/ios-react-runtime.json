@@ -1,0 +1,266 @@
+{
+  "cases": [
+    {
+      "audioCoverage": {
+        "end": 7.997270833333333,
+        "samples": 48,
+        "start": 0
+      },
+      "audioWindows": [
+        {
+          "at": 0.3,
+          "microphone880Hz": 0.19924007319719644,
+          "samples": 14400,
+          "source440Hz": 0.23910028791934898
+        },
+        {
+          "at": 1.4,
+          "microphone880Hz": 0.19921991287530044,
+          "samples": 14400,
+          "source440Hz": 0.0006152303248851684
+        },
+        {
+          "at": 2.4,
+          "microphone880Hz": 0.19922938783957322,
+          "samples": 14400,
+          "source440Hz": 0.0006149771563811921
+        },
+        {
+          "at": 3.4,
+          "microphone880Hz": 0.19915058391419196,
+          "samples": 14400,
+          "source440Hz": 0.23897856217388494
+        },
+        {
+          "at": 5.4,
+          "microphone880Hz": 0.19915393699870215,
+          "samples": 14349,
+          "source440Hz": 0.09956854032014267
+        },
+        {
+          "at": 7.4,
+          "microphone880Hz": 0.19922743270572926,
+          "samples": 14400,
+          "source440Hz": 0.0006151735039569993
+        }
+      ],
+      "facePixels": [
+        [
+          103,
+          142,
+          210
+        ],
+        [
+          118,
+          142,
+          201
+        ]
+      ],
+      "name": "source pauses and replays preserve moving face and continuous microphone",
+      "reported": {
+        "bytes": 427007,
+        "duration": 8,
+        "height": 1280,
+        "segmentCount": 5,
+        "voiceMixed": true,
+        "width": 720,
+        "artifact_file": "pc-react-export-pause-replay.mp4"
+      },
+      "sourcePixels": [
+        [
+          232,
+          44,
+          58
+        ],
+        [
+          38,
+          221,
+          72
+        ],
+        [
+          38,
+          221,
+          72
+        ],
+        [
+          43,
+          72,
+          233
+        ],
+        [
+          232,
+          44,
+          58
+        ],
+        [
+          233,
+          208,
+          37
+        ]
+      ],
+      "videoCoverage": {
+        "end": 8,
+        "samples": 240,
+        "start": 0
+      },
+      "result": "passed"
+    },
+    {
+      "audio": {
+        "at": 1.2,
+        "microphone880Hz": 0.1394238454993376,
+        "samples": 14400,
+        "source440Hz": 0.00043076639415485173
+      },
+      "audioCoverage": {
+        "end": 2.9989375,
+        "samples": 19,
+        "start": 0
+      },
+      "name": "photo source keeps movable PiP voice and burned artwork in one video",
+      "pixels": [
+        [
+          228,
+          40,
+          51
+        ],
+        [
+          0,
+          255,
+          1
+        ],
+        [
+          118,
+          142,
+          201
+        ],
+        [
+          148,
+          141,
+          184
+        ]
+      ],
+      "videoCoverage": {
+        "end": 3,
+        "samples": 90,
+        "start": 0
+      },
+      "result": "passed"
+    },
+    {
+      "audio": [
+        {
+          "at": 0.4,
+          "microphone880Hz": 0.19920643713563516,
+          "samples": 14400,
+          "source440Hz": 0.0006151424018588064
+        },
+        {
+          "at": 2,
+          "microphone880Hz": 0.19916970129676762,
+          "samples": 14400,
+          "source440Hz": 0.23908121849575978
+        }
+      ],
+      "audioCoverage": {
+        "end": 3.9989375,
+        "samples": 25,
+        "start": 0
+      },
+      "name": "trimming inside a freeze keeps face source and voice aligned",
+      "pixels": [
+        [
+          38,
+          221,
+          72
+        ],
+        [
+          43,
+          72,
+          233
+        ],
+        [
+          110,
+          143,
+          204
+        ],
+        [
+          110,
+          143,
+          204
+        ]
+      ],
+      "videoCoverage": {
+        "end": 4,
+        "samples": 120,
+        "start": 0
+      },
+      "result": "passed"
+    },
+    {
+      "name": "invalid timelines missing microphone and foreign paths leave no files",
+      "result": "passed"
+    },
+    {
+      "heldOnlyAudio": {
+        "at": 0.3,
+        "microphone880Hz": 0.1992374144610805,
+        "samples": 14400,
+        "source440Hz": 0.0006152016832594553
+      },
+      "heldOnlyPixel": [
+        38,
+        221,
+        72
+      ],
+      "name": "cancellation removes partial exports and allows same identifier retry",
+      "result": "passed"
+    }
+  ],
+  "error": null,
+  "networkUsed": false,
+  "passed": true,
+  "personMatteQualityVerified": false,
+  "photosWritten": false,
+  "physicalDevice": false,
+  "commit": "1f831976d4d96d0aab0fa3a47974ffe8de31ea4d",
+  "workflow_run": "41338467277",
+  "architecture": "arm64",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+  "sources": {
+    "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "modules/boomerang/ios/ReactVideoComposition.swift": "ce998526d48cb8dd7acc055795da393505852b7d18c0a03d15b4854c1a96128c",
+    "scripts/quality/ReactVideoExportHarness.swift": "656c0a6ddfe7dfe473106f59d878d551b1d9a04dfedf9a986dfe5a2e43682beb",
+    "scripts/quality/test-ios-react-video.sh": "e93cc389e5de5cc1deec90b362d39e94c9f19fee0a5e23a69411f5f386997644"
+  },
+  "movies": {
+    "pc-react-export-trim-hold.mp4": {
+      "sha256": "f47d2c70f5447f2aa879ae92f7dc1a48f5ea1717dde733762c2ffcbc8cb0a234",
+      "bytes": 202699
+    },
+    "pc-react-export-retry.mp4": {
+      "sha256": "d1cba5d9cf4c6dc6914dcc2ef73b08f0d9cb5b91d9d300a81b510604309e38c0",
+      "bytes": 56434
+    },
+    "pc-react-export-pause-replay.mp4": {
+      "sha256": "a0a9638accd92474118dcac41176641227ad40033672431d01cd6bba99bc0f4e",
+      "bytes": 427007
+    },
+    "pc-react-export-photo-pip.mp4": {
+      "sha256": "22fefae39a77eb9887d4224752beffbdb70dcccb1070c9f22fe53263448e4c33",
+      "bytes": 136572
+    }
+  },
+  "result": "passed",
+  "verification": "Five native runtime cases passed; four exported MP4s decoded and inspected on iOS Simulator.",
+  "repository": "donadmiral/tbirds-nest",
+  "job_id": 124943200077,
+  "job_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41338467277/job/124943200077",
+  "artifact": {
+    "id": 13096736026,
+    "name": "native-react-video-export",
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41338467277/artifacts/13096736026",
+    "sha256": "d381e539eaa1e18adb0acffed4928c0a2b0dc2ade7e238219e5703b7eca35b8d",
+    "bytes": 619267
+  }
+}

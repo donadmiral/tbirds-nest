@@ -1,0 +1,386 @@
+{
+  "schemaVersion": 1,
+  "repository": "donadmiral/tbirds-nest",
+  "sourceCommit": "acac966f4ebc5d3b5067f36f3f9c9efa567a2d8d",
+  "sourceBranch": "codex/creator-preview-20261101",
+  "workflowRun": {
+    "id": 41337779055,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41337779055"
+  },
+  "job": {
+    "id": 124941161010,
+    "name": "Verify encoded story audio and memory movies on Android Emulator",
+    "conclusion": "success",
+    "lastLogEntryAt": "2026-11-01T18:47:34Z",
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41337779055/job/124941161010"
+  },
+  "executionStep": {
+    "number": 8,
+    "name": "Exercise the actual story and memory encoders in an isolated emulator",
+    "conclusion": "success"
+  },
+  "summary": {
+    "executed": 48,
+    "passed": 48,
+    "failed": 0,
+    "skipped": 0,
+    "countsByClass": {
+      "expo.modules.boomerang.MemoryMovieExportTest": 17,
+      "expo.modules.boomerang.ReactVideoExportTest": 8,
+      "expo.modules.boomerang.StoryAudioExportTest": 23
+    }
+  },
+  "reactMeasuredReceipt": {
+    "sdk": 35,
+    "media3Version": "1.11.1",
+    "renderer": "Production ReactVideoComposition.kt and ReactVideoEffects.kt",
+    "cases": [
+      {
+        "case": "microphoneMuteDoesNotMutePlayingSourceOrLeakDuringHolds",
+        "passed": true
+      },
+      {
+        "case": "aPhotoSourceKeepsTheCameraMovingAndArtworkAboveBothTracks",
+        "passed": true
+      },
+      {
+        "case": "cancellationCleansOwnedFilesAndAllowsANewExport",
+        "passed": true
+      },
+      {
+        "case": "cameraAndSourceAudioMixIndependentlyAcrossHolds",
+        "passed": true
+      },
+      {
+        "case": "sourcePauseAndReplayDoNotPauseTheCamera",
+        "passed": true
+      },
+      {
+        "case": "trimmingAdvancesTheCameraAndSourceOnTheirOwnClocks",
+        "passed": true
+      },
+      {
+        "case": "cutoutRemovesAnEmptyCameraBackground",
+        "passed": true
+      },
+      {
+        "case": "malformedTimelineNeverCreatesAnOutput",
+        "passed": true
+      }
+    ],
+    "physicalDeviceAcceptance": false
+  },
+  "instrumentationCases": [
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "imagePreparationRejectsUnsafeInputsAndPreservesExistingFiles",
+      "seconds": 0.099,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "reorderedBFramesSurviveTheTrimEndBeforeTheNextPage",
+      "seconds": 8.508,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "aggregateInputBytesAreBoundedWithoutCopyingLargeSources",
+      "seconds": 0.077,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "sourcePathsRemainConfinedEvenThroughSymlinks",
+      "seconds": 0.054,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "stillScenesKeepOrderAndContinuousDuckedSoundtrack",
+      "seconds": 10.061,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "normalizedJpegHonorsExifOrientation",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "animatedContainersAreRejectedBeforeStaticPreparation",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "sceneArtworkFadeAndMotionUseLocalTime",
+      "seconds": 8.283,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "movieLimitsAndGainContinuityAreEnforcedBeforeWriting",
+      "seconds": 0.202,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+      "seconds": 0.859,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "videoPageAndBookAudioPreserveIndependentClocks",
+      "seconds": 11.833,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "cancellationReleasesWriterBeforeRetryAndBlocksStory",
+      "seconds": 3.164,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "onePassBookMusicDoesNotShortenSilentTail",
+      "seconds": 6.679,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "mutedVideoKeepsPageVoiceoverAndSilentCards",
+      "seconds": 8.645,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "zeroGainBookSelectionEncodesSilence",
+      "seconds": 4.3,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "cancelAllStopsMovieAndImagePreparation",
+      "seconds": 1.522,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.MemoryMovieExportTest",
+      "name": "normalizedPngIsBoundedAndPreservesTransparency",
+      "seconds": 1.051,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.ReactVideoExportTest",
+      "name": "microphoneMuteDoesNotMutePlayingSourceOrLeakDuringHolds",
+      "seconds": 14.605,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.ReactVideoExportTest",
+      "name": "aPhotoSourceKeepsTheCameraMovingAndArtworkAboveBothTracks",
+      "seconds": 10.267,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.ReactVideoExportTest",
+      "name": "cancellationCleansOwnedFilesAndAllowsANewExport",
+      "seconds": 10.746,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.ReactVideoExportTest",
+      "name": "cameraAndSourceAudioMixIndependentlyAcrossHolds",
+      "seconds": 10.725,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.ReactVideoExportTest",
+      "name": "sourcePauseAndReplayDoNotPauseTheCamera",
+      "seconds": 11.438,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.ReactVideoExportTest",
+      "name": "trimmingAdvancesTheCameraAndSourceOnTheirOwnClocks",
+      "seconds": 7.429,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.ReactVideoExportTest",
+      "name": "cutoutRemovesAnEmptyCameraBackground",
+      "seconds": 6.009,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.ReactVideoExportTest",
+      "name": "malformedTimelineNeverCreatesAnOutput",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+      "seconds": 3.221,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+      "seconds": 1.309,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+      "seconds": 4.03,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+      "seconds": 3.974,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+      "seconds": 1.462,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "invalidInputsCannotOverwriteOrEscapeTheCache",
+      "seconds": 0.052,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "soundtrackVolumeAndZeroGainAreEncoded",
+      "seconds": 2.568,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "fullColorMatrixScaleAndTranslationMatchPixels",
+      "seconds": 1.412,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "selectedExcerptLoopsThroughActualStillMovie",
+      "seconds": 1.635,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "originalOnlyAudioIsPreservedAndMeasured",
+      "seconds": 4.082,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "mutedOriginalDoesNotLeakIntoTheMovie",
+      "seconds": 4.113,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+      "seconds": 5.962,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+      "seconds": 0.757,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+      "seconds": 2.743,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+      "seconds": 1.564,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+      "seconds": 1.659,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+      "seconds": 2.931,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+      "seconds": 5.36,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "longVoiceoverIsClippedToTheOutputMovie",
+      "seconds": 1.183,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk",
+      "seconds": 0.86,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+      "seconds": 3.956,
+      "passed": true
+    },
+    {
+      "class": "expo.modules.boomerang.StoryAudioExportTest",
+      "name": "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop",
+      "seconds": 4.697,
+      "passed": true
+    }
+  ],
+  "productionSourceSha256": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/ReactVideoComposition.kt": "29fbf5471f73e95045c1f14c6d6283a43776f1cc9049481fad52ab3399a75317",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/ReactVideoEffects.kt": "f9033203949b23287c1e19a97a42b2d6b3ec82b3fb6aa54fdaaa4cc43266ad91"
+  },
+  "artifact": {
+    "id": 13096670522,
+    "name": "android-story-audio-export",
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41337779055/artifacts/13096670522",
+    "zipSha256": "4cc5c816fdc155068c642ad0686d3bd8f280cf72ed5a2ce88c92b09c8f4f0ff5",
+    "sizeBytes": 1825434
+  },
+  "scope": {
+    "emulatorAcceptance": true,
+    "physicalDeviceAcceptance": false,
+    "installedProductAcceptance": false,
+    "fullNativeApplicationCompileIncluded": false,
+    "qaOrProductionDataAccessed": false,
+    "storeReleaseOrUpload": false
+  },
+  "evidence": "Completed GitHub Actions job log and uploaded artifact; the harness gate requires exact test-name coverage, zero failures/errors/skips, passing per-case receipts, and byte-for-byte production source provenance."
+}

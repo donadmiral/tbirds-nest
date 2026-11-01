@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "repository": "donadmiral/tbirds-nest",
+  "sourceCommit": "acac966f4ebc5d3b5067f36f3f9c9efa567a2d8d",
+  "workflowRun": {
+    "id": 41337779055,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41337779055"
+  },
+  "job": {
+    "id": 124941161193,
+    "name": "Compile Kotlin and Android native integration",
+    "conclusion": "failure",
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41337779055/job/124941161193"
+  },
+  "executionStep": {
+    "number": 6,
+    "name": "Compile the unsigned Android QA target",
+    "conclusion": "failure"
+  },
+  "gradleResult": {
+    "assembleDebug": "success",
+    "buildMessage": "BUILD SUCCESSFUL in 12m 15s",
+    "executedTasks": 803,
+    "reportedAt": "2026-11-01T18:53:30Z"
+  },
+  "postflightResult": {
+    "conclusion": "failure",
+    "message": "Review the native capability receipt after changing the Android bridge contract.",
+    "cause": "The receipt regex expected the previous three-constant Constants(...) declaration and rejected the newly added reactVideoVersion/reactCutoutVersion fields.",
+    "applicationSourceChangeNeeded": false,
+    "ciReceiptScriptChangeNeeded": true,
+    "downstreamChecksNotReached": [
+      "Expo generated package registration check",
+      "unsigned APK count and ZIP integrity",
+      "packaged Media3 ABI verification",
+      "required native APK entries",
+      "application ID and unsigned certificate checks"
+    ]
+  },
+  "artifact": {
+    "id": 13096566135,
+    "name": "android-native-compile-diagnostics",
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41337779055/artifacts/13096566135",
+    "zipSha256": "47e41c7494ddf3aa6d23a0d1e54befb113991ca582851a15f6141d42a7919fb8",
+    "sizeBytes": 20886
+  },
+  "patch": {
+    "file": "/tmp/creator-android-capability-receipt.patch",
+    "target": "scripts/quality/compile-android-native.sh",
+    "scope": "CI postflight receipt only",
+    "applied": true,
+    "validation": [
+      "bash -n passed",
+      "current native constants parsed as story=1, storyAudio=1, memory=0, react=1, cutout=1"
+    ],
+    "targetSha256": "4b8af840b81e720417cdfbc172763f1931964bee1c07787575ee93727a763a86"
+  },
+  "scope": {
+    "fullGradleAssemblySucceeded": true,
+    "completePostflightGateSucceeded": false,
+    "physicalDeviceAcceptance": false
+  },
+  "retainedDiagnosticContents": {
+    "count": 9,
+    "apkOrReusableClassesPresent": false
+  }
+}

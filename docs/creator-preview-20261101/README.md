@@ -28,8 +28,34 @@ This preview extends the previously installed Platinum QA app with the requested
 | Memory-cover browser interaction and persistence | Passed, including identical saved cover pixels after reload |
 | Android production compositor and eight instrumentation test sources | Compiled against pinned Kotlin, Android, Media3 and ML Kit APIs |
 
-The standalone native encoding gates and full installable builds attach their own results to this branch. A compiler result is not treated as device execution or human cutout-quality acceptance.
+## Native media verification
+
+- Corrected iOS production renderer: all five runtime cases passed on iOS 26.2 arm64 Simulator. Four actual MP4s were decoded and inspected for continuous camera/microphone, source holds and replays, independent audio gains, PiP/photo artwork, trim alignment, invalid inputs and cancellation cleanup. See `ios-react-runtime.json`.
+- Android production renderers: all 48 emulator cases passed on API 35, including eight React, 23 story and 17 memory cases. React checks include independent camera/source clocks and audio, mute, photo/artwork fitting, trim, cutout execution and cancellation. See `android-runtime.json`.
+- Full native iOS app integration compiled and linked successfully for x86_64 Simulator, including the React renderer and native player bridge. See `ios-native-compile.json`.
+- The first iOS export test caught a source-audio fade. Commit `1f831976d4d96d0aab0fa3a47974ffe8de31ea4d` fixes the native mixing windows; the corrected test passed without weakening its assertions.
+
+Android's full Gradle debug assembly succeeded (803 tasks). Its following receipt step rejected the new React capability constants because its regex still described the old bridge. The receipt script is corrected and syntax-checked; application code did not need to change. The subsequent EAS Release build also finished successfully. See `android-native-compile.json`.
+
+A supplemental inspection of the finished APK could not run because its provider artifact URL returned HTTP 403. `android-apk-check.json` records that access limit with `passed: null`; no packaged ABI, registration or certificate-inspection success is inferred. The authenticated Expo page exposes the completed build and installation instructions.
+
+These are native simulator/emulator executions. They do not claim a physical-phone walkthrough or human person-matte quality acceptance.
 
 ## Hosted QA change
 
 `20261101181618_memory_cover_personalization_v2.sql` was applied through the normal migration API to `uaulhuelcfkjwojtymmw`. Its provider journal version is `20261101182254`. Postflight verified v2 normalization, capability advertisement, source-membership enforcement and unchanged private-helper access restrictions. Production was not changed.
+
+## Installable previews
+
+Both accepted Expo builds finished successfully with bundled JavaScript, native compilation and signing. They use the existing QA app identifier and `qa-preview` channel.
+
+| Platform | Version | Source | Installation |
+| --- | --- | --- | --- |
+| iPhone | 1.1.0 (10) | `1f83197` | [Expo install page](https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/d2601c9b-4aca-4cfd-9de1-27697dda1ce4) |
+| Android | 1.1.0 (5) | `acac966` | [Expo install page](https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/03dd67c6-e489-4efe-998e-6aa526954e57) |
+
+Android uses the complete creator-update source. iPhone additionally includes the verified iOS-only audio mixing correction. Final evidence and CI-receipt updates do not change the application code in these packages. iOS build9 is superseded and is not the delivered preview.
+
+React is available from a post's share menu and the post composer. Personalized covers are in Book settings, including Single photo, Photo collage, Cursive title and Draw on cover.
+
+The exact build identifiers, source commits and public artifact URLs are saved in `preview-builds.json`.

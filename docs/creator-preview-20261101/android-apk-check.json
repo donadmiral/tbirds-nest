@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "acac966f4ebc5d3b5067f36f3f9c9efa567a2d8d",
+  "easBuildId": "03dd67c6-e489-4efe-998e-6aa526954e57",
+  "platform": "ANDROID",
+  "buildStatus": "FINISHED",
+  "appVersion": "1.1.0",
+  "appBuildVersion": "5",
+  "completedAt": "2026-11-01T19:09:55.171Z",
+  "passed": null,
+  "verificationStatus": "blocked_by_artifact_download_http_403",
+  "artifactDownload": {
+    "providerArtifactField": "applicationArchiveUrl",
+    "attempts": 1,
+    "httpStatus": 403,
+    "downloaded": false,
+    "bypassAttempted": false
+  },
+  "reason": "The fresh artifact URL returned by EAS denied this download. This is an artifact-access result, not a failed build or a failed APK check.",
+  "checks": {
+    "packagedMedia3Abi": "not_run_no_apk_bytes",
+    "productionClassDefinitions": "not_run_no_apk_bytes",
+    "compiledExpoModuleRegistration": "not_run_no_apk_bytes",
+    "manifestIdentity": "not_run_no_apk_bytes",
+    "requiredNativeEntries": "not_run_no_apk_bytes",
+    "zipIntegrity": "not_run_no_apk_bytes",
+    "apkSignature": "not_run_no_apk_bytes"
+  },
+  "retainedEvidence": {
+    "androidEncoderRuntime": "/tmp/creator-android-runtime.json",
+    "androidNativeCompile": "/tmp/creator-android-native-compile.json",
+    "sanitizedEasStatus": "/tmp/creator-eas-android5-status.json"
+  },
+  "scope": {
+    "buildFinishedSuccessfully": true,
+    "apkStaticVerificationCompleted": false,
+    "physicalDeviceAcceptance": false,
+    "appInstalled": false,
+    "qaOrProductionDataAccessed": false
+  }
+}

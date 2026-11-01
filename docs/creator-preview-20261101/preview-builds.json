@@ -1,0 +1,46 @@
+{
+  "verifiedAt": "2026-11-01T19:10:16.749455+00:00",
+  "expoProject": "@donadmiral/platinum-circles",
+  "qaBackendProject": "uaulhuelcfkjwojtymmw",
+  "builds": [
+    {
+      "platform": "ios",
+      "id": "d2601c9b-4aca-4cfd-9de1-27697dda1ce4",
+      "status": "FINISHED",
+      "sourceCommit": "1f831976d4d96d0aab0fa3a47974ffe8de31ea4d",
+      "appIdentifier": "app.platinumcircles.mobile.qa",
+      "appVersion": "1.1.0",
+      "buildVersion": "10",
+      "channel": "qa-preview",
+      "distribution": "INTERNAL",
+      "profile": "preview",
+      "createdAt": "2026-11-01T18:55:44.265Z",
+      "completedAt": "2026-11-01T19:02:33.837Z",
+      "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/d2601c9b-4aca-4cfd-9de1-27697dda1ce4",
+      "artifactUrl": "https://expo.dev/artifacts/eas/Dps3ntsv-dov8ldir8F3zFGWG7OVx-UsWkDM7AbiemA.ipa"
+    },
+    {
+      "platform": "android",
+      "id": "03dd67c6-e489-4efe-998e-6aa526954e57",
+      "status": "FINISHED",
+      "sourceCommit": "acac966f4ebc5d3b5067f36f3f9c9efa567a2d8d",
+      "appIdentifier": "app.platinumcircles.mobile.qa",
+      "appVersion": "1.1.0",
+      "buildVersion": "5",
+      "channel": "qa-preview",
+      "distribution": "INTERNAL",
+      "profile": "preview",
+      "createdAt": "2026-11-01T18:41:04.486Z",
+      "completedAt": "2026-11-01T19:09:55.171Z",
+      "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/03dd67c6-e489-4efe-998e-6aa526954e57",
+      "artifactUrl": "https://expo.dev/artifacts/eas/3ClL5k6FQMewM9rc2oOMSGZo5ktapnU9VSivSeX2AOo.apk"
+    }
+  ],
+  "supersededIosBuild": {
+    "id": "19f2717e-973b-460a-8094-2115d98e5d09",
+    "version": "9",
+    "deliver": false,
+    "reason": "Replaced by build10 after the native export test caught and verified a correction to iOS source-audio gain."
+  },
+  "physicalPhoneWalkthroughClaimed": false
+}

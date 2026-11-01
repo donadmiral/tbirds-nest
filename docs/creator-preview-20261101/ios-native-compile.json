@@ -1,0 +1,47 @@
+{
+  "commit": "1f831976d4d96d0aab0fa3a47974ffe8de31ea4d",
+  "workflow_run": "41338467277",
+  "result": "unsigned iOS Simulator compile passed",
+  "native_sources": {
+    "modules/boomerang/ios/BoomerangModule.swift": {
+      "sha256": "01d3b90ed065354c999812f19caf22ac46b8269b1c76a446c5642d5e420fb80f",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/BoomerangModule.o"
+      ]
+    },
+    "modules/boomerang/ios/StoryVideoView.swift": {
+      "sha256": "1601cd03287a4c42e395a1c7f7163cf3465daaab6f0f6957a1264569725749ac",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoView.o"
+      ]
+    },
+    "modules/boomerang/ios/StoryVideoComposition.swift": {
+      "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoComposition.o"
+      ]
+    },
+    "modules/boomerang/ios/ReactVideoComposition.swift": {
+      "sha256": "ce998526d48cb8dd7acc055795da393505852b7d18c0a03d15b4854c1a96128c",
+      "compiled_objects": [
+        "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/ReactVideoComposition.o"
+      ]
+    }
+  },
+  "simulator_architecture": "x86_64",
+  "app_executable_linked": true,
+  "device_or_provider_acceptance": false,
+  "archive_or_ipa_created": false,
+  "app_uploaded_or_submitted": false,
+  "repository": "donadmiral/tbirds-nest",
+  "job_id": 124943199921,
+  "job_conclusion": "success",
+  "job_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41338467277/job/124943199921",
+  "artifact": {
+    "id": 13096023886,
+    "name": "ios-native-compile-diagnostics",
+    "sha256": "608ef2f248687c0dde9e4ee41c020f2c12be692aa4017844555a6d16b2c0d82c",
+    "bytes": 965346,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41338467277/artifacts/13096023886"
+  }
+}
