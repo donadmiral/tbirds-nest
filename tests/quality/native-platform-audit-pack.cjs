@@ -23,6 +23,22 @@ async function signed(id, scenario) {
   return { fixture, sdk };
 }
 
+function verifyTapCoordinates(value, caseId, parentKey) {
+  if (!value || typeof value !== 'object') return;
+  for (const [key, child] of Object.entries(value)) {
+    if (key === 'point') {
+      // This one reviewed offset is relative to the identified article field,
+      // whose center is covered by the iOS keyboard. Absolute taps stay banned.
+      assert.equal(caseId, 'feed-article-draft');
+      assert.equal(parentKey, 'tapOn');
+      assert.deepEqual(Object.keys(value).sort(), ['point', 'text']);
+      assert.equal(value.text, 'Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.');
+      assert.equal(child, '50%,10%');
+    }
+    verifyTapCoordinates(child, caseId, key);
+  }
+}
+
 test('every executable case has one explicit flow, immutable identity and meaningful mandatory assertion', () => {
   assert.equal(new Set(manifest.cases.map(c => c.id)).size, manifest.cases.length);
   for (const item of manifest.cases) {
@@ -31,9 +47,19 @@ test('every executable case has one explicit flow, immutable identity and meanin
     assert(Array.isArray(docs[1]) && docs[1].length > 2, item.id);
     assert(docs[1].some(command => command.assertVisible || command.extendedWaitUntil), item.id);
     assert(!JSON.stringify(docs).includes('"optional":true'), item.id);
-    assert(!JSON.stringify(docs).includes('"point":'), item.id);
+    verifyTapCoordinates(docs, item.id);
     assert(fs.existsSync(item.source), item.id);
   }
+});
+
+test('article interaction exception still rejects absolute, unidentified and unrelated point taps', () => {
+  const text = 'Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.';
+  verifyTapCoordinates({ tapOn: { text, point: '50%,10%' } }, 'feed-article-draft');
+  for (const tapOn of [{ text, point: '50,10' }, { point: '50%,10%' }, { text: 'Title', point: '50%,10%' }, { text, point: '50%,10%', optional: true }]) {
+    assert.throws(() => verifyTapCoordinates({ tapOn }, 'feed-article-draft'));
+  }
+  assert.throws(() => verifyTapCoordinates({ tapOn: { text, point: '50%,10%' } }, 'jobs-application-entry'));
+  assert.throws(() => verifyTapCoordinates({ scrollUntilVisible: { text, point: '50%,10%' } }, 'feed-article-draft'));
 });
 
 test('declared nested entry states survive the installed real stack/tab routers', () => {

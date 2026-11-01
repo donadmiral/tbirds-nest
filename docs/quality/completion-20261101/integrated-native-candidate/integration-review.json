@@ -1,0 +1,29 @@
+{
+  "formatVersion": 1,
+  "baseCommit": "6b57ec7471b1a080d2b4ec94885480baeac13bff",
+  "sourceManifests": [
+    "native-arm-candidate/candidate-manifest.json",
+    "ios-account-controls-repair/candidate-manifest.json"
+  ],
+  "reviewedFrozenFileCount": 59,
+  "allFrozenHashesMatched": true,
+  "noOverlappingCandidatePaths": true,
+  "retiredAutomaticHistoricalConsumers": [
+    ".github/workflows/completion-android-social.yml",
+    ".github/workflows/completion-ios-ecf-account.yml",
+    ".github/workflows/completion-ios-ecf-remaining.yml",
+    ".github/workflows/native-completion-ios-audit.yml",
+    ".github/workflows/native-completion-journey.yml"
+  ],
+  "retiredConsumersJobContentsByteIdentical": true,
+  "allRetiredConsumersManualDispatchRetained": true,
+  "currentSourceBuildAndAll85CaseProducer": ".github/workflows/native-product-audit.yml",
+  "newArtifactRequired": true,
+  "newArtifactOrInstalledPassClaimed": false,
+  "integratedFocusedTests": {
+    "passed": 120,
+    "failed": 0,
+    "skipped": 0,
+    "receipt": "focused-child-processes.tap"
+  }
+}

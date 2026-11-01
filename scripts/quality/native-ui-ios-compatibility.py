@@ -1,4 +1,4 @@
-"""Verify an intact Intel Simulator app against the selected host/runtime."""
+"""Verify an intact Simulator app against its explicit native host/runtime."""
 import json
 from pathlib import Path
 import platform
@@ -6,22 +6,47 @@ import plistlib
 import re
 
 PACKAGE = 'app.platinumcircles.mobile.qa'
+TARGETS = {
+    'intel-ios18.5': {'abi': 'x86_64', 'runtimeIdentifier': 'com.apple.CoreSimulator.SimRuntime.iOS-18-5',
+                     'runtimeVersion': '18.5', 'deviceTypeIdentifier': 'com.apple.CoreSimulator.SimDeviceType.iPhone-16',
+                     'xcode': 'Xcode 16.4\nBuild version 16F6', 'sdkVersion': '18.5'},
+    'arm64-ios26.2': {'abi': 'arm64', 'runtimeIdentifier': 'com.apple.CoreSimulator.SimRuntime.iOS-26-2',
+                     'runtimeVersion': '26.2', 'deviceTypeIdentifier': 'com.apple.CoreSimulator.SimDeviceType.iPhone-17',
+                     'xcode': 'Xcode 26.3\nBuild version 17C529', 'sdkVersion': '26.2'},
+}
+
+
+def expected_target(manifest):
+    expected = manifest.get('nativeCompatibility', {})
+    if not isinstance(expected, dict):
+        raise ValueError('An explicit supported Simulator target is required')
+    selected = [(key, value) for key, value in TARGETS.items()
+                if expected.get('abi') == value['abi'] and expected.get('runtimeIdentifier') == value['runtimeIdentifier']]
+    if len(selected) != 1:
+        raise ValueError('Unsupported Simulator compatibility')
+    identifier, target = selected[0]
+    # Historical Intel manifests predate these two fields. A new ARM app must
+    # declare both, so an old x86 artifact cannot be reinterpreted as ARM.
+    if (expected.get('targetId', identifier if identifier == 'intel-ios18.5' else None) != identifier
+            or expected.get('deviceTypeIdentifier', target['deviceTypeIdentifier'] if identifier == 'intel-ios18.5' else None) != target['deviceTypeIdentifier']):
+        raise ValueError('The declared Simulator target identity differs')
+    return {'targetId': identifier, **target}
 
 
 def expected_runtime(manifest):
-    expected = manifest['nativeCompatibility']
-    runtime = expected['runtimeIdentifier']
-    if expected['abi'] != 'x86_64' or not re.fullmatch(r'com\.apple\.CoreSimulator\.SimRuntime\.iOS-\d+-\d+(?:-\d+)?', runtime):
-        raise ValueError('Unsupported Simulator compatibility')
-    return runtime
+    return expected_target(manifest)['runtimeIdentifier']
 
 
 def verify_immutable_compatibility(app, manifest, read, host_system=None):
     """Check actual host/toolchain/app bytes without starting a Simulator."""
     expected = manifest['nativeCompatibility']
-    expected_runtime(manifest)
-    if (host_system or platform.system()) != 'Darwin' or read(['/usr/bin/uname', '-m']) != 'x86_64':
-        raise ValueError('The original Intel macOS Simulator host is required')
+    target = expected_target(manifest)
+    architecture = target['abi']
+    if (host_system or platform.system()) != 'Darwin' or read(['/usr/bin/uname', '-m']) != architecture:
+        raise ValueError('The native host architecture must match the compiled Simulator app')
+    if (manifest['toolchain']['xcode'] != target['xcode']
+            or manifest['toolchain']['sdkVersion'] != target['sdkVersion']):
+        raise ValueError('The toolchain must match the explicit Simulator target')
     if read(['xcodebuild', '-version']) != manifest['toolchain']['xcode']:
         raise ValueError('Xcode differs from the binary producer')
     if read(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version']) != manifest['toolchain']['sdkVersion']:
@@ -30,12 +55,13 @@ def verify_immutable_compatibility(app, manifest, read, host_system=None):
     executable = info.get('CFBundleExecutable', '')
     if info.get('CFBundleIdentifier') != PACKAGE or info.get('DTPlatformName') != 'iphonesimulator' or not executable or Path(executable).name != executable:
         raise ValueError('The actual app is not the expected Simulator bundle')
-    if info.get('DTSDKName') != expected['sdk'] or info.get('MinimumOSVersion') != expected['minimumOSVersion']:
+    if (expected['sdk'] != 'iphonesimulator' + target['sdkVersion']
+            or info.get('DTSDKName') != expected['sdk'] or info.get('MinimumOSVersion') != expected['minimumOSVersion']):
         raise ValueError('The actual app SDK/deployment metadata differs')
-    if read(['xcrun', 'lipo', str(app / executable), '-archs']).split() != ['x86_64']:
+    if read(['xcrun', 'lipo', str(app / executable), '-archs']).split() != [architecture]:
         raise ValueError('The actual app Mach-O architecture differs')
     read(['codesign', '--verify', '--deep', '--strict', str(app)])
-    return {'hostArchitecture': 'x86_64', 'actualExecutableArchitecture': 'x86_64',
+    return {'hostArchitecture': architecture, 'actualExecutableArchitecture': architecture,
             'xcode': manifest['toolchain']['xcode'], 'sdkVersion': manifest['toolchain']['sdkVersion'],
             'codeSignatureVerified': True, 'guestUnameInvoked': False,
             'scope': 'Actual host, producer toolchain, Simulator bundle metadata, Mach-O and signature. Runtime/device checks remain required.'}
@@ -62,7 +88,7 @@ def verify_prepared_booted_runtime(manifest, device, prepared):
     runtime = expected_runtime(manifest)
     version = runtime.rsplit('.iOS-', 1)[1].replace('-', '.')
     source = manifest.get('applicationSourceCommit')
-    device_type = 'com.apple.CoreSimulator.SimDeviceType.iPhone-16'
+    device_type = expected_target(manifest)['deviceTypeIdentifier']
     if (not isinstance(device, str)
             or not re.fullmatch(r'[A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12}', device)
             or not isinstance(source, str) or not re.fullmatch(r'[0-9a-f]{40}', source)
@@ -94,4 +120,4 @@ def verify_compatibility(app, manifest, device, read, host_system=None):
     immutable = verify_immutable_compatibility(app, manifest, read, host_system)
     runtime = verify_booted_runtime(manifest, device, read)
     return {**immutable, **runtime,
-            'scope': 'Intel host, exact runtime, actual Simulator Mach-O and signature. App launch is still a required case action.'}
+            'scope': 'Matching native host, exact runtime, actual Simulator Mach-O and signature. App launch is still a required case action.'}

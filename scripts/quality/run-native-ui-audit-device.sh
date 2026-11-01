@@ -40,7 +40,9 @@ cleanup() {
 }
 trap cleanup EXIT
 if [[ "$platform" == ios ]]; then
-  [[ "$(uname -s)" == Darwin && "$(uname -m)" == x86_64 ]]
+  [[ "$(uname -s)" == Darwin ]]
+  # The bounded preflight below requires the actual host and Mach-O ABI to
+  # match this exact artifact's explicitly supported native target before boot.
   tar -xzf native-audit-binary/qa.app.tar.gz -C native-audit-binary
   binary="$PWD/native-audit-binary/PlatinumQA.app"
   test -s "$binary/main.jsbundle"

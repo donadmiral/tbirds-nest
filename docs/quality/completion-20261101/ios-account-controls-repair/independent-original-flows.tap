@@ -1,0 +1,140 @@
+TAP version 13
+# Subtest: retained account failures and exact original flow bytes remain identified as failures
+ok 1 - retained account failures and exact original flow bytes remain identified as failures
+  ---
+  duration_ms: 2.209318
+  type: 'test'
+  ...
+# Subtest: the iOS support notice remains fully required without an impossible bottom-centering condition
+not ok 2 - the iOS support notice remains fully required without an impossible bottom-centering condition
+  ---
+  duration_ms: 10.139374
+  type: 'test'
+  location: '/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:53:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:64:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: support-fresh-ticket-body: target the unique actual iOS input while retaining the full placeholder contract
+not ok 3 - support-fresh-ticket-body: target the unique actual iOS input while retaining the full placeholder contract
+  ---
+  duration_ms: 3.341724
+  type: 'test'
+  location: '/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:75:3'
+  failureType: 'testCodeFailure'
+  error: 'use the complete observed field label, not a broad prefix or alternate success assertion'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:82:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: support-reopen-error: target the unique actual iOS input while retaining the full placeholder contract
+not ok 4 - support-reopen-error: target the unique actual iOS input while retaining the full placeholder contract
+  ---
+  duration_ms: 1.687932
+  type: 'test'
+  location: '/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:75:3'
+  failureType: 'testCodeFailure'
+  error: 'use the complete observed field label, not a broad prefix or alternate success assertion'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:82:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: support-reply-error: target the unique actual iOS input while retaining the full placeholder contract
+not ok 5 - support-reply-error: target the unique actual iOS input while retaining the full placeholder contract
+  ---
+  duration_ms: 1.5072
+  type: 'test'
+  location: '/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:75:3'
+  failureType: 'testCodeFailure'
+  error: 'use the complete observed field label, not a broad prefix or alternate success assertion'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:82:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: the exact retained Paper tint hit reached the keyboard and changed the title before Save
+not ok 6 - the exact retained Paper tint hit reached the keyboard and changed the title before Save
+  ---
+  duration_ms: 2.630262
+  type: 'test'
+  location: '/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:94:1'
+  failureType: 'testCodeFailure'
+  error: 'required ordered operation exists'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    index (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:36:10)
+    TestContext.<anonymous> (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:110:20)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: the actual title and subject are single-line inputs whose installed RN Return behavior blurs
+ok 7 - the actual title and subject are single-line inputs whose installed RN Return behavior blurs
+  ---
+  duration_ms: 99.99113
+  type: 'test'
+  ...
+# Subtest: all five Android paths and original iOS user-visible assertions, deadlines and Save accounting remain strict
+ok 8 - all five Android paths and original iOS user-visible assertions, deadlines and Save accounting remain strict
+  ---
+  duration_ms: 34.053747
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 3
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 418.686863

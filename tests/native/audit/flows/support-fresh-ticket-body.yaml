@@ -29,11 +29,23 @@ name: Audit submitted ticket keeps original question
       platform: Android
     commands:
       - hideKeyboard
-- scrollUntilVisible:
-    element: What happened, and what you expected
-    direction: DOWN
-    centerElement: true
-- tapOn: What happened, and what you expected
+      - scrollUntilVisible:
+          element: What happened, and what you expected
+          direction: DOWN
+          centerElement: true
+      - tapOn: What happened, and what you expected
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Subject is single-line: Return blurs it before locating the body.
+      - pressKey: Enter
+      # iOS exposes the multiline field's label and placeholder together.
+      - scrollUntilVisible:
+          element: Message What happened, and what you expected
+          direction: DOWN
+          centerElement: true
+      - tapOn: Message What happened, and what you expected
 - inputText: My original question must remain visible.
 - runFlow:
     when:

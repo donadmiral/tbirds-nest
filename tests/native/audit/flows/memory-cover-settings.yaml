@@ -29,13 +29,25 @@ name: Audit independent cover settings entry
 - inputText: AUDIT BOOK TITLE
 - copyTextFrom: Book title
 - assertTrue: ${maestro.copiedText === "AUDIT BOOK TITLE"}
-# A harmless heading inside the real handled-taps ScrollView dismisses focus.
-# Android hideKeyboard sends Back and can close this settings modal.
-- scrollUntilVisible:
-    element: Paper tint
-    direction: DOWN
-    centerElement: true
-- tapOn: Paper tint
+# Android Back closes the modal; its proven handled-tap exit stays unchanged.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element: Paper tint
+          direction: DOWN
+          centerElement: true
+      - tapOn: Paper tint
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Paper tint's AX bounds can sit behind the iOS keyboard. The actual
+      # single-line Return action blurs the title without touching that keyplane.
+      - pressKey: Enter
+      - copyTextFrom: Book title
+      - assertTrue: ${maestro.copiedText === "AUDIT BOOK TITLE"}
 - assertVisible: Book settings
 - assertVisible: Save memory book
 - tapOn: Save memory book

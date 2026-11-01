@@ -40,11 +40,12 @@ env:
 jobs:
   ios-build:
     name: Build one source-bound iPhone audit app
-    runs-on: macos-15-intel
+    runs-on: macos-26
     timeout-minutes: 75
     env:
       PLATINUM_NATIVE_AUDIT_BUILD_ONLY: '1'
-      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      PLATINUM_NATIVE_IOS_TARGET: arm64-ios26.2
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -73,8 +74,8 @@ jobs:
           done
       - name: Use Java 17 and the locked CocoaPods version
         run: |
-          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
-          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          echo "JAVA_HOME=$JAVA_HOME_17_arm64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_arm64/bin" >> "$GITHUB_PATH"
           gem install --user-install cocoapods --version 1.16.2 --no-document
           ruby -e 'puts File.join(Gem.user_dir, "bin")' >> "$GITHUB_PATH"
       - name: Ensure independent movie decoding is available
@@ -143,7 +144,7 @@ jobs:
   ios-cases:
     name: ios feature group ${{ matrix.shard }}
     needs: ios-build
-    runs-on: macos-15-intel
+    runs-on: macos-26
     timeout-minutes: 100
     strategy:
       fail-fast: false
@@ -157,7 +158,7 @@ jobs:
             groups: navigation,feed,market,jobs,messages
     env:
       AUDIT_GROUPS: ${{ matrix.groups }}
-      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -168,8 +169,8 @@ jobs:
           path: native-audit-binary
       - name: Prepare device tools without rebuilding the app
         run: |
-          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
-          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          echo "JAVA_HOME=$JAVA_HOME_17_arm64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_arm64/bin" >> "$GITHUB_PATH"
           if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
       - run: bash scripts/quality/install-native-ui-tools.sh
       - name: Run all independent cases in this feature group

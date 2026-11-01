@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-11-01T04:19:47.540921+00:00",
+  "kind": "independent-four-path-capture-format-and-unused-dependency-review",
+  "candidateCheckout": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate",
+  "baseCommit": "135a9810846cc1a4b85a290a3213ede5d1b318db",
+  "reviewedFiles": {
+    "package.json": "293e7e5bacf127cda8869d7d57e7a1cb997fe8b45a94fb0f99ecaf33bc564e0c",
+    "package-lock.json": "78e7197bd4960270660c30c23f18dbe063e68e6890a03b940e922a57bd4b2652",
+    "src/services/memoryMovieFiles.ts": "f9705f2c52b94138469b136ce567cc8af70e7e9653f18a86ccc1ea693a29b864",
+    "tests/quality/native-memory-export.cjs": "d3f08396dca52cae25cd4ceb85500a6b609dfac36dcbf9ffb2c37df6ffa34b55"
+  },
+  "result": "No blocker in the four reviewed paths. Actual installed acceptance and ARM compilation remain pending.",
+  "actualFailureEvidence": {
+    "producerApplicationSource": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+    "auditRunId": 41266020246,
+    "artifactId": 13069506923,
+    "receiptSha256": "439f41a8b2a8607e6d7c16aba726412497d1285f02172c82155b90ac17ca28a9",
+    "returnedFormat": "single-rooted absolute iOS sandbox path",
+    "actualPngBytes": 313843,
+    "actualPngSha256": "ffda077538c24cd54d463c04daaf3e59d86fe09934d09c4791eebaf66df37c7b",
+    "captureCountBeforeCopyFailure": 1,
+    "cleanupPassed": true
+  },
+  "checks": {
+    "nativeViewShotReturnsAbsoluteTmpfilePath": true,
+    "pinnedExpoCoreConvertsSchemeFreePathToFileUrl": true,
+    "standardFileUriAccepted": true,
+    "relativeAndRemoteAuthoritiesRejected": true,
+    "existingByteBudgetsAbortAndOwnershipPreserved": true,
+    "copyRetainsSourceBytesAndClosesHandles": true,
+    "onlyUnusedDetectorDependencyRemoved": true,
+    "otherLockPackageRecordsIdentical": 1102,
+    "runtimeAndConfigSymbolConsumersFound": 0,
+    "fourSourceHashesStillMatchAfterTests": true
+  },
+  "localExecution": {
+    "command": "node tests/quality/native-memory-export.cjs",
+    "exitCode": 0,
+    "cases": 23,
+    "passed": 23,
+    "failed": 0,
+    "skipped": 0,
+    "receipt": "/tmp/native-memory-absolute-path-independent-direct.tap",
+    "receiptSha256": "0ed8c79c24f2305dfc0bc6210fb1d6b7bce64ef5ca14c8abcf5fec649552c601",
+    "receiptFormat": "Node spec reporter",
+    "earlierWrapperResult": "The initial sandbox node --test invocation exposed only one outer file; it is not counted as23 case-level evidence."
+  },
+  "installedPrimaryImplementationHashes": {
+    "node_modules/react-native-view-shot/ios/RNViewShot.mm": "f591d7e563ec3296f4c60179e30f92bea11165727287a94900386518045b68c2",
+    "node_modules/expo-file-system/src/FileSystem.ts": "5b8a1174c5887549ea849435e9a0be7d37749e79d9871ae8f9e85c3969d94403",
+    "node_modules/expo-file-system/src/pathUtilities/index.ts": "d2185eb1f23fab665797cacd0575f1477c111a499cd93fec50902239bc3b1df1",
+    "node_modules/expo-file-system/ios/FileSystemModule.swift": "480884d54850b04d89b6c90b0d949ee114b945b4c43eaed1eab763ad24ee58ae",
+    "node_modules/expo-file-system/ios/FileSystemFile.swift": "a975d76aad6c5c0791ea7349e0cc264fcd43f1e09a70dd1200ca68427347e3c5",
+    "node_modules/expo-modules-core/ios/Core/Arguments/Convertibles.swift": "40de316ebbbc79d22d9660fabf58fae856936e93710cef583dbb8b4bc7f51d48",
+    "node_modules/expo-modules-core/ios/Utilities.swift": "9e1c7dc57314aa892b9fb562a40ee779762f7b9e7f6ba0331d26ff10f5df26ad",
+    "node_modules/expo-face-detector/ios/EXFaceDetector.podspec": "6a07b9a606813dbdf5c62c63d0bc8f80ca228f8d27b7fa4d3a7292807935eda4"
+  },
+  "packageVersions": {
+    "react-native-view-shot": "4.0.3",
+    "expo-file-system": "19.0.24",
+    "expo-modules-core": "3.0.30",
+    "expo-face-detector": "13.0.2"
+  },
+  "newRemoteRunPerformed": false,
+  "productEditedByReviewer": false,
+  "arm64BuildAccepted": false,
+  "installedMovieAccepted": false,
+  "cancellationFlowChangeReviewed": false,
+  "capabilityPromotionApproved": false
+}

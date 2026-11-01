@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: private downloads stream in bounded writes and dispose only their own workspace
+ok 1 - private downloads stream in bounded writes and dispose only their own workspace
+  ---
+  duration_ms: 120.880688
+  type: 'test'
+  ...
+# Subtest: unknown-length downloads enforce the byte ceiling before a chunk reaches disk
+ok 2 - unknown-length downloads enforce the byte ceiling before a chunk reaches disk
+  ---
+  duration_ms: 40.739887
+  type: 'test'
+  ...
+# Subtest: cancelling a blocked media reader closes it and removes the partial file
+ok 3 - cancelling a blocked media reader closes it and removes the partial file
+  ---
+  duration_ms: 36.680501
+  type: 'test'
+  ...
+# Subtest: foreign links and unapproved public objects never start a download
+ok 4 - foreign links and unapproved public objects never start a download
+  ---
+  duration_ms: 32.160822
+  type: 'test'
+  ...
+# Subtest: local copies validate size and retain their source through export cleanup
+ok 5 - local copies validate size and retain their source through export cleanup
+  ---
+  duration_ms: 33.296637
+  type: 'test'
+  ...
+# Subtest: the actual iOS ViewShot absolute-path format is copied without changing its bytes or ownership
+ok 6 - the actual iOS ViewShot absolute-path format is copied without changing its bytes or ownership
+  ---
+  duration_ms: 24.242789
+  type: 'test'
+  ...
+# Subtest: absolute capture support does not permit relative paths or remote file authorities
+ok 7 - absolute capture support does not permit relative paths or remote file authorities
+  ---
+  duration_ms: 19.137893
+  type: 'test'
+  ...
+# Subtest: a low-space constructor allocates no workspace and timed steps release their listener
+ok 8 - a low-space constructor allocates no workspace and timed steps release their listener
+  ---
+  duration_ms: 25.286085
+  type: 'test'
+  ...
+# Subtest: optional scene fields are omitted at the native boundary without mutating the caller
+ok 9 - optional scene fields are omitted at the native boundary without mutating the caller
+  ---
+  duration_ms: 36.584576
+  type: 'test'
+  ...
+# Subtest: present native movie artwork and audio preserve zero, false and the exact timeline
+ok 10 - present native movie artwork and audio preserve zero, false and the exact timeline
+  ---
+  duration_ms: 15.281953
+  type: 'test'
+  ...
+# Subtest: nullable absent native movie options cannot leak into nested Android values
+ok 11 - nullable absent native movie options cannot leak into nested Android values
+  ---
+  duration_ms: 17.295797
+  type: 'test'
+  ...
+# Subtest: native result verification uses the submitted request snapshot after caller edits
+ok 12 - native result verification uses the submitted request snapshot after caller edits
+  ---
+  duration_ms: 11.361086
+  type: 'test'
+  ...
+# Subtest: cancellation keeps the submitted native job identity after caller replacement
+ok 13 - cancellation keeps the submitted native job identity after caller replacement
+  ---
+  duration_ms: 13.313617
+  type: 'test'
+  ...
+# Subtest: whole-book capability requires the complete supported native contract on each phone platform
+ok 14 - whole-book capability requires the complete supported native contract on each phone platform
+  ---
+  duration_ms: 114.414861
+  type: 'test'
+  ...
+# Subtest: invalid scene and normalized-image acknowledgements cannot become saved files
+ok 15 - invalid scene and normalized-image acknowledgements cannot become saved files
+  ---
+  duration_ms: 11.151971
+  type: 'test'
+  ...
+# Subtest: abort reaches the native job and rejects a late successful encoder response
+ok 16 - abort reaches the native job and rejects a late successful encoder response
+  ---
+  duration_ms: 10.751588
+  type: 'test'
+  ...
+# Subtest: pre-aborted exports and unavailable builds never invoke native encoding
+ok 17 - pre-aborted exports and unavailable builds never invoke native encoding
+  ---
+  duration_ms: 29.151468
+  type: 'test'
+  ...
+# Subtest: unimplemented animated native artwork cannot silently export as a static layer
+ok 18 - unimplemented animated native artwork cannot silently export as a static layer
+  ---
+  duration_ms: 11.545023
+  type: 'test'
+  ...
+# Subtest: actual native preparation reaches the real bridge with a representable movie request
+ok 19 - actual native preparation reaches the real bridge with a representable movie request
+  ---
+  duration_ms: 138.81408
+  type: 'test'
+  ...
+# Subtest: native preparation captures writing and every artwork layer from authorized private sources
+ok 20 - native preparation captures writing and every artwork layer from authorized private sources
+  ---
+  duration_ms: 108.850739
+  type: 'test'
+  ...
+# Subtest: capture errors and revoked artwork links fail the whole native preparation and clean temporary bytes
+ok 21 - capture errors and revoked artwork links fail the whole native preparation and clean temporary bytes
+  ---
+  duration_ms: 195.330285
+  type: 'test'
+  ...
+# Subtest: cancelling during capture cannot submit a partial native scene and removes captured files
+ok 22 - cancelling during capture cannot submit a partial native scene and removes captured files
+  ---
+  duration_ms: 103.178303
+  type: 'test'
+  ...
+# Subtest: reduced-motion preparation emits a still transform and zero fade in the actual native request
+ok 23 - reduced-motion preparation emits a still transform and zero fade in the actual native request
+  ---
+  duration_ms: 94.025294
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1485.019901

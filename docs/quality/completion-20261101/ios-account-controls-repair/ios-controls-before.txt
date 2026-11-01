@@ -1,0 +1,112 @@
+✔ retained account failures and exact original flow bytes remain identified as failures (2.885481ms)
+✖ the iOS support notice remains fully required without an impossible bottom-centering condition (12.966762ms)
+✖ support-fresh-ticket-body: target the unique actual iOS input while retaining the full placeholder contract (4.544358ms)
+✖ support-reopen-error: target the unique actual iOS input while retaining the full placeholder contract (2.769177ms)
+✖ support-reply-error: target the unique actual iOS input while retaining the full placeholder contract (2.652862ms)
+✖ the exact retained Paper tint hit reached the keyboard and changed the title before Save (8.701634ms)
+✔ the actual title and subject are single-line inputs whose installed RN Return behavior blurs (203.139306ms)
+✔ all five Android paths and original iOS user-visible assertions, deadlines and Save accounting remain strict (51.17254ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 3
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 297.826343
+
+✖ failing tests:
+
+test at tests/quality/native-ios-account-controls.cjs:53:1
+✖ the iOS support notice remains fully required without an impossible bottom-centering condition (12.966762ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:64:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-ios-account-controls.cjs:75:3
+✖ support-fresh-ticket-body: target the unique actual iOS input while retaining the full placeholder contract (4.544358ms)
+  AssertionError [ERR_ASSERTION]: use the complete observed field label, not a broad prefix or alternate success assertion
+      at TestContext.<anonymous> (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:82:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-ios-account-controls.cjs:75:3
+✖ support-reopen-error: target the unique actual iOS input while retaining the full placeholder contract (2.769177ms)
+  AssertionError [ERR_ASSERTION]: use the complete observed field label, not a broad prefix or alternate success assertion
+      at TestContext.<anonymous> (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:82:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-ios-account-controls.cjs:75:3
+✖ support-reply-error: target the unique actual iOS input while retaining the full placeholder contract (2.652862ms)
+  AssertionError [ERR_ASSERTION]: use the complete observed field label, not a broad prefix or alternate success assertion
+      at TestContext.<anonymous> (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:82:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-ios-account-controls.cjs:94:1
+✖ the exact retained Paper tint hit reached the keyboard and changed the title before Save (8.701634ms)
+  AssertionError [ERR_ASSERTION]: required ordered operation exists
+      at index (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:36:10)
+      at TestContext.<anonymous> (/workspace/scratch/d6c5cb891d7b/ios-account-controls-candidate/tests/quality/native-ios-account-controls.cjs:110:20)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

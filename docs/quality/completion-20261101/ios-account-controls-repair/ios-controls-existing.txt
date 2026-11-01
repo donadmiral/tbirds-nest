@@ -1,0 +1,23 @@
+✔ all 17 retained UI failures have valid fixture contracts and exact failed-command evidence (18.710905ms)
+✔ text-story entry completes the actual initial editor before requiring the original Next control (410.375938ms)
+✔ listing entry checks the real Photos step instead of a Details field that has not been entered (20.691591ms)
+✔ Appearance matches complete actual grouped segments and verifies the selected Lights out state (2.609817ms)
+✔ sign-up targets the full retained nested-text link and scrolls to the original Sign Up assertion (3.491604ms)
+✔ password reset dismisses the observed autofocus keyboard and reaches Send code before empty-input validation (2.279019ms)
+✔ business entry scrolls the actual login footer instead of treating its absence above the fold as failure (1.996865ms)
+✔ fresh Support ticket dismisses the subject keyboard and scrolls to the unique editable body placeholder (4.441624ms)
+✔ support-reopen-error clears the observed keyboard before Send and retains the failure/draft/retry checks (3.152934ms)
+✔ support-reply-error clears the observed keyboard before Send and retains the failure/draft/retry checks (5.013202ms)
+✔ article draft dismisses the title keyboard, finds the actual body, then restores the original title assertion (2.491739ms)
+✔ film entry scrolls beyond the retained cover before the same play/pause/export/close journey (6.337677ms)
+✔ missing-ticket assertion matches the actual explicit unavailable state without accepting a spinner or a valid ticket (2.147702ms)
+✔ Support list failure reaches the repaired notice below the form and retains the mandatory error assertion (2.49235ms)
+✔ the repair preserves 85 case identities, fixture scenarios, setup, original postconditions and deadlines (20.305764ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 514.744679

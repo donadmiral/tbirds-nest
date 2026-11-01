@@ -1,0 +1,13 @@
+{
+  "formatVersion": 1,
+  "verifiedAtUtc": "2026-11-01T04:37:51.117738+00:00",
+  "repository": "donadmiral/tbirds-nest",
+  "branch": "codex/completion-native-checkpoint-20261101",
+  "commit": "6b57ec7471b1a080d2b4ec94885480baeac13bff",
+  "tree": "0201b068f8c6f0dc011453c85d391384962fd24e",
+  "parent": "135a9810846cc1a4b85a290a3213ede5d1b318db",
+  "verifiedFiles": 270,
+  "allExpectedRemoteGitBlobsAndModesMatched": true,
+  "productionMovieCapabilities": 0,
+  "runtimeOrReleaseAcceptanceClaimed": false
+}

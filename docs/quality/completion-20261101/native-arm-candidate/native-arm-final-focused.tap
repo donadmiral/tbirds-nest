@@ -1,0 +1,445 @@
+TAP version 13
+# Subtest: all 17 retained UI failures have valid fixture contracts and exact failed-command evidence
+ok 1 - all 17 retained UI failures have valid fixture contracts and exact failed-command evidence
+  ---
+  duration_ms: 21.517738
+  type: 'test'
+  ...
+# Subtest: text-story entry completes the actual initial editor before requiring the original Next control
+ok 2 - text-story entry completes the actual initial editor before requiring the original Next control
+  ---
+  duration_ms: 274.721182
+  type: 'test'
+  ...
+# Subtest: listing entry checks the real Photos step instead of a Details field that has not been entered
+ok 3 - listing entry checks the real Photos step instead of a Details field that has not been entered
+  ---
+  duration_ms: 23.629128
+  type: 'test'
+  ...
+# Subtest: Appearance matches complete actual grouped segments and verifies the selected Lights out state
+ok 4 - Appearance matches complete actual grouped segments and verifies the selected Lights out state
+  ---
+  duration_ms: 2.889944
+  type: 'test'
+  ...
+# Subtest: sign-up targets the full retained nested-text link and scrolls to the original Sign Up assertion
+ok 5 - sign-up targets the full retained nested-text link and scrolls to the original Sign Up assertion
+  ---
+  duration_ms: 1.817338
+  type: 'test'
+  ...
+# Subtest: password reset dismisses the observed autofocus keyboard and reaches Send code before empty-input validation
+ok 6 - password reset dismisses the observed autofocus keyboard and reaches Send code before empty-input validation
+  ---
+  duration_ms: 2.218953
+  type: 'test'
+  ...
+# Subtest: business entry scrolls the actual login footer instead of treating its absence above the fold as failure
+ok 7 - business entry scrolls the actual login footer instead of treating its absence above the fold as failure
+  ---
+  duration_ms: 2.259734
+  type: 'test'
+  ...
+# Subtest: fresh Support ticket dismisses the subject keyboard and scrolls to the unique editable body placeholder
+ok 8 - fresh Support ticket dismisses the subject keyboard and scrolls to the unique editable body placeholder
+  ---
+  duration_ms: 5.56903
+  type: 'test'
+  ...
+# Subtest: support-reopen-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+ok 9 - support-reopen-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+  ---
+  duration_ms: 5.179163
+  type: 'test'
+  ...
+# Subtest: support-reply-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+ok 10 - support-reply-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+  ---
+  duration_ms: 2.356691
+  type: 'test'
+  ...
+# Subtest: article draft dismisses the title keyboard, finds the actual body, then restores the original title assertion
+ok 11 - article draft dismisses the title keyboard, finds the actual body, then restores the original title assertion
+  ---
+  duration_ms: 3.260302
+  type: 'test'
+  ...
+# Subtest: film entry scrolls beyond the retained cover before the same play/pause/export/close journey
+ok 12 - film entry scrolls beyond the retained cover before the same play/pause/export/close journey
+  ---
+  duration_ms: 5.286424
+  type: 'test'
+  ...
+# Subtest: missing-ticket assertion matches the actual explicit unavailable state without accepting a spinner or a valid ticket
+ok 13 - missing-ticket assertion matches the actual explicit unavailable state without accepting a spinner or a valid ticket
+  ---
+  duration_ms: 1.21514
+  type: 'test'
+  ...
+# Subtest: Support list failure reaches the repaired notice below the form and retains the mandatory error assertion
+ok 14 - Support list failure reaches the repaired notice below the form and retains the mandatory error assertion
+  ---
+  duration_ms: 3.167672
+  type: 'test'
+  ...
+# Subtest: the repair preserves 85 case identities, fixture scenarios, setup, original postconditions and deadlines
+ok 15 - the repair preserves 85 case identities, fixture scenarios, setup, original postconditions and deadlines
+  ---
+  duration_ms: 18.809548
+  type: 'test'
+  ...
+# Subtest: the relative article exception keeps absolute and unbound interaction coordinates forbidden
+ok 16 - the relative article exception keeps absolute and unbound interaction coordinates forbidden
+  ---
+  duration_ms: 2.098371
+  type: 'test'
+  ...
+# Subtest: navigation observation excludes content, preserves event order and bounds retained data
+ok 17 - navigation observation excludes content, preserves event order and bounds retained data
+  ---
+  duration_ms: 32.860847
+  type: 'test'
+  ...
+# Subtest: navigation observers compile against exact production components without replacing their handlers
+ok 18 - navigation observers compile against exact production components without replacing their handlers
+  ---
+  duration_ms: 273.229083
+  type: 'test'
+  ...
+# Subtest: normal Simulator setup creates one owned pinned device and bounds exact-device failure cleanup
+ok 19 - normal Simulator setup creates one owned pinned device and bounds exact-device failure cleanup
+  ---
+  duration_ms: 58.23838
+  type: 'test'
+  ...
+# Subtest: normal startup CLI uses bounded inherited-pipe reads and retains exact-device cleanup evidence
+ok 20 - normal startup CLI uses bounded inherited-pipe reads and retains exact-device cleanup evidence
+  ---
+  duration_ms: 870.945965
+  type: 'test'
+  ...
+# test_arm_device_creation_keeps_exact_identity_order_and_original_budgets (__main__.NativeTargetTests.test_arm_device_creation_keeps_exact_identity_order_and_original_budgets) ... ok
+# test_failed_arm_boot_cleans_only_owned_uuid_without_increasing_any_budget (__main__.NativeTargetTests.test_failed_arm_boot_cleans_only_owned_uuid_without_increasing_any_budget) ... ok
+# test_native_arm_uses_all_actual_immutable_probes_and_preserves_intel (__main__.NativeTargetTests.test_native_arm_uses_all_actual_immutable_probes_and_preserves_intel) ... ok
+# test_old_or_ambiguous_binary_cannot_be_relabelled_as_arm (__main__.NativeTargetTests.test_old_or_ambiguous_binary_cannot_be_relabelled_as_arm) ... ok
+# ----------------------------------------------------------------------
+# Ran 4 tests in 0.004s
+# OK
+# Subtest: explicit native Simulator targets keep ABI, toolchain, ownership and preboot budgets strict
+ok 21 - explicit native Simulator targets keep ABI, toolchain, ownership and preboot budgets strict
+  ---
+  duration_ms: 56.152526
+  type: 'test'
+  ...
+# Subtest: normal audit requires exact preboot immutable proof and never repeats host clients after boot
+ok 22 - normal audit requires exact preboot immutable proof and never repeats host clients after boot
+  ---
+  duration_ms: 133.735579
+  type: 'test'
+  ...
+# Subtest: normal iOS runner requires the starter receipt and never launches cases after a failed120-second install
+ok 23 - normal iOS runner requires the starter receipt and never launches cases after a failed120-second install
+  ---
+  duration_ms: 112.488986
+  type: 'test'
+  ...
+# Subtest: existing simulator selection is exact, bounded and preserves cleanup ownership
+ok 24 - existing simulator selection is exact, bounded and preserves cleanup ownership
+  ---
+  duration_ms: 85.315006
+  type: 'test'
+  ...
+# Subtest: direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes
+ok 25 - direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes
+  ---
+  duration_ms: 151.013139
+  type: 'test'
+  ...
+# Subtest: d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering
+ok 26 - d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering
+  ---
+  duration_ms: 320.640897
+  type: 'test'
+  ...
+# Subtest: prepared d46 workflow selects one separately counted reader diagnostic without rebuilding
+ok 27 - prepared d46 workflow selects one separately counted reader diagnostic without rebuilding
+  ---
+  duration_ms: 7.857027
+  type: 'test'
+  ...
+# Subtest: actual d46 case selector preserves order and rejects invalid or out-of-group subsets without changing the manifest
+ok 28 - actual d46 case selector preserves order and rejects invalid or out-of-group subsets without changing the manifest
+  ---
+  duration_ms: 54.046103
+  type: 'test'
+  ...
+# Subtest: actual warm diagnostic preserves its original flow and requires real fixture/JUnit success separately from the original case
+ok 29 - actual warm diagnostic preserves its original flow and requires real fixture/JUnit success separately from the original case
+  ---
+  duration_ms: 77.53431
+  type: 'test'
+  ...
+# test_actual_entry_records_exact_real_verification_chain (__main__.PreflightTests.test_actual_entry_records_exact_real_verification_chain) ... ok
+# test_changed_app_is_rejected_before_any_host_probe (__main__.PreflightTests.test_changed_app_is_rejected_before_any_host_probe) ... ok
+# test_receipt_alias_and_changed_developer_selection_are_rejected (__main__.PreflightTests.test_receipt_alias_and_changed_developer_selection_are_rejected) ... ok
+# test_sdk_timeout_retains_failure_and_cannot_create_valid_preflight (__main__.PreflightTests.test_sdk_timeout_retains_failure_and_cannot_create_valid_preflight) ... ok
+# test_wrong_actual_sdk_or_architecture_is_rejected (__main__.PreflightTests.test_wrong_actual_sdk_or_architecture_is_rejected) ... ok
+# ----------------------------------------------------------------------
+# Ran 5 tests in 0.020s
+# OK
+# Subtest: actual immutable preflight entry records bounded source-bound probes before any device action
+ok 30 - actual immutable preflight entry records bounded source-bound probes before any device action
+  ---
+  duration_ms: 135.112814
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: installed Expo template
+ok 31 - actual URL patcher preserves complete original Swift: installed Expo template
+  ---
+  duration_ms: 29.71044
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: installed template with actual VoIP plugin
+ok 32 - actual URL patcher preserves complete original Swift: installed template with actual VoIP plugin
+  ---
+  duration_ms: 36.896052
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: existing Foundation import
+ok 33 - actual URL patcher preserves complete original Swift: existing Foundation import
+  ---
+  duration_ms: 39.701848
+  type: 'test'
+  ...
+# Subtest: generated observer has bounded QA-only numeric log arguments and a defer without route side effects
+ok 34 - generated observer has bounded QA-only numeric log arguments and a defer without route side effects
+  ---
+  duration_ms: 36.544106
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: CI disabled
+ok 35 - actual URL patcher fails closed before source mutation: CI disabled
+  ---
+  duration_ms: 32.027631
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: production environment
+ok 36 - actual URL patcher fails closed before source mutation: production environment
+  ---
+  duration_ms: 54.743233
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: provider key
+ok 37 - actual URL patcher fails closed before source mutation: provider key
+  ---
+  duration_ms: 28.710494
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: missing commit
+ok 38 - actual URL patcher fails closed before source mutation: missing commit
+  ---
+  duration_ms: 40.343289
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong commit
+ok 39 - actual URL patcher fails closed before source mutation: wrong commit
+  ---
+  duration_ms: 39.806345
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong run
+ok 40 - actual URL patcher fails closed before source mutation: wrong run
+  ---
+  duration_ms: 64.44864
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong helper hash
+ok 41 - actual URL patcher fails closed before source mutation: wrong helper hash
+  ---
+  duration_ms: 34.112733
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: malformed source manifest
+ok 42 - actual URL patcher fails closed before source mutation: malformed source manifest
+  ---
+  duration_ms: 29.306427
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: changed forwarding
+ok 43 - actual URL patcher fails closed before source mutation: changed forwarding
+  ---
+  duration_ms: 30.969347
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: changed method signature
+ok 44 - actual URL patcher fails closed before source mutation: changed method signature
+  ---
+  duration_ms: 36.780713
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: duplicate forwarding
+ok 45 - actual URL patcher fails closed before source mutation: duplicate forwarding
+  ---
+  duration_ms: 27.301786
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: duplicate class
+ok 46 - actual URL patcher fails closed before source mutation: duplicate class
+  ---
+  duration_ms: 35.914242
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: existing observer
+ok 47 - actual URL patcher fails closed before source mutation: existing observer
+  ---
+  duration_ms: 31.228588
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: unexpected imports
+ok 48 - actual URL patcher fails closed before source mutation: unexpected imports
+  ---
+  duration_ms: 30.521813
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: oversized source
+ok 49 - actual URL patcher fails closed before source mutation: oversized source
+  ---
+  duration_ms: 33.024993
+  type: 'test'
+  ...
+# Subtest: actual URL patcher rejects path overrides, symlinks and duplicate application
+ok 50 - actual URL patcher rejects path overrides, symlinks and duplicate application
+  ---
+  duration_ms: 113.16907
+  type: 'test'
+  ...
+# Subtest: actual URL patcher refuses preexisting evidence without replacing generated source
+ok 51 - actual URL patcher refuses preexisting evidence without replacing generated source
+  ---
+  duration_ms: 28.066233
+  type: 'test'
+  ...
+# Subtest: actual iOS shell runs generated-source check before CocoaPods: valid source proceeds
+ok 52 - actual iOS shell runs generated-source check before CocoaPods: valid source proceeds
+  ---
+  duration_ms: 81.725304
+  type: 'test'
+  ...
+# Subtest: actual iOS shell runs generated-source check before CocoaPods: mismatch stops build
+ok 53 - actual iOS shell runs generated-source check before CocoaPods: mismatch stops build
+  ---
+  duration_ms: 53.47357
+  type: 'test'
+  ...
+# Subtest: every executable case has one explicit flow, immutable identity and meaningful mandatory assertion
+ok 54 - every executable case has one explicit flow, immutable identity and meaningful mandatory assertion
+  ---
+  duration_ms: 106.079599
+  type: 'test'
+  ...
+# Subtest: article interaction exception still rejects absolute, unidentified and unrelated point taps
+ok 55 - article interaction exception still rejects absolute, unidentified and unrelated point taps
+  ---
+  duration_ms: 2.131301
+  type: 'test'
+  ...
+# Subtest: declared nested entry states survive the installed real stack/tab routers
+ok 56 - declared nested entry states survive the installed real stack/tab routers
+  ---
+  duration_ms: 2.879468
+  type: 'test'
+  ...
+# Subtest: actual SDK sees the original ticket body with empty history; no invented backfill
+ok 57 - actual SDK sees the original ticket body with empty history; no invented backfill
+  ---
+  duration_ms: 43.430731
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled list-error
+ok 58 - actual SDK preserves controlled list-error
+  ---
+  duration_ms: 7015.055154
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled ticket-read-error
+ok 59 - actual SDK preserves controlled ticket-read-error
+  ---
+  duration_ms: 7015.225927
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled history-error
+ok 60 - actual SDK preserves controlled history-error
+  ---
+  duration_ms: 7010.658872
+  type: 'test'
+  ...
+# Subtest: actual RPC rolls back both reply and reopen when the status write fails
+ok 61 - actual RPC rolls back both reply and reopen when the status write fails
+  ---
+  duration_ms: 2.288718
+  type: 'test'
+  ...
+# Subtest: actual RPC returns one exact replayable receipt and rejects a reused key with different content
+ok 62 - actual RPC returns one exact replayable receipt and rejects a reused key with different content
+  ---
+  duration_ms: 3.284378
+  type: 'test'
+  ...
+# Subtest: actual SDK creates and reads back a ticket by the supplied UUID without inventing history
+ok 63 - actual SDK creates and reads back a ticket by the supplied UUID without inventing history
+  ---
+  duration_ms: 9.102061
+  type: 'test'
+  ...
+# Subtest: actual RPC rejects wrong owner, missing ticket, malformed identifiers and unsupported arguments
+ok 64 - actual RPC rejects wrong owner, missing ticket, malformed identifiers and unsupported arguments
+  ---
+  duration_ms: 1.835285
+  type: 'test'
+  ...
+# Subtest: legacy direct reply insertion also rolls back under the actual trigger failure contract
+ok 65 - legacy direct reply insertion also rolls back under the actual trigger failure contract
+  ---
+  duration_ms: 1.26154
+  type: 'test'
+  ...
+# Subtest: missing ticket remains null and no positive fallback record is created
+ok 66 - missing ticket remains null and no positive fallback record is created
+  ---
+  duration_ms: 1.143182
+  type: 'test'
+  ...
+# Subtest: Support fixture rejects unsigned access, another owner, unsupported methods/fields and outside origins
+ok 67 - Support fixture rejects unsigned access, another owner, unsupported methods/fields and outside origins
+  ---
+  duration_ms: 1.363164
+  type: 'test'
+  ...
+# Subtest: scenario selection rejects unknown/mismatched/repeated state and preserves base memory methods
+ok 68 - scenario selection rejects unknown/mismatched/repeated state and preserves base memory methods
+  ---
+  duration_ms: 1.288121
+  type: 'test'
+  ...
+# Subtest: actual Python runner continues after failure and rejects empty/skipped/malformed/unbound reports
+ok 69 - actual Python runner continues after failure and rejects empty/skipped/malformed/unbound reports
+  ---
+  duration_ms: 383.855585
+  type: 'test'
+  ...
+# Subtest: disposable preparation retains exact anchors and rejects a second overlay before native build
+ok 70 - disposable preparation retains exact anchors and rejects a second overlay before native build
+  ---
+  duration_ms: 103.557531
+  type: 'test'
+  ...
+1..70
+# tests 70
+# suites 0
+# pass 70
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21976.167118

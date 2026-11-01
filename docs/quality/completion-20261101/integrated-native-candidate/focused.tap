@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: tests/quality/native-audit-flow-controls.cjs
+ok 1 - tests/quality/native-audit-flow-controls.cjs
+  ---
+  duration_ms: 852.176209
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-completion-runner.cjs
+not ok 2 - tests/quality/native-completion-runner.cjs
+  ---
+  duration_ms: 1616.262092
+  type: 'test'
+  location: '/workspace/scratch/d6c5cb891d7b/completion-integrated-candidate/tests/quality/native-completion-runner.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: tests/quality/native-ios-account-controls.cjs
+ok 3 - tests/quality/native-ios-account-controls.cjs
+  ---
+  duration_ms: 498.648136
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-ios-arm-target.cjs
+not ok 4 - tests/quality/native-ios-arm-target.cjs
+  ---
+  duration_ms: 121.64271
+  type: 'test'
+  location: '/workspace/scratch/d6c5cb891d7b/completion-integrated-candidate/tests/quality/native-ios-arm-target.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: tests/quality/native-ios-audit-compatibility.cjs
+ok 5 - tests/quality/native-ios-audit-compatibility.cjs
+  ---
+  duration_ms: 242.246205
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-ios-d46-recovery.cjs
+ok 6 - tests/quality/native-ios-d46-recovery.cjs
+  ---
+  duration_ms: 782.82752
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-ios-immutable-preflight.cjs
+not ok 7 - tests/quality/native-ios-immutable-preflight.cjs
+  ---
+  duration_ms: 207.331248
+  type: 'test'
+  location: '/workspace/scratch/d6c5cb891d7b/completion-integrated-candidate/tests/quality/native-ios-immutable-preflight.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: tests/quality/native-ios-url-trace.cjs
+ok 8 - tests/quality/native-ios-url-trace.cjs
+  ---
+  duration_ms: 1245.168934
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-memory-book-save-flow.cjs
+ok 9 - tests/quality/native-memory-book-save-flow.cjs
+  ---
+  duration_ms: 483.816519
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-memory-book-save-receipt.cjs
+ok 10 - tests/quality/native-memory-book-save-receipt.cjs
+  ---
+  duration_ms: 1167.326988
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-memory-export.cjs
+ok 11 - tests/quality/native-memory-export.cjs
+  ---
+  duration_ms: 1646.252649
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-platform-audit-pack.cjs
+ok 12 - tests/quality/native-platform-audit-pack.cjs
+  ---
+  duration_ms: 21753.92637
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 9
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22471.211257

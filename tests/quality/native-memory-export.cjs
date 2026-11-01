@@ -105,6 +105,27 @@ test('local copies validate size and retain their source through export cleanup'
   const copy = await owned.copy(source, 70000); assert.equal(f.files.get(copy).length, 70000); assert.ok(f.writes.every(size => size <= 65536));
   owned.dispose(); assert.equal(f.files.has(source), true); assert.equal(f.files.has(copy), false);
 });
+test('the actual iOS ViewShot absolute-path format is copied without changing its bytes or ownership', async () => {
+  const f = filesFixture(), owned = new f.MemoryMovieFiles(f.controller.signal);
+  const source = '/Users/runner/Library/Developer/CoreSimulator/Devices/9C0C1C1E-C432-4CB5-87D1-0E10DA09A839/data/Containers/Data/Application/CD839092-F60E-4D82-AFD6-B7B3F54B51FD/tmp/ReactNative/84B0AAFC-4594-469C-A86A-6B572F26B385.png';
+  const data = Buffer.alloc(70001, 73); f.files.set(source, data);
+  await assert.rejects(owned.copy(source, data.length - 1), /too large/);
+  const copy = await owned.copy(source, data.length);
+  assert.match(copy, /^file:\/\/\/cache\/pc-memory-work-/);
+  assert.deepEqual(f.files.get(copy), data);
+  assert.deepEqual(f.writes, [65536, 4465]);
+  assert.ok(f.handles.every(handle => handle.closed));
+  owned.dispose();
+  assert.equal(f.files.has(copy), false); assert.deepEqual(f.files.get(source), data);
+});
+test('absolute capture support does not permit relative paths or remote file authorities', async () => {
+  const f = filesFixture(), owned = new f.MemoryMovieFiles(f.controller.signal);
+  for (const source of ['capture.png', '../capture.png', '//remote/capture.png', 'file://remote/capture.png', 'https://remote/capture.png', 'content://external/capture']) {
+    await assert.rejects(owned.copy(source, 100), /not a local/);
+  }
+  assert.equal(f.handles.length, 0); assert.equal(f.files.size, 0); assert.equal(f.fetches(), 0);
+  owned.dispose();
+});
 test('a low-space constructor allocates no workspace and timed steps release their listener', async () => {
   const f = filesFixture(); f.Paths.availableDiskSpace = 100;
   assert.throws(() => new f.MemoryMovieFiles(f.controller.signal), /Free some space/); assert.equal(f.directories.length, 0);

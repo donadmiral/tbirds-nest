@@ -1,12 +1,8 @@
 name: Recover current-source iPhone social and settings cases
 
 on:
-  push:
-    branches: [codex/completion-20261101]
-    paths:
-      - .github/workflows/completion-ios-ecf-remaining.yml
-      - scripts/quality/completion-ios-ecf-remaining.py
-      - scripts/quality/completion-ios-social-flow-corrections.py
+  # Retained historical consumer. Run only by explicit dispatch; current builds
+  # and cases run through native-product-audit.yml with their own source identity.
   workflow_dispatch:
 
 permissions:

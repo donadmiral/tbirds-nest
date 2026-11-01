@@ -102,6 +102,18 @@ test('retained Android failure with no actual save cannot pass even if its UI is
   assert.equal(validate([receipt])[0].passed, false);
 });
 
+test('retained iOS keyboard hit cannot pass after saving and reading back the wrong title', () => {
+  const file = 'tests/quality/fixtures/ios-account-controls/memory-cover-settings-receipt.json';
+  const receipt = JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
+  const saved = receipt.mutations.filter(row => row.rpc === 'save_memory_book_creative_presentation');
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].title, 'AUDIT BOOK TITLET');
+  assert.equal(receipt.bookReads.at(-1).title, saved[0].title);
+  const result = validate([receipt])[0];
+  assert.equal(result.passed, false);
+  assert.equal(result.issue, 'memory-save-commit-mismatch');
+});
+
 test('a preview without save, a rejected save, and duplicate committed saves all fail', async () => {
   const receipts = await Promise.all([exercise({ save: false }), exercise({ rejected: true }), exercise({ duplicate: true })]);
   for (const result of validate(receipts)) {

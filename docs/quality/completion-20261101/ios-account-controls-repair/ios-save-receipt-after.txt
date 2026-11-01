@@ -1,0 +1,20 @@
+✔ real creative save and Supabase readback pass the case-specific persistence gate (154.79015ms)
+✔ retained Android failure with no actual save cannot pass even if its UI is marked successful (57.563066ms)
+✔ retained iOS keyboard hit cannot pass after saving and reading back the wrong title (59.913552ms)
+✔ a preview without save, a rejected save, and duplicate committed saves all fail (62.266093ms)
+✔ a committed save without a new data read cannot count as persistence (68.192936ms)
+✔ wrong save method, owner, book, title or revision fails without leaking receipt values (73.563834ms)
+✔ duplicate requests and commits cannot be hidden by one matching readback (66.752022ms)
+✔ every read must map to one request and the expected owner, book, title and revision (53.239966ms)
+✔ pre-save matching text and a post-save stale read both fail the ordered readback check (57.521248ms)
+✔ malformed evidence fails closed instead of passing or crashing the runner (53.203787ms)
+✔ other declared cases keep their existing receipt contract (51.372891ms)
+✔ passing UI cannot bypass missing persistence, and the runner continues to the next case (47.870181ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 818.064474

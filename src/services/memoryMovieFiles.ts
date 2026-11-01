@@ -47,7 +47,10 @@ export class MemoryMovieFiles{
   }finally{clearTimeout(timer);this.signal.removeEventListener('abort',cancel);cancel();try{reader?.releaseLock();}catch{}try{handle?.close();}catch{}if(!complete){try{file.delete();}catch{}}}
  }
  async copy(uri:string,limit:number,extension='png'):Promise<string>{
-  this.check();if(!uri.startsWith('file://'))throw new Error('The movie’s temporary artwork is not a local file.');
+  this.check();
+  // ViewShot returns an absolute native path on iOS and a file URI on Android.
+  // Expo File accepts both; keep relative paths and remote authorities excluded.
+  if(!/^\/(?!\/)/.test(uri)&&!/^file:\/\/\/(?!\/)/.test(uri))throw new Error('The movie’s temporary artwork is not a local file.');
   const source=new File(uri);if(!source.exists||source.size<=0||source.size>limit)throw new Error('A movie source is missing or too large.');
   const file=this.target(extension);let input:ReturnType<File['open']>|null=null,output:ReturnType<File['open']>|null=null,used=0,complete=false;
   try{input=source.open();output=file.open();while(true){this.check();const chunk=input.readBytes(CHUNK);if(!chunk.length)break;this.write(output,chunk,limit,used);used+=chunk.length;if(used%(1024*1024)===0)await memoryMovieStep(new Promise<void>(resolve=>setTimeout(resolve,0)),this.signal,'Preparing a memory took too long.');}if(used!==source.size||file.size!==used)throw new Error('A movie source changed while copying.');complete=true;return file.uri;}

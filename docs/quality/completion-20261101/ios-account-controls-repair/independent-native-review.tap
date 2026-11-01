@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: retained account failures and exact original flow bytes remain identified as failures
+ok 1 - retained account failures and exact original flow bytes remain identified as failures
+  ---
+  duration_ms: 2.147985
+  type: 'test'
+  ...
+# Subtest: the iOS support notice remains fully required without an impossible bottom-centering condition
+ok 2 - the iOS support notice remains fully required without an impossible bottom-centering condition
+  ---
+  duration_ms: 7.740609
+  type: 'test'
+  ...
+# Subtest: support-fresh-ticket-body: target the unique actual iOS input while retaining the full placeholder contract
+ok 3 - support-fresh-ticket-body: target the unique actual iOS input while retaining the full placeholder contract
+  ---
+  duration_ms: 3.673463
+  type: 'test'
+  ...
+# Subtest: support-reopen-error: target the unique actual iOS input while retaining the full placeholder contract
+ok 4 - support-reopen-error: target the unique actual iOS input while retaining the full placeholder contract
+  ---
+  duration_ms: 5.681988
+  type: 'test'
+  ...
+# Subtest: support-reply-error: target the unique actual iOS input while retaining the full placeholder contract
+ok 5 - support-reply-error: target the unique actual iOS input while retaining the full placeholder contract
+  ---
+  duration_ms: 2.263108
+  type: 'test'
+  ...
+# Subtest: the exact retained Paper tint hit reached the keyboard and changed the title before Save
+ok 6 - the exact retained Paper tint hit reached the keyboard and changed the title before Save
+  ---
+  duration_ms: 4.09666
+  type: 'test'
+  ...
+# Subtest: the actual title and subject are single-line inputs whose installed RN Return behavior blurs
+ok 7 - the actual title and subject are single-line inputs whose installed RN Return behavior blurs
+  ---
+  duration_ms: 118.812999
+  type: 'test'
+  ...
+# Subtest: all five Android paths and original iOS user-visible assertions, deadlines and Save accounting remain strict
+ok 8 - all five Android paths and original iOS user-visible assertions, deadlines and Save accounting remain strict
+  ---
+  duration_ms: 37.595435
+  type: 'test'
+  ...
+# Subtest: retained d46 failure entered the exact title then lost Save after Android hideKeyboard without a save request
+ok 9 - retained d46 failure entered the exact title then lost Save after Android hideKeyboard without a save request
+  ---
+  duration_ms: 1.470554
+  type: 'test'
+  ...
+# Subtest: actual Paper tint is a harmless text child inside the handled-taps settings ScrollView
+ok 10 - actual Paper tint is a harmless text child inside the handled-taps settings ScrollView
+  ---
+  duration_ms: 4.459897
+  type: 'test'
+  ...
+# Subtest: installed RN handled-tap responder blurs the input without invoking the actual modal Back dismissal
+ok 11 - installed RN handled-tap responder blurs the input without invoking the actual modal Back dismissal
+  ---
+  duration_ms: 56.498483
+  type: 'test'
+  ...
+# Subtest: audit Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 12 - audit Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 11.472765
+  type: 'test'
+  ...
+# Subtest: audit iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 13 - audit iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 3.397157
+  type: 'test'
+  ...
+# Subtest: full Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 14 - full Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 5.1061
+  type: 'test'
+  ...
+# Subtest: full iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 15 - full iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 6.879842
+  type: 'test'
+  ...
+# Subtest: real creative save and Supabase readback pass the case-specific persistence gate
+ok 16 - real creative save and Supabase readback pass the case-specific persistence gate
+  ---
+  duration_ms: 93.710651
+  type: 'test'
+  ...
+# Subtest: retained Android failure with no actual save cannot pass even if its UI is marked successful
+ok 17 - retained Android failure with no actual save cannot pass even if its UI is marked successful
+  ---
+  duration_ms: 47.845198
+  type: 'test'
+  ...
+# Subtest: retained iOS keyboard hit cannot pass after saving and reading back the wrong title
+ok 18 - retained iOS keyboard hit cannot pass after saving and reading back the wrong title
+  ---
+  duration_ms: 45.478889
+  type: 'test'
+  ...
+# Subtest: a preview without save, a rejected save, and duplicate committed saves all fail
+ok 19 - a preview without save, a rejected save, and duplicate committed saves all fail
+  ---
+  duration_ms: 51.064843
+  type: 'test'
+  ...
+# Subtest: a committed save without a new data read cannot count as persistence
+ok 20 - a committed save without a new data read cannot count as persistence
+  ---
+  duration_ms: 44.654027
+  type: 'test'
+  ...
+# Subtest: wrong save method, owner, book, title or revision fails without leaking receipt values
+ok 21 - wrong save method, owner, book, title or revision fails without leaking receipt values
+  ---
+  duration_ms: 54.026864
+  type: 'test'
+  ...
+# Subtest: duplicate requests and commits cannot be hidden by one matching readback
+ok 22 - duplicate requests and commits cannot be hidden by one matching readback
+  ---
+  duration_ms: 46.061297
+  type: 'test'
+  ...
+# Subtest: every read must map to one request and the expected owner, book, title and revision
+ok 23 - every read must map to one request and the expected owner, book, title and revision
+  ---
+  duration_ms: 47.424835
+  type: 'test'
+  ...
+# Subtest: pre-save matching text and a post-save stale read both fail the ordered readback check
+ok 24 - pre-save matching text and a post-save stale read both fail the ordered readback check
+  ---
+  duration_ms: 53.333776
+  type: 'test'
+  ...
+# Subtest: malformed evidence fails closed instead of passing or crashing the runner
+ok 25 - malformed evidence fails closed instead of passing or crashing the runner
+  ---
+  duration_ms: 47.238254
+  type: 'test'
+  ...
+# Subtest: other declared cases keep their existing receipt contract
+ok 26 - other declared cases keep their existing receipt contract
+  ---
+  duration_ms: 40.934985
+  type: 'test'
+  ...
+# Subtest: passing UI cannot bypass missing persistence, and the runner continues to the next case
+ok 27 - passing UI cannot bypass missing persistence, and the runner continues to the next case
+  ---
+  duration_ms: 43.685504
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1043.690188

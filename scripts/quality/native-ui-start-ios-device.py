@@ -27,13 +27,12 @@ def select_existing(inventory):
 
 
 def prepare(manifest, read, run, helper):
-    expected = manifest.get('nativeCompatibility', {})
-    if expected.get('abi') != 'x86_64' or expected.get('runtimeIdentifier') != RUNTIME:
-        raise ValueError('The pinned Intel iPhone16/iOS18.5 runtime is required')
+    expected = helper.expected_target(manifest)
+    runtime, device_type = expected['runtimeIdentifier'], expected['deviceTypeIdentifier']
     # Initialize the service through one owned device creation before its
     # metadata reads. Cold global inventory previously exceeded30seconds.
     name = 'Platinum completion ' + uuid.uuid4().hex
-    device = read(['xcrun', 'simctl', 'create', name, DEVICE_TYPE, RUNTIME], 120).strip()
+    device = read(['xcrun', 'simctl', 'create', name, device_type, runtime], 120).strip()
     helper.validate_device_identifier(device)
     try:
         verification = helper.verify_created_device(manifest, device, lambda args: read(args, 30))
@@ -47,7 +46,7 @@ def prepare(manifest, read, run, helper):
                 pass
         raise
     return {'device': device, 'created': True, 'name': name,
-            'deviceTypeIdentifier': DEVICE_TYPE, 'runtimeIdentifier': RUNTIME,
+            'deviceTypeIdentifier': device_type, 'runtimeIdentifier': runtime,
             'verification': verification,
             'bootReady': True, 'sourceCommit': manifest.get('applicationSourceCommit')}
 

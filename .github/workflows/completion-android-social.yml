@@ -1,11 +1,8 @@
 name: Recover the original Android social cases
 
 on:
-  push:
-    branches: [codex/completion-20261101]
-    paths:
-      - .github/workflows/completion-android-social.yml
-      - scripts/quality/completion-android-social.py
+  # Retained historical consumer. Run only by explicit dispatch; current builds
+  # and cases run through native-product-audit.yml with their own source identity.
   workflow_dispatch:
 
 permissions:

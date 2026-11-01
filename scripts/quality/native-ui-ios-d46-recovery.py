@@ -33,8 +33,8 @@ WARM_CONTROLS_NAME = 'Diagnostic original tabs to saved memory reader controls'
 WARM_CONTROLS_SHA = '044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f'
 HELPERS = {
     'native-ui-ios-audit-recovery.py': 'fbc06c7c27f0676b480055a666deabb60a4411d8b9b01d984d8b2bc73997520a',
-    'native-ui-ios-compatibility.py': 'db15610540e1ca63f6ffbdb4cdb12bf556a2acf12609d01c272b3a6c0d24915b',
-    'native-ui-ios-created-device.py': 'd2ffc477184b8a55f3e557facf1928ac5e11976caf84f78f8050c356e172d3b7',
+    'native-ui-ios-compatibility.py': '428006d0c6c6b659eaa092b5db8cdc5244f59ff4f5220f4dd52f1ff7370ba8d2',
+    'native-ui-ios-created-device.py': 'a5d24e6d28e904fa477732849a0a64dee1840d34c0244a2205905e8895a83173',
 }
 BINDING_FIELDS = {
     'schemaVersion', 'ready', 'applicationSourceCommit', 'applicationSourceTree',

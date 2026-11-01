@@ -1,0 +1,745 @@
+TAP version 13
+# Subtest: all 17 retained UI failures have valid fixture contracts and exact failed-command evidence
+ok 1 - all 17 retained UI failures have valid fixture contracts and exact failed-command evidence
+  ---
+  duration_ms: 14.076028
+  type: 'test'
+  ...
+# Subtest: text-story entry completes the actual initial editor before requiring the original Next control
+ok 2 - text-story entry completes the actual initial editor before requiring the original Next control
+  ---
+  duration_ms: 230.833749
+  type: 'test'
+  ...
+# Subtest: listing entry checks the real Photos step instead of a Details field that has not been entered
+ok 3 - listing entry checks the real Photos step instead of a Details field that has not been entered
+  ---
+  duration_ms: 21.390439
+  type: 'test'
+  ...
+# Subtest: Appearance matches complete actual grouped segments and verifies the selected Lights out state
+ok 4 - Appearance matches complete actual grouped segments and verifies the selected Lights out state
+  ---
+  duration_ms: 3.323758
+  type: 'test'
+  ...
+# Subtest: sign-up targets the full retained nested-text link and scrolls to the original Sign Up assertion
+ok 5 - sign-up targets the full retained nested-text link and scrolls to the original Sign Up assertion
+  ---
+  duration_ms: 2.248117
+  type: 'test'
+  ...
+# Subtest: password reset dismisses the observed autofocus keyboard and reaches Send code before empty-input validation
+ok 6 - password reset dismisses the observed autofocus keyboard and reaches Send code before empty-input validation
+  ---
+  duration_ms: 3.276196
+  type: 'test'
+  ...
+# Subtest: business entry scrolls the actual login footer instead of treating its absence above the fold as failure
+ok 7 - business entry scrolls the actual login footer instead of treating its absence above the fold as failure
+  ---
+  duration_ms: 1.872581
+  type: 'test'
+  ...
+# Subtest: fresh Support ticket dismisses the subject keyboard and scrolls to the unique editable body placeholder
+ok 8 - fresh Support ticket dismisses the subject keyboard and scrolls to the unique editable body placeholder
+  ---
+  duration_ms: 5.442099
+  type: 'test'
+  ...
+# Subtest: support-reopen-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+ok 9 - support-reopen-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+  ---
+  duration_ms: 3.644421
+  type: 'test'
+  ...
+# Subtest: support-reply-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+ok 10 - support-reply-error clears the observed keyboard before Send and retains the failure/draft/retry checks
+  ---
+  duration_ms: 2.349751
+  type: 'test'
+  ...
+# Subtest: article draft dismisses the title keyboard, finds the actual body, then restores the original title assertion
+ok 11 - article draft dismisses the title keyboard, finds the actual body, then restores the original title assertion
+  ---
+  duration_ms: 4.722606
+  type: 'test'
+  ...
+# Subtest: film entry scrolls beyond the retained cover before the same play/pause/export/close journey
+ok 12 - film entry scrolls beyond the retained cover before the same play/pause/export/close journey
+  ---
+  duration_ms: 5.702382
+  type: 'test'
+  ...
+# Subtest: missing-ticket assertion matches the actual explicit unavailable state without accepting a spinner or a valid ticket
+ok 13 - missing-ticket assertion matches the actual explicit unavailable state without accepting a spinner or a valid ticket
+  ---
+  duration_ms: 1.241471
+  type: 'test'
+  ...
+# Subtest: Support list failure reaches the repaired notice below the form and retains the mandatory error assertion
+ok 14 - Support list failure reaches the repaired notice below the form and retains the mandatory error assertion
+  ---
+  duration_ms: 1.576485
+  type: 'test'
+  ...
+# Subtest: the repair preserves 85 case identities, fixture scenarios, setup, original postconditions and deadlines
+ok 15 - the repair preserves 85 case identities, fixture scenarios, setup, original postconditions and deadlines
+  ---
+  duration_ms: 18.229026
+  type: 'test'
+  ...
+# Subtest: the relative article exception keeps absolute and unbound interaction coordinates forbidden
+ok 16 - the relative article exception keeps absolute and unbound interaction coordinates forbidden
+  ---
+  duration_ms: 2.018452
+  type: 'test'
+  ...
+# Subtest: navigation observation excludes content, preserves event order and bounds retained data
+ok 17 - navigation observation excludes content, preserves event order and bounds retained data
+  ---
+  duration_ms: 16.164124
+  type: 'test'
+  ...
+# Subtest: navigation observers compile against exact production components without replacing their handlers
+ok 18 - navigation observers compile against exact production components without replacing their handlers
+  ---
+  duration_ms: 204.952954
+  type: 'test'
+  ...
+# Subtest: normal Simulator setup creates one owned pinned device and bounds exact-device failure cleanup
+ok 19 - normal Simulator setup creates one owned pinned device and bounds exact-device failure cleanup
+  ---
+  duration_ms: 34.275644
+  type: 'test'
+  ...
+# Subtest: normal startup CLI uses bounded inherited-pipe reads and retains exact-device cleanup evidence
+ok 20 - normal startup CLI uses bounded inherited-pipe reads and retains exact-device cleanup evidence
+  ---
+  duration_ms: 919.010568
+  type: 'test'
+  ...
+# Subtest: retained account failures and exact original flow bytes remain identified as failures
+ok 21 - retained account failures and exact original flow bytes remain identified as failures
+  ---
+  duration_ms: 2.335399
+  type: 'test'
+  ...
+# Subtest: the iOS support notice remains fully required without an impossible bottom-centering condition
+ok 22 - the iOS support notice remains fully required without an impossible bottom-centering condition
+  ---
+  duration_ms: 8.698046
+  type: 'test'
+  ...
+# Subtest: support-fresh-ticket-body: target the unique actual iOS input while retaining the full placeholder contract
+ok 23 - support-fresh-ticket-body: target the unique actual iOS input while retaining the full placeholder contract
+  ---
+  duration_ms: 3.543528
+  type: 'test'
+  ...
+# Subtest: support-reopen-error: target the unique actual iOS input while retaining the full placeholder contract
+ok 24 - support-reopen-error: target the unique actual iOS input while retaining the full placeholder contract
+  ---
+  duration_ms: 1.904389
+  type: 'test'
+  ...
+# Subtest: support-reply-error: target the unique actual iOS input while retaining the full placeholder contract
+ok 25 - support-reply-error: target the unique actual iOS input while retaining the full placeholder contract
+  ---
+  duration_ms: 1.920273
+  type: 'test'
+  ...
+# Subtest: the exact retained Paper tint hit reached the keyboard and changed the title before Save
+ok 26 - the exact retained Paper tint hit reached the keyboard and changed the title before Save
+  ---
+  duration_ms: 3.422767
+  type: 'test'
+  ...
+# Subtest: the actual title and subject are single-line inputs whose installed RN Return behavior blurs
+ok 27 - the actual title and subject are single-line inputs whose installed RN Return behavior blurs
+  ---
+  duration_ms: 122.577578
+  type: 'test'
+  ...
+# Subtest: all five Android paths and original iOS user-visible assertions, deadlines and Save accounting remain strict
+ok 28 - all five Android paths and original iOS user-visible assertions, deadlines and Save accounting remain strict
+  ---
+  duration_ms: 34.615715
+  type: 'test'
+  ...
+# test_arm_device_creation_keeps_exact_identity_order_and_original_budgets (__main__.NativeTargetTests.test_arm_device_creation_keeps_exact_identity_order_and_original_budgets) ... ok
+# test_failed_arm_boot_cleans_only_owned_uuid_without_increasing_any_budget (__main__.NativeTargetTests.test_failed_arm_boot_cleans_only_owned_uuid_without_increasing_any_budget) ... ok
+# test_native_arm_uses_all_actual_immutable_probes_and_preserves_intel (__main__.NativeTargetTests.test_native_arm_uses_all_actual_immutable_probes_and_preserves_intel) ... ok
+# test_old_or_ambiguous_binary_cannot_be_relabelled_as_arm (__main__.NativeTargetTests.test_old_or_ambiguous_binary_cannot_be_relabelled_as_arm) ... ok
+# ----------------------------------------------------------------------
+# Ran 4 tests in 0.004s
+# OK
+# Subtest: explicit native Simulator targets keep ABI, toolchain, ownership and preboot budgets strict
+ok 29 - explicit native Simulator targets keep ABI, toolchain, ownership and preboot budgets strict
+  ---
+  duration_ms: 65.157579
+  type: 'test'
+  ...
+# Subtest: normal audit requires exact preboot immutable proof and never repeats host clients after boot
+ok 30 - normal audit requires exact preboot immutable proof and never repeats host clients after boot
+  ---
+  duration_ms: 84.480417
+  type: 'test'
+  ...
+# Subtest: normal iOS runner requires the starter receipt and never launches cases after a failed120-second install
+ok 31 - normal iOS runner requires the starter receipt and never launches cases after a failed120-second install
+  ---
+  duration_ms: 85.241129
+  type: 'test'
+  ...
+# Subtest: existing simulator selection is exact, bounded and preserves cleanup ownership
+ok 32 - existing simulator selection is exact, bounded and preserves cleanup ownership
+  ---
+  duration_ms: 63.644524
+  type: 'test'
+  ...
+# Subtest: direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes
+ok 33 - direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes
+  ---
+  duration_ms: 121.229818
+  type: 'test'
+  ...
+# Subtest: d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering
+ok 34 - d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering
+  ---
+  duration_ms: 278.526758
+  type: 'test'
+  ...
+# Subtest: prepared d46 workflow selects one separately counted reader diagnostic without rebuilding
+ok 35 - prepared d46 workflow selects one separately counted reader diagnostic without rebuilding
+  ---
+  duration_ms: 8.367882
+  type: 'test'
+  ...
+# Subtest: actual d46 case selector preserves order and rejects invalid or out-of-group subsets without changing the manifest
+ok 36 - actual d46 case selector preserves order and rejects invalid or out-of-group subsets without changing the manifest
+  ---
+  duration_ms: 60.288387
+  type: 'test'
+  ...
+# Subtest: actual warm diagnostic preserves its original flow and requires real fixture/JUnit success separately from the original case
+ok 37 - actual warm diagnostic preserves its original flow and requires real fixture/JUnit success separately from the original case
+  ---
+  duration_ms: 81.300325
+  type: 'test'
+  ...
+# test_actual_entry_records_exact_real_verification_chain (__main__.PreflightTests.test_actual_entry_records_exact_real_verification_chain) ... ok
+# test_changed_app_is_rejected_before_any_host_probe (__main__.PreflightTests.test_changed_app_is_rejected_before_any_host_probe) ... ok
+# test_receipt_alias_and_changed_developer_selection_are_rejected (__main__.PreflightTests.test_receipt_alias_and_changed_developer_selection_are_rejected) ... ok
+# test_sdk_timeout_retains_failure_and_cannot_create_valid_preflight (__main__.PreflightTests.test_sdk_timeout_retains_failure_and_cannot_create_valid_preflight) ... ok
+# test_wrong_actual_sdk_or_architecture_is_rejected (__main__.PreflightTests.test_wrong_actual_sdk_or_architecture_is_rejected) ... ok
+# ----------------------------------------------------------------------
+# Ran 5 tests in 0.020s
+# OK
+# Subtest: actual immutable preflight entry records bounded source-bound probes before any device action
+ok 38 - actual immutable preflight entry records bounded source-bound probes before any device action
+  ---
+  duration_ms: 118.844098
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: installed Expo template
+ok 39 - actual URL patcher preserves complete original Swift: installed Expo template
+  ---
+  duration_ms: 33.515974
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: installed template with actual VoIP plugin
+ok 40 - actual URL patcher preserves complete original Swift: installed template with actual VoIP plugin
+  ---
+  duration_ms: 30.146242
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: existing Foundation import
+ok 41 - actual URL patcher preserves complete original Swift: existing Foundation import
+  ---
+  duration_ms: 31.10754
+  type: 'test'
+  ...
+# Subtest: generated observer has bounded QA-only numeric log arguments and a defer without route side effects
+ok 42 - generated observer has bounded QA-only numeric log arguments and a defer without route side effects
+  ---
+  duration_ms: 27.016636
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: CI disabled
+ok 43 - actual URL patcher fails closed before source mutation: CI disabled
+  ---
+  duration_ms: 24.414846
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: production environment
+ok 44 - actual URL patcher fails closed before source mutation: production environment
+  ---
+  duration_ms: 31.66162
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: provider key
+ok 45 - actual URL patcher fails closed before source mutation: provider key
+  ---
+  duration_ms: 26.12293
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: missing commit
+ok 46 - actual URL patcher fails closed before source mutation: missing commit
+  ---
+  duration_ms: 37.069979
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong commit
+ok 47 - actual URL patcher fails closed before source mutation: wrong commit
+  ---
+  duration_ms: 27.997184
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong run
+ok 48 - actual URL patcher fails closed before source mutation: wrong run
+  ---
+  duration_ms: 27.970809
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong helper hash
+ok 49 - actual URL patcher fails closed before source mutation: wrong helper hash
+  ---
+  duration_ms: 30.540141
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: malformed source manifest
+ok 50 - actual URL patcher fails closed before source mutation: malformed source manifest
+  ---
+  duration_ms: 26.289865
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: changed forwarding
+ok 51 - actual URL patcher fails closed before source mutation: changed forwarding
+  ---
+  duration_ms: 26.944568
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: changed method signature
+ok 52 - actual URL patcher fails closed before source mutation: changed method signature
+  ---
+  duration_ms: 36.472328
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: duplicate forwarding
+ok 53 - actual URL patcher fails closed before source mutation: duplicate forwarding
+  ---
+  duration_ms: 30.11248
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: duplicate class
+ok 54 - actual URL patcher fails closed before source mutation: duplicate class
+  ---
+  duration_ms: 33.852736
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: existing observer
+ok 55 - actual URL patcher fails closed before source mutation: existing observer
+  ---
+  duration_ms: 33.867003
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: unexpected imports
+ok 56 - actual URL patcher fails closed before source mutation: unexpected imports
+  ---
+  duration_ms: 33.928791
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: oversized source
+ok 57 - actual URL patcher fails closed before source mutation: oversized source
+  ---
+  duration_ms: 31.014399
+  type: 'test'
+  ...
+# Subtest: actual URL patcher rejects path overrides, symlinks and duplicate application
+ok 58 - actual URL patcher rejects path overrides, symlinks and duplicate application
+  ---
+  duration_ms: 126.934283
+  type: 'test'
+  ...
+# Subtest: actual URL patcher refuses preexisting evidence without replacing generated source
+ok 59 - actual URL patcher refuses preexisting evidence without replacing generated source
+  ---
+  duration_ms: 27.827648
+  type: 'test'
+  ...
+# Subtest: actual iOS shell runs generated-source check before CocoaPods: valid source proceeds
+ok 60 - actual iOS shell runs generated-source check before CocoaPods: valid source proceeds
+  ---
+  duration_ms: 102.040715
+  type: 'test'
+  ...
+# Subtest: actual iOS shell runs generated-source check before CocoaPods: mismatch stops build
+ok 61 - actual iOS shell runs generated-source check before CocoaPods: mismatch stops build
+  ---
+  duration_ms: 56.854457
+  type: 'test'
+  ...
+# Subtest: retained d46 failure entered the exact title then lost Save after Android hideKeyboard without a save request
+ok 62 - retained d46 failure entered the exact title then lost Save after Android hideKeyboard without a save request
+  ---
+  duration_ms: 2.002988
+  type: 'test'
+  ...
+# Subtest: actual Paper tint is a harmless text child inside the handled-taps settings ScrollView
+ok 63 - actual Paper tint is a harmless text child inside the handled-taps settings ScrollView
+  ---
+  duration_ms: 5.863465
+  type: 'test'
+  ...
+# Subtest: installed RN handled-tap responder blurs the input without invoking the actual modal Back dismissal
+ok 64 - installed RN handled-tap responder blurs the input without invoking the actual modal Back dismissal
+  ---
+  duration_ms: 60.981421
+  type: 'test'
+  ...
+# Subtest: audit Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 65 - audit Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 11.670444
+  type: 'test'
+  ...
+# Subtest: audit iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 66 - audit iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 3.868108
+  type: 'test'
+  ...
+# Subtest: full Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 67 - full Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 11.32912
+  type: 'test'
+  ...
+# Subtest: full iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+ok 68 - full iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory
+  ---
+  duration_ms: 11.689543
+  type: 'test'
+  ...
+# Subtest: real creative save and Supabase readback pass the case-specific persistence gate
+ok 69 - real creative save and Supabase readback pass the case-specific persistence gate
+  ---
+  duration_ms: 78.090079
+  type: 'test'
+  ...
+# Subtest: retained Android failure with no actual save cannot pass even if its UI is marked successful
+ok 70 - retained Android failure with no actual save cannot pass even if its UI is marked successful
+  ---
+  duration_ms: 42.340414
+  type: 'test'
+  ...
+# Subtest: retained iOS keyboard hit cannot pass after saving and reading back the wrong title
+ok 71 - retained iOS keyboard hit cannot pass after saving and reading back the wrong title
+  ---
+  duration_ms: 39.378312
+  type: 'test'
+  ...
+# Subtest: a preview without save, a rejected save, and duplicate committed saves all fail
+ok 72 - a preview without save, a rejected save, and duplicate committed saves all fail
+  ---
+  duration_ms: 58.808447
+  type: 'test'
+  ...
+# Subtest: a committed save without a new data read cannot count as persistence
+ok 73 - a committed save without a new data read cannot count as persistence
+  ---
+  duration_ms: 48.809191
+  type: 'test'
+  ...
+# Subtest: wrong save method, owner, book, title or revision fails without leaking receipt values
+ok 74 - wrong save method, owner, book, title or revision fails without leaking receipt values
+  ---
+  duration_ms: 54.435901
+  type: 'test'
+  ...
+# Subtest: duplicate requests and commits cannot be hidden by one matching readback
+ok 75 - duplicate requests and commits cannot be hidden by one matching readback
+  ---
+  duration_ms: 45.47642
+  type: 'test'
+  ...
+# Subtest: every read must map to one request and the expected owner, book, title and revision
+ok 76 - every read must map to one request and the expected owner, book, title and revision
+  ---
+  duration_ms: 43.191898
+  type: 'test'
+  ...
+# Subtest: pre-save matching text and a post-save stale read both fail the ordered readback check
+ok 77 - pre-save matching text and a post-save stale read both fail the ordered readback check
+  ---
+  duration_ms: 43.84313
+  type: 'test'
+  ...
+# Subtest: malformed evidence fails closed instead of passing or crashing the runner
+ok 78 - malformed evidence fails closed instead of passing or crashing the runner
+  ---
+  duration_ms: 44.230153
+  type: 'test'
+  ...
+# Subtest: other declared cases keep their existing receipt contract
+ok 79 - other declared cases keep their existing receipt contract
+  ---
+  duration_ms: 41.470705
+  type: 'test'
+  ...
+# Subtest: passing UI cannot bypass missing persistence, and the runner continues to the next case
+ok 80 - passing UI cannot bypass missing persistence, and the runner continues to the next case
+  ---
+  duration_ms: 41.497144
+  type: 'test'
+  ...
+# Subtest: private downloads stream in bounded writes and dispose only their own workspace
+ok 81 - private downloads stream in bounded writes and dispose only their own workspace
+  ---
+  duration_ms: 126.590775
+  type: 'test'
+  ...
+# Subtest: unknown-length downloads enforce the byte ceiling before a chunk reaches disk
+ok 82 - unknown-length downloads enforce the byte ceiling before a chunk reaches disk
+  ---
+  duration_ms: 39.607577
+  type: 'test'
+  ...
+# Subtest: cancelling a blocked media reader closes it and removes the partial file
+ok 83 - cancelling a blocked media reader closes it and removes the partial file
+  ---
+  duration_ms: 36.479523
+  type: 'test'
+  ...
+# Subtest: foreign links and unapproved public objects never start a download
+ok 84 - foreign links and unapproved public objects never start a download
+  ---
+  duration_ms: 34.278107
+  type: 'test'
+  ...
+# Subtest: local copies validate size and retain their source through export cleanup
+ok 85 - local copies validate size and retain their source through export cleanup
+  ---
+  duration_ms: 33.268046
+  type: 'test'
+  ...
+# Subtest: the actual iOS ViewShot absolute-path format is copied without changing its bytes or ownership
+ok 86 - the actual iOS ViewShot absolute-path format is copied without changing its bytes or ownership
+  ---
+  duration_ms: 19.874035
+  type: 'test'
+  ...
+# Subtest: absolute capture support does not permit relative paths or remote file authorities
+ok 87 - absolute capture support does not permit relative paths or remote file authorities
+  ---
+  duration_ms: 21.606095
+  type: 'test'
+  ...
+# Subtest: a low-space constructor allocates no workspace and timed steps release their listener
+ok 88 - a low-space constructor allocates no workspace and timed steps release their listener
+  ---
+  duration_ms: 22.644349
+  type: 'test'
+  ...
+# Subtest: optional scene fields are omitted at the native boundary without mutating the caller
+ok 89 - optional scene fields are omitted at the native boundary without mutating the caller
+  ---
+  duration_ms: 34.57831
+  type: 'test'
+  ...
+# Subtest: present native movie artwork and audio preserve zero, false and the exact timeline
+ok 90 - present native movie artwork and audio preserve zero, false and the exact timeline
+  ---
+  duration_ms: 14.951808
+  type: 'test'
+  ...
+# Subtest: nullable absent native movie options cannot leak into nested Android values
+ok 91 - nullable absent native movie options cannot leak into nested Android values
+  ---
+  duration_ms: 16.602355
+  type: 'test'
+  ...
+# Subtest: native result verification uses the submitted request snapshot after caller edits
+ok 92 - native result verification uses the submitted request snapshot after caller edits
+  ---
+  duration_ms: 12.514926
+  type: 'test'
+  ...
+# Subtest: cancellation keeps the submitted native job identity after caller replacement
+ok 93 - cancellation keeps the submitted native job identity after caller replacement
+  ---
+  duration_ms: 10.880645
+  type: 'test'
+  ...
+# Subtest: whole-book capability requires the complete supported native contract on each phone platform
+ok 94 - whole-book capability requires the complete supported native contract on each phone platform
+  ---
+  duration_ms: 100.336889
+  type: 'test'
+  ...
+# Subtest: invalid scene and normalized-image acknowledgements cannot become saved files
+ok 95 - invalid scene and normalized-image acknowledgements cannot become saved files
+  ---
+  duration_ms: 10.035421
+  type: 'test'
+  ...
+# Subtest: abort reaches the native job and rejects a late successful encoder response
+ok 96 - abort reaches the native job and rejects a late successful encoder response
+  ---
+  duration_ms: 10.250966
+  type: 'test'
+  ...
+# Subtest: pre-aborted exports and unavailable builds never invoke native encoding
+ok 97 - pre-aborted exports and unavailable builds never invoke native encoding
+  ---
+  duration_ms: 23.722973
+  type: 'test'
+  ...
+# Subtest: unimplemented animated native artwork cannot silently export as a static layer
+ok 98 - unimplemented animated native artwork cannot silently export as a static layer
+  ---
+  duration_ms: 10.286019
+  type: 'test'
+  ...
+# Subtest: actual native preparation reaches the real bridge with a representable movie request
+ok 99 - actual native preparation reaches the real bridge with a representable movie request
+  ---
+  duration_ms: 126.003382
+  type: 'test'
+  ...
+# Subtest: native preparation captures writing and every artwork layer from authorized private sources
+ok 100 - native preparation captures writing and every artwork layer from authorized private sources
+  ---
+  duration_ms: 110.168263
+  type: 'test'
+  ...
+# Subtest: capture errors and revoked artwork links fail the whole native preparation and clean temporary bytes
+ok 101 - capture errors and revoked artwork links fail the whole native preparation and clean temporary bytes
+  ---
+  duration_ms: 203.011432
+  type: 'test'
+  ...
+# Subtest: cancelling during capture cannot submit a partial native scene and removes captured files
+ok 102 - cancelling during capture cannot submit a partial native scene and removes captured files
+  ---
+  duration_ms: 89.770209
+  type: 'test'
+  ...
+# Subtest: reduced-motion preparation emits a still transform and zero fade in the actual native request
+ok 103 - reduced-motion preparation emits a still transform and zero fade in the actual native request
+  ---
+  duration_ms: 88.176397
+  type: 'test'
+  ...
+# Subtest: every executable case has one explicit flow, immutable identity and meaningful mandatory assertion
+ok 104 - every executable case has one explicit flow, immutable identity and meaningful mandatory assertion
+  ---
+  duration_ms: 63.703934
+  type: 'test'
+  ...
+# Subtest: article interaction exception still rejects absolute, unidentified and unrelated point taps
+ok 105 - article interaction exception still rejects absolute, unidentified and unrelated point taps
+  ---
+  duration_ms: 1.850328
+  type: 'test'
+  ...
+# Subtest: declared nested entry states survive the installed real stack/tab routers
+ok 106 - declared nested entry states survive the installed real stack/tab routers
+  ---
+  duration_ms: 1.934694
+  type: 'test'
+  ...
+# Subtest: actual SDK sees the original ticket body with empty history; no invented backfill
+ok 107 - actual SDK sees the original ticket body with empty history; no invented backfill
+  ---
+  duration_ms: 28.314662
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled list-error
+ok 108 - actual SDK preserves controlled list-error
+  ---
+  duration_ms: 7012.356133
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled ticket-read-error
+ok 109 - actual SDK preserves controlled ticket-read-error
+  ---
+  duration_ms: 7014.285826
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled history-error
+ok 110 - actual SDK preserves controlled history-error
+  ---
+  duration_ms: 7010.809515
+  type: 'test'
+  ...
+# Subtest: actual RPC rolls back both reply and reopen when the status write fails
+ok 111 - actual RPC rolls back both reply and reopen when the status write fails
+  ---
+  duration_ms: 3.706956
+  type: 'test'
+  ...
+# Subtest: actual RPC returns one exact replayable receipt and rejects a reused key with different content
+ok 112 - actual RPC returns one exact replayable receipt and rejects a reused key with different content
+  ---
+  duration_ms: 2.038252
+  type: 'test'
+  ...
+# Subtest: actual SDK creates and reads back a ticket by the supplied UUID without inventing history
+ok 113 - actual SDK creates and reads back a ticket by the supplied UUID without inventing history
+  ---
+  duration_ms: 16.429733
+  type: 'test'
+  ...
+# Subtest: actual RPC rejects wrong owner, missing ticket, malformed identifiers and unsupported arguments
+ok 114 - actual RPC rejects wrong owner, missing ticket, malformed identifiers and unsupported arguments
+  ---
+  duration_ms: 2.516462
+  type: 'test'
+  ...
+# Subtest: legacy direct reply insertion also rolls back under the actual trigger failure contract
+ok 115 - legacy direct reply insertion also rolls back under the actual trigger failure contract
+  ---
+  duration_ms: 1.670528
+  type: 'test'
+  ...
+# Subtest: missing ticket remains null and no positive fallback record is created
+ok 116 - missing ticket remains null and no positive fallback record is created
+  ---
+  duration_ms: 1.326108
+  type: 'test'
+  ...
+# Subtest: Support fixture rejects unsigned access, another owner, unsupported methods/fields and outside origins
+ok 117 - Support fixture rejects unsigned access, another owner, unsupported methods/fields and outside origins
+  ---
+  duration_ms: 1.492228
+  type: 'test'
+  ...
+# Subtest: scenario selection rejects unknown/mismatched/repeated state and preserves base memory methods
+ok 118 - scenario selection rejects unknown/mismatched/repeated state and preserves base memory methods
+  ---
+  duration_ms: 0.535287
+  type: 'test'
+  ...
+# Subtest: actual Python runner continues after failure and rejects empty/skipped/malformed/unbound reports
+ok 119 - actual Python runner continues after failure and rejects empty/skipped/malformed/unbound reports
+  ---
+  duration_ms: 397.549926
+  type: 'test'
+  ...
+# Subtest: disposable preparation retains exact anchors and rejects a second overlay before native build
+ok 120 - disposable preparation retains exact anchors and rejects a second overlay before native build
+  ---
+  duration_ms: 90.312161
+  type: 'test'
+  ...
+1..120
+# tests 120
+# suites 0
+# pass 120
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 25181.361798

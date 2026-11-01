@@ -27,6 +27,7 @@ def main():
     parser.add_argument('--source', required=True)
     parser.add_argument('--tree', required=True)
     parser.add_argument('--source-receipt', type=Path, default=Path('native-ui-logs/source.json'))
+    parser.add_argument('--ios-target', choices=['intel-ios18.5', 'arm64-ios26.2'], default='intel-ios18.5')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     if os.environ.get('CI') != 'true' or not all(re.fullmatch('[0-9a-f]{40}', value) for value in [args.source, args.tree]):
@@ -40,18 +41,27 @@ def main():
     if source['audit']['manifestSha256'] != runner.sha256_file(manifest):
         raise ValueError('Audit scenarios changed after preparation')
     if args.platform == 'ios':
+        spec = importlib.util.spec_from_file_location('binary_ios_compatibility', Path(__file__).with_name('native-ui-ios-compatibility.py'))
+        compatibility = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(compatibility)
+        target = compatibility.TARGETS[args.ios_target]
         info = plistlib.loads((args.binary / 'Info.plist').read_bytes())
         if info.get('CFBundleIdentifier') != runner.PACKAGE or info.get('DTPlatformName') != 'iphonesimulator':
             raise ValueError('Expected the Simulator QA app')
         executable = args.binary / info['CFBundleExecutable']
         architectures = output(['xcrun', 'lipo', str(executable), '-archs']).split()
-        if architectures != ['x86_64']:
-            raise ValueError('The current audited Simulator runtime requires x86_64')
+        if output(['/usr/bin/uname', '-m']) != target['abi'] or architectures != [target['abi']]:
+            raise ValueError('The actual build host and Simulator executable must match the declared native target')
+        if info.get('DTSDKName') != 'iphonesimulator' + target['sdkVersion']:
+            raise ValueError('The actual built app SDK differs from the declared target')
         output(['codesign', '--verify', '--deep', '--strict', str(args.binary)])
-        native = {'abi': 'x86_64', 'runtimeIdentifier': 'com.apple.CoreSimulator.SimRuntime.iOS-18-5',
+        native = {'targetId': args.ios_target, 'abi': target['abi'], 'runtimeIdentifier': target['runtimeIdentifier'],
+                  'deviceTypeIdentifier': target['deviceTypeIdentifier'],
                   'minimumOSVersion': info.get('MinimumOSVersion'), 'sdk': info.get('DTSDKName'),
                   'bundleVersion': info.get('CFBundleVersion'), 'platform': 'iphonesimulator'}
         toolchain = {'xcode': output(['xcodebuild', '-version']), 'sdkVersion': output(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version'])}
+        if toolchain != {'xcode': target['xcode'], 'sdkVersion': target['sdkVersion']}:
+            raise ValueError('The actual producer toolchain differs from the declared target')
     else:
         sdk = Path(os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT') or '')
         candidates = sorted(sdk.glob('build-tools/*/aapt'))

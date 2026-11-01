@@ -1,0 +1,16 @@
+✔ retained account failures and exact original flow bytes remain identified as failures (3.191172ms)
+✔ the iOS support notice remains fully required without an impossible bottom-centering condition (11.856141ms)
+✔ support-fresh-ticket-body: target the unique actual iOS input while retaining the full placeholder contract (8.392653ms)
+✔ support-reopen-error: target the unique actual iOS input while retaining the full placeholder contract (3.656933ms)
+✔ support-reply-error: target the unique actual iOS input while retaining the full placeholder contract (6.367397ms)
+✔ the exact retained Paper tint hit reached the keyboard and changed the title before Save (21.27376ms)
+✔ the actual title and subject are single-line inputs whose installed RN Return behavior blurs (275.416919ms)
+✔ all five Android paths and original iOS user-visible assertions, deadlines and Save accounting remain strict (39.875652ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 377.954278

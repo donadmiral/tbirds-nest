@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest import mock
 def load(name,file):
  s=importlib.util.spec_from_file_location(name,Path('scripts/quality')/file);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
-p=load('preflight','native-ui-ios-immutable-preflight.py');r=load('runner','native-ui-audit-runner.py');h=load('bounded','native-ui-ios-audit-recovery.py')
+p=load('preflight','native-ui-ios-immutable-preflight.py');r=load('runner','native-ui-audit-runner.py');h=load('bounded','native-ui-ios-audit-recovery.py');c=load('compatibility','native-ui-ios-compatibility.py')
 class PreflightTests(unittest.TestCase):
  def setUp(self):
   self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name);self.app=self.root/'PlatinumQA.app';self.app.mkdir()
@@ -30,7 +30,7 @@ class PreflightTests(unittest.TestCase):
   records.append(row);h.atomic_json(path,{'commands':records});return self.values[index]
  def execute(self):
   args=['preflight','--binary',str(self.app),'--manifest',str(self.manifest_path),'--expected-source','a'*40,'--expected-tree','b'*40,'--output',str(self.output)]
-  with mock.patch.object(sys,'argv',args),mock.patch.object(p,'load_module',side_effect=lambda name,path:r if path.name=='native-ui-audit-runner.py' else h),mock.patch.object(h,'setup_read',side_effect=self.command),mock.patch('platform.system',return_value='Darwin'),mock.patch.dict(os.environ,{'CI':'true','EXPO_PUBLIC_APP_ENV':'qa'}):return p.main()
+  with mock.patch.object(sys,'argv',args),mock.patch.object(p,'load_module',side_effect=lambda name,path:{'native-ui-audit-runner.py':r,'native-ui-ios-audit-recovery.py':h,'native-ui-ios-compatibility.py':c}[path.name]),mock.patch.object(h,'setup_read',side_effect=self.command),mock.patch('platform.system',return_value='Darwin'),mock.patch.dict(os.environ,{'CI':'true','EXPO_PUBLIC_APP_ENV':'qa'}):return p.main()
  def test_actual_entry_records_exact_real_verification_chain(self):
   self.assertEqual(self.execute(),0);self.assertEqual(self.calls,self.commands)
   proof,sha=p.read_receipt(self.output,self.manifest,p.digest(self.manifest_path),self.app)

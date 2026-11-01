@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
-if [[ "$(uname -s)" != Darwin || "$(uname -m)" != x86_64 || "${CI:-}" != true ]]; then
-  printf '%s\n' 'Use the disposable Intel macOS CI runner for the locked MLKit Simulator pods.' >&2
+ios_target="${PLATINUM_NATIVE_IOS_TARGET:-intel-ios18.5}"
+case "$ios_target" in
+  intel-ios18.5) ios_arch=x86_64; ios_version=18.5; ios_device_type=com.apple.CoreSimulator.SimDeviceType.iPhone-16 ;;
+  arm64-ios26.2) ios_arch=arm64; ios_version=26.2; ios_device_type=com.apple.CoreSimulator.SimDeviceType.iPhone-17 ;;
+  *) printf '%s\n' 'Unsupported native iOS audit target.' >&2; exit 2 ;;
+esac
+if [[ "$(uname -s)" != Darwin || "$(uname -m)" != "$ios_arch" || "${CI:-}" != true ]]; then
+  printf '%s\n' 'Use the disposable macOS CI runner matching the explicit native Simulator target.' >&2
   exit 2
 fi
 node scripts/quality/prepare-native-ui.cjs
@@ -57,10 +63,10 @@ pod _1.16.2_ install --project-directory=ios 2>&1 | tee native-ui-logs/pods.log
 xcodebuild -workspace ios/PlatinumQA.xcworkspace -scheme PlatinumQA \
   -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath native-ui-derived CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=- \
-  ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 FORCE_BUNDLING=1 build 2>&1 | tee native-ui-logs/build.log
+  ONLY_ACTIVE_ARCH=YES ARCHS="$ios_arch" FORCE_BUNDLING=1 build 2>&1 | tee native-ui-logs/build.log
 app="$PWD/native-ui-derived/Build/Products/Release-iphonesimulator/PlatinumQA.app"
 test -s "$app/main.jsbundle"
-xcrun lipo "$app/PlatinumQA" -verify_arch x86_64
+xcrun lipo "$app/PlatinumQA" -verify_arch "$ios_arch"
 # Xcode creates simulated entitlements in the executable. The host macOS code
 # signature is separate; adding iOS app entitlements to that signature is wrong.
 python3 scripts/quality/native-ui-ios-entitlements.py "$app" native-ui-logs/simulator-entitlements-before-resign.json
@@ -95,14 +101,15 @@ if [[ "$audit_build_only" == 1 ]]; then
   mkdir -p native-audit-build
   python3 scripts/quality/native-ui-audit-binary.py --platform ios \
     --binary "$app" --source "$GITHUB_SHA" --tree "$(git rev-parse 'HEAD^{tree}')" \
+    --ios-target "$ios_target" \
     --output native-audit-build/binary-manifest.json
   COPYFILE_DISABLE=1 tar -czf "$PWD/native-audit-build/qa.app.tar.gz" -C "$(dirname "$app")" "$(basename "$app")"
   cp native-ui-logs/source.json native-audit-build/source.json
   exit 0
 fi
-runtime="$(xcrun simctl list runtimes --json | python3 -c 'import json,sys; items=[x for x in json.load(sys.stdin)["runtimes"] if x.get("isAvailable") and x["identifier"].startswith("com.apple.CoreSimulator.SimRuntime.iOS-")]; preferred=next((x for x in items if x["version"]=="18.5"),None); print(preferred["identifier"] if preferred else "")')"
+runtime="$(xcrun simctl list runtimes --json | python3 -c 'import json,sys; items=[x for x in json.load(sys.stdin)["runtimes"] if x.get("isAvailable") and x["identifier"].startswith("com.apple.CoreSimulator.SimRuntime.iOS-")]; preferred=next((x for x in items if x["version"]==sys.argv[1]),None); print(preferred["identifier"] if preferred else "")' "$ios_version")"
 test -n "$runtime"
-ui_simulator="$(xcrun simctl create "Platinum full app UI ${GITHUB_RUN_ID}" com.apple.CoreSimulator.SimDeviceType.iPhone-16 "$runtime")"
+ui_simulator="$(xcrun simctl create "Platinum full app UI ${GITHUB_RUN_ID}" "$ios_device_type" "$runtime")"
 xcrun simctl boot "$ui_simulator"
 xcrun simctl bootstatus "$ui_simulator" -b
 xcrun simctl install "$ui_simulator" "$app"

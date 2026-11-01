@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T04:32:22.607733+00:00",
+  "baseCommit": "135a9810846cc1a4b85a290a3213ede5d1b318db",
+  "canonicalCheckpointCommit": "6b57ec7471b1a080d2b4ec94885480baeac13bff",
+  "canonicalCheckpointTree": "0201b068f8c6f0dc011453c85d391384962fd24e",
+  "scope": "Independent review of explicit ARM64 build/consumer targeting on top of the reviewed canonical immutable-preflight ordering. Product capture path and cancellation flow have separate reviews.",
+  "reviewedFiles": {
+    ".github/workflows/native-product-audit.yml": "0256cde8eca900278d5debabcab22169457d9fecb611de854954b31afae97d3f",
+    "scripts/quality/native-ui-audit-binary.py": "824752614d5a68d115fafaeddd18bb4ba4f9e80809c256e64ffc8ecd6d1da08b",
+    "scripts/quality/native-ui-ios-compatibility.py": "428006d0c6c6b659eaa092b5db8cdc5244f59ff4f5220f4dd52f1ff7370ba8d2",
+    "scripts/quality/native-ui-ios-created-device.py": "a5d24e6d28e904fa477732849a0a64dee1840d34c0244a2205905e8895a83173",
+    "scripts/quality/native-ui-start-ios-device.py": "3e08f21c29767d32116a467f30b397f8e08275a3fe1c81630ac320ca216cd4b3",
+    "scripts/quality/native-ui-ios-immutable-preflight.py": "d6b6cacd34bbc57afb99de7051079d52453a844def4de82e80a8c0c3f59e8db9",
+    "scripts/quality/run-native-ui-audit-device.sh": "0450e8a1968396d0728d1bc2cfbf2d03c273cd0952f251fe812cef1ba4858c4c",
+    "scripts/quality/test-ios-app-ui.sh": "55681e42dccc86971632c4cbf4cf4302b5271c147619f023410bee7431cc4412",
+    "scripts/quality/native-ui-ios-d46-recovery.py": "c7d8aba6b0447a4a16a46e3554fad6c169a4156e448eda4f21f946186817cb08",
+    "scripts/quality/prepare-native-ui-audit.cjs": "7b94d191f29007ec62304a325dae17bf240ec06331e590da74ea356d72fb8c43",
+    "scripts/quality/native-ui-audit-runner.py": "34420d457ac37be7073f675c8e61964b5cdee12fde91a20726d6f020338c2d58",
+    "tests/quality/native-ios-arm-target.cjs": "5019fa8efdf5a6d1c327a2f9697704bb97e3ec387928f4d626d22efdf9f742ee",
+    "tests/quality/native-ios-immutable-preflight.cjs": "d570e1e26fae06f0443c69ac2552b46241ab53906148208e03f808f9a0c94cc8",
+    "tests/quality/native-ios-audit-compatibility.cjs": "bb9cbee9ef0ec17d8e32f81d0fc608bf2f37eab301905e22a7ecf76821e1d09a",
+    "tests/quality/native-completion-runner.cjs": "bc3ae9a545ae6334168ce258cf3cee7ffb25bbb6d9239e75b6d678ec98c2bdfb",
+    "tests/native/audit/README.md": "b2b5396bba9744f6caa1cee042b9d558e365d38d39350fcb3d3a80e29f771013"
+  },
+  "sourceFindings": {
+    "producerAndConsumersUseStandardMacos26": true,
+    "explicitXcode": "Xcode26.3 build17C529",
+    "explicitSdk": "26.2",
+    "explicitRuntime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+    "explicitDevice": "com.apple.CoreSimulator.SimDeviceType.iPhone-17",
+    "actualHostMachOToolchainSdkSignatureChecked": true,
+    "legacyIntelIdentityRetainedAndNotRelabelled": true,
+    "newArmIdentityFieldsMandatory": true,
+    "allFiveImmutableProbesBeforeCreate": true,
+    "prebootRuntimeTypeAvailabilityAndExactUuidBootstatusRequired": true,
+    "noPostbootMetadataReadClaimed": true,
+    "sourceManifestBinaryAndOwnedCleanupBindingRetained": true,
+    "createRuntimeDeviceBootBootstatusBudgetsSeconds": [
+      120,
+      30,
+      30,
+      120,
+      300
+    ],
+    "cleanupBudgetsSeconds": [
+      20,
+      20
+    ],
+    "originalInstallDeadlineSeconds": 120,
+    "appAssertionDeadlinesChanged": false,
+    "capabilityFlagsChanged": false
+  },
+  "primaryInventory": {
+    "url": "https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md",
+    "imageVersion": "20261026.0455.2",
+    "observedXcode": "26.3 / 17C529 / /Applications/Xcode_26.3.app",
+    "observedSdk": "iphonesimulator26.2",
+    "observedSimulator": "iOS26.2 / iPhone17",
+    "observedJavaVariable": "JAVA_HOME_17_arm64",
+    "note": "Published inventory is availability evidence; actual CI checks still fail closed if the assigned image differs."
+  },
+  "independentExecution": {
+    "exactEmbeddedArmTargetTestsPassed": 4,
+    "exactEmbeddedPreflightTestsPassed": 5,
+    "exactEmbeddedNormalStartupProgramsPassed": 2,
+    "compatibilityAndFailedInstallOuterTestsPassed": 2,
+    "shellSyntaxChecksPassed": 2,
+    "resultsPath": "/tmp/native-arm-independent-python/results.json",
+    "resultsSha256": "27f5ca296eb72948c8a6e729dfaab16f7363a2f0f8ec83b8fba3637b100cb2b4",
+    "nodeWrapperLimitation": "This workspace returned spawnSync python3 EPERM in three Node wrappers after the Python child returned0. Those wrapper failures remain retained; exact embedded programs were independently executed directly without altering any source/assertions. No full outer-suite pass is inferred from that replacement."
+  },
+  "verdict": "No material blocker in these pinned source paths. Final coordinate/centering guard compatibility changes remain a separate pending review before publication.",
+  "limitations": [
+    "No new ARM compilation, installed app, movie or original-journey success is claimed.",
+    "Changing supported host/ABI is a concrete next build path, not proof of the old CoreSimulator stall root cause or guaranteed remedy."
+  ]
+}

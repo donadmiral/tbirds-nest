@@ -94,7 +94,14 @@ for (const [label, current, before, title, dismissals] of flows) {
       const inside = rows.slice(open + 1, save);
       assert.equal(inside.includes('hideKeyboard'), false, 'never send Android Back while the settings modal is open');
       assert.equal(inside.some(row => row === 'back' || row.pressKey === 'BACK'), false);
-      assert.equal(inside.filter(row => tap(row) === 'Paper tint').length, dismissals);
+      const iosAudit = label === 'audit' && platform === 'iOS';
+      assert.equal(inside.filter(row => tap(row) === 'Paper tint').length, iosAudit ? 0 : dismissals);
+      if (iosAudit) {
+        const returned = find(rows, row => row.pressKey === 'Enter', open);
+        const afterBlur = find(rows, row => row.copyTextFrom === 'Book title', returned);
+        assert.equal(rows[afterBlur + 1].assertTrue, '${maestro.copiedText === "' + title + '"}');
+        assert.ok(afterBlur < save, 'the real title must still match after keyboard dismissal');
+      }
       assert.ok(inside.some(row => row.assertVisible === 'Save memory book'));
       const select = find(rows, row => tap(row) === 'Select [Aa]ll', open);
       const erase = find(rows, row => row.eraseText === 1, select);

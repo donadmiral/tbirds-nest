@@ -20,10 +20,23 @@ name: Audit support list error
 - extendedWaitUntil:
     visible: "Contact support"
     timeout: 15000
-- scrollUntilVisible:
-    element: Your messages could not be loaded. Please try again.
-    direction: DOWN
-    centerElement: true
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element: Your messages could not be loaded. Please try again.
+          direction: DOWN
+          centerElement: true
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # The notice is fully visible at the end of the form; it cannot center.
+      - scrollUntilVisible:
+          element: Your messages could not be loaded. Please try again.
+          direction: DOWN
+          centerElement: false
 - extendedWaitUntil:
     visible: "(?i).*(could not load|try again|retry).*"
     timeout: 15000

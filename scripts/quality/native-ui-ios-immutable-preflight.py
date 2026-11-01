@@ -48,7 +48,12 @@ def verify_record(manifest, manifest_sha, proof, binary=None):
     if binary is not None and str(Path(binary).resolve(strict=True)) != proof['binaryPath']:
         raise ValueError('Immutable preflight belongs to a different app path')
     actual = proof['immutableCompatibility']
-    expected_actual = {'hostArchitecture': 'x86_64', 'actualExecutableArchitecture': 'x86_64',
+    compatibility = load_module('immutable_target_compatibility', Path(__file__).with_name('native-ui-ios-compatibility.py'))
+    target = compatibility.expected_target(manifest)
+    architecture = target['abi']
+    if manifest['toolchain'] != {'xcode': target['xcode'], 'sdkVersion': target['sdkVersion']}:
+        raise ValueError('The preflight toolchain must match the explicit Simulator target')
+    expected_actual = {'hostArchitecture': architecture, 'actualExecutableArchitecture': architecture,
                        'xcode': manifest['toolchain']['xcode'], 'sdkVersion': manifest['toolchain']['sdkVersion'],
                        'codeSignatureVerified': True, 'guestUnameInvoked': False}
     if (not isinstance(actual, dict)
@@ -60,7 +65,7 @@ def verify_record(manifest, manifest_sha, proof, binary=None):
             or any(not isinstance(row, dict) for row in commands)
             or [row.get('stage') for row in commands] != STAGES):
         raise ValueError('The exact five actual preboot immutable probes are required')
-    outputs = ['x86_64', manifest['toolchain']['xcode'], manifest['toolchain']['sdkVersion'], 'x86_64']
+    outputs = [architecture, manifest['toolchain']['xcode'], manifest['toolchain']['sdkVersion'], architecture]
     previous = 0
     for index, row in enumerate(commands):
         start, finish, elapsed = row.get('startedAtEpochMs'), row.get('finishedAtEpochMs'), row.get('elapsedSeconds')

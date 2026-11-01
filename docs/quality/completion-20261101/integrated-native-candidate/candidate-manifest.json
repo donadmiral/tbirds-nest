@@ -1,0 +1,437 @@
+{
+  "baseCommit": "6b57ec7471b1a080d2b4ec94885480baeac13bff",
+  "baseTree": "0201b068f8c6f0dc011453c85d391384962fd24e",
+  "rootCheckpointVerification": {
+    "fileCount": 270,
+    "allRemoteBlobsAndModesMatch": true
+  },
+  "files": {
+    ".github/workflows/native-product-audit.yml": {
+      "sha256": "0256cde8eca900278d5debabcab22169457d9fecb611de854954b31afae97d3f",
+      "mode": "100644",
+      "bytes": 9921,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "package-lock.json": {
+      "sha256": "78e7197bd4960270660c30c23f18dbe063e68e6890a03b940e922a57bd4b2652",
+      "mode": "100644",
+      "bytes": 541818,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "package.json": {
+      "sha256": "293e7e5bacf127cda8869d7d57e7a1cb997fe8b45a94fb0f99ecaf33bc564e0c",
+      "mode": "100644",
+      "bytes": 5459,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "scripts/quality/native-ui-audit-binary.py": {
+      "sha256": "824752614d5a68d115fafaeddd18bb4ba4f9e80809c256e64ffc8ecd6d1da08b",
+      "mode": "100644",
+      "bytes": 6336,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "scripts/quality/native-ui-audit-runner.py": {
+      "sha256": "34420d457ac37be7073f675c8e61964b5cdee12fde91a20726d6f020338c2d58",
+      "mode": "100644",
+      "bytes": 22603,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "scripts/quality/native-ui-ios-compatibility.py": {
+      "sha256": "428006d0c6c6b659eaa092b5db8cdc5244f59ff4f5220f4dd52f1ff7370ba8d2",
+      "mode": "100644",
+      "bytes": 8182,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "scripts/quality/native-ui-ios-created-device.py": {
+      "sha256": "a5d24e6d28e904fa477732849a0a64dee1840d34c0244a2205905e8895a83173",
+      "mode": "100644",
+      "bytes": 3102,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "scripts/quality/native-ui-ios-d46-recovery.py": {
+      "sha256": "c7d8aba6b0447a4a16a46e3554fad6c169a4156e448eda4f21f946186817cb08",
+      "mode": "100644",
+      "bytes": 36282,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "scripts/quality/native-ui-ios-immutable-preflight.py": {
+      "sha256": "d6b6cacd34bbc57afb99de7051079d52453a844def4de82e80a8c0c3f59e8db9",
+      "mode": "100644",
+      "bytes": 8234,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "scripts/quality/native-ui-start-ios-device.py": {
+      "sha256": "3e08f21c29767d32116a467f30b397f8e08275a3fe1c81630ac320ca216cd4b3",
+      "mode": "100644",
+      "bytes": 5722,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "scripts/quality/prepare-native-ui-audit.cjs": {
+      "sha256": "7b94d191f29007ec62304a325dae17bf240ec06331e590da74ea356d72fb8c43",
+      "mode": "100644",
+      "bytes": 3120,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "scripts/quality/run-native-ui-audit-device.sh": {
+      "sha256": "0450e8a1968396d0728d1bc2cfbf2d03c273cd0952f251fe812cef1ba4858c4c",
+      "mode": "100644",
+      "bytes": 5885,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "scripts/quality/test-ios-app-ui.sh": {
+      "sha256": "55681e42dccc86971632c4cbf4cf4302b5271c147619f023410bee7431cc4412",
+      "mode": "100644",
+      "bytes": 8288,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "src/services/memoryMovieFiles.ts": {
+      "sha256": "f9705f2c52b94138469b136ce567cc8af70e7e9653f18a86ccc1ea693a29b864",
+      "mode": "100644",
+      "bytes": 5602,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/native/audit/README.md": {
+      "sha256": "b2b5396bba9744f6caa1cee042b9d558e365d38d39350fcb3d3a80e29f771013",
+      "mode": "100644",
+      "bytes": 5848,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/native/audit/flows/feed-article-draft.yaml": {
+      "sha256": "1fd283b617325b75aa8b967b98dc746a4aa4edd796b25e3d7b4e56f60e0f70e7",
+      "mode": "100644",
+      "bytes": 1421,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/native/audit/flows/jobs-application-entry.yaml": {
+      "sha256": "cf022f31991d07d8e2a3298674ce537c26f6fb6a06eb08849fcf4fd851063c78",
+      "mode": "100644",
+      "bytes": 712,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/native/audit/flows/memory-capture-session.yaml": {
+      "sha256": "e08701b8c28233b0ff9109f95ac097a43476fe3a535d400aac05e20a3daa57d0",
+      "mode": "100644",
+      "bytes": 1740,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/native-audit-flow-controls.cjs": {
+      "sha256": "3f93d4b8a7ea072fb1a8c7626bcd71a4bca62261f34adda60558637e3ee99a78",
+      "mode": "100644",
+      "bytes": 22489,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/native-completion-runner.cjs": {
+      "sha256": "bc3ae9a545ae6334168ce258cf3cee7ffb25bbb6d9239e75b6d678ec98c2bdfb",
+      "mode": "100644",
+      "bytes": 11354,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/native-ios-arm-target.cjs": {
+      "sha256": "5019fa8efdf5a6d1c327a2f9697704bb97e3ec387928f4d626d22efdf9f742ee",
+      "mode": "100644",
+      "bytes": 6942,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/native-ios-audit-compatibility.cjs": {
+      "sha256": "bb9cbee9ef0ec17d8e32f81d0fc608bf2f37eab301905e22a7ecf76821e1d09a",
+      "mode": "100644",
+      "bytes": 13286,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/native-ios-immutable-preflight.cjs": {
+      "sha256": "d570e1e26fae06f0443c69ac2552b46241ab53906148208e03f808f9a0c94cc8",
+      "mode": "100644",
+      "bytes": 6195,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/native-memory-export.cjs": {
+      "sha256": "d3f08396dca52cae25cd4ceb85500a6b609dfac36dcbf9ffb2c37df6ffa34b55",
+      "mode": "100644",
+      "bytes": 24616,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/native-platform-audit-pack.cjs": {
+      "sha256": "df276649c5a9dd5663de5be243862514c6693b86208575caf35181a47c99a94e",
+      "mode": "100644",
+      "bytes": 20684,
+      "sourceManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json"
+    },
+    "tests/native/audit/flows/memory-cover-settings.yaml": {
+      "sha256": "0c0107c82d24d3d3625f9fefaccbb1e14e33dd24d05f30d9a50f1ed40894690b",
+      "mode": "100644",
+      "bytes": 1829,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/native/audit/flows/support-fresh-ticket-body.yaml": {
+      "sha256": "48be61e8d9712cfad70aee3924a2d6ccfe4edc5cc0ef632b2e7aaac3e3d61441",
+      "mode": "100644",
+      "bytes": 1790,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/native/audit/flows/support-list-error.yaml": {
+      "sha256": "f9784eda3cfd4db4b0e556aed7ace0147ae4def35faeb33dd464df7cc247c9b6",
+      "mode": "100644",
+      "bytes": 1117,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/native/audit/flows/support-reopen-error.yaml": {
+      "sha256": "7403c7154c6bfaa479faec7682c7338b8f9df055648129d3c3e3f58fb450787b",
+      "mode": "100644",
+      "bytes": 1019,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/native/audit/flows/support-reply-error.yaml": {
+      "sha256": "89402cba4eed355ba4816ce3dea9af63a833f88717324e110ac0f772edcb8a95",
+      "mode": "100644",
+      "bytes": 963,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/fixtures/ios-account-controls/memory-cover-settings-receipt.json": {
+      "sha256": "9051f92d244f8b28807fe75f5f9c022f8b3001cd20760b59da32dab00039e306",
+      "mode": "100644",
+      "bytes": 6692,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/fixtures/ios-account-controls/memory-cover-settings.before.yaml": {
+      "sha256": "463692341e6784e55633091fea0e1e1c4eafd089c96946f407418b2a85c9bf59",
+      "mode": "100644",
+      "bytes": 1475,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/fixtures/ios-account-controls/observed.json": {
+      "sha256": "310d2e1d3537bdf81d24ec8e069f554e6e0b36ae4a9bac1e13a5ff6ef027a2eb",
+      "mode": "100644",
+      "bytes": 78826,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/fixtures/ios-account-controls/support-fresh-ticket-body.before.yaml": {
+      "sha256": "3934612287b78de26666a266c26a5ca3af71711ec377fff99026752ead7e2733",
+      "mode": "100644",
+      "bytes": 1325,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/fixtures/ios-account-controls/support-list-error.before.yaml": {
+      "sha256": "eb342f56c94e62cf92c8ac689249b1181852e3e7920ae567d3de4817d4b9739d",
+      "mode": "100644",
+      "bytes": 744,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/fixtures/ios-account-controls/support-reopen-error.before.yaml": {
+      "sha256": "cc7c54e803ca4f8934555f8528eb24d65d7e01cd66af49ae0ada8853faccaaeb",
+      "mode": "100644",
+      "bytes": 850,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/fixtures/ios-account-controls/support-reply-error.before.yaml": {
+      "sha256": "2db91d55d68238ca1eea6e4f536b00abe4ad04822abbff13d4158ee4f888f148",
+      "mode": "100644",
+      "bytes": 808,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/native-ios-account-controls.cjs": {
+      "sha256": "ef8974bc763a8f9dd7615fb51ee2f52335eca8817fb6f0baef3f80b5375e9888",
+      "mode": "100644",
+      "bytes": 9848,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/native-memory-book-save-flow.cjs": {
+      "sha256": "9bbc83133a9d9f414ae0013cc8415574f0907cf7dc99b9455dfb84bf93c52669",
+      "mode": "100644",
+      "bytes": 8700,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "tests/quality/native-memory-book-save-receipt.cjs": {
+      "sha256": "06cf9bd0f6e49dd6a07a4f9c1ea938b7c89c6ca4c8fe2b0dbc1e23f0fd2f27b4",
+      "mode": "100644",
+      "bytes": 12898,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "docs/quality/completion-20261101/ios-account-controls-repair/candidate-manifest.json": {
+      "sha256": "bbd45b3777c6d60936cbe62f20d81d3d1fe9f1acd6d5ae3bbcc4a01a5d7879b1",
+      "mode": "100644",
+      "bytes": 6837,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "docs/quality/completion-20261101/ios-account-controls-repair/independent-native-review.json": {
+      "sha256": "afb52f86d9442d08c2d6dcd3e0db5d69acda410240c869fe8ca959f2a1716ef3",
+      "mode": "100644",
+      "bytes": 4437,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "docs/quality/completion-20261101/ios-account-controls-repair/independent-native-review.tap": {
+      "sha256": "b082ccc8c51353dee4cfdf31a06300ae3a6bf1169e52de9b167443d45e23963e",
+      "mode": "100644",
+      "bytes": 6966,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "docs/quality/completion-20261101/ios-account-controls-repair/independent-original-flows.tap": {
+      "sha256": "2e79f2359e6fe60b9bd71f0e66c89d7ea85b3f8cf5584776021d0c460e5b84ab",
+      "mode": "100644",
+      "bytes": 6695,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "docs/quality/completion-20261101/ios-account-controls-repair/ios-controls-after.txt": {
+      "sha256": "cd1f0b92fcd741ca88bc18705d2aa513de8d411ce098231ac0d08834e1e5da0b",
+      "mode": "100644",
+      "bytes": 1040,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "docs/quality/completion-20261101/ios-account-controls-repair/ios-controls-before.txt": {
+      "sha256": "3ee49b3c7d7277db69b19fd9e6045e931064c68c2738bebbd56bc08f229ad002",
+      "mode": "100644",
+      "bytes": 6059,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "docs/quality/completion-20261101/ios-account-controls-repair/ios-controls-existing.txt": {
+      "sha256": "e5a438acf6772f0d1ba4fc713207e64a9d027a790b038e962fd79af1efd320dc",
+      "mode": "100644",
+      "bytes": 1908,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "docs/quality/completion-20261101/ios-account-controls-repair/ios-save-flow-after.txt": {
+      "sha256": "61a4d3ce5c88c6b94e5c93f17851c9698af6b6540a6bf3bd3db2ccb8f2f127fd",
+      "mode": "100644",
+      "bytes": 969,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "docs/quality/completion-20261101/ios-account-controls-repair/ios-save-receipt-after.txt": {
+      "sha256": "cc4344e0ab7b592eb14a7fd0f58e8099807cd362beacebf384e024819ac4f67a",
+      "mode": "100644",
+      "bytes": 1291,
+      "sourceManifest": "/tmp/ios-account-controls-source-freeze-20261101/manifest.json"
+    },
+    "docs/quality/completion-20261101/native-arm-candidate/arm-target-independent-review.json": {
+      "sha256": "2f83a0ac0fe2195dc220c556e3352bb797e037f558904cd91432fb1832ff3aea",
+      "mode": "100644",
+      "bytes": 5088,
+      "sourceDirectory": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate/docs/quality/completion-20261101/native-arm-candidate"
+    },
+    "docs/quality/completion-20261101/native-arm-candidate/cancellation-independent-review.json": {
+      "sha256": "b6c946559f90c72f42c9f4c47c5c46474be4c996d9ed634f4c11f1dd583d76a7",
+      "mode": "100644",
+      "bytes": 1516,
+      "sourceDirectory": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate/docs/quality/completion-20261101/native-arm-candidate"
+    },
+    "docs/quality/completion-20261101/native-arm-candidate/candidate-manifest.json": {
+      "sha256": "2529f5c2a34b1b21b9e5101e6d9386e2029621b493aa561c3b62d064a2921802",
+      "mode": "100644",
+      "bytes": 10090,
+      "sourceDirectory": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate/docs/quality/completion-20261101/native-arm-candidate"
+    },
+    "docs/quality/completion-20261101/native-arm-candidate/capture-path-independent-direct.tap": {
+      "sha256": "0ed8c79c24f2305dfc0bc6210fb1d6b7bce64ef5ca14c8abcf5fec649552c601",
+      "mode": "100644",
+      "bytes": 2436,
+      "sourceDirectory": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate/docs/quality/completion-20261101/native-arm-candidate"
+    },
+    "docs/quality/completion-20261101/native-arm-candidate/capture-path-independent-review.json": {
+      "sha256": "c394dfa7fedcb6145c467698f5e16a951c22ea95b8cb9f8faa3f691573b375af",
+      "mode": "100644",
+      "bytes": 3898,
+      "sourceDirectory": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate/docs/quality/completion-20261101/native-arm-candidate"
+    },
+    "docs/quality/completion-20261101/native-arm-candidate/final-independent-review.json": {
+      "sha256": "aa7f280b656aa4e16860834a215c19d0bbcb1775aa81e5e4c5547f7c2326bd0b",
+      "mode": "100644",
+      "bytes": 5418,
+      "sourceDirectory": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate/docs/quality/completion-20261101/native-arm-candidate"
+    },
+    "docs/quality/completion-20261101/native-arm-candidate/native-arm-final-focused.tap": {
+      "sha256": "73c727d59fb4625bb3d13eeee3d4b54199b69c5bf1ac807ec73faf73dd485fb5",
+      "mode": "100644",
+      "bytes": 19068,
+      "sourceDirectory": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate/docs/quality/completion-20261101/native-arm-candidate"
+    },
+    "docs/quality/completion-20261101/native-arm-candidate/native-memory-absolute-path-focused.tap": {
+      "sha256": "268bbae7b05c47c029eefc93da0ef9809b60bdd2dc734e0b86d96fee6de806f0",
+      "mode": "100644",
+      "bytes": 5552,
+      "sourceDirectory": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate/docs/quality/completion-20261101/native-arm-candidate"
+    },
+    "docs/quality/completion-20261101/native-arm-candidate/target-primary-sources.json": {
+      "sha256": "4413ab7acda81ab03984a3145f0562049c61fdf8a8adfac0cc906cd3aeb876c9",
+      "mode": "100644",
+      "bytes": 2995,
+      "sourceDirectory": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate/docs/quality/completion-20261101/native-arm-candidate"
+    },
+    "docs/quality/completion-20261101/native-arm-candidate/verification.json": {
+      "sha256": "18f536d05ad2fbbdca7de25dfe69af587635311820ef37bb505a8f2ccfb8f28a",
+      "mode": "100644",
+      "bytes": 2063,
+      "sourceDirectory": "/workspace/scratch/d6c5cb891d7b/native-arm-candidate/docs/quality/completion-20261101/native-arm-candidate"
+    },
+    ".github/workflows/completion-android-social.yml": {
+      "sha256": "21cf2c2ee149946fbdf9eb21c68c2933be5487bda897a5e0c070b4c321611358",
+      "mode": "100644",
+      "bytes": 3432,
+      "rootChange": "Retire automatic historical consumer trigger; preserve manual dispatch and all job contents"
+    },
+    ".github/workflows/completion-ios-ecf-account.yml": {
+      "sha256": "3c0f42c1fb01d996329446fcb50cc32893206c61c63353cab8ab4c73ffeb9790",
+      "mode": "100644",
+      "bytes": 3019,
+      "rootChange": "Retire automatic historical consumer trigger; preserve manual dispatch and all job contents"
+    },
+    ".github/workflows/completion-ios-ecf-remaining.yml": {
+      "sha256": "2d0c0cb731f6208e6a9d5ee2c062e5f8985502048d3ff605ab96d89738cefe86",
+      "mode": "100644",
+      "bytes": 3240,
+      "rootChange": "Retire automatic historical consumer trigger; preserve manual dispatch and all job contents"
+    },
+    ".github/workflows/native-completion-ios-audit.yml": {
+      "sha256": "fbe65b36165e30bcd8aca056c8e557888d5032c74bc848c1c12c71208d625ef9",
+      "mode": "100644",
+      "bytes": 4074,
+      "rootChange": "Retire automatic historical consumer trigger; preserve manual dispatch and all job contents"
+    },
+    ".github/workflows/native-completion-journey.yml": {
+      "sha256": "f09db4a514817d8e9e101072b719fb60b71ab49a379802623105417b0073a62f",
+      "mode": "100644",
+      "bytes": 2940,
+      "rootChange": "Retire automatic historical consumer trigger; preserve manual dispatch and all job contents"
+    },
+    "docs/quality/completion-20261101/integrated-native-candidate/focused-execution.json": {
+      "sha256": "a7d2faa56fbcfc44f2409ec32edca74de47dfb2ef7f5511e9d491143f901235d",
+      "mode": "100644",
+      "bytes": 815,
+      "rootEvidence": true
+    },
+    "docs/quality/completion-20261101/integrated-native-candidate/focused-child-processes-execution.json": {
+      "sha256": "188ef6164d908e90106121b72f47a7a7478dfd1e3817ba4daefe13341b939b8c",
+      "mode": "100644",
+      "bytes": 1015,
+      "rootEvidence": true
+    },
+    "docs/quality/completion-20261101/integrated-native-candidate/integration-review.json": {
+      "sha256": "5e03f1b42073c438bfde20872e7fe3a480c2e27943c92b0414025cc4a0da9707",
+      "mode": "100644",
+      "bytes": 1063,
+      "rootEvidence": true
+    },
+    "docs/quality/completion-20261101/integrated-native-candidate/focused-child-processes.tap": {
+      "sha256": "38ba978888c275e5af92f3aa53f9fac8abcb2e93b47c20a825a20a90f7ef01d3",
+      "mode": "100644",
+      "bytes": 31386,
+      "rootEvidence": true
+    },
+    "docs/quality/completion-20261101/integrated-native-candidate/focused.tap": {
+      "sha256": "07df297809916aaf7eb4be3a4b64434b2d8999e0524302b507fe704df20dd2cb",
+      "mode": "100644",
+      "bytes": 2766,
+      "rootEvidence": true
+    },
+    "docs/quality/completion-20261101/integrated-native-candidate/checkpoint-publication.json": {
+      "sha256": "d8b2244e3ac7ebae3f0e77c2a061fe1d1a4be3eba16a175801127799e92b414e",
+      "mode": "100644",
+      "bytes": 505,
+      "rootEvidence": true
+    }
+  },
+  "retiredAutomaticHistoricalConsumers": [
+    ".github/workflows/completion-android-social.yml",
+    ".github/workflows/completion-ios-ecf-account.yml",
+    ".github/workflows/completion-ios-ecf-remaining.yml",
+    ".github/workflows/native-completion-ios-audit.yml",
+    ".github/workflows/native-completion-journey.yml"
+  ]
+}

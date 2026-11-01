@@ -58,7 +58,8 @@ def read(args,timeout):
 def run(args,timeout):
  calls.append((args,timeout))
  if 'bootstatus' in args: raise subprocess.TimeoutExpired(args,timeout)
-helper=types.SimpleNamespace(validate_device_identifier=lambda x:None,verify_created_device=lambda *args:{'verified':True})
+q=Path('scripts/quality/native-ui-ios-created-device.py');t=importlib.util.spec_from_file_location('created',q);created=importlib.util.module_from_spec(t);t.loader.exec_module(created)
+helper=types.SimpleNamespace(expected_target=created.expected_target,validate_device_identifier=lambda x:None,verify_created_device=lambda *args:{'verified':True})
 try:m.prepare({'applicationSourceCommit':'a'*40,'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':m.RUNTIME}},read,run,helper)
 except subprocess.TimeoutExpired:pass
 else:raise AssertionError('Boot timeout was accepted')

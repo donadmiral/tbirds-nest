@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "retrievedAtUtc": "2026-11-01T04:32:23+00:00",
+  "hostInventory": {
+    "url": "https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md",
+    "verifiedGitBlobSha": "52372b6571987d5a0ce75869ad2ee17c1113e168",
+    "fetchedMarkdownSha256": "a8a01d06211feee22893bcdf1ccd04d8ebaaf857861aeb770a0f85d838eba94e",
+    "bytes": 17727,
+    "exactBlobReadBackMatched": true,
+    "imageVersion": "20261026.0455.2",
+    "osVersion": "macOS26.6.2 (25G83)",
+    "runnerLabel": "macos-26",
+    "nativeArchitecture": "arm64",
+    "xcodeVersion": "26.3",
+    "xcodeBuild": "17C529",
+    "xcodePath": "/Applications/Xcode_26.3.app",
+    "simulatorSdk": "26.2",
+    "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17",
+    "java17Variable": "JAVA_HOME_17_arm64"
+  },
+  "selectionReason": "The current official ARM image provides this exact native toolchain/runtime. Retained Intel setup repeatedly blocked in SimDiskImageManager service/XPC calls before app launch; moving to a separately compiled native ARM artifact changes that concrete host boundary without extending any app or setup deadline. This remains a candidate until actual execution.",
+  "observedIntelFailure": {
+    "runId": 41271278242,
+    "jobId": 124744394331,
+    "artifactId": 13069277058,
+    "zipSha256": "213fedec073f814c02eddc55f34f588b61c0f81ff8a921c9289f8d491a828cbf",
+    "createSeconds": 120.0009,
+    "commandLeaderAliveAtTimeout": true,
+    "stdoutBytes": 0,
+    "appInstalled": false,
+    "casesAttempted": 0,
+    "retainedEvidenceDirectory": "docs/quality/completion-20261101/ios-ecf-social-recovery-41271278242-setup-failure",
+    "sampleBoundary": "simctl SimDiskImageManager kickstartServiceWithError synchronous XPC; CoreSimulatorService trustedMountDirectoriesWithError/_onQueue_checkConnection"
+  },
+  "unusedDetectorRemoval": {
+    "dependency": "expo-face-detector13.0.2",
+    "runtimeOrConfigConsumers": 0,
+    "otherLockPackageRecordsIdentical": 1102,
+    "whyRequired": "Its pinned MLKitFaceDetection1.5.0, MLKitCommon5.0.0 and MLKitVision3.0.0 CocoaPods exclude arm64 for iphonesimulator. The unreferenced package is removed instead of claiming x86 or device libraries are native ARM Simulator-compatible.",
+    "primarySpecs": [
+      "https://github.com/CocoaPods/Specs/blob/master/Specs/a/f/4/MLKitFaceDetection/1.5.0/MLKitFaceDetection.podspec.json",
+      "https://github.com/CocoaPods/Specs/blob/master/Specs/c/c/6/MLKitCommon/5.0.0/MLKitCommon.podspec.json",
+      "https://github.com/CocoaPods/Specs/blob/master/Specs/8/1/e/MLKitVision/3.0.0/MLKitVision.podspec.json"
+    ],
+    "guidance": [
+      "https://developers.google.com/ml-kit/known-issues",
+      "https://developer.apple.com/documentation/technotes/tn3117-resolving-build-errors-for-apple-silicon"
+    ]
+  },
+  "claimedOfficialFixForExactIntelFailure": false,
+  "armBuildAlreadyAccepted": false
+}

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "createdAtUtc": "2026-11-01T04:32:17.339614+00:00",
+  "kind": "native-arm-source-candidate-freeze",
+  "repository": "donadmiral/tbirds-nest",
+  "worktreeBaseCommit": "135a9810846cc1a4b85a290a3213ede5d1b318db",
+  "integrationBaselineCommit": "6b57ec7471b1a080d2b4ec94885480baeac13bff",
+  "integrationBaselineTree": "0201b068f8c6f0dc011453c85d391384962fd24e",
+  "sourceFiles": {
+    ".github/workflows/native-product-audit.yml": {
+      "sha256": "0256cde8eca900278d5debabcab22169457d9fecb611de854954b31afae97d3f",
+      "bytes": 9921,
+      "gitBlobSha": "b666a7954aadb07886863b95bc49d8e5e8a8a8ef",
+      "canonicalCheckpointSha256": "5b61eda80cafface662167d031b348d750444422c2a9b1f853ef04d7d0c5b929",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "package-lock.json": {
+      "sha256": "78e7197bd4960270660c30c23f18dbe063e68e6890a03b940e922a57bd4b2652",
+      "bytes": 541818,
+      "gitBlobSha": "388e98f2aa91eb954efbb562d708fec3caa5cc07",
+      "canonicalCheckpointSha256": "3d69706a46f51105e55e9b9b377708707346805adeba060cb82bed4fb5240b1d",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "package.json": {
+      "sha256": "293e7e5bacf127cda8869d7d57e7a1cb997fe8b45a94fb0f99ecaf33bc564e0c",
+      "bytes": 5459,
+      "gitBlobSha": "0b822ad60e8762b8c28a1bb25597df1923e3ed76",
+      "canonicalCheckpointSha256": "03cc90dc982f290d2ac8d62c4a1e907cc8358198e190e31ae2416bc09426dcac",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "scripts/quality/native-ui-audit-binary.py": {
+      "sha256": "824752614d5a68d115fafaeddd18bb4ba4f9e80809c256e64ffc8ecd6d1da08b",
+      "bytes": 6336,
+      "gitBlobSha": "631e6be355266ffce830cd89ba308a7ad7394099",
+      "canonicalCheckpointSha256": "d666eb84ffe42a7140259904998cb678e81252ba9b29685fc5d7bc522c1df961",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "scripts/quality/native-ui-audit-runner.py": {
+      "sha256": "34420d457ac37be7073f675c8e61964b5cdee12fde91a20726d6f020338c2d58",
+      "bytes": 22603,
+      "gitBlobSha": "ec4a9115f7fcd0eec68f16279bfb520bb9ef8738",
+      "canonicalCheckpointSha256": "34420d457ac37be7073f675c8e61964b5cdee12fde91a20726d6f020338c2d58",
+      "unchangedFromCanonicalCheckpoint": true
+    },
+    "scripts/quality/native-ui-ios-compatibility.py": {
+      "sha256": "428006d0c6c6b659eaa092b5db8cdc5244f59ff4f5220f4dd52f1ff7370ba8d2",
+      "bytes": 8182,
+      "gitBlobSha": "f9dc1ec4f7cc53f906366000cf11d30b8a383755",
+      "canonicalCheckpointSha256": "db15610540e1ca63f6ffbdb4cdb12bf556a2acf12609d01c272b3a6c0d24915b",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "scripts/quality/native-ui-ios-created-device.py": {
+      "sha256": "a5d24e6d28e904fa477732849a0a64dee1840d34c0244a2205905e8895a83173",
+      "bytes": 3102,
+      "gitBlobSha": "6f0544297782f3846a3e84d4228ed9a3070d3a78",
+      "canonicalCheckpointSha256": "d2ffc477184b8a55f3e557facf1928ac5e11976caf84f78f8050c356e172d3b7",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "scripts/quality/native-ui-ios-d46-recovery.py": {
+      "sha256": "c7d8aba6b0447a4a16a46e3554fad6c169a4156e448eda4f21f946186817cb08",
+      "bytes": 36282,
+      "gitBlobSha": "99d79e1eb0f07886ff6a7df04bc9470ffc194950",
+      "canonicalCheckpointSha256": "34ae91ffec25f828432de34f46935b5a168fbc573cfd1618baf6a03caef2edbe",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "scripts/quality/native-ui-ios-immutable-preflight.py": {
+      "sha256": "d6b6cacd34bbc57afb99de7051079d52453a844def4de82e80a8c0c3f59e8db9",
+      "bytes": 8234,
+      "gitBlobSha": "44453752eedb82ff3c0bd7243261f74bf7b0780b",
+      "canonicalCheckpointSha256": "62ddda613a80b63c5f60958c3b32ebe49edc4babc26e24fb4d6e072d4615423d",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "scripts/quality/native-ui-start-ios-device.py": {
+      "sha256": "3e08f21c29767d32116a467f30b397f8e08275a3fe1c81630ac320ca216cd4b3",
+      "bytes": 5722,
+      "gitBlobSha": "323b2990aa4ef9831d9440652d44374c7f50c2e0",
+      "canonicalCheckpointSha256": "90d865e5639b4be806c1c7e74c2b98c84b9fd118cde067fd56cee6384ba82d52",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "scripts/quality/prepare-native-ui-audit.cjs": {
+      "sha256": "7b94d191f29007ec62304a325dae17bf240ec06331e590da74ea356d72fb8c43",
+      "bytes": 3120,
+      "gitBlobSha": "49fdf616f65e767cf56b2f6a1971df517e95bd17",
+      "canonicalCheckpointSha256": "7b94d191f29007ec62304a325dae17bf240ec06331e590da74ea356d72fb8c43",
+      "unchangedFromCanonicalCheckpoint": true
+    },
+    "scripts/quality/run-native-ui-audit-device.sh": {
+      "sha256": "0450e8a1968396d0728d1bc2cfbf2d03c273cd0952f251fe812cef1ba4858c4c",
+      "bytes": 5885,
+      "gitBlobSha": "721384c0757c3fb04c899e03859c01ccdaf2d6db",
+      "canonicalCheckpointSha256": "e594bc7d26370229bf282db2641c565052da8d3e22a47586e5a9a46951209f0c",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "scripts/quality/test-ios-app-ui.sh": {
+      "sha256": "55681e42dccc86971632c4cbf4cf4302b5271c147619f023410bee7431cc4412",
+      "bytes": 8288,
+      "gitBlobSha": "7d0022993c4aab092591b78076fa15827f54cc77",
+      "canonicalCheckpointSha256": "2401f203dbc9c5e615b4a20a85b4046e93f92548b3cc751b5fe588b2846c7174",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "src/services/memoryMovieFiles.ts": {
+      "sha256": "f9705f2c52b94138469b136ce567cc8af70e7e9653f18a86ccc1ea693a29b864",
+      "bytes": 5602,
+      "gitBlobSha": "9d1212f442253feffcc0f937dc832bf018dc87cf",
+      "canonicalCheckpointSha256": "51787a1e2a0a14dcc8459629156848e170eb134554369f1e6101f63e986cf4b5",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "tests/native/audit/README.md": {
+      "sha256": "b2b5396bba9744f6caa1cee042b9d558e365d38d39350fcb3d3a80e29f771013",
+      "bytes": 5848,
+      "gitBlobSha": "3764e70ba7215b0b0e5dc0fc2592e6ecaccb1b26",
+      "canonicalCheckpointSha256": "f612b0702aebb62fdc476032d53c8c0e338d49555772fc066ca4cd7817215562",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "tests/native/audit/flows/feed-article-draft.yaml": {
+      "sha256": "1fd283b617325b75aa8b967b98dc746a4aa4edd796b25e3d7b4e56f60e0f70e7",
+      "bytes": 1421,
+      "gitBlobSha": "6dbd6ae7a96eaf5100ed76b6983e2dbcbae78639",
+      "canonicalCheckpointSha256": "1fd283b617325b75aa8b967b98dc746a4aa4edd796b25e3d7b4e56f60e0f70e7",
+      "unchangedFromCanonicalCheckpoint": true
+    },
+    "tests/native/audit/flows/jobs-application-entry.yaml": {
+      "sha256": "cf022f31991d07d8e2a3298674ce537c26f6fb6a06eb08849fcf4fd851063c78",
+      "bytes": 712,
+      "gitBlobSha": "6a7600975507aea3d270da0cb2534b238f86ee52",
+      "canonicalCheckpointSha256": "cf022f31991d07d8e2a3298674ce537c26f6fb6a06eb08849fcf4fd851063c78",
+      "unchangedFromCanonicalCheckpoint": true
+    },
+    "tests/native/audit/flows/memory-capture-session.yaml": {
+      "sha256": "e08701b8c28233b0ff9109f95ac097a43476fe3a535d400aac05e20a3daa57d0",
+      "bytes": 1740,
+      "gitBlobSha": "e4f71df0d8a902a235703b406e11434b79d66853",
+      "canonicalCheckpointSha256": "5acc3f884aa6769c58fcd4e90eb4c35bbd9ec9fa0604d08104cc4e1ef00f9a8e",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "tests/quality/native-audit-flow-controls.cjs": {
+      "sha256": "3f93d4b8a7ea072fb1a8c7626bcd71a4bca62261f34adda60558637e3ee99a78",
+      "bytes": 22489,
+      "gitBlobSha": "95bd402e4112bdf26a01940c8db7b271c140a7e5",
+      "canonicalCheckpointSha256": "39a8d0a6e6544dd877b167bc11d2ed36b30b3745e213ebb8104e520656030cb4",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "tests/quality/native-completion-runner.cjs": {
+      "sha256": "bc3ae9a545ae6334168ce258cf3cee7ffb25bbb6d9239e75b6d678ec98c2bdfb",
+      "bytes": 11354,
+      "gitBlobSha": "8e01e8a31d4e63df7a17ebdd36516fd93a2f20c7",
+      "canonicalCheckpointSha256": "852170eff5483801a23360089c8634d1ad17dce5e254721ebdd1497190e50bc3",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "tests/quality/native-ios-arm-target.cjs": {
+      "sha256": "5019fa8efdf5a6d1c327a2f9697704bb97e3ec387928f4d626d22efdf9f742ee",
+      "bytes": 6942,
+      "gitBlobSha": "778f768792e83d965273caf56b95e4c919659b92",
+      "canonicalCheckpointSha256": null,
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "tests/quality/native-ios-audit-compatibility.cjs": {
+      "sha256": "bb9cbee9ef0ec17d8e32f81d0fc608bf2f37eab301905e22a7ecf76821e1d09a",
+      "bytes": 13286,
+      "gitBlobSha": "3af6ea3b397928919127c95dac964ab191485c23",
+      "canonicalCheckpointSha256": "bb9cbee9ef0ec17d8e32f81d0fc608bf2f37eab301905e22a7ecf76821e1d09a",
+      "unchangedFromCanonicalCheckpoint": true
+    },
+    "tests/quality/native-ios-immutable-preflight.cjs": {
+      "sha256": "d570e1e26fae06f0443c69ac2552b46241ab53906148208e03f808f9a0c94cc8",
+      "bytes": 6195,
+      "gitBlobSha": "d70f24d83c4119970acae9035d3b6531a725d101",
+      "canonicalCheckpointSha256": "d9e2bc65b750dd1ac1cb35e326434778672e3182cd4f5bba73bd38c1b704c46f",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "tests/quality/native-memory-export.cjs": {
+      "sha256": "d3f08396dca52cae25cd4ceb85500a6b609dfac36dcbf9ffb2c37df6ffa34b55",
+      "bytes": 24616,
+      "gitBlobSha": "ce9fd466c236834ce0a2d45466147b531ecf8861",
+      "canonicalCheckpointSha256": "4a40c71e24d7f23aa9f4995d5a29edacac116b7976bb7a6dcd25780498a80696",
+      "unchangedFromCanonicalCheckpoint": false
+    },
+    "tests/quality/native-platform-audit-pack.cjs": {
+      "sha256": "df276649c5a9dd5663de5be243862514c6693b86208575caf35181a47c99a94e",
+      "bytes": 20684,
+      "gitBlobSha": "e150dc8ae21bec6ab3d30de44541045f43fdfa72",
+      "canonicalCheckpointSha256": "aae573e175d997acdfe344f3666ef29b1badc1de88a0f16533239f88c8ca8a56",
+      "unchangedFromCanonicalCheckpoint": false
+    }
+  },
+  "sourceFileCount": 25,
+  "productCapabilityPromoted": false,
+  "nativeBuildExecuted": false,
+  "installedRuntimeAccepted": false,
+  "snapshot": "/tmp/native-arm-source-freeze-20261101/snapshot",
+  "diffAgainstCanonicalCheckpoint": "/tmp/native-arm-source-freeze-20261101/candidate.patch"
+}

@@ -19,6 +19,21 @@ const changed = ['stories-storycomposer', 'settings-appearance', 'market-createl
   'auth-signup-entry', 'auth-business-entry', 'support-fresh-ticket-body', 'support-reopen-error',
   'support-reply-error', 'memory-film-export-entry', 'feed-article-draft', 'support-missing-ticket', 'support-list-error'];
 
+function verifyTapCoordinates(value, caseId, parentKey) {
+  if (!value || typeof value !== 'object') return;
+  for (const [key, child] of Object.entries(value)) {
+    if (key === 'point') {
+      // Permit only the separately reviewed element-relative article body tap.
+      assert.equal(caseId, 'feed-article-draft');
+      assert.equal(parentKey, 'tapOn');
+      assert.deepEqual(Object.keys(value).sort(), ['point', 'text']);
+      assert.equal(value.text, 'Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.');
+      assert.equal(child, '50%,10%');
+    }
+    verifyTapCoordinates(child, caseId, key);
+  }
+}
+
 function attributes(value) {
   if (Array.isArray(value)) return value.flatMap(attributes);
   if (!value || typeof value !== 'object') return [];
@@ -233,7 +248,12 @@ test('article draft dismisses the title keyboard, finds the actual body, then re
   hideBetween(rows, title, tap); scrollBefore(rows, body, tap);
   const input = indexOf(rows, row => row.inputText === 'A synthetic article paragraph kept inside the audit.', 'same body', tap);
   const check = indexOf(rows, row => row.assertVisible === 'An audit article', 'same title check', input);
-  hideBetween(rows, input, check); scrollBefore(rows, 'An audit article', check, 'UP');
+  hideBetween(rows, input, check);
+  const titleScroll = indexOf(rows, row => row.scrollUntilVisible?.element === 'An audit article', 'restore the full original title before readback');
+  assert.ok(titleScroll < check);
+  assert.equal(rows[titleScroll].scrollUntilVisible.direction, 'UP');
+  assert.equal(rows[titleScroll].scrollUntilVisible.centerElement, false, 'the fully visible top title cannot be centered');
+  assert.equal(rows[titleScroll].scrollUntilVisible.visibilityPercentage ?? 100, 100);
 });
 
 test('film entry scrolls beyond the retained cover before the same play/pause/export/close journey', () => {
@@ -303,7 +323,18 @@ test('the repair preserves 85 case identities, fixture scenarios, setup, origina
       assert.ok(wait, `${id}: preserve mandatory readiness check`);
       assert.equal(wait.timeout, row.extendedWaitUntil.timeout, id);
     }
-    assert.doesNotMatch(JSON.stringify(actual), /"optional":true|"point":|"retryTapIfNoChange":true/);
+    assert.doesNotMatch(JSON.stringify(actual), /"optional":true|"retryTapIfNoChange":true/);
+    verifyTapCoordinates(actual, id);
     assert.equal(actual.filter(row => row.runFlow === '_signin.yaml' || row.runFlow === '_signedout.yaml').length, 1, id);
   }
+});
+
+test('the relative article exception keeps absolute and unbound interaction coordinates forbidden', () => {
+  const text = 'Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.';
+  verifyTapCoordinates({ tapOn: { text, point: '50%,10%' } }, 'feed-article-draft');
+  for (const tapOn of [{ text, point: '50,10' }, { point: '50%,10%' }, { text: 'Title', point: '50%,10%' }, { text, point: '50%,10%', optional: true }]) {
+    assert.throws(() => verifyTapCoordinates({ tapOn }, 'feed-article-draft'));
+  }
+  assert.throws(() => verifyTapCoordinates({ tapOn: { text, point: '50%,10%' } }, 'support-reply-error'));
+  assert.throws(() => verifyTapCoordinates({ scrollUntilVisible: { text, point: '50%,10%' } }, 'feed-article-draft'));
 });

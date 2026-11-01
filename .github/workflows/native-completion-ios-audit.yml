@@ -1,11 +1,8 @@
 name: Recover all85 cases in the fresh iPhone app
 
 on:
-  push:
-    branches: [codex/completion-20261101]
-    paths:
-      - .github/workflows/native-completion-ios-audit.yml
-      - scripts/quality/completion-ios-audit.py
+  # Retained historical consumer. Run only by explicit dispatch; current builds
+  # and cases run through native-product-audit.yml with their own source identity.
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T04:33:59.121029+00:00",
+  "kind": "independent-original-ios-account-controls-review",
+  "candidateManifestSha256": "bbd45b3777c6d60936cbe62f20d81d3d1fe9f1acd6d5ae3bbcc4a01a5d7879b1",
+  "sourceFiles": {
+    "tests/native/audit/flows/memory-cover-settings.yaml": {
+      "sha256": "0c0107c82d24d3d3625f9fefaccbb1e14e33dd24d05f30d9a50f1ed40894690b",
+      "bytes": 1829
+    },
+    "tests/native/audit/flows/support-fresh-ticket-body.yaml": {
+      "sha256": "48be61e8d9712cfad70aee3924a2d6ccfe4edc5cc0ef632b2e7aaac3e3d61441",
+      "bytes": 1790
+    },
+    "tests/native/audit/flows/support-list-error.yaml": {
+      "sha256": "f9784eda3cfd4db4b0e556aed7ace0147ae4def35faeb33dd464df7cc247c9b6",
+      "bytes": 1117
+    },
+    "tests/native/audit/flows/support-reopen-error.yaml": {
+      "sha256": "7403c7154c6bfaa479faec7682c7338b8f9df055648129d3c3e3f58fb450787b",
+      "bytes": 1019
+    },
+    "tests/native/audit/flows/support-reply-error.yaml": {
+      "sha256": "89402cba4eed355ba4816ce3dea9af63a833f88717324e110ac0f772edcb8a95",
+      "bytes": 963
+    },
+    "tests/quality/fixtures/ios-account-controls/memory-cover-settings-receipt.json": {
+      "sha256": "9051f92d244f8b28807fe75f5f9c022f8b3001cd20760b59da32dab00039e306",
+      "bytes": 6692
+    },
+    "tests/quality/fixtures/ios-account-controls/memory-cover-settings.before.yaml": {
+      "sha256": "463692341e6784e55633091fea0e1e1c4eafd089c96946f407418b2a85c9bf59",
+      "bytes": 1475
+    },
+    "tests/quality/fixtures/ios-account-controls/observed.json": {
+      "sha256": "310d2e1d3537bdf81d24ec8e069f554e6e0b36ae4a9bac1e13a5ff6ef027a2eb",
+      "bytes": 78826
+    },
+    "tests/quality/fixtures/ios-account-controls/support-fresh-ticket-body.before.yaml": {
+      "sha256": "3934612287b78de26666a266c26a5ca3af71711ec377fff99026752ead7e2733",
+      "bytes": 1325
+    },
+    "tests/quality/fixtures/ios-account-controls/support-list-error.before.yaml": {
+      "sha256": "eb342f56c94e62cf92c8ac689249b1181852e3e7920ae567d3de4817d4b9739d",
+      "bytes": 744
+    },
+    "tests/quality/fixtures/ios-account-controls/support-reopen-error.before.yaml": {
+      "sha256": "cc7c54e803ca4f8934555f8528eb24d65d7e01cd66af49ae0ada8853faccaaeb",
+      "bytes": 850
+    },
+    "tests/quality/fixtures/ios-account-controls/support-reply-error.before.yaml": {
+      "sha256": "2db91d55d68238ca1eea6e4f536b00abe4ad04822abbff13d4158ee4f888f148",
+      "bytes": 808
+    },
+    "tests/quality/native-ios-account-controls.cjs": {
+      "sha256": "ef8974bc763a8f9dd7615fb51ee2f52335eca8817fb6f0baef3f80b5375e9888",
+      "bytes": 9848
+    },
+    "tests/quality/native-memory-book-save-flow.cjs": {
+      "sha256": "9bbc83133a9d9f414ae0013cc8415574f0907cf7dc99b9455dfb84bf93c52669",
+      "bytes": 8700
+    },
+    "tests/quality/native-memory-book-save-receipt.cjs": {
+      "sha256": "06cf9bd0f6e49dd6a07a4f9c1ea938b7c89c6ca4c8fe2b0dbc1e23f0fd2f27b4",
+      "bytes": 12898
+    }
+  },
+  "noMaterialBlocker": true,
+  "checks": {
+    "all15FrozenHashesVerified": true,
+    "all5BeforeFlowHashesMatchActualF5ProducerReceipt": true,
+    "allRetainedHierarchyScreenshotCommandsAndReceiptHashesMatchedDownloadedArtifact": true,
+    "quotedKeyboardAndTapLogLinesMatchActualArtifactLogs": true,
+    "wrongSavedTitleAndFocusedSubjectScreenshotsIndependentlyViewed": true,
+    "exactFullIosInputLabelsRetained": true,
+    "androidFlattenedCommandsUnchanged": true,
+    "originalMandatoryIosAssertionsAndDeadlinesUnchanged": true,
+    "actualInstalledRnSingleLineDefaultBlurAndSubmitExecuted": true,
+    "oneSaveAndStrictExactTitleReadbackGateRetained": true,
+    "retainedWrongTitleSaveCorrectlyRejected": true
+  },
+  "verification": {
+    "currentChecks": {
+      "total": 27,
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0,
+      "receipt": "independent-native-review.tap",
+      "sha256": "b082ccc8c51353dee4cfdf31a06300ae3a6bf1169e52de9b167443d45e23963e"
+    },
+    "originalFlows": {
+      "total": 8,
+      "passed": 3,
+      "failed": 5,
+      "receipt": "independent-original-flows.tap",
+      "sha256": "2e79f2359e6fe60b9bd71f0e66c89d7ea85b3f8cf5584776021d0c460e5b84ab",
+      "interpretation": "Each of the five retained faulty interaction sequences still fails its concrete regression."
+    }
+  },
+  "runtimeAccepted": false,
+  "newRemoteRunInvoked": false,
+  "productCodeChanged": false,
+  "reviewer": "native_completion"
+}

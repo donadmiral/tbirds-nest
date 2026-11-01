@@ -1,0 +1,2501 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "consumerRunId": 41266020246,
+  "artifactId": 13069506923,
+  "caseCount": 27,
+  "originalPassed": 21,
+  "originalFailed": 6,
+  "scope": "Five non-capture failures; source-bound retained evidence, not rerun acceptance.",
+  "productionSources": {
+    "src/screens/profile/ContactSupportScreen.tsx": {
+      "currentSha256": "0fee99f26b98c98ad8aeb84939c091b568b37553eb29c15cfdf2dff8130eef87",
+      "f5Sha256": "0fee99f26b98c98ad8aeb84939c091b568b37553eb29c15cfdf2dff8130eef87",
+      "unchanged": true
+    },
+    "src/screens/profile/TicketScreen.tsx": {
+      "currentSha256": "ad5c5166a9035e5828df4c7e0275a43cd9cc44a0b35882dbc742f435c55b5c0d",
+      "f5Sha256": "ad5c5166a9035e5828df4c7e0275a43cd9cc44a0b35882dbc742f435c55b5c0d",
+      "unchanged": true
+    },
+    "src/screens/profile/MemoryAlbumScreen.tsx": {
+      "currentSha256": "1e110a707c088f12d9d333570f259af530c8324a2d1f1f42dcbef86c2263b557",
+      "f5Sha256": "1e110a707c088f12d9d333570f259af530c8324a2d1f1f42dcbef86c2263b557",
+      "unchanged": true
+    },
+    "scripts/quality/native-ui-audit-runner.py": {
+      "currentSha256": "78f277998834d10dc93a2aaaa7d3e3df65fbd84b6997d3012d3018a8a6c0856a",
+      "f5Sha256": "2eebacb4baca5b5231367c749fba465e13235c85a1d8dee4b5503eb72dbde3b4",
+      "unchanged": false
+    }
+  },
+  "cases": {
+    "support-list-error": {
+      "hierarchySha256": "d2b98949762a3084de2e83119e4eb63631838e4bcf77bdbf64d0d8b886754e86",
+      "screenshotSha256": "439576cec65c0a8790b661f9b65bab4836e37724b8475f54da0c8ef573c51bc7",
+      "commandsSha256": "def300dd5a5ce0095e76bcac23c77c3ce157ad60221f4b93930d9108014f4af2",
+      "receiptSha256": "dcf3ee8ddbf6e9ddea043a88d16f028b35620a8d5c9182f3250a5353c2e2c3a9",
+      "beforeFlowSha256": "eb342f56c94e62cf92c8ac689249b1181852e3e7920ae567d3de4817d4b9739d",
+      "nodes": [
+        {
+          "accessibilityText": "Platinum QA",
+          "bounds": "[0,0][393,852]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "\uf12f",
+          "bounds": "[8,63][48,103]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Exit settings to your profile",
+          "bounds": "[341,61][385,105]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Contact support",
+          "bounds": "[128,73][260,92]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Contact support",
+          "bounds": "[128,73][260,92]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "A person on the operations team reads every message. The reply appears on this screen and as a notification.",
+          "bounds": "[0,58][393,116]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "A person on the operations team reads every message. The reply appears on this screen and as a notification.",
+          "bounds": "[0,58][393,116]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "TOPIC",
+          "bounds": "[16,130][377,145]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "TOPIC",
+          "bounds": "[16,130][377,145]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Account",
+          "bounds": "[16,153][94,184]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Payments",
+          "bounds": "[102,153][190,184]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Orders",
+          "bounds": "[198,153][268,184]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Something broke",
+          "bounds": "[16,192][149,224]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Safety",
+          "bounds": "[157,192][224,224]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Other",
+          "bounds": "[232,192][294,224]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "SUBJECT",
+          "bounds": "[16,238][377,252]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "SUBJECT",
+          "bounds": "[16,238][377,252]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Subject",
+          "hintText": "In a few words",
+          "bounds": "[17,261][376,301]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "MESSAGE",
+          "bounds": "[16,316][377,331]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "MESSAGE",
+          "bounds": "[16,316][377,331]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Message What happened, and what you expected",
+          "bounds": "[17,340][376,487]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Vertical scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[343,340][373,487]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[17,454][376,484]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "0 / 2000",
+          "bounds": "[16,495][377,509]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "0 / 2000",
+          "bounds": "[16,495][377,509]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Send",
+          "bounds": "[16,523][377,571]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Your messages could not be loaded. Please try again.",
+          "bounds": "[31,606][362,646]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Your messages could not be loaded. Please try again.",
+          "bounds": "[31,606][362,646]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Try again",
+          "bounds": "[31,656][126,693]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[49,819][343,849]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[49,819][343,849]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Home",
+          "resource-id": "main-tab-feed",
+          "bounds": "[16,744][88,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Market",
+          "resource-id": "main-tab-market",
+          "bounds": "[88,744][160,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Jobs",
+          "resource-id": "main-tab-jobs",
+          "bounds": "[160,744][232,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Messages",
+          "resource-id": "main-tab-messages",
+          "bounds": "[232,744][304,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Profile",
+          "resource-id": "main-tab-profile",
+          "bounds": "[304,744][376,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "true",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "3:37\u202fAM",
+          "bounds": "[53,19][89,39]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Cellular",
+          "value": "No signal",
+          "text": "No signal",
+          "bounds": "[282,23][301,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "value": "SSID, 3 of 3 Wi-Fi bars",
+          "text": "SSID, 3 of 3 Wi-Fi bars",
+          "resource-id": "3 of 3 Wi-Fi bars",
+          "bounds": "[308,23][325,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "100% battery power",
+          "value": "Not charging",
+          "text": "Not charging",
+          "bounds": "[333,22][360,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        }
+      ],
+      "failedCommand": {
+        "command": {
+          "scrollUntilVisible": {
+            "selector": {
+              "textRegex": "Your messages could not be loaded. Please try again.",
+              "optional": false
+            },
+            "direction": "DOWN",
+            "scrollDuration": "40",
+            "visibilityPercentage": 100,
+            "timeout": "20000",
+            "centerElement": true,
+            "originalSpeedValue": "40",
+            "optional": false,
+            "visibilityPercentageNormalized": 1.0
+          }
+        },
+        "metadata": {
+          "status": "FAILED",
+          "timestamp": 1793504210035,
+          "duration": 22483,
+          "error": {
+            "message": "No visible element found: \"Your messages could not be loaded. Please try again.\"",
+            "debugMessage": "Could not find a visible element matching selector: \"Your messages could not be loaded. Please try again.\"\nTip: Try adjusting the following settings to improve detection:\n- `timeout`: current = 20000ms \u2192 Increase if you need more time to find the element\n- `speed`: current = 40 (0-100 scale) \u2192 Increase for faster scrolling if element is far away\n- `waitToSettleTimeoutMs`: current = Not defined \u2192 Set this value (e.g., 500ms) if your UI updates frequently between scrolls\n- `visibilityPercentage`: current = 100% \u2192 Lower this value if you want to detect partially visible elements\n- `centerElement`: current = true \u2192 Disable if you don't need the element to be centered after finding it\n"
+          },
+          "sequenceNumber": 25,
+          "depth": 0,
+          "evaluatedCommand": {
+            "scrollUntilVisible": {
+              "selector": {
+                "textRegex": "Your messages could not be loaded. Please try again.",
+                "optional": false
+              },
+              "direction": "DOWN",
+              "scrollDuration": "601",
+              "visibilityPercentage": 100,
+              "timeout": "20000",
+              "centerElement": true,
+              "originalSpeedValue": "40",
+              "optional": false,
+              "visibilityPercentageNormalized": 1.0
+            }
+          },
+          "artifacts": [
+            {
+              "type": "SCREEN_HIERARCHY",
+              "path": "screen-hierarchy/step-026-scrollUntilVisible-Your_messages_could_n.json"
+            },
+            {
+              "type": "SCREENSHOT",
+              "path": "screenshots/step-026-scrollUntilVisible-Your_messages_could_n.png"
+            }
+          ]
+        }
+      },
+      "audit": {
+        "schemaVersion": 2,
+        "caseId": "support-list-error",
+        "scenario": "list-error",
+        "requests": [
+          {
+            "method": "GET",
+            "table": "support_tickets"
+          },
+          {
+            "method": "GET",
+            "table": "support_tickets"
+          },
+          {
+            "method": "GET",
+            "table": "support_tickets"
+          },
+          {
+            "method": "GET",
+            "table": "support_tickets"
+          }
+        ],
+        "mutations": [],
+        "rejected": [],
+        "diagnostics": [],
+        "diagnosticsDropped": 0,
+        "searchEvents": [],
+        "searchEventsDropped": 0,
+        "state": {
+          "tickets": [
+            {
+              "id": "a0000000-0000-4000-8000-000000000001",
+              "user_id": "10000000-0000-4000-8000-000000000001",
+              "status": "open"
+            }
+          ],
+          "messageIds": []
+        }
+      }
+    },
+    "support-fresh-ticket-body": {
+      "hierarchySha256": "0fcbfc251444ce90a9db42a0580f5d06da85afb688efd2e1b6ae38c6b990a826",
+      "screenshotSha256": "0188426d158ab94a84d318eb949beabce76837e478b1213de68c9310576dab60",
+      "commandsSha256": "e0c3d2af99d54ad44f5ee55326c86948c5db153e33468325827d1310a0d3db60",
+      "receiptSha256": "e0393bb5164ce7eb27cd1ea5f793946a5da32145d982841a74ab6636df041642",
+      "beforeFlowSha256": "3934612287b78de26666a266c26a5ca3af71711ec377fff99026752ead7e2733",
+      "nodes": [
+        {
+          "accessibilityText": "Platinum QA",
+          "bounds": "[0,0][393,852]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "\uf12f",
+          "bounds": "[8,63][48,103]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Exit settings to your profile",
+          "bounds": "[341,61][385,105]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Contact support",
+          "bounds": "[128,73][260,92]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Contact support",
+          "bounds": "[128,73][260,92]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "MESSAGE",
+          "bounds": "[16,15][377,29]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "MESSAGE",
+          "bounds": "[16,15][377,29]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Message What happened, and what you expected",
+          "bounds": "[17,38][376,186]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Vertical scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[343,38][373,186]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[17,153][376,183]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "0 / 2000",
+          "bounds": "[16,193][377,207]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "0 / 2000",
+          "bounds": "[16,193][377,207]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Send",
+          "bounds": "[16,221][377,269]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "YOUR MESSAGES",
+          "bounds": "[0,291][393,305]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "YOUR MESSAGES",
+          "bounds": "[0,291][393,305]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Audit support question, 1/2/2026, With the team, \uf130",
+          "bounds": "[0,313][393,371]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[0,483][393,513]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[0,483][393,513]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Home",
+          "resource-id": "main-tab-feed",
+          "bounds": "[16,838][88,902]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Market",
+          "resource-id": "main-tab-market",
+          "bounds": "[88,838][160,902]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Jobs",
+          "resource-id": "main-tab-jobs",
+          "bounds": "[160,838][232,902]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Messages",
+          "resource-id": "main-tab-messages",
+          "bounds": "[232,838][304,902]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Profile",
+          "resource-id": "main-tab-profile",
+          "bounds": "[304,838][376,902]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "true",
+          "checked": "false"
+        },
+        {
+          "resource-id": "SystemInputAssistantView",
+          "bounds": "[0,516][393,561]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "resource-id": "CenterPageView",
+          "bounds": "[0,516][393,561]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Typing Predictions",
+          "bounds": "[0,516][393,561]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "\u201cF\u201d",
+          "bounds": "[0,516][131,561]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "For",
+          "bounds": "[131,516][262,561]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "First",
+          "bounds": "[262,516][393,561]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "resource-id": "UIKeyboardLayoutStar Preview",
+          "bounds": "[0,561][393,794]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "q",
+          "bounds": "[0,568][39,614]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "w",
+          "bounds": "[39,568][78,614]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "e",
+          "bounds": "[78,568][118,614]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "r",
+          "bounds": "[118,568][157,614]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "t",
+          "bounds": "[157,568][196,614]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "y",
+          "bounds": "[196,568][235,614]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "u",
+          "bounds": "[235,568][275,614]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "i",
+          "bounds": "[275,568][314,614]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "o",
+          "bounds": "[314,568][353,614]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "p",
+          "bounds": "[353,568][393,614]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "a",
+          "bounds": "[19,622][58,668]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "s",
+          "bounds": "[58,622][98,668]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "d",
+          "bounds": "[98,622][137,668]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "f",
+          "bounds": "[137,622][176,668]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "g",
+          "bounds": "[177,622][216,668]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "h",
+          "bounds": "[216,622][255,668]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "j",
+          "bounds": "[255,622][295,668]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "k",
+          "bounds": "[295,622][334,668]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "l",
+          "bounds": "[334,622][373,668]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "shift",
+          "resource-id": "shift",
+          "bounds": "[0,676][50,722]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "z",
+          "bounds": "[58,676][98,722]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "x",
+          "bounds": "[98,676][137,722]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "c",
+          "bounds": "[137,676][176,722]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "v",
+          "bounds": "[177,676][216,722]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "b",
+          "bounds": "[216,676][255,722]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "n",
+          "bounds": "[255,676][295,722]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "m",
+          "bounds": "[295,676][334,722]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "delete",
+          "resource-id": "delete",
+          "bounds": "[342,676][393,722]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "numbers",
+          "resource-id": "more",
+          "bounds": "[0,730][98,776]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "space",
+          "resource-id": "space",
+          "bounds": "[97,730][295,776]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "next",
+          "resource-id": "Next:",
+          "bounds": "[295,730][393,776]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Emoji",
+          "bounds": "[8,783][76,852]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Dictate",
+          "resource-id": "dictation",
+          "bounds": "[316,783][384,852]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Dictate",
+          "resource-id": "dictation",
+          "bounds": "[316,783][384,852]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "3:40\u202fAM",
+          "bounds": "[52,19][90,39]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Cellular",
+          "value": "No signal",
+          "text": "No signal",
+          "bounds": "[282,23][301,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "value": "SSID, 3 of 3 Wi-Fi bars",
+          "text": "SSID, 3 of 3 Wi-Fi bars",
+          "resource-id": "3 of 3 Wi-Fi bars",
+          "bounds": "[308,23][325,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "100% battery power",
+          "value": "Not charging",
+          "text": "Not charging",
+          "bounds": "[333,22][360,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        }
+      ],
+      "failedCommand": {
+        "command": {
+          "scrollUntilVisible": {
+            "selector": {
+              "textRegex": "What happened, and what you expected",
+              "optional": false
+            },
+            "direction": "DOWN",
+            "scrollDuration": "40",
+            "visibilityPercentage": 100,
+            "timeout": "20000",
+            "centerElement": true,
+            "originalSpeedValue": "40",
+            "optional": false,
+            "visibilityPercentageNormalized": 1.0
+          }
+        },
+        "metadata": {
+          "status": "FAILED",
+          "timestamp": 1793504391068,
+          "duration": 24984,
+          "error": {
+            "message": "No visible element found: \"What happened, and what you expected\"",
+            "debugMessage": "Could not find a visible element matching selector: \"What happened, and what you expected\"\nTip: Try adjusting the following settings to improve detection:\n- `timeout`: current = 20000ms \u2192 Increase if you need more time to find the element\n- `speed`: current = 40 (0-100 scale) \u2192 Increase for faster scrolling if element is far away\n- `waitToSettleTimeoutMs`: current = Not defined \u2192 Set this value (e.g., 500ms) if your UI updates frequently between scrolls\n- `visibilityPercentage`: current = 100% \u2192 Lower this value if you want to detect partially visible elements\n- `centerElement`: current = true \u2192 Disable if you don't need the element to be centered after finding it\n"
+          },
+          "sequenceNumber": 29,
+          "depth": 0,
+          "evaluatedCommand": {
+            "scrollUntilVisible": {
+              "selector": {
+                "textRegex": "What happened, and what you expected",
+                "optional": false
+              },
+              "direction": "DOWN",
+              "scrollDuration": "601",
+              "visibilityPercentage": 100,
+              "timeout": "20000",
+              "centerElement": true,
+              "originalSpeedValue": "40",
+              "optional": false,
+              "visibilityPercentageNormalized": 1.0
+            }
+          },
+          "artifacts": [
+            {
+              "type": "SCREEN_HIERARCHY",
+              "path": "screen-hierarchy/step-030-scrollUntilVisible-What_happened,_and_wh.json"
+            },
+            {
+              "type": "SCREENSHOT",
+              "path": "screenshots/step-030-scrollUntilVisible-What_happened,_and_wh.png"
+            }
+          ]
+        }
+      },
+      "audit": {
+        "schemaVersion": 2,
+        "caseId": "support-fresh-ticket-body",
+        "scenario": "baseline",
+        "requests": [
+          {
+            "method": "GET",
+            "table": "support_tickets"
+          }
+        ],
+        "mutations": [],
+        "rejected": [],
+        "diagnostics": [],
+        "diagnosticsDropped": 0,
+        "searchEvents": [],
+        "searchEventsDropped": 0,
+        "state": {
+          "tickets": [
+            {
+              "id": "a0000000-0000-4000-8000-000000000001",
+              "user_id": "10000000-0000-4000-8000-000000000001",
+              "status": "open"
+            }
+          ],
+          "messageIds": []
+        }
+      }
+    },
+    "support-reopen-error": {
+      "hierarchySha256": "cd1d8d48188541f6a0e32e99d984fba80cf54fd7574a95464b2d2ae8595bc6ac",
+      "screenshotSha256": "ba38e4d4e1e3647040ee7a92b9f9e1d1e07b4b8c1027a42bc3b5ea2265c8656c",
+      "commandsSha256": "cf1bd1475799976d7116ffc698e9bd7b25d8fca69ef73dd0fe89c891f3d199d4",
+      "receiptSha256": "5f845f5393be627745970a87b91ab933e57bc9d2d68d4bcdfd184f94f4157b00",
+      "beforeFlowSha256": "cc7c54e803ca4f8934555f8528eb24d65d7e01cd66af49ae0ada8853faccaaeb",
+      "nodes": [
+        {
+          "accessibilityText": "Platinum QA",
+          "bounds": "[0,0][393,852]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Back to support",
+          "bounds": "[14,69][74,113]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Audit support question",
+          "bounds": "[80,82][321,100]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Audit support question",
+          "bounds": "[80,82][321,100]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Solved",
+          "bounds": "[335,85][371,97]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Solved",
+          "bounds": "[335,85][371,97]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Your original message",
+          "bounds": "[27,142][366,155]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Your original message",
+          "bounds": "[27,142][366,155]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Original support question from the member.",
+          "bounds": "[27,161][366,180]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Original support question from the member.",
+          "bounds": "[27,161][366,180]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "1/2/2026, 10:00:00\u202fAM",
+          "bounds": "[27,185][366,197]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "1/2/2026, 10:00:00\u202fAM",
+          "bounds": "[27,185][366,197]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[0,665][393,695]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[0,665][393,695]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Reply Write to reopen this ticket",
+          "bounds": "[13,709][304,744]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Vertical scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[271,709][301,744]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[13,724][304,741]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Send",
+          "bounds": "[313,707][381,746]",
+          "enabled": "false",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Home",
+          "resource-id": "main-tab-feed",
+          "bounds": "[16,744][88,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Market",
+          "resource-id": "main-tab-market",
+          "bounds": "[88,744][160,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Jobs",
+          "resource-id": "main-tab-jobs",
+          "bounds": "[160,744][232,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Messages",
+          "resource-id": "main-tab-messages",
+          "bounds": "[232,744][304,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Profile",
+          "resource-id": "main-tab-profile",
+          "bounds": "[304,744][376,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "true",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "3:43\u202fAM",
+          "bounds": "[52,19][90,39]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Cellular",
+          "value": "No signal",
+          "text": "No signal",
+          "bounds": "[282,23][301,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "value": "SSID, 3 of 3 Wi-Fi bars",
+          "text": "SSID, 3 of 3 Wi-Fi bars",
+          "resource-id": "3 of 3 Wi-Fi bars",
+          "bounds": "[308,23][325,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "100% battery power",
+          "value": "Not charging",
+          "text": "Not charging",
+          "bounds": "[333,22][360,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        }
+      ],
+      "failedCommand": {
+        "command": {
+          "tapOnElement": {
+            "selector": {
+              "textRegex": "Write to reopen this ticket",
+              "optional": false
+            },
+            "retryIfNoChange": false,
+            "waitUntilVisible": false,
+            "longPress": false,
+            "optional": false
+          }
+        },
+        "metadata": {
+          "status": "FAILED",
+          "timestamp": 1793504573180,
+          "duration": 18411,
+          "error": {
+            "message": "Element not found: Text matching regex: Write to reopen this ticket",
+            "debugMessage": "Element with Text matching regex: Write to reopen this ticket not found. Check the UI hierarchy in debug artifacts to verify if the element exists.\n\nPossible causes:\n- Element selector may be incorrect - check if there are similar elements with slightly different names/properties.\n- Element may be temporarily unavailable due to loading state.\n- This could be a real regression that needs to be addressed."
+          },
+          "sequenceNumber": 25,
+          "depth": 0,
+          "evaluatedCommand": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Write to reopen this ticket",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "artifacts": [
+            {
+              "type": "SCREEN_HIERARCHY",
+              "path": "screen-hierarchy/step-026-tapOnElement-Write_to_reopen_this_ticket.json"
+            },
+            {
+              "type": "SCREENSHOT",
+              "path": "screenshots/step-026-tapOnElement-Write_to_reopen_this_ticket.png"
+            }
+          ]
+        }
+      },
+      "audit": {
+        "schemaVersion": 2,
+        "caseId": "support-reopen-error",
+        "scenario": "status-write-error",
+        "requests": [
+          {
+            "method": "GET",
+            "table": "support_tickets"
+          },
+          {
+            "method": "GET",
+            "table": "support_messages"
+          }
+        ],
+        "mutations": [],
+        "rejected": [],
+        "diagnostics": [],
+        "diagnosticsDropped": 0,
+        "searchEvents": [],
+        "searchEventsDropped": 0,
+        "state": {
+          "tickets": [
+            {
+              "id": "a0000000-0000-4000-8000-000000000001",
+              "user_id": "10000000-0000-4000-8000-000000000001",
+              "status": "solved"
+            }
+          ],
+          "messageIds": []
+        }
+      }
+    },
+    "support-reply-error": {
+      "hierarchySha256": "14db7c57ba5d111520b7d47421524d6363219faa9916739b5306128871ccbe50",
+      "screenshotSha256": "e2084205a3339f6c163ddf3adc899ae07a7a361b08a3e70d4614f98e3f91f6bb",
+      "commandsSha256": "8bbd2502b7a84e9927ba11599b4d1d9142d0d2cfdf30ea7d77245fe1ca75c76a",
+      "receiptSha256": "ebff1a35e5811a2866b43441afe228a8ecd5b5ad92811b5e80cf3a3315f3f533",
+      "beforeFlowSha256": "2db91d55d68238ca1eea6e4f536b00abe4ad04822abbff13d4158ee4f888f148",
+      "nodes": [
+        {
+          "accessibilityText": "Platinum QA",
+          "bounds": "[0,0][393,852]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Back to support",
+          "bounds": "[14,69][74,113]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Audit support question",
+          "bounds": "[80,82][329,100]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Audit support question",
+          "bounds": "[80,82][329,100]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Open",
+          "bounds": "[343,85][371,97]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Open",
+          "bounds": "[343,85][371,97]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Your original message",
+          "bounds": "[27,142][366,155]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Your original message",
+          "bounds": "[27,142][366,155]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Original support question from the member.",
+          "bounds": "[27,161][366,180]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Original support question from the member.",
+          "bounds": "[27,161][366,180]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "1/2/2026, 10:00:00\u202fAM",
+          "bounds": "[27,185][366,197]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "1/2/2026, 10:00:00\u202fAM",
+          "bounds": "[27,185][366,197]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[0,665][393,695]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[0,665][393,695]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Reply Write a reply",
+          "bounds": "[13,709][304,744]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Vertical scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[271,709][301,744]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[13,724][304,741]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Send",
+          "bounds": "[313,707][381,746]",
+          "enabled": "false",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Home",
+          "resource-id": "main-tab-feed",
+          "bounds": "[16,744][88,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Market",
+          "resource-id": "main-tab-market",
+          "bounds": "[88,744][160,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Jobs",
+          "resource-id": "main-tab-jobs",
+          "bounds": "[160,744][232,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Messages",
+          "resource-id": "main-tab-messages",
+          "bounds": "[232,744][304,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Profile",
+          "resource-id": "main-tab-profile",
+          "bounds": "[304,744][376,808]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "true",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "3:45\u202fAM",
+          "bounds": "[52,19][90,39]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Cellular",
+          "value": "No signal",
+          "text": "No signal",
+          "bounds": "[282,23][301,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "value": "SSID, 3 of 3 Wi-Fi bars",
+          "text": "SSID, 3 of 3 Wi-Fi bars",
+          "resource-id": "3 of 3 Wi-Fi bars",
+          "bounds": "[308,23][325,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "100% battery power",
+          "value": "Not charging",
+          "text": "Not charging",
+          "bounds": "[333,22][360,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        }
+      ],
+      "failedCommand": {
+        "command": {
+          "tapOnElement": {
+            "selector": {
+              "textRegex": "Write a reply",
+              "optional": false
+            },
+            "retryIfNoChange": false,
+            "waitUntilVisible": false,
+            "longPress": false,
+            "optional": false
+          }
+        },
+        "metadata": {
+          "status": "FAILED",
+          "timestamp": 1793504704895,
+          "duration": 17183,
+          "error": {
+            "message": "Element not found: Text matching regex: Write a reply",
+            "debugMessage": "Element with Text matching regex: Write a reply not found. Check the UI hierarchy in debug artifacts to verify if the element exists.\n\nPossible causes:\n- Element selector may be incorrect - check if there are similar elements with slightly different names/properties.\n- Element may be temporarily unavailable due to loading state.\n- This could be a real regression that needs to be addressed."
+          },
+          "sequenceNumber": 25,
+          "depth": 0,
+          "evaluatedCommand": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Write a reply",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "artifacts": [
+            {
+              "type": "SCREEN_HIERARCHY",
+              "path": "screen-hierarchy/step-026-tapOnElement-Write_a_reply.json"
+            },
+            {
+              "type": "SCREENSHOT",
+              "path": "screenshots/step-026-tapOnElement-Write_a_reply.png"
+            }
+          ]
+        }
+      },
+      "audit": {
+        "schemaVersion": 2,
+        "caseId": "support-reply-error",
+        "scenario": "message-write-error",
+        "requests": [
+          {
+            "method": "GET",
+            "table": "support_tickets"
+          },
+          {
+            "method": "GET",
+            "table": "support_messages"
+          }
+        ],
+        "mutations": [],
+        "rejected": [],
+        "diagnostics": [],
+        "diagnosticsDropped": 0,
+        "searchEvents": [],
+        "searchEventsDropped": 0,
+        "state": {
+          "tickets": [
+            {
+              "id": "a0000000-0000-4000-8000-000000000001",
+              "user_id": "10000000-0000-4000-8000-000000000001",
+              "status": "open"
+            }
+          ],
+          "messageIds": []
+        }
+      }
+    },
+    "memory-cover-settings": {
+      "hierarchySha256": "950f6a1995ba73d945b8924e7a18cd109ca3abb5f8bfdabc650fe1b7f14565fd",
+      "screenshotSha256": "2fbf0e7450cb478b7a848b14bc2da895f997dd120a1c19e587c80c2ef7364a00",
+      "commandsSha256": "579f79335ffecdf121633043c827c132ca00e982fcf4b29184951eb389775869",
+      "receiptSha256": "9051f92d244f8b28807fe75f5f9c022f8b3001cd20760b59da32dab00039e306",
+      "beforeFlowSha256": "463692341e6784e55633091fea0e1e1c4eafd089c96946f407418b2a85c9bf59",
+      "nodes": [
+        {
+          "accessibilityText": "Platinum QA",
+          "bounds": "[0,0][393,852]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Back to profile",
+          "bounds": "[14,69][58,113]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Edit memory book",
+          "bounds": "[335,69][379,113]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "AUDIT BOOK TITLET",
+          "bounds": "[70,79][323,103]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "AUDIT BOOK TITLET",
+          "bounds": "[70,79][323,103]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Book soundtrack",
+          "bounds": "[156,123][236,167]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Keepsake book cover: AUDIT BOOK TITLET. A book from this week",
+          "bounds": "[28,183][365,624]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "By Alex Rivera",
+          "bounds": "[128,646][264,670]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "By Alex Rivera",
+          "bounds": "[128,646][264,670]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "2 memories",
+          "bounds": "[161,677][232,693]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "2 memories",
+          "bounds": "[161,677][232,693]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Open book",
+          "bounds": "[28,715][365,768]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Play continuous memory film with original music",
+          "bounds": "[28,778][365,828]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "\uf1c0, Add memories",
+          "bounds": "[28,838][365,881]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Vertical scroll bar, 2 pages",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[360,191][390,802]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[49,819][343,849]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Vertical scroll bar, 2 pages",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[360,191][390,802]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Horizontal scroll bar, 1 page",
+          "value": "0%",
+          "text": "0%",
+          "bounds": "[49,819][343,849]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "3:49\u202fAM",
+          "bounds": "[52,19][90,39]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "Cellular",
+          "value": "No signal",
+          "text": "No signal",
+          "bounds": "[282,23][301,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "value": "SSID, 3 of 3 Wi-Fi bars",
+          "text": "SSID, 3 of 3 Wi-Fi bars",
+          "resource-id": "3 of 3 Wi-Fi bars",
+          "bounds": "[308,23][325,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        },
+        {
+          "accessibilityText": "100% battery power",
+          "value": "Not charging",
+          "text": "Not charging",
+          "bounds": "[333,22][360,35]",
+          "enabled": "true",
+          "focused": "false",
+          "selected": "false",
+          "checked": "false"
+        }
+      ],
+      "failedCommand": {
+        "command": {
+          "assertConditionCommand": {
+            "condition": {
+              "visible": {
+                "textRegex": "(?s)^.*book cover: AUDIT BOOK TITLE\\..*$",
+                "optional": false
+              }
+            },
+            "optional": false
+          }
+        },
+        "metadata": {
+          "status": "FAILED",
+          "timestamp": 1793504960800,
+          "duration": 17417,
+          "error": {
+            "message": "Assertion is false: \"(?s)^.*book cover: AUDIT BOOK TITLE\\..*$\" is visible",
+            "debugMessage": "Assertion '\"(?s)^.*book cover: AUDIT BOOK TITLE\\..*$\" is visible' failed. Check the UI hierarchy in debug artifacts to verify the element state and properties.\n\nPossible causes:\n- Element selector may be incorrect - check if there are similar elements with slightly different names/properties.\n- Element may be temporarily unavailable due to loading state\n- This could be a real regression that needs to be addressed"
+          },
+          "sequenceNumber": 39,
+          "depth": 0,
+          "evaluatedCommand": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "(?s)^.*book cover: AUDIT BOOK TITLE\\..*$",
+                  "optional": false
+                }
+              },
+              "optional": false
+            }
+          },
+          "artifacts": [
+            {
+              "type": "SCREEN_HIERARCHY",
+              "path": "screen-hierarchy/step-040-assertCondition-(s)^.book_cover_AUDIT_BO.json"
+            },
+            {
+              "type": "SCREENSHOT",
+              "path": "screenshots/step-040-assertCondition-(s)^.book_cover_AUDIT_BO.png"
+            }
+          ]
+        }
+      },
+      "audit": {
+        "schemaVersion": 2,
+        "caseId": "memory-cover-settings",
+        "scenario": "baseline",
+        "requests": [],
+        "mutations": [],
+        "rejected": [],
+        "diagnostics": [],
+        "diagnosticsDropped": 0,
+        "searchEvents": [],
+        "searchEventsDropped": 0,
+        "state": {
+          "tickets": [
+            {
+              "id": "a0000000-0000-4000-8000-000000000001",
+              "user_id": "10000000-0000-4000-8000-000000000001",
+              "status": "open"
+            }
+          ],
+          "messageIds": []
+        }
+      },
+      "editCommands": [
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Book settings",
+                  "optional": false
+                }
+              },
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504917893,
+            "duration": 839,
+            "sequenceNumber": 26,
+            "depth": 0,
+            "evaluatedCommand": {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Book settings",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Book title",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": true,
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504918733,
+            "duration": 9471,
+            "sequenceNumber": 27,
+            "depth": 0,
+            "evaluatedCommand": {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Book title",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": true,
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Select [Aa]ll",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504928204,
+            "duration": 5655,
+            "sequenceNumber": 28,
+            "depth": 0,
+            "evaluatedCommand": {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Select [Aa]ll",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "eraseTextCommand": {
+              "charactersToErase": 1,
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504933860,
+            "duration": 1714,
+            "sequenceNumber": 29,
+            "depth": 0,
+            "evaluatedCommand": {
+              "eraseTextCommand": {
+                "charactersToErase": 1,
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "inputTextCommand": {
+              "text": "AUDIT BOOK TITLE",
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504935575,
+            "duration": 2979,
+            "sequenceNumber": 30,
+            "depth": 0,
+            "evaluatedCommand": {
+              "inputTextCommand": {
+                "text": "AUDIT BOOK TITLE",
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "copyTextCommand": {
+              "selector": {
+                "textRegex": "Book title",
+                "optional": false
+              },
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504938555,
+            "duration": 1075,
+            "sequenceNumber": 31,
+            "depth": 0,
+            "evaluatedCommand": {
+              "copyTextCommand": {
+                "selector": {
+                  "textRegex": "Book title",
+                  "optional": false
+                },
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "scriptCondition": "${maestro.copiedText === \"AUDIT BOOK TITLE\"}"
+              },
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504939631,
+            "duration": 7529,
+            "sequenceNumber": 32,
+            "depth": 0,
+            "evaluatedCommand": {
+              "assertConditionCommand": {
+                "condition": {
+                  "scriptCondition": "true"
+                },
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "scrollUntilVisible": {
+              "selector": {
+                "textRegex": "Paper tint",
+                "optional": false
+              },
+              "direction": "DOWN",
+              "scrollDuration": "40",
+              "visibilityPercentage": 100,
+              "timeout": "20000",
+              "centerElement": true,
+              "originalSpeedValue": "40",
+              "optional": false,
+              "visibilityPercentageNormalized": 1.0
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504947210,
+            "duration": 1059,
+            "sequenceNumber": 33,
+            "depth": 0,
+            "evaluatedCommand": {
+              "scrollUntilVisible": {
+                "selector": {
+                  "textRegex": "Paper tint",
+                  "optional": false
+                },
+                "direction": "DOWN",
+                "scrollDuration": "601",
+                "visibilityPercentage": 100,
+                "timeout": "20000",
+                "centerElement": true,
+                "originalSpeedValue": "40",
+                "optional": false,
+                "visibilityPercentageNormalized": 1.0
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Paper tint",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504948269,
+            "duration": 5007,
+            "sequenceNumber": 34,
+            "depth": 0,
+            "evaluatedCommand": {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Paper tint",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Book settings",
+                  "optional": false
+                }
+              },
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504953276,
+            "duration": 1128,
+            "sequenceNumber": 35,
+            "depth": 0,
+            "evaluatedCommand": {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Book settings",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "Save memory book",
+                  "optional": false
+                }
+              },
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504954404,
+            "duration": 1000,
+            "sequenceNumber": 36,
+            "depth": 0,
+            "evaluatedCommand": {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "Save memory book",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Save memory book",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504955405,
+            "duration": 4105,
+            "sequenceNumber": 37,
+            "depth": 0,
+            "evaluatedCommand": {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Save memory book",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "notVisible": {
+                  "textRegex": "Book settings",
+                  "optional": false
+                }
+              },
+              "timeout": "15000",
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "COMPLETED",
+            "timestamp": 1793504959510,
+            "duration": 1290,
+            "sequenceNumber": 38,
+            "depth": 0,
+            "evaluatedCommand": {
+              "assertConditionCommand": {
+                "condition": {
+                  "notVisible": {
+                    "textRegex": "Book settings",
+                    "optional": false
+                  }
+                },
+                "timeout": "15000",
+                "optional": false
+              }
+            }
+          }
+        },
+        {
+          "command": {
+            "assertConditionCommand": {
+              "condition": {
+                "visible": {
+                  "textRegex": "(?s)^.*book cover: AUDIT BOOK TITLE\\..*$",
+                  "optional": false
+                }
+              },
+              "optional": false
+            }
+          },
+          "metadata": {
+            "status": "FAILED",
+            "timestamp": 1793504960800,
+            "duration": 17417,
+            "error": {
+              "message": "Assertion is false: \"(?s)^.*book cover: AUDIT BOOK TITLE\\..*$\" is visible",
+              "debugMessage": "Assertion '\"(?s)^.*book cover: AUDIT BOOK TITLE\\..*$\" is visible' failed. Check the UI hierarchy in debug artifacts to verify the element state and properties.\n\nPossible causes:\n- Element selector may be incorrect - check if there are similar elements with slightly different names/properties.\n- Element may be temporarily unavailable due to loading state\n- This could be a real regression that needs to be addressed"
+            },
+            "sequenceNumber": 39,
+            "depth": 0,
+            "evaluatedCommand": {
+              "assertConditionCommand": {
+                "condition": {
+                  "visible": {
+                    "textRegex": "(?s)^.*book cover: AUDIT BOOK TITLE\\..*$",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              }
+            },
+            "artifacts": [
+              {
+                "type": "SCREEN_HIERARCHY",
+                "path": "screen-hierarchy/step-040-assertCondition-(s)^.book_cover_AUDIT_BO.json"
+              },
+              {
+                "type": "SCREENSHOT",
+                "path": "screenshots/step-040-assertCondition-(s)^.book_cover_AUDIT_BO.png"
+              }
+            ]
+          }
+        }
+      ],
+      "driverExcerpt": [
+        "03:49:08.247 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Scrolling try count: 0, DeviceWidth: 393, DeviceWidth: 852",
+        "03:49:08.247 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Element bounds: Bounds(x=42, y=576, width=309, height=13)",
+        "03:49:09.299 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=PAPER TINT, title=, value=, text=, hintText=, resource-id=, bounds=[42,576][351,589], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=42, y=576, width=309, height=13))",
+        "03:49:10.483 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (196, 582) using hierarchy based logic for wait"
+      ],
+      "keyboardExcerpt": [
+        "2026-11-01 03:49:10.973546+0000  localhost PlatinumQA[15770]: (UIKitCore) [com.apple.UIKit:EventDispatch] Sending UIEvent type: 0; subtype: 0; to window: <UIRemoteKeyboardWindow: 0x1158ca400>; contextId: 0xE26A8853",
+        "2026-11-01 03:49:11.257969+0000  localhost PlatinumQA[15770]: (UIKitCore) [com.apple.UIKit:KeyboardUI] Keyboard inserts text",
+        "2026-11-01 03:49:13.739571+0000  localhost testmanagerd[12633]: (XCTAutomationSupport) [com.apple.dt.xctest:Default] Checking 'AUDIT BOOK TITLET' for privileged AX value slot attributes"
+      ],
+      "driverLogSha256": "e9ec8d39852b248f86fa415a46ae7d4ae0c44ef728875d11bec8bde26b198ac1",
+      "simulatorLogSha256": "031dac98530f435ff118727500a0dc0f2e6ca52c2e45c3baa9e8680b101e5645"
+    }
+  }
+}

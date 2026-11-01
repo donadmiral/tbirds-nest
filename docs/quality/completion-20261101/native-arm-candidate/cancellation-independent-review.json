@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T04:26:29.333424+00:00",
+  "baseCommit": "135a9810846cc1a4b85a290a3213ede5d1b318db",
+  "verdict": "no-publication-blocker-in-isolated-cancellation-flow-delta",
+  "scope": "The exact two repeated no-op label taps and their comment are removed; readiness, actual Close action, retry, all UI assertions, and all configured deadlines are byte-preserved.",
+  "files": {
+    "tests/native/audit/flows/memory-capture-session.yaml": "e08701b8c28233b0ff9109f95ac097a43476fe3a535d400aac05e20a3daa57d0",
+    "scripts/quality/verify-native-ui-memory.py": "cd4f3f859a6293ca0aa8c0694924c14b24d03a3daaf94dc088ff14ceb2d82773"
+  },
+  "independentChecks": {
+    "exactReversibleSingleBlockDelta": true,
+    "productionMediaVerifierUnchanged": true,
+    "realChunkUserCancelledCleanupTwelveCapturesAndDecodedMovieStillRequired": true,
+    "retainedFailedAttemptStillUnaccepted": true
+  },
+  "retainedEvidence": {
+    "commandsSha256": "30e434fd0df83c837abd9544717a7e1e6ace99292b807833788a12c64233affb",
+    "receiptSha256": "439f41a8b2a8607e6d7c16aba726412497d1285f02172c82155b90ac17ca28a9",
+    "noOpTapDurationMs": 11152,
+    "closeDurationMs": 6652,
+    "firstAttemptStatus": "failed",
+    "firstAttemptError": "A memory download stopped responding."
+  },
+  "limitations": [
+    "No installed runtime pass claimed.",
+    "Removal gives the original cancellation action its earlier opportunity; it does not change the production stall deadline or accept a failed attempt."
+  ]
+}

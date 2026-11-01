@@ -23,7 +23,7 @@ python3 scripts/quality/native-ui-audit-runner.py \
   --output native-audit-results
 ```
 
-The corresponding iOS command uses the intact Simulator `.app`, an x86_64 iOS18.5 Simulator and `--platform ios`. Android uses the isolated diagnostic-root API35 x86_64 image, as the existing acceptance script does. The runner does not grant microphone, camera, Photos, contacts or location permissions.
+The iOS wrapper `run-native-ui-audit-device.sh ios "$AUDIT_GROUPS"` uses the intact Simulator `.app`. It verifies the actual host, Xcode, SDK, executable ABI and signature before creating one owned device, then supplies the bound preflight and device receipts to the runner. The current producer uses native ARM64 on `macos-26`, Xcode26.3/17C529 and iPhone17/iOS26.2. Retained Intel manifests remain bound to x86_64, Xcode16.4/16F6 and iPhone16/iOS18.5; they cannot be used as ARM artifacts. Android uses the isolated diagnostic-root API35 x86_64 image, as the existing acceptance script does. The runner does not grant microphone, camera, Photos, contacts or location permissions.
 
 Suggested balanced shards per platform:
 

@@ -21,7 +21,16 @@ name: Audit reply status write failure is visible
     visible: "Audit support question"
     timeout: 15000
 
-- tapOn: Write to reopen this ticket
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: Write to reopen this ticket
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Reply Write to reopen this ticket
 - inputText: Please reopen this synthetic ticket.
 - runFlow:
     when:

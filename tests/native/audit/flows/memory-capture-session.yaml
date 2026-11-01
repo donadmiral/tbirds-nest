@@ -34,12 +34,8 @@ name: Audit real capture cancel and encode
     visible: Reading the movie’s video timing…
     timeout: 15000
 # The test transport returns one real file chunk, then holds its reader until
-# the real UI cancellation closes it. Tapping this label has no app action.
-- tapOn:
-    text: Reading the movie’s video timing…
-    repeat: 2
-    delay: 1000
-    waitToSettleTimeoutMs: 1000
+# the real UI cancellation closes it. The retained verifier requires that chunk,
+# a cancelled attempt, and complete cleanup; close immediately after readiness.
 - tapOn:
     text: Close movie export
     waitToSettleTimeoutMs: 1000

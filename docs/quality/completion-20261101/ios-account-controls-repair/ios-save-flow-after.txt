@@ -1,0 +1,15 @@
+✔ retained d46 failure entered the exact title then lost Save after Android hideKeyboard without a save request (5.051952ms)
+✔ actual Paper tint is a harmless text child inside the handled-taps settings ScrollView (16.877856ms)
+✔ installed RN handled-tap responder blurs the input without invoking the actual modal Back dismissal (86.591214ms)
+✔ audit Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory (17.542076ms)
+✔ audit iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory (10.188191ms)
+✔ full Android: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory (9.889551ms)
+✔ full iOS: exact edit, harmless keyboard exit, one Save, and persisted title after reopening are mandatory (22.07724ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 212.709858

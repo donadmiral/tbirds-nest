@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "createdAtUtc": "2026-11-01T04:33:44.701535+00:00",
+  "candidateSourceManifest": "candidate-manifest.json",
+  "candidateSourceManifestSha256": "2529f5c2a34b1b21b9e5101e6d9386e2029621b493aa561c3b62d064a2921802",
+  "actualFocusedSourceChecks": {
+    "command": "node --test --test-reporter=tap tests/quality/native-ios-arm-target.cjs tests/quality/native-ios-audit-compatibility.cjs tests/quality/native-ios-immutable-preflight.cjs tests/quality/native-completion-runner.cjs tests/quality/native-platform-audit-pack.cjs tests/quality/native-ios-d46-recovery.cjs tests/quality/native-ios-url-trace.cjs tests/quality/native-audit-flow-controls.cjs",
+    "cases": 70,
+    "passed": 70,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "receipt": "native-arm-final-focused.tap",
+    "sha256": "73c727d59fb4625bb3d13eeee3d4b54199b69c5bf1ac807ec73faf73dd485fb5"
+  },
+  "capturePathChecks": {
+    "cases": 23,
+    "passed": 23,
+    "failed": 0,
+    "independentDirectExecution": true
+  },
+  "preserved": {
+    "declared85CaseIdentitiesAndFixtureScenarios": true,
+    "strictSourceTreeAndBinaryBytes": true,
+    "allActualImmutableProbes": true,
+    "ownedDeviceOnly": true,
+    "legacyIntelArtifactsKeepExactIntelIdentity": true,
+    "androidHostAndAbiUnchanged": true,
+    "appRuntimeSourceChangedOnlyForActualAbsoluteCapturePath": true,
+    "setupBudgetsSeconds": {
+      "immutableProbe": 30,
+      "create": 120,
+      "prebootMetadata": 30,
+      "boot": 120,
+      "bootstatus": 300,
+      "cleanup": 20,
+      "install": 120
+    },
+    "readerDeadlineMs": 15000,
+    "warmMessagesTargetMs": 1000,
+    "captureProductionStallMs": 20000,
+    "captureCancelledStatusFirstChunkCleanupAndDecodeRequired": true,
+    "productionCapabilityValue": 0
+  },
+  "sourceChangesRequireNewArtifact": true,
+  "actualArmNativeCompile": "pending",
+  "actualInstalledIosCapture": "pending",
+  "newRemoteActionsInvoked": false,
+  "baselineFailuresRetained": true,
+  "publicationAuthority": "root coordinates the final source and workflow activation"
+}

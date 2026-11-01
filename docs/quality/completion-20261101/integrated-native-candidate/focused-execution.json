@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "observedAtUtc": "2026-11-01T04:37:46.475434+00:00",
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/quality/native-ios-arm-target.cjs",
+    "tests/quality/native-ios-audit-compatibility.cjs",
+    "tests/quality/native-ios-immutable-preflight.cjs",
+    "tests/quality/native-completion-runner.cjs",
+    "tests/quality/native-platform-audit-pack.cjs",
+    "tests/quality/native-ios-d46-recovery.cjs",
+    "tests/quality/native-ios-url-trace.cjs",
+    "tests/quality/native-audit-flow-controls.cjs",
+    "tests/quality/native-memory-export.cjs",
+    "tests/quality/native-ios-account-controls.cjs",
+    "tests/quality/native-memory-book-save-flow.cjs",
+    "tests/quality/native-memory-book-save-receipt.cjs"
+  ],
+  "exitCode": 1,
+  "receipt": "focused.tap"
+}

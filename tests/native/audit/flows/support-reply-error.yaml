@@ -21,7 +21,16 @@ name: Audit reply failure preserves retry
     visible: "Audit support question"
     timeout: 15000
 
-- tapOn: Write a reply
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: Write a reply
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Reply Write a reply
 - inputText: Please retain this draft after failure.
 - runFlow:
     when:

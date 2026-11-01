@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T04:33:25.853820+00:00",
+  "verdict": "no-publication-blocker-found-in-frozen-25-file-candidate",
+  "frozenManifest": "/tmp/native-arm-source-freeze-20261101/manifest.json",
+  "frozenManifestSha256": "2529f5c2a34b1b21b9e5101e6d9386e2029621b493aa561c3b62d064a2921802",
+  "sourceFiles": {
+    ".github/workflows/native-product-audit.yml": "0256cde8eca900278d5debabcab22169457d9fecb611de854954b31afae97d3f",
+    "package-lock.json": "78e7197bd4960270660c30c23f18dbe063e68e6890a03b940e922a57bd4b2652",
+    "package.json": "293e7e5bacf127cda8869d7d57e7a1cb997fe8b45a94fb0f99ecaf33bc564e0c",
+    "scripts/quality/native-ui-audit-binary.py": "824752614d5a68d115fafaeddd18bb4ba4f9e80809c256e64ffc8ecd6d1da08b",
+    "scripts/quality/native-ui-audit-runner.py": "34420d457ac37be7073f675c8e61964b5cdee12fde91a20726d6f020338c2d58",
+    "scripts/quality/native-ui-ios-compatibility.py": "428006d0c6c6b659eaa092b5db8cdc5244f59ff4f5220f4dd52f1ff7370ba8d2",
+    "scripts/quality/native-ui-ios-created-device.py": "a5d24e6d28e904fa477732849a0a64dee1840d34c0244a2205905e8895a83173",
+    "scripts/quality/native-ui-ios-d46-recovery.py": "c7d8aba6b0447a4a16a46e3554fad6c169a4156e448eda4f21f946186817cb08",
+    "scripts/quality/native-ui-ios-immutable-preflight.py": "d6b6cacd34bbc57afb99de7051079d52453a844def4de82e80a8c0c3f59e8db9",
+    "scripts/quality/native-ui-start-ios-device.py": "3e08f21c29767d32116a467f30b397f8e08275a3fe1c81630ac320ca216cd4b3",
+    "scripts/quality/prepare-native-ui-audit.cjs": "7b94d191f29007ec62304a325dae17bf240ec06331e590da74ea356d72fb8c43",
+    "scripts/quality/run-native-ui-audit-device.sh": "0450e8a1968396d0728d1bc2cfbf2d03c273cd0952f251fe812cef1ba4858c4c",
+    "scripts/quality/test-ios-app-ui.sh": "55681e42dccc86971632c4cbf4cf4302b5271c147619f023410bee7431cc4412",
+    "src/services/memoryMovieFiles.ts": "f9705f2c52b94138469b136ce567cc8af70e7e9653f18a86ccc1ea693a29b864",
+    "tests/native/audit/README.md": "b2b5396bba9744f6caa1cee042b9d558e365d38d39350fcb3d3a80e29f771013",
+    "tests/native/audit/flows/feed-article-draft.yaml": "1fd283b617325b75aa8b967b98dc746a4aa4edd796b25e3d7b4e56f60e0f70e7",
+    "tests/native/audit/flows/jobs-application-entry.yaml": "cf022f31991d07d8e2a3298674ce537c26f6fb6a06eb08849fcf4fd851063c78",
+    "tests/native/audit/flows/memory-capture-session.yaml": "e08701b8c28233b0ff9109f95ac097a43476fe3a535d400aac05e20a3daa57d0",
+    "tests/quality/native-audit-flow-controls.cjs": "3f93d4b8a7ea072fb1a8c7626bcd71a4bca62261f34adda60558637e3ee99a78",
+    "tests/quality/native-completion-runner.cjs": "bc3ae9a545ae6334168ce258cf3cee7ffb25bbb6d9239e75b6d678ec98c2bdfb",
+    "tests/quality/native-ios-arm-target.cjs": "5019fa8efdf5a6d1c327a2f9697704bb97e3ec387928f4d626d22efdf9f742ee",
+    "tests/quality/native-ios-audit-compatibility.cjs": "bb9cbee9ef0ec17d8e32f81d0fc608bf2f37eab301905e22a7ecf76821e1d09a",
+    "tests/quality/native-ios-immutable-preflight.cjs": "d570e1e26fae06f0443c69ac2552b46241ab53906148208e03f808f9a0c94cc8",
+    "tests/quality/native-memory-export.cjs": "d3f08396dca52cae25cd4ceb85500a6b609dfac36dcbf9ffb2c37df6ffa34b55",
+    "tests/quality/native-platform-audit-pack.cjs": "df276649c5a9dd5663de5be243862514c6693b86208575caf35181a47c99a94e"
+  },
+  "allSnapshotWorkingTreeGitBlobIdentitiesVerified": true,
+  "priorHostAbiReview": {
+    "path": "/tmp/native-arm-target-independent-review.json",
+    "sha256": "2f83a0ac0fe2195dc220c556e3352bb797e037f558904cd91432fb1832ff3aea",
+    "all16ReviewedHashesStillExact": true
+  },
+  "priorProductAndCancellationReviews": [
+    {
+      "path": "/tmp/native-capture-path-four-file-independent-review.json",
+      "sha256": "c394dfa7fedcb6145c467698f5e16a951c22ea95b8cb9f8faa3f691573b375af"
+    },
+    {
+      "path": "/tmp/ios-cancellation-flow-independent-review.json",
+      "sha256": "b6c946559f90c72f42c9f4c47c5c46474be4c996d9ed634f4c11f1dd583d76a7"
+    }
+  ],
+  "finalGuards": {
+    "reviewedExactRelativeTapOnly": true,
+    "absoluteUnidentifiedDifferentCaseDifferentCommandExtraOptionCoordinatesRejected": true,
+    "fullTitleUpScrollStillRequiredWith100PercentVisibility": true,
+    "originalAssertionsAndTimeoutsRetained": true,
+    "independentExecutions": [
+      {
+        "path": "/tmp/native-arm-final-flow-guards-independent.txt",
+        "sha256": "77b233bc399ef0abce544aa8eaaa17fa7435f58fce5a07aacdb7c0cad556bf5a",
+        "passed": 16,
+        "failed": 0
+      },
+      {
+        "path": "/tmp/native-arm-coordinate-guards-independent.txt",
+        "sha256": "4a88c0a5648f39dacdd66a7a9e3883ea0d92a066bd37bf1c96fc0e0bb5c84946",
+        "passed": 2,
+        "failed": 0
+      }
+    ]
+  },
+  "officialInventory": {
+    "gitRepository": "actions/runner-images",
+    "gitBlob": "52372b6571987d5a0ce75869ad2ee17c1113e168",
+    "sha256": "a8a01d06211feee22893bcdf1ccd04d8ebaaf857861aeb770a0f85d838eba94e",
+    "primaryUrl": "https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md",
+    "independentlyOpenedCurrentPublishedVersion": "20261026.0455.2"
+  },
+  "productionCapabilityFlagsStillZero": true,
+  "limitations": [
+    "No ARM compiler or installed runtime acceptance is inferred from local checks.",
+    "Prior Intel evidence keeps its exact prior source and binary identity.",
+    "The prior review records local Node spawnSync wrapper EPERM separately from actual direct embedded-test success."
+  ]
+}
