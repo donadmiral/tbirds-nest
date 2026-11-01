@@ -1,0 +1,65 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "applicationProject": {
+    "id": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+    "name": "admin-web",
+    "accountId": "team_yu7fUehO2z7E6QHF6Nvxp3tC",
+    "framework": "nextjs",
+    "environmentVariablesRead": false,
+    "ssoProtection": {
+      "enabled": true,
+      "deploymentType": "all_except_custom_domains"
+    },
+    "passwordProtection": {
+      "configured": true
+    },
+    "link": null
+  },
+  "environmentVariables": [
+    {
+      "key": "SUPABASE_SERVICE_ROLE_KEY",
+      "type": "sensitive",
+      "target": [
+        "preview"
+      ],
+      "gitBranch": "codex/completion-20261101",
+      "id": "4ddcYe7ihN6yymlj",
+      "decrypted": false
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "type": "encrypted",
+      "target": [
+        "preview"
+      ],
+      "gitBranch": "codex/completion-20261101",
+      "id": "iuu0YR3GIJhQmy78",
+      "decrypted": false
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "type": "encrypted",
+      "target": [
+        "preview"
+      ],
+      "gitBranch": "codex/completion-20261101",
+      "id": "FW3zflZFRRqDhBFm",
+      "decrypted": false
+    }
+  ],
+  "environmentValuesRequested": false,
+  "environmentValuesPrinted": false,
+  "credentialExtraction": false,
+  "route": {
+    "supportedOperation": "Normal Vercel create_deployment for the existing protected QA admin preview branch, with a reviewed one-off build-command override.",
+    "branch": "codex/completion-20261101",
+    "credentialUse": "Existing server-scoped SUPABASE_SERVICE_ROLE_KEY remains inside the Vercel build process and calls official Supabase Auth admin APIs.",
+    "proposedFixture": "Marked disposable ordinary Auth identities created with email_confirm:true, random internal-only passwords and example.invalid addresses; normal sign-in/refresh/sign-out and normal account cleanup only.",
+    "noPublicEndpoint": true,
+    "noDirectAuthTableWrite": true,
+    "noMigrationTransport": true,
+    "noMessagingOrRealMoneyAction": true
+  },
+  "status": "Metadata route verified; acceptance script not yet implemented or executed. Existing Auth hooks and cleanup contracts still require source review before creating fixtures."
+}

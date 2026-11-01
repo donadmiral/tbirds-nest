@@ -1,0 +1,19 @@
+✔ production, wrong branch/project/source and missing server credentials are rejected before a client is created (2.988916ms)
+✔ cleanup requires the exact created ID, run, immutable Auth marker and disposable address (0.872572ms)
+✔ failure receipts never serialize provider messages, credentials, tokens or request bodies (0.262645ms)
+✔ provider outages and invalid requests cannot masquerade as Storage access denial or Auth absence (0.223936ms)
+✔ complete synthetic harness proves all seven assertions and exact cleanup on normal provider responses (32.509502ms)
+✔ failure injection public_read_503 cannot produce an accepted receipt (3.043509ms)
+✔ failure injection other_read_503 cannot produce an accepted receipt (1.635229ms)
+✔ failure injection stale_rpc_503 cannot produce an accepted receipt (1.942912ms)
+✔ failure injection storage_remove_noop cannot produce an accepted receipt (3.2514ms)
+✔ failure injection storage_readback_503 cannot produce an accepted receipt (1.979767ms)
+✔ failure injection auth_readback_503 cannot produce an accepted receipt (1.415539ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 57.044378

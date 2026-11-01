@@ -1,0 +1,21 @@
+{
+  "formatVersion": 1,
+  "reviewedAtUtc": "2026-11-01T04:50:13.465535+00:00",
+  "reviewedFiles": {
+    "admin-web/scripts/completion-qa-auth-acceptance.mjs": "645c869d6a78f9c30008b9138e0e7705b446168008fd68630dad425a4b59f3ac",
+    "admin-web/scripts/completion-qa-auth-acceptance.test.mjs": "25d3f95536b130b1fb2c8f1f2f972643f4fd0679bac73a34df95b8c9f6bfa132"
+  },
+  "localChecksPassed": 11,
+  "localChecksFailed": 0,
+  "serverOnlyExplicitBuildInvocation": true,
+  "exactPreviewBranchCommitAndQaOriginRequiredBeforeClientCreation": true,
+  "existingServerCredentialNotReadOrExported": true,
+  "officialCreateUserDoesNotSendConfirmationEmail": true,
+  "customUuidSupportedByInstalledAdminUserAttributes": true,
+  "exactSyntheticIdsAndImmutableRunMetadataRequiredForCleanup": true,
+  "fiveHundredErrorsAndTransportFailuresRejectedAsDenialOrAbsence": true,
+  "storageAndAuthAndProfileAbsenceReadBack": true,
+  "doesNotClaimAccountErasureWorkerAcceptance": true,
+  "noMessagesOrRealMoneyActions": true,
+  "noPublicEndpointOrSqlTransport": true
+}

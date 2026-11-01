@@ -1,0 +1,99 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "executor": "postgres",
+  "readOnly": true,
+  "triggers": [
+    {
+      "bodyMd5": "4996a5dacad80429f5fbf69bcc22a681",
+      "enabled": "O",
+      "trigger": "on_auth_user_created",
+      "function": "public.handle_new_user",
+      "relation": "auth.users",
+      "definition": "CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user()",
+      "definitionMd5": "02467b6f2fcb8a6928cdaebe097e6bbc",
+      "directExternalCallPattern": false
+    },
+    {
+      "bodyMd5": "e3dfc48e6e12ba91b3a55088c90f976c",
+      "enabled": "O",
+      "trigger": "account_erasure_actor_write",
+      "function": "account_erasure.guard_actor_write",
+      "relation": "public.profiles",
+      "definition": "CREATE TRIGGER account_erasure_actor_write BEFORE INSERT OR DELETE OR UPDATE ON public.profiles FOR EACH STATEMENT EXECUTE FUNCTION account_erasure.guard_actor_write()",
+      "definitionMd5": "046547d7e04b40a1a9f8a1aca382066d",
+      "directExternalCallPattern": false
+    },
+    {
+      "bodyMd5": "09925b9e70da080406a04f3fc853d371",
+      "enabled": "O",
+      "trigger": "business_auth_register_account",
+      "function": "business_auth.register_account",
+      "relation": "public.profiles",
+      "definition": "CREATE TRIGGER business_auth_register_account AFTER INSERT OR UPDATE OF account_type ON public.profiles FOR EACH ROW EXECUTE FUNCTION business_auth.register_account()",
+      "definitionMd5": "628fe599cbc48581a88234668aa32aa9",
+      "directExternalCallPattern": false
+    },
+    {
+      "bodyMd5": "6524612d0148933398c7bc5f2deb45bd",
+      "enabled": "O",
+      "trigger": "enforce_staff_social_shell",
+      "function": "admin_ops.enforce_staff_social_shell",
+      "relation": "public.profiles",
+      "definition": "CREATE TRIGGER enforce_staff_social_shell BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION admin_ops.enforce_staff_social_shell()",
+      "definitionMd5": "60f85bff8f70e05c3401c4a35d7173b1",
+      "directExternalCallPattern": true
+    },
+    {
+      "bodyMd5": "3daea756cd17a65a76787faa09819cee",
+      "enabled": "O",
+      "trigger": "guard_profile_verification",
+      "function": "admin_ops.guard_profile_verification",
+      "relation": "public.profiles",
+      "definition": "CREATE TRIGGER guard_profile_verification BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_profile_verification()",
+      "definitionMd5": "da38b04a1e00c632e71780ad9d345775",
+      "directExternalCallPattern": false
+    },
+    {
+      "bodyMd5": "2672277aaa8a13acff6107dd07e98696",
+      "enabled": "O",
+      "trigger": "guard_reserved_web_username",
+      "function": "app_routes.guard_profile_username",
+      "relation": "public.profiles",
+      "definition": "CREATE TRIGGER guard_reserved_web_username BEFORE INSERT OR UPDATE OF username ON public.profiles FOR EACH ROW EXECUTE FUNCTION app_routes.guard_profile_username()",
+      "definitionMd5": "26fa977d54cc9408dc41c48ca68bde51",
+      "directExternalCallPattern": false
+    },
+    {
+      "bodyMd5": "7d5ee65d6e655e2fefdcb9c4c4c84405",
+      "enabled": "O",
+      "trigger": "trg_profiles_search_tsv",
+      "function": "public.profiles_search_tsv_fn",
+      "relation": "public.profiles",
+      "definition": "CREATE TRIGGER trg_profiles_search_tsv BEFORE INSERT OR UPDATE OF username, full_name, bio, location ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.profiles_search_tsv_fn()",
+      "definitionMd5": "b2f1d299c6651e65d2bf4c8a1d5ed59e",
+      "directExternalCallPattern": false
+    },
+    {
+      "bodyMd5": "a9fc2a913c93cd9b985ca0bf9aa289b7",
+      "enabled": "O",
+      "trigger": "trg_set_verified_school_on_insert",
+      "function": "public.handle_verified_school_status",
+      "relation": "public.profiles",
+      "definition": "CREATE TRIGGER trg_set_verified_school_on_insert BEFORE INSERT ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.handle_verified_school_status()",
+      "definitionMd5": "c9d152f1ab663c0095ad9a8e58eabebd",
+      "directExternalCallPattern": false
+    },
+    {
+      "bodyMd5": "e3dfc48e6e12ba91b3a55088c90f976c",
+      "enabled": "O",
+      "trigger": "account_erasure_actor_write",
+      "function": "account_erasure.guard_actor_write",
+      "relation": "public.user_presence",
+      "definition": "CREATE TRIGGER account_erasure_actor_write BEFORE INSERT OR DELETE OR UPDATE ON public.user_presence FOR EACH STATEMENT EXECUTE FUNCTION account_erasure.guard_actor_write()",
+      "definitionMd5": "046547d7e04b40a1a9f8a1aca382066d",
+      "directExternalCallPattern": false
+    }
+  ],
+  "observedAt": "2026-11-01T04:37:54.338824+00:00"
+}
