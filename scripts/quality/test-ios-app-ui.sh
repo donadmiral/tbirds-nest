@@ -69,14 +69,14 @@ test -s "$app/main.jsbundle"
 xcrun lipo "$app/PlatinumQA" -verify_arch "$ios_arch"
 # Xcode creates simulated entitlements in the executable. The host macOS code
 # signature is separate; adding iOS app entitlements to that signature is wrong.
-python3 scripts/quality/native-ui-ios-entitlements.py "$app" native-ui-logs/simulator-entitlements-before-resign.json
+python3 scripts/quality/native-ui-ios-entitlements.py "$app" native-ui-logs/simulator-entitlements-before-resign.json --ios-target "$ios_target"
 codesign --display --verbose=4 "$app" > native-ui-logs/simulator-signature-before-resign.log 2>&1
 codesign --display --entitlements - --xml "$app" > native-ui-logs/simulator-host-entitlements-before-resign.plist 2> native-ui-logs/simulator-host-entitlements-before-resign.log
 codesign --force --deep --sign - "$app" 2>&1 | tee native-ui-logs/simulator-signing.log
 codesign --verify --deep --strict --verbose=2 "$app" 2>&1 | tee native-ui-logs/simulator-signature-verification.log
 codesign --display --verbose=4 "$app" > native-ui-logs/simulator-signature.log 2>&1
 codesign --display --entitlements - --xml "$app" > native-ui-logs/simulator-host-entitlements.plist 2> native-ui-logs/simulator-host-entitlements.log
-python3 scripts/quality/native-ui-ios-entitlements.py "$app" native-ui-logs/simulator-entitlements.json
+python3 scripts/quality/native-ui-ios-entitlements.py "$app" native-ui-logs/simulator-entitlements.json --ios-target "$ios_target"
 python3 - <<'PY'
 from pathlib import Path
 import json

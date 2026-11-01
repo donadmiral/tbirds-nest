@@ -1,0 +1,15 @@
+✔ Simulator entitlement reader verifies actual Mach-O/plist fixtures and rejects missing or mismatched identities (153.853194ms)
+✔ both actual packaging inspections require the explicit selected Simulator target (4.499179ms)
+✔ actual Simulator signing check: valid (22.778963ms)
+✔ actual Simulator signing check: empty-host (23.948004ms)
+✔ actual Simulator signing check: changed-embedded (24.533717ms)
+✔ actual Simulator signing check: non-adhoc (24.139072ms)
+✔ actual Simulator signing check: host-app-entitlement (23.449603ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 336.040394

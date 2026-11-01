@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T05:09:11.019803+00:00",
+  "reviewer": "status_scope_check",
+  "scope": "Only four existing packaging/parser/test paths; new producer/workflow/summary excluded per user five-minute scope.",
+  "result": "pass-no-material-blocker",
+  "sourceFiles": [
+    {
+      "path": "scripts/quality/native-ui-ios-entitlements.py",
+      "bytes": 6185,
+      "sha256": "c9669c70ee03d0a514a3f9eee82409f02f8a2114eb7f037e33e0588d6143e955",
+      "gitBlob": "2d9c6692c29f1433a2839876c4814d085c61e159",
+      "beforeSha256": "ebec3f0271afaecb372710a2bdc6aa4eb43eec00c736a4923aaed0c317c1f65b"
+    },
+    {
+      "path": "scripts/quality/test-ios-app-ui.sh",
+      "bytes": 8342,
+      "sha256": "b4517a58d0429de70697d332c35aa9262c8e69062fe9d843c570d92f91613b4b",
+      "gitBlob": "56f88ecad6d61da00b225a89f964ccec36f406a6",
+      "beforeSha256": "55681e42dccc86971632c4cbf4cf4302b5271c147619f023410bee7431cc4412"
+    },
+    {
+      "path": "tests/native/test_simulator_entitlements.py",
+      "bytes": 9747,
+      "sha256": "8bbeb30cce093fe1581bcfb6a0070f5318fc7a279b345456c01994ff077d3b46",
+      "gitBlob": "61896cf7be5c072ec1df5f590271e1a799d855ee",
+      "beforeSha256": "807370d2980e90a2558fb74728fbe2400b0c60da05d498020ed602bee8018e41"
+    },
+    {
+      "path": "tests/quality/native-simulator-entitlements.cjs",
+      "bytes": 3445,
+      "sha256": "53a1319cfe4683bb55ae9bcd4cb7a87fb79b989d79e21caa697ad0a97cb11776",
+      "gitBlob": "536f048c342b4ad517690b7e64e7bb9bd696b1c2",
+      "beforeSha256": "408f6e9725a87bcab3b562abea30dbb5acaec5199c5321e3d79c24a228ac81ac"
+    }
+  ],
+  "checks": [
+    "Explicit target selects exact thin x86_64 or ARM64 Mach-O CPU; no autodetection or acceptance of wrong/fat CPU.",
+    "Both actual before/after packaging inspections pass the selected target.",
+    "Original iOS Simulator platform, XML/DER presence and bounds, QA application/keychain identity, host-signature separation and signing checks remain strict.",
+    "Independent actual Node wrapper and its Python executable/CLI negative cases pass."
+  ],
+  "testCommand": "node --test tests/quality/native-simulator-entitlements.cjs",
+  "testExitCode": 0,
+  "testReport": "minimal-independent.tap",
+  "testReportSha256": "4b3eec10f41b3fd161a15823c643bc0b5ef87811d8f5a06fa7e34f691c0cc94b",
+  "newBuildOrRuntimeRunStarted": false,
+  "installedRuntimeAcceptanceClaimed": false,
+  "productionCapabilityChanged": false
+}

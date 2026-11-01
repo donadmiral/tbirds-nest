@@ -1,0 +1,90 @@
+{
+  "observedAt": "2026-11-01T05:08:18Z",
+  "scope": "Final source checkpoint after the user stopped extended acceptance; no new native build or workflow run is authorized in this lane.",
+  "publicationOwner": "/root",
+  "minimalRepair": {
+    "manifest": "docs/quality/completion-20261101/ios-arm-package-repair/minimal-candidate-manifest.json",
+    "manifestSha256": "e6fc404c27a45e1377d1c4c690d32778340ee74e625faa91f37d26bfc2965521",
+    "files": 4,
+    "description": "Require the explicit selected Simulator CPU in both real entitlement inspections, preserving the Intel default and all original QA identity, XML/DER, platform, bounds and host-signature checks.",
+    "applicationRuntimeFilesChanged": false,
+    "newWorkflowIncluded": false,
+    "tests": {
+      "nodeOuterCasesPassed": 7,
+      "namedEmbeddedPythonCasesPassed": 12,
+      "namedPythonDirectCasesPassed": 12,
+      "note": "The direct Python receipt repeats the same 12 embedded cases and must not be added as 12 more distinct tests.",
+      "failures": 0,
+      "shellSyntaxPassed": true
+    },
+    "rebuiltAfterRepair": false
+  },
+  "verifiedApplicationSource": {
+    "commit": "f318c7ce5312956a903482320ec1a773e28b28f9",
+    "tree": "a84f2436264d6ca21e82ec131f60d6d37bdce099",
+    "normalProducerRun": 41273946500,
+    "android": {
+      "producerJob": 124752199899,
+      "buildPassed": true,
+      "artifactId": 13071495512,
+      "apkSha256": "2ee5da3d9b94803e8a6563fdfa953a1008c92377ee1ade3f54d07513fd097769",
+      "sourceHashesVerified": 607,
+      "auditInputsVerified": 10,
+      "groups": {
+        "account": "in_progress at last observation",
+        "settings": "in_progress at last observation",
+        "social": "in_progress at last observation"
+      },
+      "current85CaseAcceptanceClaimed": false,
+      "receipt": "docs/quality/completion-20261101/android-audit-build-f318c7ce/verification.json"
+    },
+    "ios": {
+      "producerJob": 124752199667,
+      "compilerPassed": true,
+      "compilerArchitecture": "arm64",
+      "packagingPassed": false,
+      "binaryArtifactRetained": false,
+      "installedAcceptanceClaimed": false,
+      "receipt": "docs/quality/completion-20261101/ios-arm-package-repair/failed-arm-producer-verification.json"
+    },
+    "encoderAcceptance": {
+      "iosMemoryCasesPassed": 11,
+      "iosStoryCasesPassed": 8,
+      "androidCasesPassed": 40,
+      "sourceAndOutputHashesVerified": true,
+      "iosRun": 41273946481,
+      "androidRun": 41273946471,
+      "receiptDirectory": "docs/quality/completion-20261101/native-encoders-f318c7ce",
+      "installedFullAppAcceptanceImplied": false
+    },
+    "separateCompilation": {
+      "androidKotlinIntegration": "passed",
+      "iosSwiftIntegration": "passed on its retained Intel target",
+      "receiptDirectory": "docs/quality/completion-20261101/native-compilation-f318c7ce"
+    }
+  },
+  "olderEvidence": {
+    "ecfAndroid": "85 of 85 original cases and actual installed capture/cancel/retry/export/decode passed on ecf5e5a, retained separately; not relabeled as the new f318 build.",
+    "ecfRemainingIosRun": 41271278242,
+    "ecfRemainingIosStatus": "settings and social both completed failure at last observation",
+    "ecfAccountIos": "20 passed and 7 failed out of 27 once-only cases, including known pre-fix capture and interaction failures.",
+    "originalIosJourney": "The new ARM route has not run; its unbound consumer remains unpublished. Earlier Intel Market timing failure is retained."
+  },
+  "productionRelease": {
+    "memoryMovieVersionIos": 0,
+    "memoryMovieVersionAndroid": 0,
+    "reason": "No successful current installed iOS capture/export/decode proof was obtained before extended acceptance was stopped.",
+    "easReadiness": "Authenticated official CLI project, resolved production configuration and stored signing credential metadata were checked read-only; no private key was retrieved.",
+    "easReceipt": "docs/quality/completion-20261101/eas-production-readiness/verification.json",
+    "newSignedBuildStarted": false,
+    "storeSubmissionStarted": false,
+    "newInstalledReleaseClaimed": false
+  },
+  "stopBoundary": {
+    "newRuntimeWorkStartedAfterStop": false,
+    "newWorkflowRunStartedAfterStop": false,
+    "stillActiveRunAtLastObservation": 41273946500,
+    "cancellationIssued": false,
+    "cancellationNote": "Parent reports no exposed cancellation capability or gh executable. No cancellation success is claimed."
+  }
+}

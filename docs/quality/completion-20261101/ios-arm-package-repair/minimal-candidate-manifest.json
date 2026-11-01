@@ -1,0 +1,59 @@
+{
+  "parentCommit": "759bd7c9d31daf8ced8fa485067c0d91d1de7934",
+  "parentTree": "8133c65b7b3bdba3e9b0d82867601b4c10ed0ea2",
+  "intendedBranch": "parent-selected-final-source-checkpoint",
+  "sourceFiles": [
+    {
+      "path": "scripts/quality/native-ui-ios-entitlements.py",
+      "bytes": 6185,
+      "sha256": "c9669c70ee03d0a514a3f9eee82409f02f8a2114eb7f037e33e0588d6143e955",
+      "gitBlob": "2d9c6692c29f1433a2839876c4814d085c61e159",
+      "beforeSha256": "ebec3f0271afaecb372710a2bdc6aa4eb43eec00c736a4923aaed0c317c1f65b"
+    },
+    {
+      "path": "scripts/quality/test-ios-app-ui.sh",
+      "bytes": 8342,
+      "sha256": "b4517a58d0429de70697d332c35aa9262c8e69062fe9d843c570d92f91613b4b",
+      "gitBlob": "56f88ecad6d61da00b225a89f964ccec36f406a6",
+      "beforeSha256": "55681e42dccc86971632c4cbf4cf4302b5271c147619f023410bee7431cc4412"
+    },
+    {
+      "path": "tests/native/test_simulator_entitlements.py",
+      "bytes": 9747,
+      "sha256": "8bbeb30cce093fe1581bcfb6a0070f5318fc7a279b345456c01994ff077d3b46",
+      "gitBlob": "61896cf7be5c072ec1df5f590271e1a799d855ee",
+      "beforeSha256": "807370d2980e90a2558fb74728fbe2400b0c60da05d498020ed602bee8018e41"
+    },
+    {
+      "path": "tests/quality/native-simulator-entitlements.cjs",
+      "bytes": 3445,
+      "sha256": "53a1319cfe4683bb55ae9bcd4cb7a87fb79b989d79e21caa697ad0a97cb11776",
+      "gitBlob": "536f048c342b4ad517690b7e64e7bb9bd696b1c2",
+      "beforeSha256": "408f6e9725a87bcab3b562abea30dbb5acaec5199c5321e3d79c24a228ac81ac"
+    }
+  ],
+  "originalCanonicalWorkflowUnchanged": true,
+  "productionCapabilityChanged": false,
+  "newBuildRequired": true,
+  "runtimeAcceptance": false,
+  "excludedUnpublishedFiles": [
+    ".github/workflows/completion-ios-arm-package.yml",
+    "scripts/quality/completion-ios-arm-package-summary.py",
+    "tests/native/test_ios_arm_package_summary.py",
+    "tests/quality/native-ios-arm-package.cjs"
+  ],
+  "newRuntimeWorkAuthorized": false,
+  "userScope": "Stop extended acceptance and finish the source checkpoint; no new workflow run or app build.",
+  "verification": {
+    "nodeOuterCases": 7,
+    "embeddedEntitlementPythonCases": 12,
+    "nodeExitCode": 0,
+    "pythonDirectExitCode": 0,
+    "shellSyntax": "passed",
+    "changedApplicationRuntimeFiles": []
+  },
+  "testReceipts": {
+    "minimal-focused.tap": "178deeea636d3958bb4a11e0987f4a2bcf07c102c220e282b5a99f7e956b7795",
+    "entitlements-direct.txt": "eeab9b68a26e6c8efadaf3ccd5e6eeed6a44fef035ef8d102b345714c2da94a9"
+  }
+}

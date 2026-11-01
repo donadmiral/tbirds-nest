@@ -1,7 +1,9 @@
 import importlib.util
+import json
 from pathlib import Path
 import plistlib
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -33,7 +35,7 @@ def executable(entitlements, platform=7, cpu=0x01000007, omit=None):
 
 
 class SimulatorEntitlements(unittest.TestCase):
-    def inspect(self, entitlements=None, bundle=None, supported=None, binary=None):
+    def inspect(self, entitlements=None, bundle=None, supported=None, binary=None, ios_target='intel-ios18.5'):
         with tempfile.TemporaryDirectory(prefix='native-qa-entitlements-') as directory:
             app = Path(directory) / 'PlatinumQA.app'
             app.mkdir()
@@ -41,12 +43,13 @@ class SimulatorEntitlements(unittest.TestCase):
                 'CFBundleSupportedPlatforms': supported or ['iPhoneSimulator'], 'CFBundleExecutable': 'PlatinumQA'}))
             (app / 'PlatinumQA').write_bytes(binary if binary is not None else executable(
                 entitlements if entitlements is not None else {'application-identifier': APP_ID}))
-            return READER.inspect(app)
+            return READER.inspect(app, ios_target)
 
     def test_generated_application_identity_is_default_keychain_group(self):
         result = self.inspect()
         self.assertEqual(result['defaultKeychainAccessGroup'], APP_ID)
         self.assertEqual(result['platform'], 'iOS Simulator')
+        self.assertEqual(result['architecture'], 'x86_64')
         self.assertEqual(set(result['embeddedSections']), {'__entitlements', '__ents_der'})
         self.assertFalse(result['keychainRuntimeAccepted'])
         self.assertFalse(result['derSemanticsDecoded'])
@@ -92,6 +95,66 @@ class SimulatorEntitlements(unittest.TestCase):
         struct.pack_into('<I', binary, 32 + 24 + 72 + 48, len(binary) + 100)
         with self.assertRaisesRegex(ValueError, 'entitlement bounds'):
             self.inspect(binary=bytes(binary))
+
+    def test_arm_target_accepts_only_its_thin_simulator_cpu_and_keeps_identity_guards(self):
+        identity = {'application-identifier': APP_ID, 'keychain-access-groups': [APP_ID]}
+        binary = executable(identity, cpu=0x0100000C)
+        result = self.inspect(binary=binary, ios_target='arm64-ios26.2')
+        self.assertEqual(result['architecture'], 'arm64')
+        self.assertEqual(result['defaultKeychainAccessGroup'], APP_ID)
+        self.assertEqual(result['simulatedEntitlements'], identity)
+        self.assertEqual(set(result['embeddedSections']), {'__entitlements', '__ents_der'})
+        self.assertTrue(result['hostSignatureEntitlementsAreSeparate'])
+        self.assertFalse(result['keychainRuntimeAccepted'])
+        for options in ({'cpu': 0x01000007}, {'cpu': 0x0100000C, 'platform': 2},
+                        {'cpu': 0x0100000C, 'omit': b'__entitlements'},
+                        {'cpu': 0x0100000C, 'omit': b'__ents_der'}):
+            with self.subTest(options=options), self.assertRaises(ValueError):
+                self.inspect(binary=executable(identity, **options), ios_target='arm64-ios26.2')
+        for invalid in ({}, {'application-identifier': 'other.app'},
+                        {'application-identifier': '$(AppIdentifierPrefix)' + READER.QA_BUNDLE},
+                        {'application-identifier': APP_ID, 'keychain-access-groups': ['']}):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                self.inspect(binary=executable(invalid, cpu=0x0100000C), ios_target='arm64-ios26.2')
+
+    def test_unknown_targets_and_fat_or_wrong_cpu_binaries_are_rejected(self):
+        identity = {'application-identifier': APP_ID}
+        for target in (None, '', 'arm64', 'auto', 'arm64-ios18.5'):
+            with self.subTest(target=target), self.assertRaisesRegex(ValueError, 'Unsupported explicit'):
+                self.inspect(ios_target=target)
+        for target, cpu in (('intel-ios18.5', 0x01000007), ('arm64-ios26.2', 0x0100000C)):
+            for mutation in ('fat', 'unknown-cpu', 'truncated', 'section-bounds'):
+                binary = bytearray(executable(identity, cpu=cpu))
+                if mutation == 'fat':
+                    struct.pack_into('>I', binary, 0, 0xCAFEBABE)
+                elif mutation == 'unknown-cpu':
+                    struct.pack_into('<I', binary, 4, 12)
+                elif mutation == 'truncated':
+                    binary = binary[:40]
+                else:
+                    struct.pack_into('<I', binary, 32 + 24 + 72 + 48, len(binary) + 100)
+                with self.subTest(target=target, mutation=mutation), self.assertRaises(ValueError):
+                    self.inspect(binary=bytes(binary), ios_target=target)
+
+    def test_actual_cli_requires_the_explicit_arm_target_and_preserves_intel_default(self):
+        with tempfile.TemporaryDirectory(prefix='native-qa-entitlements-cli-') as directory:
+            app = Path(directory) / 'PlatinumQA.app'
+            app.mkdir()
+            (app / 'Info.plist').write_bytes(plistlib.dumps({'CFBundleIdentifier': READER.QA_BUNDLE,
+                'CFBundleSupportedPlatforms': ['iPhoneSimulator'], 'CFBundleExecutable': 'PlatinumQA'}))
+            output = Path(directory) / 'report.json'
+            command = [sys.executable, str(ROOT / 'scripts/quality/native-ui-ios-entitlements.py'), str(app), str(output)]
+            for target, cpu, architecture in (('intel-ios18.5', 0x01000007, 'x86_64'), ('arm64-ios26.2', 0x0100000C, 'arm64')):
+                (app / 'PlatinumQA').write_bytes(executable({'application-identifier': APP_ID}, cpu=cpu))
+                selected = command if target == 'intel-ios18.5' else command + ['--ios-target', target]
+                completed = subprocess.run(selected, capture_output=True, text=True, timeout=5)
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+                self.assertEqual(json.loads(output.read_text())['architecture'], architecture)
+                output.unlink()
+            failed = subprocess.run(command, capture_output=True, text=True, timeout=5)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn('locked thin x86_64', failed.stderr)
+            self.assertFalse(output.exists())
 
 
 if __name__ == '__main__':

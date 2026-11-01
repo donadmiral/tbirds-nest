@@ -1,21 +1,32 @@
 #!/usr/bin/env python3
-"""Inspect the real Intel Simulator executable, separately from its host signature."""
+"""Inspect the selected Simulator executable, separately from its host signature."""
+import argparse
 import hashlib
 import json
 from pathlib import Path
 import plistlib
 import struct
-import sys
 
 QA_BUNDLE = 'app.platinumcircles.mobile.qa'
+TARGETS = {
+    'intel-ios18.5': ('x86_64', 0x01000007),
+    'arm64-ios26.2': ('arm64', 0x0100000C),
+}
 
 
-def simulated_entitlements(data):
+def target_architecture(ios_target):
+    if not isinstance(ios_target, str) or ios_target not in TARGETS:
+        raise ValueError('Unsupported explicit Simulator entitlement target.')
+    return TARGETS[ios_target]
+
+
+def simulated_entitlements(data, ios_target='intel-ios18.5'):
+    architecture, expected_cpu = target_architecture(ios_target)
     if len(data) < 32:
         raise ValueError('Truncated Simulator Mach-O header.')
     magic, cpu, _, _, count, size, _, _ = struct.unpack_from('<8I', data)
-    if magic != 0xFEEDFACF or cpu != 0x01000007:
-        raise ValueError('Expected the locked thin x86_64 Simulator executable.')
+    if magic != 0xFEEDFACF or cpu != expected_cpu:
+        raise ValueError('Expected the locked thin ' + architecture + ' Simulator executable.')
     end = 32 + size
     if count > 4096 or end > len(data):
         raise ValueError('Invalid Simulator load-command bounds.')
@@ -61,7 +72,8 @@ def simulated_entitlements(data):
                    for name, content in sections.items()}
 
 
-def inspect(app):
+def inspect(app, ios_target='intel-ios18.5'):
+    architecture, _ = target_architecture(ios_target)
     info_bytes = (app / 'Info.plist').read_bytes()
     info = plistlib.loads(info_bytes)
     if info.get('CFBundleIdentifier') != QA_BUNDLE or info.get('CFBundleSupportedPlatforms') != ['iPhoneSimulator']:
@@ -70,14 +82,14 @@ def inspect(app):
     if not isinstance(executable, str) or not executable or Path(executable).name != executable:
         raise ValueError('Invalid QA executable name.')
     binary = (app / executable).read_bytes()
-    entitlements, sections = simulated_entitlements(binary)
+    entitlements, sections = simulated_entitlements(binary, ios_target)
     app_id = entitlements.get('application-identifier') or entitlements.get('com.apple.application-identifier')
     if not isinstance(app_id, str) or not (app_id == QA_BUNDLE or app_id.endswith('.' + QA_BUNDLE)) or '$(' in app_id:
         raise ValueError('Missing or incorrect generated QA Simulator application identifier.')
     groups = entitlements.get('keychain-access-groups', [])
     if not isinstance(groups, list) or any(not isinstance(group, str) or not group or '$(' in group for group in groups):
         raise ValueError('Invalid generated Simulator keychain access groups.')
-    return {'bundleIdentifier': QA_BUNDLE, 'platform': 'iOS Simulator', 'architecture': 'x86_64',
+    return {'bundleIdentifier': QA_BUNDLE, 'platform': 'iOS Simulator', 'architecture': architecture,
             'executableSha256': hashlib.sha256(binary).hexdigest(), 'infoPlistSha256': hashlib.sha256(info_bytes).hexdigest(),
             'simulatedEntitlements': entitlements, 'embeddedSections': sections,
             'defaultKeychainAccessGroup': groups[0] if groups else app_id,
@@ -86,9 +98,14 @@ def inspect(app):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('app', type=Path)
+    parser.add_argument('output', type=Path)
+    parser.add_argument('--ios-target', choices=TARGETS, default='intel-ios18.5')
+    args = parser.parse_args()
     try:
-        result = inspect(Path(sys.argv[1]))
-        Path(sys.argv[2]).write_text(json.dumps(result, indent=2) + '\n')
+        result = inspect(args.app, args.ios_target)
+        args.output.write_text(json.dumps(result, indent=2) + '\n')
         print('Verified generated QA Simulator application/keychain identity in embedded XML; DER section is present.')
     except (ValueError, OSError, IndexError, struct.error, plistlib.InvalidFileException) as error:
         raise SystemExit('Simulator entitlement verification failed: ' + str(error))

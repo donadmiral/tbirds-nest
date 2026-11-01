@@ -13,6 +13,13 @@ test('Simulator entitlement reader verifies actual Mach-O/plist fixtures and rej
 });
 
 const script = fs.readFileSync(path.join(root, 'scripts/quality/test-ios-app-ui.sh'), 'utf8');
+test('both actual packaging inspections require the explicit selected Simulator target', () => {
+  const inspections = script.split('\n').filter(line => line.startsWith('python3 scripts/quality/native-ui-ios-entitlements.py '));
+  assert.deepEqual(inspections, [
+    'python3 scripts/quality/native-ui-ios-entitlements.py "$app" native-ui-logs/simulator-entitlements-before-resign.json --ios-target "$ios_target"',
+    'python3 scripts/quality/native-ui-ios-entitlements.py "$app" native-ui-logs/simulator-entitlements.json --ios-target "$ios_target"',
+  ]);
+});
 const blocks = [...script.matchAll(/python3 - <<'PY'\n([\s\S]*?)\nPY/g)].map(match => match[1])
   .filter(source => source.includes('simulator-host-entitlements'));
 assert.equal(blocks.length, 1, 'exercise the actual before/after signing check');

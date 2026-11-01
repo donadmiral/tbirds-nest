@@ -1,0 +1,17 @@
+test_actual_cli_requires_the_explicit_arm_target_and_preserves_intel_default (__main__.SimulatorEntitlements.test_actual_cli_requires_the_explicit_arm_target_and_preserves_intel_default) ... ok
+test_arm_target_accepts_only_its_thin_simulator_cpu_and_keeps_identity_guards (__main__.SimulatorEntitlements.test_arm_target_accepts_only_its_thin_simulator_cpu_and_keeps_identity_guards) ... ok
+test_both_simulated_sections_are_required (__main__.SimulatorEntitlements.test_both_simulated_sections_are_required) ... ok
+test_explicit_generated_keychain_group_is_reported (__main__.SimulatorEntitlements.test_explicit_generated_keychain_group_is_reported) ... ok
+test_generated_application_identity_is_default_keychain_group (__main__.SimulatorEntitlements.test_generated_application_identity_is_default_keychain_group) ... ok
+test_invalid_keychain_groups_are_rejected (__main__.SimulatorEntitlements.test_invalid_keychain_groups_are_rejected) ... ok
+test_missing_wrong_or_unexpanded_application_identity_is_rejected (__main__.SimulatorEntitlements.test_missing_wrong_or_unexpanded_application_identity_is_rejected) ... ok
+test_other_apps_and_hardware_builds_are_rejected (__main__.SimulatorEntitlements.test_other_apps_and_hardware_builds_are_rejected) ... ok
+test_out_of_bounds_section_is_rejected (__main__.SimulatorEntitlements.test_out_of_bounds_section_is_rejected) ... ok
+test_truncated_header_load_commands_and_payload_are_rejected (__main__.SimulatorEntitlements.test_truncated_header_load_commands_and_payload_are_rejected) ... ok
+test_unknown_targets_and_fat_or_wrong_cpu_binaries_are_rejected (__main__.SimulatorEntitlements.test_unknown_targets_and_fat_or_wrong_cpu_binaries_are_rejected) ... ok
+test_wrong_architecture_and_platform_are_rejected (__main__.SimulatorEntitlements.test_wrong_architecture_and_platform_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.112s
+
+OK
