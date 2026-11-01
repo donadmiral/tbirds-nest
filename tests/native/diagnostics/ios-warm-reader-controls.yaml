@@ -1,0 +1,73 @@
+appId: app.platinumcircles.mobile.qa
+name: Diagnostic original tabs to saved memory reader controls
+---
+- runFlow: ../../../../baseline/tests/native/audit/flows/_signin.yaml
+- tapOn:
+    id: native-audit-case-input
+- inputText: navigation-warm-tabs
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Native audit launcher
+- tapOn:
+    id: native-audit-open-case
+- extendedWaitUntil:
+    visible: A quiet morning in the desert. Small moments worth keeping.
+    timeout: 15000
+- tapOn: Latest
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- tapOn: For You
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- tapOn:
+    id: main-tab-market
+- extendedWaitUntil:
+    visible: 'View listing: Travel journal'
+    timeout: 15000
+- tapOn:
+    id: main-tab-feed
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- tapOn:
+    id: main-tab-jobs
+- extendedWaitUntil:
+    visible: '(?s)^(?:Product designer|(?:.*?, )?Product designer, (?:.*?, )?Desert Studio(?:, .*)?)$'
+    timeout: 15000
+- assertVisible: Search jobs by title, keyword, or company
+- takeScreenshot: diagnostic-warm-jobs
+- tapOn:
+    id: main-tab-messages
+- extendedWaitUntil:
+    visible: '(?s)^(?:Ready for our next adventure\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\?(?:, .*)?)$'
+    timeout: 15000
+- assertVisible: Search messages
+- takeScreenshot: diagnostic-warm-messages
+- tapOn:
+    id: main-tab-profile
+- extendedWaitUntil:
+    visible: Alex Rivera
+    timeout: 15000
+- assertVisible: '(?s)^(?:.*?, )?Edit profile$'
+- takeScreenshot: diagnostic-warm-profile
+- scrollUntilVisible:
+    element: View all memory books
+    direction: DOWN
+    centerElement: true
+- tapOn: View all memory books
+- tapOn: Private
+- assertVisible: THE SMALL ADVENTURES, 2 memories
+- takeScreenshot: diagnostic-warm-memory-shelf
+- tapOn: THE SMALL ADVENTURES, 2 memories
+- extendedWaitUntil:
+    visible: Edit memory book
+    timeout: 15000
+- scrollUntilVisible:
+    element: Open book
+    direction: DOWN
+    centerElement: false
+- tapOn: Open book
+- assertVisible: Page 1 of 2
+- assertVisible: WE TOOK THE LONG WAY HOME
+- tapOn: Next memory
+- assertVisible: Page 2 of 2
+- assertVisible: THE STORIES WE KEEP
+- takeScreenshot: diagnostic-warm-reader-controls

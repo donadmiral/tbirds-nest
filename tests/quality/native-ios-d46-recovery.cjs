@@ -79,7 +79,7 @@ class Tests(unittest.TestCase):
   statement=next(n for n in ast.walk(main) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='summary' for t in n.targets))
   code=compile(ast.Module(body=[statement],type_ignores=[]),str(p),'exec')
   for passed in [False,True]:
-   ns={**m.__dict__,'groups':{'memory'},'scenarios':self.scenarios,'selected_case_ids':[],'unselected_case_ids':[c['id'] for c in self.scenarios['cases']],'results':[],'diagnostic':{'passed':passed},'args':types.SimpleNamespace(direct_reader_diagnostic_only=True,warm_reader_diagnostic=False)}
+   ns={**m.__dict__,'groups':{'memory'},'scenarios':self.scenarios,'selected_case_ids':[],'unselected_case_ids':[c['id'] for c in self.scenarios['cases']],'results':[],'diagnostic':{'passed':passed},'args':types.SimpleNamespace(direct_reader_diagnostic_only=True,warm_reader_diagnostic=False,warm_reader_controls_diagnostic_only=False)}
    exec(code,ns);r=ns['summary'];self.assertEqual((r['attempted'],r['passed'],r['failed']),(0,0,0));self.assertEqual(len(r['unselectedCaseIds']),85);self.assertFalse(r['warmDiagnosticAttempted']);self.assertEqual((r['diagnosticAttempted'],r['diagnosticPassed'],r['diagnosticFailed']),(1,int(passed),int(not passed)))
  def test_mode_rejects_original_or_warm_or_other_groups(self):
   for groups,cases,warm in [({'memory'},'memory-reader-controls',False),({'memory'},None,True),({'memory','feed'},None,False),({'feed'},None,False),(set(),None,False)]:
@@ -264,7 +264,7 @@ unittest.main(argv=['review'],verbosity=2)
   assert.match(result.stderr, /Ran 13 tests/);
 });
 
-test('prepared d46 workflow selects only the separately counted direct reader diagnostic without rebuilding', () => {
+test('prepared d46 workflow selects one separately counted reader diagnostic without rebuilding', () => {
   const workflow = YAML.parse(fs.readFileSync(path.join(root, '.github/workflows/native-audit-ios-d46-recovery.yml'), 'utf8'));
   assert.deepEqual(workflow.on.push.branches, ['codex/native-audit-ios-d46-recovery-20261031']);
   assert.deepEqual(workflow.permissions, { contents: 'read', actions: 'read' });
@@ -283,7 +283,7 @@ test('prepared d46 workflow selects only the separately counted direct reader di
   assert.equal(job.steps.at(-1).if, 'always()');
   const commands = job.steps.map(step => step.run || '').join('\n');
   assert.match(commands, /--artifact-id/); assert.match(commands, /--recovery-source/);
-  assert.match(commands, /--direct-reader-diagnostic-only/);
+  assert.equal(commands.match(/--(?:direct-reader|warm-reader-controls)-diagnostic-only/g)?.length, 1);
   assert.doesNotMatch(commands, /--cases|--warm-reader-diagnostic/);
   assert.equal(job.steps.some(step => step.env?.AUDIT_CASES), false);
   assert.doesNotMatch(commands, /npm ci|expo prebuild|xcodebuild .*build|codesign .*--sign|pod .*install/);

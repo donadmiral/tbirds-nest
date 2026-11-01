@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import plistlib
 import shutil
 import signal
 import subprocess
@@ -27,6 +28,9 @@ DIRECT_SHA = '008099f1ee207ab6c91022d410b04873b67a3ee3ea2f5b3ad586180b0a5c67af'
 SIGNIN_FLOW = 'tests/native/audit/flows/_signin.yaml'
 SIGNIN_SHA = '847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a'
 DIRECT_SIGNIN_REFERENCE = '../../../../baseline/' + SIGNIN_FLOW
+WARM_CONTROLS_FLOW = 'tests/native/diagnostics/ios-warm-reader-controls.yaml'
+WARM_CONTROLS_NAME = 'Diagnostic original tabs to saved memory reader controls'
+WARM_CONTROLS_SHA = '044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f'
 HELPERS = {
     'native-ui-ios-audit-recovery.py': '428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2',
     'native-ui-ios-compatibility.py': '0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9',
@@ -146,23 +150,25 @@ def select_existing_device(inventory_text, manifest, verifier):
             'enumeration': 'bounded preboot simctl list devices --json'}
 
 
-def select_execution_cases(scenarios, groups, requested_ids=None, warm=False, direct=False):
-    if direct:
-        if groups != {'memory'} or requested_ids is not None or warm:
-            raise ValueError('Direct diagnostic-only mode requires memory alone, no original cases or warm diagnostic')
+def select_execution_cases(scenarios, groups, requested_ids=None, warm=False, direct=False, warm_controls=False):
+    if direct or warm_controls:
+        if groups != {'memory'} or requested_ids is not None or warm or (direct and warm_controls):
+            raise ValueError('Reader diagnostic-only mode requires memory alone and no other case or diagnostic mode')
         select_cases(scenarios, groups, 'memory-reader-controls')
+        if warm_controls:
+            select_cases(scenarios, {'navigation'}, 'navigation-warm-tabs')
         return []
     return select_cases(scenarios, groups, requested_ids)
 
 
-def direct_diagnostic_junit(path):
+def direct_diagnostic_junit(path, name=DIRECT_NAME, flow=DIRECT_FLOW):
     try:
         root = ET.parse(path).getroot()
         cases, suites = list(root.iter('testcase')), list(root.iter('testsuite'))
         if len(cases) != 1 or len(suites) != 1 or suites[0].get('tests') != '1':
             raise ValueError('Expected one executed direct diagnostic')
         case = cases[0]
-        if case.get('name') != DIRECT_NAME or case.get('file') != DIRECT_FLOW or case.get('status') != 'SUCCESS':
+        if case.get('name') != name or case.get('file') != flow or case.get('status') != 'SUCCESS':
             raise ValueError('Direct diagnostic identity/status mismatch')
         if any(list(root.iter(tag)) for tag in ['failure', 'error', 'skipped']):
             raise ValueError('Direct diagnostic failure/error/skip')
@@ -173,9 +179,9 @@ def direct_diagnostic_junit(path):
         return {'passed': False, 'issue': type(error).__name__}
 
 
-def verify_direct_reader_flow(tools_root, baseline):
-    flow = tools_root / DIRECT_FLOW
-    if digest(flow) != DIRECT_SHA:
+def verify_direct_reader_flow(tools_root, baseline, relative=DIRECT_FLOW, expected_sha=DIRECT_SHA):
+    flow = tools_root / relative
+    if digest(flow) != expected_sha:
         raise ValueError('Reviewed direct reader diagnostic bytes changed')
     # Maestro resolves runFlow file paths while parsing, before environment
     # substitution. Keep a literal path to the separate immutable checkout.
@@ -226,6 +232,81 @@ def run_direct_reader_diagnostic(helper, runner, execute, baseline, tools_root, 
     return diagnostic
 
 
+def capture_failed_reader_threads(helper, device, target, budget):
+    record = {'trigger': 'reader-diagnostic-failed', 'changesVerdict': False,
+              'samples': [], 'attempted': False, 'startedAtEpochMs': round(time.time() * 1000)}
+    if budget['used']:
+        record['issue'] = 'sample-pair-budget-already-used'
+        return record
+    budget['used'] = True
+    record['attempted'] = True
+    target.mkdir(exist_ok=False)
+    helper.atomic_json(target / 'sampling.json', record)
+    for role, package in [('app', helper.PACKAGE), ('driver', helper.DRIVER_PACKAGE)]:
+        try:
+            bundle = helper.scoped_container(device, package, 'app')
+            info = plistlib.loads((bundle / 'Info.plist').read_bytes())
+            name = info.get('CFBundleExecutable', '')
+            if info.get('CFBundleIdentifier') != package or not name or Path(name).name != name:
+                raise ValueError('Unexpected selected process bundle')
+            executable = (bundle / name).resolve(strict=True)
+            if not executable.is_relative_to(bundle):
+                raise ValueError('Executable escaped its selected bundle')
+            sample = helper.sample_process(helper.find_process(executable), target / (role + '.sample.txt'))
+            sample['role'] = role
+            record['samples'].append(sample)
+        except (OSError, ValueError, subprocess.TimeoutExpired) as error:
+            record['samples'].append({'role': role, 'complete': False, 'issue': type(error).__name__})
+        record['updatedAtEpochMs'] = round(time.time() * 1000)
+        helper.atomic_json(target / 'sampling.json', record)
+    return record
+
+
+def run_warm_reader_controls_diagnostic(helper, runner, execute, baseline, tools_root, output, device, scenarios, budget):
+    sign_in = verify_direct_reader_flow(tools_root, baseline, WARM_CONTROLS_FLOW, WARM_CONTROLS_SHA)
+    target = output / 'diagnostic-warm-reader-controls'
+    target.mkdir()
+    diagnostic = {'id': 'diagnostic-warm-reader-controls', 'kind': 'original-navigation-reader-diagnostic-only',
+        'name': WARM_CONTROLS_NAME, 'countedInBaseline85': False, 'fixtureCaseId': 'navigation-warm-tabs',
+        'flow': WARM_CONTROLS_FLOW, 'flowSha256': WARM_CONTROLS_SHA, 'signIn': sign_in, 'timeoutSeconds': 600,
+        'watchdogScope': 'Entire Maestro CLI including driver startup, original sign-in and controls',
+        'readerRequirementMs': 15000, 'navigationCycles': 1, 'pageAssertionsUnchanged': True,
+        'attempts': 1, 'startedAtEpochMs': round(time.time() * 1000)}
+    helper.atomic_json(target / 'result.json', diagnostic)
+    with (target / 'maestro.log').open('wb') as stream:
+        try:
+            diagnostic['exitCode'] = execute(['maestro', '--device', device, 'test', '--format', 'junit',
+                '--output', str(target / 'junit.xml'), '--debug-output', str(target / 'maestro'),
+                '--test-output-dir', str(target / 'maestro'), WARM_CONTROLS_FLOW],
+                timeout=600, cwd=tools_root, stdout=stream, stderr=subprocess.STDOUT).returncode
+        except subprocess.TimeoutExpired:
+            diagnostic.update({'exitCode': None, 'timedOut': True})
+        except OSError as error:
+            diagnostic.update({'exitCode': None, 'executionIssue': type(error).__name__})
+    # Capture native evidence before slower receipt collection can delay it.
+    if diagnostic.get('exitCode') != 0:
+        try:
+            diagnostic['failureCapture'] = capture_failed_reader_threads(helper, device, target / 'failure-threads', budget)
+        except Exception as error:
+            diagnostic['failureCapture'] = {'attempted': False, 'issue': type(error).__name__, 'changesVerdict': False}
+    try:
+        diagnostic['collection'] = runner.collect('ios', device, target)
+    except (OSError, ValueError, subprocess.TimeoutExpired) as error:
+        diagnostic['collectionIssue'] = type(error).__name__
+    fixture_case = next(case for case in scenarios['cases'] if case['id'] == 'navigation-warm-tabs')
+    diagnostic['fixture'] = runner.validate_receipt(target / 'native-ui-receipt.json', fixture_case)
+    diagnostic['junit'] = direct_diagnostic_junit(target / 'junit.xml', WARM_CONTROLS_NAME, WARM_CONTROLS_FLOW)
+    diagnostic['passed'] = diagnostic.get('exitCode') == 0 and diagnostic['fixture']['passed'] and diagnostic['junit']['passed']
+    if not diagnostic['passed'] and 'failureCapture' not in diagnostic:
+        try:
+            diagnostic['failureCapture'] = capture_failed_reader_threads(helper, device, target / 'failure-threads', budget)
+        except Exception as error:
+            diagnostic['failureCapture'] = {'attempted': False, 'issue': type(error).__name__, 'changesVerdict': False}
+    diagnostic['finishedAtEpochMs'] = round(time.time() * 1000)
+    helper.atomic_json(target / 'result.json', diagnostic)
+    return diagnostic
+
+
 def run_warm_reader_diagnostic(helper, runner, execute, baseline, output, device, scenarios):
     # Reuse the reviewed recovery diagnostic contract, but d46 already contains
     # this exact flow. Never copy over or modify that original source file.
@@ -268,6 +349,7 @@ def main():
     parser.add_argument('--cases')
     parser.add_argument('--warm-reader-diagnostic', action='store_true')
     parser.add_argument('--direct-reader-diagnostic-only', action='store_true')
+    parser.add_argument('--warm-reader-controls-diagnostic-only', action='store_true')
     parser.add_argument('--artifact-id', action='store_true')
     args = parser.parse_args()
     binding_path = Path(__file__).with_suffix('.json')
@@ -302,13 +384,16 @@ def main():
     runner.validate_binary(manifest, app, 'ios', SOURCE, TREE)
     scenarios = json.loads(manifest_path.read_text())
     groups = set(args.groups.split(','))
-    cases = select_execution_cases(scenarios, groups, args.cases, args.warm_reader_diagnostic, args.direct_reader_diagnostic_only)
+    cases = select_execution_cases(scenarios, groups, args.cases, args.warm_reader_diagnostic,
+                                   args.direct_reader_diagnostic_only, args.warm_reader_controls_diagnostic_only)
     selected_case_ids = [case['id'] for case in cases]
     unselected_case_ids = [case['id'] for case in scenarios['cases'] if case['id'] not in selected_case_ids]
     if args.warm_reader_diagnostic:
         if 'memory' not in groups or digest(baseline / DIAGNOSTIC_FLOW) != DIAGNOSTIC_SHA:
             raise ValueError('The warm reader diagnostic requires memory and its unchanged original flow')
     direct_sign_in = verify_direct_reader_flow(tools_root, baseline) if args.direct_reader_diagnostic_only else None
+    warm_sign_in = (verify_direct_reader_flow(tools_root, baseline, WARM_CONTROLS_FLOW, WARM_CONTROLS_SHA)
+                    if args.warm_reader_controls_diagnostic_only else None)
     output = baseline / 'native-audit-results'
     output.mkdir(exist_ok=False)
     logs = baseline / 'native-ui-logs'
@@ -319,6 +404,8 @@ def main():
         shutil.copyfile(original, output / name)
     if args.direct_reader_diagnostic_only:
         shutil.copyfile(tools_root / DIRECT_FLOW, output / 'direct-reader-diagnostic.yaml')
+    if args.warm_reader_controls_diagnostic_only:
+        shutil.copyfile(tools_root / WARM_CONTROLS_FLOW, output / 'warm-reader-controls-diagnostic.yaml')
     provenance = {'schemaVersion': 1, 'kind': 'exact-d46-binary-ios-audit-recovery',
         **binding, 'auditManifestSha256': MANIFEST_SHA, 'originalRunnerSha256': RUNNER_SHA,
         'recoverySourceCommit': args.recovery_source, 'recoveryRunId': os.environ.get('GITHUB_RUN_ID'),
@@ -327,9 +414,10 @@ def main():
         'workflowSha256': digest(tools_root / '.github/workflows/native-audit-ios-d46-recovery.yml'),
         'selectedGroups': sorted(groups), 'unselectedGroups': sorted(set(scenarios['groups']) - groups),
         'selectedCaseIds': selected_case_ids, 'unselectedCaseIds': unselected_case_ids,
-        'caseSelection': 'diagnostic-only' if args.direct_reader_diagnostic_only else ('explicit-subset' if args.cases is not None else 'all-selected-groups'),
-        'diagnosticOnly': args.direct_reader_diagnostic_only, 'warmDiagnosticRequested': args.warm_reader_diagnostic,
+        'caseSelection': 'diagnostic-only' if args.direct_reader_diagnostic_only or args.warm_reader_controls_diagnostic_only else ('explicit-subset' if args.cases is not None else 'all-selected-groups'),
+        'diagnosticOnly': args.direct_reader_diagnostic_only or args.warm_reader_controls_diagnostic_only, 'warmDiagnosticRequested': args.warm_reader_diagnostic,
         'directSignIn': direct_sign_in,
+        'warmControlsSignIn': warm_sign_in,
         'selectedCaseCount': len(cases), 'declaredCaseCount': len(scenarios['cases']),
         'separateDiagnostics': ([{'id': 'diagnostic-warm-tabs-reader', 'flow': DIAGNOSTIC_FLOW,
             'flowSha256': DIAGNOSTIC_SHA, 'countedInBaseline85': False, 'readerRequirementMs': 15000}]
@@ -343,6 +431,11 @@ def main():
             'samplePairsPerShard': 1, 'sampleSecondsPerProcess': 3, 'sampleIntervalMilliseconds': 10,
             'sampleWallBudgetSeconds': 8, 'sampleBytesPerProcess': helper.MAX_SAMPLE_BYTES},
         'observationOverhead': 'Bounded snapshots and samples add diagnostic work. Original case deadlines and gate outcomes are unchanged.'}
+    if args.warm_reader_controls_diagnostic_only:
+        provenance['separateDiagnostics'] = [{'id': 'diagnostic-warm-reader-controls', 'name': WARM_CONTROLS_NAME,
+            'flow': WARM_CONTROLS_FLOW, 'flowSha256': WARM_CONTROLS_SHA, 'countedInBaseline85': False,
+            'fixtureCaseId': 'navigation-warm-tabs', 'readerRequirementMs': 15000, 'timeoutSeconds': 600,
+            'navigationCycles': 1, 'failureSampling': 'bounded selected app and driver, independent of busy log marker'}]
     helper.atomic_json(output / 'recovery-provenance.json', provenance)
     device = None
     device_created = False
@@ -400,6 +493,8 @@ def main():
             case_paths[DIAGNOSTIC_FLOW] = {'id': 'diagnostic-warm-tabs-reader', 'fixtureCaseId': 'navigation-warm-tabs'}
         if args.direct_reader_diagnostic_only:
             case_paths[DIRECT_FLOW] = {'id': 'diagnostic-direct-reader-controls', 'fixtureCaseId': 'memory-reader-controls'}
+        if args.warm_reader_controls_diagnostic_only:
+            case_paths[WARM_CONTROLS_FLOW] = {'id': 'diagnostic-warm-reader-controls', 'fixtureCaseId': 'navigation-warm-tabs'}
         def execute(command, timeout, **kwargs):
             nonlocal active_observer
             if command[0] != 'maestro':
@@ -418,6 +513,8 @@ def main():
                       if args.warm_reader_diagnostic else None)
         if args.direct_reader_diagnostic_only:
             diagnostic = run_direct_reader_diagnostic(helper, runner, execute, baseline, tools_root, output, device, scenarios)
+        if args.warm_reader_controls_diagnostic_only:
+            diagnostic = run_warm_reader_controls_diagnostic(helper, runner, execute, baseline, tools_root, output, device, scenarios, budget)
         results = runner.run_cases(cases, 'ios', device, output, execute=execute) if cases else []
         helper.atomic_json(output / 'results.json', results)
         summary = {'applicationSourceCommit': SOURCE, 'applicationSourceTree': TREE, 'platform': 'ios',
@@ -425,7 +522,7 @@ def main():
             'selectedCaseIds': selected_case_ids, 'unselectedCaseIds': unselected_case_ids,
             'attempted': len(results), 'passed': sum(row['status'] == 'passed' for row in results),
             'failed': sum(row['status'] != 'passed' for row in results), 'allControlsAccepted': False,
-            'separateDiagnostic': diagnostic, 'diagnosticOnly': args.direct_reader_diagnostic_only,
+            'separateDiagnostic': diagnostic, 'diagnosticOnly': args.direct_reader_diagnostic_only or args.warm_reader_controls_diagnostic_only,
             'warmDiagnosticAttempted': args.warm_reader_diagnostic,
             'diagnosticAttempted': int(diagnostic is not None),
             'diagnosticPassed': int(diagnostic is not None and diagnostic['passed']),
@@ -438,6 +535,8 @@ def main():
             raise ValueError('Original warm reader diagnostic bytes changed during recovery')
         if args.direct_reader_diagnostic_only:
             verify_direct_reader_flow(tools_root, baseline)
+        if args.warm_reader_controls_diagnostic_only:
+            verify_direct_reader_flow(tools_root, baseline, WARM_CONTROLS_FLOW, WARM_CONTROLS_SHA)
         return int(summary['failed'] != 0 or (diagnostic is not None and not diagnostic['passed']))
     finally:
         try:
