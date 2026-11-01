@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T02:03:24.122929+00:00",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "producerRunId": 41259529351,
+  "filesSha256": {
+    "scripts/quality/completion-ios-startup-diagnostics.py": "97d1ee9323bc07ebe9ddfc450bf40999ea9476785637dae74f8039cc5c20520f",
+    "scripts/quality/completion-ios-journey.py": "4d337aa57cca18da7262a310d753d767478965ba4157a70c81524869940883c6",
+    ".github/workflows/native-completion-journey.yml": "dea1492b0c4be43f92c0acc254506f82539719bd00889d82b4d102fed5aa24c2",
+    "tests/quality/native-completion-journey.cjs": "6a52862eb0bc01dc315dda128c05a7719f7dea517c772308a2d2c5c25151b270",
+    "scripts/quality/completion-ios-audit.py": "a31028c25bd58a7ed668e32fc32b8bc0c4fecf250bf12f336171d4f12b4b0c2b",
+    ".github/workflows/native-completion-ios-audit.yml": "d932ca2d544dd99b4a0adfc80073ceb2568c01a87cd1f157c0462d4053c0233d",
+    "tests/quality/native-completion-ios-audit.cjs": "8e95a7af23e1b4bbe976ad69ce72d82b286f0ab0387ed206da6e230db1746edf"
+  },
+  "sourceChecks": {
+    "ownedUniqueDeviceCreatedOnce": true,
+    "pinnedDeviceType": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+    "pinnedRuntime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+    "createBudgetSeconds": 120,
+    "runtimeMetadataBudgetSeconds": 30,
+    "deviceMetadataBudgetSeconds": 30,
+    "bootBudgetSeconds": 120,
+    "bootReadyBudgetSeconds": 300,
+    "cleanupOnlyReturnedUuid": true,
+    "unchangedReaderReadyDeadlineMs": 15000,
+    "unchangedMessagesAppTargetMs": 1000,
+    "genericRetryCount": 0,
+    "rebuild": false,
+    "rebundle": false,
+    "resign": false
+  },
+  "diagnosticScope": {
+    "operation": "one first owned create command",
+    "startsAfterSeconds": 10,
+    "allowedExecutableIdentityAndStateOnly": true,
+    "processArgumentsRead": false,
+    "processEnvironmentRead": false,
+    "maximumSamples": 2,
+    "sampleDurationSeconds": 3,
+    "eachSampleWallBudgetSeconds": 8,
+    "changesAppVerdict": false
+  },
+  "all85ConsumerReview": {
+    "usesSameVerifiedProducerBinding": true,
+    "originalRunnerAndCasesUnchanged": true,
+    "completeOriginalPartitionRequired": true,
+    "missingDuplicateRetriedOrUnboundResultsRejected": true,
+    "originalCollectorLogicRetained": true,
+    "collectorMetadataStill30Seconds": true,
+    "collectorOriginalAdapterRestoredAfterFailure": true,
+    "sourceAndAppRevalidatedAfterAllCases": true,
+    "originalJourneyCountedSeparately": true,
+    "allControlsAcceptedClaimed": false
+  },
+  "validation": {
+    "focusedNodeTestsPassed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "pythonCompilationPassed": true,
+    "gitDiffCheckPassed": true,
+    "receipt": "native-cold-startup-diagnostic-tests.tap"
+  },
+  "runtimeValidated": false,
+  "conclusion": "Ready for the next artifact-bound consumer run. This restores a historically successful owned-device setup order; the exact current CoreSimulator cache mechanism is not yet proven."
+}

@@ -1,0 +1,106 @@
+name: Recover all85 cases in the fresh iPhone app
+
+on:
+  push:
+    branches: [codex/completion-20261101]
+    paths:
+      - .github/workflows/native-completion-ios-audit.yml
+      - scripts/quality/completion-ios-audit.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  CI: 'true'
+  EXPO_NO_TELEMETRY: '1'
+  EXPO_PUBLIC_APP_ENV: qa
+  EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+  MAESTRO_CLI_NO_ANALYTICS: 'true'
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: '180000'
+
+jobs:
+  ios-cases:
+    name: Fresh iPhone original feature group ${{ matrix.shard }}
+    runs-on: macos-15-intel
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [settings, account, social]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Read reviewed consumer tools
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: recovery-tools
+          persist-credentials: false
+      - name: Require the independently verified producer binding
+        id: binding
+        run: |
+          artifact_id="$(python3 recovery-tools/scripts/quality/completion-ios-journey.py --artifact-id)"
+          echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
+      - name: Read the exact source used to build the app
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: f5be97445ef7223baeb60dd10e8cded05630b6c1
+          path: baseline
+          persist-credentials: false
+      - name: Retrieve the verified already-built Simulator app
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ steps.binding.outputs.artifact_id }}
+          merge-multiple: true
+          path: baseline/native-audit-binary
+          run-id: 41259529351
+          github-token: ${{ github.token }}
+      - name: Prepare consumer tools without rebuilding
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
+      - name: Install the source-bound Maestro version
+        working-directory: baseline
+        run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run all original cases in this feature group
+        env:
+          CONSUMER_SOURCE: ${{ github.sha }}
+          AUDIT_SHARD: ${{ matrix.shard }}
+        run: |
+          python3 recovery-tools/scripts/quality/completion-ios-audit.py \
+            --baseline "$PWD/baseline" --consumer-source "$CONSUMER_SOURCE" --shard "$AUDIT_SHARD"
+      - name: Retain every original case and failed setup
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fresh-ios-audit-${{ matrix.shard }}-results
+          path: baseline/native-audit-results/
+          if-no-files-found: warn
+          retention-days: 7
+  coverage:
+    name: Account for all85 original iPhone cases
+    if: ${{ !cancelled() }}
+    needs: ios-cases
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: fresh-ios-audit-*-results
+          path: fresh-ios-audit-artifacts
+      - name: Count every missing, failed and passed original case
+        if: always()
+        run: python3 scripts/quality/completion-ios-audit.py --summarize fresh-ios-audit-artifacts
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: fresh-ios-audit-coverage
+          path: fresh-ios-audit-coverage.json
+          if-no-files-found: error
+          retention-days: 7
