@@ -226,12 +226,12 @@ test('disposable preparation retains diagnostic source, original auth hash and e
   const authPath = 'src/services/supabase.ts';
   const originalAuth = fs.readFileSync(path.join(root, authPath));
   const sha = value => crypto.createHash('sha256').update(value).digest('hex');
-  const required = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package.json', 'package-lock.json', authPath, 'src/navigation/AppNavigator.tsx',
+  const required = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package.json', 'package-lock.json', authPath, 'src/navigation/AppNavigator.tsx', 'src/screens/messages/ConversationsScreen.tsx',
     'plugins/withMedia3Compatibility.js', 'modules/boomerang/android/build.gradle', 'scripts/quality/android-media-dependencies.init.gradle',
     'scripts/quality/native-ui-android-media-abi.py',
     'modules/boomerang/ios/BoomerangModule.swift', 'modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt',
-    'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/entry.js',
-    'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/verify-native-ui.cjs',
+    'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/navigation-timing.cjs', 'tests/native/entry.js',
+    'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/verify-native-ui.cjs',
     'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh', 'scripts/quality/test-android-app-ui.sh',
     'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
   const dependencyFiles = {
@@ -264,8 +264,17 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     const generated = fs.readFileSync(path.join(directory, authPath));
     assert.equal(overlay.after, sha(generated));
     assert.deepEqual(fs.readFileSync(path.join(directory, 'native-ui-logs', overlay.retained)), generated);
-    for (const file of ['tests/native/auth-diagnostics.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py']) {
+    for (const file of ['tests/native/auth-diagnostics.cjs', 'tests/native/navigation-timing.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py']) {
       assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
+    }
+    for (const file of ['src/navigation/AppNavigator.tsx', 'src/screens/messages/ConversationsScreen.tsx']) {
+      const observed = manifest.overlays.find(row => row.file === file);
+      const original = fs.readFileSync(path.join(root, file));
+      const modified = fs.readFileSync(path.join(directory, file));
+      assert.equal(manifest.hashes[file], sha(original));
+      assert.equal(observed.before, sha(original));
+      assert.equal(observed.after, sha(modified));
+      assert.deepEqual(fs.readFileSync(path.join(directory, 'native-ui-logs', observed.retained)), modified);
     }
     assert.deepEqual(fs.readFileSync(path.join(root, authPath)), originalAuth, 'production source was never changed');
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }

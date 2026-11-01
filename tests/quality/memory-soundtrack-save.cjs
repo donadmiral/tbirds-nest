@@ -235,8 +235,14 @@ for (const platform of ['native', 'web']) {
     function visit(node) { if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useMemorySoundtrackSave') callback = node.arguments[0].properties.find(property => property.name.getText(ast) === 'onConfirmed').initializer.getText(ast); ts.forEachChild(node, visit); }
     visit(ast); assert.ok(callback);
     const pages = [{ id: 'page-one' }], loadGeneration = { current: 4 }; let album = { id: 'book-a', is_owner: true, soundtrack: other, pages };
-    const run = moduleFrom('export const run = ' + callback, { loadGeneration, setAlbum: update => { album = update(album); } }).run;
+    let cancelledReads = 0;
+    const readerRequest = { current: { cancel: () => { cancelledReads++; } } };
+    const run = moduleFrom('export const run = ' + callback, { loadGeneration, readerRequest, setAlbum: update => { album = update(album); } }).run;
     run('book-a', choice); assert.equal(album.soundtrack, choice); assert.equal(album.pages, pages); assert.equal(loadGeneration.current, 5);
+    assert.equal(cancelledReads, platform === 'native' ? 1 : 0, 'confirmed native saves abort the obsolete full-book request');
     run('book-b', null); assert.equal(album.soundtrack, choice);
+    readerRequest.current = null;
+    run('book-a', null); assert.equal(album.soundtrack, null); assert.equal(album.pages, pages);
+    assert.equal(loadGeneration.current, 7, 'generation fencing also works when no reader request remains');
   });
 }
