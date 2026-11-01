@@ -1,5 +1,5 @@
 {
-  "observedAt": "2026-11-01T05:38:15.278870+00:00",
+  "observedAt": "2026-11-01T05:43:23.866956+00:00",
   "requestedDeliverable": "Full installable iPhone Expo preview",
   "applicationName": "Platinum QA",
   "backendEnvironment": "qa",
@@ -25,18 +25,19 @@
     {
       "id": "d84e999e-9dcf-4184-8c4b-d06929623409",
       "platform": "ANDROID",
-      "status": "IN_PROGRESS",
+      "status": "FINISHED",
       "buildProfile": "preview",
       "appIdentifier": "app.platinumcircles.mobile.qa",
       "appVersion": "1.1.0",
       "appBuildVersion": "4",
       "gitCommitHash": "c86e1c9e6ac5d9f816dbfbaf02a9d7b3686db5df",
       "createdAt": "2026-11-01T05:15:17.017Z",
-      "completedAt": null,
+      "completedAt": "2026-11-01T05:42:13.650Z",
       "isForIosSimulator": false,
       "buildPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/d84e999e-9dcf-4184-8c4b-d06929623409",
-      "installArtifact": null
+      "installArtifact": "https://expo.dev/artifacts/eas/EmsE14OrCM4nJ5rrnbVIK-sa4lrOxdWKHAq1zEGFIM4.apk"
     }
   ],
-  "scope": "No app source changes, production deployment, store submission, or additional acceptance campaign. The additional Android build is owned by Expo and its exact status is recorded separately."
+  "scope": "Both complete standalone previews are finished on Expo. No app source changes, production deployment, store submission, or additional acceptance campaign.",
+  "androidPreviewComplete": true
 }
