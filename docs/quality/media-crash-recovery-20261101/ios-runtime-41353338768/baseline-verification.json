@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "runId": 41353338768,
+  "jobId": 124988045346,
+  "artifactId": 13102770671,
+  "sourceCommit": "cf795f1fed3f451132f2653199d6c4029bea5f2e",
+  "archiveSha256": "4d1a604f58938afee562158c04ccc3b2c758f12cced5b52731fb0d2031645dd7",
+  "sourceVerified": true,
+  "sourceChecks": {
+    "sources/StoryVideoComposition.swift": true,
+    "sources/StoryVideoView.swift": true,
+    "scripts/quality/StoryPlaybackExpoAdapter.swift": true,
+    "scripts/quality/StoryVideoPlaybackHarness.swift": true,
+    "scripts/quality/story-playback-runtime.py": true,
+    "scripts/quality/test-ios-story-playback.sh": true,
+    "tests/native/assets/memory-capture-video.mp4": true,
+    "exactGitBlob:StoryVideoView.swift": true,
+    "exactGitBlob:StoryVideoComposition.swift": true
+  },
+  "outcome": "uncaught-native-exception",
+  "completedCases": 1,
+  "crashStage": "warmed HTTPS handoff repeatedly reaches a real decoded frame",
+  "exceptionName": "NSInvalidArgumentException",
+  "exceptionReason": "An AVPlayerItem cannot be associated with more than one instance of AVPlayer",
+  "stackIdentifiesStoryVideoViewLoad": true,
+  "suitePassed": false,
+  "launchProcessExitCodeIsNotAnAcceptanceSignal": 0
+}

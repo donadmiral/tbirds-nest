@@ -90,7 +90,8 @@ import { upcomingFeedVideos } from '../../../shared/videoReadiness';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CATEGORIES } from '../../constants/categories';
 import { FeedSkeleton } from '../../components/Skeleton';
-import { hydratePostMedia } from '../../services/contentMedia';
+import { hydratePostMedia, withoutPrivateMedia, retainFeedMedia } from '../../services/contentMedia';
+import { sharedPostPreview } from '../../../shared/sharedPostPreview';
 import { renewFeedMedia } from '../../../shared/feedMedia';
 import { feedSnapshots, savePublicFeedSnapshot, reconcileFeedVisibility } from '../../services/feedSnapshot';
 import { mergeFeedRefresh, feedPrefetchUrls } from '../../../shared/feedSnapshot';
@@ -103,6 +104,7 @@ type Post = {
   link?: string | null;
   /** feed row key: the post id, or post id plus reposter when the row is a repost */
   _rk?: string;
+  _mediaExpiresAt?: number;
   id: string; user_id: string; content: string;
   likes_count: number; comments_count: number; reposts_count: number; bookmarks_count: number; views_count?: number; shares_count?: number;
   created_at?: string | null; media_url?: string | null; location?: string | null;
@@ -138,6 +140,7 @@ function mapFeedRow(r: any): Post {
     link: r.link ?? null,
     reposts_count: r.reposts_count ?? 0, bookmarks_count: r.bookmarks_count ?? 0, shares_count: r.shares_count ?? 0,
     created_at: r.created_at, media_url: r.media_url ?? null,
+    _mediaExpiresAt: typeof r._mediaExpiresAt === 'number' && Number.isFinite(r._mediaExpiresAt) ? r._mediaExpiresAt : undefined,
     location: null,
     channel: r.channel ?? null,
     article_title: r.article_title ?? null,
@@ -343,7 +346,7 @@ export default function FeedScreen({ navigation }: any) {
   const feedTabs = useRef(createFeedTabCache<{
     rows: Post[]; profiles: ProfileMap; likes: Record<string, boolean>; marks: Record<string, boolean>;
     reposts: Record<string, boolean>; cursor: { key: number; id: string } | null; hasMore: boolean;
-    offset: number; discoverPage: { asOf: string; offset: number }; needsCursorRefresh: boolean;
+    offset: number; discoverPage: { asOf: string; offset: number }; needsCursorRefresh: boolean; mediaScope: string | null;
   }>()).current;
   const pendingPostsRef = useRef<Post[]>([]);
   const scrollOffsetRef = useRef(0);
@@ -509,7 +512,7 @@ export default function FeedScreen({ navigation }: any) {
     setQuotingPost(post); setComposerOpen(true);
   }, [canEditPostDraft]);
   const [threadingPost, setThreadingPost] = useState<Post | null>(null);
-  const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null }>>({});
+  const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string; mediaCount?: number; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null }>>({});
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const [, setMomentRefreshKey] = useState(0);
 
@@ -520,6 +523,7 @@ export default function FeedScreen({ navigation }: any) {
   const commentPreviewsRef = useRef<Record<string, CommentPreview>>({});
   const sharingPostRef = useRef<Record<string, boolean>>({});
   const postsRef = useRef<Post[]>([]);
+  const feedMediaScopeRef = useRef<string | null>(null);
   const busyKeysRef = useRef<Record<string, boolean>>({});
   const composerRef    = useRef<TextInput>(null);
   const lastTapMap     = useRef<Record<string, number>>({});
@@ -719,10 +723,12 @@ export default function FeedScreen({ navigation }: any) {
     const scope = feedScopeRef.current;
     const mode = feedModeRef.current;
     const category = discoverCatRef.current;
+    const mediaScope = navigationScope();
     const isCurrent = () => request === feedRequestRef.current && scope === feedScopeRef.current
-      && useAuthStore.getState().profile?.id === userId;
+      && useAuthStore.getState().profile?.id === userId && navigationScope() === mediaScope;
     loadingMoreRef.current = false;
     setLoadingMore(false);
+    let contentReady = false;
     const deadline = setTimeout(() => {
       if (!isCurrent()) return;
       // A timed-out refresh must not later overwrite a newly requested page.
@@ -766,12 +772,15 @@ export default function FeedScreen({ navigation }: any) {
         if (!isCurrent()) return;
         if (visible) retained = retained.filter(post => visible.has(post.id));
       }
-      const merged = mergeFeedRefresh(retained, scored, preservePosition);
+      const stable = retainFeedMedia(retained, scored, feedMediaScopeRef.current, mediaScope);
+      if (feedMediaScopeRef.current !== mediaScope) retained = retained.map(post => ({ ...post, _mediaExpiresAt: undefined }));
+      const merged = mergeFeedRefresh(retained, stable, preservePosition);
       merged.rows = (await renewFeedMedia(merged.rows, hydratePostMedia)).map(post => ({ ...post, media: (post.media ?? []).filter(item => typeof item.url === 'string' && item.url.length > 0) }));
       if (!isCurrent()) return;
       pendingPostsRef.current = merged.pending;
       setPendingPostCount(merged.pending.length);
       postsRef.current = merged.rows;
+      feedMediaScopeRef.current = mediaScope;
       setPosts(merged.rows);
       setVisibleFeedScope(scope);
       if (!preservePosition || restoredSnapshotRef.current) {
@@ -784,6 +793,8 @@ export default function FeedScreen({ navigation }: any) {
       restoredSnapshotRef.current = false;
       feedRefreshRequestRef.current = null;
       // Content is usable now. Profiles/comments below are optional enrichment.
+      contentReady = true;
+      clearTimeout(deadline);
       setLoading(false);
       setRefreshing(false);
       void savePublicFeedSnapshot(userId, mode, rows, isCurrent);
@@ -805,12 +816,17 @@ export default function FeedScreen({ navigation }: any) {
       const qIds = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows: any[] = [];
       if (qIds.length > 0) {
-        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order, edit)').in('id', qIds);
+        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', qIds);
         if (!isCurrent()) return;
-        qRows = qData ?? [];
-        const qm: Record<string, { content: string; user_id: string; media?: { url: string; media_type: string } | null }> = {};
-        qRows.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type, thumbnail_url: (pm[0] as any)?.edit?.coverUrl ?? null } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; });
-        setQuotedMap(prev => preservePosition ? { ...prev, ...qm } : qm);
+        const publishPreview = (sources: any[]) => {
+          const qm: typeof quotedMap = {};
+          sources.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) }; });
+          setQuotedMap(prev => preservePosition ? { ...prev, ...qm } : qm);
+        };
+        publishPreview(withoutPrivateMedia(qData ?? []));
+        qRows = await hydratePostMedia(qData ?? []).catch(() => withoutPrivateMedia(qData ?? []));
+        if (!isCurrent()) return;
+        publishPreview(qRows);
       }
       const uids = Array.from(new Set([...scored.map(p => p.user_id), ...qRows.map((qr: any) => qr.user_id)]));
       const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility, is_verified, verified_tier').in('id', uids);
@@ -862,7 +878,7 @@ export default function FeedScreen({ navigation }: any) {
         }
       }
     } catch {
-      if (!isCurrent()) return;
+      if (!isCurrent() || contentReady) return;
       setFeedError('Your feed could not load. Please try again.');
     }
     finally {
@@ -885,11 +901,12 @@ export default function FeedScreen({ navigation }: any) {
     if (visibleFeedScope.startsWith(`${userId ?? ''}:`) && !loading && (posts.length > 0 || !feedError)) {
       feedTabs.save(visibleFeedScope, { rows: posts, profiles: profilesMap, likes: likedPosts, marks: bookmarkedPosts,
         reposts: repostedPosts, cursor: cursorRef.current, hasMore: hasMoreRef.current,
-        offset: scrollOffsetRef.current, discoverPage: discoverPageRef.current, needsCursorRefresh: restoredSnapshotRef.current });
+        offset: scrollOffsetRef.current, discoverPage: discoverPageRef.current, needsCursorRefresh: restoredSnapshotRef.current, mediaScope: feedMediaScopeRef.current });
     }
     const restored = feedTabs.read(feedScopeRef.current);
     const rows = restored?.rows.filter(post => !hiddenIdsRef.current.has(post.id)) ?? [];
     postsRef.current = rows; setPosts(rows);
+    feedMediaScopeRef.current = restored?.mediaScope ?? null;
     setProfilesMap(restored?.profiles ?? {}); setLikedPosts(restored?.likes ?? {});
     setBookmarkedPosts(restored?.marks ?? {}); setRepostedPosts(restored?.reposts ?? {});
     cursorRef.current = restored?.cursor ?? null;
@@ -927,6 +944,7 @@ export default function FeedScreen({ navigation }: any) {
     ++requests.current;
     feedTabs.clear();
     postsRef.current = [];
+    feedMediaScopeRef.current = null;
     setFeedOwner(userId);
     setPosts([]); setProfilesMap({}); setLikedPosts({}); setBookmarkedPosts({}); setRepostedPosts({});
     setCommentPreviews({}); setQuotedMap({}); setLikerNames({}); setFeedError(null);
@@ -1810,8 +1828,10 @@ export default function FeedScreen({ navigation }: any) {
     let pageRequest = pageRequestRef.current;
     const scope = feedScopeRef.current;
     const mode = feedModeRef.current;
-    const isCurrent = () => request === feedRequestRef.current && pageRequest === pageRequestRef.current && scope === feedScopeRef.current
-      && useAuthStore.getState().profile?.id === userId;
+    const mediaScope = navigationScope();
+    let pageCommitted = false;
+    const isCurrent = () => request === feedRequestRef.current && (pageCommitted || pageRequest === pageRequestRef.current) && scope === feedScopeRef.current
+      && useAuthStore.getState().profile?.id === userId && navigationScope() === mediaScope;
     if (feedRefreshRequestRef.current === request || loadingMoreRef.current || !hasMoreRef.current || (posts.length === 0 && mode !== 'discover')) return;
     loadingMoreRef.current = true;
     pageRequest = ++pageRequestRef.current;
@@ -1852,16 +1872,29 @@ export default function FeedScreen({ navigation }: any) {
       setLikedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_liked) m[r.post_id] = true; }); return m; });
       setBookmarkedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_bookmarked) m[r.post_id] = true; }); return m; });
       setRepostedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_reposted) m[r.post_id] = true; }); return m; });
+      // Paging can continue as soon as usable rows arrive. Slow comments or
+      // source-card enrichment must not keep the next page behind this lock.
+      pageCommitted = true;
+      clearTimeout(deadline);
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
       const ids = scored.map(p => p.id);
       const likerIds2 = scored.filter(p => p.likes_count > 0).map(p => p.id);
       if (likerIds2.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds2 }).then(({ data }) => { if (isCurrent() && data) setLikerNames(prev => { const m = { ...prev }; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); return m; }); });
       const qIds2 = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows2: any[] = [];
       if (qIds2.length > 0) {
-        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order, edit)').in('id', qIds2);
+        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', qIds2);
         if (!isCurrent()) return;
-        qRows2 = qData ?? [];
-        setQuotedMap(prev => { const qm = { ...prev }; qRows2.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type, thumbnail_url: (pm[0] as any)?.edit?.coverUrl ?? null } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; }); return qm; });
+        const publishPreview = (sources: any[]) => setQuotedMap(prev => {
+          const qm = { ...prev };
+          sources.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, ...sharedPostPreview(qr) }; });
+          return qm;
+        });
+        publishPreview(withoutPrivateMedia(qData ?? []));
+        qRows2 = await hydratePostMedia(qData ?? []).catch(() => withoutPrivateMedia(qData ?? []));
+        if (!isCurrent()) return;
+        publishPreview(qRows2);
       }
       const uids2 = Array.from(new Set([...scored.map(p => p.user_id), ...qRows2.map((qr: any) => qr.user_id)]));
       const missingU = uids2.filter(u => !profilesMap[u]);
@@ -1888,8 +1921,8 @@ export default function FeedScreen({ navigation }: any) {
         }
         setCommentPreviews(prev => { const cp = { ...prev }; topC.forEach((c: any) => { const cur = cp[c.post_id]; if (!cur || (c.likes_count ?? 0) > (cur.likes ?? 0)) { const a = authors2[c.user_id]; cp[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User', likes: c.likes_count ?? 0 }; } }); return cp; });
       }
-    } catch { if (isCurrent()) setFeedError('Could not load more posts. Please try again.'); }
-    finally { clearTimeout(deadline); if (isCurrent()) { loadingMoreRef.current = false; setLoadingMore(false); } }
+    } catch { if (isCurrent() && !pageCommitted) setFeedError('Could not load more posts. Please try again.'); }
+    finally { clearTimeout(deadline); if (isCurrent() && pageRequest === pageRequestRef.current) { loadingMoreRef.current = false; setLoadingMore(false); } }
   }, [posts, userId, profilesMap, hydrateShares, hydrateCollabs, hydratePolls]);
 
   useEffect(() => {
@@ -1935,6 +1968,18 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     return list;
   }, [posts, feedMode, search, followingIds, wtfSuggestions, promos, isMuted, feedOwner, userId, marketplaceItems]);
 
+  const preparedPageWindow = useRef<string | null>(null);
+  useEffect(() => {
+    if (!screenFocused || !appActive || dataSaver || loading || loadingMore || feedError || search.trim() || !hasMoreRef.current) return;
+    if (loadingMoreRef.current || feedRefreshRequestRef.current === feedRequestRef.current) return;
+    const visible = displayPosts.findIndex(post => post.id === activePostId);
+    if (visible < 0 || displayPosts.length - visible > 7) return;
+    const window = `${feedScopeRef.current}:${displayPosts.length}:${activePostId}`;
+    if (preparedPageWindow.current === window) return;
+    preparedPageWindow.current = window;
+    void loadMore();
+  }, [displayPosts, activePostId, screenFocused, appActive, dataSaver, loading, loadingMore, feedError, search, loadMore]);
+
   useEffect(() => {
     if (!screenFocused || AppState.currentState !== 'active' || dataSaver) return;
     const activeIndex = Math.max(0, displayPosts.findIndex(post => post.id === activePostId));
@@ -1944,7 +1989,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     if (!urls.length) return;
     if (prefetchedImagesRef.current.size > 80) prefetchedImagesRef.current.clear();
     urls.forEach(url => prefetchedImagesRef.current.add(url));
-    void ExpoImage.prefetch(urls).catch(() => {
+    void ExpoImage.prefetch(urls, { cachePolicy: 'memory' }).catch(() => {
       urls.forEach(url => prefetchedImagesRef.current.delete(url));
     });
   }, [displayPosts, activePostId, dataSaver, autoplayVideos, screenFocused, appActive]);
@@ -2212,7 +2257,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           const qAuthor = q ? profilesMap[q.user_id] : undefined;
           return (
             <View style={{ marginHorizontal: 16, marginTop: 10 }}>
-              <SharedPostCard layout="compact" post={q ? { id: qid, content: q.content, author: qAuthor ? { id: q.user_id, full_name: qAuthor.full_name, username: qAuthor.username, avatar_url: qAuthor.avatar_url } : { id: q.user_id }, media: (q as any)?.media || null } : null} onPress={() => navigation.navigate('Post', { postId: qid })} />
+              <SharedPostCard layout="compact" post={q ? { id: qid, content: q.content, author: qAuthor ? { id: q.user_id, full_name: qAuthor.full_name, username: qAuthor.username, avatar_url: qAuthor.avatar_url } : { id: q.user_id }, media: q.media || null, mediaCount: q.mediaCount } : null} onPress={() => navigation.navigate('Post', { postId: qid })} />
             </View>
           );
         })()}
@@ -2421,13 +2466,15 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               keyExtractor={(p: Post) => p._rk ?? p.id}
               renderItem={renderPost}
               onEndReached={loadMore}
-              onEndReachedThreshold={0.6}
+              onEndReachedThreshold={2}
               ListFooterComponent={loadingMore ? <View style={{ paddingVertical: 24 }}><ActivityIndicator color={NAVY} /></View> : null}
 
               extraData={flatListExtra}
               initialNumToRender={5}
               maxToRenderPerBatch={5}
-              windowSize={5}
+              // Mount nearby images and covers in their actual image views so
+              // protected no-store media is ready without a second cache fetch.
+              windowSize={dataSaver ? 5 : 7}
               removeClippedSubviews={Platform.OS === 'android'}
               showsVerticalScrollIndicator={false}
               decelerationRate={0.994}

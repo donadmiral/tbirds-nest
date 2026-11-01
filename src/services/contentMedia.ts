@@ -1,5 +1,8 @@
 import { hydrateContentMedia, hydrateOwnerUploadMedia, replaceContentMedia } from '../../shared/contentMedia';
 import { supabase, SUPABASE_URL } from './supabase';
+import { reuseFeedMediaGrants } from '../../shared/feedMediaReuse';
+export const retainFeedMedia = <T extends { id: string },>(current: T[], incoming: T[], previousScope: string | null, nextScope: string | null) =>
+  reuseFeedMediaGrants(current, incoming, SUPABASE_URL, previousScope, nextScope);
 /** Authorized row metadata may render before its private media capabilities arrive. */
 export const withoutPrivateMedia = <T,>(rows: T[]) => replaceContentMedia(rows, SUPABASE_URL, new Map());
 export const hydratePostMedia = <T,>(rows: T[]) => hydrateContentMedia(supabase, SUPABASE_URL, rows, 'post');

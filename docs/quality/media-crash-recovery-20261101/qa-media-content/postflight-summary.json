@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-11-01T21:57:18.459938+00:00",
+  "project": "uaulhuelcfkjwojtymmw",
+  "function": "media-content",
+  "version": 2,
+  "sourceVerified": true,
+  "status": "verified-with-live-coverage-limits-and-retained-initial-range-mismatch",
+  "initialHttpChecks": {
+    "passed": 5,
+    "total": 6,
+    "failedCases": [
+      "get-invalid-range"
+    ]
+  },
+  "rangeFollowup": {
+    "expected416Count": 3,
+    "total": 3,
+    "originalMismatchRetained": true,
+    "causeEstablished": false
+  },
+  "allInitialRequestsRoutedToVersion2": true,
+  "requiredObservedStatuses": {
+    "missingCapabilityGet": 403,
+    "missingCapabilityHead": 403,
+    "malformedCapabilityGet": 403,
+    "invalidRangeGetFollowup": 416,
+    "invalidRangeHead": 416,
+    "options": 204
+  },
+  "cacheHeaders": "All nine observed responses retained private no-store and CDN no-store. Initial HEAD and OPTIONS had empty bodies.",
+  "authorizedProbe": {
+    "performed": false,
+    "reason": "No explicitly configured QA account/session credential in environment; project has only env examples. Existing native/browser fixtures use isolated synthetic transports.",
+    "notPerformed": [
+      "successful authorized GET200",
+      "successful authorized HEAD200",
+      "authorized byte range206",
+      "upstream startup deadline on live Storage",
+      "pending upstream read deadline on live Storage"
+    ]
+  },
+  "runtimeDiagnostics": {
+    "sanitizedMediaDeliveryEventsInQueriedWindow": 0,
+    "limit": "Negative probes do not reach Storage or streaming; absence of stage events is not positive playback acceptance."
+  },
+  "actions": "Fresh deployment/source readback, nine read-only unauthenticated endpoint requests, and bounded metadata/diagnostic log queries. No account creation, impersonation, session-token mining, backend writes, or access-control weakening."
+}

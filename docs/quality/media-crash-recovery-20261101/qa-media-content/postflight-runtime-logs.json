@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "project": "uaulhuelcfkjwojtymmw",
+  "functionId": "cdf1869b-97d9-42f1-b83f-a959e5f780d4",
+  "queryWindowStart": "2026-11-01T21:52:57Z",
+  "queryWindowEnd": "Current UTC captured immediately before each log request",
+  "scope": "Only this function's probe user-agent edge rows and sanitized media_delivery diagnostic events; no request URLs, searches, tokens, or user content retrieved.",
+  "initialProbeRows": [
+    {
+      "deployment_id": "uaulhuelcfkjwojtymmw_cdf1869b-97d9-42f1-b83f-a959e5f780d4_2",
+      "execution_id": "86230714-bebc-4d79-a687-551065b46c3a",
+      "execution_time_ms": "1330",
+      "method": "GET",
+      "request_id": "01a1991b-9493-7a2e-bb89-545b37fee4b3",
+      "status": "403",
+      "timestamp": "2026-11-01T21:54:45.317000",
+      "version": "2"
+    },
+    {
+      "deployment_id": "uaulhuelcfkjwojtymmw_cdf1869b-97d9-42f1-b83f-a959e5f780d4_2",
+      "execution_id": "86230714-bebc-4d79-a687-551065b46c3a",
+      "execution_time_ms": "1348",
+      "method": "HEAD",
+      "request_id": "01a1991b-948f-7439-a7ff-a033ace04359",
+      "status": "403",
+      "timestamp": "2026-11-01T21:54:45.331000",
+      "version": "2"
+    },
+    {
+      "deployment_id": "uaulhuelcfkjwojtymmw_cdf1869b-97d9-42f1-b83f-a959e5f780d4_2",
+      "execution_id": "bb5fd399-c41d-455f-8305-1e206eef382c",
+      "execution_time_ms": "2198",
+      "method": "GET",
+      "request_id": "01a1991b-9492-74e1-a5a0-0ea020128795",
+      "status": "403",
+      "timestamp": "2026-11-01T21:54:46.184000",
+      "version": "2"
+    },
+    {
+      "deployment_id": "uaulhuelcfkjwojtymmw_cdf1869b-97d9-42f1-b83f-a959e5f780d4_2",
+      "execution_id": "1b1d0a1b-afb7-4c29-b667-7ee86c6a8c53",
+      "execution_time_ms": "1141",
+      "method": "GET",
+      "request_id": "01a1991b-99e8-7489-b4f0-22d82f19ad70",
+      "status": "403",
+      "timestamp": "2026-11-01T21:54:46.493000",
+      "version": "2"
+    },
+    {
+      "deployment_id": "uaulhuelcfkjwojtymmw_cdf1869b-97d9-42f1-b83f-a959e5f780d4_2",
+      "execution_id": "90226dfe-bdf3-460a-ab61-932fe26434af",
+      "execution_time_ms": "299",
+      "method": "OPTIONS",
+      "request_id": "01a1991b-9d49-7e12-ad7f-4851743f9320",
+      "status": "204",
+      "timestamp": "2026-11-01T21:54:46.516000",
+      "version": "2"
+    },
+    {
+      "deployment_id": "uaulhuelcfkjwojtymmw_cdf1869b-97d9-42f1-b83f-a959e5f780d4_2",
+      "execution_id": "86230714-bebc-4d79-a687-551065b46c3a",
+      "execution_time_ms": "1300",
+      "method": "HEAD",
+      "request_id": "01a1991b-99fb-7f9e-a127-fd248db12611",
+      "status": "416",
+      "timestamp": "2026-11-01T21:54:46.671000",
+      "version": "2"
+    }
+  ],
+  "initialProbeVersions": [
+    "2"
+  ],
+  "mediaDeliveryDiagnosticEvents": [],
+  "limits": [
+    "No successful authorized flow exercised authorization/storage/revalidation/first-byte/stream stages.",
+    "Empty stage diagnostics do not establish healthy authorized playback; these negative probes exit before Storage."
+  ]
+}

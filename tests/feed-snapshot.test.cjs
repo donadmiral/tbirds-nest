@@ -105,3 +105,11 @@ test('prefetch is capped to nearby safe images and video posters, never video by
   assert.deepEqual(plain(feedPrefetchUrls(rows, 0, true)), []);
   assert.deepEqual(plain(feedPrefetchUrls(rows, 3, false)), [url('outside')]);
 });
+
+test('no-store media uses mounted views, never a separate image cache prefetch', () => {
+  const rows = [{ media: [
+    { media_type: 'image', url: 'https://fixture.supabase.co/functions/v1/media-content/post-media/image.jpg?token=secret' },
+    { media_type: 'image', url: 'https://fixture.supabase.co/storage/v1/object/sign/post-media/image.jpg?token=secret' },
+  ] }, { media: [{ media_type: 'image', url: url('once'), view_once: true }] }];
+  assert.deepEqual(plain(feedPrefetchUrls(rows, 0, false)), []);
+});

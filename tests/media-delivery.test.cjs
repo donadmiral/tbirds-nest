@@ -12,11 +12,13 @@ const createContent=load('supabase/functions/content-media-sign/handler.ts').cre
 const origin='https://qa.supabase.co',bucket='post-media',objectPath='10000000-0000-4000-8000-000000000001/photo.jpg',token='a'.repeat(64);
 const url=delivery.mediaDeliveryUrl(origin,bucket,objectPath,token);
 function harness(options={}) {
- const reads=[],grants=[],signals=[];let cancelled=0;
+ const reads=[],grants=[],signals=[],events=[];let cancelled=0;
  const proof={bucket,path:objectPath,version:'object-version',expiresAt:new Date(Date.now()+300000).toISOString()};
  const handler=create({base:origin,serviceKey:'server-secret',randomId:()=>`read-${reads.length}`,
+  startupTimeoutMs:options.startupTimeoutMs,streamIdleTimeoutMs:options.streamIdleTimeoutMs,diagnostic:event=>events.push(event),
   resolve:async(...args)=>{
    grants.push(args);
+   if(options.resolve)return options.resolve({...proof},grants.length,args[3]);
    if(options.resolveError===grants.length)throw new Error('database secret');
    return options.denied||options.revoke===grants.length?null:{...proof,...(options.replace===grants.length?{version:'changed'}:{})};
   },fetch:async(href,init)=>{
@@ -26,7 +28,7 @@ function harness(options={}) {
    const body=new ReadableStream({start(controller){controller.enqueue(new TextEncoder().encode('private-bytes'));if(!options.openStream)controller.close();},cancel(){cancelled++;}});
    return new Response(body,{status,headers:{'Content-Type':options.mime||'image/jpeg','Content-Length':'13','Accept-Ranges':'bytes',...(status===206?{'Content-Range':'bytes 0-12/100'}:{}),...(status===416?{'Content-Range':'bytes */100'}:{})}});
   }});
- return {handler,reads,grants,signals,cancelled:()=>cancelled};
+ return {handler,reads,grants,signals,events,cancelled:()=>cancelled};
 }
 test('capabilities are pinned to the configured origin, object and opaque token',()=>{
  const loc=delivery.mediaDeliveryObject(url,origin);assert.equal(loc.key,`${bucket}/${objectPath}`);
@@ -93,4 +95,112 @@ test('a legacy client retains its reviewed signed-URL contract during staged mig
  const handler=createContent({base:origin,authenticate:async()=>true,manifest:async()=>[{media_url:canonical}],sign:async()=>{signs++;return[{path:objectPath,signedUrl:signed}];}});
  const response=await handler(new Request(origin,{method:'POST',body:JSON.stringify({references:[{kind:'post',id:'10000000-0000-4000-8000-000000000002'}]})}));
  assert.equal(response.status,200);assert.equal((await response.json()).urls[0].url,signed);assert.equal(signs,1);
+});
+
+test('initial authorization is cancel-aware even when its network promise never settles',{timeout:1000},async()=>{
+ const controller=new AbortController();let signal,started;
+ const ready=new Promise(resolve=>started=resolve);
+ const h=harness({resolve:(_proof,_count,current)=>{signal=current;started();return new Promise(()=>{});}});
+ const pending=h.handler(new Request(url,{signal:controller.signal}));await ready;controller.abort('viewer closed');
+ assert.equal((await pending).status,499);assert.equal(signal.aborted,true);assert.equal(h.reads.length,0);
+ assert.equal(h.events[0].stage,'authorization');assert.equal(h.events[0].outcome,'aborted');
+});
+
+test('a stalled proof after Storage headers reaches a deadline without waiting for upstream cancellation',{timeout:1000},async()=>{
+ let cancelled=0,proofSignal;
+ const h=harness({startupTimeoutMs:20,resolve:(proof,count,signal)=>{proofSignal=signal;return count===2?new Promise(()=>{}):proof;},
+  fetch:async()=>new Response(new ReadableStream({cancel(){cancelled++;return new Promise(()=>{});}}),{headers:{'Content-Type':'video/mp4','Content-Length':'10'}})});
+ const response=await h.handler(new Request(url));assert.equal(response.status,503);assert.equal(cancelled,1);assert.equal(proofSignal.aborted,true);
+ const event=h.events.find(item=>item.outcome==='timeout');assert.equal(event.stage,'revalidation');assert.ok(event.timings.revalidation>=0);
+ assert.doesNotMatch(JSON.stringify(h.events),/server-secret|private-bytes|token=|photo\.jpg/);
+});
+
+test('Storage headers without a first media byte cannot leave the viewer waiting for a minute',{timeout:1000},async()=>{
+ let cancelled=0;
+ const h=harness({startupTimeoutMs:20,fetch:async()=>new Response(new ReadableStream({cancel(){cancelled++;return new Promise(()=>{});}}),{headers:{'Content-Type':'video/mp4','Content-Length':'10'}})});
+ const response=await h.handler(new Request(url));assert.equal(response.status,503);assert.equal(h.grants.length,2);assert.equal(cancelled,1);assert.equal(h.signals[0].aborted,true);
+ assert.equal(h.events.find(item=>item.outcome==='timeout').stage,'first_byte');assert.match(response.headers.get('Cache-Control'),/no-store/);
+});
+
+test('client cancellation after headers cancels a pending first-byte read immediately',{timeout:1000},async()=>{
+ const controller=new AbortController();let ready;
+ const started=new Promise(resolve=>ready=resolve);
+ const h=harness({fetch:async()=>new Response(new ReadableStream({pull(){ready();return new Promise(()=>{});},cancel(){return new Promise(()=>{});}}),{headers:{'Content-Type':'video/mp4','Content-Length':'10'}})});
+ const pending=h.handler(new Request(url,{signal:controller.signal}));await started;await new Promise(resolve=>setImmediate(resolve));controller.abort('closed');
+ assert.equal((await pending).status,499);assert.equal(h.signals[0].aborted,true);
+});
+
+test('a stream that stops making progress is released even if cancellation never resolves',{timeout:1000},async()=>{
+ let cancelled=0;
+ const h=harness({streamIdleTimeoutMs:20,fetch:async()=>new Response(new ReadableStream({start(c){c.enqueue(new TextEncoder().encode('first'));},cancel(){cancelled++;return new Promise(()=>{});}}),{headers:{'Content-Type':'video/mp4','Content-Length':'10'}})});
+ const response=await h.handler(new Request(url));assert.equal(response.status,200);const reader=response.body.getReader();
+ assert.equal(new TextDecoder().decode((await reader.read()).value),'first');await assert.rejects(()=>reader.read(),/interrupted/);
+ assert.equal(cancelled,1);assert.equal(h.signals[0].aborted,true);const event=h.events.find(item=>item.outcome==='timeout');assert.equal(event.stage,'stream');assert.equal(event.bytesRead,5);
+});
+
+test('a prewarmed or paused player can leave queued bytes unread beyond the upstream inactivity deadline',{timeout:2000},async()=>{
+ const h=harness({startupTimeoutMs:20,streamIdleTimeoutMs:20,fetch:async()=>new Response(new ReadableStream({start(c){for(const part of ['one','two','end'])c.enqueue(new TextEncoder().encode(part));c.close();}}),{headers:{'Content-Type':'video/mp4','Content-Length':'9'}})});
+ const response=await h.handler(new Request(url));await new Promise(resolve=>setTimeout(resolve,45));
+ assert.equal(h.signals[0].aborted,false,'An unread prewarmed response has no pending upstream read');
+ const reader=response.body.getReader();assert.equal(new TextDecoder().decode((await reader.read()).value),'one');
+ await new Promise(resolve=>setTimeout(resolve,45));assert.equal(h.signals[0].aborted,false,'A buffered chunk can wait while the player is paused');
+ assert.equal(new TextDecoder().decode((await reader.read()).value),'two');assert.equal(new TextDecoder().decode((await reader.read()).value),'end');assert.equal((await reader.read()).done,true);
+ assert.equal(h.events.some(item=>item.outcome==='timeout'),false);
+});
+
+test('a late Storage response after the header deadline is discarded and cancelled',{timeout:1000},async()=>{
+ let release,cancelled=0;
+ const h=harness({startupTimeoutMs:20,fetch:()=>new Promise(resolve=>release=resolve)});
+ const response=await h.handler(new Request(url));assert.equal(response.status,503);assert.equal(h.events[0].stage,'storage_headers');
+ release(new Response(new ReadableStream({cancel(){cancelled++;}}),{headers:{'Content-Type':'video/mp4','Content-Length':'10'}}));
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(cancelled,1);assert.equal(h.grants.length,1);
+});
+
+test('longer healthy streams use an inactivity limit rather than the startup or total-duration budget',{timeout:2000},async()=>{
+ let timer;
+ const h=harness({startupTimeoutMs:20,streamIdleTimeoutMs:60,fetch:async()=>new Response(new ReadableStream({
+  start(c){let i=0;const send=()=>{c.enqueue(new TextEncoder().encode(String(i++)));if(i<5)timer=setTimeout(send,20);else c.close();};send();},
+  cancel(){clearTimeout(timer);},
+ }),{headers:{'Content-Type':'video/mp4','Content-Length':'5'}})});
+ const before=Date.now(),response=await h.handler(new Request(url));assert.equal(await response.text(),'01234');assert.ok(Date.now()-before>=60);
+ assert.equal(h.events.some(item=>item.outcome==='timeout'),false);assert.equal(h.events.at(-1).outcome,'complete');
+});
+
+test('a complete advertised byte length closes without waiting for an extra stalled EOF',{timeout:1000},async()=>{
+ let cancelled=0;
+ const h=harness({fetch:async()=>new Response(new ReadableStream({start(c){c.enqueue(new TextEncoder().encode('all-bytes'));},cancel(){cancelled++;return new Promise(()=>{});}}),{headers:{'Content-Type':'video/mp4','Content-Length':'9'}})});
+ const response=await h.handler(new Request(url));assert.equal(response.headers.get('Content-Length'),'9');assert.equal(await response.text(),'all-bytes');assert.equal(cancelled,1);
+ assert.equal(h.events.at(-1).outcome,'complete');assert.equal(h.events.at(-1).bytesRead,9);
+});
+
+test('truncated, excess and mismatched Range bodies cannot masquerade as a completed media response',{timeout:1000},async()=>{
+ const short=harness({fetch:async()=>new Response('short',{headers:{'Content-Type':'video/mp4','Content-Length':'10'}})});
+ const shortResponse=await short.handler(new Request(url));assert.equal(shortResponse.status,200);await assert.rejects(()=>shortResponse.text(),/interrupted/);
+ assert.equal(short.events.at(-1).outcome,'error');
+ const extra=harness({fetch:async()=>new Response('too-long',{headers:{'Content-Type':'video/mp4','Content-Length':'2'}})});
+ assert.equal((await extra.handler(new Request(url))).status,503);
+ const range=harness({fetch:async()=>new Response('data',{status:206,headers:{'Content-Type':'video/mp4','Content-Length':'4','Content-Range':'bytes 0-12/100'}})});
+ assert.equal((await range.handler(new Request(url,{headers:{Range:'bytes=0-12'}}))).status,503);
+});
+
+test('identity encoding, redirect refusal and exact Range bytes preserve safe player headers',async()=>{
+ const ranged=harness({status:206});const response=await ranged.handler(new Request(url,{headers:{Range:'bytes=0-12'}}));
+ assert.equal(await response.text(),'private-bytes');assert.equal(response.headers.get('Content-Length'),'13');assert.equal(response.headers.get('Content-Range'),'bytes 0-12/100');assert.equal(response.headers.get('Accept-Ranges'),'bytes');
+ assert.equal(ranged.reads[0].init.headers['Accept-Encoding'],'identity');assert.equal(ranged.reads[0].init.headers.Range,'bytes=0-12');assert.equal(ranged.grants.length,2);
+ assert.match(response.headers.get('Server-Timing'),/authorization;dur=.*storage_headers;dur=.*revalidation;dur=.*first_byte;dur=/);
+ for(const header of ['Cache-Control','CDN-Cache-Control'])assert.match(response.headers.get(header),/no-store/);
+ const encoded=harness({fetch:async()=>new Response('decoded-content',{headers:{'Content-Type':'video/mp4','Content-Encoding':'gzip','Content-Length':'4'}})});
+ assert.equal((await encoded.handler(new Request(url))).status,503);
+ const redirected=harness({fetch:async()=>{const result=new Response('bytes',{headers:{'Content-Type':'video/mp4'}});Object.defineProperty(result,'redirected',{value:true});return result;}});
+ assert.equal((await redirected.handler(new Request(url))).status,503);assert.equal(redirected.reads[0].init.redirect,'error');
+});
+
+test('the deployed entrypoint forwards the request cancellation signal into both proof RPCs',async()=>{
+ let deps,received;
+ const code=ts.transpileModule(fs.readFileSync(path.join(__dirname,'../supabase/functions/media-content/index.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+ vm.runInNewContext(code,{exports:{},fetch,console:{warn(){}},Deno:{env:{get:()=>origin},serve(){}},require(name){
+  if(name==='npm:@supabase/supabase-js@2.112.3')return{createClient:()=>({rpc:()=>({abortSignal(signal){received=signal;return Promise.resolve({data:null,error:null});}})})};
+  if(name==='./handler.ts')return{createMediaContentHandler(value){deps=value;return()=>{};}};throw Error(name);
+ }});
+ const controller=new AbortController();await deps.resolve(token,bucket,objectPath,controller.signal);assert.equal(received,controller.signal);
 });

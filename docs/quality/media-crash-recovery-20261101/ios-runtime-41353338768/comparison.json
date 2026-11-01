@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "runId": 41353338768,
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41353338768",
+  "baseline": {
+    "commit": "cf795f1fed3f451132f2653199d6c4029bea5f2e",
+    "artifactId": 13102770671,
+    "outcome": "crashed during first warmed handoff",
+    "exception": "An AVPlayerItem cannot be associated with more than one instance of AVPlayer",
+    "completedNativeCases": 1
+  },
+  "repaired": {
+    "commit": "908ef58b3dfdfd2aa1222c2c37b70dc5a473a031",
+    "artifactId": 13102251595,
+    "outcome": "passed",
+    "passedNativeCases": 8
+  },
+  "causalFinding": "Reusing the warm-pool AVPlayerItem in the viewer triggers the exact AVFoundation exclusive-player ownership exception. Asset-only preparation and a fresh viewer-owned AVPlayerItem remove this reproduced failure.",
+  "environment": {
+    "architecture": "arm64",
+    "simulatorRuntime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+    "swiftLanguageMode": "5",
+    "optimization": "-O"
+  },
+  "limits": [
+    "Actual UIKit/AVFoundation runtime, with Expo UIView/event adapter rather than the full React Native bridge",
+    "Simulator verification is not physical-device or production-backend acceptance",
+    "Playback frame events verify requested URL/item identity and trim; fixtures use identical media bytes and do not assert distinct visual pixels",
+    "Runtime durations describe test execution only, not application performance targets"
+  ]
+}

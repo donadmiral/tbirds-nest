@@ -117,17 +117,15 @@ export function mergeFeedRefresh<T extends { id: string }>(current: T[], incomin
   return { rows: current.map(row => next.get(row.id) ?? row), pending: unique.filter(row => !present.has(row.id)) };
 }
 
-/** Never fetch video bytes speculatively. Prefetch a small number of public posters/images. */
+/** Public cache prefetch only. Private media warms in its mounted, no-store image view. */
 export function feedPrefetchUrls(rows: Row[], start: number, dataSaver: boolean): string[] {
   if (dataSaver) return [];
   const urls = new Set<string>();
   for (const row of rows.slice(Math.max(0, start), Math.max(0, start) + 3)) {
     for (const media of (Array.isArray(row.media) ? row.media : []).slice(0, 2)) {
-      if (media.is_sensitive) continue;
+      if (media.is_sensitive || media.edit?.sensitive || media.view_once || media.is_view_once || media.is_ephemeral) continue;
       const candidate = media.media_type === 'video' ? media.edit?.coverUrl : media.url;
-      // A signed URL may be prefetched in memory while authorized, never saved in snapshots.
-      const signed = typeof candidate === 'string' && /^https:\/\/[^/?#@]+\/storage\/v1\/object\/sign\/(post-media|story-media|media)\/[^#]+\?token=[^#]+$/i.test(candidate);
-      const url = signed ? candidate : publicUrl(candidate);
+      const url = publicUrl(candidate);
       if (url) urls.add(url);
       if (urls.size === 4) return [...urls];
     }

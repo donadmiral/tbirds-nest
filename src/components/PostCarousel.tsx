@@ -27,7 +27,7 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, ViewToken, A
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView, type VideoPlayer } from 'expo-video';
 import VideoThumb from './VideoThumb';
-import { useSharedVideo } from '../lib/videoEngine';
+import { useSharedVideo, useVideoEngine } from '../lib/videoEngine';
 import { useMediaTags, TagLayer, PinchInspect } from './MediaRenderer';
 import { FilterLayer } from './stories/StoryFilters';
 import { AdjustLayer } from './stories/storyPanels';
@@ -116,7 +116,13 @@ function CarouselVideo({
   // One engine for the app: this surface owns it while it is on screen and in front.
   const screenFocused = useIsFocused();
   const voicePlayback = postPlaybackSettings(edit);
-  const { player, owns, sourceReady, failed, canHold, version, retry } = useSharedVideo({ uri, visible: isVisible, screenActive: isScreenActive && screenFocused, postId: postId ?? null, rate: voicePlayback.rate, preservesPitch: voicePlayback.preservesPitch, muted: sessionMuted || !!(edit as any)?.muted, startAt: edit?.trimStart ?? 0 });
+  const { player, ownerId, owns, sourceReady, failed, canHold, version, retry } = useSharedVideo({ uri, visible: isVisible, screenActive: isScreenActive && screenFocused, postId: postId ?? null, rate: voicePlayback.rate, preservesPitch: voicePlayback.preservesPitch, muted: sessionMuted || !!(edit as any)?.muted, startAt: edit?.trimStart ?? 0 });
+  // App/account changes can release a player before React commits the render
+  // that removes this card's callbacks. Check the live engine before native use.
+  const ownsCurrentPlayer = useCallback(() => {
+    const current = useVideoEngine.getState();
+    return !!player && current.owner === ownerId && current.player === player && current.uri === uri;
+  }, [ownerId, player, uri]);
   const [paintedPlayer, setPaintedPlayer] = useState<VideoPlayer | null>(null);
   const hasFrame = !!player && paintedPlayer === player;
   const currentPlayer = useRef(player); currentPlayer.current = player;
@@ -141,27 +147,55 @@ function CarouselVideo({
 
   useEffect(() => {
     if (!owns || !player || !shouldPlay || hasFrame || failed) return;
-    const deadline = setTimeout(() => { if (currentPlayer.current === player) { player.pause(); setFrameFailedPlayer(player); } }, 12000);
+    const deadline = setTimeout(() => {
+      if (!ownsCurrentPlayer()) return;
+      try { player.pause(); } catch {}
+      if (ownsCurrentPlayer()) setFrameFailedPlayer(player);
+    }, 12000);
     return () => clearTimeout(deadline);
-  }, [owns, player, shouldPlay, hasFrame, failed]);
+  }, [owns, player, shouldPlay, hasFrame, failed, ownsCurrentPlayer]);
 
   // shouldPlay was a prop on expo-av's Video. On a player object it is an effect.
   // Only the card that owns the engine drives it; every other card leaves the player alone.
-  useEffect(() => { if (!owns || !player || !sourceReady) return; if (shouldPlay) player.play(); else player.pause(); }, [owns, sourceReady, shouldPlay, player]);
-  useEffect(() => { if (!owns || !player) return; player.muted = muted || postedMuted; player.volume = soundtrack?.originalVolume ?? 1; }, [owns, muted, postedMuted, player, soundtrack?.originalVolume]);
   useEffect(() => {
-    if (!owns || !player || !sourceReady) { setProgress(0); setMusicClock(c => ({ ...c, playing: false })); return; }
+    if (!owns || !player || !sourceReady || !ownsCurrentPlayer()) return;
+    try { if (shouldPlay) player.play(); else player.pause(); } catch {}
+  }, [owns, sourceReady, shouldPlay, player, ownsCurrentPlayer]);
+  useEffect(() => {
+    if (!owns || !player || !ownsCurrentPlayer()) return;
+    try { player.muted = muted || postedMuted; player.volume = soundtrack?.originalVolume ?? 1; } catch {}
+  }, [owns, muted, postedMuted, player, soundtrack?.originalVolume, ownsCurrentPlayer]);
+  useEffect(() => {
+    if (!owns || !player || !sourceReady || !ownsCurrentPlayer()) { setProgress(0); setMusicClock(c => ({ ...c, playing: false })); return; }
     const sub = player.addListener('timeUpdate', (e: any) => {
-      const d = player.duration;
-      const start=edit?.trimStart||0,end=edit?.trimEnd||d;
-      if(player.currentTime<start||end>start&&player.currentTime>=end)player.currentTime=start;
-      setMusicClock({time:Math.max(0,player.currentTime-start),playing:player.playing&&player.status==='readyToPlay',rate:voicePlayback.rate});
-      if (d > 0) setProgress((e?.currentTime ?? player.currentTime) / d);
+      if (!ownsCurrentPlayer()) return;
+      try {
+        const d = player.duration;
+        const start = edit?.trimStart || 0, end = edit?.trimEnd || d;
+        if (player.currentTime < start || end > start && player.currentTime >= end) player.currentTime = start;
+        const at = player.currentTime;
+        setMusicClock({ time: Math.max(0, at - start), playing: player.playing && player.status === 'readyToPlay', rate: voicePlayback.rate });
+        if (d > 0) setProgress((e?.currentTime ?? at) / d);
+      } catch {}
     });
-    const changes=player.addListener('playingChange',(e)=>setMusicClock(c=>({...c,playing:e.isPlaying&&player.status==='readyToPlay'})));
-    const status=player.addListener('statusChange', e=>setMusicClock(c=>({...c,playing:e.status==='readyToPlay'&&player.playing})));
+    const changes = player.addListener('playingChange', e => {
+      if (!ownsCurrentPlayer()) return;
+      try {
+        const playing = e.isPlaying && player.status === 'readyToPlay';
+        // Updaters may run after the native object is released. Capture plain
+        // values here; never dereference a native player from a React updater.
+        setMusicClock(c => ({ ...c, playing }));
+      } catch {}
+    });
+    const status = player.addListener('statusChange', e => {
+      if (!ownsCurrentPlayer()) return;
+      try {
+        const playing = e.status === 'readyToPlay' && player.playing;
+        setMusicClock(c => ({ ...c, playing }));
+      } catch {}
+    });
     return () => { sub.remove(); changes.remove(); status.remove(); };
-  }, [owns, sourceReady, player, edit?.trimStart, edit?.trimEnd, voicePlayback.rate]);
+  }, [owns, sourceReady, player, edit?.trimStart, edit?.trimEnd, voicePlayback.rate, ownsCurrentPlayer]);
 
   // Auto-hide controls after 3 seconds
   const scheduleHide = useCallback(() => {
@@ -207,7 +241,7 @@ function CarouselVideo({
   const skipForward = async () => {
     try {
       // Seconds now, not milliseconds.
-      if (owns && player && player.duration > 0) {
+      if (owns && player && ownsCurrentPlayer() && player.duration > 0) {
         player.currentTime = Math.min(player.currentTime + 10, player.duration);
       }
     } catch (e) {
@@ -218,7 +252,7 @@ function CarouselVideo({
 
   const skipBackward = async () => {
     try {
-      if (owns && player) player.currentTime = Math.max(player.currentTime - 10, 0);
+      if (owns && player && ownsCurrentPlayer()) player.currentTime = Math.max(player.currentTime - 10, 0);
     } catch (e) {
       console.log('[SKIP_BACK_ERR]', e);
     }
@@ -232,7 +266,7 @@ function CarouselVideo({
       onPress={onTapOverride ? () => { let at = 0; try { at = Number((player as any).currentTime) || 0; } catch {} onTapOverride(at); } : toggleControls}
     >
       {player && (owns || (holdView && canHold)) && sourceReady ? <VideoView key={`${uri}:${version}`} style={{ width: '100%', height: '100%', transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} player={player} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} onFirstFrameRender={() => { if (currentPlayer.current === player) setPaintedPlayer(player); }} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
-      {!hasFrame || !(owns || (holdView && canHold)) ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, width, height }}><VideoThumb uri={uri} posterUri={poster} fill chip={false} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} /></View> : null}
+      {!hasFrame || !(owns || (holdView && canHold)) ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, width, height }}><VideoThumb uri={uri} posterUri={poster} fill chip={false} allowDecode={false} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} /></View> : null}
       {failed || frameFailed ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry video" onPress={() => { setFrameFailedPlayer(null); retry(); }} style={[st.loadingOverlay, { backgroundColor: 'rgba(0,0,0,0.65)' }]}><Text style={{ color: '#FFFFFF' }}>Video could not load. Tap to retry.</Text></TouchableOpacity> : null}
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}

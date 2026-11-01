@@ -77,6 +77,30 @@ test('a selected cover loads without decoding video, and a failed cover falls ba
   h.dispose();
 });
 
+test('playback surfaces never start competing thumbnail decoders, including when the supplied cover fails', async () => {
+  const h = harness();
+  const missing = h.render('feed-video', null, { allowDecode: false }); h.flush(); await tick();
+  assert.equal(h.requests.length, 0);
+  assert.equal(walk(missing).some(node => node.type === 'Spinner'), false);
+  const covered = h.render('feed-video', 'feed-cover', { allowDecode: false }); h.flush();
+  walk(covered).find(node => node.type === 'Image').props.onError();
+  h.render('feed-video', 'feed-cover', { allowDecode: false }); h.flush(); await tick();
+  assert.equal(h.requests.length, 0);
+  h.dispose();
+});
+
+test('a playback poster cannot borrow an unretained generated private frame from another tile', async () => {
+  const h = harness();
+  h.render('private-video', null, {}, 'tile'); h.flush(); await tick();
+  h.requests[0].resolve({ uri: 'file:///cache/private-frame.jpg' }); await tick();
+  const poster = h.render('private-video', null, { allowDecode: false }, 'player'); h.flush();
+  assert.equal(walk(poster).some(node => node.type === 'Image'), false);
+  h.dispose('tile');
+  assert.deepEqual(h.removed, ['file:///cache/private-frame.jpg']);
+  assert.equal(h.requests.length, 1);
+  h.dispose('player');
+});
+
 test('account changes immediately hide old generated frames, remove owned files, and reject late decoder output',async()=>{
   const h=harness();h.render('signed-a');h.flush();await tick();h.requests[0].resolve({uri:'file:///cache/account-a.jpg'});await tick();
   h.render('signed-pending',null,{},'second');h.flush();await tick();

@@ -6,6 +6,8 @@ import TierName from '../../components/TierName';
 import { flagsService } from '../../services/flagsService';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import SharedPostCard from '../../components/feed/SharedPostCard';
+import { sharedPostPreview } from '../../../shared/sharedPostPreview';
+import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
 import SendMoneySheet from '../../components/SendMoneySheet';
 import { loadConfirmedPaymentReceipt } from '../../services/paymentReceipt';
 /**
@@ -1727,35 +1729,70 @@ const pickAndSendDocument = useCallback(async () => {
     for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
     return SENDER_COLORS[h % SENDER_COLORS.length];
   }, []);
-  const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null }>>({});
+  const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { scope: string; content: string; author: any; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null; mediaCount?: number }>>({});
+  const sharedPostsOwner = `${accountScope}:${attachmentScope}`;
+  const sharedPostsRequest = useRef({ owner: sharedPostsOwner, pending: new Set<string>() });
+  if (sharedPostsRequest.current.owner !== sharedPostsOwner) sharedPostsRequest.current = { owner: sharedPostsOwner, pending: new Set() };
+  const sharedPostIds = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))).sort().join(',');
+  useEffect(() => { setSharedPostsMap({}); }, [sharedPostsOwner]);
   useEffect(() => {
-    let live=true; const scope=accountScopeRef.current;
-    const ids = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))) as string[];
-    const missing = ids.filter(id => !sharedPostsMap[id]);
+    const request = sharedPostsRequest.current;
+    const scope = accountScopeRef.current, navigationOwner = navigationScope(), attachmentOwner = attachmentScopeRef.current;
+    const isCurrent = () => mountedRef.current && sharedPostsRequest.current === request
+      && accountScopeRef.current === scope && attachmentScopeRef.current === attachmentOwner && navigationScope() === navigationOwner;
+    const ids = sharedPostIds ? sharedPostIds.split(',') : [];
+    const missing = ids.filter(id => sharedPostsMap[id]?.scope !== sharedPostsOwner && !request.pending.has(id));
     if (missing.length === 0) return;
-    (async () => {
-      const { data: sp } = await supabase.from('posts').select('id, user_id, content, body, media_url, post_media(url, media_type, sort_order, edit)').in('id', missing);
+    missing.forEach(id => request.pending.add(id));
+    const publish = (patch: (previous: typeof sharedPostsMap) => typeof sharedPostsMap) => {
+      if (!isCurrent()) return;
+      // React may run an updater after the account/conversation changed.
+      setSharedPostsMap(previous => isCurrent() ? patch(previous) : previous);
+    };
+    void (async () => {
+      const { data: sp } = await supabase.from('posts').select('id, user_id, content, body, media_url, image_url, post_media(url, media_type, sort_order, edit)').in('id', missing);
       const rows = sp ?? [];
-      const uids = Array.from(new Set(rows.map((r: any) => r.user_id)));
-      const am: Record<string, any> = {};
-      if (uids.length > 0) {
-        const { data: aus } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
-        (aus ?? []).forEach((a: any) => { am[a.id] = a; });
-      }
-      if(!live || scope!==accountScopeRef.current)return;
-      setSharedPostsMap(prev => {
+      if (!isCurrent()) return;
+      // The source row is already authorized. Its text and media type are
+      // usable now; private URLs stay stripped until the source grant arrives.
+      const stripped = withoutPrivateMedia(rows);
+      publish(prev => {
         const n = { ...prev };
-        rows.forEach((r: any) => {
-          const pmArr = Array.isArray(r.post_media) ? [...r.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : [];
-          const firstMedia = pmArr[0] ? { url: pmArr[0].url, media_type: pmArr[0].media_type, thumbnail_url: (pmArr[0] as any)?.edit?.coverUrl ?? null } : (r.media_url ? { url: r.media_url, media_type: 'image' } : null);
-          n[r.id] = { content: r.content ?? r.body ?? '', author: am[r.user_id] ?? null, media: firstMedia };
+        stripped.forEach((r: any) => {
+          n[r.id] = { scope: sharedPostsOwner, content: r.content ?? r.body ?? '', author: null, ...sharedPostPreview(r) };
         });
-        missing.forEach(id => { if (!n[id]) n[id] = { content: 'Post unavailable', author: null }; });
+        missing.forEach(id => { if (n[id]?.scope !== sharedPostsOwner) n[id] = { scope: sharedPostsOwner, content: 'Post unavailable', author: null }; });
         return n;
       });
-    })();
-    return()=>{live=false;};
-  }, [messages, sharedPostsMap, accountScope]);
+      const loadAuthors = async () => {
+        const uids = Array.from(new Set(rows.map((r: any) => r.user_id)));
+        if (!uids.length) return;
+        try {
+          const { data: authors, error } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
+          if (error) return;
+          const am = new Map((authors ?? []).map((author: any) => [author.id, author]));
+          publish(prev => {
+            const n = { ...prev };
+            rows.forEach((r: any) => { if (n[r.id]?.scope === sharedPostsOwner) n[r.id] = { ...n[r.id], author: am.get(r.user_id) ?? null }; });
+            return n;
+          });
+        } catch { /* The source preview remains usable without its label. */ }
+      };
+      const loadMedia = async () => {
+        try {
+          const granted = await hydratePostMedia(rows);
+          publish(prev => {
+            const n = { ...prev };
+            granted.forEach((r: any) => { if (n[r.id]?.scope === sharedPostsOwner) n[r.id] = { ...n[r.id], content: r.content ?? r.body ?? '', ...sharedPostPreview(r) }; });
+            return n;
+          });
+        } catch { /* Keep the stripped source; never restore private originals. */ }
+      };
+      await Promise.all([loadAuthors(), loadMedia()]);
+    })().catch(() => { /* A failed source read cannot publish private data. */ }).finally(() => { missing.forEach(id => request.pending.delete(id)); });
+    // Publishing/enriching the map must not cancel its own work. New source
+    // IDs start independently; account/conversation changes replace the owner.
+  }, [sharedPostIds, sharedPostsOwner]);
   const replySource = useMemo(() => {
     if (!replyTo) return null;
     return replyTo.text || (replyTo.media_type === 'image' ? '📷 Photo' : replyTo.media_type === 'video' ? '🎬 Video' : '📎 Media');
@@ -1790,7 +1827,7 @@ const pickAndSendDocument = useCallback(async () => {
     const isMediaOnly = (msg.media_type === 'image' || msg.media_type === 'gif' || isSticker) && msg.media_url && !msg.text && !(msg as any).view_limit;
     // A shared post with no words is the card alone; no empty bubble under it.
     const isSharedOnly = !!msg.shared_post_id && !msg.text && !msg.media_url;
-    const sharedPost = msg.shared_post_id ? sharedPostsMap[msg.shared_post_id] : null;
+    const sharedPost = msg.shared_post_id && sharedPostsMap[msg.shared_post_id]?.scope === sharedPostsOwner ? sharedPostsMap[msg.shared_post_id] : null;
     // A deleted message leaves a mark rather than vanishing, so the other
     // person sees that something was removed instead of the conversation
     // quietly changing shape.
@@ -1833,7 +1870,7 @@ const pickAndSendDocument = useCallback(async () => {
           {!(msg as any).view_limit && parseStoryMessageReference(msg.media_url) ? <TouchableOpacity accessibilityRole="link" onPress={() => navigation.navigate('StoryViewer', { storyId: parseStoryMessageReference(msg.media_url) })} style={{ padding: 12, borderRadius: 12, backgroundColor: t.surface.raised }}><Text style={{ color: t.status.link, fontWeight: '700' }}>View story</Text></TouchableOpacity> : null}
           {msg.shared_post_id && (
             <View style={{ marginBottom: 4 }}>
-              <SharedPostCard post={sharedPost ? { id: msg.shared_post_id, content: sharedPost.content, author: sharedPost.author, media: sharedPost.media } : null} width={232} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })} onAuthorPress={sharedPost?.author?.id ? () => navigation.navigate('UserProfile' as never, { userId: sharedPost.author.id } as never) : undefined} />
+              <SharedPostCard post={sharedPost ? { id: msg.shared_post_id, content: sharedPost.content, author: sharedPost.author, media: sharedPost.media, mediaCount: sharedPost.mediaCount } : null} width={232} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })} onAuthorPress={sharedPost?.author?.id ? () => navigation.navigate('UserProfile' as never, { userId: sharedPost.author.id } as never) : undefined} />
             </View>
           )}
 

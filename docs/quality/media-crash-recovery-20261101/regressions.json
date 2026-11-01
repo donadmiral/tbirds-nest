@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-11-01T21:58:09.157539+00:00",
+  "scope": "Focused production-function and component regressions. These JavaScript harnesses do not replace native simulator or physical-device evidence.",
+  "passed": true,
+  "totalTests": 153,
+  "suites": [
+    {
+      "file": "tests/feed-capacity.test.cjs",
+      "passed": true,
+      "tests": 29,
+      "pass": 29,
+      "fail": 0,
+      "sourceSha256": "19014832fa7a974b0de10a89a797c565e05ff2043ed8032bda5a6c1032dd86bd",
+      "outputSha256": "f5721fe493937c40fa7c5eec879b89a2ee6d208bacbc5a6bb5b6f3ccea860f40"
+    },
+    {
+      "file": "tests/feed-media-reuse.test.cjs",
+      "passed": true,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "sourceSha256": "2d5bd4b5746f760f64c85a0108bab6d9b1bb49afefd8e4f0c697242ef9ceada0",
+      "outputSha256": "d80b36cbdb0d9d806b34d07559b2dcc76fecf92f6df553033c2a51c136a934bf"
+    },
+    {
+      "file": "tests/feed-snapshot.test.cjs",
+      "passed": true,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "sourceSha256": "f1f0fd6f037397842ce2dd147f75dd5d332df839476b4b735b661e85ba723b11",
+      "outputSha256": "659f658a032b8e42ed1dfa3c288bcd9ea949ada44e15e48f1de9eea80b28b171"
+    },
+    {
+      "file": "tests/video-readiness.test.cjs",
+      "passed": true,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "sourceSha256": "3970237060d7055708c314b78a27f8afcd077a3a7a1ad16eb3178e2708fe111a",
+      "outputSha256": "7f90250daec607b28b0c5740a20869dc7dddbe89b147735157da9b20851ed96a"
+    },
+    {
+      "file": "tests/quality/feed-video-owner-lifecycle.cjs",
+      "passed": true,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "sourceSha256": "d4ffbbed9464fed91e47685a55e3a522f66404f6a7a6fc8e37551c06bdb080cb",
+      "outputSha256": "794053c989f1504bf2339718d09f807cd18c5d05008a451fb9f4344a83c6b7c0"
+    },
+    {
+      "file": "tests/quality/feed-video-consumer-lifecycle.cjs",
+      "passed": true,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "sourceSha256": "ddfad893f034b306b4f9175f8e9974d5ecd253933856d79c6151236b8a769fb1",
+      "outputSha256": "98145a3a9eeb1051129e35bcd800c0aecb51918e138aa3801f2089cad0fd67ab"
+    },
+    {
+      "file": "tests/quality/video-thumb-lifecycle.cjs",
+      "passed": true,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "sourceSha256": "30c43df8f228655b1a58a69e1a13ee2eeccfafaf251b3a424ba2d321a111531b",
+      "outputSha256": "b5e6fdd56c29ef683a5f7154992128e438f7ac1256b972a38c32a2ccb6e0a538"
+    },
+    {
+      "file": "tests/quality/shared-post-preview.cjs",
+      "passed": true,
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "sourceSha256": "04b204fca63dd1ec5e6b144b86f293b9eb6576c8e458d55db7e6bb66d60a8d3e",
+      "outputSha256": "0ecdd2452f459e56b1ce2c3865f6725ce1f317bf340c9bd3bb286193ba8f033f"
+    },
+    {
+      "file": "tests/media-delivery.test.cjs",
+      "passed": true,
+      "tests": 25,
+      "pass": 25,
+      "fail": 0,
+      "sourceSha256": "b83e0299be179095f899950f6712a54213256998bb69c93b16c068c608ac1f2c",
+      "outputSha256": "d03f13609a35dc0d2c7f47ae17b88dace8565e48fe08c772c02dd38662c791ac"
+    },
+    {
+      "file": "tests/quality/content-media-regressions.cjs",
+      "passed": true,
+      "tests": 19,
+      "pass": 19,
+      "fail": 0,
+      "sourceSha256": "63bb4723f697f4ec67ecedc188e5208dce67e1bf58a1c744f39dc73aacb97729",
+      "outputSha256": "c21ba8996aa324cc62a8e526ba87db536ebb7975bc8a7bddd6fba3c6ce712c9e"
+    },
+    {
+      "file": "tests/quality/content-media-concurrency.cjs",
+      "passed": true,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "sourceSha256": "0b90503220a1a1479d65eb780a278bfa15970e306fb90c27f8b8caf78c2996b2",
+      "outputSha256": "754408ea1c7ce703736197efa1fa6348c1487b9803a6538c61eb8a9c4186d20c"
+    },
+    {
+      "file": "tests/quality/story-video-warm-bridge.cjs",
+      "passed": true,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "sourceSha256": "6a0036a3833622ab6a7f143ead5ef4ca34ccd29722de7f080539b187c13bde39",
+      "outputSha256": "160c266896535ce9ccb540eaa3ed765335257a622d0abdc5d82a305f10ad6c55"
+    },
+    {
+      "file": "tests/quality/story-readiness.cjs",
+      "passed": true,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "sourceSha256": "09c8371fc735b6026ad318c0727ababa7871f193cfe3bcb12b7144f8b4867fd4",
+      "outputSha256": "9195f2c31f54493130d0b9f4e684d3674f66af7aada8af6ecd5ccdfc476121a4"
+    }
+  ]
+}

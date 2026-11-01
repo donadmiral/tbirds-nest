@@ -18,7 +18,9 @@ const pool = createVideoReadinessPool(() => {
   player.loop = true;
   player.muted = true;
   player.timeUpdateEventInterval = 0.25;
-  player.bufferOptions = { preferredForwardBufferDuration: 8, minBufferForPlayback: 0.5, maxBufferBytes: 8 * 1024 * 1024, waitsToMinimizeStalling: true };
+  // Nearby players already prepare before visibility. Start the active player
+  // from available frames instead of waiting for Apple's larger stall estimate.
+  player.bufferOptions = { preferredForwardBufferDuration: 4, minBufferForPlayback: 0.5, maxBufferBytes: 6 * 1024 * 1024, waitsToMinimizeStalling: false };
   return player;
 }, entry => {
   const state = useVideoEngine.getState();
@@ -71,6 +73,8 @@ export function useSharedVideo(o: { uri: string; visible: boolean; screenActive:
   useEffect(() => {
     if (!owns || !state.player || !state.ready) return;
     const p = state.player;
+    const current = useVideoEngine.getState();
+    if (current.owner !== id || current.uri !== o.uri || current.player !== p) return;
     p.preservesPitch = o.preservesPitch ?? true;
     p.playbackRate = o.rate || 1;
     if (pendingSeek?.uri === o.uri) {
@@ -79,12 +83,13 @@ export function useSharedVideo(o: { uri: string; visible: boolean; screenActive:
     } else if (o.startAt && p.currentTime < o.startAt) {
       try { p.currentTime = o.startAt; } catch {}
     }
-  }, [owns, state.player, state.ready, o.uri, o.rate, o.preservesPitch, o.startAt]);
+  }, [owns, state.player, state.ready, o.uri, o.rate, o.preservesPitch, o.startAt, id]);
   const canHold = !state.owner && state.uri === o.uri;
   const retry = () => {
-    if (!owns) return;
+    const current = useVideoEngine.getState();
+    if (current.owner !== id || current.uri !== o.uri || current.player !== state.player) return;
     const entry = pool.reload(o.uri);
-    state.set({ player: entry.player, ready: entry.ready, failed: entry.failed, version: entry.identity });
+    current.set({ player: entry.player, ready: entry.ready, failed: entry.failed, version: entry.identity });
   };
-  return { player: state.uri === o.uri ? state.player : null, owns, canHold, sourceReady: (owns || canHold) && state.ready, failed: owns && state.failed, version: state.version, retry };
+  return { player: state.uri === o.uri ? state.player : null, ownerId: id, owns, canHold, sourceReady: (owns || canHold) && state.ready, failed: owns && state.failed, version: state.version, retry };
 }

@@ -1,5 +1,6 @@
-import { hydrateContentMedia, hydrateOwnerUploadMedia, type ContentMediaClient } from '../../shared/contentMedia';
+import { hydrateContentMedia, hydrateOwnerUploadMedia, replaceContentMedia, type ContentMediaClient } from '../../shared/contentMedia';
 import { createClient } from './supabase/client';
+export const withoutPrivateMedia = <T,>(rows: T[]) => replaceContentMedia(rows, process.env.NEXT_PUBLIC_SUPABASE_URL!, new Map());
 export const hydratePostMedia = <T,>(rows: T[], client: ContentMediaClient = createClient()) => hydrateContentMedia(client, process.env.NEXT_PUBLIC_SUPABASE_URL!, rows, 'post');
 export const hydrateStoryMedia = <T,>(rows: T[], client: ContentMediaClient = createClient()) => hydrateContentMedia(client, process.env.NEXT_PUBLIC_SUPABASE_URL!, rows, 'story');
 

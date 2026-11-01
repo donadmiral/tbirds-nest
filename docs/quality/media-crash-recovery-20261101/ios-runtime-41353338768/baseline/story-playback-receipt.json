@@ -1,0 +1,29 @@
+{
+  "bridgeBoundary" : "ExpoView\/EventDispatcher host adapter; React Native bridge is not executed",
+  "cases" : [
+    {
+      "evidence" : {
+        "frames" : [
+          {
+            "actualURI" : "file:\/\/\/Users\/runner\/Library\/Developer\/CoreSimulator\/Devices\/8C0B635A-404D-40CD-B1C2-20223004DEE7\/data\/Containers\/Bundle\/Application\/5E460DEC-0AAD-42B3-9C6B-A12E89A41632\/StoryVideoPlaybackHarness.app\/fixture.mp4",
+            "at" : 340.51302104166666,
+            "currentTime" : 0.65000000000000002,
+            "expectedURI" : "file:\/\/\/Users\/runner\/Library\/Developer\/CoreSimulator\/Devices\/8C0B635A-404D-40CD-B1C2-20223004DEE7\/data\/Containers\/Bundle\/Application\/5E460DEC-0AAD-42B3-9C6B-A12E89A41632\/StoryVideoPlaybackHarness.app\/fixture.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          }
+        ]
+      },
+      "name" : "cold native view displays only the requested trimmed frame",
+      "passed" : true,
+      "runtimeSeconds" : 2.6613509583333439
+    }
+  ],
+  "diagnostics" : [
+
+  ],
+  "nativePlayer" : "unmodified production StoryVideoView and StoryVideoWarmPool",
+  "passed" : false,
+  "schemaVersion" : 1,
+  "stage" : "warmed HTTPS handoff repeatedly reaches a real decoded frame"
+}

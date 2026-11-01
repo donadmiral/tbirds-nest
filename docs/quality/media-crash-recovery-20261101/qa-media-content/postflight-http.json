@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "project": "uaulhuelcfkjwojtymmw",
+  "function": "media-content",
+  "expectedVersion": 2,
+  "startedAt": "2026-11-01T21:54:43.895745+00:00",
+  "finishedAt": "2026-11-01T21:54:46.685920+00:00",
+  "passed": false,
+  "caseCount": 6,
+  "passedCount": 5,
+  "cases": [
+    {
+      "case": "get-missing-capability",
+      "method": "GET",
+      "status": 403,
+      "expectedStatus": 403,
+      "passed": true,
+      "checks": {
+        "expectedStatus": true,
+        "privateNoStore": true,
+        "cdnNoStore": true,
+        "rangeVary": true,
+        "noReferrer": true,
+        "noSniff": true
+      },
+      "headers": {
+        "cache-control": "private, no-store, max-age=0",
+        "cdn-cache-control": "no-store",
+        "vary": "Accept-Encoding, Range",
+        "referrer-policy": "no-referrer",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'none'; sandbox",
+        "access-control-allow-methods": "GET, HEAD, OPTIONS",
+        "access-control-allow-headers": "range",
+        "access-control-expose-headers": "Content-Length, Content-Range, Accept-Ranges, Server-Timing",
+        "sb-request-id": "01a1991b-9492-74e1-a5a0-0ea020128795",
+        "x-deno-execution-id": "bb5fd399-c41d-455f-8305-1e206eef382c",
+        "content-type": "application/json"
+      },
+      "bodyBytes": 71,
+      "bodySha256": "46dd684cafe53b0291ee4310cede8325eecb440caf636d86f3f0286c6e56da0a",
+      "requestRuntimeMs": 2301.635
+    },
+    {
+      "case": "head-missing-capability",
+      "method": "HEAD",
+      "status": 403,
+      "expectedStatus": 403,
+      "passed": true,
+      "checks": {
+        "expectedStatus": true,
+        "privateNoStore": true,
+        "cdnNoStore": true,
+        "rangeVary": true,
+        "noReferrer": true,
+        "noSniff": true,
+        "emptyBody": true
+      },
+      "headers": {
+        "cache-control": "private, no-store, max-age=0",
+        "cdn-cache-control": "no-store",
+        "vary": "Accept-Encoding, Range",
+        "referrer-policy": "no-referrer",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'none'; sandbox",
+        "access-control-allow-methods": "GET, HEAD, OPTIONS",
+        "access-control-allow-headers": "range",
+        "access-control-expose-headers": "Content-Length, Content-Range, Accept-Ranges, Server-Timing",
+        "sb-request-id": "01a1991b-948f-7439-a7ff-a033ace04359",
+        "x-deno-execution-id": "86230714-bebc-4d79-a687-551065b46c3a",
+        "content-type": "application/json"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "requestRuntimeMs": 1447.851
+    },
+    {
+      "case": "get-malformed-capability",
+      "method": "GET",
+      "status": 403,
+      "expectedStatus": 403,
+      "passed": true,
+      "checks": {
+        "expectedStatus": true,
+        "privateNoStore": true,
+        "cdnNoStore": true,
+        "rangeVary": true,
+        "noReferrer": true,
+        "noSniff": true
+      },
+      "headers": {
+        "cache-control": "private, no-store, max-age=0",
+        "cdn-cache-control": "no-store",
+        "vary": "Accept-Encoding, Range",
+        "referrer-policy": "no-referrer",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'none'; sandbox",
+        "access-control-allow-methods": "GET, HEAD, OPTIONS",
+        "access-control-allow-headers": "range",
+        "access-control-expose-headers": "Content-Length, Content-Range, Accept-Ranges, Server-Timing",
+        "sb-request-id": "01a1991b-9493-7a2e-bb89-545b37fee4b3",
+        "x-deno-execution-id": "86230714-bebc-4d79-a687-551065b46c3a",
+        "content-type": "application/json"
+      },
+      "bodyBytes": 71,
+      "bodySha256": "46dd684cafe53b0291ee4310cede8325eecb440caf636d86f3f0286c6e56da0a",
+      "requestRuntimeMs": 1433.76
+    },
+    {
+      "case": "get-invalid-range",
+      "method": "GET",
+      "status": 403,
+      "expectedStatus": 416,
+      "passed": false,
+      "checks": {
+        "expectedStatus": false,
+        "privateNoStore": true,
+        "cdnNoStore": true,
+        "rangeVary": true,
+        "noReferrer": true,
+        "noSniff": true
+      },
+      "headers": {
+        "cache-control": "private, no-store, max-age=0",
+        "cdn-cache-control": "no-store",
+        "vary": "Accept-Encoding, Range",
+        "referrer-policy": "no-referrer",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'none'; sandbox",
+        "access-control-allow-methods": "GET, HEAD, OPTIONS",
+        "access-control-allow-headers": "range",
+        "access-control-expose-headers": "Content-Length, Content-Range, Accept-Ranges, Server-Timing",
+        "sb-request-id": "01a1991b-99e8-7489-b4f0-22d82f19ad70",
+        "x-deno-execution-id": "1b1d0a1b-afb7-4c29-b667-7ee86c6a8c53",
+        "content-type": "application/json"
+      },
+      "bodyBytes": 71,
+      "bodySha256": "46dd684cafe53b0291ee4310cede8325eecb440caf636d86f3f0286c6e56da0a",
+      "requestRuntimeMs": 1175.674
+    },
+    {
+      "case": "head-invalid-range",
+      "method": "HEAD",
+      "status": 416,
+      "expectedStatus": 416,
+      "passed": true,
+      "checks": {
+        "expectedStatus": true,
+        "privateNoStore": true,
+        "cdnNoStore": true,
+        "rangeVary": true,
+        "noReferrer": true,
+        "noSniff": true,
+        "emptyBody": true
+      },
+      "headers": {
+        "cache-control": "private, no-store, max-age=0",
+        "cdn-cache-control": "no-store",
+        "vary": "Accept-Encoding, Range",
+        "referrer-policy": "no-referrer",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'none'; sandbox",
+        "access-control-allow-methods": "GET, HEAD, OPTIONS",
+        "access-control-allow-headers": "range",
+        "access-control-expose-headers": "Content-Length, Content-Range, Accept-Ranges, Server-Timing",
+        "sb-request-id": "01a1991b-99fb-7f9e-a127-fd248db12611",
+        "x-deno-execution-id": "86230714-bebc-4d79-a687-551065b46c3a",
+        "content-type": "application/json"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "requestRuntimeMs": 1340.485
+    },
+    {
+      "case": "options-no-capability",
+      "method": "OPTIONS",
+      "status": 204,
+      "expectedStatus": 204,
+      "passed": true,
+      "checks": {
+        "expectedStatus": true,
+        "privateNoStore": true,
+        "cdnNoStore": true,
+        "rangeVary": true,
+        "noReferrer": true,
+        "noSniff": true,
+        "emptyBody": true,
+        "allowedMethods": true
+      },
+      "headers": {
+        "cache-control": "private, no-store, max-age=0",
+        "cdn-cache-control": "no-store",
+        "vary": "Accept-Encoding, Range",
+        "referrer-policy": "no-referrer",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'none'; sandbox",
+        "access-control-allow-methods": "GET, HEAD, OPTIONS",
+        "access-control-allow-headers": "range",
+        "access-control-expose-headers": "Content-Length, Content-Range, Accept-Ranges, Server-Timing",
+        "sb-request-id": "01a1991b-9d49-7e12-ad7f-4851743f9320",
+        "x-deno-execution-id": "90226dfe-bdf3-460a-ab61-932fe26434af"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "requestRuntimeMs": 331.886
+    }
+  ],
+  "authorization": "No user/session/provider credentials supplied. Only missing, malformed, and deliberately invalid placeholder capabilities. No real object was requested.",
+  "limits": [
+    "Invalid-range416 exercises syntax refusal before authorization; it does not establish authorized byte-range delivery",
+    "No configured authorized QA session was available for200/206 GET or HEAD probes",
+    "Request runtimes are diagnostic observations, not player startup or buffering performance measurements"
+  ]
+}

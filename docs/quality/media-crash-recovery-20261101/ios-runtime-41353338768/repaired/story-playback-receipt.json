@@ -1,0 +1,222 @@
+{
+  "bridgeBoundary" : "ExpoView\/EventDispatcher host adapter; React Native bridge is not executed",
+  "cases" : [
+    {
+      "evidence" : {
+        "frames" : [
+          {
+            "actualURI" : "file:\/\/\/Users\/runner\/Library\/Developer\/CoreSimulator\/Devices\/76A4C165-98DC-4F96-8764-E26A93577E6F\/data\/Containers\/Bundle\/Application\/61355E0B-2D4A-48F2-A59C-554FD4C40007\/StoryVideoPlaybackHarness.app\/fixture.mp4",
+            "at" : 282.72797262500001,
+            "currentTime" : 0.65000000000000002,
+            "expectedURI" : "file:\/\/\/Users\/runner\/Library\/Developer\/CoreSimulator\/Devices\/76A4C165-98DC-4F96-8764-E26A93577E6F\/data\/Containers\/Bundle\/Application\/61355E0B-2D4A-48F2-A59C-554FD4C40007\/StoryVideoPlaybackHarness.app\/fixture.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          }
+        ]
+      },
+      "name" : "cold native view displays only the requested trimmed frame",
+      "passed" : true,
+      "runtimeSeconds" : 1.3105514583332933
+    },
+    {
+      "evidence" : {
+        "frames" : [
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-0.mp4",
+            "at" : 283.04388254166668,
+            "currentTime" : 0,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-0.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-1.mp4",
+            "at" : 283.60949304166667,
+            "currentTime" : 0.75,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-1.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-2.mp4",
+            "at" : 283.69553520833335,
+            "currentTime" : 0,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-2.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-3.mp4",
+            "at" : 284.28755520833334,
+            "currentTime" : 0.75,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-3.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-4.mp4",
+            "at" : 284.35476900000003,
+            "currentTime" : 0,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-4.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-5.mp4",
+            "at" : 284.93583025000004,
+            "currentTime" : 0.75,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-5.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-6.mp4",
+            "at" : 284.99333141666671,
+            "currentTime" : 0,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-6.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-7.mp4",
+            "at" : 285.58366575000002,
+            "currentTime" : 0.75,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-7.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-8.mp4",
+            "at" : 285.66460662500003,
+            "currentTime" : 0,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-8.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-9.mp4",
+            "at" : 286.25849833333336,
+            "currentTime" : 0.75,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-9.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-10.mp4",
+            "at" : 286.32734391666668,
+            "currentTime" : 0,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-10.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          },
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/handoff-11.mp4",
+            "at" : 286.92148025,
+            "currentTime" : 0.75,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/handoff-11.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          }
+        ],
+        "handoffs" : 12
+      },
+      "name" : "warmed HTTPS handoff repeatedly reaches a real decoded frame",
+      "passed" : true,
+      "runtimeSeconds" : 4.1895643749999749
+    },
+    {
+      "evidence" : {
+        "exclusiveItems" : true,
+        "first" : [
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/same-url.mp4",
+            "at" : 287.52584370833335,
+            "currentTime" : 0.20000000000000001,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/same-url.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          }
+        ],
+        "gradedSecondView" : true,
+        "second" : [
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/same-url.mp4",
+            "at" : 288.81713870833335,
+            "currentTime" : 0.80000000000000004,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/same-url.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          }
+        ]
+      },
+      "name" : "two views of one warmed URL never share an AVPlayerItem",
+      "passed" : true,
+      "runtimeSeconds" : 1.8964224583333475
+    },
+    {
+      "evidence" : {
+        "frames" : [
+          {
+            "actualURI" : "https:\/\/127.0.0.1:49164\/rapid-final.mp4",
+            "at" : 288.99670587500003,
+            "currentTime" : 1.1000000000000001,
+            "expectedURI" : "https:\/\/127.0.0.1:49164\/rapid-final.mp4",
+            "readyForDisplay" : true,
+            "type" : "firstFrame"
+          }
+        ],
+        "switches" : 16
+      },
+      "name" : "rapid pending source switches cannot report an obsolete frame",
+      "passed" : true,
+      "runtimeSeconds" : 0.88063345833330686
+    },
+    {
+      "evidence" : {
+        "clearDiscarded" : true,
+        "expiredDiscarded" : true,
+        "maximumEntries" : 2,
+        "oldScopeDiscarded" : true
+      },
+      "name" : "warm pool respects capacity capability expiry scope and explicit clear",
+      "passed" : true,
+      "runtimeSeconds" : 0.5923976249999896
+    },
+    {
+      "evidence" : {
+        "actualOSBackground" : true,
+        "backgroundRate" : 0,
+        "clearEntryPointCalled" : true,
+        "resumed" : true
+      },
+      "name" : "actual background foreground transition pauses playback and clears warm work",
+      "passed" : true,
+      "runtimeSeconds" : 12.515509416666703
+    },
+    {
+      "evidence" : {
+        "disposedViews" : 16,
+        "retainedViews" : 0
+      },
+      "name" : "teardown cancels pending loads without retaining native views",
+      "passed" : true,
+      "runtimeSeconds" : 0.92899608333334527
+    },
+    {
+      "evidence" : {
+        "frames" : 0,
+        "reportedErrors" : 2
+      },
+      "name" : "unsupported and unavailable sources report errors without a process crash",
+      "passed" : true,
+      "runtimeSeconds" : 0.046849749999978485
+    }
+  ],
+  "diagnostics" : [
+
+  ],
+  "nativePlayer" : "unmodified production StoryVideoView and StoryVideoWarmPool",
+  "passed" : true,
+  "schemaVersion" : 1,
+  "stage" : "completed"
+}

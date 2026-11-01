@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-01T21:56:23.889720+00:00",
+  "purpose": "Distinguish verb-sensitive malformed Range handling after initial reversed-rangeGET403 mismatch. Invalid placeholder token only; no authorized media access.",
+  "cases": [
+    {
+      "method": "GET",
+      "range": "bytes=0-1,4-5",
+      "status": 416,
+      "bodyBytes": 71,
+      "requestId": "01a1991d-17fe-7744-99cb-ab21a95233a1",
+      "privateNoStore": true,
+      "cdnNoStore": "no-store",
+      "requestRuntimeMs": 348.765
+    },
+    {
+      "method": "HEAD",
+      "range": "bytes=9-2",
+      "status": 416,
+      "bodyBytes": 0,
+      "requestId": "01a1991d-1953-7d11-b8a9-fce688960914",
+      "privateNoStore": true,
+      "cdnNoStore": "no-store",
+      "requestRuntimeMs": 286.684
+    },
+    {
+      "method": "GET",
+      "range": "bytes=9-2",
+      "status": 416,
+      "bodyBytes": 71,
+      "requestId": "01a1991d-1a70-783e-89af-c4d22badad3b",
+      "privateNoStore": true,
+      "cdnNoStore": "no-store",
+      "requestRuntimeMs": 122.521
+    }
+  ],
+  "originalMismatchRetained": true,
+  "limits": [
+    "This comparison does not observe the Range header received inside the function",
+    "No successful authorized media GET or range request is claimed"
+  ]
+}

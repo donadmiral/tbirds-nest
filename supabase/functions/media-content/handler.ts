@@ -1,13 +1,22 @@
+type Stage = 'authorization' | 'storage_headers' | 'revalidation' | 'first_byte' | 'stream';
+type Outcome = 'ready' | 'complete' | 'aborted' | 'timeout' | 'error';
+export type MediaDeliveryDiagnostic = {
+  outcome: Outcome; stage: Stage; elapsedMs: number; bytesRead: number;
+  timings: Partial<Record<Stage, number>>; upstreamStatus?: number;
+};
 type Dependencies = {
   base: string; serviceKey: string;
-  resolve(token: string, bucket: string, path: string): Promise<{ bucket: string; path: string; version: string; expiresAt: string } | null>;
+  resolve(token: string, bucket: string, path: string, signal: AbortSignal): Promise<{ bucket: string; path: string; version: string; expiresAt: string } | null>;
   fetch: typeof fetch;
   randomId?(): string;
+  diagnostic?(event: MediaDeliveryDiagnostic): void;
+  startupTimeoutMs?: number;
+  streamIdleTimeoutMs?: number;
 };
 const headers = {
   'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'range',
   'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-  'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
+  'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges, Server-Timing',
   'Cache-Control': 'private, no-store, max-age=0', 'CDN-Cache-Control': 'no-store',
   'Vary': 'Range', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff',
   'Content-Security-Policy': "default-src 'none'; sandbox",
@@ -19,6 +28,19 @@ function validRange(range: string): boolean {
   return match[3] !== undefined ? BigInt(match[3]) > 0n
     : match[2] === '' || BigInt(match[2]) >= BigInt(match[1]);
 }
+function responseSize(response: Response): bigint | null {
+  const length = response.headers.get('Content-Length');
+  if (length !== null && !/^\d{1,20}$/.test(length)) throw new Error('Invalid media length');
+  const size = length === null ? null : BigInt(length);
+  if (response.status !== 206) return size;
+  const range = /^bytes (\d+)-(\d+)\/(\d+|\*)$/.exec(response.headers.get('Content-Range') || '');
+  if (!range) throw new Error('Invalid media range');
+  const start = BigInt(range[1]), end = BigInt(range[2]);
+  if (end < start || (range[3] !== '*' && BigInt(range[3]) <= end)) throw new Error('Invalid media range');
+  const rangedSize = end - start + 1n;
+  if (size !== null && size !== rangedSize) throw new Error('Mismatched media length');
+  return rangedSize;
+}
 export function createMediaContentHandler(deps: Dependencies) {
   const error = (status: number, extra: Record<string, string> = {}) => new Response(JSON.stringify({ error: 'This media is unavailable. Reload its post or conversation.' }), {
     status, headers: { ...headers, ...extra, 'Content-Type': 'application/json' },
@@ -26,8 +48,70 @@ export function createMediaContentHandler(deps: Dependencies) {
   return async (request: Request): Promise<Response> => {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
     if (!['GET', 'HEAD'].includes(request.method)) return error(405);
-    let cleanup: (() => void) | undefined;
+    const started = Date.now(), controller = new AbortController();
+    const timings: Partial<Record<Stage, number>> = {};
+    let stage: Stage = 'authorization', stageStarted = started, bytesRead = 0;
     let activeUpstream: Response | undefined;
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    let outputStream: ReadableStreamDefaultController<Uint8Array> | undefined;
+    let startupTimer: ReturnType<typeof setTimeout> | undefined;
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    let finished = false;
+    const report = (outcome: Outcome) => {
+      // No URL, token, path, identity, exception message or media bytes leave
+      // this boundary. Timing fields can be correlated by the runtime's ID.
+      try { deps.diagnostic?.({ outcome, stage, elapsedMs: Date.now() - started, bytesRead, timings: { ...timings, [stage]: timings[stage] ?? Date.now() - stageStarted }, ...(activeUpstream ? { upstreamStatus: activeUpstream.status } : {}) }); } catch { /* Logging cannot interrupt delivery. */ }
+    };
+    const detach = () => {
+      if (startupTimer) clearTimeout(startupTimer);
+      if (idleTimer) clearTimeout(idleTimer);
+      request.signal.removeEventListener('abort', clientAbort);
+    };
+    const cancelUpstream = () => {
+      // Deno/network stream cancellation itself can remain pending. Initiate
+      // it, but never make a refusal, client close or deadline wait for it.
+      try {
+        const pending = reader ? reader.cancel() : activeUpstream?.body?.cancel();
+        void pending?.catch(() => {});
+      } catch { /* Already closed or locked. */ }
+    };
+    const stop = (outcome: Exclude<Outcome, 'ready'>) => {
+      if (finished) return;
+      finished = true; detach();
+      report(outcome);
+      controller.abort(new Error('Media delivery stopped'));
+      cancelUpstream();
+      if (outcome !== 'complete') {
+        try { outputStream?.error(new Error('Media download interrupted')); } catch { /* Already closed. */ }
+      }
+    };
+    const clientAbort = () => stop('aborted');
+    // Race every pre-response await with cancellation, including the two
+    // authorization RPCs. The SDK also receives this same AbortSignal.
+    const wait = <T,>(work: PromiseLike<T>): Promise<T> => {
+      const pending = Promise.resolve(work);
+      if (controller.signal.aborted) { void pending.catch(() => {}); return Promise.reject(new Error('Media delivery stopped')); }
+      return new Promise<T>((resolve, reject) => {
+        const abort = () => reject(new Error('Media delivery stopped'));
+        controller.signal.addEventListener('abort', abort, { once: true });
+        pending.then(resolve, reject).finally(() => controller.signal.removeEventListener('abort', abort));
+      });
+    };
+    const measure = async <T,>(nextStage: Stage, work: () => PromiseLike<T>): Promise<T> => {
+      if (controller.signal.aborted) throw new Error('Media delivery stopped');
+      stage = nextStage;
+      const before = Date.now();
+      stageStarted = before;
+      try { return await wait(work()); }
+      finally { timings[nextStage] = Date.now() - before; }
+    };
+    const readNext = async () => {
+      // Only time a read which is actually waiting on Storage. A paused or
+      // prewarmed player may leave our queued chunk unread indefinitely.
+      idleTimer = setTimeout(() => stop('timeout'), deps.streamIdleTimeoutMs ?? 15000);
+      try { return await wait(reader!.read()); }
+      finally { clearTimeout(idleTimer); idleTimer = undefined; }
+    };
     try {
       const url = new URL(request.url);
       const match = url.pathname.match(/\/(?:functions\/v1\/)?media-content\/(post-media|story-media|media|chat-media|chat-files|music-audio)\/(.+)$/);
@@ -37,67 +121,87 @@ export function createMediaContentHandler(deps: Dependencies) {
       if (path.length > 1024 || /[%\\\u0000-\u001f]/.test(path) || path.split('/').some(part => !part || part === '.' || part === '..')) return error(403);
       const range = request.headers.get('Range');
       if (range && !validRange(range)) return error(416);
-      const grant = await deps.resolve(token, bucket, path);
-      if (!grant || grant.bucket !== bucket || grant.path !== path || typeof grant.version !== 'string' || !grant.version) return error(403);
-      if (request.signal.aborted) return error(499);
-      const controller = new AbortController();
-      const abort = () => controller.abort(request.signal.reason);
-      request.signal.addEventListener('abort', abort, { once: true });
-      cleanup = () => request.signal.removeEventListener('abort', abort);
-      const timeout = setTimeout(() => controller.abort(), 20000);
-      let upstream: Response;
-      try {
+      request.signal.addEventListener('abort', clientAbort, { once: true });
+      if (request.signal.aborted) { stop('aborted'); return error(499); }
+      startupTimer = setTimeout(() => stop('timeout'), deps.startupTimeoutMs ?? 12000);
+      const grant = await measure('authorization', () => deps.resolve(token, bucket, path, controller.signal));
+      if (!grant || grant.bucket !== bucket || grant.path !== path || typeof grant.version !== 'string' || !grant.version) { stop('complete'); return error(403); }
+      const upstream = await measure('storage_headers', () => {
         const storageUrl = new URL(`${new URL(deps.base).origin}/storage/v1/object/authenticated/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`);
         // A fresh cache key prevents trusted processing replacements from serving
         // previously cached bytes while the database version is already newer.
         storageUrl.searchParams.set('cacheNonce', `${grant.version}-${deps.randomId?.() ?? crypto.randomUUID()}`);
-        upstream = await deps.fetch(storageUrl.href, {
+        return deps.fetch(storageUrl.href, {
           method: request.method, headers: { Authorization: `Bearer ${deps.serviceKey}`, apikey: deps.serviceKey,
-            'Cache-Control': 'no-store', ...(range ? { Range: range } : {}) },
+            'Cache-Control': 'no-store', 'Accept-Encoding': 'identity', ...(range ? { Range: range } : {}) },
           cache: 'no-store', redirect: 'error', signal: controller.signal,
+        }).then(response => {
+          activeUpstream = response;
+          if (controller.signal.aborted) { cancelUpstream(); throw new Error('Media delivery stopped'); }
+          return response;
         });
-        activeUpstream = upstream;
-      } finally { clearTimeout(timeout); }
-      if (!upstream.ok || ![200, 206].includes(upstream.status)) {
-        await upstream.body?.cancel(); cleanup();
+      });
+      if (upstream.redirected || !upstream.ok || ![200, 206].includes(upstream.status)) {
+        stop('error');
         if (upstream.status === 416) {
           const size = upstream.headers.get('Content-Range');
           return error(416, size && /^bytes \*\/\d+$/.test(size) ? { 'Content-Range': size } : {});
         }
         return error(upstream.status === 404 ? 410 : 503);
       }
-      const after = await deps.resolve(token, bucket, path);
-      if (request.signal.aborted || !after || after.version !== grant.version || after.path !== path || after.bucket !== bucket) {
-        await upstream.body?.cancel(); cleanup(); return error(403);
-      }
+      const after = await measure('revalidation', () => deps.resolve(token, bucket, path, controller.signal));
+      if (!after || after.version !== grant.version || after.path !== path || after.bucket !== bucket) { stop('complete'); return error(403); }
       const mime = upstream.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() || '';
-      if (!/^(?:image\/(?:jpeg|png|webp|gif|heic|heif|avif)|video\/(?:mp4|quicktime|webm)|audio\/[a-z0-9.+-]+|application\/(?:pdf|octet-stream))$/.test(mime)) {
-        await upstream.body?.cancel(); cleanup(); return error(415);
-      }
+      if (!/^(?:image\/(?:jpeg|png|webp|gif|heic|heif|avif)|video\/(?:mp4|quicktime|webm)|audio\/[a-z0-9.+-]+|application\/(?:pdf|octet-stream))$/.test(mime)) { stop('complete'); return error(415); }
+      // fetch may transparently decompress a response while retaining its
+      // compressed Content-Length/Range. Those headers cannot describe the
+      // decoded bytes; require identity for byte-accurate media/range delivery.
+      const encoding = upstream.headers.get('Content-Encoding')?.trim().toLowerCase();
+      if (encoding && encoding !== 'identity') throw new Error('Unexpected media encoding');
+      const expectedBytes = responseSize(upstream);
       const output = new Headers({ ...headers, 'Content-Type': mime, 'Content-Disposition': mime === 'application/octet-stream' ? 'attachment' : 'inline' });
       for (const name of ['Content-Length', 'Content-Range', 'Accept-Ranges']) {
         const value = upstream.headers.get(name); if (value) output.set(name, value);
       }
-      if (request.method === 'HEAD' || !upstream.body) {
-        await upstream.body?.cancel(); cleanup();
+      const setTimings = () => output.set('Server-Timing', Object.entries(timings).map(([name, duration]) => `${name};dur=${duration}`).join(', '));
+      if (request.method === 'HEAD' || !upstream.body || expectedBytes === 0n) {
+        if (request.method !== 'HEAD' && expectedBytes !== null && expectedBytes > 0n) throw new Error('Missing media body');
+        setTimings(); stop('complete');
         return new Response(null, { status: upstream.status, headers: output });
       }
-      const reader = upstream.body.getReader();
-      const release = cleanup;
+      reader = upstream.body.getReader();
+      const first = await measure('first_byte', () => reader!.read());
+      if (first.done && expectedBytes !== null && expectedBytes > 0n) throw new Error('Truncated media body');
+      if (!first.done && expectedBytes !== null && BigInt(first.value.byteLength) > expectedBytes) throw new Error('Excess media bytes');
+      if (startupTimer) clearTimeout(startupTimer);
+      stage = 'stream'; stageStarted = Date.now(); setTimings(); report('ready');
+      let pendingFirst: ReadableStreamReadResult<Uint8Array> | null = first;
       const body = new ReadableStream<Uint8Array>({
+        start(stream) { outputStream = stream; },
         async pull(stream) {
+          if (finished) return;
           try {
-            const next = await reader.read();
-            if (next.done) { release(); stream.close(); }
-            else stream.enqueue(next.value);
-          } catch (cause) { release(); stream.error(cause); }
+            const next = pendingFirst ?? await readNext(); pendingFirst = null;
+            if (finished) return;
+            if (next.done) {
+              if (expectedBytes !== null && BigInt(bytesRead) !== expectedBytes) throw new Error('Truncated media body');
+              stream.close(); stop('complete'); return;
+            }
+            bytesRead += next.value.byteLength;
+            if (expectedBytes !== null && BigInt(bytesRead) > expectedBytes) throw new Error('Excess media bytes');
+            stream.enqueue(next.value);
+            if (expectedBytes !== null && BigInt(bytesRead) === expectedBytes) {
+              // The HTTP length is complete; do not retain a decoder/network
+              // slot waiting for an extra EOF from a stalled upstream socket.
+              stream.close(); stop('complete');
+            }
+          } catch { stop(request.signal.aborted ? 'aborted' : 'error'); }
         },
-        async cancel(reason) { controller.abort(reason); release(); await reader.cancel(reason); },
+        cancel() { stop('aborted'); },
       });
       return new Response(body, { status: upstream.status, headers: output });
     } catch {
-      cleanup?.();
-      try { await activeUpstream?.body?.cancel(); } catch { /* Already closed/locked. */ }
+      stop(request.signal.aborted ? 'aborted' : 'error');
       return error(request.signal.aborted ? 499 : 503);
     }
   };

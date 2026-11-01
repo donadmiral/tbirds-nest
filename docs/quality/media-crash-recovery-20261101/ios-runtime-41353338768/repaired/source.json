@@ -1,0 +1,15 @@
+{
+  "playerSourceCommit": "908ef58b3dfdfd2aa1222c2c37b70dc5a473a031",
+  "harnessSourceCommit": "908ef58b3dfdfd2aa1222c2c37b70dc5a473a031",
+  "workflowRun": "41353338768",
+  "adaptedBoundary": "Expo UIView hosting and event delivery only; AVFoundation and player source are unchanged",
+  "sources": {
+    "sources/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "sources/StoryVideoView.swift": "76c79b46401b53318d24dc900884567ff470877a1c49a53420df47511e7b9b50",
+    "scripts/quality/StoryPlaybackExpoAdapter.swift": "5a0c723c78b8fa7ba981ff23df294485dde5cbf5b05806621b8ad89b3ef63886",
+    "scripts/quality/StoryVideoPlaybackHarness.swift": "d20db76e8af8dbd5e7dae789f3599766913ed849cef2d891d0e6eaadd45c520e",
+    "scripts/quality/story-playback-runtime.py": "26dec954fa0835bba5a19a717f63fd8e124b636a27c4bdf6bfe867d1970d5b92",
+    "scripts/quality/test-ios-story-playback.sh": "63ee158b54d893266e6b50dfd3a8bc182df87c21d18bd7497534980a2b53039c",
+    "tests/native/assets/memory-capture-video.mp4": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2"
+  }
+}

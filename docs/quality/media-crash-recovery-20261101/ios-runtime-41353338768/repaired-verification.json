@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "runId": 41353338768,
+  "jobId": 124988045153,
+  "artifactId": 13102251595,
+  "archiveSha256": "af306a33ac31dfaad59f9b031dbaad08f3ab87c33ed040f9e8ff0ea3f8a4d8c6",
+  "sourceCommit": "908ef58b3dfdfd2aa1222c2c37b70dc5a473a031",
+  "passed": true,
+  "checks": {
+    "exactSourceCommit": true,
+    "sourceAndHarnessHashes": true,
+    "stableEvidenceHashes": true,
+    "eightNativeCases": true,
+    "allRetainedFirstFramesOwnTheirURL": true,
+    "actualBackgroundAndResume": true,
+    "realTLSRangeRequests": true
+  },
+  "retainedNativeFirstFrames": 16,
+  "sourceChecks": [
+    {
+      "file": "sources/StoryVideoComposition.swift",
+      "matches": true
+    },
+    {
+      "file": "sources/StoryVideoView.swift",
+      "matches": true
+    },
+    {
+      "file": "scripts/quality/StoryPlaybackExpoAdapter.swift",
+      "matches": true
+    },
+    {
+      "file": "scripts/quality/StoryVideoPlaybackHarness.swift",
+      "matches": true
+    },
+    {
+      "file": "scripts/quality/story-playback-runtime.py",
+      "matches": true
+    },
+    {
+      "file": "scripts/quality/test-ios-story-playback.sh",
+      "matches": true
+    },
+    {
+      "file": "tests/native/assets/memory-capture-video.mp4",
+      "matches": true
+    }
+  ],
+  "evidenceChecks": [
+    {
+      "file": "fixture-signing.log",
+      "matches": true
+    },
+    {
+      "file": "host-adapter-build.log",
+      "matches": true
+    },
+    {
+      "file": "runtime.json",
+      "matches": true
+    },
+    {
+      "file": "simulator.log",
+      "matches": true
+    },
+    {
+      "file": "source.json",
+      "matches": true
+    },
+    {
+      "file": "sources/StoryVideoComposition.swift",
+      "matches": true
+    },
+    {
+      "file": "sources/StoryVideoView.swift",
+      "matches": true
+    },
+    {
+      "file": "story-playback-phase.json",
+      "matches": true
+    },
+    {
+      "file": "story-playback-receipt.json",
+      "matches": true
+    },
+    {
+      "file": "swift-build.log",
+      "matches": true
+    },
+    {
+      "file": "tls-setup.log",
+      "matches": true
+    },
+    {
+      "file": "toolchain.log",
+      "matches": true
+    }
+  ],
+  "limits": [
+    "Expo UIKit/event adapter excludes the actual React Native bridge",
+    "Same synthetic media bytes at distinct URLs test item identity, not distinct-pixel visual comparison",
+    "Simulator evidence is not physical-device acceptance or network performance measurement",
+    "Native clear is explicitly invoked during real background lifecycle; this does not assert automatic app AppState wiring"
+  ]
+}

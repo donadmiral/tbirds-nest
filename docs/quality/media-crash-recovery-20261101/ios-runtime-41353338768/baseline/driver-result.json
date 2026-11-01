@@ -1,0 +1,47 @@
+{
+  "actualOSBackground": false,
+  "commands": [
+    {
+      "command": [
+        "xcrun",
+        "simctl",
+        "launch",
+        "--console",
+        "--terminate-running-process",
+        "8C0B635A-404D-40CD-B1C2-20223004DEE7",
+        "com.platinum.qa.storyplayback"
+      ],
+      "stage": "launch"
+    }
+  ],
+  "completedCases": 1,
+  "device": "8C0B635A-404D-40CD-B1C2-20223004DEE7",
+  "evidenceHashes": {
+    "fixture-signing.log": "fdbd49bfb758424ef1a916d3c26e42d051da926f6b0dad784cc6308c298dca16",
+    "host-adapter-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime.json": "19c5f8a5f48d8f950df0ef824bffccaacdacf4fabbb8b1e6fbd0c0f8d890a548",
+    "simulator.log": "f230fda68e4963272ed82f3fba588b7083e674fd1754a3966dcd42d2d0bec169",
+    "source.json": "3f95a9d8701ad00abe2c506998d9cb6e867f8a72c826d7a50d0dc63f952c5c46",
+    "sources/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "sources/StoryVideoView.swift": "d1060b955dc964b81d1421443e63b50d04853daed4f8b46e2016a964b37c6682",
+    "story-playback-receipt.json": "a582932d5aa3a5a46dce614f4d864073718dd3d36c55e357c4ef6659b9c10e69",
+    "story-playback-uncaught-exception.json": "030aa110fb4c672c9ffbcb24cb6e51857fcbbc3e5d48698f355d8e13edcb492a",
+    "swift-build.log": "2f130492d42794528108412d7f409b15d026a6af0589e9730caad3b95cd8327e",
+    "tls-setup.log": "11e284ae2295f9ca34dcfe883d21d205d9c6d9c0f894c2ad97d45445e58b1935",
+    "toolchain.log": "46fcbdccea175fe6f225bc26d386acddbc98c7b9efbae6df20e7089a2b6583c2"
+  },
+  "expectedCases": 8,
+  "finishedAtUnix": 1793569596.7455711,
+  "httpsGetCount": 2,
+  "httpsRangeCount": 2,
+  "lastNativeStage": "warmed HTTPS handoff repeatedly reaches a real decoded frame",
+  "launchExitCode": 0,
+  "nativeError": null,
+  "passed": false,
+  "passedCases": 1,
+  "resumedSameProcess": false,
+  "runtimeSeconds": 20.08315920829773,
+  "schemaVersion": 1,
+  "scope": "Actual UIKit/AVFoundation production player runtime with Expo host adapter; no RN bridge or physical-device claim",
+  "startedAtUnix": 1793569576.662412
+}

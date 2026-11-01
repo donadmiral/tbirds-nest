@@ -1,0 +1,26 @@
+{
+  "id": "cdf1869b-97d9-42f1-b83f-a959e5f780d4",
+  "name": "media-content",
+  "status": "ACTIVE",
+  "version": 2,
+  "updated_at": 1793569977207,
+  "verify_jwt": false,
+  "ezbr_sha256": "0a00fedc54df4c3cfe78d1e24cc5d54ee6c9bbd71b8986b9d0066d8abb2b8605",
+  "project": "uaulhuelcfkjwojtymmw",
+  "files": [
+    {
+      "file": "index.ts",
+      "sha256": "d2fdc901e0a978ad99ee6c814721e94274d19598fd41aa9149df36edb8e4fb1d",
+      "matchesExpected": true,
+      "matchesLocal": true
+    },
+    {
+      "file": "handler.ts",
+      "sha256": "f2ef7b91a6cc6296095454f496886139e5a847f7fbbc7e8305915797acf078d1",
+      "matchesExpected": true,
+      "matchesLocal": true
+    }
+  ],
+  "sourceVerified": true,
+  "verification": "Fresh get_edge_function retrieval, exact UTF-8 file hashes and local-byte comparison; not a deployment call result"
+}

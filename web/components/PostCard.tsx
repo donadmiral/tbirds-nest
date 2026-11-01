@@ -2,6 +2,9 @@
 
 import { hydratePostMedia } from "@/lib/contentMedia";
 import { withTimeout } from "@/lib/withTimeout";
+import { useSharedPostPreview } from "@/lib/useSharedPostPreview";
+import { SharedPostThumbnail } from "@/components/SharedPostThumbnail";
+import { sharedPostMediaLabel } from "../../shared/sharedPostPreview";
 import { productDestination } from "../../shared/productDestination";
 import { uniqueCollaborators, collaborationName } from "../../shared/collaborationPeople";
 
@@ -75,33 +78,7 @@ function useToggle(initialOn: boolean, initialCount: number, action: (id: string
 
 function QuoteCard({quotedId}:{quotedId:string}) {return <QuoteContent key={quotedId} quotedId={quotedId}/>;}
 function QuoteContent({ quotedId }: { quotedId: string }) {
-  const [supabase] = useState(createClient);
-  const [q, setQ] = useState<{ content: string | null; body: string | null; created_at: string; author: { full_name: string | null; username: string | null } | null; first: { url: string; media_type: string; edit?: { coverUrl?: string | null } | null } | null } | null>(null);
-
-  useEffect(() => {
-    let live = true, version = 0;
-    const load = async () => {
-      const run = ++version;
-      try {
-        const {data,error} = await withTimeout(supabase.from("posts").select("content, body, created_at, user_id, post_media(url, media_type, sort_order, edit)").eq("id",quotedId).maybeSingle());
-        if(error)throw error;
-        if(!data){if(live&&run===version)setQ(null);return;}
-        const [{data:author,error:authorError},safe] = await Promise.all([
-          withTimeout(supabase.from("profiles").select("full_name, username").eq("id",data.user_id).maybeSingle()),
-          hydratePostMedia([{...data,post_id:quotedId}],supabase),
-        ]);
-        if(authorError)throw authorError;
-        if(!live||run!==version)return;
-        const media=(safe[0].post_media||[]).slice().sort((x:{sort_order:number},y:{sort_order:number})=>x.sort_order-y.sort_order);
-        setQ({content:data.content,body:data.body,created_at:data.created_at,author:author??null,first:media[0]??null});
-      }catch{if(live&&run===version)setQ(null);}
-    };
-    void load();
-    const timer=setInterval(()=>void load(),240000);
-    const {data}=supabase.auth.onAuthStateChange(()=>{version++;setQ(null);queueMicrotask(()=>{if(live)void load();});});
-    return()=>{live=false;version++;clearInterval(timer);data.subscription.unsubscribe();};
-  }, [supabase, quotedId]);
-
+  const q = useSharedPostPreview(quotedId);
   if (!q) return null;
   return (
     <Link href={"/post/" + quotedId} onClick={(e) => e.stopPropagation()} className="mt-3 flex gap-3 rounded-xl border border-ink/10 p-3 transition-colors duration-[140ms] hover:bg-surface">
@@ -111,23 +88,9 @@ function QuoteContent({ quotedId }: { quotedId: string }) {
           {q.author?.username ? <span className="truncate text-muted">@{q.author.username}</span> : null}
           <span className="shrink-0 text-muted">· <RelativeTime dateTime={q.created_at} /></span>
         </span>
-        <span className="mt-0.5 line-clamp-3 block text-[13px] text-ink/75">{q.content ?? q.body ?? ""}</span>
+        <span className="mt-0.5 line-clamp-3 block text-[13px] text-ink/75">{q.content?.trim() || q.body?.trim() || (q.media ? sharedPostMediaLabel(q.media, q.mediaCount) : "Open post")}</span>
       </span>
-      {q.first && q.first.media_type === "image" ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={displayImageUrl(q.first.url, 160)!} onError={(e) => { if (q.first && e.currentTarget.src !== q.first.url) e.currentTarget.src = q.first.url; }} alt="" loading="lazy" decoding="async" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
-      ) : null}
-      {q.first && q.first.media_type === "video" ? (
-        q.first.edit?.coverUrl ? (
-          <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-black">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={q.first.edit.coverUrl} alt="" className="h-full w-full object-cover" />
-            <span className="absolute inset-0 flex items-center justify-center text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg></span>
-          </span>
-        ) : (
-          <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-black"><video src={q.first.url} preload="metadata" muted playsInline className="h-full w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg></span></span>
-        )
-      ) : null}
+      {q.media ? <SharedPostThumbnail postId={quotedId} media={q.media} mediaCount={q.mediaCount} /> : null}
     </Link>
   );
 }

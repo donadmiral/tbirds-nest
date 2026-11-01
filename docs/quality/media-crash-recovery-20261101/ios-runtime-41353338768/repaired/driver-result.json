@@ -1,0 +1,71 @@
+{
+  "actualOSBackground": true,
+  "commands": [
+    {
+      "command": [
+        "xcrun",
+        "simctl",
+        "launch",
+        "--console",
+        "--terminate-running-process",
+        "76A4C165-98DC-4F96-8764-E26A93577E6F",
+        "com.platinum.qa.storyplayback"
+      ],
+      "stage": "launch"
+    },
+    {
+      "command": [
+        "xcrun",
+        "simctl",
+        "launch",
+        "76A4C165-98DC-4F96-8764-E26A93577E6F",
+        "com.apple.mobilesafari"
+      ],
+      "exitCode": 0,
+      "stage": "background",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "xcrun",
+        "simctl",
+        "launch",
+        "76A4C165-98DC-4F96-8764-E26A93577E6F",
+        "com.platinum.qa.storyplayback"
+      ],
+      "exitCode": 0,
+      "stage": "foreground",
+      "stderr": ""
+    }
+  ],
+  "completedCases": 8,
+  "device": "76A4C165-98DC-4F96-8764-E26A93577E6F",
+  "evidenceHashes": {
+    "fixture-signing.log": "edb32a974ffeaf0113bace05c37940b09a58a10b7301d246c5d021516c50928b",
+    "host-adapter-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime.json": "19c5f8a5f48d8f950df0ef824bffccaacdacf4fabbb8b1e6fbd0c0f8d890a548",
+    "simulator.log": "0f6c94640d95d94887a004e854df6ba0c29e901cb55d6acf8a2fb46485b49a31",
+    "source.json": "fa8dc2372661a96ae9b9e7d5a1b17839d1e1d1eafd99562d834dc60b77d73150",
+    "sources/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "sources/StoryVideoView.swift": "76c79b46401b53318d24dc900884567ff470877a1c49a53420df47511e7b9b50",
+    "story-playback-phase.json": "dcad161799f1f1c2e52513698bd33e73f39caf82ea0c4854ca6a15319fc188be",
+    "story-playback-receipt.json": "18e8c6a999eaa11c1655e6fe6bab62fd0a8d49d23bb571be54d0527cf6d42014",
+    "swift-build.log": "1fa67501d22d9c4868a857033668b0eaed7d6a5cb56973256c2a99854f554b11",
+    "tls-setup.log": "28f39981daf285f4536e9ef3855af0827eaba3cfd6fb52340eaab273deeb3e7a",
+    "toolchain.log": "46fcbdccea175fe6f225bc26d386acddbc98c7b9efbae6df20e7089a2b6583c2"
+  },
+  "expectedCases": 8,
+  "finishedAtUnix": 1793569576.101992,
+  "httpsGetCount": 48,
+  "httpsRangeCount": 48,
+  "lastNativeStage": "completed",
+  "launchExitCode": 0,
+  "nativeError": null,
+  "passed": true,
+  "passedCases": 8,
+  "resumedSameProcess": true,
+  "runtimeSeconds": 31.255897760391235,
+  "schemaVersion": 1,
+  "scope": "Actual UIKit/AVFoundation production player runtime with Expo host adapter; no RN bridge or physical-device claim",
+  "startedAtUnix": 1793569544.846095
+}

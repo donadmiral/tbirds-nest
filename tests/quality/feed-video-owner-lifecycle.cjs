@@ -34,6 +34,11 @@ function harness() {
       ready() { p.status = 'readyToPlay'; for (const fn of [...listeners.get('statusChange') || []]) fn({ status: p.status }); resolveSource?.(); },
       fail() { p.status = 'error'; for (const fn of [...listeners.get('statusChange') || []]) fn({ status: p.status }); },
     };
+    const native = {};
+    for (const property of ['preservesPitch', 'playbackRate']) Object.defineProperty(p, property, {
+      get() { if (p.released) throw Error('Native shared object has been released'); return native[property]; },
+      set(value) { if (p.released) throw Error('Native shared object has been released'); native[property] = value; },
+    });
     players.push(p); return p;
   }
   function load(file, imports) {
@@ -44,15 +49,18 @@ function harness() {
   }
   const pool = load('shared/videoReadiness.ts', {});
   const engine = load('src/lib/videoEngine.ts', { react, 'react-native': { AppState: app }, 'expo-video': { createVideoPlayer: player }, zustand: { create: createStore }, '../../shared/videoReadiness': pool, './navigationCache': { subscribeNavigationScope(fn) { scopeChange = fn; } } });
-  function render() {
+  function render(deferEffects = false) {
     for (let pass = 0; dirty; pass++) {
       if (pass >= 30) throw Error('Video ownership render loop');
       dirty = false;
       for (const item of mounted) { context = item; cursor = 0; item.output = engine.useSharedVideo(item.config); }
+      if (deferEffects) break;
       const pending = effects; effects = []; pending.forEach(fn => fn());
     }
   }
   return { engine, players, render,
+    renderDeferred() { dirty = true; render(true); },
+    flushEffects() { const pending = effects; effects = []; pending.forEach(fn => fn()); },
     mount(uri, active = true) { const item = { config: { uri, visible: active, screenActive: true }, hooks: [] }; mounted.push(item); dirty = true; render(); return item; },
     update(item, patch) { item.config = { ...item.config, ...patch }; dirty = true; render(); },
     async flush() { await flushPromises(); render(); },
@@ -94,4 +102,29 @@ test('a native error after source attachment becomes a recoverable active-card e
   const h = harness(), card = h.mount('https://media/clip.mp4'); await h.flush(); h.players[0].ready(); await h.flush();
   h.players[0].fail(); h.render();
   assert.equal(card.output.failed, true); assert.equal(card.output.sourceReady, false); h.dispose();
+});
+
+test('a retired card retry cannot replace the player of a newer owner', async () => {
+  const h = harness(), first = h.mount('https://media/first.mp4'); await h.flush();
+  h.players[0].ready(); await h.flush();
+  const retiredRetry = first.output.retry;
+  const next = h.mount('https://media/next.mp4', false);
+  h.update(first, { visible: false }); h.update(next, { visible: true }); await h.flush();
+  const current = h.players[1]; current.ready(); await h.flush();
+  const before = h.engine.useVideoEngine.getState();
+  retiredRetry(); await h.flush();
+  const after = h.engine.useVideoEngine.getState();
+  assert.equal(h.players.length, 2, 'No player is created for a retired retry handler');
+  assert.equal(after.owner, before.owner); assert.equal(after.uri, before.uri);
+  assert.equal(after.player, current); assert.equal(after.version, before.version);
+  assert.equal(next.output.player, current); assert.equal(next.output.sourceReady, true);
+  assert.equal(current.released, false); h.dispose();
+});
+
+test('a ready hook effect queued before invalidation cannot configure a released player', async () => {
+  const h = harness(), card = h.mount('https://media/clip.mp4'); await h.flush();
+  const player = h.players[0]; player.ready(); h.renderDeferred();
+  h.engine.clearVideoEngine(); assert.equal(player.released, true);
+  assert.doesNotThrow(() => h.flushEffects());
+  h.render(); assert.equal(card.output.player, null); h.dispose();
 });

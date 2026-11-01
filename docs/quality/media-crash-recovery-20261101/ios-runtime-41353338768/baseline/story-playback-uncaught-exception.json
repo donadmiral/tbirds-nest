@@ -1,0 +1,15 @@
+{
+  "name" : "NSInvalidArgumentException",
+  "reason" : "An AVPlayerItem cannot be associated with more than one instance of AVPlayer",
+  "stack" : [
+    "0   CoreFoundation                      0x00000001804f71d0 __exceptionPreprocess + 172",
+    "1   libobjc.A.dylib                     0x000000018009c094 objc_exception_throw + 72",
+    "2   AVFCore                             0x00000001deb9a894 __32-[AVPlayerItem _attachToPlayer:]_block_invoke + 0",
+    "3   AVFCore                             0x00000001deb75f44 -[AVPlayer replaceCurrentItemWithPlayerItem:] + 392",
+    "4   StoryVideoPlaybackHarness           0x0000000100dace5c $s25StoryVideoPlaybackHarness0aB4ViewC4load33_AA6A3B3BFFB0198D003625146F754BB9LLyyFyyYacfU_TY6_ + 348",
+    "5   StoryVideoPlaybackHarness           0x0000000100db094d $sxIeAgHr_xs5Error_pIegHrzo_s8SendableRzs5NeverORs_r0_lTRyt_Tg5TATQ0_ + 1",
+    "6   StoryVideoPlaybackHarness           0x0000000100daeb4d $sxIeAgHr_xs5Error_pIegHrzo_s8SendableRzs5NeverORs_r0_lTRyt_Tg5TQ0_ + 1",
+    "7   StoryVideoPlaybackHarness           0x0000000100db094d $sxIeAgHr_xs5Error_pIegHrzo_s8SendableRzs5NeverORs_r0_lTRyt_Tg5TATQ0_ + 1",
+    "8   libswift_Concurrency.dylib          0x00000002575f9d69 _ZL23completeTaskWithClosurePN5swift12AsyncContextEPNS_10SwiftErrorE + 1"
+  ]
+}

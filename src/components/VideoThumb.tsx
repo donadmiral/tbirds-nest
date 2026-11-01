@@ -91,7 +91,7 @@ function retainFrame(key: string, uri: string) {
   };
 }
 
-export default function VideoThumb({ uri, posterUri, size = 64, radius = 8, height, fill, chip = true, contentPosition, contentFit = 'cover' }: { uri: string; posterUri?: string | null; size?: number; radius?: number; height?: number; fill?: boolean; chip?: boolean; contentPosition?: { left: `${number}%`; top: `${number}%` }; contentFit?: 'cover' | 'contain' }) {
+export default function VideoThumb({ uri, posterUri, size = 64, radius = 8, height, fill, chip = true, contentPosition, contentFit = 'cover', allowDecode = true }: { uri: string; posterUri?: string | null; size?: number; radius?: number; height?: number; fill?: boolean; chip?: boolean; contentPosition?: { left: `${number}%`; top: `${number}%` }; contentFit?: 'cover' | 'contain'; allowDecode?: boolean }) {
   const h = height ?? size;
   const scope = useSyncExternalStore(subscribeNavigationScope, navigationScope, navigationScope);
   const key = `${scope ?? 'signed-out'}:${generation}:${uri}`;
@@ -105,7 +105,7 @@ export default function VideoThumb({ uri, posterUri, size = 64, radius = 8, heig
     setPreview({ source: key, thumb: cache.get(key) ?? null, failed: !uri });
     // A selected cover is an authorized image and avoids decoding video bytes
     // just to render the profile. If it fails, fall back to a real video frame.
-    if (!usePoster && uri) {
+    if (!usePoster && uri && allowDecode) {
       release = retainFrame(key, uri);
       deadline = setTimeout(() => { if (ok) setPreview({ source: key, thumb: null, failed: true }); }, 8000);
       frame(uri, key)
@@ -113,17 +113,17 @@ export default function VideoThumb({ uri, posterUri, size = 64, radius = 8, heig
         .catch(() => { if (deadline) clearTimeout(deadline); if (ok) setPreview({ source: key, thumb: null, failed: true }); });
     }
     return () => { ok = false; if (deadline) clearTimeout(deadline); release?.(); };
-  }, [uri, usePoster, key]);
+  }, [uri, usePoster, key, allowDecode]);
   // A reused list tile must never show the preceding video's frame, even for
   // the render before the effect has reset its state.
-  const thumb = usePoster ? posterUri : preview.source === key ? preview.thumb : cache.get(key) ?? null;
+  const thumb = usePoster ? posterUri : !allowDecode ? null : preview.source === key ? preview.thumb : cache.get(key) ?? null;
   const failed = !usePoster && preview.source === key && preview.failed;
   return (
-    <View pointerEvents="none" accessibilityLabel={thumb ? 'Video preview' : failed ? 'Video preview unavailable. Open the post to retry.' : 'Loading video preview'} style={fill ? { width: '100%', height: '100%', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' } : { width: size, height: h, borderRadius: radius, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+    <View pointerEvents="none" accessibilityLabel={thumb ? 'Video preview' : !allowDecode ? 'Video' : failed ? 'Video preview unavailable. Open the post to retry.' : 'Loading video preview'} style={fill ? { width: '100%', height: '100%', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' } : { width: size, height: h, borderRadius: radius, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
       {thumb ? <ExpoImage key={`${key}:${thumb}`} recyclingKey={`${key}:${thumb}`} source={{ uri: thumb }} cachePolicy={privateImageCachePolicy(uri) === 'none' ? 'none' : privateImageCachePolicy(thumb)} transition={0} style={fill ? { width: '100%', height: '100%' } : { width: size, height: h }} contentFit={contentFit} contentPosition={contentPosition} onError={() => {
         if (usePoster) { setFailedPoster(`${key}:${posterUri}`); return; }
         evict(key); setPreview({ source: key, thumb: null, failed: true });
-      }} /> : failed ? <Text numberOfLines={2} style={{ color: '#FFFFFF', fontSize: 11, textAlign: 'center', padding: 6 }}>Preview unavailable</Text> : <ActivityIndicator size="small" color="#FFFFFF" />}
+      }} /> : !allowDecode ? <Text style={{ color: '#FFFFFF', fontSize: 16 }}>{'\u25B6'} Video</Text> : failed ? <Text numberOfLines={2} style={{ color: '#FFFFFF', fontSize: 11, textAlign: 'center', padding: 6 }}>Preview unavailable</Text> : <ActivityIndicator size="small" color="#FFFFFF" />}
       {chip && thumb ? <View style={{ position: 'absolute', width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFFFFF', fontSize: 12, marginLeft: 2 }}>{'\u25B6'}</Text></View> : null}
     </View>
   );

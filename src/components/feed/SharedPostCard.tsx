@@ -6,12 +6,14 @@
  *   full     → media hero on top, author row, text (chat bubbles)
  */
 import { themedSheet } from '../../theme/useTheme';
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
 import VerifiedBadge from '../VerifiedBadge';
 import TierName from '../TierName';
+import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
+import { sharedPostImageUri, sharedPostMediaKind, sharedPostMediaLabel } from '../../../shared/sharedPostPreview';
 
 export type SharedPostData = {
   id: string;
@@ -21,13 +23,35 @@ export type SharedPostData = {
   mediaCount?: number;
 };
 
+export function SharedPostThumbnail({ postId, media, mediaCount = 0, compact = false, width = 240 }: {
+  postId: string; media: NonNullable<SharedPostData['media']>; mediaCount?: number; compact?: boolean; width?: number;
+}) {
+  const uri = sharedPostImageUri(media);
+  const identity = `${postId}:${uri ?? ''}`;
+  const [failed, setFailed] = useState<string | null>(null);
+  const showImage = !!uri && failed !== identity;
+  const kind = sharedPostMediaKind(media.media_type, media.url);
+  const label = sharedPostMediaLabel(media, mediaCount);
+  const icon = mediaCount > 1 ? 'layers' : kind === 'video' ? 'video' : kind === 'audio' ? 'music' : kind === 'file' ? 'file-text' : 'image';
+  return (
+    <View accessibilityLabel={`${label} from original post${failed === identity ? '. Preview unavailable' : ''}`} style={compact ? c.thumbWrap : { width: '100%', height: Math.round(width * 0.95), backgroundColor: c.thumbWrap.backgroundColor }}>
+      <View style={c.previewFallback}>
+        <Feather name={icon} size={compact ? 20 : 32} color={c.previewLabel.color} />
+        <Text style={c.previewLabel} numberOfLines={1}>{label}</Text>
+      </View>
+      {showImage ? <ExpoImage key={identity} recyclingKey={identity} source={{ uri }} cachePolicy={privateImageCachePolicy(uri)} transition={0} style={StyleSheet.absoluteFill} contentFit="cover" onError={() => setFailed(identity)} /> : null}
+      {showImage && kind === 'video' ? <View style={compact ? c.playSmall : c.playBig}><Feather name="play" size={compact ? 11 : 18} color={compact ? '#FFFFFF' : '#0B1E3D'} /></View> : null}
+      {showImage && mediaCount > 1 ? <View style={c.countPill}><Feather name="layers" size={11} color="#FFFFFF" /><Text style={c.countTxt}>{mediaCount}</Text></View> : null}
+    </View>
+  );
+}
+
 export default function SharedPostCard({ post, layout = 'full', width = 240, onPress, onAuthorPress }: {
   post: SharedPostData | null | undefined; layout?: 'full' | 'compact'; width?: number; onPress?: () => void; onAuthorPress?: () => void;
 }) {
   const name = post?.author?.full_name || post?.author?.username || 'Post';
-  const media = post?.media?.url ? post.media : null;
-  const isVideo = media?.media_type === 'video';
-  const displayUri = (isVideo && media?.thumbnail_url) ? media.thumbnail_url : media?.url;
+  const media = post?.media ?? null;
+  const mediaLabel = sharedPostMediaLabel(media, post?.mediaCount);
   const text = (post?.content || '').trim();
 
   const Author = (
@@ -47,13 +71,10 @@ export default function SharedPostCard({ post, layout = 'full', width = 240, onP
       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={[c.card, c.compact]}>
         <View style={{ flex: 1, minWidth: 0 }}>
           {Author}
-          <Text style={c.textCompact} numberOfLines={media ? 2 : 4}>{text || (media ? (isVideo ? 'Video' : 'Photo') : 'Tap to view post')}</Text>
+          <Text style={c.textCompact} numberOfLines={media ? 2 : 4}>{text || (media ? mediaLabel : 'Tap to view post')}</Text>
         </View>
         {media ? (
-          <View style={c.thumbWrap}>
-            <ExpoImage source={{ uri: displayUri }} style={c.thumb} contentFit="cover" />
-            {isVideo ? <View style={c.playSmall}><Feather name="play" size={11} color="#FFFFFF" /></View> : null}
-          </View>
+          <SharedPostThumbnail postId={post!.id} media={media} mediaCount={post?.mediaCount} compact />
         ) : null}
       </TouchableOpacity>
     );
@@ -62,11 +83,7 @@ export default function SharedPostCard({ post, layout = 'full', width = 240, onP
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={[c.card, { width }]}>
       {media ? (
-        <View style={{ width: '100%', height: Math.round(width * 0.95), backgroundColor: '#0B1E3D' }}>
-          <ExpoImage source={{ uri: media.url }} style={StyleSheet.absoluteFill} contentFit="cover" />
-          {isVideo ? <View style={c.playBig}><Feather name="play" size={18} color="#0B1E3D" style={{ marginLeft: 2 }} /></View> : null}
-          {(post?.mediaCount || 0) > 1 ? <View style={c.countPill}><Feather name="layers" size={11} color="#FFFFFF" /><Text style={c.countTxt}>{post!.mediaCount}</Text></View> : null}
-        </View>
+        <SharedPostThumbnail postId={post!.id} media={media} mediaCount={post?.mediaCount} width={width} />
       ) : null}
       <View style={{ paddingHorizontal: 12, paddingTop: 10, paddingBottom: 12 }}>
         <TouchableOpacity onPress={onAuthorPress || onPress} activeOpacity={0.7}>{Author}</TouchableOpacity>
@@ -89,7 +106,8 @@ const c = themedSheet((t) => ({
   textCompact: { marginTop: 6, fontSize: 13.5, lineHeight: 18, color: t.ink.primary },
   hint: { marginTop: 8, fontSize: 13, color: t.ink.muted },
   thumbWrap: { width: 64, height: 64, borderRadius: 12, overflow: 'hidden', backgroundColor: t.surface.sunken },
-  thumb: { width: '100%', height: '100%' },
+  previewFallback: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', gap: 3, padding: 3 },
+  previewLabel: { color: t.ink.muted, fontSize: 10, fontWeight: '600' },
   playSmall: { position: 'absolute', left: 22, top: 22, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.7)', alignItems: 'center', justifyContent: 'center' },
   playBig: { position: 'absolute', alignSelf: 'center', top: '50%', marginTop: -22, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   countPill: { position: 'absolute', right: 8, top: 8, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(11,30,61,0.6)', paddingHorizontal: 7, paddingVertical: 3, borderRadius: 999 },

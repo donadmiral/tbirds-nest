@@ -13,12 +13,15 @@ const { mergeFeedRefresh } = sharedModule.exports;
 const mediaModule = { exports: {} };
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/feedMedia.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports: mediaModule.exports, module: mediaModule, setTimeout, clearTimeout });
 const { renewFeedMedia } = mediaModule.exports;
+const previewModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/sharedPostPreview.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports: previewModule.exports, module: previewModule });
 
 
 const source = fs.readFileSync(path.join(__dirname, '../src/screens/feed/FeedScreen.tsx'), 'utf8');
 const ast = ts.createSourceFile('FeedScreen.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const callbacks = {};
 function visit(node) {
+  if (ts.isFunctionDeclaration(node) && node.name?.text === 'mapFeedRow') callbacks.mapFeedRow = node;
   if (ts.isVariableDeclaration(node) && node.name.getText(ast) === '[mutedWords, setMutedWords]') {
     callbacks.mutedInitial = node.initializer.arguments[0];
   }
@@ -31,6 +34,10 @@ function visit(node) {
   }
   if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useEffect'
     && node.arguments[0]?.getText(ast).includes("select('muted_words')")) callbacks.mutedRefresh = node.arguments[0];
+  if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useEffect'
+    && node.arguments[0]?.getText(ast).includes('preparedPageWindow.current')) callbacks.preparePage = node.arguments[0];
+  if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useLayoutEffect'
+    && node.arguments[0]?.getText(ast).includes('feedTabs.read')) callbacks.restoreTab = node.arguments[0];
   ts.forEachChild(node, visit);
 }
 visit(ast);
@@ -43,9 +50,10 @@ function compile(name, scope) {
   return scope.run;
 }
 
-function harness({ previewRows = [], heldTable = null, rpc } = {}) {
+function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = {}) {
   const requests = [], handlers = new Map(), errors = [];
-  let currentUser = 'viewer-a', previewState = {}, pendingResolve, pendingCount = 0, loading = true;
+  let currentUser = 'viewer-a', previewState = {}, quotedState = {}, pendingCount = 0, loading = true;
+  const pendingResolvers = [];
   let postState = [{ id: 'shown', user_id: 'author', comments_count: 4800, likes_count: 0 }];
   const feedRows = [{ post_id: 'shown', author_id: 'author', comments_count: 4800, likes_count: 0, sort_key: 1 }];
   const scope = {
@@ -54,6 +62,8 @@ function harness({ previewRows = [], heldTable = null, rpc } = {}) {
     postsRef: { current: postState }, realtimeTimerRef: { current: null },
     feedRequestRef: { current: 0 }, feedRefreshRequestRef: { current: null }, resolvedFeedRequestRef: { current: 0 }, pageRequestRef: { current: 0 },
     feedScopeRef: { current: 'viewer-a:latest:all' }, discoverCatRef: { current: 'all' },
+    feedMediaScopeRef: { current: null }, navigationScope: () => currentUser + ':session-1',
+    retainFeedMedia: (_old, incoming) => incoming,
     discoverPageRef: { current: { asOf: '2026-01-01T00:00:00.000Z', offset: 0 } },
     pendingPostsRef: { current: [] }, restoredSnapshotRef: { current: false }, scrollOffsetRef: { current: 0 },
     reconcileFeedVisibility: async (_account, ids) => new Set(ids),
@@ -65,12 +75,15 @@ function harness({ previewRows = [], heldTable = null, rpc } = {}) {
     useAuthStore: { getState: () => ({ profile: { id: currentUser } }) },
     loadFeed: () => Promise.resolve(), scheduleRefresh() {},
     overlayCounts: rows => rows, feedModeToServer: mode => mode, isMutedRef: { current: () => false },
-    mapFeedRow: row => ({ ...row, id: row.post_id, user_id: row.author_id }),
+    mapFeedRow: compile('mapFeedRow', { scorePost: () => 0 }),
     hydratePostMedia: async rows => rows, renewFeedMedia,
+    sharedPostPreview: previewModule.exports.sharedPostPreview,
+    withoutPrivateMedia: rows => rows.map(row => ({ ...row, media_url: null,
+      post_media: row.post_media?.map(media => ({ ...media, url: null, edit: { ...media.edit, coverUrl: null } })) })),
     hydrateShares() {}, hydrateCollabs() {}, hydratePolls() {}, scorePost: () => 0,
     setLoading(value) { loading = value; }, setVisibleFeedScope() {}, setRefreshing() {}, setLoadingMore() {}, setFeedError(error) { if (error) errors.push(error); },
     setProfilesMap() {}, setLikedPosts() {}, setBookmarkedPosts() {}, setRepostedPosts() {},
-    setLikerNames() {}, setQuotedMap() {}, setWtfSuggestions() {},
+    setLikerNames() {}, setQuotedMap(update) { quotedState = typeof update === 'function' ? update(quotedState) : update; }, setWtfSuggestions() {},
     setPosts(update) { postState = typeof update === 'function' ? update(postState) : update; scope.postsRef.current = postState; },
     setCommentPreviews(update) { previewState = typeof update === 'function' ? update(previewState) : update; },
     supabase: {
@@ -83,10 +96,10 @@ function harness({ previewRows = [], heldTable = null, rpc } = {}) {
           is() { return query; }, neq() { return query; }, order() { return query; }, limit() { return query; },
           maybeSingle() { request.single = true; return query; },
           then(resolve, reject) {
-            if (table === heldTable) return new Promise(done => { pendingResolve = done; }).then(resolve, reject);
+            if (table === heldTable) return new Promise(done => { pendingResolvers.push(done); }).then(resolve, reject);
             const data = table === 'post_comments'
               ? (request.single ? previewRows[0] ?? null : previewRows)
-              : table === 'profiles' && request.single ? { full_name: 'Comment author' } : [];
+              : table === 'posts' ? quotedRows : table === 'profiles' && request.single ? { full_name: 'Comment author' } : [];
             return Promise.resolve({ data, error: null }).then(resolve, reject);
           },
         };
@@ -104,11 +117,11 @@ function harness({ previewRows = [], heldTable = null, rpc } = {}) {
   };
   return {
     scope, requests, handlers, errors,
-    get posts() { return postState; }, get previews() { return previewState; },
+    get posts() { return postState; }, get previews() { return previewState; }, get quoted() { return quotedState; },
     get pendingCount() { return pendingCount; }, get loading() { return loading; },
     switchAccount() { currentUser = 'viewer-b'; },
     removePost() { scope.postsRef.current = []; },
-    resolvePending(data) { assert.ok(pendingResolve); pendingResolve({ data, error: null }); },
+    resolvePending(data) { assert.ok(pendingResolvers.length); pendingResolvers.shift()({ data, error: null }); },
   };
 }
 const comment = (postId = 'shown') => ({ post_id: postId, user_id: 'commenter', body: 'Synthetic comment', likes_count: 1 });
@@ -318,6 +331,100 @@ test('Discover signing failure retains raw-page offset and retry advances it onl
   await more(); assert.equal(h.scope.discoverPageRef.current.offset, 40);
   assert.deepEqual(offsets, [20, 20]); assert.equal(h.posts.length, 21);
 });
+
+test('pagination unlocks before enrichment and an older completion cannot unlock a newer page', async () => {
+  let calls = 0, secondResponse;
+  const h = harness({ heldTable: 'post_comments', rpc: () => {
+    calls++;
+    return calls === 1
+      ? Promise.resolve({ data: Array.from({ length: 20 }, (_, i) => row('page-one-' + i)), error: null })
+      : new Promise(resolve => { secondResponse = resolve; });
+  } });
+  const more = compile('loadMore', h.scope);
+  const first = more(); await tick();
+  assert.equal(h.posts.length, 21);
+  assert.equal(h.scope.loadingMoreRef.current, false);
+  const second = more(); await tick();
+  assert.equal(calls, 2);
+  assert.equal(h.scope.loadingMoreRef.current, true);
+  h.resolvePending([]); await first;
+  assert.equal(h.scope.loadingMoreRef.current, true);
+  secondResponse({ data: [row('page-two')], error: null }); await tick();
+  h.resolvePending([]); await second;
+  assert.equal(h.posts.length, 22);
+  assert.equal(h.scope.loadingMoreRef.current, false);
+  assert.deepEqual(h.errors, []);
+});
+
+test('pagination retains capability expiry through the actual feed row mapper', async () => {
+  const h = harness();
+  const expiry = Date.now() + 180_000;
+  h.scope.hydratePostMedia = async rows => rows.map(row => ({ ...row, _mediaExpiresAt: expiry }));
+  h.scope.setPosts([{ id: 'older' }]);
+  await compile('loadMore', h.scope)();
+  assert.equal(h.posts.find(post => post.id === 'shown')._mediaExpiresAt, expiry);
+});
+
+test('next-page preparation runs before the end, once per visible window, and respects saver/focus/errors', () => {
+  let requests = 0;
+  const scope = { screenFocused: true, appActive: true, dataSaver: false, loading: false, loadingMore: false,
+    feedError: null, search: '', hasMoreRef: { current: true }, feedScopeRef: { current: 'account:latest' },
+    loadingMoreRef: { current: false }, feedRefreshRequestRef: { current: null }, feedRequestRef: { current: 1 },
+    preparedPageWindow: { current: null }, displayPosts: Array.from({ length: 20 }, (_, i) => ({ id: String(i) })),
+    activePostId: '0', loadMore() { requests++; return Promise.resolve(); } };
+  const prepare = compile('preparePage', scope);
+  prepare(); assert.equal(requests, 0);
+  scope.activePostId = '13'; prepare(); assert.equal(requests, 1);
+  prepare(); assert.equal(requests, 1);
+  scope.activePostId = '14'; scope.feedRefreshRequestRef.current = 1;
+  prepare(); assert.equal(requests, 1);
+  scope.feedRefreshRequestRef.current = null;
+  for (const [key, blocked] of [['dataSaver', true], ['screenFocused', false], ['appActive', false], ['loadingMore', true], ['feedError', 'offline'], ['search', 'searching']]) {
+    const prior = scope[key]; scope[key] = blocked; scope.activePostId = '14'; prepare(); scope[key] = prior;
+    assert.equal(requests, 1);
+  }
+  prepare(); assert.equal(requests, 2);
+  scope.displayPosts.push(...Array.from({ length: 20 }, (_, i) => ({ id: String(i + 20) })));
+  prepare(); assert.equal(requests, 2);
+});
+
+test('tab restore restores the rows original media session instead of assigning the previous tab session', () => {
+  const h = harness(), cached = new Map();
+  cached.set('viewer-a:trending:all', { rows: [{ id: 'old-tab-post' }], mediaScope: 'viewer-a:old-session' });
+  Object.assign(h.scope, {
+    feedMode: 'trending', discoverCat: 'all', visibleFeedScope: 'viewer-a:latest:all',
+    loading: false, feedError: null, likedPosts: {}, bookmarkedPosts: {}, repostedPosts: {},
+    feedTabs: { save: (key, value) => cached.set(key, value), read: key => cached.get(key) },
+    requestAnimationFrame: fn => fn(), feedListRef: { current: null }, loadFeedRef: { current: null },
+  });
+  h.scope.feedMediaScopeRef.current = 'viewer-a:new-session';
+  h.scope.feedScopeRef.current = 'viewer-a:trending:all';
+  compile('restoreTab', h.scope)();
+  assert.equal(h.posts[0].id, 'old-tab-post');
+  assert.equal(h.scope.feedMediaScopeRef.current, 'viewer-a:old-session');
+  assert.equal(cached.get('viewer-a:latest:all').mediaScope, 'viewer-a:new-session');
+});
+
+for (const callback of ['loadFeed', 'loadMore']) {
+  test(callback + ' shows safe source context while grants load, then the exact source poster', async () => {
+    const source = { id: 'original', user_id: 'source-author', content: 'Original caption',
+      post_media: [{ url: 'private-original.mp4', media_type: 'video/mp4', edit: { coverUrl: 'private-original.jpg' } }] };
+    const h = harness({ quotedRows: [source], rpc: async () => ({ data: [{ ...row('reshare'), quoted_post_id: 'original' }], error: null }) });
+    let finish;
+    h.scope.hydratePostMedia = rows => rows[0]?.id === 'original'
+      ? new Promise(resolve => { finish = resolve; }) : Promise.resolve(rows);
+    const work = compile(callback, h.scope)(); await tick();
+    assert.equal(h.quoted.original.content, 'Original caption');
+    assert.equal(h.quoted.original.media.media_type, 'video');
+    assert.equal(h.quoted.original.media.url, '');
+    assert.equal(h.quoted.original.media.thumbnail_url, null);
+    finish([{ ...source, post_media: [{ ...source.post_media[0], url: 'authorized-original.mp4', edit: { coverUrl: 'authorized-original.jpg' } }] }]);
+    await work;
+    assert.equal(h.quoted.original.media.thumbnail_url, 'authorized-original.jpg');
+    assert.equal(h.quoted.original.mediaCount, 1);
+    assert.deepEqual(h.errors, []);
+  });
+}
 
 
 test('restoring a disk snapshot establishes its first cursor without moving the reader', async () => {
