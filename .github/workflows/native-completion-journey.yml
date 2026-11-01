@@ -1,0 +1,76 @@
+name: Verify the original journey in the fresh iPhone app
+
+on:
+  push:
+    branches: [codex/completion-20261101]
+    paths:
+      - .github/workflows/native-completion-journey.yml
+      - scripts/quality/completion-ios-journey.py
+      - scripts/quality/completion-ios-journey.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  original-journey:
+    name: Fresh original tabs, Messages timing and both memory pages
+    runs-on: macos-15-intel
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_APP_ENV: qa
+      EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+      MAESTRO_CLI_NO_ANALYTICS: 'true'
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: '180000'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Read reviewed consumer tools
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: recovery-tools
+          persist-credentials: false
+      - name: Require the independently verified fresh producer binding
+        id: binding
+        run: |
+          artifact_id="$(python3 recovery-tools/scripts/quality/completion-ios-journey.py --artifact-id)"
+          echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
+      - name: Read exact f5 source used to build the app
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: f5be97445ef7223baeb60dd10e8cded05630b6c1
+          path: baseline
+          persist-credentials: false
+      - name: Retrieve the verified fresh Simulator app
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ steps.binding.outputs.artifact_id }}
+          merge-multiple: true
+          path: baseline/native-audit-binary
+          run-id: 41259529351
+          github-token: ${{ github.token }}
+      - name: Prepare consumer tools without rebuilding
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+      - name: Install the source-bound Maestro version
+        working-directory: baseline
+        run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run the original navigation and reader path
+        env:
+          CONSUMER_SOURCE: ${{ github.sha }}
+        run: |
+          python3 recovery-tools/scripts/quality/completion-ios-journey.py \
+            --baseline "$PWD/baseline" --consumer-source "$CONSUMER_SOURCE"
+      - name: Retain completed, failed and interrupted evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fresh-ios-original-journey-results
+          path: baseline/native-completion-results/
+          if-no-files-found: warn
+          retention-days: 7

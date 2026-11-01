@@ -1,0 +1,34 @@
+{
+  "recordedAt": "2026-11-01T01:04:26.998521+00:00",
+  "baselineRemoteCommit": "cc4e936d0a4ad7ac9f4e032fdb7b123ec961a0a3",
+  "scope": "Fresh native build and device-audit preparation. Device acceptance is separate.",
+  "checks": {
+    "focusedTests": 51,
+    "passed": 51,
+    "failed": 0,
+    "shellSyntax": "passed",
+    "pythonCompile": "passed",
+    "disposableComponentObserverTranspile": "passed"
+  },
+  "command": "node --test --test-reporter=tap tests/quality/native-completion-runner.cjs tests/quality/native-audit-workflow.cjs tests/quality/native-platform-audit-pack.cjs tests/quality/native-audit-flow-controls.cjs tests/quality/native-memory-book-save-receipt.cjs tests/quality/native-audit-diagnostic-gate.cjs",
+  "executionContext": "Local subprocess-capable execution. Initial sandbox child EPERM was not counted as source failure or test acceptance.",
+  "inputSha256": {
+    ".github/workflows/android-native-compile.yml": "c97e4ea4c6bdf5e9d64580ff7a84b5a0ba2fc9c9a31526d46382ab354b9ebd68",
+    ".github/workflows/native-product-audit.yml": "5b61eda80cafface662167d031b348d750444422c2a9b1f853ef04d7d0c5b929",
+    "scripts/quality/native-ui-audit-runner.py": "2eebacb4baca5b5231367c749fba465e13235c85a1d8dee4b5503eb72dbde3b4",
+    "scripts/quality/prepare-native-ui.cjs": "a64a2cf4fa6fe36a170833e9350915b95b7032dfe82995be7fca3f5150b41fed",
+    "scripts/quality/run-native-ui-audit-device.sh": "4b76121375d76d71da18576ab817bada009b950c8c74f00728235ebc5471d52f",
+    "tests/native/audit/flows/navigation-warm-tabs.yaml": "952dbe522de4050a345cbfee6ea3abcb278d3133b940617836bdccc2f1ce9da2",
+    "tests/native/entry.js": "eb31a19b4bc7bf6e882ab2a39d9bb33f66565c87203dd0a1184d5d823d95438a",
+    "tests/quality/native-audit-workflow.cjs": "04efee427af9b48b20794d96ad5bfb1b3058cb135283d3d00a1d4e7b20bebcea",
+    "scripts/quality/native-ui-navigation-overlay.cjs": "b660e9d1316d84be4330e9cae8414fce4049ee6cf2eb48993950063c4bfeac86",
+    "scripts/quality/native-ui-start-ios-device.py": "05339a938819af2d0fd1e6fd867d9761b52d01098bceeb8885a75ce322a65ca5",
+    "tests/native/navigation-timing.cjs": "a41f5b07be2b2d2119b5138d2ce34cb0570490249abd7c5120f9911f02831f4f",
+    "tests/quality/native-completion-runner.cjs": "56af5419f53c940145d8477f2b737409d05e04f4bc94cc483c4ab531c7b1f860"
+  },
+  "productionSourceChanged": false,
+  "productAssertionTimeoutMilliseconds": 15000,
+  "iosDriverStartupTimeoutMilliseconds": 180000,
+  "freshDeviceAcceptance": false,
+  "performanceAcceptance": false
+}

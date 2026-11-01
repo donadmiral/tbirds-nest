@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-11-01 01:03:41 UTC",
+  "sourceCommit": "cc4e936d0a4ad7ac9f4e032fdb7b123ec961a0a3",
+  "branch": "codex/completion-20261101",
+  "teamId": "team_yu7fUehO2z7E6QHF6Nvxp3tC",
+  "problem": {
+    "adminDeployment": "dpl_4CtqqerYVRc1Quvt6jBQ18uJFq8x",
+    "adminMissing": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "webDeployment": "dpl_9i9vhGAxyKDVRB2raAzS68hvooEM",
+    "webMissing": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+    ],
+    "cause": "Required isolated-QA preview values were branch-scoped to codex/app-quality-20261029. Recovery branch builds stopped in prebuild configuration validation before application compilation."
+  },
+  "changes": [
+    {
+      "project": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+      "id": "4ddcYe7ihN6yymlj",
+      "key": "SUPABASE_SERVICE_ROLE_KEY",
+      "previousGitBranch": "codex/app-quality-20261029",
+      "gitBranch": "codex/completion-20261101",
+      "target": [
+        "preview"
+      ],
+      "valueRead": false,
+      "valueChanged": false
+    },
+    {
+      "project": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+      "id": "iuu0YR3GIJhQmy78",
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "previousGitBranch": "codex/app-quality-20261029",
+      "gitBranch": "codex/completion-20261101",
+      "target": [
+        "preview"
+      ],
+      "valueRead": false,
+      "valueChanged": false
+    },
+    {
+      "project": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+      "id": "FW3zflZFRRqDhBFm",
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "previousGitBranch": "codex/app-quality-20261029",
+      "gitBranch": "codex/completion-20261101",
+      "target": [
+        "preview"
+      ],
+      "valueRead": false,
+      "valueChanged": false
+    },
+    {
+      "project": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+      "id": "yo0CU3w4TyrW2UOq",
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "previousGitBranch": "codex/app-quality-20261029",
+      "gitBranch": "codex/completion-20261101",
+      "target": [
+        "preview"
+      ],
+      "valueRead": false,
+      "valueChanged": false
+    },
+    {
+      "project": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+      "id": "fhdmD3Fe267Cqd2v",
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "previousGitBranch": "codex/app-quality-20261029",
+      "gitBranch": "codex/completion-20261101",
+      "target": [
+        "preview"
+      ],
+      "valueRead": false,
+      "valueChanged": false
+    }
+  ],
+  "postflight": "Metadata reread confirmed all five entries preview-only and scoped to the authorized completion branch. Production entries unchanged. Secret values were never requested, extracted, printed or transmitted.",
+  "protections": {
+    "passwordProtection": false,
+    "ssoProtection": "all_except_custom_domains",
+    "changed": false
+  },
+  "deployments": [
+    {
+      "id": "dpl_BzT1aDFcDKKkQAEZo3mrkgQ1n6KJ",
+      "name": "admin-web",
+      "url": "admin-h7313aq86-intobank.vercel.app",
+      "commit": "cc4e936d0a4ad7ac9f4e032fdb7b123ec961a0a3",
+      "branch": "codex/completion-20261101",
+      "target": null,
+      "project": {
+        "id": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+        "name": "admin-web",
+        "framework": "nextjs"
+      },
+      "readyState": "READY",
+      "sourceVerifiedFromDeploymentMetadata": true,
+      "completionAlias": "admin-web-git-codex-completion-20261101-intobank.vercel.app",
+      "testedAlias": "admin-web-git-codex-app-quality-20261029-intobank.vercel.app"
+    },
+    {
+      "id": "dpl_9Z9WR3HpgXGgDtHpTRsuBk83FAUw",
+      "name": "platinum-web",
+      "url": "platinum-p0go8fwjl-intobank.vercel.app",
+      "commit": "cc4e936d0a4ad7ac9f4e032fdb7b123ec961a0a3",
+      "branch": "codex/completion-20261101",
+      "target": null,
+      "project": {
+        "id": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+        "name": "platinum-web",
+        "framework": "nextjs"
+      },
+      "readyState": "READY",
+      "sourceVerifiedFromDeploymentMetadata": true,
+      "completionAlias": "platinum-web-git-codex-completion-20261101-intobank.vercel.app",
+      "testedAlias": "platinum-web-git-codex-app-quality-20261029-intobank.vercel.app"
+    }
+  ],
+  "aliasBinding": {
+    "verified": true,
+    "purpose": "Reuse existing protected QA origin and its authenticated test session for current-source acceptance",
+    "sameProjects": true,
+    "sameQaBackend": true,
+    "productionAliasesChanged": false,
+    "protectionChanged": false,
+    "credentialsExported": false
+  },
+  "diagnosticPreview": {
+    "id": "dpl_7ot6pju1eR8Xm7ysq58Xik3HoEfB",
+    "name": "platinum-web",
+    "url": "platinum-ct1nzfn5w-intobank.vercel.app",
+    "commit": "340fe01b3db1a3072625b27efbae476d8df72d66",
+    "tree": "9409c2d9f9d6b8e14388ce2a5b1910a43cff5941",
+    "branch": "codex/completion-20261101",
+    "target": null,
+    "readyState": "READY",
+    "testedAlias": "platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+    "aliasMetadataReread": true,
+    "sameProjectAndQaBackend": true,
+    "protectionChanged": false,
+    "productionAliasChanged": false
+  }
+}

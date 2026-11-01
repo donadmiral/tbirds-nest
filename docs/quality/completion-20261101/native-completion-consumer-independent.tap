@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: fresh original-journey consumer refuses unrelated, incomplete or changed producer bytes
+ok 1 - fresh original-journey consumer refuses unrelated, incomplete or changed producer bytes
+  ---
+  duration_ms: 62.352163
+  type: 'test'
+  ...
+# Subtest: fresh original journey keeps the exact reviewed path and reports a separate source-bound result
+ok 2 - fresh original journey keeps the exact reviewed path and reports a separate source-bound result
+  ---
+  duration_ms: 25.253836
+  type: 'test'
+  ...
+# Subtest: native app timing requires the exact visit count and a populated frame before leaving
+ok 3 - native app timing requires the exact visit count and a populated frame before leaving
+  ---
+  duration_ms: 32.25679
+  type: 'test'
+  ...
+# Subtest: reader timing requires both original pages and captions and catches a driver deadline overrun
+ok 4 - reader timing requires both original pages and captions and catches a driver deadline overrun
+  ---
+  duration_ms: 35.523988
+  type: 'test'
+  ...
+# Subtest: cold Simulator inventory completes when its exited parent leaves a service holding the output pipe
+ok 5 - cold Simulator inventory completes when its exited parent leaves a service holding the output pipe
+  ---
+  duration_ms: 449.096068
+  type: 'test'
+  ...
+# Subtest: navigation observation excludes content, preserves event order and bounds retained data
+ok 6 - navigation observation excludes content, preserves event order and bounds retained data
+  ---
+  duration_ms: 23.498782
+  type: 'test'
+  ...
+# Subtest: navigation observers compile against exact production components without replacing their handlers
+ok 7 - navigation observers compile against exact production components without replacing their handlers
+  ---
+  duration_ms: 270.996773
+  type: 'test'
+  ...
+# Subtest: Simulator setup selects only the exact available shutdown device and bounds boot failures
+ok 8 - Simulator setup selects only the exact available shutdown device and bounds boot failures
+  ---
+  duration_ms: 32.11092
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 676.02995

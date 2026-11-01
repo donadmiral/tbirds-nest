@@ -1,0 +1,102 @@
+{
+  "producerSourceCommit": "d32ce7e755f78d2efe084ccc4aaea30b28f1d73c",
+  "rendererAndHarnessInputsExactlyMatch": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "workflowRun": 41260485021,
+  "jobId": 124712546328,
+  "artifactId": 13065275477,
+  "artifactBytes": 411480,
+  "artifactSha256": "60c23b1e9f34c34e65cb2f5a7c8855ee91b7ad76479eebdb1596f5c9c745eb0c",
+  "passed": true,
+  "measuredCaseCount": 11,
+  "sourceHashesVerified": 4,
+  "fixtureHashesVerified": 3,
+  "normalizedImagesVerified": 2,
+  "architecture": "arm64",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+  "movies": [
+    {
+      "name": "pc-memory-export-continuous-phase.mp4",
+      "duration": 3.2,
+      "videoCodec": "h264",
+      "width": 720,
+      "height": 1280,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-memory-export-motion.mp4",
+      "duration": 3.2,
+      "videoCodec": "h264",
+      "width": 720,
+      "height": 1280,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-memory-export-muted.mp4",
+      "duration": 1.2,
+      "videoCodec": "h264",
+      "width": 720,
+      "height": 1280,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-memory-export-ordered.mp4",
+      "duration": 4.5,
+      "videoCodec": "h264",
+      "width": 720,
+      "height": 1280,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-memory-export-retry.mp4",
+      "duration": 1.2,
+      "videoCodec": "h264",
+      "width": 720,
+      "height": 1280,
+      "fps": "30/1",
+      "audioCodecs": [],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-memory-export-slow-fractional.mp4",
+      "duration": 4.35,
+      "videoCodec": "h264",
+      "width": 720,
+      "height": 1280,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-memory-export-voice-once.mp4",
+      "duration": 4.2,
+      "videoCodec": "h264",
+      "width": 720,
+      "height": 1280,
+      "fps": "30/1",
+      "audioCodecs": [
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    }
+  ],
+  "installedProductAcceptance": false,
+  "physicalDeviceAcceptance": false,
+  "photosWriteAcceptance": false,
+  "networkAccessed": false
+}

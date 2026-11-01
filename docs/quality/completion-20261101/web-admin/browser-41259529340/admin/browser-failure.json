@@ -1,0 +1,75 @@
+{
+  "checkedAt": "2026-11-01T01:10:48.111Z",
+  "checks": [
+    {
+      "name": "Corrupt saved navigation preferences do not crash the workspace",
+      "passed": true
+    },
+    {
+      "name": "Unknown queue count is shown as unavailable",
+      "passed": true
+    },
+    {
+      "name": "Command search traps focus, supports Escape and restores focus",
+      "passed": true
+    },
+    {
+      "name": "Record switch clears the previous record action text",
+      "passed": true
+    },
+    {
+      "name": "Required review length prevents a short form submission",
+      "passed": true
+    },
+    {
+      "name": "A valid review submits the selected identity with an idempotency key",
+      "passed": true
+    },
+    {
+      "name": "Pagination never leaves an actionable record from the hidden page",
+      "passed": true
+    },
+    {
+      "name": "Search is case-insensitive and clearing filters restores all rows",
+      "passed": true
+    },
+    {
+      "name": "Tab filter keeps selection inside the visible records",
+      "passed": true
+    },
+    {
+      "name": "Numeric column sorting and rows-per-page controls update actual records",
+      "passed": true
+    },
+    {
+      "name": "Closing record details returns focus to its selected row",
+      "passed": true
+    },
+    {
+      "name": "Closing a full-screen photo preserves the record and restores its original trigger",
+      "passed": true
+    },
+    {
+      "name": "Full-screen gallery navigation retains the selected attachment after closing",
+      "passed": true
+    },
+    {
+      "name": "Charts expose exact values and keyboard-operable series controls",
+      "passed": true
+    },
+    {
+      "name": "Share actions move focus into the panel and Escape returns to the trigger",
+      "passed": true
+    },
+    {
+      "name": "Clipboard rejection is visible and success is announced only after a confirmed copy",
+      "passed": true
+    },
+    {
+      "name": "Table export actions escape the clipped table and remain inside the viewport",
+      "passed": true
+    }
+  ],
+  "browserErrors": [],
+  "failure": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'Dark appearance' })\n"
+}

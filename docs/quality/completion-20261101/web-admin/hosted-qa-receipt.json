@@ -1,0 +1,310 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-11-01T01:39:15.124445+00:00",
+  "sourceCommit": "cc4e936d0a4ad7ac9f4e032fdb7b123ec961a0a3",
+  "scope": "Actual signed-in protected QA previews and existing synthetic QA member records. Source-bound provider build metadata is in qa-preview-config-repair.json. Read routes and selected controls only; not every button, every data-dependent mutation, production or physical-device acceptance.",
+  "publicationPolicy": {
+    "noCredentialsOrSessionTokens": true,
+    "noContactData": true,
+    "noPrivateMediaOrRawAuthenticatedPageDumps": true,
+    "screenshotsExcludedFromPublicCommit": [
+      "admin-lights-out.jpg",
+      "admin-private-photo.jpg",
+      "member-lights-out.jpg",
+      "photo-export-paused.jpg",
+      "hosted-photo-movie-ready.jpg",
+      "hosted-photo-movie-opening.png",
+      "hosted-photo-movie-photo.png",
+      "hosted-photo-movie-closing.png",
+      "hosted-video-movie-ready.jpg",
+      "hosted-video-movie-start.png",
+      "hosted-video-movie-middle.png",
+      "hosted-video-movie-end.png"
+    ],
+    "screenshotLocation": "Outside repository; private local proof only"
+  },
+  "admin": {
+    "deploymentId": "dpl_BzT1aDFcDKKkQAEZo3mrkgQ1n6KJ",
+    "passedReadRoutes": [
+      "/dashboard",
+      "/analytics",
+      "/calls",
+      "/jobs",
+      "/queue",
+      "/support",
+      "/users",
+      "/users/deletions",
+      "/staff",
+      "/businesses",
+      "/organizations",
+      "/market",
+      "/market/orders",
+      "/payments",
+      "/payments/creators",
+      "/ads",
+      "/reports",
+      "/market/reviews",
+      "/audit",
+      "/system",
+      "/present",
+      "/security?setup=1",
+      "/content",
+      "/content/[qa-post]"
+    ],
+    "readRouteBoundary": "Each route entry was followed by its settled visible workspace or its intentional separate layout. First premature route snapshots were excluded. A route passing means content/empty state loaded, not all actions passed.",
+    "selectedControls": [
+      {
+        "case": "appearance-lights-out",
+        "passed": true,
+        "proof": "Lights out option selected; visible black workspace remained readable; device appearance restored"
+      },
+      {
+        "case": "private-photo-decode",
+        "passed": true,
+        "proof": {
+          "naturalWidth": 1080,
+          "naturalHeight": 1920,
+          "complete": true,
+          "transportPath": "/api/moderation-media"
+        }
+      },
+      {
+        "case": "private-photo-fullscreen-escape",
+        "passed": true,
+        "proof": "Full-screen media review opened and Escape closed it without leaving selected record"
+      },
+      {
+        "case": "private-video-decode-and-play",
+        "passed": true,
+        "proof": {
+          "videoWidth": 720,
+          "videoHeight": 1280,
+          "durationSeconds": 4,
+          "readyState": 4,
+          "initialTimeSeconds": 0.5,
+          "playingTimeObservedSeconds": 0.79,
+          "laterTimeObservedSeconds": 3.37,
+          "transportPath": "/api/moderation-media"
+        }
+      },
+      {
+        "case": "authenticated-open-post",
+        "passed": true,
+        "proof": "Full post rendered staff-authorized media and visibility/context information"
+      }
+    ],
+    "unavailableServicesObserved": [
+      {
+        "route": "/music",
+        "state": "Audio operations are unavailable because QA music database contract could not be reached",
+        "classification": "Hosted installation gate; original uploads separate from excluded licensed catalogue"
+      },
+      {
+        "route": "/payments",
+        "state": "No verified IntoBank connection; provider health unavailable",
+        "classification": "Provider acceptance remains"
+      },
+      {
+        "route": "/payments/creators",
+        "state": "Read-only; approvals/payouts/finalized statements unavailable; enrollment closed",
+        "classification": "Explicit capability/provider boundary"
+      }
+    ],
+    "serverMutationsPerformed": []
+  },
+  "member": {
+    "deploymentId": "dpl_9Z9WR3HpgXGgDtHpTRsuBk83FAUw",
+    "passedSettledReads": [
+      "Home feed",
+      "Messages empty conversation list",
+      "Channels existing QA channel",
+      "Jobs zero-role result",
+      "Market existing owned listing and order empty state",
+      "Notifications empty state",
+      "Owner profile with seven posts and two books",
+      "Discover featured QA channel and seven post links",
+      "Watch three video-containing post links",
+      "Communities no-community empty state",
+      "Settings account preferences and navigation",
+      "Creator Studio overview",
+      "Creator partnerships zero-proposal empty state",
+      "Creator Earnings overview, activity empty state, payout empty state and account status",
+      "Member support form and no-message empty state (no submission)",
+      "Profile settings populated values and unchanged Save disabled",
+      "Username settings current username loaded",
+      "Account type settings current choices",
+      "Follow request empty state",
+      "Blocked accounts empty state",
+      "Restricted accounts empty state"
+    ],
+    "entryOnlyNotAccepted": [],
+    "selectedControls": [
+      {
+        "case": "book-reader",
+        "passed": true,
+        "proof": "Four-page QA book opened; first image decoded; next page displayed page2of4 and its expected caption; controls reenabled"
+      },
+      {
+        "case": "continuous-film",
+        "passed": true,
+        "proof": "Film opened with original score enabled and Pause changed to Play"
+      },
+      {
+        "case": "unsupported-animation-preflight",
+        "passed": true,
+        "proof": "Existing animated-sticker book explains unsupported export and disables Create movie; book preserved"
+      },
+      {
+        "case": "valid-title-save-readback-restore",
+        "passed": true,
+        "proof": {
+          "originalTitle": "QA memories",
+          "temporaryTitle": "QA memories verified Nov 1",
+          "validTemporaryTitleCharacters": 26,
+          "saveClicksForValidTemporaryTitle": 1,
+          "readback": "Full browser reload, reopen editor, exact saved title",
+          "restore": "Original title saved and confirmed after another full browser reload",
+          "exactNetworkRequestCountMeasured": false
+        }
+      },
+      {
+        "case": "invalid-automation-input",
+        "passed": false,
+        "classification": "Excluded invalid fixture, not backend failure",
+        "proof": "Initial33-character fill bypassed input maxlength30; shared payload validation rejected before RPC and kept draft. Corrected26-character input passed."
+      },
+      {
+        "case": "supported-video-book-export",
+        "passed": false,
+        "classification": "Hosted encoding not accepted",
+        "proof": "Two attempts reached browser frame-gap guard and preserved Retry; no movie file was downloaded. Document visibility read visible before second attempt. Real browser encoded fixture gate passed separately; no timing guard was weakened."
+      },
+      {
+        "case": "member-appearance",
+        "passed": true,
+        "proof": {
+          "Light": "selected; no dark class",
+          "Dim": "selected; dark class",
+          "Lights out": "selected; dark lights-out classes; body background rgb(0,0,0), text rgb(231,233,234)",
+          "Restoration": "System selected after check"
+        }
+      },
+      {
+        "case": "photo-only-qa-book-create-and-private-readback",
+        "passed": true,
+        "proof": {
+          "title": "Completion export QA",
+          "subtitle": "Disposable photo export check",
+          "bookId": "c7ce6350-76ac-4a9d-8e11-e78599ab4a4d",
+          "selectedMemories": 1,
+          "assetKind": "Existing synthetic QA landscape photo",
+          "audienceSetup": "Normal create UI uses profile audience; immediately selected Only me and saved via editor",
+          "privacyReadback": "Full reload then reopened editor showed Only me checked",
+          "existingBooksModified": false
+        }
+      },
+      {
+        "case": "photo-only-hosted-export",
+        "passed": false,
+        "classification": "Hosted encoding not accepted",
+        "proof": {
+          "attempts": 1,
+          "interaction": "Clicked Create movie and waited55s for download without further AX/screenshot/tab operations; root paused browser work",
+          "result": "Same browser-paused-rendering failure; Retry retained; no download",
+          "consoleMovieMessages": 0,
+          "guard": "memoryFilmExport.ts rejects requestAnimationFrame gap>1000ms",
+          "guardChanged": false,
+          "cause": "Not established. Photo-only result excludes source-video decoding as a necessary cause; no cloud root-cause claim."
+        }
+      },
+      {
+        "case": "photo-only-hosted-export-diagnostic-source",
+        "passed": true,
+        "sourceCommit": "340fe01b3db1a3072625b27efbae476d8df72d66",
+        "deploymentId": "dpl_7ot6pju1eR8Xm7ysq58Xik3HoEfB",
+        "proof": {
+          "attempts": 1,
+          "interaction": "Clicked Create movie, no browser interaction for35seconds, observed Your movie is ready, clicked separate Download movie and received actual file",
+          "frameGapDiagnostics": 0,
+          "visibilityBefore": "visible",
+          "playingDocumentMediaBefore": 0,
+          "bytes": 1625692,
+          "sha256": "73f5436d873e9ab4f7dc9376bbe787cb6cfbd7b06feca808d5d0f03086e4f8ea",
+          "videoCodec": "vp9",
+          "audioCodec": "opus",
+          "dimensions": [
+            720,
+            1280
+          ],
+          "audioRate": 48000,
+          "audioChannels": 2,
+          "actualDurationSeconds": 8.2049,
+          "displayedDurationCeilingSeconds": 9,
+          "decodedVideoFrames": 246,
+          "sourceFrameTimestampDuplicates": 0,
+          "maxSourceFrameGapSeconds": 0.051,
+          "firstFrameSeconds": 0,
+          "lastFrameSeconds": 8.174,
+          "visualFrames": "Opening title at1s, synthetic landscape with saved caption at4.1s, closing title and memory count at7.4s all decoded and visually inspected",
+          "artifactLocation": "Private local proof outside repository; video and frames not included in public commit",
+          "reliabilityBoundary": "Successful current-source attempt; earlier transient failures retained. Instrumentation did not change guard or rendering behavior and is not claimed as a reliability fix.",
+          "decodedFile": "hosted-photo-decode.json",
+          "fullDecodeExit": 0,
+          "fullDecodeStderr": ""
+        }
+      },
+      {
+        "case": "original-video-book-hosted-export-diagnostic-source",
+        "passed": true,
+        "sourceCommit": "340fe01b3db1a3072625b27efbae476d8df72d66",
+        "deploymentId": "dpl_7ot6pju1eR8Xm7ysq58Xik3HoEfB",
+        "proof": {
+          "attempts": 1,
+          "sameOriginalBook": true,
+          "sourceDurationSeconds": 12,
+          "durationCorrection": "Earlier31second description came from a different profile post; this book actually contains the12second synthetic QA video.",
+          "interaction": "Clicked Create movie, no browser interaction for40seconds, observed Your movie is ready, clicked Download movie and received actual file",
+          "visibilityBefore": "visible",
+          "playingDocumentMediaBefore": 0,
+          "frameGapDiagnostics": 0,
+          "decodedFile": "hosted-video-decode.json",
+          "bytes": 3302510,
+          "sha256": "0a57554345fa9e76355cd2e351d82f98c7d230561296127010e26f07cee48203",
+          "visualFrames": "Synthetic pattern timecode advanced from0.958 at1second,6.000 at6seconds,to10.500 at10.5seconds; saved caption present. All inspected after actual download.",
+          "artifactLocation": "Video, ready screenshot and extracted frames retained privately outside repository",
+          "reliabilityBoundary": "Current hosted acceptance passed. Historical frame-gap failures remain recorded with unestablished cause; diagnostics did not change rendering guard."
+        }
+      }
+    ],
+    "notClaimed": [
+      "Offer submission by second account; retained QA member owns only listing",
+      "Support reply/authenticated administrative mutations",
+      "Hosted original-audio ingestion until backend installed",
+      "Every hosted book/content combination; current file acceptance covers the private one-photo automatic cut and original12second synthetic video book"
+    ],
+    "unavailableServicesObserved": [
+      {
+        "route": "/settings/audio",
+        "state": "Original audio uploads unavailable; Choose audio/Record disabled; originals list could not load",
+        "classification": "Hosted original-upload installation gate; licensed catalogue remains explicitly deferred"
+      },
+      {
+        "route": "/studio/earnings",
+        "state": "Enrollment closed, payouts unavailable, IntoBank connection unconfirmed; no financial action",
+        "classification": "Provider/capability boundary"
+      }
+    ],
+    "currentDeploymentId": "dpl_7ot6pju1eR8Xm7ysq58Xik3HoEfB",
+    "currentSourceCommit": "340fe01b3db1a3072625b27efbae476d8df72d66",
+    "fixtureCleanup": {
+      "existingBookTitle": "Restored QA memories and verified after reload",
+      "newPhotoBook": "Completion export QA remains Only me, previously verified after save and full reload",
+      "archiveBoundary": "No book-level reversible archive control is exposed in current book editor. No existing page or book was removed.",
+      "exportCleanup": "Both download dialogs and film closed after successful downloads; original QA book left unchanged."
+    }
+  },
+  "toolObservationLimits": [
+    "Two selector mismatches and transient route/page-turn snapshots were not product failures or successful acceptance cases.",
+    "A browser automation timeout reset in-memory raw snapshots after the save readback/restoration completed; this receipt summarizes the recorded tool observations and retained screenshots, not invented raw traces."
+  ]
+}

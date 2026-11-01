@@ -1,0 +1,121 @@
+{
+  "runId": 41260532142,
+  "sourceCommit": "eb64204b434287c1707aa2d733ef5dddf9998825",
+  "conclusion": "success",
+  "groupsPassed": 13,
+  "groupsTotal": 13,
+  "artifactId": 13065700144,
+  "artifactBytes": 11417287,
+  "archiveSha256": "722ba5e884d65b7f8972c90257560ae2e163ef273e64051f0d01fa8d17d96aac",
+  "scope": "Actual components with synthetic transport and generated media; no hosted-provider claim. JSON receipts only; fixture screenshots are in the original Actions artifact.",
+  "receipts": [
+    {
+      "path": "admin/browser-receipt.json",
+      "sha256": "1e9366ddb24ed0707a379be11fcd68ab1ff865e972ba39f3bf139b0b3f9f1e20",
+      "count": 39,
+      "browserErrors": []
+    },
+    {
+      "path": "video/browser-receipt.json",
+      "sha256": "eabe7b883c168db6cc7ee4538dbb3f4d6bfdd2c776669259a3f6438159e1d771",
+      "count": 12
+    },
+    {
+      "path": "memory/browser-receipt.json",
+      "sha256": "b448ff54b3da6331d053732051bfad3065cf00bbaa47aad1ad2c7267bd98afea",
+      "count": 25,
+      "consoleErrors": []
+    },
+    {
+      "path": "memory-cover/browser-receipt.json",
+      "sha256": "0268ee2d54b57ae0bc188c873b6cf9d736e3735ccd21d744e889e7444fa79da3",
+      "count": 5,
+      "consoleErrors": []
+    },
+    {
+      "path": "memory-cover/latest-gallery.json",
+      "sha256": "3b8dfe77d6bed0e3a3818947e3147bcc5851ab6ea8e68caa509584abd2ef6e07",
+      "count": 0
+    },
+    {
+      "path": "music/browser-receipt.json",
+      "sha256": "e2540cc085f02de65a843bb0b488d2b259249d9f180294121bdb2b8d0e239154",
+      "count": 5,
+      "consoleErrors": []
+    },
+    {
+      "path": "web/browser-receipt.json",
+      "sha256": "ee3d4b70b013ba2c65c1848187a17f0bfb3acaeb9e5c2ac944436b1fed0a9aa4",
+      "count": 41,
+      "browserErrors": []
+    },
+    {
+      "path": "web/profile-navigation-frames.json",
+      "sha256": "1309b809c488cc99d795bf7d3fb0b5fbc02b478cf3b697f43fa14e3a9a12e166",
+      "count": 5,
+      "browserErrors": []
+    },
+    {
+      "path": "web/warm-navigation-frames.json",
+      "sha256": "3fc0af9972cd91b0b35da0ba887d48b8aa7b78d229b4ee0a986143067f9ee113",
+      "count": 0,
+      "browserErrors": []
+    },
+    {
+      "path": "shell/receipt.json",
+      "sha256": "a8f5900ace18081bb04e6b86dbe558d7577859d81339b93b34c6936e9352ac70",
+      "count": 3,
+      "browserErrors": []
+    },
+    {
+      "path": "commerce/browser-receipt.json",
+      "sha256": "2c198ee04769b8c9d9ff3fdf68429130e1b9e8318c442ae94ef418c676817792",
+      "count": 26,
+      "browserErrors": []
+    },
+    {
+      "path": "commerce/jobs-navigation-frames.json",
+      "sha256": "7b5ce59e2d4ed204172b92d9490e15179c415b96293d7f6d99e3357c60d203ae",
+      "count": 7,
+      "browserErrors": []
+    },
+    {
+      "path": "studio/browser-receipt.json",
+      "sha256": "af586cf4585590c7d4bd98878dddd2036957c8334d8de18ea61608dd0adc58e6",
+      "count": 25,
+      "browserErrors": []
+    },
+    {
+      "path": "member-resilience/receipt.json",
+      "sha256": "953d3064fb391a6fb26b9674c8bfacfd817408ed2138d066c047f74ce3cbd744",
+      "count": 64
+    },
+    {
+      "path": "support/browser-audit.json",
+      "sha256": "d5c1c2b6428e699c8ae2cfc4879174d55b12d63391b302ac3d9647bc5d5d92c4",
+      "count": 32
+    },
+    {
+      "path": "admin-reporting/reporting-browser.json",
+      "sha256": "be148cd33d2ce85bd686e6d4913f3e70741deec7ee28233455db772569ca5a12",
+      "count": 12,
+      "browserErrors": [],
+      "counts": {
+        "tests": 12,
+        "passed": 12,
+        "failed": 0
+      }
+    },
+    {
+      "path": "admin-custom-controls/custom-controls-browser.json",
+      "sha256": "6f307cf4b7773cdcbfcb29b1b3b2ce1590d0f67541731bc186c914e1eaf7746a",
+      "count": 21,
+      "pageErrors": [],
+      "counts": {
+        "checks": 21,
+        "passed": 21,
+        "failed": 0
+      }
+    }
+  ]
+}

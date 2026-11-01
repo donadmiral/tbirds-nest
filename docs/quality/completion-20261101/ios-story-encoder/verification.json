@@ -1,0 +1,92 @@
+{
+  "producerSourceCommit": "d32ce7e755f78d2efe084ccc4aaea30b28f1d73c",
+  "rendererAndHarnessInputsExactlyMatch": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "workflowRun": 41260485021,
+  "jobId": 124712546187,
+  "artifactId": 13064704048,
+  "artifactBytes": 409286,
+  "artifactSha256": "9f9fe1b89fc630b4cbb9803d7c094b80ba7ef78c9df9779375984fec9910445e",
+  "passed": true,
+  "measuredCaseCount": 8,
+  "sourceHashesVerified": 3,
+  "architecture": "arm64",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+  "movies": [
+    {
+      "name": "pc-story-export-loop.mp4",
+      "duration": 2.0,
+      "width": 360,
+      "height": 640,
+      "fps": "30/1",
+      "codecs": [
+        "h264",
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-story-export-mixed-speed-0.5x.mp4",
+      "duration": 3.5,
+      "width": 360,
+      "height": 640,
+      "fps": "30/1",
+      "codecs": [
+        "h264",
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-story-export-mixed-speed-2x.mp4",
+      "duration": 2.295011,
+      "width": 360,
+      "height": 640,
+      "fps": "30/1",
+      "codecs": [
+        "h264",
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-story-export-original.mp4",
+      "duration": 3.000499,
+      "width": 360,
+      "height": 640,
+      "fps": "30/1",
+      "codecs": [
+        "h264",
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-story-export-still.mp4",
+      "duration": 2.0,
+      "width": 360,
+      "height": 640,
+      "fps": "30/1",
+      "codecs": [
+        "h264",
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    },
+    {
+      "name": "pc-story-export-voice.mp4",
+      "duration": 6.0,
+      "width": 360,
+      "height": 640,
+      "fps": "30/1",
+      "codecs": [
+        "h264",
+        "aac"
+      ],
+      "fullIndependentDecodePassed": true
+    }
+  ],
+  "installedProductAcceptance": false,
+  "physicalDeviceAcceptance": false,
+  "photosWriteAcceptance": false,
+  "networkAccessed": false
+}

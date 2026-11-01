@@ -1,0 +1,37 @@
+{
+  "bytes": 3302510,
+  "sha256": "0a57554345fa9e76355cd2e351d82f98c7d230561296127010e26f07cee48203",
+  "probe": {
+    "programs": [],
+    "streams": [
+      {
+        "codec_name": "vp9",
+        "codec_type": "video",
+        "width": 720,
+        "height": 1280
+      },
+      {
+        "codec_name": "opus",
+        "codec_type": "audio",
+        "sample_rate": "48000",
+        "channels": 2
+      }
+    ],
+    "format": {
+      "duration": "12.014800",
+      "size": "3302510"
+    }
+  },
+  "fullDecodeExit": 0,
+  "fullDecodeStderr": "",
+  "decodedVideoFrames": 360,
+  "firstFrameSeconds": 0.0,
+  "lastFrameSeconds": 11.984,
+  "maxFrameGapSeconds": 0.05200000000000049,
+  "duplicateTimestampCount": 0,
+  "audioRms": {
+    "1": 0.0056878926013781556,
+    "6": 0.003935675577200995,
+    "10.5": 0.00602063003016919
+  }
+}

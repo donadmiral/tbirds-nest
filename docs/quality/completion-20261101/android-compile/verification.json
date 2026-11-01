@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "workflowRun": "41259529333",
+  "jobId": 124709725097,
+  "artifactId": 13065355007,
+  "artifactBytes": 26525,
+  "artifactSha256": "b689fc95b80ce88298aee19e9316a0a17ce323aee636146f1041bb328d5dce99",
+  "nativeSourceHashesVerified": 4,
+  "media3RuntimeVersion": "1.11.1",
+  "runtimeModulesAligned": 16,
+  "expoVideoCompiledFromAdaptedSource": true,
+  "packagedAbiPassed": true,
+  "compilePassed": true,
+  "installedAppRuntimePassed": false,
+  "encodedOutputAcceptancePassed": false
+}

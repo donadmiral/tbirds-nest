@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T01:51:38.670636+00:00",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "scope": "Independent source and artifact-control review of the new consumer; no device execution or runtime acceptance claimed.",
+  "reviewedConsumerFileSha256": {
+    "scripts/quality/completion-ios-journey.py": "6d995cc38128753b16131d6d54f36b9f2ac3e006779a51132ed95cf5fcb3c160",
+    ".github/workflows/native-completion-journey.yml": "6cd5e230995fc1a57057c458f094b8f6ef874d6c30287144df777a5dd84a922d",
+    "docs/quality/completion-20261101/native_runtime_analysis.py": "9a92e15b8b764b012fd9e430d77305fd3c6a7d605da214fb58f3b0390d97ad27",
+    "tests/quality/native-completion-journey.cjs": "652e28d1436d94e024a29d5d1b9491bea919d97b2cf0178645b8affb7756d141",
+    "scripts/quality/completion-ios-journey.json": "6881d2928dad2eea3b9ab0ff5dce35d65104273e7e871742653e4a64455ca38a"
+  },
+  "binding": {
+    "baselineSourceAndTreeRequired": true,
+    "consumerCommitRecordedSeparately": true,
+    "producerArtifactIdAndThreeRetainedFileDigestsRequired": true,
+    "extractedAppDirectoryDigestValidatedBeforeAndAfterRun": true,
+    "originalAuditRunnerDigestPinned": true,
+    "originalSignInAndJourneyFlowDigestsPinned": true,
+    "rebuild": false,
+    "rebundle": false,
+    "resign": false,
+    "countsAsOriginal85Cases": false,
+    "artifactReview": "native-producer-independent-review.json",
+    "bindingFileMatchesIndependentlyVerifiedArchive": true
+  },
+  "originalJourney": {
+    "route": [
+      "Feed",
+      "Market",
+      "Feed",
+      "Jobs",
+      "Messages",
+      "Profile",
+      "Private bookshelf",
+      "Book page one",
+      "Book page two"
+    ],
+    "requiredCaptions": [
+      "WE TOOK THE LONG WAY HOME",
+      "THE STORIES WE KEEP"
+    ],
+    "readerReadyDeadlineMs": 15000,
+    "readerDeadlineIncludes": "Test-driver wall time from actual book tap through completion of the original reader-ready assertion. Driver overruns cannot pass merely because Maestro reports success.",
+    "actualCompleteOrderedCommandTraceRequired": true
+  },
+  "messages": {
+    "limitMs": 1000,
+    "metric": "JS tab press to second requested animation frame with focused nonloading populated inbox",
+    "expectedVisits": 1,
+    "expectedVisitsInThreeCycleAudit": 3,
+    "driverStartupNotIncluded": true,
+    "physicalDisplayLatencyClaimed": false,
+    "providerLatencyClaimed": false,
+    "separateVisibleConversationAssertionRequired": true
+  },
+  "setupRepair": {
+    "observedFailure": "All three fresh iOS consumer groups exceeded the 30-second raw check_output deadline at initial simctl list devices --json before any app case ran.",
+    "mechanism": "Use the existing reviewed bounded command reader, which stops waiting for inherited service pipes after the command leader exits, while retaining output and status receipts.",
+    "actualInheritedPipeCauseProvenInFailedGitHubJobs": false,
+    "existingCommandBudgetsSeconds": [
+      30,
+      30,
+      30,
+      120,
+      300
+    ],
+    "deadlinesWidened": false,
+    "realRegression": "The exact startup command emits complete synthetic inventory, exits, and leaves a controlled child holding stdout/stderr for 30 seconds. Full prepare_simulator returns within five seconds, retains five complete command receipts, and records both inventory leaders completed before pipe EOF.",
+    "focusedNodeTestsPassed": 8,
+    "focusedNodeTestsFailed": 0,
+    "testReceipt": "native-completion-consumer-independent.tap"
+  },
+  "runtimeAcceptanceClaimed": false,
+  "productionCapabilityPromotionClaimed": false,
+  "reviewConclusion": "No material source-binding, deadline, caption or evidence-counting blocker identified. Actual consumer and app runtime results remain necessary."
+}

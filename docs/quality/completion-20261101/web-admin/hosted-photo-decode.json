@@ -1,0 +1,23 @@
+{
+  "bytes": 1625692,
+  "sha256": "73f5436d873e9ab4f7dc9376bbe787cb6cfbd7b06feca808d5d0f03086e4f8ea",
+  "fullDecodeExit": 0,
+  "fullDecodeStderr": "",
+  "dimensions": [
+    720,
+    1280
+  ],
+  "videoCodec": "vp9",
+  "audioCodec": "opus",
+  "durationSeconds": 8.2049,
+  "decodedVideoFrames": 246,
+  "firstFrameSeconds": 0,
+  "lastFrameSeconds": 8.174,
+  "maxFrameGapSeconds": 0.051,
+  "duplicateTimestampCount": 0,
+  "audioRms": {
+    "1": 0.04444295351856475,
+    "4.1": 0.04615125759115141,
+    "7.4": 0.04676822229914031
+  }
+}

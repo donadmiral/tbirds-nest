@@ -1,0 +1,30 @@
+{
+  "runId": 41259529340,
+  "sourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "artifactId": 13064384535,
+  "artifactName": "browser-quality-evidence",
+  "archiveBytes": 9573733,
+  "archiveSha256": "6685962e4bf82144c2b8ee182ccdbf05a65792a6e95a4b968cb63989f0d186cb",
+  "artifactDigestMatched": true,
+  "workflowGroups": 13,
+  "passedGroups": 11,
+  "failedGroups": [
+    {
+      "name": "admin components",
+      "cause": "Old Dark appearance locator; current control is Dim.17 earlier checks passed."
+    },
+    {
+      "name": "commerce",
+      "cause": "Synthetic make_offer returned malformed offer-fixture; current production guard correctly refuses it."
+    }
+  ],
+  "fixtureRepairsSource": "eb64204b434287c1707aa2d733ef5dddf9998825",
+  "repairValidation": [
+    "Both CommonJS runner syntax checks passed",
+    "Actual admin fixture compile passed",
+    "Actual commerce fixture compile passed"
+  ],
+  "runtimeRerunPending": true,
+  "evidenceScope": "All retained JSON files are synthetic CI artifacts. No authenticated session tokens or private hosted content.",
+  "syntheticAuthorizationValues": "Some fixture traces include explicitly nonfunctional synthetic token markers; these are local-adapter proof, not usable provider credentials."
+}

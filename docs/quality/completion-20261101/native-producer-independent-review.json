@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T01:48:41.683164+00:00",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "scope": "Independent artifact-byte and prepared-source review; build provenance and runtime acceptance remain separate. F5 artifacts are not relabeled as any later source.",
+  "runtimeAcceptanceClaimed": false,
+  "productionCapabilityPromotionClaimed": false,
+  "platforms": {
+    "ios": {
+      "binaryArtifactId": 13065158785,
+      "binaryArtifactBytes": 49157981,
+      "binaryArtifactSha256": "00c9a0651dfe7d5d495c30ab5f5d09a0406b388b77b875e6041ee255b57ba7e8",
+      "buildLogArtifactId": 13065536827,
+      "buildLogArtifactSha256": "3a6f62573aea40c47601e6d27cba89275926c2805721cadf0ad3684ce0b02af2",
+      "sourceReceiptSha256": "cb4762c4caaa3aebff83cf6071cd9b18db3e5377fbcb1903c4017f5c2e1df302",
+      "binaryManifestSha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+      "binarySha256": "c43aa346fabae4c656bc14602cb982bcbb7018ccfcfd4658d33a37742e40084c",
+      "auditManifestSha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+      "sourceCapability": 0,
+      "capabilityMode": "qa-capability-overlay",
+      "compiledPreparedBridge": {
+        "path": "modules/boomerang/ios/BoomerangModule.swift",
+        "originalSourceSha256": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+        "preparedWholeFileSha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+        "preparedBytes": 16619,
+        "version1CandidateEqualsPreparedBytes": true,
+        "retainedEntry": "overlays/modules__boomerang__ios__BoomerangModule.swift"
+      },
+      "compilerEvidence": "SwiftCompile BoomerangModule.swift and BUILD SUCCEEDED",
+      "appArchiveSha256": "547488ec4e545c9eb5c1cde4ce906cd36e1bf546d566f1c1ca5764793468fafa",
+      "directoryDigestRecomputed": true,
+      "extractedRegularFiles": 269,
+      "infoPlistPackageAndSimulatorVerified": true,
+      "originalNativeProductInputsCompared": 474,
+      "originalNativeProductInputsChanged": []
+    },
+    "android": {
+      "binaryArtifactId": 13065102124,
+      "binaryArtifactBytes": 63632600,
+      "binaryArtifactSha256": "a62e96df796ba3469018e137269fd7cb784e7d55a3628bf0a6247db509a538ea",
+      "buildLogArtifactId": 13064568227,
+      "buildLogArtifactSha256": "c60dadd17232fff930a756903980377d570ebbd64625a4ec8f61fb7b36419b58",
+      "sourceReceiptSha256": "cb4762c4caaa3aebff83cf6071cd9b18db3e5377fbcb1903c4017f5c2e1df302",
+      "binaryManifestSha256": "092cfe98f2cd88c05319267c7b8d947882734d478edfd3f792ea10d676ad0a3b",
+      "binarySha256": "a2a7cc10b33619d96ecdd461c8401fc360c47a592e94eded2e7c183863cdbd85",
+      "auditManifestSha256": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+      "sourceCapability": 0,
+      "capabilityMode": "qa-capability-overlay",
+      "compiledPreparedBridge": {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+        "originalSourceSha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+        "preparedWholeFileSha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+        "preparedBytes": 2990,
+        "version1CandidateEqualsPreparedBytes": true,
+        "retainedEntry": "overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt"
+      },
+      "compilerEvidence": ":boomerang:compileReleaseKotlin and BUILD SUCCESSFUL",
+      "apkDigestRecomputed": true,
+      "originalNativeProductInputsCompared": 474,
+      "originalNativeProductInputsChanged": []
+    }
+  }
+}

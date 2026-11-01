@@ -1,0 +1,17 @@
+{
+  "run": 41257372139,
+  "applicationSourceCommit": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+  "assertionCommandSequence": 37,
+  "assertionCommandWallMs": 20619,
+  "xctestHierarchyReadMs": 20090.783,
+  "hierarchyFractionOfCommand": 0.97438,
+  "driverHierarchyStartedAt": "2026-11-01 00:43:02.791670Z",
+  "driverHierarchyCompletedAt": "2026-11-01 00:43:22.882453Z",
+  "evidenceSha256": {
+    "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/diagnostic-warm-reader-controls/maestro/2026-11-01_003940/Diagnostic original tabs to saved memory reader controls/commands.json": "2fe148589f8bc0577c81778923825d15b9c477452c50581232f6377711dad777",
+    "/workspace/scratch/a8c1175db866/ios-runner/ios-warm-41257372139/native-audit-results/diagnostic-warm-reader-controls/maestro/2026-11-01_003940/Diagnostic original tabs to saved memory reader controls/logs/device-xctest.log": "a632da84a8f29c5061ba8aed057e27adfdb8ff498d50c2656728f81df46d7742"
+  },
+  "finding": "20.091 seconds of the 20.619-second assertion elapsed inside one XCTest view hierarchy read. No app-side tab-to-content timing existed in this retained build. Neither a 20.6-second app data fetch nor a harmless driver-only cause is established.",
+  "freshBuildInstrumentation": "f5be974 contains explicit app-side tab, inbox-commit, native-row-layout and animation-frame observations.",
+  "performanceAccepted": false
+}
