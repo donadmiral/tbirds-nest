@@ -19,7 +19,7 @@ on:
       - 'scripts/quality/android-story-export/src/androidTest/assets/memory-animated.*'
       - '.github/workflows/ios-native-compile.yml'
   push:
-    branches: [master]
+    branches: [master, 'codex/completion-20261101']
     paths:
       - 'modules/**'
       - 'plugins/**'
