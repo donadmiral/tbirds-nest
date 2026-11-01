@@ -7,6 +7,75 @@ const YAML = require('yaml');
 const root = path.resolve(__dirname, '../..');
 const consumer = path.join(root, 'scripts/quality/native-ui-ios-d46-recovery.py');
 
+test('direct diagnostic has an isolated 600s CLI budget, exact original controls and fail-closed outcomes', () => {
+  const script = String.raw`
+import ast,importlib.util,json,pathlib,subprocess,tempfile,types,unittest
+p=pathlib.Path(__import__('sys').argv[1]);spec=importlib.util.spec_from_file_location('consumer',p);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+helper=m.load_helpers(p.parent);runner=m.load_module('runner',p.with_name('native-ui-audit-runner.py'));repo=p.parents[2]
+class Tests(unittest.TestCase):
+ def setUp(self):
+  self.tmp=tempfile.TemporaryDirectory();self.root=pathlib.Path(self.tmp.name);self.tools=self.root/'consumer';self.tools.mkdir();self.output=self.root/'out';self.output.mkdir();self.baseline=self.root/'baseline';self.baseline.mkdir();f=self.tools/m.DIRECT_FLOW;f.parent.mkdir(parents=True);f.write_bytes((repo/m.DIRECT_FLOW).read_bytes());self.scenarios=json.loads((repo/'tests/native/audit/manifest.json').read_text());self.case=next(c for c in self.scenarios['cases'] if c['id']=='memory-reader-controls');self.calls=[]
+ def tearDown(self):self.tmp.cleanup()
+ def invoke(self,code=0,xml_change=None,receipt_change=None,error=None):
+  def execute(args,timeout,**kwargs):
+   self.calls.append({'args':args,'timeout':timeout,'cwd':kwargs['cwd']})
+   if error:raise error
+   xml='<testsuites><testsuite tests="1" failures="0"><testcase name="'+m.DIRECT_NAME+'" file="'+m.DIRECT_FLOW+'" status="SUCCESS"/></testsuite></testsuites>'
+   (self.output/'diagnostic-direct-reader-controls'/'junit.xml').write_text(xml_change(xml) if xml_change else xml)
+   return types.SimpleNamespace(returncode=code)
+  def collect(platform,device,target):
+   value={'mode':'synthetic-native-ui','networkForwarded':False,'requests':[{'path':'/auth/v1/token'}],'unhandled':[],'audit':{'caseId':self.case['id'],'scenario':self.case['fixtureScenario'],'rejected':[],'diagnostics':[],'diagnosticsDropped':0}}
+   if receipt_change:receipt_change(value)
+   (target/'native-ui-receipt.json').write_text(json.dumps(value));return [{'collected':True}]
+  return m.run_direct_reader_diagnostic(helper,types.SimpleNamespace(collect=collect,validate_receipt=runner.validate_receipt),execute,self.baseline,self.tools,self.output,'device',self.scenarios)
+ def test_mode_selects_zero_original_cases(self):
+  before=json.dumps(self.scenarios);self.assertEqual(m.select_execution_cases(self.scenarios,{'memory'},direct=True),[]);self.assertEqual(len(self.scenarios['cases']),85);self.assertEqual(json.dumps(self.scenarios),before)
+ def test_actual_summary_keeps_diagnostic_outcomes_out_of_original_counts(self):
+  main=next(n for n in ast.parse(p.read_text()).body if isinstance(n,ast.FunctionDef) and n.name=='main')
+  statement=next(n for n in ast.walk(main) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='summary' for t in n.targets))
+  code=compile(ast.Module(body=[statement],type_ignores=[]),str(p),'exec')
+  for passed in [False,True]:
+   ns={**m.__dict__,'groups':{'memory'},'scenarios':self.scenarios,'selected_case_ids':[],'unselected_case_ids':[c['id'] for c in self.scenarios['cases']],'results':[],'diagnostic':{'passed':passed},'args':types.SimpleNamespace(direct_reader_diagnostic_only=True,warm_reader_diagnostic=False)}
+   exec(code,ns);r=ns['summary'];self.assertEqual((r['attempted'],r['passed'],r['failed']),(0,0,0));self.assertEqual(len(r['unselectedCaseIds']),85);self.assertFalse(r['warmDiagnosticAttempted']);self.assertEqual((r['diagnosticAttempted'],r['diagnosticPassed'],r['diagnosticFailed']),(1,int(passed),int(not passed)))
+ def test_mode_rejects_original_or_warm_or_other_groups(self):
+  for groups,cases,warm in [({'memory'},'memory-reader-controls',False),({'memory'},None,True),({'memory','feed'},None,False),({'feed'},None,False),(set(),None,False)]:
+   with self.subTest(groups=groups,cases=cases,warm=warm),self.assertRaises(ValueError):m.select_execution_cases(self.scenarios,groups,cases,warm,True)
+ def test_exact_command_watchdog_and_identity(self):
+  r=self.invoke();self.assertTrue(r['passed']);self.assertFalse(r['countedInBaseline85']);self.assertEqual(r['fixtureCaseId'],'memory-reader-controls');self.assertEqual(r['readerRequirementMs'],15000);self.assertEqual(r['timeoutSeconds'],600);self.assertFalse(r['centerElement']);self.assertEqual(r['flowSha256'],m.DIRECT_SHA)
+  call=self.calls[0];self.assertEqual(call['timeout'],600);self.assertEqual(call['cwd'],self.tools);self.assertEqual(call['args'][-3:],['-e','D46_BASELINE='+str(self.baseline),m.DIRECT_FLOW]);self.assertEqual(r['junit'],{'passed':True,'executedDiagnostics':1})
+ def test_warm_junit_identity_rejected(self):self.assertFalse(self.invoke(xml_change=lambda x:x.replace(m.DIRECT_NAME,'Diagnostic warm tabs then saved memory reader').replace(m.DIRECT_FLOW,m.DIAGNOSTIC_FLOW))['passed'])
+ def test_wrong_file_rejected(self):self.assertFalse(self.invoke(xml_change=lambda x:x.replace(m.DIRECT_FLOW,'/wrong/'+m.DIRECT_FLOW))['passed'])
+ def test_failed_junit_rejected(self):self.assertFalse(self.invoke(xml_change=lambda x:x.replace('SUCCESS','ERROR'))['passed'])
+ def test_fixture_error_rejected(self):self.assertFalse(self.invoke(receipt_change=lambda x:x['audit']['diagnostics'].append({'message':'controlled'}))['passed'])
+ def test_wrong_fixture_case_rejected(self):self.assertFalse(self.invoke(receipt_change=lambda x:x['audit'].update(caseId='navigation-warm-tabs'))['passed'])
+ def test_nonzero_cli_rejected(self):self.assertFalse(self.invoke(code=1)['passed'])
+ def test_timeout_is_failure_and_receipt_still_collected(self):
+  r=self.invoke(error=subprocess.TimeoutExpired(['maestro'],600));self.assertFalse(r['passed']);self.assertTrue(r['timedOut']);self.assertTrue(r['fixture']['passed']);self.assertFalse(r['junit']['passed'])
+ def test_changed_flow_fails_before_execution(self):
+  (self.tools/m.DIRECT_FLOW).write_text('changed')
+  with self.assertRaises(ValueError):self.invoke()
+  self.assertEqual(self.calls,[])
+ def test_cancellation_propagates(self):
+  with self.assertRaises(SystemExit) as caught:self.invoke(error=SystemExit(130))
+  self.assertEqual(caught.exception.code,130)
+unittest.main(argv=['direct-diagnostic'],verbosity=2)
+`;
+  const result = spawnSync('python3', ['-c', script, consumer], { cwd: root, encoding: 'utf8', timeout: 10000 });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stderr, /Ran 13 tests/);
+  const parse = relative => YAML.parseAllDocuments(fs.readFileSync(path.join(root, relative), 'utf8')).map(doc => doc.toJSON());
+  const [originalConfig, original] = parse('tests/native/audit/flows/memory-reader-controls.yaml');
+  const [config, diagnostic] = parse('tests/native/diagnostics/ios-direct-reader-controls.yaml');
+  assert.equal(config.appId, originalConfig.appId);
+  assert.equal(config.name, 'Diagnostic direct saved memory reader controls');
+  const expected = structuredClone(original);
+  expected[0].runFlow = '${D46_BASELINE}/tests/native/audit/flows/_signin.yaml';
+  expected.find(command => command.scrollUntilVisible).scrollUntilVisible.centerElement = false;
+  expected.at(-1).takeScreenshot = 'diagnostic-direct-reader-controls';
+  assert.deepEqual(diagnostic, expected, 'all fixture, readiness, page, caption and Next commands stay exact');
+  assert.deepEqual(diagnostic.find(command => command.extendedWaitUntil), { extendedWaitUntil: { visible: 'Edit memory book', timeout: 15000 } });
+});
+
 test('d46 recovery fails closed on pending producer identities and preserves the reviewed setup ordering', () => {
   const script = String.raw`
 import ast, copy, hashlib, importlib.util, json, pathlib, subprocess, tempfile, types, unittest
@@ -129,17 +198,15 @@ unittest.main(argv=['review'],verbosity=2)
   assert.match(result.stderr, /Ran 11 tests/);
 });
 
-test('prepared d46 workflow selects one original reader case plus the separately reported warm journey without rebuilding', () => {
+test('prepared d46 workflow selects only the separately counted direct reader diagnostic without rebuilding', () => {
   const workflow = YAML.parse(fs.readFileSync(path.join(root, '.github/workflows/native-audit-ios-d46-recovery.yml'), 'utf8'));
   assert.deepEqual(workflow.on.push.branches, ['codex/native-audit-ios-d46-recovery-20261031']);
   assert.deepEqual(workflow.permissions, { contents: 'read', actions: 'read' });
   const job = workflow.jobs['recover-ios'];
-  assert.equal(job['runs-on'], 'macos-15-intel'); assert.equal(job['timeout-minutes'], 100);
+  assert.equal(job['runs-on'], 'macos-15-intel'); assert.equal(job['timeout-minutes'], 25);
   assert.equal(job.strategy['fail-fast'], false);
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'tests/native/audit/manifest.json')));
-  assert.deepEqual(job.strategy.matrix.include, [{ shard: 'memory', groups: 'memory', cases: 'memory-reader-controls' }]);
-  const selected = job.strategy.matrix.include.map(shard => manifest.cases.filter(item => shard.groups.split(',').includes(item.group) && shard.cases.split(',').includes(item.id)).map(item => item.id));
-  assert.deepEqual(selected, [['memory-reader-controls']]);
+  assert.deepEqual(job.strategy.matrix.include, [{ shard: 'memory', groups: 'memory' }]);
   assert.equal(manifest.cases.length, 85, 'other original scenarios remain declared, not reported as executed');
   assert.equal(job.steps.find(step => step.with?.path === 'baseline').with.ref, 'd46c50f09164c75c7fe8cdba0c3470c272b1ab4e');
   const download = job.steps.find(step => step.with?.['run-id']);
@@ -150,9 +217,9 @@ test('prepared d46 workflow selects one original reader case plus the separately
   assert.equal(job.steps.at(-1).if, 'always()');
   const commands = job.steps.map(step => step.run || '').join('\n');
   assert.match(commands, /--artifact-id/); assert.match(commands, /--recovery-source/);
-  assert.match(commands, /--cases "\$AUDIT_CASES"/);
-  assert.match(commands, /--warm-reader-diagnostic/);
-  assert.equal(job.steps.find(step => step.env?.AUDIT_CASES).env.AUDIT_CASES, '${{ matrix.cases }}');
+  assert.match(commands, /--direct-reader-diagnostic-only/);
+  assert.doesNotMatch(commands, /--cases|--warm-reader-diagnostic/);
+  assert.equal(job.steps.some(step => step.env?.AUDIT_CASES), false);
   assert.doesNotMatch(commands, /npm ci|expo prebuild|xcodebuild .*build|codesign .*--sign|pod .*install/);
 });
 

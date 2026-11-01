@@ -7,6 +7,7 @@ on:
       - .github/workflows/native-audit-ios-d46-recovery.yml
       - scripts/quality/native-ui-ios-d46-recovery.py
       - scripts/quality/native-ui-ios-d46-recovery.json
+      - tests/native/diagnostics/ios-direct-reader-controls.yaml
   workflow_dispatch:
 
 permissions:
@@ -17,14 +18,13 @@ jobs:
   recover-ios:
     name: Recover d46 iPhone group ${{ matrix.shard }}
     runs-on: macos-15-intel
-    timeout-minutes: 100
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         include:
           - shard: memory
             groups: memory
-            cases: memory-reader-controls
     env:
       CI: 'true'
       EXPO_NO_TELEMETRY: '1'
@@ -67,15 +67,14 @@ jobs:
       - name: Install the original pinned Maestro CLI
         working-directory: baseline
         run: bash scripts/quality/install-native-ui-tools.sh
-      - name: Run unchanged cases with separately bound recovery tools
+      - name: Run only the separately counted direct reader diagnostic
         env:
           AUDIT_GROUPS: ${{ matrix.groups }}
-          AUDIT_CASES: ${{ matrix.cases }}
           RECOVERY_SOURCE: ${{ github.sha }}
         run: |
           python3 recovery-tools/scripts/quality/native-ui-ios-d46-recovery.py \
             --baseline "$PWD/baseline" --recovery-source "$RECOVERY_SOURCE" \
-            --groups "$AUDIT_GROUPS" --cases "$AUDIT_CASES" --warm-reader-diagnostic
+            --groups "$AUDIT_GROUPS" --direct-reader-diagnostic-only
       - name: Retain completed, failed and interrupted observations
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
