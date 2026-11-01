@@ -1,0 +1,28 @@
+{
+  "base_commit": "c4ed86195ee19eface6d99104a7ed942ae3ec0e0",
+  "scope": "Actual social browser runner with synthetic service/navigation adapters; one fixture export correction; product source unchanged.",
+  "tracked_changes": [
+    "web/tests/browser/social-backend.ts"
+  ],
+  "source_sha256": {
+    "web/tests/browser/social-backend.ts": "599aed759c37ad0b41bebc7d969f50644d7eed8339a8a23053b64caba31dbae0",
+    "web/tests/browser/social-run.cjs": "060a6a70e2681b8c8ddd6ffea46e62d4bca6a4dc5912affd9fdcd105b4d827aa",
+    "web/tests/browser/social-navigation.cjs": "a744df2acee1d1fedce4d0e00232bd93b963044ca81a9787f42cc95f0a7f315b",
+    "web/tests/browser/profile-navigation.cjs": "0f92ba0a2f791278c55ed6682a8deebe10bff3c4f1425096c63d865e95a17ec6",
+    "web/components/HomeFeed.tsx": "f0cd6176ad986e942b034d449fe5b43f1c4293fc365492af6461d7de96dbb158",
+    "web/lib/homeFeedController.ts": "28e087d5edbf61ba6527eec0f2834041cf682d5363b6d28b4838df95a7d72b4a",
+    "web/lib/contentMedia.ts": "e3acc249ba5e3d57d614ee0f35d71d7ce27155fcee01d1373ba726f687a02763",
+    "shared/feedMediaReuse.ts": "12d7255e760f4fa036938b5fd42142644028dddf96eec50960699082d232002d",
+    "web/components/MessagesApp.tsx": "6b089153b24d9c3daca199a26532466111b9c788685ac49bdb7349aa5242a44b",
+    "web/components/AppShell.tsx": "ca62659af5f59f8080b7b4412b1db42673590a007286ae2242dd21853639577b",
+    "web/lib/navigationProfile.ts": "217aa284a2327442e612d5b9203b3c0591a819f0c47bcc0800480764305a7ac7"
+  },
+  "capture_stage": "Captured while runner active; verified unchanged after successful completion.",
+  "verified_unchanged_after_run": true,
+  "primary_checks_passed": 41,
+  "browser_errors": 0,
+  "browser_runtime": "156.0.8078.80",
+  "receipt_sha256": "c1fdf6720891e70a1557967d48d3d69c11ea03a0939f8e721eb4ef2548ebd57b",
+  "compiled_fixture_bundle_sha256": "097cf2dcb0328d0139bbba046da43789e38559c90fdb34423752e984b09dbafc",
+  "related_alias_review": "The new media-readiness adapter already supplies retainFeedMedia. The Studio media adapter does not mount HomeFeed or consume retainFeedMedia. No further contract changes required."
+}

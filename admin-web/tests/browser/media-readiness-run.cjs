@@ -10,6 +10,7 @@ const artifacts = process.env.PLATINUM_UI_ARTIFACTS || '/tmp/platinum-admin-medi
 const executablePath = process.env.PLATINUM_CHROMIUM;
 if (!executablePath) throw new Error('PLATINUM_CHROMIUM must identify the verified browser binary.');
 const checks = [], errors = [], requests = [];
+let idlePreview;
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function check(name, action) { await action(); checks.push({ name, passed: true }); console.log('PASS', name); }
 
@@ -94,6 +95,25 @@ async function main() {
       assert.equal(after.same, true); assert.equal(after.position, before.position); assert.ok(after.buffered >= before.buffered);
       assert.equal(requests.filter(url => url === '/media/video-b.mp4').length, count, 'Expanding or closing cannot refetch the private video');
     });
+    await check('a fully buffered untrimmed preview stays paused beyond its startup deadline and plays on the first later click', async () => {
+      await page.getByRole('button', { name: 'Review untrimmed record', exact: true }).click();
+      const video = selected.locator('video');
+      await page.waitForFunction(() => { const v = document.querySelector('[aria-label="Selected media"] video'); return v && v.readyState === 4 && !v.seeking && v.paused; });
+      await video.evaluate(element => { element.__idlePlayer = true; });
+      const count = requests.filter(url => url === '/media/video-c.mp4').length;
+      // Intentionally exceed the production 15s loading deadline while staff
+      // read a record. No synthetic media events or shortened timer here.
+      await pause(16_000);
+      assert.equal(await video.count(), 1);
+      idlePreview = await video.evaluate(element => ({ samePlayer: element.__idlePlayer === true, readyState: element.readyState, paused: element.paused, currentTime: element.currentTime, mediaError: element.error?.code ?? null, idleMilliseconds: 16_000 }));
+      assert.equal(idlePreview.samePlayer, true); assert.equal(idlePreview.readyState, 4); assert.equal(idlePreview.paused, true); assert.equal(idlePreview.currentTime, 0); assert.equal(idlePreview.mediaError, null);
+      assert.equal(requests.filter(url => url === '/media/video-c.mp4').length, count, 'Waiting to press Play cannot refetch the private video');
+      await selected.getByAltText('Selected video cover').waitFor();
+      await selected.getByRole('button', { name: 'Play video preview', exact: true }).click();
+      await page.waitForFunction(() => { const v = document.querySelector('[aria-label="Selected media"] video'); return v && !v.paused && v.currentTime > 0 && !document.querySelector('[aria-label="Selected media"] img[alt="Selected video cover"]'); });
+      await selected.getByRole('button', { name: 'Pause video preview', exact: true }).click();
+      assert.equal(await selected.getByRole('button', { name: 'Reload media preview', exact: true }).count(), 0);
+    });
     await check('a failed photo has an explicit retry that reloads only that source', async () => {
       const photo = page.getByRole('region', { name: 'Retriable photo' });
       await photo.getByRole('button', { name: 'Reload media preview', exact: true }).click();
@@ -117,7 +137,7 @@ async function main() {
     });
     assert.deepEqual(errors, []);
     await page.screenshot({ path: path.join(artifacts, 'admin-media-readiness.png'), fullPage: true });
-    const receipt = { checkedAt: new Date().toISOString(), runtime: await browser.version(), scope: 'Actual admin media components, synthetic same-origin no-store media. Not authenticated hosted acceptance.', checks, browserErrors: errors, tileVideoRequests: requests.filter(url => url.startsWith('/media/tile-')).length };
+    const receipt = { checkedAt: new Date().toISOString(), runtime: await browser.version(), scope: 'Actual admin media components, synthetic same-origin no-store media. Not authenticated hosted acceptance.', checks, browserErrors: errors, tileVideoRequests: requests.filter(url => url.startsWith('/media/tile-')).length, idlePreview };
     await fs.writeFile(path.join(artifacts, 'browser-receipt.json'), JSON.stringify(receipt, null, 2) + '\n');
     console.log(JSON.stringify({ passed: checks.length, browserErrors: errors.length, artifacts }));
   } catch (error) {

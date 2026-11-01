@@ -37,6 +37,7 @@ function MediaPreviewSource({ url, video = false, poster: fallbackPoster, thumbn
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [playable, setPlayable] = useState(false);
   const [ready, setReady] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
   const [muted, setMuted] = useState(!!edit?.muted);
@@ -45,6 +46,9 @@ function MediaPreviewSource({ url, video = false, poster: fallbackPoster, thumbn
     const window = postTrimWindow(element.duration, edit?.trimStart, edit?.trimEnd);
     const withinTrim = (position: number) => window.duration > 0 && Number.isFinite(position) && position >= window.start - .05 && position <= window.end + .05;
     if (element.seeking || element.readyState < 2 || !withinTrim(element.currentTime)) return;
+    // A paused, buffered element may defer its presented-frame callback until
+    // Play. It is already playable, but the cover still needs that valid frame.
+    setPlayable(true);
     if (typeof element.requestVideoFrameCallback !== 'function') { setReady(true); return; }
     if (frameRequest.current !== null) element.cancelVideoFrameCallback(frameRequest.current);
     const id = element.requestVideoFrameCallback((_now, frame) => {
@@ -56,10 +60,12 @@ function MediaPreviewSource({ url, video = false, poster: fallbackPoster, thumbn
   };
   useEffect(() => {
     // Lazy grid images do not start a timeout before the browser requests them.
-    if (thumbnail || ready || failed) return;
+    // Once a video is playable, only requested playback waits for a first
+    // presented frame. Reading a record while paused must not expire its video.
+    if (thumbnail || ready || failed || (video && playable && !playing)) return;
     const timeout = setTimeout(() => setFailed(true), 15_000);
     return () => clearTimeout(timeout);
-  }, [thumbnail, ready, failed, retry]);
+  }, [thumbnail, video, playable, playing, ready, failed, retry]);
   useEffect(() => {
     if (!video || thumbnail || failed) return;
     const element = player.current;
@@ -95,6 +101,7 @@ function MediaPreviewSource({ url, video = false, poster: fallbackPoster, thumbn
         setCoverFailed(false);
         setPlaying(false);
         setHasStarted(false);
+        setPlayable(false);
         setReady(false);
         setDuration(0);
         // The server rechecks the staff session and obtains a fresh capability.
@@ -109,11 +116,11 @@ function MediaPreviewSource({ url, video = false, poster: fallbackPoster, thumbn
   // The selected review is the only player; absent posters remain explicit.
   if (thumbnail && video && (!poster || coverFailed)) return <div role="img" aria-label="Video preview" style={{ width: '100%', height: '100%', minHeight: 42, display: 'grid', placeContent: 'center', gap: 4, textAlign: 'center', background: '#10141C', color: '#FFF' }}><span aria-hidden="true">▶</span><span style={{ fontSize: 12 }}>Video</span></div>;
   return <div style={{ width: '100%', height: thumbnail ? '100%' : undefined }}>
-    <div aria-busy={!thumbnail && !ready} style={{ position: 'relative', overflow: 'hidden', background: '#10141C', margin: '0 auto',
+    <div aria-busy={!thumbnail && !ready && (!video || !playable || playing)} style={{ position: 'relative', overflow: 'hidden', background: '#10141C', margin: '0 auto',
       width: thumbnail ? '100%' : `min(100%, ${(expanded ? 680 : 320) * aspect}px)`, height: thumbnail ? '100%' : undefined, aspectRatio: aspect }}>
       {video && !thumbnail ? <video ref={player} key={`${url}:${retry}`} src={url} muted={muted} playsInline
         preload="auto" onError={() => setFailed(true)} onPlay={event => { setPlaying(true); setHasStarted(true); readyFrame(event.currentTarget); }} onPause={() => setPlaying(false)}
-        onLoadedData={event => readyFrame(event.currentTarget)} onSeeked={event => readyFrame(event.currentTarget)} onPlaying={event => readyFrame(event.currentTarget)}
+        onLoadedData={event => readyFrame(event.currentTarget)} onCanPlay={event => readyFrame(event.currentTarget)} onSeeked={event => readyFrame(event.currentTarget)} onPlaying={event => readyFrame(event.currentTarget)}
         onLoadedMetadata={event => {
           const element = event.currentTarget;
           if (!Number.isFinite(element.duration) || element.duration <= 0) return;
@@ -130,7 +137,7 @@ function MediaPreviewSource({ url, video = false, poster: fallbackPoster, thumbn
           setTime(element.currentTime);
         }} style={mediaStyle} /> : <Image unoptimized fill sizes="100vw" loading={thumbnail ? 'lazy' : 'eager'} key={`${url}:${retry}`} src={thumbnail && showCover ? poster! : url} alt={thumbnail ? '' : 'Content preview'} onLoad={() => setReady(true)} onError={() => setFailed(true)} style={mediaStyle} />}
       {showCover && !thumbnail ? <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}><Image unoptimized fill sizes="100vw" loading="eager" src={poster!} alt="Selected video cover" onError={() => setCoverFailed(true)} style={mediaStyle} /></div> : null}
-      {!thumbnail && !ready && !showCover ? <div role="status" style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', padding: 16, color: '#FFF', background: '#10141C', pointerEvents: 'none', textAlign: 'center' }}>{video ? 'Loading video preview…' : 'Loading photo preview…'}</div> : null}
+      {!thumbnail && !ready && !showCover ? <div role="status" style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', padding: 16, color: '#FFF', background: '#10141C', pointerEvents: 'none', textAlign: 'center' }}>{video ? playable && !playing ? 'Video ready. Select Play to preview.' : 'Loading video preview…' : 'Loading photo preview…'}</div> : null}
       {filter ? <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backdropFilter: filterCss(filter.id, intensity), WebkitBackdropFilter: filterCss(filter.id, intensity) }}>
         {filter.layers.map((layer, index) => <div key={index} style={{ position: 'absolute', inset: 0, backgroundColor: layer.color, opacity: layer.opacity * intensity }} />)}
       </div> : null}

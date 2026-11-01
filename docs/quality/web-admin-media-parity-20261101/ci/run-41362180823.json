@@ -1,0 +1,117 @@
+{
+  "run_id": 41362180823,
+  "job_id": 125014699886,
+  "source_sha": "c4ed86195ee19eface6d99104a7ed942ae3ec0e0",
+  "status": "completed",
+  "conclusion": "failure",
+  "passed_groups": 15,
+  "failed_groups": 1,
+  "primary_cases_in_passed_groups": 292,
+  "groups": [
+    {
+      "group": "Admin components",
+      "status": "passed",
+      "primary_cases": 39,
+      "receipt": "admin/browser-receipt.json"
+    },
+    {
+      "group": "Admin media readiness",
+      "status": "passed",
+      "primary_cases": 5,
+      "receipt": "admin-media-readiness/browser-receipt.json"
+    },
+    {
+      "group": "Feed media and shared-source readiness",
+      "status": "passed",
+      "primary_cases": 7,
+      "receipt": "media-readiness/results.json"
+    },
+    {
+      "group": "Story and memory readiness",
+      "status": "passed",
+      "primary_cases": 8,
+      "receipt": "story-memory-readiness/browser-receipt.json"
+    },
+    {
+      "group": "Member resilience",
+      "status": "passed",
+      "primary_cases": 64,
+      "receipt": "member-resilience/receipt.json"
+    },
+    {
+      "group": "Support",
+      "status": "passed",
+      "primary_cases": 32,
+      "receipt": "support/browser-audit.json"
+    },
+    {
+      "group": "Admin reporting",
+      "status": "passed",
+      "primary_cases": 12,
+      "receipt": "admin-reporting/reporting-browser.json"
+    },
+    {
+      "group": "Admin custom controls",
+      "status": "passed",
+      "primary_cases": 21,
+      "receipt": "admin-custom-controls/custom-controls-browser.json"
+    },
+    {
+      "group": "Next cold-route navigation",
+      "status": "passed",
+      "primary_cases": 4,
+      "receipt": "shell/receipt.json"
+    },
+    {
+      "group": "Commerce",
+      "status": "passed",
+      "primary_cases": 26,
+      "receipt": "commerce/browser-receipt.json"
+    },
+    {
+      "group": "Studio",
+      "status": "passed",
+      "primary_cases": 25,
+      "receipt": "studio/browser-receipt.json"
+    },
+    {
+      "group": "Story video export",
+      "status": "passed",
+      "primary_cases": 12,
+      "receipt": "video/browser-receipt.json"
+    },
+    {
+      "group": "Memory movie/audio export",
+      "status": "passed",
+      "primary_cases": 27,
+      "receipt": "memory/browser-receipt.json"
+    },
+    {
+      "group": "Memory book design",
+      "status": "passed",
+      "primary_cases": 5,
+      "receipt": "memory-cover/browser-receipt.json"
+    },
+    {
+      "group": "Private-original/music export",
+      "status": "passed",
+      "primary_cases": 5,
+      "receipt": "music/browser-receipt.json"
+    }
+  ],
+  "social_navigation": {
+    "completed_passes_before_failure": 39,
+    "failure": "Timeout at social-navigation.cjs:92 waiting for 16 prepared feed rows after pc-refresh-feed; social-backend fixture lacks retainFeedMedia export.",
+    "remaining_top_level_check_not_reached": "Warm own-profile book returns preserve content and fence account changes, edits and revoked visitor visibility"
+  },
+  "artifact": {
+    "id": 13106091334,
+    "name": "browser-quality-evidence",
+    "size_in_bytes": 11186787,
+    "sha256": "009d10a27ac270607d0103f6c5f8880eff3039211cfa848419afbbb35fd9518f",
+    "zip_integrity": "passed",
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41362180823/artifacts/13106091334"
+  },
+  "source_hash_entries_verified_against_local_published_checkout": 41,
+  "scope": "Actual browser/codec tests with synthetic service and authentication adapters. Hosted QA acceptance is separate. Case totals count primary receipts; nested commerce navigation checks are not added twice."
+}

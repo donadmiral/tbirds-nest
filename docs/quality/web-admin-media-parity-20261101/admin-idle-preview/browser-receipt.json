@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-11-01T23:50:09.335Z",
+  "runtime": "156.0.8078.80",
+  "scope": "Actual admin media components, synthetic same-origin no-store media. Not authenticated hosted acceptance.",
+  "checks": [
+    {
+      "name": "24 video tiles display posters or explicit video fallbacks without creating players or fetching video bytes",
+      "passed": true
+    },
+    {
+      "name": "a late record A response cannot replace record B or its matching poster",
+      "passed": true
+    },
+    {
+      "name": "trimmed video reveals decoded frames and preserves one player, buffered bytes and position through expand and close",
+      "passed": true
+    },
+    {
+      "name": "a fully buffered untrimmed preview stays paused beyond its startup deadline and plays on the first later click",
+      "passed": true
+    },
+    {
+      "name": "a failed photo has an explicit retry that reloads only that source",
+      "passed": true
+    },
+    {
+      "name": "gallery attachment changes, Escape and record removal clean up modal state without stale media",
+      "passed": true
+    }
+  ],
+  "browserErrors": [],
+  "tileVideoRequests": 0,
+  "idlePreview": {
+    "samePlayer": true,
+    "readyState": 4,
+    "paused": true,
+    "currentTime": 0,
+    "mediaError": null,
+    "idleMilliseconds": 16000
+  },
+  "schemaVersion": 1,
+  "baselineProductCommit": "d780b8b2b4e00d84b53279495c1b0808fa61d491",
+  "sourceSha256": {
+    "admin-web/components/MediaPreview.tsx": "00793a315b1ebc3b9636c23fe978845b70c870fd1b6ceb9c164fe70affaf5c6e",
+    "admin-web/components/ReviewMediaGallery.tsx": "692aa793897fe19ddc88d5339edfdf683b30b08e28a9bc2817d56ea42d3aea31",
+    "admin-web/tests/media-preview-interaction.cjs": "961f2442a459dfd47bf4625c5a76a7efbbd4288d5ce58f829ef89bb3d06b3042",
+    "admin-web/tests/browser/media-readiness-fixture.tsx": "f6df473897ff56853c7f463323c51645e6011d7c9549efcfdc412df3c9c01cc0",
+    "admin-web/tests/browser/media-readiness-run.cjs": "7559e34ca8bfc3cbd20f522c569b98bb7670bd980a9ee45376d72273e5fd884b"
+  },
+  "fixture": "Generated one-second silent MP4 and local branding images; no hosted records or credentials.",
+  "hostedAcceptance": "The delayed-first-play regression must be checked on the follow-up QA admin deployment; this receipt covers local actual-component playback only."
+}

@@ -9,7 +9,7 @@ const compile=source=>ts.transpileModule(source,{compilerOptions:{module:ts.Modu
 const shared={exports:{}};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/postMediaEditing.ts'),'utf8')),shared);
 const voice={exports:{}};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/postVoiceEffects.ts'),'utf8')),voice);
 const walk=node=>!node||typeof node!=='object'?[]:Array.isArray(node)?node.flatMap(walk):[node,...walk(node.props?.children)];
-function harness(file,props){
+function harness(file,props,clock={setTimeout,clearTimeout}){
   let cursor=0;const states=[],deps=[],effects=[],cleanups=[],listeners=new Map();
   const react={useState(initial){const i=cursor++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return[states[i],value=>{states[i]=typeof value==='function'?value(states[i]):value;}];},useRef(value){const i=cursor++;return states[i]??={current:value};},useTransition(){return[false,fn=>fn()];},useEffect(fn,next){const i=cursor++;if(!deps[i]||next.some((value,n)=>value!==deps[i][n])){deps[i]=next;effects.push(()=>{cleanups[i]?.();cleanups[i]=fn();});}}};
   const jsx=(type,props,key)=>({type,props,key});
@@ -17,12 +17,16 @@ function harness(file,props){
   const trigger=new Element();
   const document={activeElement:trigger,body:{style:{overflow:"auto"}},hidden:false,addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
   const window={dispatchEvent:event=>listeners.get(event.type)?.(),addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
-  const exports={};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'admin-web/components',file),'utf8')),{exports,document,window,setTimeout,clearTimeout,HTMLElement:Element,Event:class Event{constructor(type){this.type=type;}},require:name=>({'react':react,'next/image':{default:'img'},'react/jsx-runtime':{jsx,jsxs:jsx},'next/navigation':{useRouter:()=>({refresh(){}})},'../../shared/postMediaEditing':shared.exports,'../../shared/postVoiceEffects':voice.exports,'../../shared/storyFilterAppearance':{STORY_FILTERS:[],filterCss:()=>undefined},'../../shared/StoryAdjustOverlay':{AdjustOverlay:'AdjustOverlay'},'./MediaPreview':{default:'MediaPreview'}}[name]??{})});
+  const exports={};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'admin-web/components',file),'utf8')),{exports,document,window,setTimeout:clock.setTimeout,clearTimeout:clock.clearTimeout,HTMLElement:Element,Event:class Event{constructor(type){this.type=type;}},require:name=>({'react':react,'next/image':{default:'img'},'react/jsx-runtime':{jsx,jsxs:jsx},'next/navigation':{useRouter:()=>({refresh(){}})},'../../shared/postMediaEditing':shared.exports,'../../shared/postVoiceEffects':voice.exports,'../../shared/storyFilterAppearance':{STORY_FILTERS:[],filterCss:()=>undefined},'../../shared/StoryAdjustOverlay':{AdjustOverlay:'AdjustOverlay'},'./MediaPreview':{default:'MediaPreview'}}[name]??{})});
   const player={duration:12,currentTime:0,readyState:2,seeking:false,playbackRate:1,pauses:0,pause(){this.pauses++;},play:async()=>{}};
   const dialog={open:true,modal:false,isConnected:true,show(){this.open=true;this.modal=false;},showModal(){this.open=true;this.modal=true;},close(){this.open=false;this.modal=false;}};
   let current=props;
   const render=()=>{cursor=0;let tree=exports.default(current);if(typeof tree?.type==='function')tree=tree.type(tree.props);const dialogNode=walk(tree).find(n=>n.type==='dialog');dialog.isConnected=!!dialogNode;if(dialogNode?.props.ref)dialogNode.props.ref.current=dialog;const node=walk(tree).find(n=>n.type==='video');if(node?.props.ref)node.props.ref.current=player;while(effects.length)effects.shift()();return tree;};
   return{render,player,document,listeners,dialog,trigger,setProps:value=>{current=value;},find:fn=>walk(render()).find(fn),unmount:()=>cleanups.forEach(fn=>fn?.())};
+}
+function timerClock(){
+  let now=0,next=0;const timers=new Map();
+  return{setTimeout(fn,ms){const id=++next;timers.set(id,{at:now+ms,fn});return id;},clearTimeout:id=>timers.delete(id),advance(ms){now+=ms;for(const[id,timer]of[...timers])if(timer.at<=now){timers.delete(id);timer.fn();}}};
 }
 test('admin thumbnails show the authorized uploaded cover instead of decoding and replacing it with a video frame',()=>{
   const h=harness('MediaPreview.tsx',{url:'signed:video',video:true,thumbnail:true,edit:{aspectRatio:.8,coverUrl:'signed:cover',coverAt:3}});
@@ -85,6 +89,44 @@ test('a granted video poster remains visible until a decoded frame is ready',()=
   frame(0,{mediaTime:0});assert.ok(h.find(n=>n.type==='img'&&n.props.src==='signed:poster'),'An untrimmed decoded frame cannot replace the poster');
   video.props.onSeeked({currentTarget:h.player});frame(0,{mediaTime:2});
   assert.equal(h.find(n=>n.type==='img'),undefined);h.unmount();
+});
+
+test('a buffered paused video remains playable after the loading deadline without revealing an unverified frame',()=>{
+  const clock=timerClock();
+  const h=harness('MediaPreview.tsx',{url:'signed:video',poster:'signed:poster',video:true,edit:{trimStart:2,trimEnd:8}},clock);
+  let frame,nextId=0;h.player.readyState=4;
+  h.player.requestVideoFrameCallback=callback=>{frame=callback;return ++nextId;};h.player.cancelVideoFrameCallback=()=>{};
+  h.find(n=>n.type==='video').props.onLoadedMetadata({currentTarget:h.player});
+  h.find(n=>n.type==='video').props.onLoadedData({currentTarget:h.player});h.render();
+  // A paused browser may not deliver another presented-frame callback until Play.
+  clock.advance(20_000);
+  assert.ok(h.find(n=>n.type==='video'),'A fully buffered paused preview must not expire while staff read the record');
+  assert.ok(h.find(n=>n.type==='img'&&n.props.src==='signed:poster'));
+  assert.equal(h.find(n=>n.props?.['aria-label']==='Play video preview').props.disabled,false);
+  h.find(n=>n.type==='video').props.onPlay({currentTarget:h.player});h.render();
+  clock.advance(14_000);assert.ok(h.find(n=>n.type==='video'));
+  frame(0,{mediaTime:2});h.render();clock.advance(20_000);
+  assert.ok(h.find(n=>n.type==='video'));assert.equal(h.find(n=>n.type==='img'),undefined);h.unmount();
+});
+
+test('a first-frame deadline counts requested playback, not deliberate pauses',()=>{
+  const clock=timerClock();
+  const h=harness('MediaPreview.tsx',{url:'signed:video',poster:'signed:poster',video:true},clock);
+  h.player.requestVideoFrameCallback=()=>1;h.player.cancelVideoFrameCallback=()=>{};
+  h.find(n=>n.type==='video').props.onLoadedMetadata({currentTarget:h.player});
+  h.find(n=>n.type==='video').props.onLoadedData({currentTarget:h.player});
+  h.find(n=>n.type==='video').props.onPlay({currentTarget:h.player});h.render();
+  clock.advance(14_000);assert.ok(h.find(n=>n.type==='video'));
+  h.find(n=>n.type==='video').props.onPause();h.render();clock.advance(20_000);
+  assert.ok(h.find(n=>n.type==='video'));
+  h.find(n=>n.type==='video').props.onPlay({currentTarget:h.player});h.render();clock.advance(15_000);
+  assert.ok(h.find(n=>n.props?.['aria-label']==='Reload media preview'),'A real presented-frame stall during playback remains bounded');h.unmount();
+});
+
+test('metadata alone does not clear the video loading deadline',()=>{
+  const clock=timerClock();const h=harness('MediaPreview.tsx',{url:'signed:video',video:true},clock);
+  h.player.readyState=1;h.find(n=>n.type==='video').props.onLoadedMetadata({currentTarget:h.player});h.render();
+  clock.advance(15_000);assert.ok(h.find(n=>n.props?.['aria-label']==='Reload media preview'));h.unmount();
 });
 
 test('removing media while full screen is open restores document scrolling',()=>{

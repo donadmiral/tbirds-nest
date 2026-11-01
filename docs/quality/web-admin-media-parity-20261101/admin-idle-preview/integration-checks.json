@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "c4ed86195ee19eface6d99104a7ed942ae3ec0e0",
+  "applicationChange": "A buffered, intentionally paused admin video does not spend the first-frame playback deadline before the user presses Play.",
+  "fullAdminRegression": {
+    "command": "node --test --test-concurrency=2 tests/*.cjs",
+    "exitCode": 0,
+    "reportingUnit": "test files",
+    "passed": 30,
+    "failed": 0,
+    "log": "admin-regressions.log"
+  },
+  "focusedAdminCases": 11,
+  "adminMediaBrowserCases": 6,
+  "socialBrowserCases": 41,
+  "typecheck": {
+    "application": "admin-web",
+    "command": "node node_modules/typescript/bin/tsc --noEmit --incremental false",
+    "exitCode": 0
+  },
+  "sourceSha256": {
+    "admin-web/components/MediaPreview.tsx": "00793a315b1ebc3b9636c23fe978845b70c870fd1b6ceb9c164fe70affaf5c6e",
+    "admin-web/tests/media-preview-interaction.cjs": "961f2442a459dfd47bf4625c5a76a7efbbd4288d5ce58f829ef89bb3d06b3042",
+    "admin-web/tests/browser/media-readiness-fixture.tsx": "f6df473897ff56853c7f463323c51645e6011d7c9549efcfdc412df3c9c01cc0",
+    "admin-web/tests/browser/media-readiness-run.cjs": "7559e34ca8bfc3cbd20f522c569b98bb7670bd980a9ee45376d72273e5fd884b",
+    "web/tests/browser/social-backend.ts": "599aed759c37ad0b41bebc7d969f50644d7eed8339a8a23053b64caba31dbae0"
+  },
+  "unchangedAreas": [
+    "web product code",
+    "native phone product code",
+    "dependencies and lockfiles",
+    "admin authorization and media proxy"
+  ]
+}

@@ -192,6 +192,8 @@ const client = {
 };
 export const createClient = () => client as unknown as SupabaseClient;
 export const getServerViewer = async () => ({ user: user() });
+// Keep the feed's real session/expiry-aware grant reuse in this service adapter.
+export { retainFeedMedia } from '../../lib/contentMedia';
 export const hydratePostMedia = async <T,>(rows: T[]) => rows;
 export const hydrateStoryMedia = hydratePostMedia;
 export const hydrateStoryDraftMedia = hydratePostMedia;

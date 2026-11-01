@@ -13,10 +13,11 @@ function Fixture() {
       {Array.from({ length: 24 }, (_, index) => <div key={index} style={{ height: 60 }}><MediaPreview url={`/media/tile-${index}.mp4`} video thumbnail poster={index % 2 ? undefined : '/poster-a.png'} /></div>)}
     </section>
     <button type="button" onClick={() => { setRecord('b'); setEmpty(false); }}>Review record B</button>
+    <button type="button" onClick={() => { setRecord('c'); setEmpty(false); }}>Review untrimmed record</button>
     <button type="button" onClick={() => setEmpty(true)}>Remove selected media</button>
     <section aria-label="Selected media" data-record={record}>
       <ReviewMediaGallery key={record} media={empty ? [] : [
-        { url: `/media/video-${record}.mp4`, poster: `/poster-${record}.png`, video: true, width: 160, height: 90, edit: { trimStart: .2, trimEnd: .9 } },
+        { url: `/media/video-${record}.mp4`, poster: `/poster-${record === 'a' ? 'a' : 'b'}.png`, video: true, width: 160, height: 90, edit: { trimStart: record === 'c' ? 0 : .2, trimEnd: .9 } },
         { url: '/poster-b.png', width: 256, height: 256 },
       ]} />
     </section>

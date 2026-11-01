@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "scope": "Focused production-component regressions with controlled media events and a deterministic clock. Three new cases cover a ready preview held paused, first-frame waiting during requested playback only, and a genuine startup stall. No hosted acceptance is claimed.",
+  "cases": 11,
+  "passed": 11,
+  "failed": 0,
+  "checks": [
+    {
+      "suite": "admin-web/tests/media-preview-interaction.cjs",
+      "command": "node --test-reporter=tap tests/media-preview-interaction.cjs",
+      "cwd": "admin-web",
+      "cases": 11,
+      "passed": 11,
+      "failed": 0,
+      "sourceSha256": "961f2442a459dfd47bf4625c5a76a7efbbd4288d5ce58f829ef89bb3d06b3042",
+      "outputSha256": "ddc5f146a78304fc5c0823e4be4a39d606cbfd96d5c2c397e42e694691982354"
+    }
+  ],
+  "beforeFix": {
+    "productCommit": "d780b8b2b4e00d84b53279495c1b0808fa61d491",
+    "productionSource": "admin-web/components/MediaPreview.tsx",
+    "productionSourceSha256": "80c51d2940a0cfc24947de9e1e7929c883b6a3fa23cff877901a754bf00983da",
+    "cases": 11,
+    "passed": 9,
+    "failed": 2,
+    "failedCases": [
+      "a buffered paused video remains playable after the loading deadline without revealing an unverified frame",
+      "a first-frame deadline counts requested playback, not deliberate pauses"
+    ],
+    "outputSha256": "13fce3649cf8440b4209ae0bc98b92565e78a862067e4f931caee61fad822a3a"
+  },
+  "sourceSha256": {
+    "admin-web/components/MediaPreview.tsx": "00793a315b1ebc3b9636c23fe978845b70c870fd1b6ceb9c164fe70affaf5c6e",
+    "admin-web/components/ReviewMediaGallery.tsx": "692aa793897fe19ddc88d5339edfdf683b30b08e28a9bc2817d56ea42d3aea31",
+    "admin-web/tests/media-preview-interaction.cjs": "961f2442a459dfd47bf4625c5a76a7efbbd4288d5ce58f829ef89bb3d06b3042",
+    "admin-web/tests/browser/media-readiness-fixture.tsx": "f6df473897ff56853c7f463323c51645e6011d7c9549efcfdc412df3c9c01cc0",
+    "admin-web/tests/browser/media-readiness-run.cjs": "7559e34ca8bfc3cbd20f522c569b98bb7670bd980a9ee45376d72273e5fd884b"
+  },
+  "typescript": {
+    "command": "node node_modules/typescript/bin/tsc --noEmit --incremental false",
+    "cwd": "admin-web",
+    "passed": true,
+    "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "diffCheck": {
+    "command": "git diff --check -- admin-web",
+    "passed": true
+  },
+  "securityScope": "No moderation proxy, authorization, session, range or private no-store delivery changes.",
+  "originalReleaseEvidence": "Existing admin-media receipts remain unchanged as baseline product evidence."
+}
