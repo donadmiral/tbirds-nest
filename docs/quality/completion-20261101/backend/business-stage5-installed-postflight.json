@@ -1,0 +1,221 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "source": {
+    "number": 5,
+    "name": "private_owner_access",
+    "path": "supabase/ops/qa/business-auth-staged-20261031/05_private_owner_access.sql",
+    "bytes": 9577,
+    "sha256": "4846f94e377a2927759d25275d459a34c1a927de7385abcf69630565a3ba8416",
+    "requiresDestructiveConfirmation": false,
+    "originalStatementIndices": [
+      30
+    ],
+    "expectedBeforeFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+    "expectedAfterFingerprint": "3718506a7cf16a513514502dbf370f89",
+    "publicActivation": false
+  },
+  "startedAtUtc": "2026-11-01T03:58:04.960Z",
+  "finishedAtUtc": "2026-11-01T03:58:13.673Z",
+  "functionsCell": "g2:200",
+  "toolResult": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"success\":true}"
+      }
+    ],
+    "structuredContent": null,
+    "isError": false
+  },
+  "postflight": {
+    "scope": "Exact intermediate private-stage catalog, privilege, data, session and journal observation; no application function invocation or activation.",
+    "marker": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-5",
+    "executor": "postgres",
+    "read_only": true,
+    "fingerprint": "3718506a7cf16a513514502dbf370f89",
+    "observed_at": "2026-11-01T03:58:38.133521+00:00",
+    "catalog_rows": 101,
+    "stageJournal": [
+      {
+        "name": "qa_business_auth_01_foundation_20261031",
+        "version": "20261031020659",
+        "queryBytes": 6695,
+        "querySha256": "8e53627216124cd336563e21d82ef4404fad62a39ef3a8dcf99946964e3b936c",
+        "statementCount": 1
+      },
+      {
+        "name": "qa_business_auth_02_private_guards_20261031",
+        "version": "20261031021053",
+        "queryBytes": 9598,
+        "querySha256": "c1ed268feafd07571eca37c6fe6b52cbc996bce4ad750decc27c6615cf945c7c",
+        "statementCount": 1
+      },
+      {
+        "name": "qa_business_auth_03_private_device_20261031",
+        "version": "20261031021956",
+        "queryBytes": 7698,
+        "querySha256": "8988c6427b8de9d64f04bfb51b1350bcdb8417ea40196874e079548629a3f8d0",
+        "statementCount": 1
+      },
+      {
+        "name": "qa_business_auth_04_private_member_signin_20261101",
+        "version": "20261101035706",
+        "queryBytes": 7894,
+        "querySha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+        "statementCount": 1
+      },
+      {
+        "name": "qa_business_auth_05_private_owner_access_20261101",
+        "version": "20261101035813",
+        "queryBytes": 9577,
+        "querySha256": "4846f94e377a2927759d25275d459a34c1a927de7385abcf69630565a3ba8416",
+        "statementCount": 1
+      }
+    ],
+    "private_tables": [
+      "accounts",
+      "attempts",
+      "device_keys",
+      "events",
+      "grants",
+      "owner_seats",
+      "sessions"
+    ],
+    "privateFunctions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "484789a966b01fdadc42b9ff1a66796e",
+        "signature": "business_auth.business_auth_request_guard()",
+        "configuration": [
+          "search_path=\"\""
+        ],
+        "definitionMd5": "f0127c817dfeaeb1daa3c2fc3ae77137",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "51925031ceac2eacbac18e0d6ad81d8d",
+        "signature": "business_auth.business_session_allowed()",
+        "configuration": [
+          "search_path=\"\""
+        ],
+        "definitionMd5": "74bc9cf67235cb6d34fbd0bad0314221",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "5294d5c6bfbf418727cd18a233cd9f2e",
+        "signature": "business_auth.device(uuid,text,text,text,boolean)",
+        "configuration": [
+          "search_path=\"\""
+        ],
+        "definitionMd5": "ef426071d9f2b23212abe2ba681e9888",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "2192b9fee09afe5a3d99c76f1074ba5e",
+        "signature": "business_auth.owner_allowed(uuid,uuid,uuid)",
+        "configuration": [
+          "search_path=\"\""
+        ],
+        "definitionMd5": "639ea9deb7dbace8a9f8db78146e1617",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "ce205552a92fa4924cd817fd7b717176",
+        "signature": "business_auth.rate_limit(text,integer)",
+        "configuration": [
+          "search_path=\"\""
+        ],
+        "definitionMd5": "7ee9f8c96d676bc9a44eea8807d1feda",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "09925b9e70da080406a04f3fc853d371",
+        "signature": "business_auth.register_account()",
+        "configuration": [
+          "search_path=\"\""
+        ],
+        "definitionMd5": "628fe599cbc48581a88234668aa32aa9",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "e1b83ddefc1c70d7730e6af6a97918dc",
+        "signature": "business_auth.session_allowed(uuid,uuid)",
+        "configuration": [
+          "search_path=\"\""
+        ],
+        "definitionMd5": "d97f059ec857c33e12404286c96fd2b9",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "8e6350b91674f6b59258d08f4ae8325b",
+        "signature": "business_auth.triniti_business_owner_access(uuid,uuid,uuid,text,text,text,boolean,uuid)",
+        "configuration": [
+          "search_path=\"\""
+        ],
+        "definitionMd5": "8fd5eeed346a307f46c664ea58828b07",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "bodyMd5": "a0f0447f063dab4696fb868abe556bff",
+        "signature": "business_auth.triniti_business_signin_check(text,text,text,text,text)",
+        "configuration": [
+          "search_path=\"\""
+        ],
+        "definitionMd5": "c776b6775fd2f5d4558d2ee7fbb21193",
+        "securityDefiner": true
+      }
+    ],
+    "private_table_rows": {
+      "events": 0,
+      "grants": 0,
+      "accounts": 0,
+      "attempts": 0,
+      "sessions": 0,
+      "device_keys": 0,
+      "owner_seats": 0
+    },
+    "function_uniqueness": {
+      "columns": [
+        "proname",
+        "proargtypes",
+        "pronamespace"
+      ],
+      "enforced": true,
+      "definition": "CREATE UNIQUE INDEX pg_proc_proname_args_nsp_index ON pg_catalog.pg_proc USING btree (proname, proargtypes, pronamespace)"
+    },
+    "private_table_access": 0,
+    "private_tables_empty": true,
+    "other_client_activity": [],
+    "prepared_transactions": 0,
+    "private_schema_access": 0,
+    "business_auth_sessions": 0,
+    "private_function_access": 0,
+    "public_activation_hooks": 0,
+    "public_activation_policies": 0,
+    "public_activation_triggers": 0,
+    "public_activation_functions": 0,
+    "function_uniqueness_enforced": true,
+    "unfenced_authenticated_tables": 0,
+    "other_active_or_open_client_transactions": 0
+  },
+  "allGatesPassed": true,
+  "nextStage": 6
+}

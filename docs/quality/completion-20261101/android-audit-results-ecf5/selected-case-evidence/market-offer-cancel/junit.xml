@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="platinum_audit" tests="1" failures="0" time="36.603" timestamp="2026-11-01T03:15:14">
+    <testcase id="Audit listing offer entry and cancel" name="Audit listing offer entry and cancel" classname="Audit listing offer entry and cancel" file="tests/native/audit/flows/market-offer-cancel.yaml" time="36.586" timestamp="2026-11-01T03:15:14" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,8 @@
+{
+  "device": "DCF22E87-B513-41C7-9044-248FAF7613B0",
+  "created": true,
+  "name": "Platinum completion 713a35a5bde841e894b994f76c3617f4",
+  "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+  "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+  "sourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1"
+}

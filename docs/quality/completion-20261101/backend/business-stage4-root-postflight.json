@@ -1,0 +1,67 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "tool": "supabase_execute_sql",
+  "readOnly": true,
+  "relatedRequest": "business-stage4-root-guarded-attempt.json",
+  "relatedFunctionsCell": "344",
+  "sourceSha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+  "postflight": {
+    "scope": "Exact read-only postflight. An absent observed effect is not provider rejection or cancellation.",
+    "marker": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "executor": "postgres",
+    "read_only": true,
+    "fingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "observed_at": "2026-11-01T03:36:46.818594+00:00",
+    "catalog_rows": 99,
+    "private_tables": [
+      "accounts",
+      "attempts",
+      "device_keys",
+      "events",
+      "grants",
+      "owner_seats",
+      "sessions"
+    ],
+    "targetFunction": null,
+    "activityBoundary": "Conservatively requires no other active or open client transaction, including read-only clients. It cannot guarantee absence of a future privileged writer.",
+    "private_table_rows": {
+      "events": 0,
+      "grants": 0,
+      "accounts": 0,
+      "attempts": 0,
+      "sessions": 0,
+      "device_keys": 0,
+      "owner_seats": 0
+    },
+    "function_uniqueness": {
+      "columns": [
+        "proname",
+        "proargtypes",
+        "pronamespace"
+      ],
+      "enforced": true,
+      "definition": "CREATE UNIQUE INDEX pg_proc_proname_args_nsp_index ON pg_catalog.pg_proc USING btree (proname, proargtypes, pronamespace)"
+    },
+    "stage4_journal_rows": 0,
+    "private_table_access": 0,
+    "private_tables_empty": true,
+    "other_client_activity": [],
+    "prepared_transactions": 0,
+    "private_schema_access": 0,
+    "business_auth_sessions": 0,
+    "target_function_absent": true,
+    "private_function_access": 0,
+    "candidateMigrationJournal": [],
+    "exactStage3GatesStillPass": true,
+    "expectedStage4Fingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+    "function_uniqueness_enforced": true,
+    "unfenced_authenticated_tables": 0,
+    "other_active_or_open_client_transactions": 0
+  },
+  "targetStateChanged": false,
+  "stage4JournalObserved": false,
+  "providerOutcome": "unknown; no terminal response supplied to this lane",
+  "interpretation": "This single read-only observation does not cancel, reject, complete or retry any remote request.",
+  "newMutationSubmitted": false
+}

@@ -1,0 +1,21 @@
+✔ normal audit requires exact preboot immutable proof and never repeats host clients after boot (84.382854ms)
+✔ normal iOS runner requires the starter receipt and never launches cases after a failed120-second install (83.76294ms)
+test_actual_entry_records_exact_real_verification_chain (__main__.PreflightTests.test_actual_entry_records_exact_real_verification_chain) ... ok
+test_changed_app_is_rejected_before_any_host_probe (__main__.PreflightTests.test_changed_app_is_rejected_before_any_host_probe) ... ok
+test_receipt_alias_and_changed_developer_selection_are_rejected (__main__.PreflightTests.test_receipt_alias_and_changed_developer_selection_are_rejected) ... ok
+test_sdk_timeout_retains_failure_and_cannot_create_valid_preflight (__main__.PreflightTests.test_sdk_timeout_retains_failure_and_cannot_create_valid_preflight) ... ok
+test_wrong_actual_sdk_or_architecture_is_rejected (__main__.PreflightTests.test_wrong_actual_sdk_or_architecture_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.018s
+
+OK
+✔ actual immutable preflight entry records bounded source-bound probes before any device action (105.341371ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 224.13952

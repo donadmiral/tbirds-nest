@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-11-01T03:56:09Z",
+  "workflowRun": 41269526229,
+  "headSha": "d836f88d4e71cb3774dff24341eeb81b9e496ab4",
+  "status": "completed",
+  "conclusion": "success",
+  "htmlUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41269526229",
+  "jobs": [
+    {
+      "id": 124739233747,
+      "name": "Operations app",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124739233881,
+      "name": "Phone app",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124739233937,
+      "name": "Link preview Edge TLS",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124739233973,
+      "name": "Web app",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "scope": "Current workflow and all four job statuses independently read from GitHub. Detailed source-test counts remain bound to the separately retained ecf5e5a artifact receipt; no new count is inferred."
+}

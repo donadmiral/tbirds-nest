@@ -1,9 +1,52 @@
 # Supported migration request recovery
 
-The current authorization already covers completing the reviewed work. The actual
-block is that three independently submitted migration types have not returned a
-terminal provider result. No approval form, approval rejection, confirmation token
-or provider request ID was exposed. Local interruption does not cancel a remote
+## Current installed state and next boundary
+
+The later authorized root stage-4 request (cell `356`) returned success. Its exact
+03:57:47 UTC postflight verifies stage 4 and provider journal `20261101035706`,
+including source-identical SQL, catalog/body/owner/ACL and closed private data.
+Normal stage-5 and stage-6 calls then succeeded, journaled as `20261101035813` and
+`20261101035859`; both exact postflights passed.
+
+Stage 7 was submitted once through the normal child tool, cell `g2:207`. It
+yielded after one second, but a wait requesting 1,000 ms blocked 274.1 seconds
+until the coordinator interrupted the local wait. The one recovery poll found
+no cell and no provider terminal response was retained. Its exact submit timestamp
+was not recoverable; the preceding durable preflight is 03:59:24 UTC. At 04:04:36
+UTC the database remains exact private stage 6 with no stage-7 journal, no public
+activation and no active/open or prepared transaction. This absent observation
+is not remote cancellation. See `business-stage7-supported-attempt.json`.
+
+Root owns all further mutations. The independent source-specific stage-7 review
+and exact request/preflight/postflight package are ready in
+`business-stage7-next-apply-package.json`. The review establishes at most one
+committed private installation for concurrent or late identical requests under
+the fresh gates; it does not resolve the unknown request or weaken confirmation.
+No stage-7 retry or stage-8 apply has been made by this child. Support and
+notification requests remain separate unknown operations, unretried.
+
+## Historical root confirmation expiry and recovery
+
+The coordinator's unchanged stage-4 call, cell `344`, returned a real terminal
+provider result at **2026-11-01 03:36:58 UTC**: status `expired`, with the message
+“This confirmation expired after 2 minutes. Call `apply_migration` again to get a
+new confirmation.” The exact read-only postflight at **03:44:07 UTC** still shows
+pristine stage 3, the target function and stage-4 journal absent, empty private
+tables, and no other active/open client transaction or prepared transaction.
+
+This supplies a supported recovery path for that terminal root request: coordinate
+one unchanged normal `apply_migration` call after a fresh exact preflight and
+complete the provider's new confirmation within its window. It does not require
+changing SQL, weakening its classification or using another DDL route. Do not
+advance to stage 5 until the actual stage-4 result and journal are verified.
+Earlier child requests still retain their unknown outcomes; the root expiry does
+not retrospectively cancel or reject them. The historical observations below are
+preserved as such. See `business-stage4-root-terminal-postflight.json`.
+
+The current authorization already covers completing the reviewed work. Three
+groups of earlier child requests still have no terminal provider result. Those
+requests exposed no approval form, approval rejection, confirmation token
+or provider request ID. Local interruption does not cancel a remote
 request. No alternate DDL route or rewritten SQL is warranted. A later narrow
 review established a concurrency-safe exception for one unchanged stage-4
 normal-tool retry, described below; support and notification remain unretried.
@@ -59,12 +102,15 @@ endpoint response cannot establish that project access was lost.
 
 The normal read-only log query found no matching stage-4/support request rows
 in its bounded window. We did not infer a provider decision from missing logs.
-No visible provider confirmation can be approved or resumed with the current
-tools. A repeated submission could still create another uncertain provider
+No live confirmation from the earlier unknown calls can be approved or resumed
+with the current tools. The later root confirmation has explicitly expired and
+can be refreshed only by another ordinary supported apply, coordinated with the
+confirmation window. A repeated submission could still create another uncertain provider
 operation; only the explicitly reviewed stage-4 exception above has a justified
 database-effect bound.
 
-The concrete external recovery request is to identify these operations by the
+If the supported confirmation refresh remains unavailable, the concrete external
+recovery request is to identify the older unknown operations by the
 project, exact names, UTC times and source hashes, then return their authoritative
 request IDs and terminal states. If a provider confirmation exists, it must be
 resolved through that provider's ordinary supported interface. This is a request
@@ -103,3 +149,25 @@ Use `connector-mutation-attempts.json`, `business-stage4-resume.json`,
 `readiness-supported-apply-attempt.json`, and
 `auth-disposable-account-preflight.json`. These contain public-safe metadata and
 source references; they contain no credentials or ordinary-user message content.
+
+## Ready request and acceptance checks
+
+`business-stage4-next-apply-package.json` binds the exact next supported request,
+fresh preflight and private-stage success postflight. The request preserves all
+7,894 source bytes and the official destructive classification. No new
+confirmation was created while preparing it. The helper
+`verify-business-stage4-next-package.mjs` passed seven isolated actual-SQL checks,
+including rejection of missing/changed journal bytes, an extra execute grant and
+an unexpected activation hook. The hosted success checker correctly returned
+`stage4Installed: false` for the unchanged stage-3 baseline at 03:51:24 UTC.
+
+`completion-read-only-backend-acceptance.json` records the remaining meaningful
+read-only checks: the repaired readiness helper still has its exact body, owner
+and ACL; all five buckets are private; the 13 actual references have no missing
+or unbound objects; both erasure operator triggers exist and the private review
+ACL remains closed. The erasure queue is empty. The 03:52:03 UTC observation still
+finds no installed music, atomic support reply or notification candidate. These
+checks establish the existing metadata and observed data state; actual
+disposable-account erasure, multi-account access and provider delivery remain
+separate gates. Repeating unchanged source suites or these same snapshots will
+not establish those missing real operations.

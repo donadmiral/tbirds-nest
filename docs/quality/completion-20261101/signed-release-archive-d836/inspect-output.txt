@@ -1,0 +1,2 @@
+- Copying project directory to /tmp/platinum-production-ios-archive-d836f88d-20261101-0403-a6b93d
+✔ Project directory saved to /tmp/platinum-production-ios-archive-d836f88d-20261101-0403-a6b93d

@@ -1,0 +1,70 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "relatedRequest": "business-stage4-root-guarded-attempt.json",
+  "functionsCellId": "344",
+  "terminalProviderResult": {
+    "status": "expired",
+    "message": "This confirmation expired after 2 minutes. Call `apply_migration` again to get a new confirmation.",
+    "isError": true,
+    "finishedAtUtc": "2026-11-01 03:36:58 UTC"
+  },
+  "readOnlyPostflight": {
+    "scope": "Exact read-only postflight. An absent observed effect is not provider rejection or cancellation.",
+    "marker": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "executor": "postgres",
+    "read_only": true,
+    "fingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "observed_at": "2026-11-01T03:44:07.892289+00:00",
+    "catalog_rows": 99,
+    "private_tables": [
+      "accounts",
+      "attempts",
+      "device_keys",
+      "events",
+      "grants",
+      "owner_seats",
+      "sessions"
+    ],
+    "targetFunction": null,
+    "activityBoundary": "Conservatively requires no other active or open client transaction, including read-only clients. It cannot guarantee absence of a future privileged writer.",
+    "private_table_rows": {
+      "events": 0,
+      "grants": 0,
+      "accounts": 0,
+      "attempts": 0,
+      "sessions": 0,
+      "device_keys": 0,
+      "owner_seats": 0
+    },
+    "function_uniqueness": {
+      "columns": [
+        "proname",
+        "proargtypes",
+        "pronamespace"
+      ],
+      "enforced": true,
+      "definition": "CREATE UNIQUE INDEX pg_proc_proname_args_nsp_index ON pg_catalog.pg_proc USING btree (proname, proargtypes, pronamespace)"
+    },
+    "stage4_journal_rows": 0,
+    "private_table_access": 0,
+    "private_tables_empty": true,
+    "other_client_activity": [],
+    "prepared_transactions": 0,
+    "private_schema_access": 0,
+    "business_auth_sessions": 0,
+    "target_function_absent": true,
+    "private_function_access": 0,
+    "candidateMigrationJournal": [],
+    "exactStage3GatesStillPass": true,
+    "expectedStage4Fingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+    "function_uniqueness_enforced": true,
+    "unfenced_authenticated_tables": 0,
+    "other_active_or_open_client_transactions": 0
+  },
+  "interpretation": "The root request returned an expired provider confirmation. Its exact subsequent database observation remains stage3 with no target function or stage4 journal. This does not resolve the earlier child requests, whose remote outcomes remain unknown.",
+  "supportedRecovery": "The provider explicitly offers a new confirmation by calling apply_migration again. Coordinate one unchanged normal-path submission with the confirmation window after a fresh exact preflight. Do not advance to stage5 until stage4 is actually installed and verified.",
+  "sourceUnchanged": true,
+  "newMutationSubmittedByThisCheck": false,
+  "earlierUnknownRequestsMislabelledCanceled": false
+}

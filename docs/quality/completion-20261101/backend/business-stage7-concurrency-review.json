@@ -1,0 +1,46 @@
+{
+  "formatVersion": 1,
+  "sourceSha256": "a9869a35210cf5706eb2473781b9ec6d80c2704626e41d346081a17517f2f982",
+  "sourceBytes": 8926,
+  "queryMatchesExactSource": true,
+  "packageFileHashesMatch": true,
+  "newPrivateFunctions": [
+    {
+      "schema": "business_auth",
+      "name": "triniti_business_cancel_signin",
+      "bodyMd5": "e7f8b282e1e3d94faecf98cebefa3d1e"
+    },
+    {
+      "schema": "business_auth",
+      "name": "revoke_member_sessions",
+      "bodyMd5": "017b9448aca806a7973b79521dd150bf"
+    },
+    {
+      "schema": "business_auth",
+      "name": "revoke_device_sessions",
+      "bodyMd5": "12e7b92302eef7886099d5fbb3fc6311"
+    },
+    {
+      "schema": "business_auth",
+      "name": "revoke_owner_sessions",
+      "bodyMd5": "4117ccabb2a37e7c54deb47576af9c91"
+    },
+    {
+      "schema": "business_auth",
+      "name": "cleanup_session",
+      "bodyMd5": "066eebf7fa96508c8b0baeed637c51ea"
+    }
+  ],
+  "primarySources": [
+    "https://www.postgresql.org/docs/17/sql-createfunction.html",
+    "https://www.postgresql.org/docs/17/index-unique-checks.html",
+    "https://www.postgresql.org/docs/17/sql-notify.html"
+  ],
+  "review": "business-stage7-concurrency-review.md",
+  "freshPreflightRequired": true,
+  "preflightRunByThisPreparation": false,
+  "rootOwnsNextNormalSupportedApply": true,
+  "hostedMutationPerformedByThisReview": false,
+  "priorUnknownOutcomePreserved": true,
+  "scope": "One exact stage7 retry only; no support/notification or stage8 retry assessment."
+}

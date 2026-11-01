@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="platinum_audit" tests="1" failures="0" time="62.499" timestamp="2026-11-01T03:13:47">
+    <testcase id="Audit real capture cancel and encode" name="Audit real capture cancel and encode" classname="Audit real capture cancel and encode" file="tests/native/audit/flows/memory-capture-session.yaml" time="62.478" timestamp="2026-11-01T03:13:47" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,330 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-11-01T04:03:13.961244+00:00",
+  "runId": 41266020246,
+  "jobId": 124728875248,
+  "consumerSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "producerArtifactId": 13065158785,
+  "artifact": {
+    "id": 13069980058,
+    "bytes": 101743276,
+    "zipSha256": "2c8496171ce03eac30d72a3f4e1ea31f8143e5913468c5d4a69ac00b71b5ffd1",
+    "zipHashVerified": true,
+    "safeExtractionVerified": true,
+    "extractedFileCount": 387
+  },
+  "counts": {
+    "expected": 31,
+    "attempted": 31,
+    "passed": 30,
+    "failed": 1,
+    "notExecuted": 0,
+    "attemptsPerCase": 1
+  },
+  "allCasesPassed": false,
+  "sourceAndBinaryUnchangedAfterRun": true,
+  "originalRunnerSha256": "2eebacb4baca5b5231367c749fba465e13235c85a1d8dee4b5503eb72dbde3b4",
+  "independentVerification": {
+    "originalRunnerReadFromImmutableGitCommit": true,
+    "allOriginalJUnitAndFixtureValidatorsReexecuted": true,
+    "allOriginalOutcomesReproduced": true,
+    "caseResults": [
+      {
+        "id": "navigation-feedmain",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "navigation-marketmain",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "navigation-jobsmain",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "navigation-conversations",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "navigation-profilemain",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "feed-search",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "feed-notifications",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "feed-articlecompose",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "feed-post",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "feed-trendfeed",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "market-listingdetail",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "market-createlisting",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "market-marketinbox",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "jobs-jobdetail",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "jobs-savedjobs",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "jobs-myapplications",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "jobs-jobsinbox",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "messages-findpeople",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "messages-creategroup",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "messages-messagerequests",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "messages-savedmessages",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "messages-starredmessages",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "messages-calllog",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "messages-chat",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "navigation-warm-tabs",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "feed-search-controls",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "notifications-empty-controls",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "market-offer-cancel",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "jobs-application-entry",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "messages-recipient-search",
+        "status": "passed",
+        "junit": true,
+        "fixture": true
+      },
+      {
+        "id": "feed-article-draft",
+        "status": "failed",
+        "junit": false,
+        "fixture": true
+      }
+    ]
+  },
+  "remainingFailure": {
+    "id": "feed-article-draft",
+    "originalUiAcceptance": false,
+    "fixtureAcceptance": true,
+    "observed": "The paragraph is appended to the title while the body placeholder and zero-word count remain visible. The original final centered scroll cannot find the exact original title. This independently repeats the wrong-field interaction already addressed by the published guarded execution-copy correction.",
+    "correctedCaseExecutionCredited": false,
+    "activeCorrectionRun": 41271278242
+  },
+  "messages": {
+    "navigationUiCasePassed": true,
+    "unchangedWarmTargetMs": 1000,
+    "observedMs": [
+      362.27,
+      230.538,
+      243.884
+    ],
+    "withinLimit": true,
+    "scope": "JS tab-press to the second requested animation frame with a focused, populated inbox",
+    "physicalDisplayLatencyMeasured": false,
+    "realProviderLatencyMeasured": false
+  },
+  "boundaries": {
+    "currentEcfApplicationSourceClaimed": false,
+    "originalStandaloneJourneyPassed": false,
+    "installedMemoryCaptureClaimed": false,
+    "allControlsAccepted": false,
+    "hostedBackendAccepted": false,
+    "physicalDeviceAccepted": false
+  },
+  "retainedEvidence": {
+    "audit-manifest.json": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+    "binary-manifest.json": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+    "cases/feed-article-draft/commands.json": "70db72727cc6eca8d17e23b2e4d6dfd43c8bca8fdea70066eff9ef5aaab488f5",
+    "cases/feed-article-draft/failure-hierarchy.json": "60f7a99155b8727c471cb8bb071add47e3a78590170041f6edcc0c126904180a",
+    "cases/feed-article-draft/failure.png": "475486514703521573b6b348077db12e6af3214864b38f5538172a37209f317d",
+    "cases/feed-article-draft/junit.xml": "6b925679df5630c92f769a135489e6ff5e4870162505c6d15484a08f4e0f9e76",
+    "cases/feed-article-draft/maestro-driver.log": "482bdbb2e1e62864f51e923b5f5d667761bc26c03237fbd53aef43589777a275",
+    "cases/feed-article-draft/native-ui-receipt.json": "9933cb7da6831fdbe7462f8c3a6c954afba6630899efb3e963f2c0090cc264e8",
+    "cases/feed-articlecompose/junit.xml": "43db52c2aacc2aeee0db23011307f43786df95d8cdfd4de10e5931710048e403",
+    "cases/feed-articlecompose/native-ui-receipt.json": "01d71eac70bf3c5ac3a3c00f179543e48c1ac618f7f5ba702f692a6b5b0f87fd",
+    "cases/feed-notifications/junit.xml": "128906a79048b1e9503e35b98b4dfcf04ae34f40bf93f53de4fae060cd209e1a",
+    "cases/feed-notifications/native-ui-receipt.json": "2613bc21b8aec2014e4eed16af10e420db7499cd91b8da252877748bf9ab8656",
+    "cases/feed-post/junit.xml": "cb6737dbf4cedae78ac4c8c14d825963d21f4db860b02f6a669f025b45814e84",
+    "cases/feed-post/native-ui-receipt.json": "c2addb3595de3084baff4eb28fabd1e0d99bbf6725794584017b2dd290c577e1",
+    "cases/feed-search/junit.xml": "16c496774ed552ed13662717d5fe809e7c0bda7100a499a2f4a773ec3de04d99",
+    "cases/feed-search/native-ui-receipt.json": "afe2dc0bdb10dd28669b5ee90a2a07ca02b9a38bfa4cf3e6b145bc5b62d46ce0",
+    "cases/feed-search-controls/junit.xml": "890108394d38803ea33c6b6cd6604c9580bbe669852ab58a630923c82f1a6beb",
+    "cases/feed-search-controls/native-ui-receipt.json": "162e3a0610b2143a09929cc69b75d97ccd2df813cbd7403a7663f4a234aeb299",
+    "cases/feed-trendfeed/junit.xml": "0e5482b4a60af1bc5104b31ca4835cabff6b5dffbc9ea028ab07a611bcbfc7d2",
+    "cases/feed-trendfeed/native-ui-receipt.json": "31be1bb52ade7255ccf1b6a9ba7ff27fa8ef9a7cf69e1ce4b8bcece57fdc5a71",
+    "cases/jobs-application-entry/junit.xml": "653220d62371a2eb58fc2cdc2c7b0987a38b9fdaad217d68fc856abe081d51fe",
+    "cases/jobs-application-entry/native-ui-receipt.json": "9e2ac9070df0532131d5a3935d73c981d5b4e09173706398f36193cc377faea1",
+    "cases/jobs-jobdetail/junit.xml": "42668293e20caf1a64ee16258b0db184ae48174108d223a024e7ec323e190601",
+    "cases/jobs-jobdetail/native-ui-receipt.json": "67a1381de09a702cd38bcc146fdc8354151c71c7a1fa49ad47da407d9c095905",
+    "cases/jobs-jobsinbox/junit.xml": "b7083c1052791748aa39b747e0273ec102a059848d93bb16d96941a2df88a1fc",
+    "cases/jobs-jobsinbox/native-ui-receipt.json": "774b1a60a9c6506807ca4ad231bf493531d244a06ee2cda1da52af80ca79c5a2",
+    "cases/jobs-myapplications/junit.xml": "458ccd51485e8e103403356c6000ca7b8e70c529dd08775f978d696f977ae03e",
+    "cases/jobs-myapplications/native-ui-receipt.json": "fd3a9bea9e8079d0c654c61867c6afd118a109463bf7a15c92caf0ae305c3435",
+    "cases/jobs-savedjobs/junit.xml": "f0960364e7be1c5516dfe9d39d55cd13fef4e6d612e09d4e86ac172e6bd80951",
+    "cases/jobs-savedjobs/native-ui-receipt.json": "2a90a4314d633c6fb33707575772639c4f3dba116a99044042f7fcc7899cbffd",
+    "cases/market-createlisting/junit.xml": "f8ea937671f997d0e4ebd6023c41f68db44af66cdd101df58b9628aa948954d3",
+    "cases/market-createlisting/native-ui-receipt.json": "ea95bd66048d17c4a4cf6700ca1114a470f84548e7b26420b33e638af1579676",
+    "cases/market-listingdetail/junit.xml": "f566a09bc3d33a0c1a8169fa879be8914f9016fe6a87845cfdf5e049629c9e23",
+    "cases/market-listingdetail/native-ui-receipt.json": "9bc7274f6888c7d200e701a5a16c0fc8eff2e4cdc2e69d6a1f6ab59fef56ea19",
+    "cases/market-marketinbox/junit.xml": "cf492c928ad17f28d0b6363ebd54df810e02050a10a64bf99106ff95ac9920a5",
+    "cases/market-marketinbox/native-ui-receipt.json": "2aca76ef745fefe301d088595b6486dd26d3f9e8d5fd7f716bcc37b7ebcd5581",
+    "cases/market-offer-cancel/junit.xml": "1b0af01d84625c5c7b2c0e5425c03c8375df2c8c0240a8e275027383ea8c540e",
+    "cases/market-offer-cancel/native-ui-receipt.json": "656d7fc63f5cbaa50e79e67f50a1b65e1bfd12ae8285c08115a57ef29c5fba9e",
+    "cases/messages-calllog/junit.xml": "8ed824ff012d56a6246d9e84dc85eab436ecd4cbedea7a4f8f2c2e4ba150792a",
+    "cases/messages-calllog/native-ui-receipt.json": "526b5a77cb35bbc3f73b52f0f7b4bcc5da68a90853fd07627a1e076bb659c44c",
+    "cases/messages-chat/junit.xml": "a201e2414c4b098f147e860cacdbfe2baf41df0f9c7c3bfa3c6a71d56153cfd1",
+    "cases/messages-chat/native-ui-receipt.json": "b958bba0a85af4692298103d0054a97761f71a2c57ef5d14d3ad8a68344908ce",
+    "cases/messages-creategroup/junit.xml": "b797c4811746cc242c4ce47f61a0e16464c66ee54b41eafcb6c3156c342c71f8",
+    "cases/messages-creategroup/native-ui-receipt.json": "86bb1350c10a3a7c129bde0a4e91ed580435f4d9471ec508fb09ee889418ee78",
+    "cases/messages-findpeople/junit.xml": "55bdb8a436048bbc14d0d91fb58ab42556a99267ee6440cd4849c3855b747b45",
+    "cases/messages-findpeople/native-ui-receipt.json": "6238e27194dbc53494f85091a65ab68c6d55862840beb8ba03f1d8c46da3beef",
+    "cases/messages-messagerequests/junit.xml": "98810d2d0dc1eab9a07f176a131ba729450e2bd8059c537bb02b43219267607d",
+    "cases/messages-messagerequests/native-ui-receipt.json": "d4c3252387cacbfc8020264924f5ff43842bda12d2d84ef55c277399d459df7b",
+    "cases/messages-recipient-search/junit.xml": "f802d5f175dcab689d7ed841dab2a2525933a462769c1feb34522b0709f6e79d",
+    "cases/messages-recipient-search/native-ui-receipt.json": "879313f15224ff393fba0848cb780ceaabbc0d6a6f1dfa7a3ea692503ca11f62",
+    "cases/messages-savedmessages/junit.xml": "b184c918fb8aacf2e1923547ad91d5c18fe0655643ac6719205d9271f0e94f15",
+    "cases/messages-savedmessages/native-ui-receipt.json": "6e1aa139668f8a9569b75c61a144c6000ef071a21c1a69f54007502c391ef2ef",
+    "cases/messages-starredmessages/junit.xml": "c31d18b18769734fa9addb8742ca2d6517f951263cddc78044349010ff621948",
+    "cases/messages-starredmessages/native-ui-receipt.json": "7906520976b69a614de3ceabb7e1b1c84cf355891a2136ff5f22dcfd53a49388",
+    "cases/navigation-conversations/junit.xml": "f076c6d04f7b639dc56ce7a05d99e6116578d55e02651e21212097d16c3d2fea",
+    "cases/navigation-conversations/native-ui-receipt.json": "62fbe17a260a37c5fb7371d12036de6f8a815df18a1d5cdac0ad4fc2ee7526c9",
+    "cases/navigation-feedmain/junit.xml": "dfd72627ac90ca1708d50ef78b2047c7fa7602ab1a7cf842fd4a18f888d0356e",
+    "cases/navigation-feedmain/native-ui-receipt.json": "01ee3240d7b126b67b6e42bc53c49a20f518f9e3079bbb2dc6dce5432e8b9fda",
+    "cases/navigation-jobsmain/junit.xml": "2e27e0e350bfe5472ecc41f0d9827537656fdcb422eea05336a6d4f0f715eba4",
+    "cases/navigation-jobsmain/native-ui-receipt.json": "b163f73e8d2a392b6f5a80c79e3e4a8fcef79f2241dde42122ce09c6df8add38",
+    "cases/navigation-marketmain/junit.xml": "1e8f1ab93220962585fa35c402df6d22a29bb23f1bd3f9c4541803da9349ed71",
+    "cases/navigation-marketmain/native-ui-receipt.json": "88b428b021aaa3b3b3abf8ec09bfd7b6f5cff85dfdc3edeac10ca7c71d82e425",
+    "cases/navigation-profilemain/junit.xml": "651931894fb6306e56e9d7e279cc8673a5ce1ecd415f872687bf4af6c2bb7d82",
+    "cases/navigation-profilemain/native-ui-receipt.json": "60a82291ab03cf858472d5e9bd9589b5c43fa3c7be3392c7a60eba1faea99acf",
+    "cases/navigation-warm-tabs/junit.xml": "dc30130f0fe90af81676ee1efcda901967111bea75777d8a8fe3031918f350af",
+    "cases/navigation-warm-tabs/native-ui-receipt.json": "475fd6d06bbc3a5120859e099415be912e9e7db97b3cbae623dfd515a11692a3",
+    "cases/notifications-empty-controls/junit.xml": "a2b94de9ed99dd8e7c25ef5358f7f3226c5449a1c5e99a875a109b61de33b76c",
+    "cases/notifications-empty-controls/native-ui-receipt.json": "73ab134b1289685e1aaa418bb72dd6fe35c81c4c0aa684b17e1d67a8c6153fa4",
+    "consumer-proof.json": "3bcfd2341bbe39532d0ce16f45a815bfbaad2f3d5c6ef11bd516b013caed3597",
+    "device-ownership.json": "96284fe468c55bf7b966a58fd5872072494ea183dd83cb0cccb49ccb7fb01a98",
+    "device-setup.json": "eee209c0bf319da327ddf1fbc5fd27c614d2516e3b25ebde4e139ab2c5cfd310",
+    "navigation-timing.json": "d06b3c3aaf275219190e6ac4dee494015349f6a92ea2c5098df59a87dff59660",
+    "performance.json": "b081e3f4a8bd35635811ecd296a735a1f2e0b5007d219dd9c61ca267089e6c5f",
+    "results.json": "5b6b4bf3acbd35cc96e428fed3c0ab56228596512e99f7236e9355dfb070dda4",
+    "setup-commands.json": "d9a7f92b597d85e13b208d7897ff33e715756fc29f7706ffada5c0d05a9919e2",
+    "summary.json": "d4039737a172b4ab3e1760b5a52b1d10fa42c9b6d737e40423b8f923ecd1e7f0"
+  }
+}

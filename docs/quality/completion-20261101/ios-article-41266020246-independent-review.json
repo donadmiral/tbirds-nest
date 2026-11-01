@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T04:03:25.726179+00:00",
+  "workflowRun": 41266020246,
+  "artifactId": 13069980058,
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "caseId": "feed-article-draft",
+  "independentVisualReview": {
+    "paragraphAppendedToTitle": true,
+    "titleCaretStillFocused": true,
+    "bodyPlaceholderStillVisible": true,
+    "bodyWordCount": 0,
+    "keyboardVisible": true,
+    "sameFailurePatternAsPreviouslyReviewedCorrection": true
+  },
+  "executedBodyInteraction": {
+    "kind": "unadapted default-center tap on original body placeholder",
+    "status": "COMPLETED",
+    "timestamp": 1793505427144,
+    "durationMs": 8342
+  },
+  "evidenceHashes": {
+    "screenshot": "475486514703521573b6b348077db12e6af3214864b38f5538172a37209f317d",
+    "failureHierarchy": "60f7a99155b8727c471cb8bb071add47e3a78590170041f6edcc0c126904180a",
+    "commands": "70db72727cc6eca8d17e23b2e4d6dfd43c8bca8fdea70066eff9ef5aaab488f5"
+  },
+  "approvedCorrectionSha256": "1fd283b617325b75aa8b967b98dc746a4aa4edd796b25e3d7b4e56f60e0f70e7",
+  "correctedInteractionExecutedInThisArtifact": false,
+  "runtimePassClaimed": false,
+  "scope": "Independent inspection corroborates the original article-draft targeting failure. The already-reviewed relative body-point and exact paragraph assertion remain pending actual corrected-flow acceptance; no additional app edit, timing relaxation or rerun is proposed."
+}

@@ -24,7 +24,8 @@ name: Audit job application entry
 - scrollUntilVisible:
     element: Apply now
     direction: DOWN
-    centerElement: true
+    # The application button stays in the fixed footer; it cannot be centered.
+    centerElement: false
 - tapOn: Apply now
 - assertVisible: Cancel
 - takeScreenshot: jobs-application-entry

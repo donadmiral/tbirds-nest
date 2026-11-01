@@ -1,0 +1,1 @@
+{"schemaVersion":1,"mode":"synthetic-native-navigation-timing","events":[{"sequence":1,"phase":"tab-press","screen":"Market","rowCount":0,"atMs":68778.11,"atUnixMs":1793503883953}],"dropped":0,"meaning":"App JS tab press, committed inbox and scheduled frame. Visual assertions remain separate."}

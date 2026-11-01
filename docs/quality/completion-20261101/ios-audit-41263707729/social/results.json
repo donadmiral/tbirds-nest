@@ -1,0 +1,1242 @@
+[
+  {
+    "id": "navigation-feedmain",
+    "group": "navigation",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793499119564,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 6402
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 46889
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 61,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793499430133
+  },
+  {
+    "id": "navigation-marketmain",
+    "group": "navigation",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793499430138,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2907
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 31051
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 25,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793499597514
+  },
+  {
+    "id": "navigation-jobsmain",
+    "group": "navigation",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793499597515,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3021
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 32243
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 26,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793499703815
+  },
+  {
+    "id": "navigation-conversations",
+    "group": "navigation",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793499703816,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3072
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 33432
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": true,
+        "bytes": 530
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 26,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793499804536
+  },
+  {
+    "id": "navigation-profilemain",
+    "group": "navigation",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793499804538,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3341
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 40195
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 29,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793499890774
+  },
+  {
+    "id": "feed-search",
+    "group": "feed",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793499890775,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2555
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 28381
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 21,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793499976124
+  },
+  {
+    "id": "feed-notifications",
+    "group": "feed",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793499976126,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2613
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 28424
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 21,
+      "auditRequestCount": 1,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500064291
+  },
+  {
+    "id": "feed-articlecompose",
+    "group": "feed",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500064294,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 1744
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 20204
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 13,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500144545
+  },
+  {
+    "id": "feed-post",
+    "group": "feed",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500144548,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3219
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 34630
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 27,
+      "auditRequestCount": 4,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500223656
+  },
+  {
+    "id": "feed-trendfeed",
+    "group": "feed",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500223657,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 1804
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 19005
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 13,
+      "auditRequestCount": 1,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500308774
+  },
+  {
+    "id": "market-listingdetail",
+    "group": "market",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500308775,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3478
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 36974
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 29,
+      "auditRequestCount": 3,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500387742
+  },
+  {
+    "id": "market-createlisting",
+    "group": "market",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500387743,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2457
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 27236
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 20,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500466683
+  },
+  {
+    "id": "market-marketinbox",
+    "group": "market",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500466686,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2680
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 28428
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 22,
+      "auditRequestCount": 1,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500548050
+  },
+  {
+    "id": "jobs-jobdetail",
+    "group": "jobs",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500548054,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2106
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 23731
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 17,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500627511
+  },
+  {
+    "id": "jobs-savedjobs",
+    "group": "jobs",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500627515,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 1920
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 18967
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 15,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500718459
+  },
+  {
+    "id": "jobs-myapplications",
+    "group": "jobs",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500718460,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2105
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 19007
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 18,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500862841
+  },
+  {
+    "id": "jobs-jobsinbox",
+    "group": "jobs",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500862845,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2943
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 28421
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 25,
+      "auditRequestCount": 1,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793500997228
+  },
+  {
+    "id": "messages-findpeople",
+    "group": "messages",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793500997231,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2655
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 27239
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 23,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793501131221
+  },
+  {
+    "id": "messages-creategroup",
+    "group": "messages",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793501131229,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2780
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 28402
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 24,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793501243036
+  },
+  {
+    "id": "messages-messagerequests",
+    "group": "messages",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793501243038,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2759
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 28397
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 23,
+      "auditRequestCount": 1,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793501340968
+  },
+  {
+    "id": "messages-savedmessages",
+    "group": "messages",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793501340972,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2652
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 28417
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 22,
+      "auditRequestCount": 1,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793501432129
+  },
+  {
+    "id": "messages-starredmessages",
+    "group": "messages",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793501432132,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2747
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 28416
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 23,
+      "auditRequestCount": 1,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793501523901
+  },
+  {
+    "id": "messages-calllog",
+    "group": "messages",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793501523904,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2604
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 28392
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 22,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793501614966
+  },
+  {
+    "id": "messages-chat",
+    "group": "messages",
+    "kind": "entry-smoke",
+    "attempts": 1,
+    "startedAtEpochMs": 1793501614968,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3877
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 35496
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 35,
+      "auditRequestCount": 2,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793501749987
+  },
+  {
+    "id": "navigation-warm-tabs",
+    "group": "navigation",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793501749992,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 20839
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 199137
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": true,
+        "bytes": 2504
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 205,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793501962428
+  },
+  {
+    "id": "feed-search-controls",
+    "group": "feed",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793501962431,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 5276
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 46060
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 45,
+      "auditRequestCount": 10,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793502163831
+  },
+  {
+    "id": "notifications-empty-controls",
+    "group": "feed",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793502163836,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3178
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 29597
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 28,
+      "auditRequestCount": 1,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793502392199
+  },
+  {
+    "id": "market-offer-cancel",
+    "group": "market",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793502392201,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 4210
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 31895
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 38,
+      "auditRequestCount": 3,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793502563527
+  },
+  {
+    "id": "jobs-application-entry",
+    "group": "jobs",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793502563529,
+    "status": "failed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2970
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 24888
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 27,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793502704323
+  },
+  {
+    "id": "messages-recipient-search",
+    "group": "messages",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793502704327,
+    "status": "passed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 0,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 3610
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 31975
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": true,
+      "executedCases": 1
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 34,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793502885959
+  },
+  {
+    "id": "feed-article-draft",
+    "group": "feed",
+    "kind": "control-journey",
+    "attempts": 1,
+    "startedAtEpochMs": 1793502885963,
+    "status": "failed",
+    "timeoutSeconds": 360,
+    "driverStartupBudgetSeconds": 180,
+    "exitCode": 1,
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 2599
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 21369
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": false,
+        "bytes": 0
+      }
+    ],
+    "junit": {
+      "passed": false,
+      "issue": "case-name-or-status-mismatch"
+    },
+    "fixture": {
+      "passed": true,
+      "requestCount": 23,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "mediaVerifierExitCode": null,
+    "finishedAtEpochMs": 1793503074007
+  }
+]

@@ -1,0 +1,224 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-11-01T03:40:51.397995+00:00",
+  "runId": 41268286306,
+  "jobId": 124735581347,
+  "consumerCommit": "dcf8b83fa133e49d1d2e818e66a6dca65c1eb877",
+  "appSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "appProducerRun": 41259529351,
+  "artifact": {
+    "id": 13068622314,
+    "bytes": 5741416,
+    "sha256": "2fd61810a3f6df7d4c8f3399f57c1486400f099b41b4e0a4464cfcd9975d96de",
+    "verification": "Downloaded ZIP independently verified by status_scope_check; this review rehashes each inspected extracted file."
+  },
+  "result": "failed-original-journey",
+  "appAcceptance": false,
+  "commands": [
+    {
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-market",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793503878808,
+        "duration": 5749,
+        "sequenceNumber": 28
+      }
+    },
+    {
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "View listing: Travel journal",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "FAILED",
+        "timestamp": 1793503884558,
+        "duration": 29862,
+        "sequenceNumber": 29
+      }
+    }
+  ],
+  "observations": [
+    {
+      "boundary": "First launch",
+      "finding": "Guarded fresh-device launch completes in 3.640 seconds with clearState false; keychain and permissions commands remain present. This removes the previously observed duplicate reinstall but does not pass the route."
+    },
+    {
+      "boundary": "Route",
+      "finding": "Feed initial content, Latest and For You complete. Market tab tap completes. Its exact listing assertion remains failed with configured 15000ms and recorded command duration 29862ms. Jobs, Messages and the reader were not reached."
+    },
+    {
+      "boundary": "Later visual evidence",
+      "finding": "Manually inspected failure screenshot contains the Travel journal listing. The later failure hierarchy contains exact label View listing: Travel journal at [12,339][190,605]. These later artifacts do not establish visibility before the original deadline."
+    },
+    {
+      "boundary": "Accessibility responsiveness",
+      "finding": "Repeated app main-loop callbacks respond promptly through 03:31:39.742. A callback queued at 03:31:40.491 arrives at 03:31:53.304, a 12.813-second delay. Driver application hierarchy retrieval spans 03:31:40.489308 through03:31:53.861328, or13.372020seconds. No30-second main-thread-busy report occurs in this interval."
+    },
+    {
+      "boundary": "Auth observation",
+      "finding": "No active or waiting auth locks or storage operations remain. Four requested auth locks near the end of the assertion settle within8.497ms. Their generic operation records cannot identify a Market network response or establish why the listing was not matched earlier."
+    },
+    {
+      "boundary": "Timing",
+      "finding": "Navigation timing contains only a Market tab-press event. No screen-ready measurement or first-visible timestamp is available for Market. No Messages or reader timing receives credit."
+    },
+    {
+      "boundary": "Failure sampling",
+      "finding": "Owned app PID/UID/start-time/path/plist checks pass, but the sample command exceeds its8-second command wait and leaves no completed app stack. The driver is already absent. No stack cause is inferred."
+    }
+  ],
+  "mainLoopWindow": {
+    "startUtc": "2026-11-01T03:31:24.000Z",
+    "endUtc": "2026-11-01T03:31:54.999Z",
+    "requestCount": 24,
+    "respondedCount": 24,
+    "delayedQueueUtc": "2026-11-01T03:31:40.491Z",
+    "delayedCallbackUtc": "2026-11-01T03:31:53.304Z",
+    "delayMs": 12813
+  },
+  "authNearBoundary": {
+    "clockMeaning": "atMs plus auth wallClockOriginMs is approximate; the independent navigation origin differs slightly. No per-endpoint identity is recorded.",
+    "wallClockOriginMs": 1793503815362,
+    "requestedOperations": [
+      {
+        "kind": "lock",
+        "phase": "requested",
+        "operationId": 141,
+        "lockId": 1,
+        "acquireTimeoutMs": 5000,
+        "activeLockOperationIds": [],
+        "atMs": 84767.37,
+        "timerApis": {
+          "setTimeout": {
+            "kind": "function",
+            "id": 1
+          },
+          "clearTimeout": {
+            "kind": "function",
+            "id": 2
+          }
+        }
+      },
+      {
+        "kind": "lock",
+        "phase": "requested",
+        "operationId": 142,
+        "lockId": 1,
+        "acquireTimeoutMs": 5000,
+        "activeLockOperationIds": [],
+        "atMs": 84767.465,
+        "timerApis": {
+          "setTimeout": {
+            "kind": "function",
+            "id": 1
+          },
+          "clearTimeout": {
+            "kind": "function",
+            "id": 2
+          }
+        }
+      },
+      {
+        "kind": "lock",
+        "phase": "requested",
+        "operationId": 143,
+        "lockId": 1,
+        "acquireTimeoutMs": 5000,
+        "activeLockOperationIds": [],
+        "atMs": 84767.533,
+        "timerApis": {
+          "setTimeout": {
+            "kind": "function",
+            "id": 1
+          },
+          "clearTimeout": {
+            "kind": "function",
+            "id": 2
+          }
+        }
+      },
+      {
+        "kind": "lock",
+        "phase": "requested",
+        "operationId": 147,
+        "lockId": 1,
+        "acquireTimeoutMs": 5000,
+        "activeLockOperationIds": [],
+        "atMs": 84780.657,
+        "timerApis": {
+          "setTimeout": {
+            "kind": "function",
+            "id": 1
+          },
+          "clearTimeout": {
+            "kind": "function",
+            "id": 2
+          }
+        }
+      }
+    ],
+    "activeLocks": 0,
+    "waitingLocks": 0,
+    "activeStorage": 0
+  },
+  "sourceReview": {
+    "files": {
+      "src/screens/market/MarketScreen.tsx": {
+        "retainedProducer": "393eb4c223d1463ffe416a9c86043f7a78f1d38e0779b191cc8742978f67767b",
+        "reviewedWorkingFile": "393eb4c223d1463ffe416a9c86043f7a78f1d38e0779b191cc8742978f67767b"
+      },
+      "src/services/navigationDirectory.ts": {
+        "retainedProducer": "60edd15ac276f2a626af2f2b9e71f0ef99ea96ca42fc70888ce2dd33309721d0",
+        "reviewedWorkingFile": "60edd15ac276f2a626af2f2b9e71f0ef99ea96ca42fc70888ce2dd33309721d0"
+      },
+      "src/navigation/AppNavigator.tsx": {
+        "retainedProducer": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+        "reviewedWorkingFile": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70"
+      },
+      "tests/native/backend-fixture.cjs": {
+        "retainedProducer": "69990b3708b68e8693544e124fefe0550930f404cedf2cdbca64243cdb2195c3",
+        "reviewedWorkingFile": "69990b3708b68e8693544e124fefe0550930f404cedf2cdbca64243cdb2195c3"
+      }
+    },
+    "findings": [
+      "Market reads one fixture listing and uses the direct exact accessibility label checked by the flow. The final screenshot uses the no-image placeholder path.",
+      "The Market load is a memoized focus effect; the250ms debounce applies only after changed search text. The reviewed default path does not contain an intentional15-second delay.",
+      "No concrete blocking loop, selector mismatch, or network-load failure is established by this source and artifact. Existing native source and strict acceptance budgets remain unchanged."
+    ]
+  },
+  "nextEvidenceNeeded": "A meaningful original-route execution must satisfy the same assertions and deadlines. The present evidence alone does not justify an app patch, selector replacement, added delay, or passing this run.",
+  "inspectedFiles": {
+    "completion-proof.json": "ee569ac9ccbdb50b637d5bd689431f95441b6155e66264c8a50be421071ac34f",
+    "setup-commands.json": "5b5a1aa4f456f9a2a6d2d6666af319b4d7b2e735fff690ee69c0338332e118d0",
+    "app.log": "52213286011e47e0d06513dfa3adcbad815c359e90920dc7d7eb4a319ef1904f",
+    "diagnostic-warm-reader-controls/native-ui-auth-diagnostics.json": "8ef54f5f757b3c18c6437b752419fc236f9eaf694de35e6bfe3d0af778fe18ed",
+    "diagnostic-warm-reader-controls/native-ui-navigation-timing.json": "17f1f8d120e6e3e02982802be750f1ea515f45a70cf471c7798a2e6b947d5b72",
+    "diagnostic-warm-reader-controls/native-ui-receipt.json": "cb7625b4b768ebbde6886a070e98bba3cef4352b1a06c4f31187b1bc6fab4bf1",
+    "diagnostic-warm-reader-controls/junit.xml": "29c4568c0da1e48891b3447f8e8022996a11e14a926d58d912c1cc6c3f3c2413",
+    "diagnostic-warm-reader-controls/failure-threads/sampling.json": "3d5be2044da0f8353789aa41fc28cc47f81f1de2958c068a0867d37ed43caddc",
+    "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/commands.json": "227799d1591e41804c47860a20471b43d281b3702926ff644a7a5458f7645ac3",
+    "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/logs/device-xctest.log": "0e0ab7f7267f3661be0bd7c611a9f8725f9e097df3b91f8a647c5b0192a25573",
+    "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/logs/maestro.log": "30433fe0c5124649d992bf8f32bb565a9d721b48b347e6144dbd043c3f736561",
+    "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/screen-hierarchy/step-030-assertCondition-View_listing_Travel_jour.json": "420a8c104323ae1764d4c52a95438b5514cb6115ed189850b9df34dc632887e6",
+    "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/screenshots/step-030-assertCondition-View_listing_Travel_jour.png": "e94ea2d00f0813dfa792b36e81ba1d154de1d398191a4214ee0debedfcdd3558"
+  }
+}

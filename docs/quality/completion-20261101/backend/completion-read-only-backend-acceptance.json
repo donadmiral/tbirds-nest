@@ -1,0 +1,142 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "readOnly": true,
+  "unaffectedContracts": {
+    "helper": {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "bodyMd5": "6830911bf6c431dab59988eab8e55b43",
+      "volatility": "s",
+      "anonExecute": false,
+      "definitionMd5": "f4169bd8f982b19cf9531b8df27222ce",
+      "serviceExecute": true,
+      "securityDefiner": true,
+      "authenticatedExecute": false
+    },
+    "readOnly": true,
+    "readiness": {
+      "buckets": [
+        {
+          "id": "chat-files",
+          "public": false
+        },
+        {
+          "id": "chat-media",
+          "public": false
+        },
+        {
+          "id": "media",
+          "public": false
+        },
+        {
+          "id": "post-media",
+          "public": false
+        },
+        {
+          "id": "story-media",
+          "public": false
+        }
+      ],
+      "missingObjects": 0,
+      "chatObjectCount": 0,
+      "contentReferences": 13,
+      "unboundReferences": 0,
+      "missingChatObjects": 0,
+      "restrictedPolicyCount": 10,
+      "reviewedLegacyReferences": 0,
+      "legacyRequiresPublicBucket": false,
+      "limitedObjectsWithOrdinaryReferences": 0
+    },
+    "observedAt": "2026-11-01T03:51:53.283404+00:00",
+    "erasureJobCount": 0,
+    "erasureReviewsPrivate": true,
+    "erasureOperatorTriggerCount": 2
+  },
+  "pendingContractObservation": {
+    "observed_at": "2026-11-01 03:52:03.060945+00",
+    "executor": "postgres",
+    "event_settings_present": false,
+    "event_jobs_present": false,
+    "candidate_functions": [],
+    "candidate_triggers": [],
+    "candidate_migrations": [],
+    "candidate_active_statements": 0,
+    "pg_net_tables": [
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "_http_response",
+        "owner": "supabase_admin"
+      },
+      {
+        "acl": "{supabase_admin=arwdDxtm/supabase_admin,=arwdDxtm/supabase_admin}",
+        "rls": false,
+        "name": "http_request_queue",
+        "owner": "supabase_admin"
+      }
+    ],
+    "business_schema_marker": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "support_reply_functions": 0,
+    "music_schema_present": false,
+    "readiness_migration": [
+      {
+        "name": "private_media_readiness_storage_references",
+        "version": "20261101021335"
+      }
+    ]
+  },
+  "installedJournalRepresentation": [
+    {
+      "version": "20261031020659",
+      "name": "qa_business_auth_01_foundation_20261031",
+      "statement_count": 1,
+      "joined_statement_md5": "5a65ff55953c0d1c31f72889ffb8210a",
+      "joined_statement_bytes": 6695,
+      "matchesCurrentReviewedSourceBytes": true,
+      "sourcePath": "supabase/ops/qa/business-auth-staged-20261031/01_foundation.sql",
+      "sourceSha256": "8e53627216124cd336563e21d82ef4404fad62a39ef3a8dcf99946964e3b936c"
+    },
+    {
+      "version": "20261031021053",
+      "name": "qa_business_auth_02_private_guards_20261031",
+      "statement_count": 1,
+      "joined_statement_md5": "d345fece1ff55a50935d13b0457a3a37",
+      "joined_statement_bytes": 9598,
+      "matchesCurrentReviewedSourceBytes": true,
+      "sourcePath": "supabase/ops/qa/business-auth-staged-20261031/02_private_guards.sql",
+      "sourceSha256": "c1ed268feafd07571eca37c6fe6b52cbc996bce4ad750decc27c6615cf945c7c"
+    },
+    {
+      "version": "20261031021956",
+      "name": "qa_business_auth_03_private_device_20261031",
+      "statement_count": 1,
+      "joined_statement_md5": "18ff7871146cb9d7d4c1a8171054e2d4",
+      "joined_statement_bytes": 7698,
+      "matchesCurrentReviewedSourceBytes": true,
+      "sourcePath": "supabase/ops/qa/business-auth-staged-20261031/03_private_device.sql",
+      "sourceSha256": "8988c6427b8de9d64f04bfb51b1350bcdb8417ea40196874e079548629a3f8d0"
+    },
+    {
+      "version": "20261101021335",
+      "name": "private_media_readiness_storage_references",
+      "statement_count": 1,
+      "joined_statement_md5": "cb92837df824b54d05f27e46c47c6a03",
+      "joined_statement_bytes": 4857,
+      "matchesCurrentReviewedSourceBytes": true,
+      "sourcePath": "supabase/migrations/20261101013831_private_media_readiness_storage_references.sql",
+      "sourceSha256": "e9832d2e138d5267d157bf949000f65741070928b13429ef496d00a130fce073"
+    }
+  ],
+  "newMigrationOrDeploymentSubmitted": false,
+  "classification": "Installed readiness, private media and erasure metadata checks remain valid. Business remains private stage3; music, atomic support reply and notification candidate remain absent. The absent snapshots do not cancel older unknown requests.",
+  "limits": [
+    "No disposable-user erasure or multi-account session flow was performed.",
+    "No provider message, notification, commercial catalogue activation or rights assertion was made.",
+    "No source-test result is substituted for hosted installation or actual Auth issuance."
+  ],
+  "nextSupportedOperation": "Use business-stage4-next-apply-request.json only after a fresh allGatesPassed preflight and a coordinated ordinary provider confirmation window. Root344 expired; older child outcomes remain unknown."
+}

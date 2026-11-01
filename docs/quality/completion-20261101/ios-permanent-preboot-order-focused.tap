@@ -1,0 +1,156 @@
+TAP version 13
+# Subtest: navigation observation excludes content, preserves event order and bounds retained data
+ok 1 - navigation observation excludes content, preserves event order and bounds retained data
+  ---
+  duration_ms: 17.506418
+  type: 'test'
+  ...
+# Subtest: navigation observers compile against exact production components without replacing their handlers
+ok 2 - navigation observers compile against exact production components without replacing their handlers
+  ---
+  duration_ms: 221.179112
+  type: 'test'
+  ...
+# Subtest: normal Simulator setup creates one owned pinned device and bounds exact-device failure cleanup
+ok 3 - normal Simulator setup creates one owned pinned device and bounds exact-device failure cleanup
+  ---
+  duration_ms: 34.074387
+  type: 'test'
+  ...
+# Subtest: normal startup CLI uses bounded inherited-pipe reads and retains exact-device cleanup evidence
+ok 4 - normal startup CLI uses bounded inherited-pipe reads and retains exact-device cleanup evidence
+  ---
+  duration_ms: 840.709816
+  type: 'test'
+  ...
+# Subtest: normal audit requires exact preboot immutable proof and never repeats host clients after boot
+ok 5 - normal audit requires exact preboot immutable proof and never repeats host clients after boot
+  ---
+  duration_ms: 132.469378
+  type: 'test'
+  ...
+# Subtest: normal iOS runner requires the starter receipt and never launches cases after a failed120-second install
+ok 6 - normal iOS runner requires the starter receipt and never launches cases after a failed120-second install
+  ---
+  duration_ms: 109.139275
+  type: 'test'
+  ...
+# test_actual_entry_records_exact_real_verification_chain (__main__.PreflightTests.test_actual_entry_records_exact_real_verification_chain) ... ok
+# test_changed_app_is_rejected_before_any_host_probe (__main__.PreflightTests.test_changed_app_is_rejected_before_any_host_probe) ... ok
+# test_receipt_alias_and_changed_developer_selection_are_rejected (__main__.PreflightTests.test_receipt_alias_and_changed_developer_selection_are_rejected) ... ok
+# test_sdk_timeout_retains_failure_and_cannot_create_valid_preflight (__main__.PreflightTests.test_sdk_timeout_retains_failure_and_cannot_create_valid_preflight) ... ok
+# test_wrong_actual_sdk_or_architecture_is_rejected (__main__.PreflightTests.test_wrong_actual_sdk_or_architecture_is_rejected) ... ok
+# ----------------------------------------------------------------------
+# Ran 5 tests in 0.031s
+# OK
+# Subtest: actual immutable preflight entry records bounded source-bound probes before any device action
+ok 7 - actual immutable preflight entry records bounded source-bound probes before any device action
+  ---
+  duration_ms: 136.363195
+  type: 'test'
+  ...
+# Subtest: every executable case has one explicit flow, immutable identity and meaningful mandatory assertion
+ok 8 - every executable case has one explicit flow, immutable identity and meaningful mandatory assertion
+  ---
+  duration_ms: 89.674818
+  type: 'test'
+  ...
+# Subtest: declared nested entry states survive the installed real stack/tab routers
+ok 9 - declared nested entry states survive the installed real stack/tab routers
+  ---
+  duration_ms: 2.74124
+  type: 'test'
+  ...
+# Subtest: actual SDK sees the original ticket body with empty history; no invented backfill
+ok 10 - actual SDK sees the original ticket body with empty history; no invented backfill
+  ---
+  duration_ms: 42.463041
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled list-error
+ok 11 - actual SDK preserves controlled list-error
+  ---
+  duration_ms: 7015.236594
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled ticket-read-error
+ok 12 - actual SDK preserves controlled ticket-read-error
+  ---
+  duration_ms: 7014.995889
+  type: 'test'
+  ...
+# Subtest: actual SDK preserves controlled history-error
+ok 13 - actual SDK preserves controlled history-error
+  ---
+  duration_ms: 7010.687627
+  type: 'test'
+  ...
+# Subtest: actual RPC rolls back both reply and reopen when the status write fails
+ok 14 - actual RPC rolls back both reply and reopen when the status write fails
+  ---
+  duration_ms: 2.553247
+  type: 'test'
+  ...
+# Subtest: actual RPC returns one exact replayable receipt and rejects a reused key with different content
+ok 15 - actual RPC returns one exact replayable receipt and rejects a reused key with different content
+  ---
+  duration_ms: 2.097951
+  type: 'test'
+  ...
+# Subtest: actual SDK creates and reads back a ticket by the supplied UUID without inventing history
+ok 16 - actual SDK creates and reads back a ticket by the supplied UUID without inventing history
+  ---
+  duration_ms: 9.008304
+  type: 'test'
+  ...
+# Subtest: actual RPC rejects wrong owner, missing ticket, malformed identifiers and unsupported arguments
+ok 17 - actual RPC rejects wrong owner, missing ticket, malformed identifiers and unsupported arguments
+  ---
+  duration_ms: 3.566935
+  type: 'test'
+  ...
+# Subtest: legacy direct reply insertion also rolls back under the actual trigger failure contract
+ok 18 - legacy direct reply insertion also rolls back under the actual trigger failure contract
+  ---
+  duration_ms: 1.776927
+  type: 'test'
+  ...
+# Subtest: missing ticket remains null and no positive fallback record is created
+ok 19 - missing ticket remains null and no positive fallback record is created
+  ---
+  duration_ms: 1.776047
+  type: 'test'
+  ...
+# Subtest: Support fixture rejects unsigned access, another owner, unsupported methods/fields and outside origins
+ok 20 - Support fixture rejects unsigned access, another owner, unsupported methods/fields and outside origins
+  ---
+  duration_ms: 1.66541
+  type: 'test'
+  ...
+# Subtest: scenario selection rejects unknown/mismatched/repeated state and preserves base memory methods
+ok 21 - scenario selection rejects unknown/mismatched/repeated state and preserves base memory methods
+  ---
+  duration_ms: 1.499359
+  type: 'test'
+  ...
+# Subtest: actual Python runner continues after failure and rejects empty/skipped/malformed/unbound reports
+ok 22 - actual Python runner continues after failure and rejects empty/skipped/malformed/unbound reports
+  ---
+  duration_ms: 376.285571
+  type: 'test'
+  ...
+# Subtest: disposable preparation retains exact anchors and rejects a second overlay before native build
+ok 23 - disposable preparation retains exact anchors and rejects a second overlay before native build
+  ---
+  duration_ms: 78.378816
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21805.708358

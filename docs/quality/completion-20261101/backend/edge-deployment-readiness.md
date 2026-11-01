@@ -29,18 +29,25 @@ absent: `business-owner-access`, `music-asset-finalize`, `music-maintenance`, an
 
 ## Database and rollout order
 
-The QA database remains at private business-auth stage 3. The supported stage-4
-request has no terminal provider result; its late outcome remains unknown.
+The QA database has advanced through private business-auth stage 6. The later
+coordinator stage-4 request and normal stage-5/6 requests succeeded; exact source
+journals and catalog/ACL postflights passed. The child stage-7 call returned no
+provider terminal result after its yielded wait was interrupted. At 04:04:36 UTC
+the exact state remained stage 6 with no stage-7 journal or public activation.
+Root owns the source-bound guarded stage-7 recovery and all later mutations.
+Earlier child request outcomes remain recorded, not relabeled as canceled.
 The independent readiness helper repair succeeded and is journaled as
 `20261101021335`, with 13 actual Storage references, zero missing objects,
 zero unbound references, and all five buckets private. This success does not
 resolve the separate business-auth or atomic-support requests.
 
 The exact migration paths, hashes and expected fingerprints are recorded in
-`ordered-completion-dependencies.json`. After the outstanding business operation
-has a safe, established terminal state, use only the ordinary supported path for
-remaining stages 4–8, with the unchanged guards and exact postflight after every
-stage. Stage 8 remains one atomic activation. Then apply the three ordered music
+`ordered-completion-dependencies.json`. The next ordinary apply request and its exact before/after checks are ready in
+`business-stage7-next-apply-package.json`. Coordinate the fresh provider
+confirmation after the full preflight passes; the narrow source-specific
+concurrency review preserves the older unknown request records. Continue stages
+7–8 only through the ordinary supported path, with the unchanged guards and
+exact postflight after every stage. Stage 8 remains one atomic activation. Then apply the three ordered music
 migrations and their postflight. Do not replay the already-installed market offer
 serialization or the QA prerequisite adapters.
 

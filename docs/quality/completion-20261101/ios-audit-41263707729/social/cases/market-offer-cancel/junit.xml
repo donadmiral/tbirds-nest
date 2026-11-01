@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum completion 4e8b8bd5b4a34fb896070d69f98fcbec - iOS 18.5 - 906782C6-6E69-4600-85A7-B91F42B6D579" tests="1" failures="0" time="104.444" timestamp="2026-11-01T03:07:28">
+    <testcase id="Audit listing offer entry and cancel" name="Audit listing offer entry and cancel" classname="Audit listing offer entry and cancel" file="tests/native/audit/flows/market-offer-cancel.yaml" time="104.383" timestamp="2026-11-01T03:07:28" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

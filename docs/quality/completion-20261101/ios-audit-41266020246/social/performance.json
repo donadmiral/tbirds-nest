@@ -1,0 +1,39 @@
+{
+  "sourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "platform": "ios",
+  "navigationCasePassed": true,
+  "appTiming": {
+    "metric": "JS tab-press to the second requested animation frame with a focused, populated inbox",
+    "limitMs": 1000,
+    "visits": [
+      {
+        "visit": 1,
+        "tabPressAtUnixMs": 1793504341457,
+        "populatedFrameAtUnixMs": 1793504341820,
+        "tabPressToPopulatedFrameMs": 362.27
+      },
+      {
+        "visit": 2,
+        "tabPressAtUnixMs": 1793504369928,
+        "populatedFrameAtUnixMs": 1793504370158,
+        "tabPressToPopulatedFrameMs": 230.538
+      },
+      {
+        "visit": 3,
+        "tabPressAtUnixMs": 1793504398393,
+        "populatedFrameAtUnixMs": 1793504398637,
+        "tabPressToPopulatedFrameMs": 243.884
+      }
+    ],
+    "budgetReference": "docs/quality/PERFORMANCE_AND_RELEASE.md: warm native cached content target within one second",
+    "maxMs": 362.27,
+    "withinLimit": true,
+    "physicalDisplayLatencyMeasured": false,
+    "realProviderLatencyMeasured": false,
+    "nativeRowLayoutsObserved": 2,
+    "visualAcceptance": "Must also pass the separate actual conversation-content UI assertions."
+  },
+  "allExecutedShardCasesPassed": false,
+  "executedCaseCount": 31,
+  "hostedBackendAcceptance": false
+}

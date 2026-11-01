@@ -79,7 +79,7 @@ print('Owned Simulator startup and bounded cleanup passed')
 
 test('normal startup CLI uses bounded inherited-pipe reads and retains exact-device cleanup evidence', () => {
   const script = String.raw`
-import json,os,signal,subprocess,sys,tempfile,time
+import hashlib,json,os,signal,subprocess,sys,tempfile,time
 from pathlib import Path
 starter=Path('scripts/quality/native-ui-start-ios-device.py').resolve()
 uuid='11111111-1111-4111-8111-111111111111'
@@ -101,14 +101,25 @@ with tempfile.TemporaryDirectory() as directory:
   'elif args[:2]==["simctl","bootstatus"] and os.environ.get("TEST_BOOT_FAILURE")=="1":raise SystemExit(9)\n'+
   'elif args[:2] not in [["simctl","boot"],["simctl","bootstatus"],["simctl","shutdown"],["simctl","delete"]]:raise SystemExit(2)\n')
  fake.chmod(0o755)
- manifest=root/'manifest.json';manifest.write_text(json.dumps({'applicationSourceCommit':'a'*40,'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':runtime}}))
+ toolchain={'xcode':'Xcode 16.4\nBuild version 16F6','sdkVersion':'18.5'}
+ manifest=root/'manifest.json';manifest.write_text(json.dumps({'applicationSourceCommit':'a'*40,'applicationSourceTree':'b'*40,'binarySha256':'c'*64,'nativeCompatibility':{'abi':'x86_64','runtimeIdentifier':runtime},'toolchain':toolchain}))
+ # This test isolates the real startup CLI/pipe/cleanup behavior after a
+ # controlled preflight handoff; actual immutable probes are tested separately.
+ stages=['compatibility-host-architecture','compatibility-xcode-version','compatibility-simulator-sdk','compatibility-actual-mach-o','compatibility-app-signature']
+ values=['x86_64',toolchain['xcode'],'18.5','x86_64','']
+ commands=[{'stage':stage,'status':'completed','exitCode':0,'timeoutSeconds':30,'startedAtEpochMs':1000+i*100,'finishedAtEpochMs':1050+i*100,'elapsedSeconds':0.04,'stdoutTail':values[i],'stdoutTruncated':False} for i,stage in enumerate(stages)]
+ immutable=root/'immutable.json';immutable.write_text(json.dumps({'schemaVersion':1,'kind':'native-ios-immutable-preflight','applicationSourceCommit':'a'*40,'applicationSourceTree':'b'*40,'binarySha256':'c'*64,'binaryManifestSha256':hashlib.sha256(manifest.read_bytes()).hexdigest(),'binaryPath':str(root/'PlatinumQA.app'),'developerDirectory':os.environ.get('DEVELOPER_DIR'),'immutableCompatibility':{'hostArchitecture':'x86_64','actualExecutableArchitecture':'x86_64','xcode':toolchain['xcode'],'sdkVersion':'18.5','codeSignatureVerified':True,'guestUnameInvoked':False},'commands':commands}))
  environment={**os.environ,'CI':'true','PATH':str(root)+os.pathsep+os.environ['PATH']}
  try:
   output=root/'device-setup.json';start=time.monotonic()
   result=subprocess.run([sys.executable,str(starter),'--manifest',str(manifest),'--output',str(output)],env=environment,capture_output=True,text=True,timeout=10)
+  assert result.returncode!=0 and not calls.exists() and not output.exists()
+  result=subprocess.run([sys.executable,str(starter),'--manifest',str(manifest),'--immutable-preflight',str(immutable),'--output',str(output)],env=environment,capture_output=True,text=True,timeout=10)
   assert result.returncode==0,result.stderr
   assert result.stdout==uuid+'\n' and time.monotonic()-start<5
   proof=json.loads(output.read_text());assert proof['created'] and proof['bootReady'] and proof['device']==uuid
+  assert proof['immutablePreflightSha256']==hashlib.sha256(immutable.read_bytes()).hexdigest()
+  assert proof['createdAfterImmutablePreflightAtEpochMs']>=proof['immutablePreflightFinishedAtEpochMs']==1450
   saved=json.loads((root/'device-setup-commands.json').read_text())['commands']
   assert [row['timeoutSeconds'] for row in saved]==[120,30,30,120,300]
   assert saved[0]['leaderCompletedBeforePipeEOF'] and saved[0]['exitCode']==0
@@ -127,7 +138,7 @@ with tempfile.TemporaryDirectory() as directory:
   result=subprocess.run([sys.executable,str(starter),'--manifest',str(manifest),'--output',str(output),'--cleanup-device','22222222-2222-4222-8222-222222222222'],env=environment,capture_output=True,text=True,timeout=10)
   assert result.returncode!=0 and not calls.read_text()
   calls.write_text('');failure=root/'failure.json'
-  result=subprocess.run([sys.executable,str(starter),'--manifest',str(manifest),'--output',str(failure)],env={**environment,'TEST_BOOT_FAILURE':'1'},capture_output=True,text=True,timeout=10)
+  result=subprocess.run([sys.executable,str(starter),'--manifest',str(manifest),'--immutable-preflight',str(immutable),'--output',str(failure)],env={**environment,'TEST_BOOT_FAILURE':'1'},capture_output=True,text=True,timeout=10)
   assert result.returncode!=0 and not failure.exists()
   saved=json.loads((root/'failure-commands.json').read_text())['commands']
   assert saved[4]['status']=='failed' and saved[4]['exitCode']==9

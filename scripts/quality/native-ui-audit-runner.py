@@ -207,7 +207,8 @@ def ios_setup_helper():
 
 
 def validate_device(platform, device, compatibility, binary=None, toolchain=None,
-                    prepared=None, source_commit=None):
+                    prepared=None, source_commit=None, source_tree=None,
+                    binary_manifest_sha=None, preflight=None, preflight_sha=None):
     def read(args):
         return subprocess.check_output(args, stderr=subprocess.PIPE, timeout=30).decode().strip()
     if platform == 'android':
@@ -218,20 +219,26 @@ def validate_device(platform, device, compatibility, binary=None, toolchain=None
         if read(['adb', '-s', device, 'shell', 'id', '-u']) != '0':
             raise ValueError('The isolated AOSP diagnostic-root image is required for private synthetic receipts')
     else:
-        if binary is None or not toolchain or prepared is None or source_commit is None:
+        if (binary is None or not toolchain or prepared is None or source_commit is None
+                or source_tree is None or binary_manifest_sha is None or preflight is None or preflight_sha is None):
             raise ValueError('Actual Simulator app, producer toolchain and source-bound setup receipt are required')
         helper = Path(__file__).with_name('native-ui-ios-compatibility.py')
         spec = importlib.util.spec_from_file_location('ios_compatibility', helper)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         manifest = {'nativeCompatibility': compatibility, 'toolchain': toolchain,
-                    'applicationSourceCommit': source_commit}
+                    'applicationSourceCommit': source_commit, 'applicationSourceTree': source_tree,
+                    'binarySha256': binary_digest(binary)}
         runtime = module.verify_prepared_booted_runtime(manifest, device, prepared)
-        bounded = ios_setup_helper()
-        immutable = module.verify_immutable_compatibility(
-            binary, manifest, lambda args: bounded.read_command(args, timeout=30))
+        spec = importlib.util.spec_from_file_location('immutable_preflight', Path(__file__).with_name('native-ui-ios-immutable-preflight.py'))
+        verifier = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(verifier)
+        immutable = verifier.verify_record(manifest, binary_manifest_sha, preflight, binary)
+        verifier.verify_before_creation(prepared, preflight, preflight_sha)
         return {**immutable, **runtime,
-                'scope': 'Actual host/toolchain/app bytes verified; exact runtime/type/availability verified before boot; exact owned UUID bootstatus completed. No postboot metadata read. Actual installation and app launch remain required.'}
+                'immutableCompatibilityVerifiedBeforeDeviceCreation': True,
+                'postbootImmutableProbesRepeated': False,
+                'scope': 'Actual host/toolchain/Mach-O/signature checked before creation, with exact source/manifest/app bytes revalidated. Runtime/type/availability verified before boot and exact owned UUID bootstatus completed. No immutable probes or global metadata queries repeated after boot. Actual installation and app launch remain required.'}
 
 
 def collect(platform, device, target):
@@ -317,6 +324,7 @@ def main():
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--binary-manifest', type=Path, required=True)
     parser.add_argument('--device-setup', type=Path)
+    parser.add_argument('--immutable-preflight', type=Path)
     parser.add_argument('--expected-source', required=True)
     parser.add_argument('--expected-tree', required=True)
     parser.add_argument('--groups', default='all')
@@ -334,14 +342,24 @@ def main():
     if sha256_file(manifest_path) != binary_manifest['auditManifestSha256']:
         raise ValueError('Audit scenarios differ from the compiled binary')
     prepared = None
+    preflight = None
+    preflight_sha = None
     if args.platform == 'ios':
         if (args.device_setup is None or args.device_setup.is_symlink()
                 or not args.device_setup.is_file() or not 0 < args.device_setup.stat().st_size <= 65536):
             raise ValueError('The fresh bounded iOS device-setup receipt is required')
         prepared = json.loads(args.device_setup.read_text())
+        if args.immutable_preflight is None:
+            raise ValueError('The actual preboot immutable preflight receipt is required')
+        spec = importlib.util.spec_from_file_location('immutable_preflight', Path(__file__).with_name('native-ui-ios-immutable-preflight.py'))
+        verifier = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(verifier)
+        preflight, preflight_sha = verifier.read_receipt(args.immutable_preflight, binary_manifest,
+            sha256_file(args.binary_manifest), args.binary)
     device_proof = validate_device(args.platform, args.device, binary_manifest['nativeCompatibility'],
                     binary=args.binary, toolchain=binary_manifest['toolchain'],
-                    prepared=prepared, source_commit=args.expected_source)
+                    prepared=prepared, source_commit=args.expected_source, source_tree=args.expected_tree,
+                    binary_manifest_sha=sha256_file(args.binary_manifest), preflight=preflight, preflight_sha=preflight_sha)
     selected = set(manifest['groups']) if args.groups == 'all' else set(args.groups.split(','))
     if not selected or not selected <= set(manifest['groups']):
         raise ValueError('Unknown or empty feature group selection')
@@ -352,6 +370,7 @@ def main():
     if args.platform == 'ios':
         (args.output / 'device-setup.json').write_text(json.dumps(prepared, indent=2) + '\n')
         (args.output / 'device-compatibility.json').write_text(json.dumps(device_proof, indent=2) + '\n')
+        (args.output / 'immutable-preflight.json').write_text(json.dumps(preflight, indent=2) + '\n')
     install = ['adb', '-s', args.device, 'install', '-r', str(args.binary)] if args.platform == 'android' else ['xcrun', 'simctl', 'install', args.device, str(args.binary)]
     # Install the same bytes once per feature shard. Never build, rebundle, or sign.
     if args.platform == 'ios':

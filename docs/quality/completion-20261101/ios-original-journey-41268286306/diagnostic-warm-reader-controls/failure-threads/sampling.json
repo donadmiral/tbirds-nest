@@ -1,0 +1,36 @@
+{
+  "trigger": "reader-diagnostic-failed",
+  "changesVerdict": false,
+  "samples": [
+    {
+      "role": "app",
+      "pid": 11581,
+      "uid": 501,
+      "startSeconds": 1793503806,
+      "startMicroseconds": 840239,
+      "executableName": "PlatinumQA",
+      "identityStable": true,
+      "durationSeconds": 3,
+      "intervalMilliseconds": 10,
+      "wallBudgetSeconds": 8,
+      "exitCode": null,
+      "issue": "TimeoutExpired",
+      "complete": false
+    },
+    {
+      "role": "driver",
+      "complete": false,
+      "issue": "ExpectedOneOwnedProcess",
+      "matches": 0
+    }
+  ],
+  "attempted": true,
+  "startedAtEpochMs": 1793503944859,
+  "processInventory": "public-libproc-in-process",
+  "readsProcessArguments": false,
+  "readsProcessEnvironment": false,
+  "startsSimulatorMetadataClients": false,
+  "readsBundleInfoPlist": true,
+  "samplePairBudget": 1,
+  "finishedAtEpochMs": 1793503953106
+}

@@ -1,0 +1,1578 @@
+{
+  "formatVersion": 1,
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "sourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "workflowRun": 41266020074,
+  "validatorSha256": "78f277998834d10dc93a2aaaa7d3e3df65fbd84b6997d3012d3018a8a6c0856a",
+  "expected": 85,
+  "reported": 85,
+  "verifiedPassed": 85,
+  "verifiedFailed": 0,
+  "artifactNotYetRetained": 0,
+  "passedCases": [
+    "auth-business-entry",
+    "auth-empty-signin",
+    "auth-forgot-password",
+    "auth-signup-entry",
+    "business-businessaccess",
+    "business-businessapply",
+    "business-businesses",
+    "business-createbusiness",
+    "directories-channels",
+    "feed-article-draft",
+    "feed-articlecompose",
+    "feed-notifications",
+    "feed-post",
+    "feed-search",
+    "feed-search-controls",
+    "feed-trendfeed",
+    "jobs-application-entry",
+    "jobs-jobdetail",
+    "jobs-jobsinbox",
+    "jobs-myapplications",
+    "jobs-savedjobs",
+    "market-createlisting",
+    "market-listingdetail",
+    "market-marketinbox",
+    "market-offer-cancel",
+    "memory-capture-session",
+    "memory-cover-settings",
+    "memory-film-export-entry",
+    "memory-memoryalbum",
+    "memory-reader-controls",
+    "messages-calllog",
+    "messages-chat",
+    "messages-creategroup",
+    "messages-findpeople",
+    "messages-messagerequests",
+    "messages-recipient-search",
+    "messages-savedmessages",
+    "messages-starredmessages",
+    "navigation-conversations",
+    "navigation-feedmain",
+    "navigation-jobsmain",
+    "navigation-marketmain",
+    "navigation-profilemain",
+    "navigation-warm-tabs",
+    "notifications-empty-controls",
+    "profile-editprofile",
+    "profile-followlist",
+    "profile-mynetwork",
+    "profile-userprofile",
+    "settings-accountstanding",
+    "settings-appearance",
+    "settings-applyverification",
+    "settings-archive",
+    "settings-blockedaccounts",
+    "settings-changeusername",
+    "settings-followrequests",
+    "settings-helpsupport",
+    "settings-hidden-word-write",
+    "settings-hiddenwords",
+    "settings-loginactivity",
+    "settings-monetization",
+    "settings-muted-word-write",
+    "settings-mutedstories",
+    "settings-mutedwords",
+    "settings-privacypolicy",
+    "settings-restrictedaccounts",
+    "settings-savedposts",
+    "settings-settings",
+    "settings-terms",
+    "settings-twofactor",
+    "settings-youractivity",
+    "stories-storycomposer",
+    "stories-storycreationmenu",
+    "stories-storylayout",
+    "stories-storyviewer",
+    "support-contactsupport",
+    "support-fresh-ticket-body",
+    "support-history-error",
+    "support-list-error",
+    "support-missing-ticket",
+    "support-original-body",
+    "support-reopen-error",
+    "support-reply-error",
+    "support-ticket",
+    "support-ticket-read-error"
+  ],
+  "failedCases": [],
+  "casesWithoutRetainedArtifact": [],
+  "all85Passed": true,
+  "issues": [],
+  "groups": [
+    {
+      "name": "social",
+      "reported": 31,
+      "verifiedPassed": 31,
+      "cases": [
+        {
+          "id": "navigation-feedmain",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 48,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "navigation-marketmain",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 23,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "navigation-jobsmain",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 24,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "navigation-conversations",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 23,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "navigation-profilemain",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 28,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "feed-search",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "feed-notifications",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "feed-articlecompose",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 11,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "feed-post",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 26,
+            "auditRequestCount": 4,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "feed-trendfeed",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 12,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "market-listingdetail",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 28,
+            "auditRequestCount": 3,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "market-createlisting",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "market-marketinbox",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "jobs-jobdetail",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 16,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "jobs-savedjobs",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 12,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "jobs-myapplications",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 12,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "jobs-jobsinbox",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "messages-findpeople",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "messages-creategroup",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "messages-messagerequests",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "messages-savedmessages",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "messages-starredmessages",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "messages-calllog",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "messages-chat",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 24,
+            "auditRequestCount": 2,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "navigation-warm-tabs",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 174,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "feed-search-controls",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 28,
+            "auditRequestCount": 5,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "notifications-empty-controls",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "market-offer-cancel",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 30,
+            "auditRequestCount": 3,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "jobs-application-entry",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 18,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "messages-recipient-search",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 21,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "feed-article-draft",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 16,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        }
+      ]
+    },
+    {
+      "name": "account",
+      "reported": 27,
+      "verifiedPassed": 27,
+      "cases": [
+        {
+          "id": "profile-editprofile",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "profile-userprofile",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 17,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "profile-followlist",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 12,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "profile-mynetwork",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 26,
+            "auditRequestCount": 3,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "support-contactsupport",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "support-ticket",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 2,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "business-businessapply",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 22,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "business-businessaccess",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "business-createbusiness",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "business-businesses",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 22,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "memory-memoryalbum",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 15,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "support-original-body",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 2,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "support-missing-ticket",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 2,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "support-ticket-read-error",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 5,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "support-history-error",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 5,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "support-list-error",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 4,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "support-fresh-ticket-body",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 24,
+            "auditRequestCount": 5,
+            "auditMutationCount": 1
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "support-reopen-error",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 21,
+            "auditRequestCount": 3,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "support-reply-error",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 22,
+            "auditRequestCount": 3,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "memory-reader-controls",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 17,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "memory-cover-settings",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 28,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0,
+            "memorySave": {
+              "passed": true,
+              "saveRequestCount": 1,
+              "committedSaveCount": 1,
+              "savedRevision": 1,
+              "readbacksAfterSave": 1
+            }
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "memory-film-export-entry",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "memory-capture-session",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 60,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 2,
+          "attempts": 1
+        },
+        {
+          "id": "auth-empty-signin",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 1,
+            "signedIn": false
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "auth-forgot-password",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 2,
+            "signedIn": false
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "auth-signup-entry",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 3,
+            "signedIn": false
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "auth-business-entry",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 3,
+            "signedIn": false
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        }
+      ]
+    },
+    {
+      "name": "settings",
+      "reported": 27,
+      "verifiedPassed": 27,
+      "cases": [
+        {
+          "id": "settings-settings",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 22,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-hiddenwords",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-mutedwords",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-archive",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-youractivity",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-loginactivity",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-blockedaccounts",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-restrictedaccounts",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-savedposts",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-mutedstories",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 21,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-followrequests",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-terms",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-privacypolicy",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-helpsupport",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-changeusername",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 19,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-accountstanding",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-applyverification",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 21,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-twofactor",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 20,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-monetization",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 21,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "stories-storycreationmenu",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 11,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "stories-storycomposer",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 14,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "stories-storylayout",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 11,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "stories-storyviewer",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 18,
+            "auditRequestCount": 1,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "directories-channels",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 12,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-hidden-word-write",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 23,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-muted-word-write",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 23,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        },
+        {
+          "id": "settings-appearance",
+          "accepted": true,
+          "junit": {
+            "passed": true,
+            "executedCases": 1
+          },
+          "fixture": {
+            "passed": true,
+            "requestCount": 24,
+            "auditRequestCount": 0,
+            "auditMutationCount": 0
+          },
+          "uiCaptures": 1,
+          "attempts": 1
+        }
+      ]
+    }
+  ],
+  "optionalTimingNotAvailable": [
+    "auth-business-entry",
+    "auth-empty-signin",
+    "auth-forgot-password",
+    "auth-signup-entry",
+    "business-businessaccess",
+    "business-businessapply",
+    "business-businesses",
+    "business-createbusiness",
+    "directories-channels",
+    "feed-article-draft",
+    "feed-articlecompose",
+    "feed-notifications",
+    "feed-post",
+    "feed-search",
+    "feed-search-controls",
+    "feed-trendfeed",
+    "jobs-application-entry",
+    "jobs-jobdetail",
+    "jobs-jobsinbox",
+    "jobs-myapplications",
+    "jobs-savedjobs",
+    "market-createlisting",
+    "market-listingdetail",
+    "market-marketinbox",
+    "market-offer-cancel",
+    "memory-capture-session",
+    "memory-cover-settings",
+    "memory-film-export-entry",
+    "memory-memoryalbum",
+    "memory-reader-controls",
+    "messages-calllog",
+    "messages-chat",
+    "messages-creategroup",
+    "messages-findpeople",
+    "messages-messagerequests",
+    "messages-recipient-search",
+    "messages-savedmessages",
+    "messages-starredmessages",
+    "navigation-feedmain",
+    "navigation-jobsmain",
+    "navigation-marketmain",
+    "navigation-profilemain",
+    "notifications-empty-controls",
+    "profile-editprofile",
+    "profile-followlist",
+    "profile-mynetwork",
+    "profile-userprofile",
+    "settings-accountstanding",
+    "settings-appearance",
+    "settings-applyverification",
+    "settings-archive",
+    "settings-blockedaccounts",
+    "settings-changeusername",
+    "settings-followrequests",
+    "settings-helpsupport",
+    "settings-hidden-word-write",
+    "settings-hiddenwords",
+    "settings-loginactivity",
+    "settings-monetization",
+    "settings-muted-word-write",
+    "settings-mutedstories",
+    "settings-mutedwords",
+    "settings-privacypolicy",
+    "settings-restrictedaccounts",
+    "settings-savedposts",
+    "settings-settings",
+    "settings-terms",
+    "settings-twofactor",
+    "settings-youractivity",
+    "stories-storycomposer",
+    "stories-storycreationmenu",
+    "stories-storylayout",
+    "stories-storyviewer",
+    "support-contactsupport",
+    "support-fresh-ticket-body",
+    "support-history-error",
+    "support-list-error",
+    "support-missing-ticket",
+    "support-original-body",
+    "support-reopen-error",
+    "support-reply-error",
+    "support-ticket",
+    "support-ticket-read-error"
+  ],
+  "timingBoundary": "An adb missing-file diagnostic is retained evidence of unavailable optional timing, never a latency sample. Warm-tabs performance has its own actual JSON analysis.",
+  "allControlsAccepted": false,
+  "hostedBackendAcceptance": false,
+  "physicalDeviceAcceptance": false
+}

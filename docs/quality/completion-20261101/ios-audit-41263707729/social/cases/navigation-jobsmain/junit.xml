@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum completion 4e8b8bd5b4a34fb896070d69f98fcbec - iOS 18.5 - 906782C6-6E69-4600-85A7-B91F42B6D579" tests="1" failures="0" time="55.402" timestamp="2026-11-01T02:20:41">
+    <testcase id="Audit JobsMain" name="Audit JobsMain" classname="Audit JobsMain" file="tests/native/audit/flows/navigation-jobsmain.yaml" time="55.358" timestamp="2026-11-01T02:20:41" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

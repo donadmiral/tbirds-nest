@@ -1,0 +1,101 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "state": "prepared only; root owns the next normal supported apply",
+  "tool": "supabase_apply_migration",
+  "source": {
+    "number": 7,
+    "name": "private_revocation",
+    "path": "supabase/ops/qa/business-auth-staged-20261031/07_private_revocation.sql",
+    "bytes": 8926,
+    "sha256": "a9869a35210cf5706eb2473781b9ec6d80c2704626e41d346081a17517f2f982",
+    "requiresDestructiveConfirmation": true,
+    "originalStatementIndices": [
+      32,
+      33,
+      35,
+      37,
+      39
+    ],
+    "expectedBeforeFingerprint": "1eb5ad671173842667ced9e052f232bd",
+    "expectedAfterFingerprint": "070a20dc374c50741b19573e21822048",
+    "publicActivation": false
+  },
+  "requestPath": "docs/quality/completion-20261101/backend/business-stage7-next-apply-request.json",
+  "preflightPath": "docs/quality/completion-20261101/backend/business-stage7-recovery-preflight.sql",
+  "preflightRequired": {
+    "allGatesPassed": true
+  },
+  "postflightPath": "docs/quality/completion-20261101/backend/business-private-stage-observation.sql",
+  "postflightRequired": {
+    "fingerprint": "070a20dc374c50741b19573e21822048",
+    "marker": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-7",
+    "catalog_rows": 107,
+    "private_tables_empty": true,
+    "private_table_access": 0,
+    "private_function_access": 0,
+    "private_schema_access": 0,
+    "business_auth_sessions": 0,
+    "unfenced_authenticated_tables": 0,
+    "public_activation_functions": 0,
+    "public_activation_triggers": 0,
+    "public_activation_policies": 0,
+    "public_activation_hooks": 0
+  },
+  "journalRequired": {
+    "name": "qa_business_auth_07_private_revocation_20261101",
+    "statementCount": 1,
+    "queryBytes": 8926,
+    "querySha256": "a9869a35210cf5706eb2473781b9ec6d80c2704626e41d346081a17517f2f982",
+    "exactlyOneStage7JournalEntry": true
+  },
+  "newFunctions": [
+    {
+      "schema": "business_auth",
+      "name": "triniti_business_cancel_signin",
+      "bodyMd5": "e7f8b282e1e3d94faecf98cebefa3d1e"
+    },
+    {
+      "schema": "business_auth",
+      "name": "revoke_member_sessions",
+      "bodyMd5": "017b9448aca806a7973b79521dd150bf"
+    },
+    {
+      "schema": "business_auth",
+      "name": "revoke_device_sessions",
+      "bodyMd5": "12e7b92302eef7886099d5fbb3fc6311"
+    },
+    {
+      "schema": "business_auth",
+      "name": "revoke_owner_sessions",
+      "bodyMd5": "4117ccabb2a37e7c54deb47576af9c91"
+    },
+    {
+      "schema": "business_auth",
+      "name": "cleanup_session",
+      "bodyMd5": "066eebf7fa96508c8b0baeed637c51ea"
+    }
+  ],
+  "requiresDestructiveConfirmation": true,
+  "priorRequest": "business-stage7-supported-attempt.json",
+  "priorRequestOutcome": "unknown; local interruption is not remote cancellation",
+  "concurrencyReview": "business-stage7-concurrency-review.md",
+  "noRetryExecutedByThisPreparation": true,
+  "files": [
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage7-next-apply-request.json",
+      "bytes": 9140,
+      "sha256": "d42eff3c68405b1a86e5548ddd162456eb29e7d0861e2f7e882aef7f91500faf"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage7-recovery-preflight.sql",
+      "bytes": 10500,
+      "sha256": "fdc4c73a0415ec0f50fdf203de274afd3ca001898afa7c1c83b0ab4a1a9686da"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-private-stage-observation.sql",
+      "bytes": 8963,
+      "sha256": "9909f32fc2b0f41c678ec6f9217567aae883ae12ce22f81b174223e635a559c0"
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "investigation": "Existing supported routes for confirmed disposable QA Auth identities",
+  "toolInventory": {
+    "supabaseAuthAdminUserCrudExposed": false,
+    "publishableKeyToolOnly": true,
+    "noSecretRetrievalAttempted": true
+  },
+  "configuredAdminServer": {
+    "projectId": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+    "branch": "codex/completion-20261101",
+    "decryptRequested": false,
+    "variables": [
+      {
+        "key": "SUPABASE_SERVICE_ROLE_KEY",
+        "type": "sensitive",
+        "visibility": "secret",
+        "target": [
+          "preview"
+        ],
+        "gitBranch": "codex/completion-20261101",
+        "decrypted": false
+      },
+      {
+        "key": "NEXT_PUBLIC_SUPABASE_URL",
+        "type": "encrypted",
+        "visibility": "config",
+        "target": [
+          "preview"
+        ],
+        "gitBranch": "codex/completion-20261101",
+        "decrypted": false
+      },
+      {
+        "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "type": "encrypted",
+        "visibility": "config",
+        "target": [
+          "preview"
+        ],
+        "gitBranch": "codex/completion-20261101",
+        "decrypted": false
+      }
+    ],
+    "serviceCredentialPresent": true,
+    "credentialValueRead": false
+  },
+  "existingAppInterfaces": [
+    {
+      "path": "admin-web/lib/adminProvision.ts",
+      "ordinaryDisposableUserSupported": false,
+      "kindWhitelist": [
+        "staff",
+        "business"
+      ],
+      "authentication": "Existing requirePermission('staff_manage'/'business_manage'), verified staff session and reserved provisioning job.",
+      "creation": "Server-only Auth Admin createUser with email_confirm:true and reserved identity; no invitation email is used.",
+      "limit": "Staff and managed-business records enter retention review and cannot substitute for ordinary-account erasure."
+    },
+    {
+      "path": "supabase/functions/create-business/index.ts",
+      "ordinaryDisposableUserSupported": false,
+      "creation": "Verified caller can create an owned business shadow identity through the existing service-side Admin API, with email_confirm:true.",
+      "limit": "Creates a managed business identity, not an ordinary disposable member."
+    }
+  ],
+  "ci": {
+    "existingCheckedPaths": [
+      ".github/workflows",
+      "scripts/quality",
+      "supabase/functions",
+      "admin-web/lib",
+      "admin-web/app/api"
+    ],
+    "currentAuditTransport": "Synthetic no-provider keys and source-bound fixture transport.",
+    "configuredOrdinaryAuthAdminAcceptanceHarnessFound": false
+  },
+  "officialDocumentation": {
+    "url": "https://supabase.com/docs/reference/javascript/auth-admin-createuser",
+    "verifiedUsing": "supabase_search_docs",
+    "contract": "createUser is a server-only Auth Admin operation; email_confirm:true confirms the newly created identity without disabling project-wide confirmation. A server credential must remain server-side."
+  },
+  "officialDashboard": {
+    "tabId": "8",
+    "attemptedPage": "https://supabase.com/dashboard/project/uaulhuelcfkjwojtymmw/auth/users",
+    "observedUrl": "https://supabase.com/dashboard/sign-in?returnTo=%2Fproject%2Fuaulhuelcfkjwojtymmw%2Fauth%2Fusers",
+    "observedState": "Normal sign-in page, not a bot block or missing project.",
+    "visibleMethods": [
+      "GitHub",
+      "ChatGPT",
+      "SSO",
+      "email/password"
+    ],
+    "signedIn": false,
+    "credentialPromptOpened": false,
+    "reasonNoPromptYet": "Coordinator is managing existing migration/Expo confirmation windows; the browserAuth flow requires the user's method choice and secure entry."
+  },
+  "conclusion": "An existing server-side admin credential is configured, so public-client keys alone do not prove account creation impossible. The reviewed app interfaces do not expose ordinary disposable-user creation, and current CI has no such configured acceptance harness. The official Auth dashboard is a supported remaining route after ordinary sign-in; no privileged endpoint or credential export was introduced.",
+  "noAccountCreated": true,
+  "noOutboundEmailSent": true,
+  "noAuthTableWrite": true,
+  "noConfirmationSettingChanged": true,
+  "noNewPrivilegedBridge": true,
+  "priorEvidence": "auth-disposable-account-preflight.json"
+}

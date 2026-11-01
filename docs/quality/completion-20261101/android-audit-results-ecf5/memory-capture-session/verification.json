@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "sourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "runId": 41266020074,
+  "jobId": 124732409245,
+  "artifactId": 13068127496,
+  "artifactSha256": "42a0523298f9ded212978e78718f177208b2eb162f91ab0cdb29f63c91da283b",
+  "caseId": "memory-capture-session",
+  "caseAttempts": 1,
+  "caseDurationSeconds": 70.267,
+  "originalTimeoutSeconds": 300,
+  "driverStartupBudgetSeconds": 0,
+  "junit": {
+    "passed": true,
+    "executedCases": 1
+  },
+  "fixture": {
+    "passed": true,
+    "requestCount": 60,
+    "auditRequestCount": 0,
+    "auditMutationCount": 0
+  },
+  "originalMediaVerifierExitCode": 0,
+  "independentMediaVerifierExitCode": 0,
+  "verifierSha256": "cd4f3f859a6293ca0aa8c0694924c14b24d03a3daaf94dc088ff14ceb2d82773",
+  "originalReceiptSha256": "b3e19864976ed572d3c32cfb18e363276517d7ab0569eb72c9046f32d462c105",
+  "originalDecodedSha256": "d53071c7d476e76fe68da6b9f51a825d66d8f7f582d81bd654b7c4b26f6bb8a7",
+  "localDecodedSha256": "d53071c7d476e76fe68da6b9f51a825d66d8f7f582d81bd654b7c4b26f6bb8a7",
+  "movie": {
+    "name": "attempt-2-movie.mp4",
+    "bytes": 3098858,
+    "sha256": "b8f2357920fbc517c376dd219e611ac5aeff06c8107d7eeb8feb3799abdcb394",
+    "durationSeconds": 11.7,
+    "decodedFrames": 351,
+    "decodedWidth": 720,
+    "decodedHeight": 1280
+  },
+  "captureCount": 12,
+  "sceneCount": 5,
+  "cancelledOpenedReaderClosed": true,
+  "temporaryFilesRemovedAfterBothAttempts": true,
+  "currentQaCapabilityMode": "qa-capability-overlay",
+  "capabilityPromotionAppliedByThisAgent": false,
+  "providerAcceptance": false,
+  "physicalDevice": false,
+  "photosLibraryWrite": false,
+  "evidence": "Actual current-run retained movie and captures decoded again by the exact unchanged source verifier; original evidence was preserved before independent rechecking."
+}

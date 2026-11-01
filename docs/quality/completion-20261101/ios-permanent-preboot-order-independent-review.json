@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T03:26:25.718960+00:00",
+  "kind": "independent-canonical-ios-immutable-preboot-order-review",
+  "reviewedFiles": {
+    "scripts/quality/native-ui-ios-immutable-preflight.py": "62ddda613a80b63c5f60958c3b32ebe49edc4babc26e24fb4d6e072d4615423d",
+    "scripts/quality/native-ui-start-ios-device.py": "90d865e5639b4be806c1c7e74c2b98c84b9fd118cde067fd56cee6384ba82d52",
+    "scripts/quality/native-ui-audit-runner.py": "34420d457ac37be7073f675c8e61964b5cdee12fde91a20726d6f020338c2d58",
+    "scripts/quality/run-native-ui-audit-device.sh": "e594bc7d26370229bf282db2641c565052da8d3e22a47586e5a9a46951209f0c",
+    "scripts/quality/prepare-native-ui-audit.cjs": "7b94d191f29007ec62304a325dae17bf240ec06331e590da74ea356d72fb8c43",
+    "tests/quality/native-ios-immutable-preflight.cjs": "d9e2bc65b750dd1ac1cb35e326434778672e3182cd4f5bba73bd38c1b704c46f",
+    "tests/quality/native-ios-audit-compatibility.cjs": "bb9cbee9ef0ec17d8e32f81d0fc608bf2f37eab301905e22a7ecf76821e1d09a",
+    "tests/quality/native-completion-runner.cjs": "852170eff5483801a23360089c8634d1ad17dce5e254721ebdd1497190e50bc3",
+    "tests/quality/native-platform-audit-pack.cjs": "aae573e175d997acdfe344f3666ef29b1badc1de88a0f16533239f88c8ca8a56"
+  },
+  "actualFiveImmutableProbesPreserved": true,
+  "allImmutableProbeCommandWaitSeconds": 30,
+  "sourceTreeManifestBinaryPathAndDeveloperSelectionBound": true,
+  "appBytesRehashedAfterBoot": true,
+  "preflightCompletedBeforeOwnedCreationRequired": true,
+  "postbootHostSdkMachOSignatureProbesRepeated": false,
+  "prebootRuntimeTypeAvailabilityAndExactOwnedBootstatusRequired": true,
+  "actualInstallCommandWaitSeconds": 120,
+  "originalPerCaseTimeoutsAndUiAssertionsChanged": false,
+  "sourceReceiptAuditInputsRequiredAfterPublication": 10,
+  "existingProducerReceiptsRewritten": false,
+  "publishedByThisReview": false,
+  "runtimePassedByThisReview": false,
+  "independentFocusedTestReceipt": "ios-permanent-preboot-order-independent.tap",
+  "independentFocusedTestReceiptSha256": "6915e56cd2e60012490b72779705414179b78264555696056b7b60780061f3f8",
+  "materialBlockers": [],
+  "scope": "Reviewed the nine canonical source/test changes and independently exercised the actual preflight entry and postboot reader boundaries. The original actual host/toolchain/Mach-O/signature checks now execute before device creation; the exact successful receipt, source/binary identities and ordering are revalidated before actual installation. This does not change an app deadline or credit unexecuted device cases."
+}

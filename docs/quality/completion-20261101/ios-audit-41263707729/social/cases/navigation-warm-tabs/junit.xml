@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum completion 4e8b8bd5b4a34fb896070d69f98fcbec - iOS 18.5 - 906782C6-6E69-4600-85A7-B91F42B6D579" tests="1" failures="0" time="163.776" timestamp="2026-11-01T02:56:26">
+    <testcase id="Audit repeated main tab controls" name="Audit repeated main tab controls" classname="Audit repeated main tab controls" file="tests/native/audit/flows/navigation-warm-tabs.yaml" time="163.722" timestamp="2026-11-01T02:56:26" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum completion 4e8b8bd5b4a34fb896070d69f98fcbec - iOS 18.5 - 906782C6-6E69-4600-85A7-B91F42B6D579" tests="1" failures="0" time="70.031" timestamp="2026-11-01T02:44:11">
+    <testcase id="Audit FindPeople" name="Audit FindPeople" classname="Audit FindPeople" file="tests/native/audit/flows/messages-findpeople.yaml" time="69.975" timestamp="2026-11-01T02:44:12" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

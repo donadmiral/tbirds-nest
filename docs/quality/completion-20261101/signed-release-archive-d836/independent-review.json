@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-01T04:04:52.497063+00:00",
+  "result": "passed-with-explicit-archive-only-scope",
+  "sourceCommit": "d836f88d4e71cb3774dff24341eeb81b9e496ab4",
+  "sourceTree": "b203bae96adfa82ba6c43f639176a3a3fbfb88ce",
+  "independentChecks": {
+    "archiveFilesRehashed": 963,
+    "payloadBytes": 12519093,
+    "everyFileSha256MatchedManifest": true,
+    "everyGitBlobSha1MatchedImmutableSourceTree": true,
+    "extraWorktreeFiles": 0,
+    "symlinks": 0,
+    "executableModeMismatches": 0,
+    "archiveGitHeadMatched": true,
+    "sourceCheckoutStillClean": true,
+    "normalEntry": "index.js",
+    "iosMemoryMovieVersion": 0,
+    "androidMemoryMovieVersion": 0,
+    "bothInstalledEasImplementationFileHashesMatched": true,
+    "qaSourceFileCount": 116
+  },
+  "implementationReview": "The exact installed official EAS 27.2.0 archive branch calls ensureRepoExistsAsync, makeShallowCopyAsync and copyToOutputDirAsync. runBuildAndSubmitAsync is confined to the other stage branch. Context requests no server-side build environment. The archive-only result does not establish remote build creation, signed compilation, environment availability or deployment.",
+  "configReview": "The separate resolved production configuration names the normal application, production bundle identifier, project and backend. The receipt expressly keeps server-side environment resolution untested. No credentials were copied or printed by this independent review.",
+  "retainedReceiptHashes": {
+    "verification.json": "8f99b99274b4b657b7c1bf5830cf86f85e91f1dc05bc7c7513863b41d959d3b3",
+    "source-files.json": "19b1d5640dcea59b9b52ef4606a50ed716080ba94119d20ea2bc8d179d83700f",
+    "resolved-config.json": "917cd82f35a930f8da769974ba5ee97492fabf05c4312f66e766857acffac603",
+    "inspect-output.txt": "3a11826b1ebdb842774d5034e701cc2e26633a7cb51d789f64ff37033ec16c45"
+  },
+  "boundaries": {
+    "remoteMutationPerformedByReview": false,
+    "signedArtifactProduced": false,
+    "nativeCompilePerformed": false,
+    "serverSideEnvironmentResolved": false,
+    "finalPostPromotionArchiveAccepted": false,
+    "physicalInstallationAccepted": false
+  },
+  "finding": "No provenance or overclaim blocker. This is a verified clean production-source preparation checkpoint at d836 with capability 0. A final changed source must receive a fresh source binding before a signed build.",
+  "qaSourceScope": "The source archive also contains 116 tracked QA source/fixture files. This is a source copy, and the selected entry remains the normal index.js; their presence is not evidence that the QA entry was bundled or executed. Normal production Metro exports are verified separately."
+}

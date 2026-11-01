@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum completion 4caa7ff822c04160ab84b12ee7f5bf9b - iOS 18.5 - 3BB92A3D-A216-4B5D-9FF0-DB0190DB8203" tests="1" failures="1" time="117.152" timestamp="2026-11-01T03:30:01">
+    <testcase id="Diagnostic original tabs to saved memory reader controls" name="Diagnostic original tabs to saved memory reader controls" classname="Diagnostic original tabs to saved memory reader controls" file="tests/native/diagnostics/ios-warm-reader-controls.yaml" time="116.808" timestamp="2026-11-01T03:30:01" status="ERROR">
+      <failure>Assertion is false: "View listing: Travel journal" is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

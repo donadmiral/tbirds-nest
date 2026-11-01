@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-11-01T03:22:03.265352+00:00",
+  "kind": "current-source-native-capability-candidate-equivalence",
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "sourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "producerRun": 41266020074,
+  "producerSourceReceiptSha256": "cbb0f4d88e4acd1a9c1a055b5951114ca2e5f12d3472fd7af928863963f45736",
+  "platforms": {
+    "ios": {
+      "bridgePath": "modules/boomerang/ios/BoomerangModule.swift",
+      "sourceCapability": 0,
+      "candidateCapability": 1,
+      "sourceSha256": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+      "candidateWholeFileSha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+      "retainedPreparedWholeFileSha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+      "candidateEqualsActualPlatformPreparedBytes": true,
+      "candidateBytes": 16619,
+      "platformProducerVerification": "ios-audit-build-ecf5e5a/verification.json",
+      "platformProducerVerificationSha256": "291eb7e6973d2a560d301d18519238b3741224da6d7457a46b799c303164e970",
+      "originalSourceFileStillUnchanged": true
+    },
+    "android": {
+      "bridgePath": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "sourceCapability": 0,
+      "candidateCapability": 1,
+      "sourceSha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+      "candidateWholeFileSha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+      "retainedPreparedWholeFileSha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+      "candidateEqualsActualPlatformPreparedBytes": true,
+      "candidateBytes": 2990,
+      "platformProducerVerification": "android-audit-build-ecf5/verification.json",
+      "platformProducerVerificationSha256": "8c4094e6f9a807877476ec9691231ac7b89e909db9fb2bd7ed8a713323a03a24",
+      "originalSourceFileStillUnchanged": true
+    }
+  },
+  "currentSourceStandaloneEncoders": {
+    "android": {
+      "verificationPath": "native-encoders-ecf5e5a/android/verification.json",
+      "verificationSha256": "b2e2d38d2af5479a8f2791995166abe439349875be2e16db38137baa813e4d2c",
+      "passed": true
+    },
+    "ios-memory": {
+      "verificationPath": "native-encoders-ecf5e5a/ios-memory/verification.json",
+      "verificationSha256": "53d978667b866337e7f4369976ae8b4d04b939f09a87c0a64d68f436ae03e833",
+      "passed": true
+    },
+    "ios-story": {
+      "verificationPath": "native-encoders-ecf5e5a/ios-story/verification.json",
+      "verificationSha256": "937fbc76d77c12b4c788bfb88f7e874a1896dea3ad9b5b5883398267ebdd9764",
+      "passed": true
+    }
+  },
+  "productionFlagsChanged": false,
+  "promotionApplied": false,
+  "promotionAuthorizedByThisProof": false,
+  "installedIosCaptureAccepted": false,
+  "currentIosAccountFailureEvidence": "normal-ios-ecf-account-setup-failure/verification.json",
+  "currentIosAccountRecoveryBinding": "../../../scripts/quality/completion-ios-ecf-account.json",
+  "priorF5ArtifactsRelabeled": false,
+  "scope": "Both whole-file capability candidates equal separately retained platform-specific current-source compilation inputs. The current app and final dependency lock were compiled independently on each platform. This equivalence does not replace installed capture/export/decode acceptance, the normal signed release, hosted providers, or physical-device checks.",
+  "installedAndroidCaptureAccepted": true,
+  "installedAndroidCapture": {
+    "verificationPath": "android-audit-results-ecf5/memory-capture-session/verification.json",
+    "verificationSha256": "00f82f28e2a08562944dd13f7b9a806e365f0fae13965af15d59312f72fc894f",
+    "workflowRun": 41266020074,
+    "jobId": 124732409245,
+    "artifactId": 13068127496,
+    "movieSha256": "b8f2357920fbc517c376dd219e611ac5aeff06c8107d7eeb8feb3799abdcb394",
+    "originalAndIndependentDecodeEqual": true
+  },
+  "updatedAtUtc": "2026-11-01T03:35:39.697315+00:00"
+}

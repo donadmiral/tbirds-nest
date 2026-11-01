@@ -2,12 +2,12 @@
   "version": 1,
   "qaProjectRef": "uaulhuelcfkjwojtymmw",
   "productionProjectRef": "prlkikhckbifseosbukl",
-  "currentQaBusinessCatalogFingerprint": "2f92a9d038364736fa2413bb6d05a160",
+  "currentQaBusinessCatalogFingerprint": "1eb5ad671173842667ced9e052f232bd",
   "steps": [
     {
       "order": 1,
       "scope": "QA business authentication",
-      "operation": "Resolve the outstanding supported migration request outcome, recheck exact stage 3 fingerprint, then apply remaining unchanged reviewed stages in order with an exact postflight after each. Final activation stays atomic.",
+      "operation": "Root owns all subsequent apply_migration calls. After fresh exact stage6 and concurrency-safe stage7 preflight, use the unchanged stage7 normal-tool request and preserve its destructive confirmation. Verify the exact stage7 catalog/journal before unchanged atomic stage8. No child retry or alternate DDL.",
       "stages": [
         {
           "number": 4,
@@ -16,7 +16,10 @@
           "bytes": 7894,
           "sha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
           "expectedBeforeFingerprint": "2f92a9d038364736fa2413bb6d05a160",
-          "expectedAfterFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c"
+          "expectedAfterFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+          "executionState": "installed and verified",
+          "providerMigrationVersion": "20261101035706",
+          "evidence": "docs/quality/completion-20261101/backend/business-stage4-installed-postflight.json"
         },
         {
           "number": 5,
@@ -25,7 +28,10 @@
           "bytes": 9577,
           "sha256": "4846f94e377a2927759d25275d459a34c1a927de7385abcf69630565a3ba8416",
           "expectedBeforeFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
-          "expectedAfterFingerprint": "3718506a7cf16a513514502dbf370f89"
+          "expectedAfterFingerprint": "3718506a7cf16a513514502dbf370f89",
+          "executionState": "installed and verified",
+          "providerMigrationVersion": "20261101035813",
+          "evidence": "docs/quality/completion-20261101/backend/business-stage5-installed-postflight.json"
         },
         {
           "number": 6,
@@ -34,7 +40,10 @@
           "bytes": 10346,
           "sha256": "88b3d514f77c54afbff94201faded26bdee31976610c90606b666e63ad8f9213",
           "expectedBeforeFingerprint": "3718506a7cf16a513514502dbf370f89",
-          "expectedAfterFingerprint": "1eb5ad671173842667ced9e052f232bd"
+          "expectedAfterFingerprint": "1eb5ad671173842667ced9e052f232bd",
+          "executionState": "installed and verified",
+          "providerMigrationVersion": "20261101035859",
+          "evidence": "docs/quality/completion-20261101/backend/business-stage6-installed-postflight.json"
         },
         {
           "number": 7,
@@ -43,7 +52,8 @@
           "bytes": 8926,
           "sha256": "a9869a35210cf5706eb2473781b9ec6d80c2704626e41d346081a17517f2f982",
           "expectedBeforeFingerprint": "1eb5ad671173842667ced9e052f232bd",
-          "expectedAfterFingerprint": "070a20dc374c50741b19573e21822048"
+          "expectedAfterFingerprint": "070a20dc374c50741b19573e21822048",
+          "executionState": "one child request submitted; remote outcome unknown; root recovery package prepared"
         },
         {
           "number": 8,
@@ -52,11 +62,13 @@
           "bytes": 11986,
           "sha256": "c99f71a8a8c6e11e15d87da156832e15f209e39090f9b06c02874108ddd0c34f",
           "expectedBeforeFingerprint": "070a20dc374c50741b19573e21822048",
-          "expectedAfterFingerprint": "172a1c1313c6c68356021c15a82bf869"
+          "expectedAfterFingerprint": "172a1c1313c6c68356021c15a82bf869",
+          "executionState": "not submitted"
         }
       ],
-      "executionState": "Exact stage3 remains private. A new unchanged, guarded stage4 apply yielded cell g2:99 but returned no provider terminal result; the coordinator interrupted a subsequent local wait after953.9seconds. The cell is no longer available; no further apply or alternate DDL was submitted.",
-      "evidence": "docs/quality/completion-20261101/backend/business-stage4-resume.json"
+      "executionState": "Stages4,5,6 installed through the normal tool with source-identical journals and exact postflights. Stage7 child request g2:207 yielded, then its short wait blocked274.1seconds until coordinator interruption. Recovery poll found no cell; no provider terminal result was returned. Latest04:04:36 readback remains exact private stage6. Stage8 not submitted.",
+      "evidence": "docs/quality/completion-20261101/backend/business-stage7-supported-attempt.json",
+      "nextPreparedRequest": "docs/quality/completion-20261101/backend/business-stage7-next-apply-package.json"
     },
     {
       "order": 2,
@@ -145,7 +157,9 @@
         "restrictedPolicyCount": 10,
         "ownerAndAclPreserved": true
       },
-      "evidence": "docs/quality/completion-20261101/backend/readiness-supported-apply-attempt.json"
+      "evidence": "docs/quality/completion-20261101/backend/readiness-supported-apply-attempt.json",
+      "latestReadOnlyVerifiedAtUtc": "2026-11-01T03:51:53.283404+00:00",
+      "latestReadOnlyEvidence": "docs/quality/completion-20261101/backend/completion-read-only-backend-acceptance.json"
     },
     {
       "order": "independent",
@@ -159,7 +173,8 @@
       "reference": "supabase/ops/qa/notification-event-dispatch/README.md",
       "executionState": "submitted; provider outcome unknown",
       "evidence": "docs/quality/completion-20261101/backend/notification-event-supported-attempt.json",
-      "latestObservedAtUtc": "2026-11-01T03:12:37.554049+00:00"
+      "latestObservedAtUtc": "2026-11-01 03:52:03.060945+00",
+      "latestObservationEvidence": "docs/quality/completion-20261101/backend/completion-read-only-backend-acceptance.json"
     }
   ],
   "production": {
@@ -172,7 +187,7 @@
   "currentProviderBoundary": {
     "normalSupportedReadinessMigration": "Terminal success; provider journal20261101021335 and exact hosted postflight verified. The connector is not universally unavailable.",
     "businessStage4Resume": "Cellg2:99 returned no provider result. A subsequent local read-only exec blocked953.9seconds before coordinator interruption. Short poll then reported cellnotfound. Remote outcome remains unknown.",
-    "latestReadOnlyStage": "Exact stage3, support absent, music absent and notification candidate absent at03:12:37UTC; readiness repair remains journaled.",
+    "latestReadOnlyStage": "Exact private stage6 at04:04:36UTC, empty private tables, no public activation or stage7 journal, no other active/open or prepared transaction.",
     "priorRequestOutcomes": [
       {
         "scope": "earlier business stage4",
@@ -188,8 +203,38 @@
     "automaticReviewRejected": false,
     "earlierRequestsMislabelledCanceled": false,
     "alternateDdlRouteUsed": false,
-    "furtherStage4AttemptSubmittedAfterLatestUnknown": false,
-    "notificationDispatch": "One unchanged independent apply yielded g2:133, then a requested 1000ms wait blocked1636.6seconds before coordinator interruption. The one recovery poll reported cellnotfound. Postflight shows no candidate objects/journal/activity. Outcome remains unknown, with no exposed approval/rejection/request ID."
+    "notificationDispatch": "One unchanged independent apply yielded g2:133, then a requested 1000ms wait blocked1636.6seconds before coordinator interruption. The one recovery poll reported cellnotfound. Postflight shows no candidate objects/journal/activity. Outcome remains unknown, with no exposed approval/rejection/request ID.",
+    "rootStage4TerminalResult": {
+      "state": "expired provider confirmation",
+      "cell": "344",
+      "finishedAtUtc": "2026-11-01 03:36:58 UTC",
+      "message": "This confirmation expired after 2 minutes. Call `apply_migration` again to get a new confirmation.",
+      "postflightAtUtc": "2026-11-01T03:44:07.892289+00:00",
+      "observedStage": 3,
+      "targetFunctionPresent": false,
+      "journalPresent": false,
+      "recovery": "Coordinate one unchanged normal apply after fresh exact preflight to obtain the provider's new confirmation; earlier child requests remain unknown.",
+      "evidence": "docs/quality/completion-20261101/backend/business-stage4-root-terminal-postflight.json",
+      "preparedNextOperation": "docs/quality/completion-20261101/backend/business-stage4-next-apply-package.json"
+    },
+    "rootGuardedRecoveryAttemptSubmitted": true,
+    "newConfirmationSubmittedAfterRootExpiry": true,
+    "rootStage4AuthorizedResult": {
+      "state": "terminal success with exact installed postflight",
+      "cell": "356",
+      "providerMigrationVersion": "20261101035706",
+      "evidence": "docs/quality/completion-20261101/backend/business-stage4-installed-postflight.json",
+      "priorExpiredRootRequestRemainsHistorical": true
+    },
+    "privateStages5And6": "Both normal calls returned terminal success and exact source/catalog/ACL postflights passed.",
+    "stage7ChildRequest": {
+      "cell": "g2:207",
+      "state": "submitted; remote outcome unknown",
+      "waitSeconds": 274.1,
+      "recoveryPoll": "exec cell207 not found",
+      "newChildRetry": false,
+      "rootPreparedRecovery": "docs/quality/completion-20261101/backend/business-stage7-next-apply-package.json"
+    }
   },
   "notificationReadOnlyObservation": {
     "observedAt": "2026-11-01T01:40:33.45471+00:00",
@@ -204,5 +249,7 @@
     "longLivedCredentialDispatchActivated": false
   },
   "limits": "Local tests, worker heartbeat and private ACL checks do not claim actual disposable-user erasure, physical notification receipt or successful uninstalled service contracts.",
-  "latestStageObservationUtc": "2026-11-01 03:12:37 UTC"
+  "latestStageObservationUtc": "2026-11-01 04:04:36 UTC",
+  "latestReadOnlyAcceptance": "docs/quality/completion-20261101/backend/completion-read-only-backend-acceptance.json",
+  "authAdminRouteInvestigation": "docs/quality/completion-20261101/backend/auth-admin-route-investigation.json"
 }

@@ -1,0 +1,90 @@
+{
+  "kind": "source-bound-original-85-ios-setup-recovery",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "producerBinding": {
+    "schemaVersion": 1,
+    "ready": true,
+    "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+    "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+    "producerRunId": 41259529351,
+    "producerArtifactName": "native-audit-ios-binary",
+    "producerArtifactId": 13065158785,
+    "producerArtifactZipSha256": "00c9a0651dfe7d5d495c30ab5f5d09a0406b388b77b875e6041ee255b57ba7e8",
+    "producerArtifactZipBytes": 49157981,
+    "appArchiveSha256": "547488ec4e545c9eb5c1cde4ce906cd36e1bf546d566f1c1ca5764793468fafa",
+    "binaryManifestSha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+    "binarySha256": "c43aa346fabae4c656bc14602cb982bcbb7018ccfcfd4658d33a37742e40084c",
+    "sourceReceiptSha256": "cb4762c4caaa3aebff83cf6071cd9b18db3e5377fbcb1903c4017f5c2e1df302"
+  },
+  "consumerSourceCommit": "f60006c77575feead98a60bd216987f40c351252",
+  "consumerRunId": "41263707729",
+  "shard": "social",
+  "originalCaseCount": 85,
+  "selectedCaseIds": [
+    "navigation-feedmain",
+    "navigation-marketmain",
+    "navigation-jobsmain",
+    "navigation-conversations",
+    "navigation-profilemain",
+    "feed-search",
+    "feed-notifications",
+    "feed-articlecompose",
+    "feed-post",
+    "feed-trendfeed",
+    "market-listingdetail",
+    "market-createlisting",
+    "market-marketinbox",
+    "jobs-jobdetail",
+    "jobs-savedjobs",
+    "jobs-myapplications",
+    "jobs-jobsinbox",
+    "messages-findpeople",
+    "messages-creategroup",
+    "messages-messagerequests",
+    "messages-savedmessages",
+    "messages-starredmessages",
+    "messages-calllog",
+    "messages-chat",
+    "navigation-warm-tabs",
+    "feed-search-controls",
+    "notifications-empty-controls",
+    "market-offer-cancel",
+    "jobs-application-entry",
+    "messages-recipient-search",
+    "feed-article-draft"
+  ],
+  "originalRunnerSha256": "2eebacb4baca5b5231367c749fba465e13235c85a1d8dee4b5503eb72dbde3b4",
+  "originalCasesAndDeadlinesUnchanged": true,
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false,
+  "passed": false,
+  "immutableCompatibility": {
+    "hostArchitecture": "x86_64",
+    "actualExecutableArchitecture": "x86_64",
+    "xcode": "Xcode 16.4\nBuild version 16F6",
+    "sdkVersion": "18.5",
+    "codeSignatureVerified": true,
+    "guestUnameInvoked": false,
+    "scope": "Actual host, producer toolchain, Simulator bundle metadata, Mach-O and signature. Runtime/device checks remain required."
+  },
+  "bootedRuntime": {
+    "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+    "runtimeVersion": "18.5",
+    "selectedDevice": "906782C6-6E69-4600-85A7-B91F42B6D579",
+    "scope": "Live available runtime/version and the exact selected Booted device. App launch remains required."
+  },
+  "unchangedSourceAndBinaryAfterRun": true,
+  "cleanup": [
+    {
+      "operation": "shutdown",
+      "completed": true
+    },
+    {
+      "operation": "delete",
+      "completed": true
+    }
+  ]
+}

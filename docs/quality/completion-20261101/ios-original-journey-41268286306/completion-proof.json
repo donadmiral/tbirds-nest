@@ -1,0 +1,288 @@
+{
+  "kind": "source-bound-original-navigation-and-reader",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerRunId": 41259529351,
+  "producerBinding": {
+    "schemaVersion": 1,
+    "ready": true,
+    "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+    "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+    "producerRunId": 41259529351,
+    "producerArtifactName": "native-audit-ios-binary",
+    "producerArtifactId": 13065158785,
+    "producerArtifactZipSha256": "00c9a0651dfe7d5d495c30ab5f5d09a0406b388b77b875e6041ee255b57ba7e8",
+    "producerArtifactZipBytes": 49157981,
+    "appArchiveSha256": "547488ec4e545c9eb5c1cde4ce906cd36e1bf546d566f1c1ca5764793468fafa",
+    "binaryManifestSha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+    "binarySha256": "c43aa346fabae4c656bc14602cb982bcbb7018ccfcfd4658d33a37742e40084c",
+    "sourceReceiptSha256": "cb4762c4caaa3aebff83cf6071cd9b18db3e5377fbcb1903c4017f5c2e1df302"
+  },
+  "consumerSourceCommit": "dcf8b83fa133e49d1d2e818e66a6dca65c1eb877",
+  "consumerRunId": "41268286306",
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false,
+  "countedInBaseline85": false,
+  "passed": false,
+  "immutableCompatibility": {
+    "hostArchitecture": "x86_64",
+    "actualExecutableArchitecture": "x86_64",
+    "xcode": "Xcode 16.4\nBuild version 16F6",
+    "sdkVersion": "18.5",
+    "codeSignatureVerified": true,
+    "guestUnameInvoked": false,
+    "scope": "Actual host, producer toolchain, Simulator bundle metadata, Mach-O and signature. Runtime/device checks remain required."
+  },
+  "bootedRuntime": {
+    "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+    "runtimeVersion": "18.5",
+    "selectedDevice": "3BB92A3D-A216-4B5D-9FF0-DB0190DB8203",
+    "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+    "prebootRuntimeAvailabilityVerified": true,
+    "exactUuidBootstatusCompleted": true,
+    "postbootMetadataRead": false,
+    "postbootIdentityAndVersionReadFromDevice": false,
+    "globalInventoryRepeatedAfterBoot": false,
+    "guestArchitectureMeasured": false,
+    "proofMethod": "verified-preboot-identity-and-completed-exact-uuid-bootstatus",
+    "scope": "Exact runtime/version/type/availability verified before boot; boot and blocking bootstatus completed for that owned UUID. No postboot metadata read is claimed. Actual installation and app launch remain required."
+  },
+  "freshFirstSignIn": {
+    "schemaVersion": 1,
+    "kind": "fresh-owned-device-first-sign-in",
+    "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+    "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+    "binarySha256": "c43aa346fabae4c656bc14602cb982bcbb7018ccfcfd4658d33a37742e40084c",
+    "selectedDevice": "3BB92A3D-A216-4B5D-9FF0-DB0190DB8203",
+    "ownedDeviceName": "Platinum completion 4caa7ff822c04160ab84b12ee7f5bf9b",
+    "readiness": {
+      "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+      "runtimeVersion": "18.5",
+      "selectedDevice": "3BB92A3D-A216-4B5D-9FF0-DB0190DB8203",
+      "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+      "prebootRuntimeAvailabilityVerified": true,
+      "exactUuidBootstatusCompleted": true,
+      "postbootMetadataRead": false,
+      "postbootIdentityAndVersionReadFromDevice": false,
+      "globalInventoryRepeatedAfterBoot": false,
+      "guestArchitectureMeasured": false,
+      "proofMethod": "verified-preboot-identity-and-completed-exact-uuid-bootstatus",
+      "scope": "Exact runtime/version/type/availability verified before boot; boot and blocking bootstatus completed for that owned UUID. No postboot metadata read is claimed. Actual installation and app launch remain required."
+    },
+    "firstInstall": {
+      "stage": "install",
+      "timeoutSeconds": 120,
+      "startedAtEpochMs": 1793503563975,
+      "status": "completed",
+      "stdoutBytes": 0,
+      "stdoutTail": "",
+      "stdoutTruncated": false,
+      "stderrBytes": 0,
+      "stderrTail": "",
+      "stderrTruncated": false,
+      "exitCode": 0,
+      "elapsedSeconds": 65.731038609,
+      "leaderCompletedBeforePipeEOF": false,
+      "finishedAtEpochMs": 1793503641719
+    },
+    "fullInstallStageWallSeconds": 77.744,
+    "innerTimerIncludesPopen": false,
+    "inclusive120SecondWallTimeClaimed": false,
+    "originalFlow": "tests/native/diagnostics/ios-warm-reader-controls.yaml",
+    "originalFlowSha256": "044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f",
+    "executedFlowSha256": "8af040b4d208aee4d9b61fe3efc88a84130e6cfc4f879d80078cd72fec3ee585",
+    "originalSignIn": "tests/native/audit/flows/_signin.yaml",
+    "originalSignInSha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+    "executedSignInSha256": "4a1df30fbd182f65dcde48a85f284b68293409680bcf5271bbac55ec986a293f",
+    "changes": [
+      "First iOS launch clearState true to false",
+      "Resolve the original journey include to that disposable sign-in copy"
+    ],
+    "clearKeychainPreserved": true,
+    "permissionsAndSignInAssertionsPreserved": true,
+    "navigationAndReaderAssertionsPreserved": true,
+    "wholeCliWatchdogSeconds": 600,
+    "readerDeadlineMs": 15000,
+    "messagesFrameLimitMs": 1000,
+    "countedInBaseline85": false,
+    "used": true,
+    "scope": "This one first launch follows successful creation, preboot identity checks, exact-UUID bootstatus and the first app install. It omits only the duplicate iOS uninstall/reinstall. Between-case isolation and all UI assertions remain unchanged.",
+    "attemptedAtEpochMs": 1793503642957,
+    "sourceUnchangedAfterAttempt": true
+  },
+  "diagnostic": {
+    "id": "diagnostic-warm-reader-controls",
+    "kind": "original-navigation-reader-diagnostic-only",
+    "name": "Diagnostic original tabs to saved memory reader controls",
+    "countedInBaseline85": false,
+    "fixtureCaseId": "navigation-warm-tabs",
+    "flow": "tests/native/diagnostics/ios-warm-reader-controls.yaml",
+    "flowSha256": "8af040b4d208aee4d9b61fe3efc88a84130e6cfc4f879d80078cd72fec3ee585",
+    "signIn": {
+      "reference": "_fresh-owned-signin.yaml",
+      "baselinePath": "tests/native/audit/flows/_signin.yaml",
+      "originalSha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+      "sha256": "4a1df30fbd182f65dcde48a85f284b68293409680bcf5271bbac55ec986a293f",
+      "resolvedBeforeMaestro": true,
+      "freshOwnedFirstInstall": true,
+      "clearState": false,
+      "clearKeychain": true
+    },
+    "timeoutSeconds": 600,
+    "watchdogScope": "Entire Maestro CLI including driver startup, original sign-in and controls",
+    "readerRequirementMs": 15000,
+    "navigationCycles": 1,
+    "pageAssertionsUnchanged": true,
+    "attempts": 1,
+    "startedAtEpochMs": 1793503642954,
+    "exitCode": 1,
+    "failureCapture": {
+      "trigger": "reader-diagnostic-failed",
+      "changesVerdict": false,
+      "samples": [
+        {
+          "role": "app",
+          "pid": 11581,
+          "uid": 501,
+          "startSeconds": 1793503806,
+          "startMicroseconds": 840239,
+          "executableName": "PlatinumQA",
+          "identityStable": true,
+          "durationSeconds": 3,
+          "intervalMilliseconds": 10,
+          "wallBudgetSeconds": 8,
+          "exitCode": null,
+          "issue": "TimeoutExpired",
+          "complete": false
+        },
+        {
+          "role": "driver",
+          "complete": false,
+          "issue": "ExpectedOneOwnedProcess",
+          "matches": 0
+        }
+      ],
+      "attempted": true,
+      "startedAtEpochMs": 1793503944859,
+      "processInventory": "public-libproc-in-process",
+      "readsProcessArguments": false,
+      "readsProcessEnvironment": false,
+      "startsSimulatorMetadataClients": false,
+      "readsBundleInfoPlist": true,
+      "samplePairBudget": 1,
+      "finishedAtEpochMs": 1793503953106
+    },
+    "collection": [
+      {
+        "file": "native-ui-receipt.json",
+        "collected": true,
+        "bytes": 11214
+      },
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "collected": true,
+        "bytes": 76701
+      },
+      {
+        "file": "native-ui-navigation-timing.json",
+        "collected": true,
+        "bytes": 295
+      }
+    ],
+    "fixture": {
+      "passed": true,
+      "requestCount": 110,
+      "auditRequestCount": 0,
+      "auditMutationCount": 0
+    },
+    "junit": {
+      "passed": false,
+      "issue": "ValueError"
+    },
+    "passed": false,
+    "finishedAtEpochMs": 1793503958943,
+    "freshFirstSignIn": {
+      "schemaVersion": 1,
+      "kind": "fresh-owned-device-first-sign-in",
+      "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+      "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+      "binarySha256": "c43aa346fabae4c656bc14602cb982bcbb7018ccfcfd4658d33a37742e40084c",
+      "selectedDevice": "3BB92A3D-A216-4B5D-9FF0-DB0190DB8203",
+      "ownedDeviceName": "Platinum completion 4caa7ff822c04160ab84b12ee7f5bf9b",
+      "readiness": {
+        "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+        "runtimeVersion": "18.5",
+        "selectedDevice": "3BB92A3D-A216-4B5D-9FF0-DB0190DB8203",
+        "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-16",
+        "prebootRuntimeAvailabilityVerified": true,
+        "exactUuidBootstatusCompleted": true,
+        "postbootMetadataRead": false,
+        "postbootIdentityAndVersionReadFromDevice": false,
+        "globalInventoryRepeatedAfterBoot": false,
+        "guestArchitectureMeasured": false,
+        "proofMethod": "verified-preboot-identity-and-completed-exact-uuid-bootstatus",
+        "scope": "Exact runtime/version/type/availability verified before boot; boot and blocking bootstatus completed for that owned UUID. No postboot metadata read is claimed. Actual installation and app launch remain required."
+      },
+      "firstInstall": {
+        "stage": "install",
+        "timeoutSeconds": 120,
+        "startedAtEpochMs": 1793503563975,
+        "status": "completed",
+        "stdoutBytes": 0,
+        "stdoutTail": "",
+        "stdoutTruncated": false,
+        "stderrBytes": 0,
+        "stderrTail": "",
+        "stderrTruncated": false,
+        "exitCode": 0,
+        "elapsedSeconds": 65.731038609,
+        "leaderCompletedBeforePipeEOF": false,
+        "finishedAtEpochMs": 1793503641719
+      },
+      "fullInstallStageWallSeconds": 77.744,
+      "innerTimerIncludesPopen": false,
+      "inclusive120SecondWallTimeClaimed": false,
+      "originalFlow": "tests/native/diagnostics/ios-warm-reader-controls.yaml",
+      "originalFlowSha256": "044a6809310e7e2344331491f8308b0a83ef3cb2e0127dd0c4c4792d9673c22f",
+      "executedFlowSha256": "8af040b4d208aee4d9b61fe3efc88a84130e6cfc4f879d80078cd72fec3ee585",
+      "originalSignIn": "tests/native/audit/flows/_signin.yaml",
+      "originalSignInSha256": "847857016d5651ef0cfe7d57747c5ef3a08ad3e837492aa4b2f7fa250125993a",
+      "executedSignInSha256": "4a1df30fbd182f65dcde48a85f284b68293409680bcf5271bbac55ec986a293f",
+      "changes": [
+        "First iOS launch clearState true to false",
+        "Resolve the original journey include to that disposable sign-in copy"
+      ],
+      "clearKeychainPreserved": true,
+      "permissionsAndSignInAssertionsPreserved": true,
+      "navigationAndReaderAssertionsPreserved": true,
+      "wholeCliWatchdogSeconds": 600,
+      "readerDeadlineMs": 15000,
+      "messagesFrameLimitMs": 1000,
+      "countedInBaseline85": false,
+      "used": true,
+      "scope": "This one first launch follows successful creation, preboot identity checks, exact-UUID bootstatus and the first app install. It omits only the duplicate iOS uninstall/reinstall. Between-case isolation and all UI assertions remain unchanged.",
+      "attemptedAtEpochMs": 1793503642957,
+      "sourceUnchangedAfterAttempt": true
+    }
+  },
+  "appTiming": {
+    "withinLimit": false,
+    "issue": "OriginalJourneyFailed"
+  },
+  "readerTiming": {
+    "withinOriginalDeadline": false,
+    "issue": "OriginalJourneyFailed"
+  },
+  "unchangedSourceAndBinaryAfterRun": true,
+  "cleanup": [
+    {
+      "operation": "shutdown",
+      "completed": true
+    },
+    {
+      "operation": "delete",
+      "completed": true
+    }
+  ]
+}

@@ -31,6 +31,7 @@ receipt.audit = { mode: 'direct-route-entry-and-independent-journeys', applicati
     'scripts/quality/native-ui-audit-binary.py', 'scripts/quality/native-ui-ios-compatibility.py',
     'scripts/quality/native-ui-start-ios-device.py', 'scripts/quality/native-ui-ios-created-device.py',
     'scripts/quality/native-ui-ios-audit-recovery.py', 'scripts/quality/run-native-ui-audit-device.sh',
+    'scripts/quality/native-ui-ios-immutable-preflight.py',
     'tests/native/audit/manifest.json'].map(file => [file, hash(fs.readFileSync(file))])),
   limits: manifest.limits };
 fs.writeFileSync('native-ui-logs/source.json', JSON.stringify(receipt, null, 2) + '\n');

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "preparedAtUtc": "2026-11-01T03:25:01.227452+00:00",
+  "kind": "pending-canonical-ios-immutable-preboot-order-repair",
+  "published": false,
+  "triggeringEvidence": "normal-ios-ecf-account-setup-failure/traceback-provenance.json",
+  "triggeringRun": 41266020074,
+  "triggeringJob": 124734744421,
+  "oldBoundary": "First immutable SDK query ran after completed Simulator creation and bootstatus and timed out at its original30-second command wait. No app installation or case ran.",
+  "newOrdering": [
+    "Validate exact source/tree/manifest and actual full app bytes",
+    "Run existing five actual host/Xcode/SDK/Mach-O/signature probes with original30-second command waits",
+    "Write exact source/manifest/app/path/developer-selection/command-output receipt",
+    "Bind that receipt hash and completion time before unique owned-device creation",
+    "Preserve exact preboot runtime/type/availability and owned UUID bootstatus",
+    "Rehash app/source/manifest and validate immutable/readiness receipt without postboot host queries",
+    "Actual install with original120-second command wait",
+    "All original cases and resets with original application/reader/performance bounds"
+  ],
+  "unchangedAssertions": {
+    "actualImmutableChecksRemoved": false,
+    "toolchainValuesRelaxed": false,
+    "runtimeOrAbiRelaxed": false,
+    "perCaseResetOrDeadlineChanged": false,
+    "installCommandWaitSeconds": 120,
+    "immutableCommandWaitSeconds": 30,
+    "globalSimulatorMutationAdded": false
+  },
+  "provenance": {
+    "newHelperBoundByProducerInputs": true,
+    "newAuditInputCount": 10,
+    "oldF5AndEcfReceiptsRetainOriginalInputCounts": true,
+    "preparedOrInstalledArtifactsRelabeled": false
+  },
+  "verification": {
+    "focusedOuterChecks": 23,
+    "passed": 23,
+    "failed": 0,
+    "preflightEntryEmbeddedCases": 5,
+    "actualNormalStarterCliInheritedWriterRegression": true,
+    "postbootClientReadsForbiddenByRegression": true,
+    "badProofAndChangedBinaryCasesRejected": true,
+    "sdkFailureBeforeDeviceCreationTested": true,
+    "failed120SecondInstallDoesNotStartCases": true,
+    "pythonCompilationPassed": true,
+    "shellSyntaxPassed": true,
+    "tapPath": "ios-permanent-preboot-order-focused.tap",
+    "tapSha256": "7d9b623d847368f95df8a45a03530d7648ea1ce3044e4c0d8a63ec4865f47726"
+  },
+  "files": [
+    {
+      "path": "scripts/quality/native-ui-ios-immutable-preflight.py",
+      "sha256": "62ddda613a80b63c5f60958c3b32ebe49edc4babc26e24fb4d6e072d4615423d"
+    },
+    {
+      "path": "scripts/quality/native-ui-start-ios-device.py",
+      "sha256": "90d865e5639b4be806c1c7e74c2b98c84b9fd118cde067fd56cee6384ba82d52"
+    },
+    {
+      "path": "scripts/quality/native-ui-audit-runner.py",
+      "sha256": "34420d457ac37be7073f675c8e61964b5cdee12fde91a20726d6f020338c2d58"
+    },
+    {
+      "path": "scripts/quality/run-native-ui-audit-device.sh",
+      "sha256": "e594bc7d26370229bf282db2641c565052da8d3e22a47586e5a9a46951209f0c"
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui-audit.cjs",
+      "sha256": "7b94d191f29007ec62304a325dae17bf240ec06331e590da74ea356d72fb8c43"
+    },
+    {
+      "path": "tests/quality/native-ios-immutable-preflight.cjs",
+      "sha256": "d9e2bc65b750dd1ac1cb35e326434778672e3182cd4f5bba73bd38c1b704c46f"
+    },
+    {
+      "path": "tests/quality/native-ios-audit-compatibility.cjs",
+      "sha256": "bb9cbee9ef0ec17d8e32f81d0fc608bf2f37eab301905e22a7ecf76821e1d09a"
+    },
+    {
+      "path": "tests/quality/native-completion-runner.cjs",
+      "sha256": "852170eff5483801a23360089c8634d1ad17dce5e254721ebdd1497190e50bc3"
+    },
+    {
+      "path": "tests/quality/native-platform-audit-pack.cjs",
+      "sha256": "aae573e175d997acdfe344f3666ef29b1badc1de88a0f16533239f88c8ca8a56"
+    }
+  ],
+  "actualNewRuntimePassClaimed": false,
+  "rootPublicationHold": "Held for coordinated final source publication; active exact-source consumers continue unchanged.",
+  "scope": "Permanent ordering correction preserves the actual immutable checks and their evidence. The observations support trying preboot ordering; no specific CoreSimulator or host service cause is claimed."
+}

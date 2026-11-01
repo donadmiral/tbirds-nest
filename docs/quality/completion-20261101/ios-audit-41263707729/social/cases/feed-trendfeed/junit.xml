@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum completion 4e8b8bd5b4a34fb896070d69f98fcbec - iOS 18.5 - 906782C6-6E69-4600-85A7-B91F42B6D579" tests="1" failures="0" time="51.666" timestamp="2026-11-01T02:30:50">
+    <testcase id="Audit TrendFeed" name="Audit TrendFeed" classname="Audit TrendFeed" file="tests/native/audit/flows/feed-trendfeed.yaml" time="51.608" timestamp="2026-11-01T02:30:50" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

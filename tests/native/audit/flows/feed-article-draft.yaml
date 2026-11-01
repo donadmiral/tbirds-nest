@@ -32,8 +32,12 @@ name: Audit article text draft controls
     element: Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.
     direction: DOWN
     centerElement: true
-- tapOn: Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.
+- tapOn:
+    text: Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images.
+    # The multiline field's center can be covered by the iOS keyboard.
+    point: "50%,10%"
 - inputText: A synthetic article paragraph kept inside the audit.
+- assertVisible: A synthetic article paragraph kept inside the audit.
 - runFlow:
     when:
       platform: Android
@@ -42,6 +46,6 @@ name: Audit article text draft controls
 - scrollUntilVisible:
     element: An audit article
     direction: UP
-    centerElement: true
+    centerElement: false
 - assertVisible: An audit article
 - takeScreenshot: feed-article-draft

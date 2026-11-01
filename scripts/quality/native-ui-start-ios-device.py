@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import time
 import uuid
 
 RUNTIME = 'com.apple.CoreSimulator.SimRuntime.iOS-18-5'
@@ -55,6 +56,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--manifest', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--immutable-preflight', type=Path)
     parser.add_argument('--cleanup-device')
     args = parser.parse_args()
     if os.environ.get('CI') != 'true':
@@ -86,12 +88,24 @@ def main():
             'sourceCommit': manifest['applicationSourceCommit'], 'commands': records,
             'completed': completed})
         return int(not completed)
+    if args.immutable_preflight is None:
+        raise ValueError('Immutable host/toolchain/app checks must complete before device creation')
+    spec = importlib.util.spec_from_file_location('immutable_preflight', Path(__file__).with_name('native-ui-ios-immutable-preflight.py'))
+    preflight = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(preflight)
+    immutable, immutable_sha = preflight.read_receipt(args.immutable_preflight, manifest, preflight.digest(args.manifest))
+    before_create = round(time.time() * 1000)
+    if before_create < immutable['commands'][-1]['finishedAtEpochMs']:
+        raise ValueError('Immutable checks must finish before device creation begins')
     records = []
     evidence = args.output.with_name(args.output.stem + '-commands.json')
     def read(command, timeout):
         return bounded.setup_read(command, 'simulator-' + command[2], timeout, records, evidence)
     run = read
     result = prepare(manifest, read, run, helper)
+    result.update({'immutablePreflightSha256': immutable_sha,
+                   'immutablePreflightFinishedAtEpochMs': immutable['commands'][-1]['finishedAtEpochMs'],
+                   'createdAfterImmutablePreflightAtEpochMs': before_create})
     bounded.atomic_json(args.output, result)
     print(result['device'])
     return 0

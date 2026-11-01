@@ -1,0 +1,272 @@
+[
+  {
+    "kind": "defineVariablesCommand",
+    "sequenceNumber": 0,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503803459,
+    "duration": 132
+  },
+  {
+    "kind": "applyConfigurationCommand",
+    "sequenceNumber": 1,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503803593,
+    "duration": 1
+  },
+  {
+    "kind": "runFlowCommand",
+    "sequenceNumber": 2,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503803594,
+    "duration": 35152
+  },
+  {
+    "kind": "applyConfigurationCommand",
+    "sequenceNumber": 3,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503803598,
+    "duration": 4
+  },
+  {
+    "kind": "runFlowCommand",
+    "sequenceNumber": 4,
+    "depth": 1,
+    "status": "SKIPPED",
+    "timestamp": 1793503803602,
+    "duration": 1
+  },
+  {
+    "kind": "runFlowCommand",
+    "sequenceNumber": 5,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503803604,
+    "duration": 3641
+  },
+  {
+    "kind": "launchAppCommand",
+    "sequenceNumber": 6,
+    "depth": 2,
+    "status": "COMPLETED",
+    "timestamp": 1793503803604,
+    "duration": 3640,
+    "clearState": false,
+    "clearKeychain": true,
+    "permissions": {
+      "notifications": "deny"
+    }
+  },
+  {
+    "kind": "assertConditionCommand",
+    "sequenceNumber": 7,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503807245,
+    "duration": 10683,
+    "target": "Sign in",
+    "configuredTimeoutMs": "30000"
+  },
+  {
+    "kind": "tapOnElement",
+    "sequenceNumber": 8,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503817928,
+    "duration": 3056,
+    "target": "Username or email"
+  },
+  {
+    "kind": "inputTextCommand",
+    "sequenceNumber": 9,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503820984,
+    "duration": 4215,
+    "inputValueWithheld": true
+  },
+  {
+    "kind": "runFlowCommand",
+    "sequenceNumber": 10,
+    "depth": 1,
+    "status": "SKIPPED",
+    "timestamp": 1793503825200,
+    "duration": 0
+  },
+  {
+    "kind": "tapOnElement",
+    "sequenceNumber": 11,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503825201,
+    "duration": 3085,
+    "target": "Password"
+  },
+  {
+    "kind": "inputTextCommand",
+    "sequenceNumber": 12,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503828287,
+    "duration": 2217,
+    "inputValueWithheld": true
+  },
+  {
+    "kind": "runFlowCommand",
+    "sequenceNumber": 13,
+    "depth": 1,
+    "status": "SKIPPED",
+    "timestamp": 1793503830505,
+    "duration": 1
+  },
+  {
+    "kind": "runFlowCommand",
+    "sequenceNumber": 14,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503830507,
+    "duration": 4362
+  },
+  {
+    "kind": "tapOnElement",
+    "sequenceNumber": 15,
+    "depth": 2,
+    "status": "COMPLETED",
+    "timestamp": 1793503830508,
+    "duration": 4360,
+    "target": "Platinum Circles"
+  },
+  {
+    "kind": "tapOnElement",
+    "sequenceNumber": 16,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503834869,
+    "duration": 2916,
+    "target": "Sign in"
+  },
+  {
+    "kind": "assertConditionCommand",
+    "sequenceNumber": 17,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503837785,
+    "duration": 960,
+    "target": "Native audit launcher",
+    "configuredTimeoutMs": "30000"
+  },
+  {
+    "kind": "tapOnElement",
+    "sequenceNumber": 18,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503838746,
+    "duration": 4658,
+    "target": "native-audit-case-input"
+  },
+  {
+    "kind": "inputTextCommand",
+    "sequenceNumber": 19,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503843404,
+    "duration": 1950,
+    "inputValueWithheld": true
+  },
+  {
+    "kind": "runFlowCommand",
+    "sequenceNumber": 20,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503845355,
+    "duration": 2604
+  },
+  {
+    "kind": "tapOnElement",
+    "sequenceNumber": 21,
+    "depth": 1,
+    "status": "COMPLETED",
+    "timestamp": 1793503845355,
+    "duration": 2604,
+    "target": "Native audit launcher"
+  },
+  {
+    "kind": "tapOnElement",
+    "sequenceNumber": 22,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503847960,
+    "duration": 7382,
+    "target": "native-audit-open-case"
+  },
+  {
+    "kind": "assertConditionCommand",
+    "sequenceNumber": 23,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503855342,
+    "duration": 817,
+    "target": "A quiet morning in the desert. Small moments worth keeping.",
+    "configuredTimeoutMs": "15000"
+  },
+  {
+    "kind": "tapOnElement",
+    "sequenceNumber": 24,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503856160,
+    "duration": 11324,
+    "target": "Latest"
+  },
+  {
+    "kind": "assertConditionCommand",
+    "sequenceNumber": 25,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503867483,
+    "duration": 891,
+    "target": "A quiet morning in the desert. Small moments worth keeping.",
+    "configuredTimeoutMs": null
+  },
+  {
+    "kind": "tapOnElement",
+    "sequenceNumber": 26,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503868376,
+    "duration": 9763,
+    "target": "For You"
+  },
+  {
+    "kind": "assertConditionCommand",
+    "sequenceNumber": 27,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503878139,
+    "duration": 669,
+    "target": "A quiet morning in the desert. Small moments worth keeping.",
+    "configuredTimeoutMs": null
+  },
+  {
+    "kind": "tapOnElement",
+    "sequenceNumber": 28,
+    "depth": 0,
+    "status": "COMPLETED",
+    "timestamp": 1793503878808,
+    "duration": 5749,
+    "target": "main-tab-market"
+  },
+  {
+    "kind": "assertConditionCommand",
+    "sequenceNumber": 29,
+    "depth": 0,
+    "status": "FAILED",
+    "timestamp": 1793503884558,
+    "duration": 29862,
+    "target": "View listing: Travel journal",
+    "configuredTimeoutMs": "15000"
+  }
+]

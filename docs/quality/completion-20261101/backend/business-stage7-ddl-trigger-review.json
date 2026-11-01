@@ -1,0 +1,89 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "readOnly": true,
+  "observation": {
+    "observed_at": "2026-11-01 04:06:23.760661+00",
+    "server_version": "17.11",
+    "ddl_triggers": [
+      {
+        "name": "ensure_rls",
+        "tags": [
+          "CREATE TABLE",
+          "CREATE TABLE AS",
+          "SELECT INTO"
+        ],
+        "event": "ddl_command_end",
+        "enabled": "O",
+        "handler": "public.rls_auto_enable()",
+        "definition": null,
+        "handlerBodyMd5": "99be20677b456ea8d3be47bdd44fb369"
+      },
+      {
+        "name": "issue_graphql_placeholder",
+        "tags": [
+          "DROP EXTENSION"
+        ],
+        "event": "sql_drop",
+        "enabled": "O",
+        "handler": "extensions.set_graphql_placeholder()",
+        "definition": null,
+        "handlerBodyMd5": "a2bc2d00b2cc2f5e8d2d6b8d73e2c360"
+      },
+      {
+        "name": "issue_pg_cron_access",
+        "tags": [
+          "CREATE EXTENSION"
+        ],
+        "event": "ddl_command_end",
+        "enabled": "O",
+        "handler": "extensions.grant_pg_cron_access()",
+        "definition": null,
+        "handlerBodyMd5": "3a3917aad6ddd66182bf45b7490c3029"
+      },
+      {
+        "name": "issue_pg_graphql_access",
+        "tags": [
+          "CREATE EXTENSION"
+        ],
+        "event": "ddl_command_end",
+        "enabled": "O",
+        "handler": "extensions.grant_pg_graphql_access()",
+        "definition": null,
+        "handlerBodyMd5": "dd3f3e2bb94cff45ef24b9cecb6af1c8"
+      },
+      {
+        "name": "issue_pg_net_access",
+        "tags": [
+          "CREATE EXTENSION"
+        ],
+        "event": "ddl_command_end",
+        "enabled": "O",
+        "handler": "extensions.grant_pg_net_access()",
+        "definition": null,
+        "handlerBodyMd5": "41606de42fcdb98d53cbb77a53356864"
+      },
+      {
+        "name": "pgrst_ddl_watch",
+        "tags": null,
+        "event": "ddl_command_end",
+        "enabled": "O",
+        "handler": "extensions.pgrst_ddl_watch()",
+        "definition": "CREATE OR REPLACE FUNCTION extensions.pgrst_ddl_watch()\n RETURNS event_trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nDECLARE\n  cmd record;\nBEGIN\n  FOR cmd IN SELECT * FROM pg_event_trigger_ddl_commands()\n  LOOP\n    IF cmd.command_tag IN (\n      'CREATE SCHEMA', 'ALTER SCHEMA'\n    , 'CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO', 'ALTER TABLE'\n    , 'CREATE FOREIGN TABLE', 'ALTER FOREIGN TABLE'\n    , 'CREATE VIEW', 'ALTER VIEW'\n    , 'CREATE MATERIALIZED VIEW', 'ALTER MATERIALIZED VIEW'\n    , 'CREATE FUNCTION', 'ALTER FUNCTION'\n    , 'CREATE TRIGGER'\n    , 'CREATE TYPE', 'ALTER TYPE'\n    , 'CREATE RULE'\n    , 'COMMENT'\n    )\n    -- don't notify in case of CREATE TEMP table or other objects created on pg_temp\n    AND cmd.schema_name is distinct from 'pg_temp'\n    THEN\n      NOTIFY pgrst, 'reload schema';\n    END IF;\n  END LOOP;\nEND; $function$\n",
+        "handlerBodyMd5": "7f27b8118fea5c88b0164331292859e3"
+      },
+      {
+        "name": "pgrst_drop_watch",
+        "tags": null,
+        "event": "sql_drop",
+        "enabled": "O",
+        "handler": "extensions.pgrst_drop_watch()",
+        "definition": null,
+        "handlerBodyMd5": "bc09cc3003d66f91844af4cb05e203b7"
+      }
+    ]
+  },
+  "applicableHandler": "extensions.pgrst_ddl_watch()",
+  "applicableEffect": "Transactional NOTIFY pgrst, reload schema only; no application/provider function is invoked.",
+  "allOtherEnabledTriggerTagsOutsideStage7": true
+}

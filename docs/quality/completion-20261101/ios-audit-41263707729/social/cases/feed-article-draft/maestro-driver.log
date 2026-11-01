@@ -1,0 +1,149 @@
+03:15:56.624 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Define variables RUNNING
+03:15:56.693 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Define variables COMPLETED
+03:15:56.694 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Apply configuration RUNNING
+03:15:56.697 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Apply configuration COMPLETED
+03:15:56.697 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run _signin.yaml RUNNING
+03:15:56.701 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Apply configuration RUNNING
+03:15:56.701 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Apply configuration COMPLETED
+03:15:56.702 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is ANDROID RUNNING
+03:15:56.703 [ INFO] maestro.orchestra.Orchestra.executeSubflowCommands: [Command execution subflow] CommandSkipped: null
+03:15:56.703 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is ANDROID SKIPPED
+03:15:56.703 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is IOS RUNNING
+03:15:56.704 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Launch app "app.platinumcircles.mobile.qa" with clear state and clear keychain RUNNING
+03:15:56.718 [ INFO] maestro.Maestro.clearKeychain$lambda$10: Clearing keychain
+03:15:58.448 [ INFO] maestro.Maestro.clearAppState$lambda$8: Clearing app state app.platinumcircles.mobile.qa
+03:16:10.982 [ INFO] maestro.Maestro.launchApp$lambda$5: Launching app app.platinumcircles.mobile.qa
+03:16:10.988 [ INFO] maestro.Maestro.launchApp$lambda$5: Stopping app.platinumcircles.mobile.qa app during launch
+03:16:13.953 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Launch app "app.platinumcircles.mobile.qa" with clear state and clear keychain COMPLETED
+03:16:13.954 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is IOS COMPLETED
+03:16:13.955 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that "Sign in" is visible RUNNING
+03:16:23.445 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that "Sign in" is visible COMPLETED
+03:16:23.446 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on "Username or email" RUNNING
+03:16:24.151 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=, title=, value=, text=, hintText=Username or email, resource-id=, bounds=[29,336][364,390], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=29, y=336, width=335, height=54))
+03:16:24.522 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)
+03:16:24.527 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (196, 363) using hierarchy based logic for wait
+03:16:24.531 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array
+03:16:24.531 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+03:16:26.699 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed.
+03:16:26.700 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on "Username or email" COMPLETED
+03:16:26.701 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Input text qa.alex@example.invalid RUNNING
+03:16:26.711 [ INFO] maestro.Maestro.inputText: Inputting text: qa.alex@example.invalid
+03:16:29.014 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Input text qa.alex@example.invalid COMPLETED
+03:16:29.014 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is ANDROID RUNNING
+03:16:29.014 [ INFO] maestro.orchestra.Orchestra.executeSubflowCommands: [Command execution subflow] CommandSkipped: null
+03:16:29.015 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is ANDROID SKIPPED
+03:16:29.015 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on "Password" RUNNING
+03:16:29.879 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=, title=, value=, text=, hintText=Password, resource-id=, bounds=[29,402][364,456], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=29, y=402, width=335, height=54))
+03:16:31.983 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)
+03:16:31.985 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (196, 429) using hierarchy based logic for wait
+03:16:31.986 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array
+03:16:31.986 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+03:16:34.156 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed.
+03:16:34.157 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on "Password" COMPLETED
+03:16:34.157 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Input text FixtureOnly-2026! RUNNING
+03:16:34.157 [ INFO] maestro.Maestro.inputText: Inputting text: FixtureOnly-2026!
+03:16:36.089 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Input text FixtureOnly-2026! COMPLETED
+03:16:36.089 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is ANDROID RUNNING
+03:16:36.089 [ INFO] maestro.orchestra.Orchestra.executeSubflowCommands: [Command execution subflow] CommandSkipped: null
+03:16:36.090 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is ANDROID SKIPPED
+03:16:36.090 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is IOS RUNNING
+03:16:36.090 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on "Platinum Circles" RUNNING
+03:16:37.018 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=Platinum Circles, title=, value=, text=, hintText=, resource-id=assets/assets/brand/wordmark-light.png, bounds=[78,263][314,288], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=78, y=263, width=236, height=25))
+03:16:37.532 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)
+03:16:37.537 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (196, 275) using hierarchy based logic for wait
+03:16:37.538 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array
+03:16:37.539 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+03:16:39.212 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed.
+03:16:39.212 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on "Platinum Circles" COMPLETED
+03:16:39.213 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is IOS COMPLETED
+03:16:39.213 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on "Sign in" RUNNING
+03:16:39.917 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=Sign in, title=, value=, text=, hintText=, resource-id=, bounds=[28,506][365,560], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=28, y=506, width=337, height=54))
+03:16:40.279 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)
+03:16:40.280 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (196, 533) using hierarchy based logic for wait
+03:16:40.281 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array
+03:16:40.281 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+03:16:41.528 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed.
+03:16:41.528 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on "Sign in" COMPLETED
+03:16:41.529 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that "Native audit launcher" is visible RUNNING
+03:16:42.192 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that "Native audit launcher" is visible COMPLETED
+03:16:42.192 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run _signin.yaml COMPLETED
+03:16:42.192 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on id: native-audit-case-input RUNNING
+03:16:42.876 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=Audit case identifier, title=, value=, text=, hintText=, resource-id=native-audit-case-input, bounds=[1,195][392,240], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=1, y=195, width=391, height=45))
+03:16:43.652 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)
+03:16:43.654 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (196, 217) using hierarchy based logic for wait
+03:16:43.654 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array
+03:16:43.655 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+03:16:45.410 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed.
+03:16:45.410 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: native-audit-case-input COMPLETED
+03:16:45.411 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Input text feed-article-draft RUNNING
+03:16:45.411 [ INFO] maestro.Maestro.inputText: Inputting text: feed-article-draft
+03:16:47.374 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Input text feed-article-draft COMPLETED
+03:16:47.375 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is ANDROID RUNNING
+03:16:47.375 [ INFO] maestro.orchestra.Orchestra.executeCommands: [Command execution] CommandSkipped: null
+03:16:47.375 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is ANDROID SKIPPED
+03:16:47.376 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is IOS RUNNING
+03:16:47.376 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on "Native audit launcher" RUNNING
+03:16:48.288 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=Native audit launcher, title=, value=, text=, hintText=, resource-id=, bounds=[0,59][393,137], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=0, y=59, width=393, height=78))
+03:16:49.591 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)
+03:16:49.592 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (196, 98) using hierarchy based logic for wait
+03:16:49.595 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array
+03:16:49.595 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+03:16:51.282 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed.
+03:16:51.283 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on "Native audit launcher" COMPLETED
+03:16:51.283 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is IOS COMPLETED
+03:16:51.283 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on id: native-audit-open-case RUNNING
+03:16:51.935 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=Open audit case, title=, value=, text=, hintText=, resource-id=native-audit-open-case, bounds=[0,265][393,314], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=0, y=265, width=393, height=49))
+03:16:52.289 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)
+03:16:52.290 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (196, 289) using hierarchy based logic for wait
+03:16:52.291 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array
+03:16:52.291 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+03:16:54.477 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed.
+03:16:54.478 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: native-audit-open-case COMPLETED
+03:16:54.478 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that "Article" is visible RUNNING
+03:16:55.455 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that "Article" is visible COMPLETED
+03:16:55.456 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on "Title" RUNNING
+03:16:56.286 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=Title, title=, value=, text=, hintText=, resource-id=, bounds=[16,113][377,159], enabled=true, focused=false, selected=false, checked=false}, children=[TreeNode(attributes={accessibilityText=Vertical scroll bar, 1 page, title=, value=0%, text=0%, hintText=, resource-id=, bounds=[344,113][374,159], enabled=true, focused=false, selected=false, checked=false}, children=[TreeNode(attributes={accessibilityText=, title=, value=, text=, hintText=, resource-id=, bounds=[371,132][374,156], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false)], clickable=null, enabled=true, focused=false, checked=false, selected=false), TreeNode(attributes={accessibilityText=Horizontal scroll bar, 1 page, title=, value=0%, text=0%, hintText=, resource-id=, bounds=[16,133][377,156], enabled=true, focused=false, selected=false, checked=false}, children=[TreeNode(attributes={accessibilityText=, title=, value=, text=, hintText=, resource-id=, bounds=[19,153][374,156], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false)], clickable=null, enabled=true, focused=false, checked=false, selected=false)], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=16, y=113, width=361, height=46))
+03:16:56.654 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)
+03:16:56.655 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (196, 136) using hierarchy based logic for wait
+03:16:56.656 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array
+03:16:56.656 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+03:16:59.893 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed.
+03:16:59.894 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on "Title" COMPLETED
+03:16:59.894 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Input text An audit article RUNNING
+03:16:59.895 [ INFO] maestro.Maestro.inputText: Inputting text: An audit article
+03:17:01.918 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Input text An audit article COMPLETED
+03:17:01.919 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is ANDROID RUNNING
+03:17:01.920 [ INFO] maestro.orchestra.Orchestra.executeCommands: [Command execution] CommandSkipped: null
+03:17:01.920 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is ANDROID SKIPPED
+03:17:01.921 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Scrolling DOWN until "Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images." is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled RUNNING
+03:17:03.030 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Scrolling try count: 0, DeviceWidth: 393, DeviceWidth: 852
+03:17:03.030 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Element bounds: Bounds(x=16, y=373, width=361, height=320)
+03:17:03.032 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Visibility Percent: 1.0
+03:17:03.062 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: Command centerElement: ScrollUntilVisibleCommand(selector=ElementSelector(textRegex=Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images., idRegex=null, size=null, below=null, above=null, leftOf=null, rightOf=null, containsChild=null, containsDescendants=null, traits=null, index=null, enabled=null, optional=false, selected=null, checked=null, focused=null, childOf=null, css=null), direction=DOWN, scrollDuration=601, visibilityPercentage=100, timeout=20000, waitToSettleTimeoutMs=null, centerElement=true, originalSpeedValue=40, label=null, optional=false).centerElement
+03:17:03.063 [ INFO] maestro.orchestra.Orchestra.scrollUntilVisible: visibilityPercentageNormalized: 1.0
+03:17:03.064 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Scrolling DOWN until "Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images." is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled COMPLETED
+03:17:03.064 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Tap on "Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images." RUNNING
+03:17:04.151 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={accessibilityText=Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images., title=, value=, text=, hintText=, resource-id=, bounds=[16,373][377,693], enabled=true, focused=false, selected=false, checked=false}, children=[TreeNode(attributes={accessibilityText=Vertical scroll bar, 1 page, title=, value=0%, text=0%, hintText=, resource-id=, bounds=[344,373][374,693], enabled=true, focused=false, selected=false, checked=false}, children=[TreeNode(attributes={accessibilityText=, title=, value=, text=, hintText=, resource-id=, bounds=[371,671][374,690], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false)], clickable=null, enabled=true, focused=false, checked=false, selected=false), TreeNode(attributes={accessibilityText=Horizontal scroll bar, 1 page, title=, value=0%, text=0%, hintText=, resource-id=, bounds=[16,660][377,690], enabled=true, focused=false, selected=false, checked=false}, children=[TreeNode(attributes={accessibilityText=, title=, value=, text=, hintText=, resource-id=, bounds=[19,687][374,690], enabled=true, focused=false, selected=false, checked=false}, children=[], clickable=null, enabled=true, focused=false, checked=false, selected=false)], clickable=null, enabled=true, focused=false, checked=false, selected=false)], clickable=null, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=16, y=373, width=361, height=320))
+03:17:04.977 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tap aimed via trusted pre-wait hierarchy (null settle, no recent scroll)
+03:17:04.978 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Try tapping at (196, 533) using hierarchy based logic for wait
+03:17:04.979 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to byte array
+03:17:04.979 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+03:17:07.504 [ INFO] maestro.Maestro.screenshotBasedTap-ogj28Uc: Something have changed in the UI judging by view hierarchy. Proceed.
+03:17:07.504 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on "Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images." COMPLETED
+03:17:07.505 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Input text A synthetic article paragraph kept inside the audit. RUNNING
+03:17:07.505 [ INFO] maestro.Maestro.inputText: Inputting text: A synthetic article paragraph kept inside the audit.
+03:17:10.659 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Input text A synthetic article paragraph kept inside the audit. COMPLETED
+03:17:10.660 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run flow when Platform is ANDROID RUNNING
+03:17:10.660 [ INFO] maestro.orchestra.Orchestra.executeCommands: [Command execution] CommandSkipped: null
+03:17:10.660 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run flow when Platform is ANDROID SKIPPED
+03:17:10.660 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Scrolling UP until "An audit article" is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled RUNNING
+03:17:13.025 [ WARN] maestro.orchestra.Orchestra.scrollUntilVisible: Error: maestro.MaestroException$ElementNotFound: Element not found: Text matching regex: An audit article
+03:17:13.051 [ INFO] maestro.Maestro.swipeFromCenter: Swiping DOWN from center
+03:17:18.089 [ WARN] maestro.orchestra.Orchestra.scrollUntilVisible: Error: maestro.MaestroException$ElementNotFound: Element not found: Text matching regex: An audit article
+03:17:18.120 [ INFO] maestro.Maestro.swipeFromCenter: Swiping DOWN from center
+03:17:23.924 [ WARN] maestro.orchestra.Orchestra.scrollUntilVisible: Error: maestro.MaestroException$ElementNotFound: Element not found: Text matching regex: An audit article
+03:17:23.975 [ INFO] maestro.Maestro.swipeFromCenter: Swiping DOWN from center
+03:17:32.391 [ERROR] maestro.orchestra.Orchestra.executeCommands: [Command execution] CommandFailed: No visible element found: "An audit article"
+03:17:33.879 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot
+03:17:33.880 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink
+03:17:34.157 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Scrolling UP until "An audit article" is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled FAILED

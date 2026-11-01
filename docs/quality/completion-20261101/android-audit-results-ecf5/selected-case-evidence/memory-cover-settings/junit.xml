@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="platinum_audit" tests="1" failures="0" time="55.79" timestamp="2026-11-01T03:11:46">
+    <testcase id="Audit independent cover settings entry" name="Audit independent cover settings entry" classname="Audit independent cover settings entry" file="tests/native/audit/flows/memory-cover-settings.yaml" time="55.769" timestamp="2026-11-01T03:11:46" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

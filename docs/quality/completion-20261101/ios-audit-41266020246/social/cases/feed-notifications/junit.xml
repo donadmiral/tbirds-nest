@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum completion 713a35a5bde841e894b994f76c3617f4 - iOS 18.5 - DCF22E87-B513-41C7-9044-248FAF7613B0" tests="1" failures="0" time="47.165" timestamp="2026-11-01T03:01:58">
+    <testcase id="Audit Notifications" name="Audit Notifications" classname="Audit Notifications" file="tests/native/audit/flows/feed-notifications.yaml" time="47.141" timestamp="2026-11-01T03:01:58" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

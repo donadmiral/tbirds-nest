@@ -1,0 +1,39 @@
+{
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "platform": "android",
+  "navigationCasePassed": true,
+  "appTiming": {
+    "metric": "JS tab-press to the second requested animation frame with a focused, populated inbox",
+    "limitMs": 1000,
+    "visits": [
+      {
+        "visit": 1,
+        "tabPressAtUnixMs": 1793502790205,
+        "populatedFrameAtUnixMs": 1793502790316,
+        "tabPressToPopulatedFrameMs": 110.971
+      },
+      {
+        "visit": 2,
+        "tabPressAtUnixMs": 1793502804256,
+        "populatedFrameAtUnixMs": 1793502804327,
+        "tabPressToPopulatedFrameMs": 70.904
+      },
+      {
+        "visit": 3,
+        "tabPressAtUnixMs": 1793502818175,
+        "populatedFrameAtUnixMs": 1793502818230,
+        "tabPressToPopulatedFrameMs": 55.112
+      }
+    ],
+    "budgetReference": "docs/quality/PERFORMANCE_AND_RELEASE.md: warm native cached content target within one second",
+    "maxMs": 110.971,
+    "withinLimit": true,
+    "physicalDisplayLatencyMeasured": false,
+    "realProviderLatencyMeasured": false,
+    "nativeRowLayoutsObserved": 2,
+    "visualAcceptance": "Must also pass the separate actual conversation-content UI assertions."
+  },
+  "allExecutedShardCasesPassed": true,
+  "executedCaseCount": 31,
+  "hostedBackendAcceptance": false
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-11-01T03:57:38.047684+00:00",
+  "kind": "reviewed-canonical-native-checkpoint-candidate",
+  "sourceAndTestFileCount": 11,
+  "sourceAndTestHashes": {
+    "scripts/quality/native-ui-ios-immutable-preflight.py": "62ddda613a80b63c5f60958c3b32ebe49edc4babc26e24fb4d6e072d4615423d",
+    "scripts/quality/native-ui-start-ios-device.py": "90d865e5639b4be806c1c7e74c2b98c84b9fd118cde067fd56cee6384ba82d52",
+    "scripts/quality/native-ui-audit-runner.py": "34420d457ac37be7073f675c8e61964b5cdee12fde91a20726d6f020338c2d58",
+    "scripts/quality/run-native-ui-audit-device.sh": "e594bc7d26370229bf282db2641c565052da8d3e22a47586e5a9a46951209f0c",
+    "scripts/quality/prepare-native-ui-audit.cjs": "7b94d191f29007ec62304a325dae17bf240ec06331e590da74ea356d72fb8c43",
+    "tests/quality/native-ios-immutable-preflight.cjs": "d9e2bc65b750dd1ac1cb35e326434778672e3182cd4f5bba73bd38c1b704c46f",
+    "tests/quality/native-ios-audit-compatibility.cjs": "bb9cbee9ef0ec17d8e32f81d0fc608bf2f37eab301905e22a7ecf76821e1d09a",
+    "tests/quality/native-completion-runner.cjs": "852170eff5483801a23360089c8634d1ad17dce5e254721ebdd1497190e50bc3",
+    "tests/quality/native-platform-audit-pack.cjs": "aae573e175d997acdfe344f3666ef29b1badc1de88a0f16533239f88c8ca8a56",
+    "tests/native/audit/flows/jobs-application-entry.yaml": "cf022f31991d07d8e2a3298674ce537c26f6fb6a06eb08849fcf4fd851063c78",
+    "tests/native/audit/flows/feed-article-draft.yaml": "1fd283b617325b75aa8b967b98dc746a4aa4edd796b25e3d7b4e56f60e0f70e7"
+  },
+  "independentReviewReceipts": [
+    "ios-permanent-preboot-order-review.json",
+    "ios-permanent-preboot-order-independent-review.json",
+    "ios-social-interaction-independent-review.json"
+  ],
+  "focusedReceiptFiles": [
+    "ios-permanent-preboot-order-focused.tap",
+    "ios-permanent-preboot-order-independent.tap"
+  ],
+  "capabilityFilesUnchanged": {
+    "modules/boomerang/ios/BoomerangModule.swift": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237"
+  },
+  "productionMovieConstants": 0,
+  "targetCheckpointBranch": "codex/completion-native-checkpoint-20261101",
+  "checkpointPublishedByThisAgent": false,
+  "completionBranchProductSourceAlteredByThisAgent": false,
+  "existingCompiledSourceReceiptsRewritten": false,
+  "actualCanonicalRuntimePassClaimed": false,
+  "scope": "Eleven reviewed canonical source/test paths remain held locally. They may be durably checkpointed on the separate requested branch; no completion-branch merge, capability promotion, rebuilt-app or runtime acceptance is implied."
+}

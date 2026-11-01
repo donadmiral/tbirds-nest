@@ -1,0 +1,74 @@
+{
+  "formatVersion": 1,
+  "repo": "donadmiral/tbirds-nest",
+  "workflowRun": 41266020074,
+  "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "sourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "artifacts": [
+    {
+      "id": 13068685348,
+      "name": "native-audit-android-social-results",
+      "bytes": 3930071,
+      "sha256": "95c8042349ebd9d8b98297f8abc2f5bc7362f65aad4698373d9e570a4ac1f8a2",
+      "createdAt": "2026-11-01T03:18:16Z",
+      "expiresAt": "2026-11-08T03:18:14Z",
+      "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+      "zipDownloadedAndHashVerified": true
+    },
+    {
+      "id": 13068655129,
+      "name": "native-audit-android-settings-results",
+      "bytes": 3390337,
+      "sha256": "da6adda1346192d5b5238db1a604b2f2184cddcd093d68bf6784d75fcd69ac59",
+      "createdAt": "2026-11-01T03:16:42Z",
+      "expiresAt": "2026-11-08T03:16:40Z",
+      "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+      "zipDownloadedAndHashVerified": true
+    },
+    {
+      "id": 13068127496,
+      "name": "native-audit-android-account-results",
+      "bytes": 5346576,
+      "sha256": "42a0523298f9ded212978e78718f177208b2eb162f91ab0cdb29f63c91da283b",
+      "createdAt": "2026-11-01T03:15:59Z",
+      "expiresAt": "2026-11-08T03:15:57Z",
+      "sourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+      "zipDownloadedAndHashVerified": true
+    }
+  ],
+  "jobs": [
+    {
+      "id": 124732409173,
+      "name": "android feature group social",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124732409245,
+      "name": "android feature group account",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124732409262,
+      "name": "android feature group settings",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "caseVerification": "independent-coverage.json",
+  "performanceVerification": "performance.json",
+  "captureVerification": "memory-capture-session/verification.json",
+  "binaryVerification": "../android-audit-build-ecf5/verification.json",
+  "all85CasesPassed": true,
+  "caseCounts": {
+    "social": 31,
+    "account": 27,
+    "settings": 27,
+    "total": 85,
+    "failed": 0,
+    "notExecuted": 0
+  },
+  "caseAttemptPolicy": "Each original case executed exactly once. Original 180-second deadline is preserved; the source-defined same-session capture case uses 300 seconds. Android driver startup budget remains zero.",
+  "limits": "Synthetic QA Release app; this is not signed store distribution, hosted backend, real provider, or physical-device acceptance. Earlier f5 evidence remains separate."
+}

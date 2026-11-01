@@ -1,0 +1,334 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-11-01T03:55:56.794891+00:00",
+  "consumerRunId": 41268286306,
+  "consumerJobId": 124735581347,
+  "consumerSourceCommit": "dcf8b83fa133e49d1d2e818e66a6dca65c1eb877",
+  "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+  "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+  "producerBinding": {
+    "schemaVersion": 1,
+    "ready": true,
+    "applicationSourceCommit": "f5be97445ef7223baeb60dd10e8cded05630b6c1",
+    "applicationSourceTree": "f54e192c3ef721d0207d840382f176185c8c4f5a",
+    "producerRunId": 41259529351,
+    "producerArtifactName": "native-audit-ios-binary",
+    "producerArtifactId": 13065158785,
+    "producerArtifactZipSha256": "00c9a0651dfe7d5d495c30ab5f5d09a0406b388b77b875e6041ee255b57ba7e8",
+    "producerArtifactZipBytes": 49157981,
+    "appArchiveSha256": "547488ec4e545c9eb5c1cde4ce906cd36e1bf546d566f1c1ca5764793468fafa",
+    "binaryManifestSha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+    "binarySha256": "c43aa346fabae4c656bc14602cb982bcbb7018ccfcfd4658d33a37742e40084c",
+    "sourceReceiptSha256": "cb4762c4caaa3aebff83cf6071cd9b18db3e5377fbcb1903c4017f5c2e1df302"
+  },
+  "artifact": {
+    "id": 13068622314,
+    "bytes": 5741416,
+    "sha256": "2fd61810a3f6df7d4c8f3399f57c1486400f099b41b4e0a4464cfcd9975d96de",
+    "githubDigestMatched": true
+  },
+  "result": "failed-at-Market-before-Jobs-Messages-and-reader",
+  "appInstalled": true,
+  "routeAccepted": false,
+  "messagesAccepted": false,
+  "readerAccepted": false,
+  "installation": {
+    "exitCode": 0,
+    "configuredCommandWaitSeconds": 120,
+    "innerCommandElapsedSeconds": 65.731038609,
+    "fullRecordedStageWallSeconds": 77.744,
+    "timerStartsAfterPopen": true,
+    "inclusive120SecondWallTimeClaimed": false
+  },
+  "firstLaunchCorrection": {
+    "usedOnce": true,
+    "fullSetupAndFirstInstallGuardIndependentlyVerified": true,
+    "executedWholeFileHashesAndExactReversalVerified": true,
+    "launchCommandMs": 3640,
+    "clearState": false,
+    "clearKeychain": true,
+    "permissionsPreserved": true,
+    "originalNavigationAndReaderAssertionsUnchanged": true
+  },
+  "timing": {
+    "wholeCliWatchdogSeconds": 600,
+    "watchdogTimedOut": false,
+    "startupBeforeFirstFlowCommandSeconds": 160.505,
+    "diagnosticIncludesCollectionSeconds": 315.989,
+    "lastCompletedTap": "main-tab-market",
+    "failedAssertion": {
+      "kind": "assertConditionCommand",
+      "sequenceNumber": 29,
+      "depth": 0,
+      "status": "FAILED",
+      "timestamp": 1793503884558,
+      "duration": 29862,
+      "target": "View listing: Travel journal",
+      "configuredTimeoutMs": "15000"
+    },
+    "appJsMarketTabPressUnixMs": 1793503883953,
+    "firstVisibleMarketFrameMeasured": false
+  },
+  "failureEvidence": {
+    "laterFailureScreenshotShowsSyntheticListing": true,
+    "laterFailureHierarchyExpectedLabel": {
+      "accessibilityText": "View listing: Travel journal",
+      "bounds": "[12,339][190,605]",
+      "enabled": "true",
+      "focused": "false",
+      "selected": "false",
+      "checked": "false"
+    },
+    "laterSnapshotIsNotInDeadlineProof": true,
+    "longHierarchyReadStartedAtUtc": "2026-11-01T03:31:40.488912+00:00",
+    "longHierarchyElementRetrievedAtUtc": "2026-11-01T03:31:53.861328+00:00",
+    "longHierarchyElementRetrievalSeconds": 13.372416,
+    "longReadBeginsAfterConfiguredAssertionWindow": true,
+    "appMainLoopRequestQueuedAtUtc": "2026-11-01T03:31:40.491+00:00",
+    "appMainLoopCallbackAtUtc": "2026-11-01T03:31:53.304+00:00",
+    "appMainLoopDispatchDelaySeconds": 12.813,
+    "pinnedMaestroTakesExtraHierarchySnapshotsForFailedLookupAndAssertion": true,
+    "assertionPollContentSnapshotsAvailable": false,
+    "marketResponseTimestampAvailable": false,
+    "specificProductOrHostCauseEstablished": false
+  },
+  "receiptCollectionPassed": true,
+  "syntheticFixtureIndependentValidation": {
+    "passed": true,
+    "requestCount": 110,
+    "auditRequestCount": 0,
+    "auditMutationCount": 0
+  },
+  "authAtFinalCollection": {
+    "activeLocks": 0,
+    "waitingLocks": 0,
+    "activeStorage": 0,
+    "droppedEvents": 0
+  },
+  "sampleLimits": {
+    "ownedAppIdentityMatched": true,
+    "actualAppThreadSampleObtained": false,
+    "appSampleWaitBudgetSeconds": 8,
+    "appSampleIssue": "TimeoutExpired",
+    "driverMatchesAfterMaestroExit": 0,
+    "changesVerdict": false
+  },
+  "sourceAndBinaryUnchangedAfterRunReportedByStrictConsumer": true,
+  "cleanup": [
+    {
+      "operation": "shutdown",
+      "completed": true
+    },
+    {
+      "operation": "delete",
+      "completed": true
+    }
+  ],
+  "unchangedReaderRequirementMs": 15000,
+  "unchangedMessagesTargetMs": 1000,
+  "rawArtifactFileInventory": [
+    {
+      "path": "app.log",
+      "sha256": "52213286011e47e0d06513dfa3adcbad815c359e90920dc7d7eb4a319ef1904f",
+      "bytes": 1440883
+    },
+    {
+      "path": "binary-manifest.json",
+      "sha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+      "bytes": 2621
+    },
+    {
+      "path": "cold-startup/com.apple.CoreSimulator.CoreSimulatorService.sample.txt",
+      "sha256": "f2e04eaf30bb838c2ab23d3ed93a907fb11cb1157450f95cf45242410b705262",
+      "bytes": 102425
+    },
+    {
+      "path": "cold-startup/diagnostic.json",
+      "sha256": "3a5234f4edbdb87879a044a2c4eb5a54f124cba79fc8d6386abb66637401ea07",
+      "bytes": 4509
+    },
+    {
+      "path": "cold-startup/simctl.sample.txt",
+      "sha256": "6bcb58a885d278d28e3536e905fea1574eb575b7b879fd6da194750633f3b13d",
+      "bytes": 104373
+    },
+    {
+      "path": "completion-proof.json",
+      "sha256": "ee569ac9ccbdb50b637d5bd689431f95441b6155e66264c8a50be421071ac34f",
+      "bytes": 12424
+    },
+    {
+      "path": "device-ownership.json",
+      "sha256": "f444120b6e3546f32755ddb2d86acf4f7a0af943a9b997bbff5b7bbffb21624f",
+      "bytes": 349
+    },
+    {
+      "path": "device-setup.json",
+      "sha256": "50309e575fc04897963b6cb6f0d3d0403e5e8c5a7205ba877f2321b48809778a",
+      "bytes": 841
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/failure-threads/sampling.json",
+      "sha256": "3d5be2044da0f8353789aa41fc28cc47f81f1de2958c068a0867d37ed43caddc",
+      "bytes": 912
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/junit.xml",
+      "sha256": "29c4568c0da1e48891b3447f8e8022996a11e14a926d58d912c1cc6c3f3c2413",
+      "bytes": 732
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/commands.json",
+      "sha256": "227799d1591e41804c47860a20471b43d281b3702926ff644a7a5458f7645ac3",
+      "bytes": 30994
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/logs/device-simulator.log",
+      "sha256": "bb6d36eb9022f267abbe9423b46a83cfa9344016f4caa78d1eafe7c7b6ff1474",
+      "bytes": 43719156
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/logs/device-xctest.log",
+      "sha256": "0e0ab7f7267f3661be0bd7c611a9f8725f9e097df3b91f8a647c5b0192a25573",
+      "bytes": 152261
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/logs/maestro.log",
+      "sha256": "30433fe0c5124649d992bf8f32bb565a9d721b48b347e6144dbd043c3f736561",
+      "bytes": 18502
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/manifest.json",
+      "sha256": "6025b2fda745cab70af1f49d8ec80d711582bc7a7e46662603a44bc6e98b41a2",
+      "bytes": 960
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/screen-hierarchy/step-030-assertCondition-View_listing_Travel_jour.json",
+      "sha256": "420a8c104323ae1764d4c52a95438b5514cb6115ed189850b9df34dc632887e6",
+      "bytes": 66244
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/Diagnostic original tabs to saved memory reader controls/screenshots/step-030-assertCondition-View_listing_Travel_jour.png",
+      "sha256": "e94ea2d00f0813dfa792b36e81ba1d154de1d398191a4214ee0debedfcdd3558",
+      "bytes": 196244
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro/2026-11-01_032820/xctest_runner_2026-11-01_032902.log",
+      "sha256": "b9fe6c213b32cca45a9a38c9cef4c2102963db02d9900795e57bbda9435ef579",
+      "bytes": 152384
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/maestro.log",
+      "sha256": "500f95641339f618983fbdbd307f84cbc2c62691832ea73886ae8256fabd2f2a",
+      "bytes": 191
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/native-ui-auth-diagnostics.json",
+      "sha256": "8ef54f5f757b3c18c6437b752419fc236f9eaf694de35e6bfe3d0af778fe18ed",
+      "bytes": 76701
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/native-ui-navigation-timing.json",
+      "sha256": "17f1f8d120e6e3e02982802be750f1ea515f45a70cf471c7798a2e6b947d5b72",
+      "bytes": 295
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/native-ui-receipt.json",
+      "sha256": "cb7625b4b768ebbde6886a070e98bba3cef4352b1a06c4f31187b1bc6fab4bf1",
+      "bytes": 11214
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/result.json",
+      "sha256": "a9ca5110d50c86bd3464d447402ae7d2826b94aa4a1fadf73bb66f44d630292e",
+      "bytes": 5927
+    },
+    {
+      "path": "fresh-first-launch/tests/native/diagnostics/_fresh-owned-signin.yaml",
+      "sha256": "4a1df30fbd182f65dcde48a85f284b68293409680bcf5271bbac55ec986a293f",
+      "bytes": 1101
+    },
+    {
+      "path": "fresh-first-launch/tests/native/diagnostics/ios-warm-reader-controls.yaml",
+      "sha256": "8af040b4d208aee4d9b61fe3efc88a84130e6cfc4f879d80078cd72fec3ee585",
+      "bytes": 2290
+    },
+    {
+      "path": "fresh-first-signin.json",
+      "sha256": "76caf299bc231d8b1ec9384592b3de121c1e8f77c1f1f62e5349f64139775bb9",
+      "bytes": 3095
+    },
+    {
+      "path": "setup-commands.json",
+      "sha256": "5b5a1aa4f456f9a2a6d2d6666af319b4d7b2e735fff690ee69c0338332e118d0",
+      "bytes": 19315
+    }
+  ],
+  "retainedFiles": [
+    {
+      "path": "binary-manifest.json",
+      "sha256": "98bc4962626a65fe02f257bb787db02b36f896f2873c23503efd5d401adef707",
+      "bytes": 2621
+    },
+    {
+      "path": "command-timing-redacted.json",
+      "sha256": "e8f6dcc20460229ad13d8530abb0efa3e83ebf38c91f6c734d4a21cb3b642f9c",
+      "bytes": 5943
+    },
+    {
+      "path": "completion-proof.json",
+      "sha256": "ee569ac9ccbdb50b637d5bd689431f95441b6155e66264c8a50be421071ac34f",
+      "bytes": 12424
+    },
+    {
+      "path": "device-ownership.json",
+      "sha256": "f444120b6e3546f32755ddb2d86acf4f7a0af943a9b997bbff5b7bbffb21624f",
+      "bytes": 349
+    },
+    {
+      "path": "device-setup.json",
+      "sha256": "50309e575fc04897963b6cb6f0d3d0403e5e8c5a7205ba877f2321b48809778a",
+      "bytes": 841
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/failure-threads/sampling.json",
+      "sha256": "3d5be2044da0f8353789aa41fc28cc47f81f1de2958c068a0867d37ed43caddc",
+      "bytes": 912
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/junit.xml",
+      "sha256": "29c4568c0da1e48891b3447f8e8022996a11e14a926d58d912c1cc6c3f3c2413",
+      "bytes": 732
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/native-ui-navigation-timing.json",
+      "sha256": "17f1f8d120e6e3e02982802be750f1ea515f45a70cf471c7798a2e6b947d5b72",
+      "bytes": 295
+    },
+    {
+      "path": "diagnostic-warm-reader-controls/result.json",
+      "sha256": "a9ca5110d50c86bd3464d447402ae7d2826b94aa4a1fadf73bb66f44d630292e",
+      "bytes": 5927
+    },
+    {
+      "path": "fresh-first-signin.json",
+      "sha256": "76caf299bc231d8b1ec9384592b3de121c1e8f77c1f1f62e5349f64139775bb9",
+      "bytes": 3095
+    },
+    {
+      "path": "market-failure-hierarchy.json",
+      "sha256": "420a8c104323ae1764d4c52a95438b5514cb6115ed189850b9df34dc632887e6",
+      "bytes": 66244
+    },
+    {
+      "path": "market-failure.png",
+      "sha256": "e94ea2d00f0813dfa792b36e81ba1d154de1d398191a4214ee0debedfcdd3558",
+      "bytes": 196244
+    },
+    {
+      "path": "setup-commands.json",
+      "sha256": "5b5a1aa4f456f9a2a6d2d6666af319b4d7b2e735fff690ee69c0338332e118d0",
+      "bytes": 19315
+    }
+  ],
+  "scope": "Original journey is unaccepted. Successful fresh install/first launch and fixture validation do not establish Market deadline, reader, Messages performance, iOS85 or signed-device acceptance. No new run, app patch, selector relaxation or budget change is inferred."
+}

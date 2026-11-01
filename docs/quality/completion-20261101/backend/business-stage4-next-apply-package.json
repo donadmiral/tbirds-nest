@@ -1,0 +1,139 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "state": "prepared only; no new provider request submitted",
+  "tool": "supabase_apply_migration",
+  "requestPath": "docs/quality/completion-20261101/backend/business-stage4-next-apply-request.json",
+  "source": {
+    "path": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+    "bytes": 7894,
+    "sha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+    "bodyMd5": "a0f0447f063dab4696fb868abe556bff"
+  },
+  "requiresDestructiveConfirmation": true,
+  "confirmationBoundary": "The preceding root request returned an expired two-minute provider confirmation. Refresh only when the coordinator has the user available; complete the ordinary provider confirmation. Earlier child outcomes remain unknown.",
+  "before": {
+    "path": "docs/quality/completion-20261101/backend/business-stage4-recovery-preflight.sql",
+    "requiredField": "allGatesPassed",
+    "requiredValue": true,
+    "freshImmediatelyBeforeApply": true
+  },
+  "after": {
+    "path": "docs/quality/completion-20261101/backend/business-stage4-success-postflight.sql",
+    "requiredField": "stage4Installed",
+    "requiredValue": true,
+    "checksSourceRecordedInProviderJournal": true,
+    "quiescenceSeparateFromInstalledCorrectness": true
+  },
+  "files": [
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage4-next-apply-request.json",
+      "bytes": 8087,
+      "sha256": "b3335edb58a319bbfc4738bfcd435874e94449a26b9c761abea1fde998ea8c69"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage4-recovery-preflight.sql",
+      "bytes": 8486,
+      "sha256": "f656a341306d211e0347e1451a2aed812ee69fe1f457bb4aa32e86aeeed34b58"
+    },
+    {
+      "path": "docs/quality/completion-20261101/backend/business-stage4-success-postflight.sql",
+      "bytes": 11292,
+      "sha256": "b006618b9cd816071ae543df626519a663536edf51d267e1dfbe5b711a4a1d52"
+    }
+  ],
+  "followingStages": [
+    {
+      "number": 5,
+      "name": "private_owner_access",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/05_private_owner_access.sql",
+      "bytes": 9577,
+      "sha256": "4846f94e377a2927759d25275d459a34c1a927de7385abcf69630565a3ba8416",
+      "requiresDestructiveConfirmation": false,
+      "originalStatementIndices": [
+        30
+      ],
+      "expectedBeforeFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+      "expectedAfterFingerprint": "3718506a7cf16a513514502dbf370f89",
+      "publicActivation": false
+    },
+    {
+      "number": 6,
+      "name": "private_finish_signin",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/06_private_finish_signin.sql",
+      "bytes": 10346,
+      "sha256": "88b3d514f77c54afbff94201faded26bdee31976610c90606b666e63ad8f9213",
+      "requiresDestructiveConfirmation": false,
+      "originalStatementIndices": [
+        31
+      ],
+      "expectedBeforeFingerprint": "3718506a7cf16a513514502dbf370f89",
+      "expectedAfterFingerprint": "1eb5ad671173842667ced9e052f232bd",
+      "publicActivation": false
+    },
+    {
+      "number": 7,
+      "name": "private_revocation",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/07_private_revocation.sql",
+      "bytes": 8926,
+      "sha256": "a9869a35210cf5706eb2473781b9ec6d80c2704626e41d346081a17517f2f982",
+      "requiresDestructiveConfirmation": true,
+      "originalStatementIndices": [
+        32,
+        33,
+        35,
+        37,
+        39
+      ],
+      "expectedBeforeFingerprint": "1eb5ad671173842667ced9e052f232bd",
+      "expectedAfterFingerprint": "070a20dc374c50741b19573e21822048",
+      "publicActivation": false
+    },
+    {
+      "number": 8,
+      "name": "activate",
+      "path": "supabase/ops/qa/business-auth-staged-20261031/08_activate.sql",
+      "bytes": 11986,
+      "sha256": "c99f71a8a8c6e11e15d87da156832e15f209e39090f9b06c02874108ddd0c34f",
+      "requiresDestructiveConfirmation": false,
+      "originalStatementIndices": [
+        26,
+        34,
+        36,
+        38,
+        40,
+        7,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "expectedBeforeFingerprint": "070a20dc374c50741b19573e21822048",
+      "expectedAfterFingerprint": "172a1c1313c6c68356021c15a82bf869",
+      "publicActivation": true,
+      "locks": [
+        "public.profiles SHARE ROW EXCLUSIVE",
+        "auth.sessions SHARE ROW EXCLUSIVE"
+      ]
+    }
+  ],
+  "stage8FingerprintBoundary": "The final fingerprint in the source manifest is the local fixture expectation. Enumerate actual hosted eligible RLS tables and verify every exact restrictive policy and all other expected catalog objects; do not use the fixture policy count or final fingerprint alone as hosted acceptance.",
+  "normalReadsReady": [
+    "docs/quality/completion-20261101/backend/business-stage4-recovery-preflight.sql",
+    "docs/quality/completion-20261101/backend/business-stage4-success-postflight.sql",
+    "supabase/ops/qa/business-auth-staged-20261031/postflight.sql",
+    "supabase/ops/check-business-bound-auth-postflight.sql",
+    "supabase/ops/check-music-operations-postflight.sql"
+  ],
+  "cannotBeSubstitutedByReadOnlyChecks": [
+    "Fresh provider confirmation for classified stage 4 and stage 7",
+    "Real confirmed disposable Auth identities for multi-account owned-audio and erasure acceptance",
+    "Actual licensed-catalogue rights and provider acceptance; catalogue activation remains deferred"
+  ]
+}

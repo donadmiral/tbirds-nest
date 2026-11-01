@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-11-01T04:01:37.803477+00:00",
+  "kind": "authenticated-official-EAS-local-archive-inspection",
+  "sourceCommit": "d836f88d4e71cb3774dff24341eeb81b9e496ab4",
+  "sourceTree": "b203bae96adfa82ba6c43f639176a3a3fbfb88ce",
+  "cleanCheckoutBeforeAndAfter": true,
+  "checkoutPath": "/workspace/scratch/d6c5cb891d7b/signed-release-checkout",
+  "archiveDirectory": "/tmp/platinum-production-ios-archive-d836f88d-20261101-0403-a6b93d",
+  "officialCliVersion": "27.2.0",
+  "officialCommand": [
+    "build:inspect",
+    "-p",
+    "ios",
+    "-s",
+    "archive",
+    "-e",
+    "production",
+    "-o",
+    "/tmp/platinum-production-ios-archive-d836f88d-20261101-0403-a6b93d"
+  ],
+  "CI": "1",
+  "commandExitCode": 0,
+  "archiveStageImplementation": {
+    "sourceSha256": "24bc0d76b90274576d1e108376028f3160c938bf46cfe29856235e0813fe733c",
+    "gitCopyImplementationSha256": "cf95abc6ad38925bb9c928e157c405a48725efb36c26bf078b7a972190369e26",
+    "behavior": "The archive stage makes a shallow source copy and copies it to the output directory. It does not invoke the build/submit branch or increment remote app versions.",
+    "profileResolvedByArchiveStage": false
+  },
+  "productionConfigCheckedSeparately": {
+    "method": "@expo/config getConfig under the exact declared production profile environment and EAS_BUILD=true; only non-secret resolved fields retained",
+    "resolvedConfigSha256": "917cd82f35a930f8da769974ba5ee97492fabf05c4312f66e766857acffac603",
+    "environmentKeys": [
+      "EXPO_PUBLIC_APP_ENV",
+      "EXPO_PUBLIC_GIPHY_KEY",
+      "EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED",
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY",
+      "EXPO_PUBLIC_SUPABASE_URL"
+    ],
+    "serverSideBuildEnvironmentNotResolvedByThisCheck": true
+  },
+  "archiveInputs": {
+    "regularWorktreeFiles": 963,
+    "sourceBlobMismatches": 0,
+    "untrackedWorktreeInputs": 0,
+    "symbolicLinks": 0,
+    "sourcePayloadBytes": 12519093,
+    "worktreeDirectorySha256": "8ac3ca70cd4146b17a3dbc6c132c17acb67b7212a3c06f42377604f18f5c8fc6",
+    "fullOutputDirectorySha256IncludingGitMetadata": "cbe450854b2b0553607b35a8da3f317231238865b3fc2d3575d6534573c2bf07",
+    "retainedShallowGitMetadataFiles": 28,
+    "shallowGitHeadVerified": "d836f88d4e71cb3774dff24341eeb81b9e496ab4",
+    "credentialBearingGitOverridesPresent": false,
+    "privateEnvOrSigningFilesPresent": false,
+    "allTrackedProductionSourceModulePluginAssetVendorInputsPresent": true,
+    "sourceFileManifestSha256": "19b1d5640dcea59b9b52ef4606a50ed716080ba94119d20ea2bc8d179d83700f"
+  },
+  "normalConfiguration": {
+    "name": "PlatinumCircles",
+    "owner": "donadmiral",
+    "slug": "platinum-circles",
+    "version": "1.1.0",
+    "sdkVersion": "54.0.0",
+    "iosBundleIdentifier": "app.platinumcircles.mobile",
+    "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+    "scheme": "platinum-circles",
+    "environment": "production",
+    "backendHost": "prlkikhckbifseosbukl.supabase.co",
+    "privateMediaSessionsEnabled": "false",
+    "productionProfileEnvironment": "production",
+    "configuredPluginCount": 13,
+    "allPlugins": [
+      "expo-notifications",
+      "@config-plugins/react-native-callkeep",
+      "./plugins/withVoipPushKit",
+      "expo-secure-store",
+      "expo-image-picker",
+      "expo-video",
+      "./plugins/withMedia3Compatibility",
+      "expo-av",
+      "expo-build-properties",
+      "expo-font",
+      "expo-asset",
+      "react-native-compressor",
+      "expo-location"
+    ],
+    "remoteBuildCreated": false
+  },
+  "memoryMovieCapability": {
+    "ios": 0,
+    "android": 0,
+    "promoted": false
+  },
+  "nativePrebuildPerformed": false,
+  "nativeCompilePerformed": false,
+  "signedArchiveProduced": false,
+  "remoteBuildCreated": false,
+  "updatePublished": false,
+  "submissionCreated": false,
+  "productionBackendMutated": false,
+  "credentialValuesSavedToReceipt": false,
+  "remainingGates": [
+    "Actual installed iOS capture/export/decode and original journey acceptance.",
+    "Approved capability source promotion and fresh archive/source binding after any product change.",
+    "Exact backend/release acceptance and actual server-side build environment resolution.",
+    "Actual signed build, distribution and physical-device acceptance."
+  ],
+  "scope": "This proves the official CLI can authenticate and prepare the clean production source payload at d836, with all963 worktree files matching exact Git blobs. It is local source-archive preparation, not an IPA, uploaded build, final release candidate after promotion, TestFlight delivery or physical installation."
+}

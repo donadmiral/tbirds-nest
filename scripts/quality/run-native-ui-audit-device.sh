@@ -45,8 +45,12 @@ if [[ "$platform" == ios ]]; then
   binary="$PWD/native-audit-binary/PlatinumQA.app"
   test -s "$binary/main.jsbundle"
   codesign --verify --deep --strict "$binary"
-  device="$(python3 scripts/quality/native-ui-start-ios-device.py --manifest "$binary_manifest" --output native-ui-logs/device-setup.json)"
-  device_setup_args=(--device-setup "$PWD/native-ui-logs/device-setup.json")
+  python3 scripts/quality/native-ui-ios-immutable-preflight.py --binary "$binary" --manifest "$binary_manifest" \
+    --expected-source "$GITHUB_SHA" --expected-tree "$source_tree" --output native-ui-logs/immutable-preflight.json
+  device="$(python3 scripts/quality/native-ui-start-ios-device.py --manifest "$binary_manifest" \
+    --immutable-preflight native-ui-logs/immutable-preflight.json --output native-ui-logs/device-setup.json)"
+  device_setup_args=(--device-setup "$PWD/native-ui-logs/device-setup.json" \
+    --immutable-preflight "$PWD/native-ui-logs/immutable-preflight.json")
   xcrun simctl spawn "$device" log stream --style compact --level info --predicate 'process == "PlatinumQA"' > native-ui-logs/app.log 2>&1 &
   log_pid=$!
 elif [[ "$platform" == android ]]; then

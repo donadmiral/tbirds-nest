@@ -219,7 +219,7 @@ unittest.main()
 test('disposable preparation retains exact anchors and rejects a second overlay before native build', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pc-audit-prepare-'));
   try {
-    for (const file of ['scripts/quality/prepare-native-ui-audit.cjs', 'scripts/quality/native-ui-audit-runner.py', 'scripts/quality/native-ui-audit-binary.py', 'scripts/quality/native-ui-ios-compatibility.py', 'scripts/quality/native-ui-start-ios-device.py', 'scripts/quality/native-ui-ios-created-device.py', 'scripts/quality/native-ui-ios-audit-recovery.py', 'scripts/quality/run-native-ui-audit-device.sh', 'tests/native/audit/manifest.json', 'tests/native/entry.js', 'src/navigation/AppNavigator.tsx']) {
+    for (const file of ['scripts/quality/prepare-native-ui-audit.cjs', 'scripts/quality/native-ui-audit-runner.py', 'scripts/quality/native-ui-audit-binary.py', 'scripts/quality/native-ui-ios-compatibility.py', 'scripts/quality/native-ui-start-ios-device.py', 'scripts/quality/native-ui-ios-created-device.py', 'scripts/quality/native-ui-ios-audit-recovery.py', 'scripts/quality/run-native-ui-audit-device.sh', 'scripts/quality/native-ui-ios-immutable-preflight.py', 'tests/native/audit/manifest.json', 'tests/native/entry.js', 'src/navigation/AppNavigator.tsx']) {
       fs.mkdirSync(path.dirname(path.join(directory, file)), { recursive: true }); fs.copyFileSync(file, path.join(directory, file));
     }
     fs.mkdirSync(path.join(directory, 'native-ui-logs/overlays'), { recursive: true });
@@ -227,9 +227,9 @@ test('disposable preparation retains exact anchors and rejects a second overlay 
     const env = { ...process.env, CI: 'true', EXPO_PUBLIC_APP_ENV: 'qa', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'native-ui-synthetic-no-provider-key', GITHUB_SHA: 'a'.repeat(40) };
     const run = () => spawnSync(process.execPath, ['scripts/quality/prepare-native-ui-audit.cjs'], { cwd: directory, env, encoding: 'utf8' });
     assert.equal(run().status, 0); const source = JSON.parse(fs.readFileSync(path.join(directory, 'native-ui-logs/source.json')));
-    assert.equal(source.audit.overlays.length, 3); assert.equal(Object.keys(source.audit.inputs).length, 9);
+    assert.equal(source.audit.overlays.length, 3); assert.equal(Object.keys(source.audit.inputs).length, 10);
     assert.equal(source.audit.inputs['scripts/quality/native-ui-ios-compatibility.py'], createHash('sha256').update(fs.readFileSync(path.join(directory, 'scripts/quality/native-ui-ios-compatibility.py'))).digest('hex'));
-    for (const file of ['scripts/quality/native-ui-start-ios-device.py', 'scripts/quality/native-ui-ios-created-device.py', 'scripts/quality/native-ui-ios-audit-recovery.py', 'scripts/quality/run-native-ui-audit-device.sh']) {
+    for (const file of ['scripts/quality/native-ui-start-ios-device.py', 'scripts/quality/native-ui-ios-created-device.py', 'scripts/quality/native-ui-ios-audit-recovery.py', 'scripts/quality/run-native-ui-audit-device.sh', 'scripts/quality/native-ui-ios-immutable-preflight.py']) {
       assert.equal(source.audit.inputs[file], createHash('sha256').update(fs.readFileSync(path.join(directory, file))).digest('hex'));
     }
     assert.equal(source.audit.applicationSourceCommit, 'a'.repeat(40)); assert.notEqual(run().status, 0);

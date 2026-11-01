@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum completion 4e8b8bd5b4a34fb896070d69f98fcbec - iOS 18.5 - 906782C6-6E69-4600-85A7-B91F42B6D579" tests="1" failures="0" time="45.935" timestamp="2026-11-01T02:33:34">
+    <testcase id="Audit CreateListing" name="Audit CreateListing" classname="Audit CreateListing" file="tests/native/audit/flows/market-createlisting.yaml" time="45.906" timestamp="2026-11-01T02:33:34" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

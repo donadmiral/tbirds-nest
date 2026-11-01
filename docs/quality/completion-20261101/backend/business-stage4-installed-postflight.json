@@ -1,0 +1,84 @@
+{
+  "formatVersion": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "rootRequestEvidence": "business-stage4-authorized-attempt-2.json",
+  "result": {
+    "scope": "Exact private stage-4 installation only. False at the known stage-3 baseline is expected. No Auth issuance, downstream deployment or provider acceptance is inferred.",
+    "marker": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-4",
+    "executor": "postgres",
+    "read_only": true,
+    "fingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+    "observed_at": "2026-11-01T03:57:47.172451+00:00",
+    "catalog_rows": 100,
+    "private_tables": [
+      "accounts",
+      "attempts",
+      "device_keys",
+      "events",
+      "grants",
+      "owner_seats",
+      "sessions"
+    ],
+    "targetFunction": {
+      "acl": "{postgres=X/postgres}",
+      "owner": "postgres",
+      "bodyMd5": "a0f0447f063dab4696fb868abe556bff",
+      "language": "plpgsql",
+      "signature": "business_auth.triniti_business_signin_check(text,text,text,text,text)",
+      "volatility": "v",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definitionMd5": "c776b6775fd2f5d4558d2ee7fbb21193",
+      "securityDefiner": true
+    },
+    "expectedBodyMd5": "a0f0447f063dab4696fb868abe556bff",
+    "stage4Installed": true,
+    "activityBoundary": "Quiescence is reported separately from installed correctness and must be checked freshly before the next supported apply. No future-writer exclusion is claimed.",
+    "private_table_rows": {
+      "events": 0,
+      "grants": 0,
+      "accounts": 0,
+      "attempts": 0,
+      "sessions": 0,
+      "device_keys": 0,
+      "owner_seats": 0
+    },
+    "function_uniqueness": {
+      "columns": [
+        "proname",
+        "proargtypes",
+        "pronamespace"
+      ],
+      "enforced": true,
+      "definition": "CREATE UNIQUE INDEX pg_proc_proname_args_nsp_index ON pg_catalog.pg_proc USING btree (proname, proargtypes, pronamespace)"
+    },
+    "stage4_journal_rows": 1,
+    "expectedSourceSha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+    "private_table_access": 0,
+    "private_tables_empty": true,
+    "other_client_activity": [],
+    "prepared_transactions": 0,
+    "private_schema_access": 0,
+    "business_auth_sessions": 0,
+    "target_function_absent": false,
+    "private_function_access": 0,
+    "candidateMigrationJournal": [
+      {
+        "name": "qa_business_auth_04_private_member_signin_20261101",
+        "version": "20261101035706",
+        "queryBytes": 7894,
+        "querySha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+        "statementCount": 1
+      }
+    ],
+    "expectedStage4Fingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c",
+    "function_uniqueness_enforced": true,
+    "unfenced_authenticated_tables": 0,
+    "quiescentForNextFreshPreflight": true,
+    "other_active_or_open_client_transactions": 0
+  },
+  "stage4Installed": true,
+  "priorUnknownRequestsRemainRecorded": true,
+  "followingStep": "Apply unchanged private stage5 through supported tool after its exact guard."
+}

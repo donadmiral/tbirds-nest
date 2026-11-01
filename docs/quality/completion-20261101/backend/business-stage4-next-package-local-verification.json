@@ -1,0 +1,20 @@
+{
+  "formatVersion": 1,
+  "completedAtUtc": "2026-11-01T03:51:20.224Z",
+  "scope": "Isolated actual SQL fixture; no provider request, hosted mutation, Auth issuance or external acceptance.",
+  "checksPassed": 7,
+  "checks": [
+    "request preserves exact reviewed query bytes, QA project and official confirmation classification",
+    "known private stage 3 returns not installed without invoking an application function",
+    "a stage 4 catalog without the provider migration record is not accepted",
+    "the exact private stage 4 plus source-identical journal passes all installation gates",
+    "an unreviewed execute grant fails installation acceptance",
+    "a source-different migration journal fails despite an unchanged installed function",
+    "an unexpected public activation hook fails the private-stage gate"
+  ],
+  "allPassed": true,
+  "sourceSha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+  "postflightSha256": "b006618b9cd816071ae543df626519a663536edf51d267e1dfbe5b711a4a1d52",
+  "sourceUnchanged": true,
+  "liveMigrationHistoryWasNotModified": true
+}

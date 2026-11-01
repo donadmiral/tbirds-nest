@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum completion 4e8b8bd5b4a34fb896070d69f98fcbec - iOS 18.5 - 906782C6-6E69-4600-85A7-B91F42B6D579" tests="1" failures="1" time="103.646" timestamp="2026-11-01T03:15:54">
+    <testcase id="Audit article text draft controls" name="Audit article text draft controls" classname="Audit article text draft controls" file="tests/native/audit/flows/feed-article-draft.yaml" time="103.274" timestamp="2026-11-01T03:15:54" status="ERROR">
+      <failure>No visible element found: "An audit article"</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

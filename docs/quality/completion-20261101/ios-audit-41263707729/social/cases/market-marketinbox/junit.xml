@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum completion 4e8b8bd5b4a34fb896070d69f98fcbec - iOS 18.5 - 906782C6-6E69-4600-85A7-B91F42B6D579" tests="1" failures="0" time="48.591" timestamp="2026-11-01T02:34:53">
+    <testcase id="Audit MarketInbox" name="Audit MarketInbox" classname="Audit MarketInbox" file="tests/native/audit/flows/market-marketinbox.yaml" time="48.557" timestamp="2026-11-01T02:34:53" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

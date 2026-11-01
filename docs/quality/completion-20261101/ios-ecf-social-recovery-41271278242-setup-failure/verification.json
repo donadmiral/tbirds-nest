@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-11-01T04:08:04.931442+00:00",
+  "runId": 41271278242,
+  "jobId": 124744394331,
+  "consumerCommit": "135a9810846cc1a4b85a290a3213ede5d1b318db",
+  "applicationSourceCommit": "ecf5e5a960106d7cb04c211ee99e9e89c09642cc",
+  "applicationSourceTree": "38a64a6d47eafe0f976708edcc338b34204811f4",
+  "producerRunId": 41266020074,
+  "producerArtifactId": 13067374445,
+  "artifact": {
+    "id": 13069277058,
+    "bytes": 78710,
+    "sha256": "213fedec073f814c02eddc55f34f588b61c0f81ff8a921c9289f8d491a828cbf",
+    "zipHashVerified": true,
+    "safeExtractionVerified": true
+  },
+  "boundary": "First owned-device create timed out before app installation or any case execution.",
+  "immutableCompatibility": {
+    "allFiveActualPrebootProbesPassed": true,
+    "hostAndAppArchitecture": "x86_64",
+    "xcode": "16.4/16F6",
+    "sdk": "18.5",
+    "actualSignatureVerified": true
+  },
+  "failedCommand": {
+    "stage": "create-owned-device",
+    "timeoutSeconds": 120,
+    "startedAtEpochMs": 1793505645568,
+    "status": "timed-out",
+    "stdoutBytes": 0,
+    "stdoutTail": "",
+    "stdoutTruncated": false,
+    "stderrBytes": 0,
+    "stderrTail": "",
+    "stderrTruncated": false,
+    "leaderExitCodeAtTimeout": null,
+    "elapsedSeconds": 120.00089978199992,
+    "cleanup": {
+      "scope": "owned command group and original child leader only",
+      "permissionIssues": [],
+      "directLeaderSignals": [],
+      "wallBudgetSeconds": 0.6,
+      "leaderExitCode": -15,
+      "leaderReaped": true
+    },
+    "finishedAtEpochMs": 1793505765642
+  },
+  "systemDeveloperDirectory": "/Applications/Xcode_16.4.app/Contents/Developer",
+  "configuredDeveloperDirectory": "/Applications/Xcode_16.4.app/Contents/Developer",
+  "sampleObservation": {
+    "bothBoundedSamplesCompleted": true,
+    "simctl": "Waits in SimDiskImageManager kickstartServiceWithError / synchronous XPC request.",
+    "CoreSimulatorService": "Waits in trustedMountDirectoriesWithError and _onQueue_checkConnection.",
+    "appProcessSampled": false,
+    "productFailureCauseClaimed": false,
+    "differentSelectedDeveloperDirectoryEstablished": false
+  },
+  "caseAccounting": {
+    "expected": 31,
+    "attempted": 0,
+    "passed": 0,
+    "failed": 0,
+    "unfinished": 0,
+    "notAttempted": 31
+  },
+  "flowCopiesMaterializedAndReversed": [
+    {
+      "path": "tests/native/audit/flows/jobs-application-entry.yaml",
+      "beforeSha256": "4b32d33b23a4c43260bcf2cb841209f5f7e9479540ab42350ebffa9564521ef3",
+      "executedSha256": "cf022f31991d07d8e2a3298674ce537c26f6fb6a06eb08849fcf4fd851063c78",
+      "exactReversalVerified": true
+    },
+    {
+      "path": "tests/native/audit/flows/feed-article-draft.yaml",
+      "beforeSha256": "87af3111e5d879c1a760e0469a831f438a213b96391c8ac6aadfde9fe86be540",
+      "executedSha256": "1fd283b617325b75aa8b967b98dc746a4aa4edd796b25e3d7b4e56f60e0f70e7",
+      "exactReversalVerified": true
+    }
+  ],
+  "correctedFlowRuntimeAcceptance": false,
+  "noApplicationInstalled": true,
+  "noApplicationCaseExecuted": true,
+  "createdDeviceUuidReturned": false,
+  "simulatorCreationResultAfterChildTerminationClaimed": false,
+  "ownedCommandLeaderReaped": true,
+  "additionalRetrySubmitted": false,
+  "evidenceSha256": {
+    "audit-manifest.json": "0a5b4f2af0ea3e5ac5befce43ac3a4af46c347c83653467ba9ddfd3901c26a3d",
+    "binary-manifest.json": "2a145a7a443ab4a290eecd65b999da8b15172b0a04d9a9ac57c5bbd311f26b0c",
+    "cold-startup/com.apple.CoreSimulator.CoreSimulatorService.sample.txt": "77f592922d7c93044cd1fd3d86060ab4accafd3d8824293be25496fba6e4863e",
+    "cold-startup/diagnostic.json": "4fe6fc4d8571551f68df930d1051e0679f8b0b7b7a9fdc3021e2ee2c84d9141b",
+    "cold-startup/simctl.sample.txt": "c1c4466edcca2ffad7eeaee6993d8cd02502cb0a8d3d9a8ce9f870152ad7d6f6",
+    "consumer-proof.json": "d4db4de7233dcf4f4dceb9a54602abe9a53a9a65d58b5e28a6b0a3a914fe41d8",
+    "executed-flow-proof.json": "7e91e5f01469cdfebcd70ed60cac8fe295367f53c160267fd59b0c46087c131f",
+    "executed-flows/feed-article-draft.yaml": "1fd283b617325b75aa8b967b98dc746a4aa4edd796b25e3d7b4e56f60e0f70e7",
+    "executed-flows/jobs-application-entry.yaml": "cf022f31991d07d8e2a3298674ce537c26f6fb6a06eb08849fcf4fd851063c78",
+    "setup-commands.json": "d8683883f9fa6db27425537a8686bb385ac65c9188ecfde43e2ca685915fba0c"
+  }
+}

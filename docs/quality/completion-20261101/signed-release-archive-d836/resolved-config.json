@@ -1,0 +1,31 @@
+{
+  "name": "PlatinumCircles",
+  "owner": "donadmiral",
+  "slug": "platinum-circles",
+  "version": "1.1.0",
+  "sdkVersion": "54.0.0",
+  "iosBundleIdentifier": "app.platinumcircles.mobile",
+  "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+  "scheme": "platinum-circles",
+  "environment": "production",
+  "backendHost": "prlkikhckbifseosbukl.supabase.co",
+  "privateMediaSessionsEnabled": "false",
+  "productionProfileEnvironment": "production",
+  "configuredPluginCount": 13,
+  "allPlugins": [
+    "expo-notifications",
+    "@config-plugins/react-native-callkeep",
+    "./plugins/withVoipPushKit",
+    "expo-secure-store",
+    "expo-image-picker",
+    "expo-video",
+    "./plugins/withMedia3Compatibility",
+    "expo-av",
+    "expo-build-properties",
+    "expo-font",
+    "expo-asset",
+    "react-native-compressor",
+    "expo-location"
+  ],
+  "remoteBuildCreated": false
+}
