@@ -1,4 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "pc_sha=$VERCEL_GIT_PREVIOUS_SHA; case \"$pc_sha\" in ''|*[!0-9a-fA-F]*) exit 1;; esac; [ \"${#pc_sha}\" -eq 40 ] || exit 1; [ \"$pc_sha\" = \"$(git rev-parse HEAD)\" ] && exit 1; git diff --quiet \"$pc_sha\" HEAD -- . ../shared && exit 0; exit 1"
+  "ignoreCommand": "[ \"$VERCEL_ENV\" = \"production\" ] && exit 1; pc_sha=$VERCEL_GIT_PREVIOUS_SHA; case \"$pc_sha\" in ''|*[!0-9a-fA-F]*) exit 1;; esac; [ \"${#pc_sha}\" -eq 40 ] || exit 1; [ \"$pc_sha\" = \"$(git rev-parse HEAD)\" ] && exit 1; git diff --quiet \"$pc_sha\" HEAD -- . ../shared && exit 0; exit 1"
 }
