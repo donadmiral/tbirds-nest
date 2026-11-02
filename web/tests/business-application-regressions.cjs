@@ -29,11 +29,13 @@ const memberId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 const device = { device_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', device_key: 'ab'.repeat(32) };
 const boundSession = { business_id: businessId, member_id: memberId, role: 'owner', session: { access_token: 'synthetic-bound-access-token-only', refresh_token: 'synthetic-bound-refresh-only' } };
 const ownedBusiness = { business_id: businessId, full_name: 'Example Business', username: 'example_business', avatar_url: null, role: 'owner', category: 'Media', is_verified: true, member_count: 2, post_count: 3 };
+const missingBusinessContract = () => ({ data: null, error: { code: 'PGRST202', message: 'Could not find the function public.business_session_allowed without parameters in the schema cache' } });
+const legacyBusinessResponse = () => ({ data: { token_hash: 'fa'.repeat(32), email: 'fixture@example.test' }, error: null });
 
 function harness(options = {}) {
   const slots = [], effects = [], timers = new Map();
   let cursor = 0, tree, timerId = 0, stateWrites = 0, callback, viewer = options.viewer === undefined ? 'owner-a' : options.viewer, accessToken = 'synthetic-personal-session';
-  const calls = { reads: [], inserts: [], checks: [], invokes: [], verifies: [], sessions: [], routes: [], unsubscribes: 0 };
+  const calls = { reads: [], inserts: [], checks: [], invokes: [], verifies: [], sessions: [], routes: [], unsubscribes: 0, exchanges: [], isolated: [], revokes: 0 };
   const router = { replace: route => calls.routes.push(route), refresh() {} };
   const storage = new Map([['pc:business-device:v2', JSON.stringify(device)]]);
   const localStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) };
@@ -44,6 +46,17 @@ function harness(options = {}) {
   let insert = () => ({ error: null });
   let check = () => ({ data: true, error: null });
   let businesses = () => ({ data: options.businesses ?? [ownedBusiness], error: null });
+  let contract = () => ({ data: true, error: null });
+  let exchange = () => ({ data: { user: { id: businessId }, session: { ...boundSession.session, user: { id: businessId } } }, error: null });
+  let legacyProfile = () => ({ data: { id: businessId, account_type: 'business', username: 'example_business', deactivated_at: null }, error: null });
+  const isolated = {
+    auth: {
+      verifyOtp(args) { calls.exchanges.push(args); return Promise.resolve().then(() => exchange(args)); },
+      getUser: () => Promise.resolve({ data: { user: { id: businessId } }, error: null }),
+      signOut: async args => { assert.equal(args.scope, 'local'); calls.revokes++; },
+    },
+    from(table) { assert.equal(table, 'profiles'); return { select: () => ({ eq: () => ({ single: () => Promise.resolve().then(legacyProfile) }) }) }; },
+  };
   let invoke = () => ({ data: boundSession, error: null });
   let install = tokens => { viewer = businessId; accessToken = tokens.access_token; const selected = session(); callback?.('SIGNED_IN', selected); return { data: { user: selected.user, session: selected }, error: null }; };
   const same = (a, b) => a && b && a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
@@ -76,7 +89,7 @@ function harness(options = {}) {
       };
       return chain;
     },
-    rpc(name, args) { calls.checks.push({ name, args }); return Promise.resolve().then(() => name === 'get_my_businesses' ? businesses() : check(args.p_username)); },
+    rpc(name, args) { calls.checks.push({ name, args }); return Promise.resolve().then(() => name === 'get_my_businesses' ? businesses() : name === 'business_session_allowed' ? contract() : check(args.p_username)); },
     functions: { invoke(name, args) { calls.invokes.push({ name, args }); return Promise.resolve().then(() => invoke(args)); } },
   };
   const jsx = (type, props) => ({ type, props });
@@ -84,6 +97,7 @@ function harness(options = {}) {
   const environment = {
     module: moduleObject, exports: moduleObject.exports, queueMicrotask,
     Error, AbortController, Uint8Array, crypto: webcrypto, localStorage,
+    process: { env: { NEXT_PUBLIC_SUPABASE_URL: 'https://fixture.supabase.co', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'synthetic-public-key' } },
     setTimeout(fn) { const id = ++timerId; timers.set(id, fn); return id; }, clearTimeout(id) { timers.delete(id); },
     window: { location: { assign: route => calls.routes.push(route) } },
     require(id) {
@@ -104,7 +118,9 @@ function harness(options = {}) {
     if (accessModules.has(file)) return accessModules.get(file);
     const exported = {}; accessModules.set(file, exported);
     const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-    vm.runInNewContext(code, { ...environment, exports: exported, require: id => loadAccess(path.resolve(path.dirname(file), id + '.ts')) });
+    vm.runInNewContext(code, { ...environment, exports: exported, require: id => id === '@supabase/supabase-js'
+      ? { createClient: (url, key, config) => { calls.isolated.push({ url, key, config }); assert.equal(config.auth.persistSession, false); assert.equal(config.auth.autoRefreshToken, false); assert.equal(config.auth.detectSessionInUrl, false); return isolated; } }
+      : loadAccess(path.resolve(path.dirname(file), id + '.ts')) });
     return exported;
   }
   const access = loadAccess(path.resolve(__dirname, '../lib/businessAccess.ts'));
@@ -120,6 +136,7 @@ function harness(options = {}) {
     get text() { return text(tree); }, get nodes() { return nodes(tree); }, get stateWrites() { return stateWrites; }, get timerCount() { return timers.size; },
     setRead(fn) { read = fn; }, setInsert(fn) { insert = fn; }, setCheck(fn) { check = fn; }, setAuth(fn) { getUser = fn; }, setInvoke(fn) { invoke = fn; }, setInstall(fn) { install = fn; }, setSessionRead(fn) { getSession = fn; },
     setBusinesses(fn) { businesses = fn; },
+    setContract(fn) { contract = fn; }, setExchange(fn) { exchange = fn; }, setLegacyProfile(fn) { legacyProfile = fn; },
     setViewer(next, emit = true, token = 'synthetic-personal-session') { viewer = next; accessToken = token; if (emit) callback?.(next ? 'SIGNED_IN' : 'SIGNED_OUT', session()); render(); },
     async runTimers() { const running = [...timers.values()]; timers.clear(); running.forEach(fn => { void fn(); }); await flush(); },
     submit() { find(n => n.type === 'form').props.onSubmit({ preventDefault() {} }); render(); },
@@ -437,4 +454,69 @@ test('owned-business list failures offer retry and old account rows cannot reapp
   assert.match(h.text, /businesses could not be loaded/); assert.doesNotMatch(h.text, /private provider detail/);
   const response = deferred(); h.setBusinesses(() => response.promise); h.click('Retry'); await h.flush(); h.setBusinesses(() => ({ data: [], error: null })); h.setViewer('other-owner'); await h.flush();
   response.resolve({ data: [ownedBusiness], error: null }); await h.flush(); assert.doesNotMatch(h.text, /Example Business/); assert.match(h.text, /No businesses yet/);
+});
+
+test('web legacy selection keeps the registered browser identity and exchanges without altering the viewer', async () => {
+  const h = await ready({ page: 'login' }); h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse);
+  h.storage.set('pc_business_device_id', 'previously-registered-browser');
+  h.change('handle', 'example_business'); h.change('code', 'fixture-code'); h.submit(); await h.flush();
+  assert.equal(h.calls.invokes[0].args.body.device_id, 'previously-registered-browser');
+  assert.equal('device_key' in h.calls.invokes[0].args.body, false); assert.equal(h.calls.exchanges.length, 1);
+  assert.equal(h.calls.verifies.length, 0); assert.equal(h.calls.sessions.length, 1); assert.deepEqual(h.calls.routes, ['/studio']);
+});
+
+for (const failure of ['denied', 'network', 'malformed', 'wrong-rpc']) test(`web ${failure} contract probe never falls back to legacy`, async () => {
+  const h = await ready({ page: 'login' }); h.setInvoke(legacyBusinessResponse);
+  h.setContract(() => {
+    if (failure === 'network') throw Error('private provider message');
+    return failure === 'malformed' ? { data: null, error: null } : { data: null, error: failure === 'denied'
+      ? { code: '42501', message: 'BUSINESS_SESSION_REQUIRED' }
+      : { code: 'PGRST202', message: 'Could not find the function public.another_function' } };
+  });
+  h.change('handle', 'example_business'); h.change('code', 'fixture-code'); h.submit(); await h.flush();
+  assert.equal(h.calls.invokes.length, 0); assert.equal(h.calls.exchanges.length, 0); assert.equal(h.calls.sessions.length, 0);
+});
+
+for (const failure of ['mixed-bound', 'denial', 'wrong-business', 'inactive']) test(`web legacy ${failure} preserves the selected account`, async () => {
+  const h = await ready({ page: 'login' }); h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse);
+  if (failure === 'mixed-bound') h.setInvoke(() => ({ data: { ...boundSession, token_hash: 'fa'.repeat(32) }, error: null }));
+  if (failure === 'denial') h.setInvoke(() => ({ data: { error: 'Device blocked' }, error: { status: 403 } }));
+  if (failure === 'wrong-business') h.setLegacyProfile(() => ({ data: { id: businessId, account_type: 'business', username: 'another_business', deactivated_at: null }, error: null }));
+  if (failure === 'inactive') h.setLegacyProfile(() => ({ data: { id: businessId, account_type: 'business', username: 'example_business', deactivated_at: '2026-11-02T00:00:00Z' }, error: null }));
+  h.change('handle', 'example_business'); h.change('code', 'fixture-code'); h.submit(); await h.flush();
+  assert.equal(h.calls.sessions.length, 0); assert.equal(h.calls.routes.length, 0);
+  assert.equal(h.calls.revokes, ['mixed-bound', 'denial'].includes(failure) ? 0 : 1);
+});
+
+test('web legacy owner requests use only the actual application contract and preserve server denial', async () => {
+  for (const denied of [false, true]) {
+    const h = await ready({ read: () => history([row('approved-id', 'approved')]) }); h.setContract(missingBusinessContract);
+    h.setInvoke(() => denied ? { data: { error: 'Business owner access is unavailable.' }, error: { status: 403 } } : legacyBusinessResponse());
+    h.click('Open business'); await h.flush();
+    assert.equal(h.calls.invokes.length, 1); assert.equal(h.calls.invokes[0].args.body.application_id, 'approved-id');
+    assert.deepEqual(Object.keys(h.calls.invokes[0].args.body), ['application_id']);
+    assert.equal(h.calls.sessions.length, denied ? 0 : 1); assert.equal(h.calls.exchanges.length, denied ? 0 : 1);
+  }
+});
+
+test('web legacy owned-list launch resolves only a unique approved application owned by the viewer', async () => {
+  for (const count of [0, 1, 2]) {
+    const h = await ready({ page: 'owned', read: () => history(Array.from({ length: count }, (_, index) => row(`application-${index}`, 'approved'))) });
+    h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse); h.click('Open Studio'); await h.flush();
+    assert.equal(h.calls.sessions.length, count === 1 ? 1 : 0); assert.equal(h.calls.invokes.length, count === 1 ? 1 : 0);
+    const read = h.calls.reads.at(-1); assert.equal(read.applicant_id, 'owner-a'); assert.equal(read.status, 'approved'); assert.equal(read.desired_username, 'example_business'); assert.equal(read.limit, 2);
+  }
+});
+
+test('a late web legacy exchange after account change cannot install and revokes only its attempted session', async () => {
+  const h = await ready({ page: 'login' }), wait = deferred(); h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse); h.setExchange(() => wait.promise);
+  h.change('handle', 'example_business'); h.change('code', 'fixture-code'); h.submit(); await h.flush(); assert.equal(h.calls.exchanges.length, 1);
+  h.setViewer('other-personal-account'); wait.resolve({ data: { user: { id: businessId }, session: { ...boundSession.session, user: { id: businessId } } }, error: null });
+  await h.flush(); assert.equal(h.calls.sessions.length, 0); assert.equal(h.calls.revokes, 1); assert.equal(h.calls.routes.length, 0);
+});
+
+test('web legacy exchange rejects a backend that enables binding before final handoff', async () => {
+  const h = await ready({ page: 'login' }); let probes = 0; h.setContract(() => ++probes < 3 ? missingBusinessContract() : { data: true, error: null }); h.setInvoke(legacyBusinessResponse);
+  h.change('handle', 'example_business'); h.change('code', 'fixture-code'); h.submit(); await h.flush();
+  assert.equal(h.calls.exchanges.length, 1); assert.equal(h.calls.sessions.length, 0); assert.equal(h.calls.revokes, 1);
 });

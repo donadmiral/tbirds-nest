@@ -5,6 +5,12 @@ export type ErasureStatus = {
   requestedAt: string; updatedAt: string; completedAt: string | null;
   filesTotal: number; filesErased: number;
 };
+// The production visual baseline has an authenticated, synchronous account
+// deletion contract. Its acknowledgement does not certify Storage erasure.
+export type LegacyAccountDeletion = {
+  requestId: string; state: 'account_deleted'; filesTotal: 0; filesErased: 0;
+};
+export type AccountDeletionStatus = ErasureStatus | LegacyAccountDeletion;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const states = new Set(['queued', 'erasing', 'retry', 'identity_pending', 'retention_review', 'completed']);
 export function parseErasureReceipt(value: string | null): ErasureReceipt | null {
@@ -27,7 +33,10 @@ export function parseErasureStatus(value: unknown, requestId: string): ErasureSt
   }
   return status;
 }
-export function erasureMessage(status: ErasureStatus): { title: string; detail: string } {
+export function erasureMessage(status: AccountDeletionStatus): { title: string; detail: string } {
+  if (status.state === 'account_deleted') return {
+    title: 'Account deleted', detail: 'Your account has been deleted.',
+  };
   if (status.state === 'completed') return {
     title: 'Account deletion completed',
     detail: 'Your account, app records and the stored files covered by this request have been erased. Copies already downloaded by other people or their devices cannot be recalled.',
@@ -60,6 +69,17 @@ function errorMessage(value: unknown): string {
   if (/ALREADY_REQUESTED/.test(message)) return 'A deletion request already exists. Check its saved status or contact support with your request number.';
   return 'The deletion request could not be confirmed. Check its status before trying again.';
 }
+class MissingErasureContract extends Error {
+  constructor(readonly contract: string) {
+    super('Account deletion is temporarily unavailable. Your request has not been confirmed. Please try again later.');
+  }
+}
+function missingContract(response: Response, body: unknown, name: string): boolean {
+  if (response.status !== 404 || !body || typeof body !== 'object') return false;
+  const error = body as { code?: unknown; message?: unknown };
+  return error.code === 'PGRST202' && typeof error.message === 'string'
+    && error.message.includes(`public.${name}(`);
+}
 async function rpc(base: string, key: string, authorization: string, name: string, receipt: ErasureReceipt, fetcher: typeof fetch) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20000);
@@ -70,10 +90,31 @@ async function rpc(base: string, key: string, authorization: string, name: strin
       signal: controller.signal, cache: 'no-store',
     });
     const body: unknown = await response.json();
+    if (missingContract(response, body, name)) throw new MissingErasureContract(name);
     if (!response.ok) throw new Error(errorMessage(body));
     return parseErasureStatus(body, receipt.requestId);
   } catch (error) {
     if (controller.signal.aborted) throw new Error('The connection timed out. Your request may have been accepted; check its saved status.');
+    throw error;
+  } finally { clearTimeout(timer); }
+}
+async function deleteLegacyAccount(base: string, key: string, capturedJwt: string, receipt: ErasureReceipt, fetcher: typeof fetch): Promise<LegacyAccountDeletion> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetcher(`${base.replace(/\/$/, '')}/rest/v1/rpc/delete_user_account`, {
+      method: 'POST', headers: { apikey: key, Authorization: `Bearer ${capturedJwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_user_id: receipt.userId }), signal: controller.signal, cache: 'no-store',
+    });
+    const body = await response.text();
+    // The reviewed legacy function returns void. An arbitrary JSON success or
+    // an asynchronous acknowledgement is not evidence that it completed.
+    if ((response.status !== 200 && response.status !== 204) || (body.trim() !== '' && body.trim() !== 'null')) {
+      throw new Error('Account deletion could not be confirmed. Sign in again or contact support before retrying.');
+    }
+    return { requestId: receipt.requestId, state: 'account_deleted', filesTotal: 0, filesErased: 0 };
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error('The connection timed out. Account deletion could not be confirmed. Sign in again or contact support before retrying.');
     throw error;
   } finally { clearTimeout(timer); }
 }
@@ -90,7 +131,15 @@ export async function sendAccountErasure(base: string, key: string, capturedJwt:
   } catch (error) {
     // A lost response must not cause a fresh request or an incorrect failure
     // claim. The caller persisted this exact receipt before making the write.
-    try { const status = await readAccountErasure(base, key, receipt, fetcher); if (status) return status; } catch { /* Keep the recoverable receipt. */ }
+    let legacyContract = false;
+    try { const status = await readAccountErasure(base, key, receipt, fetcher); if (status) return status; }
+    catch (statusError) {
+      // Both missing contracts are required. A timeout, denial, partial
+      // installation or a rejected durable request can never downgrade.
+      legacyContract = error instanceof MissingErasureContract && error.contract === 'request_account_erasure'
+        && statusError instanceof MissingErasureContract && statusError.contract === 'account_erasure_status';
+    }
+    if (legacyContract) return deleteLegacyAccount(base, key, capturedJwt, receipt, fetcher);
     throw error;
   }
 }

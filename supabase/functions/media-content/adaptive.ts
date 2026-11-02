@@ -5,7 +5,9 @@ export function adaptiveRedirect(request: Request, origin?: string): Response | 
   const headers = { 'Cache-Control': 'private, no-store', 'CDN-Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*', 'Referrer-Policy': 'no-referrer' };
   if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method)) return new Response(null, { status: 405, headers });
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
-  const match = source.pathname.match(/^\/functions\/v1\/media-content\/(post-media|story-media)\/(.+)$/);
+  // Supabase's relay can remove /functions/v1 before forwarding to the
+  // function. Match the same two route shapes as original media delivery.
+  const match = source.pathname.match(/^\/(?:functions\/v1\/)?media-content\/(post-media|story-media)\/(.+)$/);
   let path = '';
   try { path = decodeURIComponent(match?.[2] || ''); } catch { return new Response(null, { status: 400, headers }); }
   if (!match || path.length > 1024 || /[%\\\u0000-\u001f]/.test(path) || path.split('/').some(p => !p || p === '.' || p === '..') || !/^[0-9a-f]{64}$/.test(source.searchParams.get('token') || '')) return new Response(null, { status: 400, headers });

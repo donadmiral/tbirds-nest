@@ -13,6 +13,16 @@ For the existing production visual baseline, use the [production prerequisite br
 5. Deploy web/admin preview builds and native QA artifacts from the same tested source commit. Verify authenticated book/inbox windows, private feed delivery, cold-history restoration, counter mutations and admin projections on that backend.
 6. Activate each capability on QA, then repeat the successful sequence for production. Verify the actual release identifiers separately for the web, operations app, native artifacts and backend. A Git branch or a preview URL does not establish production parity.
 
+### Preserve existing production client contracts
+
+The production visual baseline does not include the creative-book, bound business-session or durable account-erasure cutovers. The compatible client selects its existing contracts only after an exact missing-function response. A denied request, timeout, malformed response or an installed but unavailable feature never selects an older write or authentication contract.
+
+- Book creation and saving retain the legacy UUID/void acknowledgements without inventing a presentation revision. These writes accept only the original visual settings; requested artwork, film or audio changes are retained in the draft and rejected if the backend cannot save them. New-book defaults are loaded with a bounded deadline before creation.
+- Business sign-in preserves the registered legacy device identity and exchanges a legacy token in an isolated, non-persistent Auth client. It verifies the returned business identity and current account before installing the session. It never invents a member binding or role. The bound protocol remains mandatory where its server guard is installed.
+- Account deletion uses the existing authenticated `delete_user_account` only when both durable request and status endpoints are structurally absent. The request stays bound to the captured user and JWT. A synchronous account-deletion acknowledgement makes no claim about physical Storage erasure and is not represented as a durable erasure receipt.
+
+For the controlled frontend rollout, keep the optional reader, processing and delivery switches off. Bounded production monitoring and compatible push/VoIP handlers can run independently. An empty-queue worker acceptance check must restore its prior disabled configuration after verifying the single-use credential and completion receipt. Original Storage bucket visibility and the legacy signed-media handler remain unchanged.
+
 ## Server activation
 
 These service-only calls are separate from schema installation:

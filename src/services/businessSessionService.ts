@@ -1,7 +1,10 @@
 import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
+import * as Application from 'expo-application';
+import { Platform } from 'react-native';
+import { createClient as createAuthClient } from '@supabase/supabase-js';
 import type { supabase } from './supabase';
-import { parseBusinessDevice, parseBusinessSessionResult, type BusinessDevice, type BusinessSessionResult } from '../../shared/businessSession';
+import { businessSessionContract, exchangeLegacyBusinessSession, parseBusinessDevice, parseBusinessSessionResult, type BusinessDevice, type BusinessSessionDestination, type BusinessSessionResult, type LegacyBusinessAuthClient } from '../../shared/businessSession';
 
 // SecureStore allows letters, numbers, periods, dashes and underscores in keys.
 export const BUSINESS_DEVICE_STORAGE_KEY = 'pc.business-device.v2';
@@ -22,6 +25,7 @@ const messages: Record<string, string> = {
   SESSION_MISMATCH: 'The returned business session could not be verified. Sign in again before opening Studio.',
   CANCELLED: 'Business sign-in cancelled.',
   TIMED_OUT: 'Business sign-in took too long. Check your connection and try again.',
+  LEGACY_OWNER_APPLICATION_REQUIRED: 'Open this business from your approved application, or use your personal team access code.',
 };
 
 export class BusinessSessionError extends Error {
@@ -58,6 +62,15 @@ export function getBusinessDevice(): Promise<BusinessDevice> {
   deviceRequest = request;
   void request.then(() => { if (deviceRequest === request) deviceRequest = null; }, () => { if (deviceRequest === request) deviceRequest = null; });
   return request;
+}
+
+/** Keep the registered device identity used by the currently deployed legacy backend. */
+export async function getLegacyBusinessDeviceId(): Promise<string> {
+  try {
+    const id = Platform.OS === 'ios' ? await Application.getIosIdForVendorAsync() : Application.getAndroidId();
+    if (typeof id !== 'string' || !/^[A-Za-z0-9-]{8,180}$/.test(id)) throw new Error('Device unavailable');
+    return `${Platform.OS === 'ios' ? 'ios' : 'android'}-${id}`;
+  } catch { throw new BusinessSessionError('DEVICE_UNAVAILABLE'); }
 }
 
 export async function businessSessionStep<T>(work: PromiseLike<T>, signal: AbortSignal, timeout = 15_000): Promise<T> {
@@ -104,8 +117,51 @@ async function requireBusinessSession(data: unknown, failure: unknown, signal: A
 
 type BusinessRequest = { kind: 'team'; handle: string; code: string }
   | ({ kind: 'owner'; bootstrapOwner?: boolean } & ({ applicationId: string; businessId?: never } | { businessId: string; applicationId?: never }));
-export async function prepareBusinessSession(client: Client, request: BusinessRequest, owner: string | null, current: () => boolean, signal: AbortSignal, deviceLabel: string): Promise<BusinessSessionResult> {
+async function legacyOwnerApplication(client: Client, businessId: string, owner: string, signal: AbortSignal): Promise<string> {
+  const owned = await businessSessionStep(client.rpc('get_my_businesses'), signal);
+  const business = !owned.error && Array.isArray(owned.data) ? owned.data.find(row => row.business_id === businessId && row.role === 'owner') : null;
+  if (!business || typeof business.username !== 'string') throw new BusinessSessionError('ACTIVE_OWNER_SESSION_REQUIRED');
+  const applications = await businessSessionStep(client.from('business_applications').select('id').eq('applicant_id', owner)
+    .eq('status', 'approved').eq('desired_username', business.username).limit(2), signal);
+  if (applications.error || applications.data?.length !== 1 || typeof applications.data[0].id !== 'string') throw new BusinessSessionError('LEGACY_OWNER_APPLICATION_REQUIRED');
+  return applications.data[0].id;
+}
+
+async function prepareLegacyBusinessSession(client: Client, request: BusinessRequest, owner: string | null, current: () => boolean, signal: AbortSignal, deviceLabel: string): Promise<BusinessSessionDestination> {
+  if (request.kind === 'owner' && (!owner || request.bootstrapOwner)) throw new BusinessSessionError('ACTIVE_OWNER_SESSION_REQUIRED');
+  const body = request.kind === 'team'
+    ? { handle: request.handle, code: request.code, device_id: await businessSessionStep(getLegacyBusinessDeviceId(), signal), device_label: deviceLabel }
+    : { application_id: request.applicationId ?? await legacyOwnerApplication(client, request.businessId, owner!, signal) };
   await confirmBusinessViewer(client, owner, current, signal);
+  const response = await businessSessionStep(client.functions.invoke(request.kind === 'team' ? 'business-signin' : 'business-owner-access', { body, signal, timeout: 15_000 }), signal);
+  confirmCurrent(current, signal);
+  const isolated = createAuthClient(process.env.EXPO_PUBLIC_SUPABASE_URL!, process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'pc-business-legacy-exchange' },
+  });
+  try {
+    // The adapter narrows the SDK's recursive query generics; every returned
+    // session and profile field is validated as unknown by the shared helper.
+    return await businessSessionStep(exchangeLegacyBusinessSession(isolated as unknown as LegacyBusinessAuthClient, response, {
+      current: () => current() && !signal.aborted,
+      businessId: request.kind === 'owner' ? request.businessId : undefined,
+      handle: request.kind === 'team' ? request.handle : undefined,
+      verifyCurrent: async () => {
+        await confirmBusinessViewer(client, owner, current, signal);
+        if (await businessSessionStep(businessSessionContract(client), signal) !== 'legacy') throw new BusinessSessionError('BUSINESS_SESSION_UNAVAILABLE');
+        confirmCurrent(current, signal);
+      },
+    }), signal);
+  } catch (error) {
+    if (error instanceof BusinessSessionError) throw error;
+    throw new BusinessSessionError(error instanceof Error && error.message === 'SESSION_MISMATCH' ? 'SESSION_MISMATCH' : 'BUSINESS_SESSION_UNAVAILABLE');
+  }
+}
+
+export async function prepareBusinessSession(client: Client, request: BusinessRequest, owner: string | null, current: () => boolean, signal: AbortSignal, deviceLabel: string): Promise<BusinessSessionDestination> {
+  await confirmBusinessViewer(client, owner, current, signal);
+  const contract = await businessSessionStep(businessSessionContract(client), signal);
+  confirmCurrent(current, signal);
+  if (contract === 'legacy') return prepareLegacyBusinessSession(client, request, owner, current, signal, deviceLabel);
   const device = await businessSessionStep(getBusinessDevice(), signal);
   confirmCurrent(current, signal);
   const endpoint = request.kind === 'team' ? 'business-signin' : 'business-owner-access';
@@ -131,7 +187,7 @@ export function isBusinessSessionHandoff(expected: BusinessSessionHandoff | null
 }
 
 /** Final installation cannot be cancelled; callers disable Cancel before entry. */
-export async function installBusinessSession(client: Client, destination: BusinessSessionResult, current: () => boolean, signal: AbortSignal): Promise<void> {
+export async function installBusinessSession(client: Client, destination: BusinessSessionDestination, current: () => boolean, signal: AbortSignal): Promise<void> {
   confirmCurrent(current, signal);
   const installed = await client.auth.setSession(destination.session);
   confirmCurrent(current, signal);

@@ -28,6 +28,15 @@ export async function requestAccountErasure(expectedUserId: string) {
     await SecureStore.setItemAsync(RECEIPT_KEY, JSON.stringify(receipt));
     if (changed) throw new Error('Your account changed. Please reopen account settings.');
     const status = await sendAccountErasure(SUPABASE_URL!, SUPABASE_ANON_KEY!, session.access_token, receipt);
+    if (status.state === 'account_deleted') {
+      // This contract has no durable erasure receipt. Do not leave an invalid
+      // status link behind, or clear a receipt belonging to a switched account.
+      try {
+        await SecureStore.deleteItemAsync(`${RECEIPT_KEY}_${expectedUserId}`);
+        const saved = await loadAccountErasureReceipt();
+        if (saved?.requestId === receipt.requestId) await SecureStore.deleteItemAsync(RECEIPT_KEY);
+      } catch { /* Deletion is confirmed even if local receipt cleanup fails. */ }
+    }
     return { receipt, status, accountChanged: changed };
   } finally { subscription.unsubscribe(); requesting = false; }
 }

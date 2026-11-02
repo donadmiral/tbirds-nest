@@ -33,3 +33,14 @@ test('unmount fences discovery and disabled mode retains immediate original play
 test('adaptive redirects are additive, reject invalid inputs and never redirect to request-controlled origins',()=>{
  const {adaptiveRedirect}=load('supabase/functions/media-content/adaptive.ts');assert.equal(adaptiveRedirect(new Request(source)),null);assert.equal(adaptiveRedirect(new Request(source+'&stream=check')).status,200);const r=adaptiveRedirect(new Request(source+'&stream=hls&origin=https://evil.invalid'),'https://media.fixture.test');assert.equal(r.status,307);assert.equal(new URL(r.headers.get('location')).origin,'https://media.fixture.test');assert.equal(adaptiveRedirect(new Request(source.replace('a'.repeat(64),'forged')+'&stream=hls'),'https://media.fixture.test').status,400);
 });
+test('adaptive discovery accepts the Supabase relay path with identical capability checks',()=>{
+ const {adaptiveRedirect}=load('supabase/functions/media-content/adaptive.ts'),relay=source.replace('/functions/v1/','/');
+ for(const input of [source,relay]){
+  const response=adaptiveRedirect(new Request(input+'&stream=check'),'https://media.fixture.test');
+  assert.equal(response.status,307);const destination=new URL(response.headers.get('location'));
+  assert.equal(destination.origin,'https://media.fixture.test');assert.equal(destination.pathname,'/playback/post-media/40000000-0000-4000-8000-000000000001/video.mp4');assert.equal(destination.searchParams.get('token'),'a'.repeat(64));assert.equal(destination.searchParams.get('format'),'json');
+  assert.equal(adaptiveRedirect(new Request(input.replace('a'.repeat(64),'forged')+'&stream=check'),'https://media.fixture.test').status,400);
+  assert.equal(adaptiveRedirect(new Request(input.replace('post-media','chat-media')+'&stream=check'),'https://media.fixture.test').status,400);
+ }
+ assert.equal(adaptiveRedirect(new Request(relay.replace('/media-content/','/unrelated/media-content/')+'&stream=check'),'https://media.fixture.test').status,400);
+});

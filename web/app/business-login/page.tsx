@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Building2, ShieldCheck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { BusinessAccessError, businessAccessMessage, businessAccessStep, confirmBusinessDestination, confirmBusinessViewer, getBusinessDevice, isBusinessSessionHandoff, requireBusinessSession, type BusinessSessionHandoff } from '@/lib/businessAccess';
+import { BusinessAccessError, businessAccessMessage, businessAccessStep, isBusinessSessionHandoff, prepareBusinessTeamSession, type BusinessSessionHandoff } from '@/lib/businessAccess';
 
 type Phase = 'idle' | 'checking' | 'connecting' | 'opening';
 
@@ -61,22 +61,11 @@ export default function BusinessLoginPage() {
     const current = () => live.current && version === generation.current && pending.current === abort && !abort.signal.aborted;
     setPhase('checking'); setError(null); setNotice(null);
     try {
-      await confirmBusinessViewer(supabase, owner, current, abort.signal);
-      if (!current()) return;
-      const device = getBusinessDevice();
       setPhase('connecting');
-      const response = await businessAccessStep(supabase.functions.invoke('business-signin', {
-        body: { handle: business, code: code.trim(), ...device, device_label: 'Web browser' }, signal: abort.signal, timeout: 15_000,
-      }), abort.signal);
-      if (!current()) return;
-      const destination = await requireBusinessSession(response.data, response.error, abort.signal);
-      if (!current()) return;
-      await confirmBusinessDestination(supabase, destination, abort.signal);
-      if (!current()) return;
-      await confirmBusinessViewer(supabase, owner, current, abort.signal);
+      const destination = await prepareBusinessTeamSession(supabase, business, code.trim(), owner, current, abort.signal);
       if (!current()) return;
       // All cancellable checks finish before Auth installs the exact session
-      // that the server has already bound to this active member and device.
+      // validated by the selected server contract.
       handoff.current = { businessId: destination.business_id, accessToken: destination.session.access_token };
       setPhase('opening');
       const installed = await supabase.auth.setSession(destination.session);

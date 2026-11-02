@@ -695,7 +695,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; searc
               <Feather name="alert-triangle" size={24} color="#FF3B30" />
               <Text style={s.deleteWarningTitle}>This action is permanent</Text>
               <Text style={s.deleteWarningTxt}>
-                Your account will be disabled while your stored files and account records are erased. This cannot be undone. Payment records, shared accounts or files with unclear ownership may need a support review. Deletion is complete only when your request status confirms it.
+                Deleting your account cannot be undone. Download any data you want to keep before continuing. If deletion requires more time, you can check its progress from the sign-in screen on this device.
               </Text>
             </View>
             <Text style={s.modalFieldLabel}>Type DELETE to confirm</Text>

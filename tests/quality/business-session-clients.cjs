@@ -31,7 +31,7 @@ function harness(options = {}) {
   let viewer = options.viewer === undefined ? personalId : options.viewer, accessToken = 'synthetic-personal-access-token', callback;
   let tree, cursor = 0, mounted = true, effects = [], stateWrites = 0, timerId = 0;
   const slots = [], timers = new Map(), storage = new Map();
-  const calls = { invokes: [], sessions: [], reads: [], inserts: [], checks: [], routes: [], alerts: [], storageWrites: [], randomBytes: 0, randomUUID: 0, unsubscribes: 0 };
+  const calls = { invokes: [], sessions: [], reads: [], inserts: [], checks: [], routes: [], alerts: [], storageWrites: [], randomBytes: 0, randomUUID: 0, unsubscribes: 0, exchanges: [], isolated: [], revokes: 0 };
   if (!options.emptyStorage) storage.set('pc.business-device.v2', options.savedDevice ?? JSON.stringify(device));
   const selected = () => viewer ? { user: { id: viewer }, access_token: accessToken } : null;
   let getUser = token => ({ data: { user: token ? { id: businessId } : viewer ? { id: viewer } : null }, error: null });
@@ -41,6 +41,17 @@ function harness(options = {}) {
   let readHistory = () => ({ data: [application], error: null });
   let insert = () => ({ error: null }), check = () => ({ data: true, error: null });
   let businesses = () => ({ data: options.businesses ?? [ownedBusiness], error: null });
+  let contract = () => ({ data: true, error: null });
+  let exchange = () => ({ data: { user: { id: businessId }, session: { ...bound.session, user: { id: businessId } } }, error: null });
+  let legacyProfile = () => ({ data: { id: businessId, account_type: 'business', username: 'example_studio', deactivated_at: null }, error: null });
+  const isolated = {
+    auth: {
+      verifyOtp(args) { calls.exchanges.push(args); return Promise.resolve().then(() => exchange(args)); },
+      getUser: () => Promise.resolve({ data: { user: { id: businessId } }, error: null }),
+      signOut: async args => { assert.equal(args.scope, 'local'); calls.revokes++; },
+    },
+    from(table) { assert.equal(table, 'profiles'); return { select: () => ({ eq: () => ({ single: () => Promise.resolve().then(legacyProfile) }) }) }; },
+  };
   const client = {
     auth: {
       getUser: token => Promise.resolve().then(() => getUser(token)), getSession: () => Promise.resolve().then(() => getSession()),
@@ -58,9 +69,9 @@ function harness(options = {}) {
         insert(payload) { calls.inserts.push(payload); return Promise.resolve().then(() => insert(payload)); },
       }; return chain;
     },
-    rpc(name, args) { calls.checks.push({ name, args }); return Promise.resolve().then(() => name === 'get_my_businesses' ? businesses() : check(args)); },
+    rpc(name, args) { calls.checks.push({ name, args }); return Promise.resolve().then(() => name === 'get_my_businesses' ? businesses() : name === 'business_session_allowed' ? contract() : check(args)); },
   };
-  const environment = { setTimeout(fn) { const id = ++timerId; timers.set(id, fn); return id; }, clearTimeout(id) { timers.delete(id); } };
+  const environment = { process: { env: { EXPO_PUBLIC_SUPABASE_URL: 'https://fixture.supabase.co', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'synthetic-public-key' } }, setTimeout(fn) { const id = ++timerId; timers.set(id, fn); return id; }, clearTimeout(id) { timers.delete(id); } };
   const storageAPI = {
     WHEN_UNLOCKED_THIS_DEVICE_ONLY: 9,
     async getItemAsync(key, args) { assert.equal(args.keychainAccessible, 9); return options.getStorage ? options.getStorage(key, storage) : storage.get(key) ?? null; },
@@ -69,6 +80,9 @@ function harness(options = {}) {
   const shared = compile('shared/businessSession.ts', () => { throw new Error('Unexpected shared dependency'); });
   const service = compile('src/services/businessSessionService.ts', name => {
     if (name === 'expo-secure-store') return storageAPI;
+    if (name === 'expo-application') return { getIosIdForVendorAsync: async () => { if (options.legacyDeviceError) throw Error('Vendor ID unavailable'); return '55555555-5555-4555-8555-555555555555'; }, getAndroidId: () => 'fixture-android-id' };
+    if (name === 'react-native') return { Platform: { OS: options.platform ?? 'ios' } };
+    if (name === '@supabase/supabase-js') return { createClient: (url, key, config) => { calls.isolated.push({ url, key, config }); assert.equal(config.auth.persistSession, false); assert.equal(config.auth.autoRefreshToken, false); assert.equal(config.auth.detectSessionInUrl, false); return isolated; } };
     if (name === 'expo-crypto') return {
       getRandomBytesAsync: async count => { calls.randomBytes++; assert.equal(count, 32); if (options.cryptoError) throw new Error('Native randomness unavailable'); return new Uint8Array(randomBytes(count)); },
       randomUUID: () => { calls.randomUUID++; return randomUUID(); },
@@ -115,6 +129,7 @@ function harness(options = {}) {
     setAuth(fn) { getUser = fn; }, setSessionRead(fn) { getSession = fn; }, setInvoke(fn) { invoke = fn; }, setInstall(fn) { install = fn; },
     setHistory(fn) { readHistory = fn; }, setInsert(fn) { insert = fn; }, setCheck(fn) { check = fn; },
     setBusinesses(fn) { businesses = fn; },
+    setContract(fn) { contract = fn; }, setExchange(fn) { exchange = fn; }, setLegacyProfile(fn) { legacyProfile = fn; },
     setViewer(next, emit = true, token = 'new-personal-access-token') { viewer = next; accessToken = token; if (emit) callback?.(next ? 'SIGNED_IN' : 'SIGNED_OUT', selected()); render(); },
     dispose() { mounted = false; slots.forEach(slot => slot?.cleanup?.()); },
   };
@@ -344,4 +359,85 @@ test('owned-business list errors offer retry and old account results cannot repo
   assert.match(h.text, /Could not load your businesses/); assert.doesNotMatch(h.text, /private provider/);
   const wait = deferred(); h.setBusinesses(() => wait.promise); h.press('Try again'); await h.flush(); h.setBusinesses(() => ({ data: [], error: null })); h.setViewer('another-owner'); await h.flush();
   wait.resolve({ data: [ownedBusiness], error: null }); await h.flush(); assert.equal(h.button('Open Example Studio Studio'), undefined); h.dispose();
+});
+
+const missingBusinessContract = () => ({ data: null, error: { code: 'PGRST202', message: 'Could not find the function public.business_session_allowed without parameters in the schema cache' } });
+const legacyBusinessResponse = () => ({ data: { token_hash: 'fa'.repeat(32), email: 'fixture@example.test' }, error: null });
+
+test('an explicitly absent contract preserves the native legacy device and isolates the Auth exchange', async () => {
+  const h = await ready(); h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse);
+  fillSignIn(h); await h.press('Enter as the business'); await h.flush();
+  assert.equal(h.calls.invokes[0].body.device_id, 'ios-55555555-5555-4555-8555-555555555555');
+  assert.equal('device_key' in h.calls.invokes[0].body, false);
+  assert.equal(h.calls.storageWrites.length, 0); assert.equal(h.calls.exchanges.length, 1);
+  assert.equal(h.calls.sessions.length, 1); assert.equal(h.calls.revokes, 0); assert.match(h.text, /Business access confirmed/); h.dispose();
+});
+
+test('legacy preparation returns actual Auth identity without inventing a member or role', async () => {
+  const h = await ready(); h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse);
+  const destination = await h.service.prepareBusinessSession(h.client, { kind: 'team', handle: 'example_studio', code: 'fixture-code' }, personalId, () => true, new AbortController().signal, 'ios app');
+  assert.equal(destination.business_id, businessId); assert.equal('member_id' in destination, false); assert.equal('role' in destination, false);
+  assert.equal(h.calls.sessions.length, 0); h.dispose();
+});
+
+for (const failure of ['denied', 'network', 'malformed', 'wrong-rpc']) test(`native ${failure} contract detection never selects legacy Auth`, async () => {
+  const h = await ready(); h.setInvoke(legacyBusinessResponse);
+  h.setContract(() => {
+    if (failure === 'network') throw Error('private network detail');
+    return failure === 'malformed' ? { data: null, error: null } : { data: null, error: failure === 'denied'
+      ? { code: '42501', message: 'BUSINESS_SESSION_REQUIRED' }
+      : { code: 'PGRST202', message: 'Could not find the function public.another_function' } };
+  });
+  fillSignIn(h); await h.press('Enter as the business'); await h.flush();
+  assert.equal(h.calls.invokes.length, 0); assert.equal(h.calls.exchanges.length, 0); assert.equal(h.calls.sessions.length, 0); h.dispose();
+});
+
+for (const failure of ['mixed-bound', 'edge-denial', 'wrong-business', 'deactivated', 'wrong-type']) test(`native legacy ${failure} cannot install a session`, async () => {
+  const h = await ready(); h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse);
+  if (failure === 'mixed-bound') h.setInvoke(() => ({ data: { ...bound, token_hash: 'fa'.repeat(32) }, error: null }));
+  if (failure === 'edge-denial') h.setInvoke(() => rejected('DEVICE_BLOCKED'));
+  if (failure === 'wrong-business') h.setLegacyProfile(() => ({ data: { id: businessId, account_type: 'business', username: 'different_studio', deactivated_at: null }, error: null }));
+  if (failure === 'deactivated') h.setLegacyProfile(() => ({ data: { id: businessId, account_type: 'business', username: 'example_studio', deactivated_at: '2026-11-02T00:00:00Z' }, error: null }));
+  if (failure === 'wrong-type') h.setLegacyProfile(() => ({ data: { id: businessId, account_type: 'personal', username: 'example_studio', deactivated_at: null }, error: null }));
+  fillSignIn(h); await h.press('Enter as the business'); await h.flush();
+  assert.equal(h.calls.sessions.length, 0);
+  assert.equal(h.calls.revokes, ['mixed-bound', 'edge-denial'].includes(failure) ? 0 : 1); h.dispose();
+});
+
+test('native legacy owner launch keeps the approved-application Edge input', async () => {
+  const h = await ready({ screen: 'apply' }); h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse);
+  h.press('Open Example Studio'); await h.flush();
+  assert.equal(h.calls.invokes.length, 1); assert.equal(h.calls.invokes[0].body.application_id, application.id);
+  assert.deepEqual(Object.keys(h.calls.invokes[0].body), ['application_id']); assert.equal(h.calls.sessions.length, 1); h.dispose();
+});
+
+test('native legacy owner endpoint denial preserves the personal account without another Auth path', async () => {
+  const h = await ready({ screen: 'apply' }); h.setContract(missingBusinessContract); h.setInvoke(() => ({ data: { error: 'Business owner access is unavailable.' }, error: { status: 403 } }));
+  h.press('Open Example Studio'); await h.flush(); assert.equal(h.calls.invokes.length, 1);
+  assert.equal(h.calls.exchanges.length, 0); assert.equal(h.calls.sessions.length, 0); h.dispose();
+});
+
+test('native legacy owned-list launch resolves exactly one owned approved application and verifies the selected business', async () => {
+  const h = await ready({ screen: 'owned' }); h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse);
+  h.press('Open Example Studio Studio'); await h.flush();
+  assert.equal(h.calls.invokes[0].body.application_id, application.id); assert.equal(h.calls.sessions.length, 1);
+  const read = h.calls.reads.at(-1); assert.equal(read.applicant_id, personalId); assert.equal(read.status, 'approved'); assert.equal(read.desired_username, 'example_studio'); assert.equal(read.limit, 2); h.dispose();
+});
+
+test('a native legacy exchange completing after cancellation revokes only its isolated session', async () => {
+  const h = await ready(), wait = deferred(); h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse); h.setExchange(() => wait.promise);
+  fillSignIn(h); const pending = h.press('Enter as the business'); await h.flush(); assert.equal(h.calls.exchanges.length, 1);
+  h.press('Cancel sign-in'); wait.resolve({ data: { user: { id: businessId }, session: { ...bound.session, user: { id: businessId } } }, error: null });
+  await pending; await h.flush(); assert.equal(h.calls.sessions.length, 0); assert.equal(h.calls.revokes, 1); h.dispose();
+});
+
+test('a bound backend appearing during native legacy exchange prevents installation and revokes the isolated session', async () => {
+  const h = await ready(); let probes = 0; h.setContract(() => ++probes < 3 ? missingBusinessContract() : { data: true, error: null }); h.setInvoke(legacyBusinessResponse);
+  fillSignIn(h); await h.press('Enter as the business'); await h.flush();
+  assert.equal(h.calls.exchanges.length, 1); assert.equal(h.calls.sessions.length, 0); assert.equal(h.calls.revokes, 1); h.dispose();
+});
+
+test('missing native vendor identity never falls back to a shared legacy device', async () => {
+  const h = await ready({ legacyDeviceError: true }); h.setContract(missingBusinessContract); h.setInvoke(legacyBusinessResponse);
+  fillSignIn(h); await h.press('Enter as the business'); await h.flush(); assert.equal(h.calls.invokes.length, 0); assert.equal(h.calls.sessions.length, 0); h.dispose();
 });

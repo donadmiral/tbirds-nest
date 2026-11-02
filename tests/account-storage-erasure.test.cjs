@@ -117,3 +117,60 @@ test('unconfirmed requests preserve their error and do not fall back to the old 
   await assert.rejects(client.sendAccountErasure('https://qa.supabase.co','anon-key','jwt',receipt,fetcher),/temporarily unavailable/);
   assert.equal(calls.some(url=>url.includes('delete_user_account')),false);
 });
+const missing=name=>new Response(JSON.stringify({code:'PGRST202',message:`Could not find the function public.${name}(p_receipt_token, p_request_id) in the schema cache`}),{status:404});
+test('the visual production contract deletes only the captured account after both erasure RPCs are confirmed missing',async()=>{
+  const calls=[];
+  const status=await client.sendAccountErasure('https://prod.supabase.co/','anon-key','captured-user-jwt',receipt,async(url,init)=>{
+    calls.push({url,init});
+    if(url.endsWith('/request_account_erasure'))return missing('request_account_erasure');
+    if(url.endsWith('/account_erasure_status'))return missing('account_erasure_status');
+    return new Response(null,{status:204});
+  });
+  assert.equal(status.state,'account_deleted');assert.equal(calls.length,3);
+  assert.equal(calls[2].url,'https://prod.supabase.co/rest/v1/rpc/delete_user_account');
+  assert.equal(calls[2].init.headers.Authorization,'Bearer captured-user-jwt');
+  assert.deepEqual(JSON.parse(calls[2].init.body),{p_user_id:user});
+  assert.equal(calls[2].init.cache,'no-store');
+  assert.equal(client.erasureMessage(status).detail,'Your account has been deleted.');
+  assert.throws(()=>client.parseErasureStatus(status,job),/could not be verified/,'a local legacy acknowledgement is never accepted as a durable erasure status');
+});
+test('a partial erasure installation, denied status or unavailable status never selects legacy deletion',async()=>{
+  for(const statusResponse of [()=>new Response('null'),()=>new Response('{}',{status:403}),()=>new Response('{}',{status:503})]) {
+    const calls=[];
+    await assert.rejects(client.sendAccountErasure('https://qa.supabase.co','anon','jwt',receipt,async url=>{
+      calls.push(url);return url.endsWith('/request_account_erasure')?missing('request_account_erasure'):statusResponse();
+    }),/temporarily unavailable/);
+    assert.equal(calls.some(url=>url.endsWith('/delete_user_account')),false);
+  }
+});
+test('denial, outages, unknown functions and malformed request responses cannot downgrade erasure',async()=>{
+  for(const requestResponse of [
+    ()=>new Response(JSON.stringify({code:'PGRST202',message:'Could not find the function public.request_account_erasure(p_request_id)'}),{status:503}),
+    ()=>new Response(JSON.stringify({message:'AUTH_REQUIRED'}),{status:401}),
+    ()=>missing('other_function'),
+    ()=>new Response(JSON.stringify({ok:true})),
+    ()=>{throw new Error('Network unavailable');},
+  ]) {
+    const calls=[];
+    await assert.rejects(client.sendAccountErasure('https://qa.supabase.co','anon','jwt',receipt,async url=>{
+      calls.push(url);return url.endsWith('/request_account_erasure')?requestResponse():missing('account_erasure_status');
+    }));
+    assert.equal(calls.some(url=>url.endsWith('/delete_user_account')),false);
+  }
+});
+test('legacy denial, asynchronous and malformed success responses never claim account deletion',async()=>{
+  for(const legacyResponse of [()=>new Response('{}',{status:403}),()=>new Response(null,{status:202}),()=>new Response('{"ok":true}')]) {
+    await assert.rejects(client.sendAccountErasure('https://prod.supabase.co','anon','jwt',receipt,async url=>{
+      if(url.endsWith('/request_account_erasure'))return missing('request_account_erasure');
+      if(url.endsWith('/account_erasure_status'))return missing('account_erasure_status');
+      return legacyResponse();
+    }),/could not be confirmed/);
+  }
+});
+test('a stored durable receipt still wins if the request endpoint is temporarily absent',async()=>{
+  const calls=[];
+  const status=await client.sendAccountErasure('https://qa.supabase.co','anon','jwt',receipt,async url=>{
+    calls.push(url);return url.endsWith('/request_account_erasure')?missing('request_account_erasure'):new Response(JSON.stringify(result()));
+  });
+  assert.equal(status.state,'queued');assert.equal(calls.length,2);
+});

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { erasureMessage, parseErasureReceipt, readAccountErasure, sendAccountErasure,
-  type ErasureReceipt, type ErasureStatus } from '../../shared/accountErasure';
+  type ErasureReceipt, type AccountDeletionStatus } from '../../shared/accountErasure';
 const KEY = 'pc:account-erasure-receipt:v1';
 const base = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -25,7 +25,7 @@ export function AccountErasure({ allowRequest = false }: { allowRequest?: boolea
   const [owner, setOwner] = useState<string | null>(null);
   const receiptRaw=useSyncExternalStore(subscribeReceipt,storageSnapshot,storageServerSnapshot);
   const receipt=useMemo(()=>parseErasureReceipt(receiptRaw),[receiptRaw]);
-  const [status, setStatus] = useState<ErasureStatus | null>(null);
+  const [status, setStatus] = useState<AccountDeletionStatus | null>(null);
   const [confirmation, setConfirmation] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -68,7 +68,7 @@ export function AccountErasure({ allowRequest = false }: { allowRequest?: boolea
       const verified = await client.auth.getUser(session.access_token);
       if (verified.error || verified.data.user?.id !== expectedOwner || guard.current.generation !== generation) throw new Error('Sign in again before requesting deletion.');
       let saved = parseErasureReceipt(localStorage.getItem(`${KEY}:${expectedOwner}`));
-      if (!saved) {
+      if (!saved || saved.userId !== expectedOwner) {
         saved = {
           requestId: crypto.randomUUID(), userId: expectedOwner, createdAt: new Date().toISOString(),
           token: Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join(''),
@@ -79,6 +79,14 @@ export function AccountErasure({ allowRequest = false }: { allowRequest?: boolea
       storeReceipt(saved);
       if (guard.current.generation !== generation || !guard.current.alive) throw new Error('Your account changed. Reopen settings before requesting deletion.');
       const next = await sendAccountErasure(base, anon, session.access_token, saved);
+      if (next.state === 'account_deleted') {
+        try {
+          localStorage.removeItem(`${KEY}:${expectedOwner}`);
+          if (parseErasureReceipt(localStorage.getItem(KEY))?.requestId === saved.requestId) {
+            localStorage.removeItem(KEY); window.dispatchEvent(new Event(RECEIPT_EVENT));
+          }
+        } catch { /* A confirmed deletion must still complete local sign-out. */ }
+      }
       // The request uses the captured JWT, so a concurrent switch cannot target
       // the newly signed-in user. Do not sign that new user out on completion.
       if (guard.current.generation !== generation || !guard.current.alive) return;
@@ -92,7 +100,7 @@ export function AccountErasure({ allowRequest = false }: { allowRequest?: boolea
   return <div className="mx-auto max-w-[640px] px-4 py-6 text-ink">
     <h1 className="font-display text-2xl font-bold">{allowRequest && !status ? 'Delete your personal account' : 'Account deletion status'}</h1>
     {allowRequest && !status ? <>
-      <p className="mt-3 text-sm leading-6 text-secondary">Your account will be disabled while your stored files and account records are erased. This cannot be undone. Payment records, shared accounts or files with unclear ownership may need a support review. Deletion is complete only when your request status confirms it.</p>
+      <p className="mt-3 text-sm leading-6 text-secondary">Deleting your account cannot be undone. Download any data you want to keep before continuing. If deletion requires more time, its progress will appear here.</p>
       <Link href="/settings/download" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold underline">Download your data first</Link>
       {owner ? <form onSubmit={submit} className="mt-5 space-y-3">
         <label htmlFor="account-erasure-confirmation" className="block text-sm font-semibold">Type DELETE to confirm</label>
