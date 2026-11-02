@@ -11,8 +11,8 @@ const env={SUPABASE_URL:'https://fixture.supabase.co',VERCEL_ENV:'preview',MEDIA
 const now=Date.now(),claims={owner_id:'team_fixture',project_id:'prj_fixture',environment:'preview',exp:Math.floor(now/1000)+3600};
 const jwt=payload=>'header.'+Buffer.from(JSON.stringify(payload)).toString('base64url')+'.signature',token=jwt(claims);
 const config=sandboxConfig(env),reservation={id:runId,name:'pc-media-'+runId.replaceAll('-',''),timeoutMs:780000,vcpus:2,launchUntil:new Date(Date.now()+30000).toISOString(),stopAfter:new Date(Date.now()+825000).toISOString(),sourceSha256:sha};
-function harness({queued=true,pending=[],exitCode=null,attach=true,writeFails=false,getFails=false,status='running',stopStatus='stopped',returnedSessionId=sessionId}={}){
- const calls=[],session={sessionId:returnedSessionId,status,async mkDir(){calls.push('mkdir');},async writeFiles(){calls.push('write');if(writeFails)throw Error('write_failed');},async getCommand(){calls.push('getCommand');return{exitCode};},async runCommand(params){calls.push({runCommand:params});return{cmdId:commandId};},async stop(){calls.push('stop');return{session:{status:stopStatus}};}};
+function harness({queued=true,pending=[],exitCode=null,waitExitCode=null,waitError=false,attach=true,writeFails=false,getFails=false,status='running',stopStatus='stopped',returnedSessionId=sessionId}={}){
+ const calls=[],session={sessionId:returnedSessionId,status,async mkDir(){calls.push('mkdir');},async writeFiles(){calls.push('write');if(writeFails)throw Error('write_failed');},async getCommand(){calls.push('getCommand');return{exitCode,async wait({signal}){calls.push({wait:signal});if(waitError)throw Error('provider_wait_error');return{exitCode:waitExitCode};}};},async runCommand(params){calls.push({runCommand:params});return{cmdId:commandId};},async stop(){calls.push('stop');return{session:{status:stopStatus}};}};
  const sandbox={currentSession:()=>session,async mkDir(){throw Error('parent_auto_resume_forbidden');},async writeFiles(){throw Error('parent_auto_resume_forbidden');}};
  const Sandbox={async get(params){calls.push({get:params});if(getFails)throw Error('provider_unavailable');return sandbox;},async create(options){calls.push({create:options});return sandbox;}};
  const api={async rpc(name,args){calls.push({rpc:name,args});if(name==='pending_media_sandboxes_v1')return pending;if(name==='reserve_media_sandbox_v1')return queued?reservation:null;if(name==='attach_media_sandbox_v1')return attach;if(name==='finish_media_sandbox_v1')return true;if(name==='media_sandbox_status_v1')return{enabled:false,active_reservations:0,max_concurrency:1};throw Error(name);}};
@@ -54,6 +54,16 @@ test('running and ambiguous provider states do not release a budget slot',async(
   const h=harness({queued:false,pending:[{...reservation,sessionId,commandId}],getFails});await h.dispatcher.tick(token);
   assert.equal(h.calls.includes('stop'),false);assert.equal(h.calls.some(c=>c.rpc==='finish_media_sandbox_v1'),false);
  }
+});
+test('stale detached GET is refreshed with bounded wait and completion closes the exact session',async()=>{
+ const h=harness({queued:false,pending:[{...reservation,sessionId,commandId}],exitCode:null,waitExitCode:0});
+ assert.deepEqual(await h.dispatcher.tick(token),{state:'idle',stopped:1});assert.equal(h.calls.filter(c=>c.wait).length,1);
+ assert.ok(h.calls.indexOf('stop')<h.calls.findIndex(c=>c.rpc==='finish_media_sandbox_v1'));
+ assert.equal(h.calls.find(c=>c.rpc==='finish_media_sandbox_v1').args.p_exit_code,0);
+});
+test('unexpected live wait errors stop safely rather than masquerading as a running command',async()=>{
+ const h=harness({queued:false,pending:[{...reservation,sessionId,commandId}],waitError:true});
+ assert.deepEqual(await h.dispatcher.tick(token),{state:'idle',stopped:1});assert.equal(h.calls.includes('stop'),true);
 });
 test('provider-confirmed aborted sessions release their exact slot without command lookup or resume',async()=>{
  const h=harness({queued:false,pending:[{...reservation,sessionId,commandId}],status:'aborted'});await h.dispatcher.tick(token);
@@ -97,7 +107,7 @@ test('dispatcher status reads its scoped DB aggregate and does not create or ins
  const h=harness();assert.deepEqual(await h.dispatcher.status(),{enabled:false,active_reservations:0,max_concurrency:1});
  assert.deepEqual(h.calls.map(c=>c.rpc),['media_sandbox_status_v1']);
 });
-test('actual SDK completes create, bound-session upload, detached launch and nonresuming reap through the restricted transport',async()=>{
+test('actual SDK bounded live poll preserves a running job, then refreshes stale GET and reaps completion without resuming',async()=>{
  const previous=process.env.VERCEL_OIDC_TOKEN;
  // Deliberately a different valid token: SDK refresh must not replace the
  // invocation token on the outgoing request.
@@ -106,15 +116,23 @@ test('actual SDK completes create, bound-session upload, detached launch and non
  const metadata={name:reservation.name,persistent:false,region:'pdx1',createdAt:now,updatedAt:now,currentSessionId:sessionId,status:'running'};
  const command={id:commandId,name:'node',args:['/vercel/sandbox/worker/sandbox-job.mjs'],cwd:'/vercel/sandbox',sessionId,exitCode:null,startedAt:now};
  const reply=value=>new Response(JSON.stringify(value),{headers:{'Content-Type':'application/json'}});
- let active=false,offered=false;
+ let active=false,offered=false,stillRunning=true;
  const fetchImpl=async(url,options)=>{
-  const path=new URL(url).pathname;wire.push({path,method:options.method||'GET'});
+  const target=new URL(url),path=target.pathname;wire.push({path,method:options.method||'GET',wait:target.searchParams.get('wait')});
   assert.equal(options.headers.get('authorization'),'Bearer '+token);
   if(path==='/api/v3/sandboxes')return reply({sandbox:metadata,session,routes:[]});
   if(path.endsWith('/fs/mkdir'))return reply({});
   if(path.endsWith('/fs/write')){assert.ok(Buffer.isBuffer(options.body));assert.ok(options.body.length>0);return reply({});}
   if(path.endsWith('/cmd'))return reply({command});
-  if(path.endsWith('/cmd/'+commandId))return reply({command:{...command,exitCode:0}});
+  if(path.endsWith('/cmd/'+commandId)){
+   if(target.searchParams.get('wait')!=='true')return reply({command});
+   if(stillRunning)return new Promise((resolve,reject)=>{
+    const keepAlive=setTimeout(()=>reject(Error('bounded_wait_did_not_abort')),2500);
+    const abort=()=>{clearTimeout(keepAlive);reject(options.signal.reason);};
+    if(options.signal.aborted)abort();else options.signal.addEventListener('abort',abort,{once:true});
+   });
+   return reply({command:{...command,exitCode:0,durationMs:10650}});
+  }
   if(path.endsWith('/stop'))return reply({session:{...session,status:'stopped'},sandbox:{...metadata,status:'stopped'}});
   if(path.endsWith('/'+reservation.name)){assert.equal(new URL(url).searchParams.get('resume'),'false');return reply({sandbox:metadata,session,routes:[]});}
   throw Error('unexpected lifecycle API request');
@@ -122,8 +140,11 @@ test('actual SDK completes create, bound-session upload, detached launch and non
  const api={async rpc(name,args){db.push(name);if(name==='pending_media_sandboxes_v1')return active?[{...reservation,sessionId,commandId}]:[];if(name==='reserve_media_sandbox_v1'){if(offered)return null;offered=true;return reservation;}if(name==='attach_media_sandbox_v1'){if(args.p_command_id)active=true;return true;}if(name==='finish_media_sandbox_v1'){active=false;return true;}throw Error(name);}};
  try{
   const dispatcher=createSandboxDispatcher({config,Sandbox:ActualSandbox,api,fetchImpl,bundle:async()=>({files:[],sha256:sha}),now:()=>now,uuid:()=>runId});
-  assert.equal((await dispatcher.tick(token)).state,'launched');assert.deepEqual(await dispatcher.tick(token),{state:'idle',stopped:1});
-  assert.deepEqual(wire.map(x=>x.path),['/api/v3/sandboxes',`/api/v2/sandboxes/sessions/${sessionId}/fs/mkdir`,`/api/v2/sandboxes/sessions/${sessionId}/fs/write`,`/api/v2/sandboxes/sessions/${sessionId}/cmd`,`/api/v2/sandboxes/${reservation.name}`,`/api/v2/sandboxes/sessions/${sessionId}/cmd/${commandId}`,`/api/v2/sandboxes/sessions/${sessionId}/stop`]);
+  assert.equal((await dispatcher.tick(token)).state,'launched');
+  assert.deepEqual(await dispatcher.tick(token),{state:'idle',stopped:0});assert.equal(active,true);assert.equal(wire.some(x=>x.path.endsWith('/stop')),false);assert.equal(db.includes('finish_media_sandbox_v1'),false);
+  stillRunning=false;assert.deepEqual(await dispatcher.tick(token),{state:'idle',stopped:1});
+  assert.deepEqual(wire.filter(x=>x.path.endsWith('/cmd/'+commandId)).map(x=>x.wait),[null,'true',null,'true']);
+  assert.equal(wire.filter(x=>x.path==='/api/v3/sandboxes').length,1);assert.equal(wire.filter(x=>x.path.endsWith('/stop')).length,1);
   assert.equal(db.filter(x=>x==='finish_media_sandbox_v1').length,1);
  }finally{if(previous===undefined)delete process.env.VERCEL_OIDC_TOKEN;else process.env.VERCEL_OIDC_TOKEN=previous;}
 });
@@ -142,12 +163,11 @@ test('resource parsers distinguish missing counters from zero and include actual
  assert.equal(parseCpuStat('usage_usec 12345\nuser_usec 4\n'),12345);assert.equal(parseCpuStat(''),null);assert.deepEqual(parseMemory('MemTotal: 100 kB\nMemAvailable: 60 kB\n'),{total:102400,used:40960});
 });
 
-function serverHarness({sandboxMode=true,pinEnabled=false,environment='preview'}={}){
+function serverHarness({sandboxMode=true}={}){
  const calls=[],cronSecret='fixture-cron-secret-'.repeat(3),serverConfig={cronSecret,diskBudgetBytes:471859200,maxInputBytes:134217728,deadlineMs:240000,threads:2};
- const handler=createWorkerHandler({config:serverConfig,env:{MEDIA_WORKER_RUNTIME:sandboxMode?'sandbox':'local',VERCEL_ENV:environment,MEDIA_SANDBOX_RUNTIME_PIN_ENABLED:pinEnabled?'true':'false'},
+ const handler=createWorkerHandler({config:serverConfig,env:{MEDIA_WORKER_RUNTIME:sandboxMode?'sandbox':'local',VERCEL_ENV:'preview'},
   api:{async rpc(name){calls.push(name);return{worker_enabled:false};}},worker:{active:false,async drain(){calls.push('local_drain');return{state:'ready'};}},
   dispatcherFactory:async()=>{calls.push('dispatcher_factory');return{async tick(value){calls.push({token:value});return{state:'launched'};},async status(){calls.push('dispatcher_status');return{enabled:false,active_reservations:1,vcpus:2,memory_mb:4096};}};},
-  runtimePinFactory:async()=>{calls.push('pin_factory');return async input=>{calls.push({pin:input});return{status:200,body:{state:'pinned'}};};},
   controllerMetrics:async()=>({scratch_available_bytes:12345,process_rss_bytes:23456}),
  });
  const invoke=async(path,{method='GET',auth=true,oidc=token}={})=>{
@@ -173,9 +193,4 @@ test('Sandbox drains pass each request token and share one controller factory wi
  const h=serverHarness();const responses=await Promise.all([h.invoke('/drain'),h.invoke('/drain')]);
  assert.ok(responses.every(r=>r.status===202));assert.equal(h.calls.filter(c=>c==='dispatcher_factory').length,1);assert.equal(h.calls.filter(c=>c.token===token).length,2);assert.equal(h.calls.includes('local_drain'),false);
  const missing=serverHarness();assert.equal((await missing.invoke('/drain',{oidc:null})).status,503);assert.equal(missing.calls.length,0);
-});
-test('temporary runtime-pin route is preview-only, explicitly enabled, POST-only and CRON-authenticated',async()=>{
- for(const options of [{},{pinEnabled:true,environment:'production'}]){const h=serverHarness(options);assert.equal((await h.invoke('/runtime-pin',{method:'POST'})).status,404);assert.equal(h.calls.length,0);}
- const h=serverHarness({pinEnabled:true});assert.equal((await h.invoke('/runtime-pin')).status,405);assert.equal((await h.invoke('/runtime-pin',{method:'POST',auth:false})).status,401);assert.equal(h.calls.length,0);
- assert.equal((await h.invoke('/runtime-pin',{method:'POST'})).status,200);assert.equal(h.calls.filter(c=>c==='pin_factory').length,1);assert.equal(h.calls.find(c=>c.pin).pin.oidcToken,token);
 });

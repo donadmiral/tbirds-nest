@@ -83,7 +83,19 @@ export function createSandboxDispatcher({config,Sandbox,api,bundle=workerBundle,
     if(run.sessionId&&session.sessionId!==run.sessionId){session=undefined;throw new Error('sandbox_session_changed');}
     if(terminal(session.status)){await rpc('finish_media_sandbox_v1',{p_run_id:run.id,p_session_id:session.sessionId,p_exit_code:null});continue;}
     if(!run.commandId||Date.parse(run.stopAfter)<=now()){shouldStop=true;continue;}
-    const command=await session.getCommand(run.commandId,{signal:AbortSignal.timeout(10000)});
+    let command=await session.getCommand(run.commandId,{signal:AbortSignal.timeout(10000)});
+    if(command.exitCode===null||command.exitCode===undefined){
+     // The provider's ordinary detached-command GET can retain its initial
+     // null exit code after the process ends. wait:true refreshes live status.
+     const waitSignal=AbortSignal.timeout(1500);
+     try{command=await command.wait({signal:waitSignal});}
+     catch(error){
+      // This bounded poll expiring means the command may still be running.
+      // Preserve its VM/lease; other failures use the existing safe-stop path.
+      if(waitSignal.aborted)continue;
+      throw error;
+     }
+    }
     if(command.exitCode!==null&&command.exitCode!==undefined){exitCode=command.exitCode;shouldStop=true;}
    }catch(error){
     if(session)shouldStop=true;

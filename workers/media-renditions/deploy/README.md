@@ -1,6 +1,6 @@
 # Full-profile worker deployment option
 
-`cloud-run-job.example.yaml` describes a Google Cloud Run Job for the existing 512 MiB input / 768 MiB output / 600-second media profile. It is a prepared configuration, not a provisioned service. No account, paid resource, schedule, IAM binding or credential transfer is created by this file or CI.
+`cloud-run-job.example.yaml` describes an alternative Google Cloud Run Job for the existing 512 MiB input / 768 MiB output / 600-second media profile. The Vercel Sandbox path is provisioned and has passed the [full-size input acceptance](../../../docs/quality/media-sandbox-512-acceptance-20261102.json). This Cloud Run template remains a prepared configuration, not a provisioned service. No Google Cloud account, paid resource, schedule, IAM binding or credential transfer is created by this file or CI.
 
 The image uses the existing Dockerfile. `node run-job.mjs` executes the same bounded, leased worker as the HTTP `/drain` route and exits after one claim. It opens no listening socket and requires no cron bearer secret. It still requires its own worker-scoped broker credential. Worker, gateway and environment credentials remain separate.
 
@@ -10,7 +10,7 @@ The image uses the existing Dockerfile. `node run-job.mjs` executes the same bou
 | --- | --- | --- |
 | Region | `us-central1` | Explicit region for the quoted list-price example; choose a permitted region near the database before deployment |
 | CPU / memory | 2 vCPU / 4 GiB | Initial encoding allocation; throughput and worst-case HDR processing still need measurement |
-| Ephemeral disk | 2 GiB at `/scratch` | Holds the 512 MiB source, bounded outputs and faststart remux peak without relying on a 500 MB function filesystem |
+| Ephemeral disk | 2 GiB at `/scratch` | Holds the 512 MiB source, bounded outputs and faststart remux peak independently of HTTP controller scratch allocation |
 | Worker deadline | 720 seconds | Allows more processing time than the current Vercel Hobby request limit |
 | Host task timeout | 780 seconds | Leaves time for the five-second failure settlement and local cleanup before the host deadline |
 | Database lease | Existing 900 seconds | Remains the single publication and expiry fence |
@@ -35,7 +35,7 @@ For the prepared 2-vCPU / 4-GiB / 2-GiB-disk allocation, **ten active minutes co
 
 One thousand executions at that measured duration would cost approximately $26.44 in those three resources. This estimate assumes ten minutes of actual job lifetime, not ten minutes of uploaded video. Encoding complexity can change the runtime substantially. A one-minute minimum makes blind high-frequency polling wasteful: the same allocation costs approximately $0.002644 for a minimum-length invocation even when no media is claimed. Choose event-driven admission or an explicit bounded dispatch rate from observed backlog and an approved monthly operating budget.
 
-The existing Vercel Hobby host remains useful for bounded jobs. Its published limit is 300 seconds per request, 1 vCPU / 2 GB memory, and approximately 500 MB writable scratch. A range input relay could reduce staged source bytes, but it would not remove the CPU limit, invocation deadline, output/remux peak, or monthly entitlement. Incremental output would additionally need a different registered-manifest protocol to preserve the current immutable publication proof. Do not claim that an input-streaming change alone supplies full-profile or five-million-DAU capacity.
+The original Vercel HTTP worker used conservative application limits of 128 MiB input and 450 MiB scratch, within the Hobby 300-second request deadline. These settings are separate from the provisioned Sandbox worker, which runs outside the HTTP request and has measured 2-vCPU / 4-GB resources with roughly 64 GiB scratch. A range input relay alone would not remove CPU, deadline, output/remux or monthly-entitlement constraints. Incremental output would additionally need a different registered-manifest protocol to preserve the current immutable publication proof. The completed input-size acceptance does not establish five-million-DAU capacity.
 
 ## Deployment prerequisites
 

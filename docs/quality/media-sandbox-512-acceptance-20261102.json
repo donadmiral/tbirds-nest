@@ -1,0 +1,69 @@
+{
+  "tested_at": "2026-11-02T18:28:23Z",
+  "environment": "QA",
+  "cloud": "Vercel Sandbox",
+  "region": "pdx1",
+  "runtime": {
+    "sdk_version": "3.9.1",
+    "snapshot_id": "snap_7kjpOZrtq4dtSn2wnQiH1Wpy6At3",
+    "snapshot_expires_at": null,
+    "node_version": "24.22.1",
+    "ffmpeg_version": "8.0.1-3ubuntu2",
+    "vcpus": 2,
+    "memory_mb": 4096,
+    "hard_timeout_seconds": 780,
+    "persistent": false,
+    "exposed_ports": 0
+  },
+  "source": {
+    "bytes": 536375042,
+    "frames": 776,
+    "duration_seconds": 25.866667,
+    "width": 640,
+    "height": 360,
+    "codec": "rawvideo",
+    "pixel_format": "rgb24",
+    "container": "mov",
+    "padding_bytes": 0
+  },
+  "consumer": {
+    "source_sha256": "9a6cc7687bb88960da4a7193428b5e47cc54bb553a799f008874708bfb35f418",
+    "event": "media_sandbox_job",
+    "state": "ready",
+    "assets": 18,
+    "bytes": 5125405,
+    "metrics": {
+      "wall_ms": 38418,
+      "host_vcpus": 2,
+      "host_memory_bytes": 4492595200,
+      "scratch_total_bytes": 68652367872,
+      "scratch_start_free_bytes": 66358362112,
+      "scratch_peak_increment_bytes": 541913088,
+      "sampled_host_memory_peak_bytes": 433000448,
+      "node_peak_rss_bytes": 118890496,
+      "active_cpu_ms": 9875.842
+    }
+  },
+  "provider": {
+    "session_id": "sbx_3OOUOEhZpNWrkaNSlcSldiWUyI4t",
+    "status": "stopped",
+    "wall_ms": 145570,
+    "active_cpu_ms": 20264,
+    "network_ingress_bytes": 540377126,
+    "network_egress_bytes": 7258654
+  },
+  "limits": {
+    "max_input_bytes": 536870912,
+    "scratch_budget_bytes": 2147483648,
+    "processing_deadline_ms": 720000,
+    "command_timeout_ms": 735000
+  },
+  "notes": [
+    "Input is real moving video data with no padding.",
+    "Worker source is the checked-in consumer with only its worker-scoped broker credential; no OIDC or dispatcher credential enters the VM.",
+    "Provider wall/CPU includes setup and measurement commands; consumer counters cover the processing command.",
+    "Host-memory and scratch peaks are sampled every 250 ms; Node RSS is reported separately.",
+    "This fixture verifies the 512 MiB input-size envelope at the stated duration/resolution; it is not a general throughput or five-million-DAU capacity measurement.",
+    "Temporary QA post-media upload limit was restored to 100 MiB before processing."
+  ]
+}

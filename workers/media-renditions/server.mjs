@@ -8,10 +8,9 @@ import {backend} from './backend.mjs';
 import {createWorker} from './worker.mjs';
 export function createWorkerHandler({config,api,worker,env=process.env,stopping=new AbortController(),
  dispatcherFactory=async()=>(await import('./sandbox-dispatcher.mjs')).configuredSandboxDispatcher(env),
- runtimePinFactory=async()=>(await import('./runtime-pin.mjs')).configuredRuntimePin(env),
  controllerMetrics=async()=>{const disk=await statfs(os.tmpdir());return{scratch_available_bytes:Number(disk.bavail)*Number(disk.bsize),process_rss_bytes:process.memoryUsage().rss};},
 }){
-let dispatcherPromise,runtimePinPromise;
+let dispatcherPromise;
 const sandboxMode=env.MEDIA_WORKER_RUNTIME==='sandbox';
 const authorized=value=>{const expected=`Bearer ${config.cronSecret}`;return typeof value==='string'&&Buffer.byteLength(value)===Buffer.byteLength(expected)&&timingSafeEqual(Buffer.from(value),Buffer.from(expected));};
 return async(req,res)=>{
@@ -19,15 +18,6 @@ return async(req,res)=>{
  try{
   const path=new URL(req.url||'/','http://worker.internal').pathname;
   if(path==='/health'){json(200,{ok:!stopping.signal.aborted,profile:'hls-v2',runtime:sandboxMode?'sandbox':'local',...(!sandboxMode?{busy:worker.active}:{})});return;}
-  if(path==='/runtime-pin'){
-   if(env.VERCEL_ENV!=='preview'||env.MEDIA_SANDBOX_RUNTIME_PIN_ENABLED!=='true'){json(404,{error:'not_found'});return;}
-   if(req.method!=='POST'){json(405,{error:'method_not_allowed'});return;}
-   if(!authorized(req.headers.authorization)){json(401,{error:'unauthorized'});return;}
-   if(stopping.signal.aborted){json(503,{state:'stopping'});return;}
-   const pin=await(runtimePinPromise??=runtimePinFactory());
-   const result=await pin({method:req.method,authorization:req.headers.authorization,oidcToken:req.headers['x-vercel-oidc-token']});
-   json(result.status,result.body);return;
-  }
   if(path==='/drain'&&['GET','POST'].includes(req.method)){
    if(!authorized(req.headers.authorization)){json(401,{error:'unauthorized'});return;}
    if(stopping.signal.aborted){json(503,{state:'stopping'});return;}
