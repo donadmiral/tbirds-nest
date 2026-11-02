@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "functions": { "api/playback.mjs": { "maxDuration": 300, "includeFiles": "../media-renditions/{backend,cache,config,gateway,transcode}.mjs" } },
+  "rewrites": [{ "source": "/playback/:path*", "destination": "/api/playback?path=:path*" }]
+}

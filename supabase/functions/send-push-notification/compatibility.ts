@@ -3,7 +3,7 @@
 // caller, reading canonical events and reporting provider outcomes accurately.
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { boundedPushJson, PUSH_HEADERS, pushResponse as json, sendExpoPushes, servicePushAuthorized, validExpoToken, validUuid } from '../_shared/pushDelivery.ts';
-type Dependencies = { service: Pick<SupabaseClient, 'from'>; serviceKey: string; fetch: typeof fetch; deadlineMs?: number; now?: () => number;
+type Dependencies = { service: Pick<SupabaseClient, 'from' | 'rpc'>; serviceKey: string; fetch: typeof fetch; deadlineMs?: number; now?: () => number; expoAccessToken?: string;
   authorizeLegacyService?: (request: Request, signal: AbortSignal) => Promise<boolean> };
 
 export function createCompatiblePushHandler(deps: Dependencies) {
@@ -148,32 +148,12 @@ export function createCompatiblePushHandler(deps: Dependencies) {
 
     // Icon badge policy (2026-07-28): the number means unread MESSAGES only.
     // Non-message pushes still deliver, carrying the same message count; zero clears it.
-    let unreadCount = 0;
+    let unreadCount: number | undefined;
     try {
-      const { count: dm } = await admin
-        .from("messages")
-        .select("id", { count: "exact", head: true })
-        .eq("receiver_id", recipientId)
-        .neq("sender_id", recipientId)
-        .is("read_at", null)
-        .is("deleted_at", null).abortSignal(signal);
-      let group = 0;
-      const { data: mems } = await admin
-        .from("conversation_members")
-        .select("conversation_id, last_read_at")
-        .eq("user_id", recipientId).abortSignal(signal);
-      for (const m of (mems || [])) {
-        const { count: gc } = await admin
-          .from("messages")
-          .select("id", { count: "exact", head: true })
-          .eq("conversation_id", m.conversation_id)
-          .neq("sender_id", recipientId)
-          .is("deleted_at", null)
-          .gt("created_at", m.last_read_at || "1970-01-01").abortSignal(signal);
-        group += gc || 0;
-      }
-      unreadCount = (dm || 0) + group;
-    } catch (_) { unreadCount = 0; }
+      const { data: badge, error } = await admin.rpc('get_push_message_badge_v1', { p_recipient: recipientId }).abortSignal(signal);
+      const count = typeof badge === 'number' || typeof badge === 'string' ? Number(badge) : NaN;
+      if (!error && Number.isSafeInteger(count) && count >= 0) unreadCount = count;
+    } catch { /* Unknown counts leave the device's existing badge intact. */ }
 
     // Build push messages for all tokens
     const uniqueTokens = [...new Set<string>(tokens.map((t: {expo_push_token: string}) => t.expo_push_token).filter(validExpoToken))];
@@ -193,7 +173,7 @@ export function createCompatiblePushHandler(deps: Dependencies) {
       },
     }));
 
-    const result = await sendExpoPushes(pushMessages, { fetch: deps.fetch, signal });
+    const result = await sendExpoPushes(pushMessages, { fetch: deps.fetch, signal, accessToken: deps.expoAccessToken });
     return json(result.unknown ? 502 : 200, {
       sent: result.accepted, accepted: result.accepted, rejected: result.rejected, unknown: result.unknown,
     });

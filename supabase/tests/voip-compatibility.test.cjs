@@ -45,7 +45,7 @@ function harness(options = {}) {
     authorizeLegacyService: async () => options.legacyAllowed ?? false,
     caller: () => ({ auth: { getUser: async () => { authCalls++; return { data: { user: options.authenticated ? { id: options.user || OWNER, is_anonymous: !!options.anonymous } : null }, error: null }; } } }),
     apnsToken: async () => { if (options.noApns) throw Error('synthetic missing signing config'); return 'synthetic-apns-jwt'; },
-    androidDataOnly: options.dataOnly,
+    androidDataOnly: options.dataOnly, apnsTopic: options.apnsTopic, expoAccessToken: options.expoAccessToken,
     fetch: async (url, init) => {
       const payload = JSON.parse(init.body); provider.push({ url, init, payload });
       if (options.provider) return options.provider(url, init, payload);
@@ -101,6 +101,11 @@ test('ended, expired or removed group-call access cannot trigger a ring', async 
 });
 
 const ios = { user_id: RECEIVER, platform: 'ios', voip_token: 'a'.repeat(64), expo_push_token: expoToken(2) };
+test('a QA CallKit topic reaches only the configured provider topic', async () => {
+  const h = harness({ tokens:[ios],apnsTopic:'app.platinumcircles.mobile.qa.voip' });
+  assert.equal((await h.run()).status,200);
+  assert.equal(h.provider[0].init.headers['apns-topic'],'app.platinumcircles.mobile.qa.voip');
+});
 test('CallKit fields, production topic and the existing development-device fallback remain intact', async () => {
   const h = harness({ tokens: [ios], sandboxFallback: true }); const result = await h.run(); assert.equal(result.status, 200);
   assert.deepEqual(h.provider[0].payload, { aps: {}, uuid: CALL, callerName: 'Existing caller', handle: 'PlatinumCircles', hasVideo: true, callId: CALL, isVideo: true });

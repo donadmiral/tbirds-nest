@@ -410,7 +410,7 @@ verify_jwt = true
 import_map = "./functions/daily-get-token/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
-entrypoint = "./functions/daily-get-token/index.ts"
+entrypoint = "./functions/daily-get-token/compatibility-index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/daily-get-token/*.html" ]
@@ -463,6 +463,20 @@ verify_jwt = false
 # Auth plus live call/session authorization, or that exact server credential.
 [functions.send-push-notification]
 verify_jwt = false
+entrypoint = "./functions/send-push-notification/compatibility-index.ts"
 
 [functions.send-voip-push]
+verify_jwt = false
+entrypoint = "./functions/send-voip-push/compatibility-index.ts"
+
+# The durable consumer validates backend credentials in its handler.
+[functions.process-notification-outbox]
+verify_jwt = false
+
+# Scoped, single-use scheduler capability is authenticated inside the worker.
+[functions.daily-reconcile]
+verify_jwt = false
+
+# Separate hashed worker/gateway capabilities, replay fences and fixed media operations.
+[functions.media-broker]
 verify_jwt = false

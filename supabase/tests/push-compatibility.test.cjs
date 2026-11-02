@@ -63,11 +63,19 @@ function harness(options = {}) {
     return chain;
   }
   const fetch = async (url, init) => {
-    const payload = JSON.parse(init.body); external.push({ url, payload });
+    const payload = JSON.parse(init.body); external.push({ url, payload, init });
     if (options.provider) return options.provider(url, init, payload);
     return Response.json({ data: payload.map((_, i) => ({ status: 'ok', id: `ticket-${external.length}-${i}` })) });
   };
-  return { rows, queries, external, push: createCompatiblePushHandler({ service: { from: builder }, serviceKey: SERVICE, fetch, now: () => NOW, deadlineMs: options.deadlineMs, authorizeLegacyService: options.authorizeLegacyService }) };
+  const service = { from: builder, rpc(name,args) {
+    const q = { table: name, args }; const chain = {
+      abortSignal(signal) { q.signal = signal; return chain; },
+      then(resolve,reject) { queries.push(q); return Promise.resolve(options.badgeError
+        ? { data:null,error:Error('synthetic badge unavailable') }
+        : { data:3,error:null }).then(resolve,reject); },
+    }; return chain;
+  } };
+  return { rows, queries, external, push: createCompatiblePushHandler({ service, serviceKey: SERVICE, fetch, now: () => NOW, deadlineMs: options.deadlineMs, expoAccessToken: options.expoAccessToken, authorizeLegacyService: options.authorizeLegacyService }) };
 }
 const request = (body = { record: { id: NOTICE } }, auth = SERVICE) => new Request('https://synthetic.invalid/push', {
   method: 'POST', headers: auth ? { Authorization: 'Bearer ' + auth } : {}, body: JSON.stringify(body),
@@ -101,6 +109,16 @@ test('service webhook uses canonical recipient, content and route fields while p
   assert.equal(sent.data.type, 'message'); assert.equal(sent.data.category, 'messages'); assert.equal(sent.data.notificationId, NOTICE);
   assert.equal(sent.data.unsafe, undefined); assert.equal(sent.data.conversation_id, GROUP);
   assert.ok(h.queries.every(query => query.signal instanceof AbortSignal));
+  assert.equal(h.queries.filter(query => query.table === 'get_push_message_badge_v1').length, 1);
+  assert.equal(h.queries.some(query => ['messages','conversation_members'].includes(query.table)), false);
+});
+
+test('a failed badge read preserves the existing icon count and the Expo access credential stays in its provider header', async () => {
+  const h = harness({ badgeError:true,expoAccessToken:'synthetic-expo-credential' });
+  assert.equal((await h.push(request())).status,200);
+  assert.equal(h.external[0].payload[0].badge,undefined);
+  assert.equal(h.external[0].init.headers.Authorization,'Bearer synthetic-expo-credential');
+  assert.equal(JSON.stringify(h.external[0].payload).includes('synthetic-expo-credential'),false);
 });
 
 test('quiet hours, notification preferences, missing events and the separate call ring flow remain respected', async () => {

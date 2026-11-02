@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { createMediaContentHandler } from './handler.ts';
 import { serviceRoleFetch } from '../_shared/serviceRoleFetch.ts';
+import { adaptiveRedirect } from './adaptive.ts';
 const base = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const backendFetch = serviceRoleFetch(fetch, serviceKey);
@@ -12,7 +13,7 @@ const mediaFetch: typeof fetch = (input, init) => {
   if (serviceKey.startsWith('sb_secret_')) { headers.set('apikey', serviceKey); headers.delete('Authorization'); }
   return fetch(input, { ...init, headers });
 };
-Deno.serve(createMediaContentHandler({ base, serviceKey, fetch: mediaFetch,
+const originalHandler = createMediaContentHandler({ base, serviceKey, fetch: mediaFetch,
   async resolve(token, bucket, path, signal) {
     const { data, error } = await client.rpc('resolve_media_delivery', { p_token: token, p_bucket: bucket, p_path: path }).abortSignal(signal);
     if (error) throw new Error('Media authorization unavailable');
@@ -32,4 +33,24 @@ Deno.serve(createMediaContentHandler({ base, serviceKey, fetch: mediaFetch,
       console.warn(JSON.stringify({ event: 'media_delivery', ...event }));
     }
   },
-}));
+});
+let gatewayOrigin: { value: string | undefined; until: number } | null = null;
+let gatewayLookup: Promise<string | undefined> | null = null;
+async function adaptiveOrigin(): Promise<string | undefined> {
+  const configured = Deno.env.get('MEDIA_ADAPTIVE_GATEWAY_ORIGIN');
+  if (configured) return configured;
+  if (gatewayOrigin && gatewayOrigin.until > Date.now()) return gatewayOrigin.value;
+  if (gatewayLookup) return gatewayLookup;
+  gatewayLookup = (async () => {
+    const { data, error } = await client.rpc('media_adaptive_gateway_origin_v2').abortSignal(AbortSignal.timeout(2000));
+    const value = !error && typeof data === 'string' ? data : undefined;
+    gatewayOrigin = { value, until: Date.now() + (value ? 30000 : 5000) };
+    return value;
+  })().catch(() => undefined).finally(() => { gatewayLookup = null; });
+  return gatewayLookup;
+}
+Deno.serve(async (request: Request) => {
+  const mode = new URL(request.url).searchParams.get('stream');
+  if (mode !== 'hls' && mode !== 'check') return originalHandler(request);
+  return adaptiveRedirect(request, await adaptiveOrigin()) ?? originalHandler(request);
+});

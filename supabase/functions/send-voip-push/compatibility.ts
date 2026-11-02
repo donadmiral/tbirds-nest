@@ -9,6 +9,8 @@ type Dependencies = {
   authorizeLegacyService: (request: Request, signal: AbortSignal) => Promise<boolean>;
   fetch: typeof fetch;
   apnsToken: () => Promise<string>;
+  apnsTopic?: string;
+  expoAccessToken?: string;
   androidDataOnly?: boolean;
   deadlineMs?: number;
   now?: () => number;
@@ -92,7 +94,7 @@ export function createCompatibleVoipHandler(deps: Dependencies) {
         if (apnsCredential) {
           const payload = JSON.stringify({ aps: {}, uuid: callId, callerName, handle: 'PlatinumCircles', hasVideo: isVideo, callId, isVideo });
           const post = (host: string, token: string) => waitForPush(deps.fetch(`${host}/3/device/${token}`, {
-            method: 'POST', headers: { authorization: `bearer ${apnsCredential}`, 'apns-topic': 'app.platinumcircles.mobile.voip',
+            method: 'POST', headers: { authorization: `bearer ${apnsCredential}`, 'apns-topic': deps.apnsTopic || 'app.platinumcircles.mobile.voip',
               'apns-push-type': 'voip', 'apns-priority': '10', 'content-type': 'application/json' },
             body: payload, redirect: 'error', signal,
           }), signal);
@@ -129,7 +131,7 @@ export function createCompatibleVoipHandler(deps: Dependencies) {
             data: { type: 'incoming_call', call_id: callId, callId, caller_name: callerName, channel_id: call.channel_id ?? null, is_video: isVideo },
             channelId: 'calls', categoryId: 'incoming_call', priority: 'high', ttl: 45, sound: deps.androidDataOnly ? undefined : 'default',
           }));
-          const sent = await sendExpoPushes(batch, { fetch: deps.fetch, signal });
+          const sent = await sendExpoPushes(batch, { fetch: deps.fetch, signal, accessToken: deps.expoAccessToken });
           expo.accepted += sent.accepted; expo.rejected += sent.rejected; expo.unknown += sent.unknown;
         }
       }
