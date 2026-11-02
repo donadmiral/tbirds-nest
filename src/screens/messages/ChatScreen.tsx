@@ -66,6 +66,8 @@ import 'react-native-get-random-values';
 import { deliverMessage, makeMessageId, type MessageIntent } from '../../../shared/messageDelivery';
 import { canForwardMessage } from '../../../shared/messageContent';
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from '../../../shared/messageHistory';
+import { createThreadWindow, type ThreadWindow, type ThreadSnapshot } from '../../../shared/threadWindow';
+import { retainRecord } from '../../../shared/retainedMaps';
 import { acknowledgeConversationRead, canMarkConversationRead } from '../../../shared/messageReceipts';
 import { createTypingActivity, type TypingRow } from '../../../shared/typingActivity';
 import { parseStoryMessageReference } from '../../../shared/storyMessageReference';
@@ -501,7 +503,19 @@ export default function ChatScreen() {
   const olderPending = useRef(false);
   const activeConversation = useRef(conversationId);
   activeConversation.current = conversationId;
-  const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [messages, setMessageState] = useState<MessageItem[]>([]);
+  const threadHistory = useRef<ThreadWindow<MessageItem> | null>(null);
+  const threadOwner = useRef('');
+  const threadStop = useRef<(() => void) | null>(null);
+  const threadPosition = useRef({ offset: 0, viewport: 0 });
+  const [threadWindow, setThreadWindow] = useState<ThreadSnapshot<MessageItem> | null>(null);
+  const setMessages = useCallback((update: MessageItem[] | ((rows: MessageItem[]) => MessageItem[])) => {
+    const rows = typeof update === 'function' ? update(messagesRef.current) : update;
+    const reading = bindThreadHistory();
+    if (!reading) { messagesRef.current = rows; setMessageState(rows); return true; }
+    if (typeof update !== 'function' && !rows.length) { reading.clear(); return true; }
+    try { reading.replace(rows, atLatestRef.current); return true; } catch { return false; }
+  }, []);
   const confirmationScope = `${session?.user.id || ''}:${conversationId || ''}`;
   const confirmationBaseline = useRef({ scope: confirmationScope, seen: new Set(confirmedOutbox.map(receipt => receipt.message.id)) });
   if (confirmationBaseline.current.scope !== confirmationScope) {
@@ -743,12 +757,15 @@ export default function ChatScreen() {
       const shown = messagesRef.current.find(message => message.id === receipt.message.id);
       if (!shown || shown._optimistic) void mergeMsg(receipt.message as MessageItem);
     }
+    const retained = new Set(confirmedOutbox.map(receipt => receipt.message.id));
+    confirmationBaseline.current.seen = new Set([...confirmationBaseline.current.seen].filter(id => retained.has(id)));
   }, [confirmedOutbox, session?.user.id, conversationId, mergeMsg]);
 
   const loadSavedIds = useCallback(async () => {
     const scope = attachmentScopeRef.current;
     if (!currentUserId || !conversationId) return;
-    const { data } = await supabase.from('saved_messages').select('message_id').eq('user_id', currentUserId);
+    const ids = decoratingRows.current.map(row => row.id); if (!ids.length) { setSavedIds(new Set()); return; }
+    const { data } = await supabase.from('saved_messages').select('message_id').eq('user_id', currentUserId).in('message_id', ids);
     if(scope !== attachmentScopeRef.current || !mountedRef.current) return;
     setSavedIds(new Set((data || []).map((r: any) => r.message_id)));
   }, [currentUserId, conversationId]);
@@ -756,8 +773,9 @@ export default function ChatScreen() {
   const loadStarredIds = useCallback(async () => {
     const scope = attachmentScopeRef.current;
     if (!currentUserId || !conversationId) return;
+    const ids = decoratingRows.current.map(row => row.id); if (!ids.length) { setStarredIds(new Set()); return; }
     const { data } = await supabase.from('starred_messages')
-      .select('message_id').eq('conversation_id', conversationId).eq('starred_by', currentUserId);
+      .select('message_id').eq('conversation_id', conversationId).eq('starred_by', currentUserId).in('message_id', ids);
     if(scope !== attachmentScopeRef.current || !mountedRef.current) return;
     setStarredIds(new Set((data || []).map((r: any) => r.message_id)));
   }, [currentUserId, conversationId]);
@@ -780,7 +798,7 @@ export default function ChatScreen() {
     const current = () => mountedRef.current && scope === accountScopeRef.current && activeConversation.current === conversationId;
     const visible = () => current() && !readObscured.current && canMarkConversationRead({
       focused: focusedRef.current, foreground: AppState.currentState === 'active',
-      atLatest: atLatestRef.current, loaded: historyLoadedRef.current,
+      atLatest: atLatestRef.current && (threadHistory.current?.atLatest() ?? true), loaded: historyLoadedRef.current,
     });
     if (!visible()) return;
     readRequested.current.add(key);
@@ -813,6 +831,50 @@ export default function ChatScreen() {
     data.forEach((r: any) => { if (!byMsg[r.message_id]) byMsg[r.message_id] = []; byMsg[r.message_id].push({ emoji: r.emoji, user_id: r.user_id }); });
     setMessages(prev => prev.map(m => msgIds.includes(m.id) ? { ...m, _reactions: byMsg[m.id] || [] } : m));
   }, []);
+
+  function bindThreadHistory(force = false) {
+    const convId = activeConversation.current, scope = accountScopeRef.current;
+    const owner = useAuthStore.getState().session?.user.id;
+    if (!convId || !owner) {
+      threadStop.current?.(); threadStop.current = null; threadHistory.current?.dispose();
+      threadHistory.current = null; threadOwner.current = ''; setThreadWindow(null); return null;
+    }
+    const key = `${scope}:${owner}:${convId}`;
+    if (threadOwner.current === key && threadHistory.current && threadStop.current && !force) return threadHistory.current;
+    threadStop.current?.(); threadStop.current = null;
+    if (threadOwner.current !== key) { threadHistory.current?.dispose(); threadHistory.current = null; threadPosition.current = { offset: 0, viewport: 0 }; }
+    threadOwner.current = key;
+    const current = () => mountedRef.current && scope === accountScopeRef.current && activeConversation.current === convId;
+    const fetch = async (ids: string[], signal: AbortSignal) => {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !current() || sessionData.session?.user.id !== owner || signal.aborted) throw new Error('The conversation account changed.');
+      const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', convId).in('id', ids)
+        .setHeader('Authorization', `Bearer ${sessionData.session.access_token}`).abortSignal(signal);
+      if (error) throw error;
+      const rows = await signChatMedia((data ?? []) as MessageItem[]);
+      if (!current() || signal.aborted) throw new Error('The conversation account changed.');
+      if (!rows.length) return rows;
+      const { data: reactions, error: reactionError } = await supabase.from('message_reactions').select('message_id,user_id,emoji')
+        .in('message_id', rows.map(row => row.id)).abortSignal(signal);
+      if (reactionError) throw reactionError;
+      if (!current() || signal.aborted) throw new Error('The conversation account changed.');
+      return rows.map(row => ({ ...row, _reactions: (reactions ?? []).filter(reaction => reaction.message_id === row.id) }));
+    };
+    if (threadHistory.current) threadHistory.current.rebind({ current, fetch });
+    else threadHistory.current = createThreadWindow<MessageItem>({ current, fetch });
+    const reading = threadHistory.current;
+    const publish = () => {
+      if (!current() || threadHistory.current !== reading) return;
+      const snapshot = reading.getSnapshot(); messagesRef.current = snapshot.rows; setMessageState(snapshot.rows); setThreadWindow(snapshot);
+      if (snapshot.error) setHistoryError(snapshot.error);
+    };
+    threadStop.current = reading.subscribe(publish); publish(); return reading;
+  }
+  const restoreVisibleThread = useCallback(() => {
+    const { offset, viewport } = threadPosition.current;
+    void threadHistory.current?.near(offset, viewport).catch(() => {});
+  }, []);
+  useEffect(() => () => { threadStop.current?.(); threadStop.current = null; threadHistory.current?.dispose(); }, []);
 
   const getOrCreateConversation = useCallback(async (): Promise<string | null> => {
     if (conversationId) return conversationId;
@@ -949,9 +1011,9 @@ export default function ChatScreen() {
       const msgs = await signChatMedia(rows);
       if (!current()) return;
       const confirmedIds = new Set(msgs.map(message => message.id));
+      if (setMessages(prev => mergeMessagePage(msgs, prev.filter(m => m.conversation_id === convId && (!m._optimistic || !confirmedIds.has(m.id))))) === false) return;
       historyCursor.current = rows[rows.length - 1] || null;
       setHasOlder(rows.length === MESSAGE_PAGE_SIZE);
-      setMessages(prev => mergeMessagePage(msgs, prev.filter(m => m.conversation_id === convId && (!m._optimistic || !confirmedIds.has(m.id)))));
       historyLoadedRef.current = true;
       // Authorized history can render while its independent decorations load.
       setLoading(false);
@@ -979,9 +1041,9 @@ export default function ChatScreen() {
       const rows = (data || []) as MessageItem[];
       const signed = await signChatMedia(rows);
       if (!current()) return;
+      if (setMessages(prev => mergeMessagePage(signed, prev)) === false) return;
       if (rows.length) historyCursor.current = rows[rows.length - 1];
       setHasOlder(rows.length === MESSAGE_PAGE_SIZE);
-      setMessages(prev => mergeMessagePage(signed, prev));
       await loadReactions(rows.map(m => m.id));
     } catch {
       if (current()) setHistoryError('Older messages could not be loaded. Please try again.');
@@ -1047,6 +1109,7 @@ export default function ChatScreen() {
 
   useEffect(() => {
     mountedRef.current = true;
+    bindThreadHistory(true);
     const sameHistory = historyOwner.current?.scope === accountScopeRef.current && historyOwner.current?.conversationId === conversationId;
     historyOwner.current = { scope: accountScopeRef.current, conversationId };
     if (!sameHistory) {
@@ -1623,11 +1686,11 @@ const pickAndSendDocument = useCallback(async () => {
     }
   }, [currentUserId, otherUser, passedUserId, conversationId, isGroup, chatTitle, navigation]);
 
-  const lastOwnIndex = useMemo(() => messages.findIndex(m => m.sender_id === currentUserId), [messages, currentUserId]);
+  const lastOwnId = useMemo(() => (threadWindow?.identities ?? messages).find(m => m.sender_id === currentUserId)?.id, [threadWindow, messages, currentUserId]);
 
   const getStatus = useCallback((item: MessageItem, isMe: boolean, index: number) => {
     if (!isMe) return null;
-    if (lastOwnIndex !== index) return null;
+    if (lastOwnId !== item.id) return null;
     if (item._queued) return 'Waiting to send';
     if (item._optimistic) return 'Sending';
     const viewed = item.viewed_at || (lastStatus?.id === item.id ? lastStatus.viewed_at : null);
@@ -1636,12 +1699,55 @@ const pickAndSendDocument = useCallback(async () => {
     if (viewed || readAt) return `Seen ${fmtTime(viewed || readAt)}`;
     if (delivered) return 'Delivered';
     return 'Sent';
-  }, [lastOwnIndex, currentUserId, lastStatus]);
+  }, [lastOwnId, currentUserId, lastStatus]);
+
+  const [searchState, setSearchMessages] = useState<MessageItem[]>([]);
+  const searchOwner = `${accountScope}:${conversationId || ''}`;
+  const searchResultOwner = useRef(searchOwner);
+  const searchMessages = searchResultOwner.current === searchOwner ? searchState : [];
+  const [searchHistoryStatus, setSearchHistoryStatus] = useState<string | null>(null);
+  const searchingHistory = useRef(false);
+  const decoratingRows = useRef<MessageItem[]>([]);
+  decoratingRows.current = [...messages, ...searchMessages];
+  const decorationKey = [...new Set(decoratingRows.current.map(row => row.id))].sort().join(',');
+  useEffect(() => { void loadSavedIds(); void loadStarredIds(); }, [decorationKey, loadSavedIds, loadStarredIds]);
+  useEffect(() => {
+    const query = searchQuery.trim(), convId = conversationId, scope = accountScopeRef.current;
+    if (!query || !convId) {
+      searchResultOwner.current = searchOwner; setSearchMessages([]); setSearchHistoryStatus(null);
+      if (searchingHistory.current) requestAnimationFrame(() => { flatListRef.current?.scrollToOffset({ offset: threadPosition.current.offset, animated: false }); restoreVisibleThread(); });
+      searchingHistory.current = false; return;
+    }
+    searchingHistory.current = true;
+    setSearchMessages([]);
+    const request = new AbortController();
+    const current = () => !request.signal.aborted && mountedRef.current && accountScopeRef.current === scope && activeConversation.current === convId;
+    const oldest = threadHistory.current?.getSnapshot().identities.at(-1)?.created_at;
+    setSearchHistoryStatus('Searching loaded history…');
+    const timer = setTimeout(() => {
+      void (async () => {
+        // Search the visited range through RLS, including rows evicted from
+        // content memory. Search results have their own small, explicit bound.
+        let read = supabase.from('messages').select('*').eq('conversation_id', convId)
+          .ilike('text', `%${query.replace(/[\\%_]/g, value => `\\${value}`)}%`)
+          .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(121).abortSignal(request.signal);
+        if (oldest) read = read.gte('created_at', oldest);
+        const { data, error } = await read; if (error) throw error;
+        const rows = await signChatMedia(((data ?? []) as MessageItem[]).slice(0, 120));
+        if (!current()) return;
+        searchResultOwner.current = searchOwner;
+        setSearchMessages(rows); setSearchHistoryStatus((data?.length ?? 0) > 120 ? 'Showing 120 matches. Refine your search to see a smaller set.' : null);
+      })().catch(() => { if (current()) { setSearchMessages([]); setSearchHistoryStatus('Search could not load. Please try again.'); } });
+    }, 250);
+    return () => { clearTimeout(timer); request.abort(); };
+  }, [searchQuery, conversationId, accountScope, searchOwner, threadWindow?.identities[0]?.id, threadWindow?.identities.at(-1)?.id, restoreVisibleThread]);
 
   const listData = useMemo(() => {
-    const source = searchQuery.trim()
-      ? messages.filter(m => m.text?.toLowerCase().includes(searchQuery.toLowerCase()))
-      : messages;
+    if (!searchQuery.trim() && threadWindow) return threadWindow.items.map(item => item.type === 'gap'
+      ? { type: 'gap', id: item.id, height: item.height }
+      : { type: 'msg', id: item.id, data: item.row, index: item.index, height: item.height,
+        dayLabel: !threadWindow.identities[item.index + 1] || !sameDay(item.row.created_at, threadWindow.identities[item.index + 1].created_at) ? fmtSep(item.row.created_at) : null });
+    const source = searchQuery.trim() ? searchMessages : messages;
     const out: any[] = [];
     source.forEach((msg, i) => {
       out.push({ type: 'msg', data: msg, index: i });
@@ -1651,14 +1757,14 @@ const pickAndSendDocument = useCallback(async () => {
       }
     });
     return out;
-  }, [messages, searchQuery]);
+  }, [messages, searchQuery, searchMessages, threadWindow]);
 
   const [paymentsMap, setPaymentsMap] = useState<Record<string, ChatPayment>>({});
   const [offersMap, setOffersMap] = useState<Record<string, any>>({});
   const [counterOffer, setCounterOffer] = useState<{ id: string; scope: string; ownerId: string; actorId: string } | null>(null);
   useEffect(() => {
     const ids: string[] = [];
-    messages.forEach(m => {
+    decoratingRows.current.forEach(m => {
       if (m.media_type === 'offer' && m.media_url) {
         try { const j = JSON.parse(m.media_url); if (j?.offer_id && !offersMap[j.offer_id]) ids.push(j.offer_id); } catch {}
       }
@@ -1669,7 +1775,7 @@ const pickAndSendDocument = useCallback(async () => {
         if (!data?.length) return;
         setOffersMap(prev => { const n = { ...prev }; data.forEach((r: any) => { n[r.id] = r; }); return n; });
       });
-  }, [messages]);
+  }, [decorationKey]);
   const respondOffer = useCallback(async (offerId: string, action: string, counterAmount?: number) => {
     try {
       const { error } = await supabase.rpc('respond_offer', { p_offer_id: offerId, p_action: action, p_counter_amount: counterAmount ?? null });
@@ -1678,7 +1784,7 @@ const pickAndSendDocument = useCallback(async () => {
     } catch (e: any) { Alert.alert('Offer', e?.message || 'Could not respond.'); }
   }, []);
   useEffect(() => {
-    const ids = Array.from(new Set(messages.filter(m => m.payment_receipt_verified === true)
+    const ids = Array.from(new Set(decoratingRows.current.filter(m => m.payment_receipt_verified === true)
       .map(m => m.payment_id).filter(Boolean))) as string[];
     const missing = ids.filter(id => !paymentsMap[id]);
     if (missing.length === 0) return;
@@ -1691,7 +1797,7 @@ const pickAndSendDocument = useCallback(async () => {
         return next;
       });
     })();
-  }, [messages, paymentsMap]);
+  }, [decorationKey, paymentsMap]);
 
 
   // The list is inverted, so index - 1 renders BELOW this message. A run ends
@@ -1699,16 +1805,17 @@ const pickAndSendDocument = useCallback(async () => {
   // bottom of a run gets a tail, an avatar and a timestamp.
   const groupEnds = useMemo(() => {
     const map: Record<string, boolean> = {};
-    for (let i = 0; i < messages.length; i++) {
-      const mm = messages[i];
-      const below = messages[i - 1];
+    const identities = threadWindow?.identities ?? messages, retained = new Set([...messages, ...searchMessages].map(row => row.id));
+    for (let i = 0; i < identities.length; i++) {
+      const mm = identities[i]; if (!retained.has(mm.id)) continue;
+      const below = identities[i - 1];
       const continues = !!below
         && below.sender_id === mm.sender_id
         && Math.abs(new Date(below.created_at ?? 0).getTime() - new Date(mm.created_at ?? 0).getTime()) < 120000;
       map[mm.id] = !continues;
     }
     return map;
-  }, [messages]);
+  }, [messages, searchMessages, threadWindow]);
   const membersById = useMemo(() => {
     const m: Record<string, any> = {};
     groupMembers.forEach((gm: any) => { if (gm.profile?.id) m[gm.profile.id] = gm.profile; });
@@ -1716,16 +1823,17 @@ const pickAndSendDocument = useCallback(async () => {
   }, [groupMembers]);
   const groupStarts = useMemo(() => {
     const map: Record<string, boolean> = {};
-    for (let i = 0; i < messages.length; i++) {
-      const mm = messages[i];
-      const above = messages[i + 1];
+    const identities = threadWindow?.identities ?? messages, retained = new Set([...messages, ...searchMessages].map(row => row.id));
+    for (let i = 0; i < identities.length; i++) {
+      const mm = identities[i]; if (!retained.has(mm.id)) continue;
+      const above = identities[i + 1];
       const continues = !!above
         && above.sender_id === mm.sender_id
         && Math.abs(new Date(mm.created_at ?? 0).getTime() - new Date(above.created_at ?? 0).getTime()) < 120000;
       map[mm.id] = !continues;
     }
     return map;
-  }, [messages]);
+  }, [messages, searchMessages, threadWindow]);
   const SENDER_COLORS = ['#B45309', '#0F766E', '#7C3AED', '#BE185D', '#2563EB', '#059669', '#C2410C', '#4F46E5'];
   const senderColor = useCallback((id?: string | null) => {
     if (!id) return SENDER_COLORS[0];
@@ -1734,10 +1842,23 @@ const pickAndSendDocument = useCallback(async () => {
     return SENDER_COLORS[h % SENDER_COLORS.length];
   }, []);
   const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { scope: string; content: string; author: any; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null; mediaCount?: number }>>({});
+  useEffect(() => {
+    const rows = decoratingRows.current, ids = new Set(rows.map(row => row.id));
+    if (selectedMsg) ids.add(selectedMsg.id);
+    const offerIds = new Set<string>();
+    for (const row of rows) if (row.media_type === 'offer' && row.media_url) {
+      try { const value = JSON.parse(row.media_url); if (value?.offer_id) offerIds.add(value.offer_id); } catch { /* other media */ }
+    }
+    setOffersMap(previous => retainRecord(previous, offerIds));
+    setPaymentsMap(previous => retainRecord(previous, new Set(rows.map(row => row.payment_id).filter((id): id is string => !!id))));
+    setSharedPostsMap(previous => retainRecord(previous, new Set(rows.map(row => row.shared_post_id).filter((id): id is string => !!id))));
+    setSavedIds(previous => [...previous].every(id => ids.has(id)) ? previous : new Set([...previous].filter(id => ids.has(id))));
+    setStarredIds(previous => [...previous].every(id => ids.has(id)) ? previous : new Set([...previous].filter(id => ids.has(id))));
+  }, [decorationKey, selectedMsg, offersMap, paymentsMap, sharedPostsMap]);
   const sharedPostsOwner = `${accountScope}:${attachmentScope}`;
   const sharedPostsRequest = useRef({ owner: sharedPostsOwner, pending: new Set<string>() });
   if (sharedPostsRequest.current.owner !== sharedPostsOwner) sharedPostsRequest.current = { owner: sharedPostsOwner, pending: new Set() };
-  const sharedPostIds = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))).sort().join(',');
+  const sharedPostIds = Array.from(new Set(decoratingRows.current.map(m => m.shared_post_id).filter(Boolean))).sort().join(',');
   useEffect(() => { setSharedPostsMap({}); }, [sharedPostsOwner]);
   useEffect(() => {
     const request = sharedPostsRequest.current;
@@ -2325,11 +2446,15 @@ const pickAndSendDocument = useCallback(async () => {
         ) : (
           <FlatList ref={flatListRef} data={listData} inverted
             onScroll={event => {
+              if (searchQuery.trim()) return;
+              threadPosition.current = { offset: event.nativeEvent.contentOffset.y, viewport: event.nativeEvent.layoutMeasurement.height };
               const atLatest = event.nativeEvent.contentOffset.y < 64;
               const returned = atLatest && !atLatestRef.current;
               atLatestRef.current = atLatest;
+              restoreVisibleThread();
               if (returned) void markRead();
             }}
+            onLayout={event => { threadPosition.current.viewport = event.nativeEvent.layout.height; if (!searchQuery.trim()) restoreVisibleThread(); }}
             scrollEventThrottle={100}
             ListHeaderComponent={isGroup && seenByNames.length > 0 ? (
               <TouchableOpacity onPress={() => { const m = messagesRef.current?.[0]; if (m) openSeenInfo(m); }} activeOpacity={0.7}
@@ -2341,22 +2466,28 @@ const pickAndSendDocument = useCallback(async () => {
               </TouchableOpacity>
             ) : null}
             maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-            ListFooterComponent={historyError || hasOlder ? (
+            ListFooterComponent={searchQuery.trim() ? (searchHistoryStatus ? <Text accessibilityLiveRegion="polite" style={{ padding: 16, color: t.ink.muted }}>{searchHistoryStatus}</Text> : null) : historyError || hasOlder ? (
               <TouchableOpacity accessibilityRole="button" disabled={loadingOlder}
-                onPress={() => historyCursor.current ? loadOlderMessages() : fetchMessages()}
+                onPress={() => { if (threadWindow?.errorKind === 'restore') { setHistoryError(null); restoreVisibleThread(); } else if (historyCursor.current) void loadOlderMessages(); else void fetchMessages(); }}
                 style={{ padding: 16, alignItems: 'center' }}>
                 <Text style={{ color: t.ink.primary }}>{loadingOlder ? 'Loading older messages…' : historyError || 'Load older messages'}</Text>
                 {historyError ? <Text style={{ color: t.ink.muted }}>Tap to retry</Text> : null}
               </TouchableOpacity>
             ) : null}
-            keyExtractor={(item: any) => item.type === 'sep' ? item.id : item.data.id}
-            renderItem={renderMsg} contentContainerStyle={s.list}
+            keyExtractor={(item: any) => item.type === 'sep' || item.type === 'gap' ? item.id : item.data.id}
+            renderItem={({ item }: { item: any }) => item.type === 'gap'
+              ? <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ height: item.height }} />
+              : searchQuery.trim() || item.type === 'sep' ? renderMsg({ item })
+              : <View style={{ minHeight: item.height || undefined }}><View onLayout={event => threadHistory.current?.measure(item.data.id, event.nativeEvent.layout.height)}>
+                {item.dayLabel ? <View style={s.sep}><Text style={s.sepTxt}>{item.dayLabel}</Text></View> : null}
+                {renderMsg({ item })}
+              </View></View>} contentContainerStyle={s.list}
             keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive"
             showsVerticalScrollIndicator={false}
             removeClippedSubviews
-            windowSize={10}
-            maxToRenderPerBatch={12}
-            initialNumToRender={15}
+            windowSize={101}
+            maxToRenderPerBatch={250}
+            initialNumToRender={250}
             ListEmptyComponent={
               <View style={s.empty}>
                 {otherUser?.avatar_url

@@ -8,7 +8,7 @@ export type ReaderQuery = PromiseLike<Result> & {
 };
 export type ReaderClient = { rpc: (name: string, args: Record<string, unknown>) => ReaderQuery };
 export type ReaderScope = { viewer: string; token?: string; signal?: AbortSignal; current?: () => boolean };
-type Capabilities = { books: boolean; inbox: boolean };
+type Capabilities = { books: boolean; inbox: boolean; bookWindows?: boolean };
 const disabled: Capabilities = { books: false, inbox: false };
 const capabilities = new WeakMap<object, Map<string, { value: Capabilities; until: number }>>();
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
@@ -32,7 +32,7 @@ export async function readPagedReaderCapabilities(client: ReaderClient, scope: R
   const { data, error } = await request(client, 'get_paged_reader_capabilities', {}, scope);
   if (error && (!object(error) || !['PGRST202', '42883'].includes(String(error.code)))) throw error;
   const value = object(data) && data.version === 1 && !error
-    ? { books: data.books === true, inbox: data.inbox === true } : disabled;
+    ? { books: data.books === true, inbox: data.inbox === true, ...(data.books_window === true ? { bookWindows: true } : {}) } : disabled;
   let cache = capabilities.get(client);
   if (!cache) { cache = new Map(); capabilities.set(client, cache); }
   // Capabilities are not content or authorization. Every actual page still
@@ -42,7 +42,8 @@ export async function readPagedReaderCapabilities(client: ReaderClient, scope: R
   return value;
 }
 
-export type MemoryPagination = { version: 2; viewer: string; revision: string; cursor: ReaderCursor | null };
+export type MemoryPagination = { version: 2; viewer: string; revision: string; cursor: ReaderCursor | null;
+  windowSupported?: boolean; offset?: number };
 export type MemoryCollection = { id: string; can_view: boolean; count: number; pages: { id: string }[];
   _pagination?: MemoryPagination; _mediaExpiresAt?: number | null };
 function validatePages(value: unknown): value is { id: string }[] {
@@ -68,12 +69,18 @@ function bookResponse(value: unknown, album: string, scope: ReaderScope, continu
   return value;
 }
 export function memoryBookHasMore(book: MemoryCollection | null | undefined) { return !!book?._pagination?.cursor; }
+export function memoryBookOffset(book: MemoryCollection | null | undefined) { return book?._pagination?.offset ?? 0; }
+export function memoryBookHasPrevious(book: MemoryCollection | null | undefined) { return memoryBookOffset(book) > 0; }
+export function memoryBookIsComplete(book: MemoryCollection | null | undefined) {
+  return !!book && !memoryBookHasPrevious(book) && !memoryBookHasMore(book) && book.pages.length === book.count;
+}
 export function isMemoryBookChanged(error: unknown) {
   return object(error) && (error.code === '40001' || String(error.message).includes('MEMORY_BOOK_CHANGED'));
 }
 export async function readMemoryBookFirst<T extends MemoryCollection>(client: ReaderClient, album: string, scope: ReaderScope,
   hydrate?: (book: T) => Promise<T>): Promise<T | null> {
-  const enabled = (await readPagedReaderCapabilities(client, scope)).books;
+  const capability = await readPagedReaderCapabilities(client, scope);
+  const enabled = capability.books;
   const { data, error } = await request(client, enabled ? 'get_memory_book_page_v2' : 'get_memory_book',
     enabled ? { p_album: album, p_limit: 24 } : { p_album: album }, scope);
   if (error) throw error;
@@ -85,7 +92,8 @@ export async function readMemoryBookFirst<T extends MemoryCollection>(client: Re
       throw new Error('The memory count is incomplete. Please retry.');
     }
     book = { ...value, ...(value.can_view ? { _pagination: { version: 2, viewer: scope.viewer,
-      revision: value.revision, cursor: value.next_cursor } } : {}) } as T;
+      revision: value.revision, cursor: value.next_cursor,
+      ...(capability.bookWindows ? { windowSupported: true, offset: 0 } : {}) } } : {}) } as T;
     if (book.can_view && !memoryBookHasMore(book) && book.pages.length !== book.count) {
       throw new Error('Some memories are missing. Please retry.');
     }
@@ -106,7 +114,7 @@ export async function readMemoryBookNext<T extends MemoryCollection>(client: Rea
   if (value.revision !== paging.revision) throw Object.assign(new Error('MEMORY_BOOK_CHANGED'), { code: '40001' });
   const ids = new Set(previous.pages.map(page => page.id));
   const added = value.pages as T['pages'];
-  if (added.some(page => ids.has(page.id)) || previous.pages.length + added.length > previous.count
+  if (added.some(page => ids.has(page.id)) || memoryBookOffset(previous) + previous.pages.length + added.length > previous.count
     || JSON.stringify(value.next_cursor) === JSON.stringify(paging.cursor)) {
     throw new Error('The memory continuation is inconsistent. Please reopen the book.');
   }
@@ -120,14 +128,64 @@ export async function readMemoryBookNext<T extends MemoryCollection>(client: Rea
     next._mediaExpiresAt = typeof next._mediaExpiresAt === 'number'
       ? Math.min(previous._mediaExpiresAt, next._mediaExpiresAt) : previous._mediaExpiresAt;
   }
-  if (!memoryBookHasMore(next) && next.pages.length !== next.count) throw new Error('Some memories are missing. Please reopen the book.');
+  if (!memoryBookHasMore(next) && memoryBookOffset(next) + next.pages.length !== next.count) throw new Error('Some memories are missing. Please reopen the book.');
   return next;
+}
+
+/** Keep only the current page and nearby pages in the ordinary reader. The
+ * server seeks on either side of the exact authorized page, so returning to
+ * older memories needs neither OFFSET scans nor an ever-growing cursor ledger.
+ * Whole-book operations continue using readMemoryBookComplete explicitly. */
+export async function readMemoryBookWindow<T extends MemoryCollection>(client: ReaderClient, previous: T,
+  anchorIndex: number, direction: -1 | 1, scope: ReaderScope, hydrate?: (book: T) => Promise<T>): Promise<{ book: T; index: number }> {
+  assertCurrent(scope);
+  const paging = previous._pagination;
+  if (!paging?.windowSupported || paging.viewer !== scope.viewer || !Number.isInteger(anchorIndex)
+    || anchorIndex < 0 || anchorIndex >= previous.pages.length) throw new Error('The memory window is unavailable.');
+  const anchor = previous.pages[anchorIndex].id;
+  const { data, error } = await request(client, 'get_memory_book_window_v3', { p_album: previous.id,
+    p_anchor: anchor, p_revision: paging.revision, p_before: direction < 0 ? 35 : 12, p_after: direction < 0 ? 12 : 35 }, scope);
+  if (error) throw error;
+  if (!object(data) || data.version !== 3 || data.can_view !== true || data.id !== previous.id
+    || data.revision !== paging.revision || !validatePages(data.pages) || data.pages.length > 48
+    || !Number.isSafeInteger(data.anchor_index) || (data.anchor_index as number) < 0
+    || data.pages[data.anchor_index as number]?.id !== anchor || typeof data.has_more !== 'boolean'
+    || typeof data.has_previous !== 'boolean'
+    || (data.has_more ? !object(data.next_cursor) : data.next_cursor !== null)) {
+    throw new Error('The memory window changed. Please reopen the book.');
+  }
+  const offset = memoryBookOffset(previous) + anchorIndex - (data.anchor_index as number);
+  if (offset < 0 || offset + data.pages.length > previous.count || data.has_previous !== (offset > 0)
+    || (!data.has_more && offset + data.pages.length !== previous.count)) throw new Error('The memory position changed. Please reopen the book.');
+  if (object(data.next_cursor) && (data.next_cursor.viewer !== scope.viewer || data.next_cursor.album !== previous.id
+    || data.next_cursor.revision !== paging.revision)) throw new Error('The memory cursor changed.');
+  let book = { ...previous, pages: data.pages, _pagination: { ...paging, offset, cursor: data.next_cursor as ReaderCursor | null } } as T;
+  if (hydrate) book = await hydrate(book);
+  assertCurrent(scope);
+  return { book, index: data.anchor_index as number };
 }
 export async function readMemoryBookComplete<T extends MemoryCollection>(client: ReaderClient, album: string, scope: ReaderScope,
   hydrate?: (book: T) => Promise<T>): Promise<T | null> {
   let book = await readMemoryBookFirst<T>(client, album, scope, hydrate);
   while (book && memoryBookHasMore(book)) book = await readMemoryBookNext(client, book, scope, hydrate);
   return book;
+}
+
+/** Old owner-only links resolve the default book without loading its history. */
+export async function readDefaultMemoryBookFirst<T extends MemoryCollection>(client: ReaderClient, owner: string,
+  scope: ReaderScope, hydrate?: (book: T) => Promise<T>): Promise<T | null> {
+  const capability=await readPagedReaderCapabilities(client,scope);
+  const {data,error}=await request(client,capability.bookWindows?'get_default_memory_book_page_v3':'get_memory_album',{p_owner:owner},scope);
+  if(error)throw error;if(!data)return null;
+  let book:T;
+  if(capability.bookWindows){
+    const value=bookResponse(data,object(data)&&typeof data.id==='string'?data.id:'',scope,false);
+    if(!Number.isSafeInteger(value.count)||(value.count as number)<(value.pages as unknown[]).length)throw new Error('The memory count is incomplete.');
+    book={...value,...(value.can_view?{_pagination:{version:2,viewer:scope.viewer,revision:value.revision,
+      cursor:value.next_cursor,windowSupported:true,offset:0}}:{})} as T;
+    if(book.can_view&&!memoryBookHasMore(book)&&book.pages.length!==book.count)throw new Error('Some memories are missing. Please retry.');
+  }else book=data as T;
+  if(hydrate)book=await hydrate(book);assertCurrent(scope);return book;
 }
 
 export type MemoryShelfPagination = { viewer: string; owner: string; revision: string; cursor: ReaderCursor | null };

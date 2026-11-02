@@ -32,6 +32,8 @@ function scenario(rows, options = {}) {
     useEffect(fn, deps) { const n = cursor++, prior = slots[n]; if (!prior || !same(prior.deps, deps)) {
       slots[n] = { deps }; effects.push(() => { prior?.cleanup?.(); slots[n].cleanup = fn(); }); } },
   };
+  hooks.useLayoutEffect = hooks.useEffect;
+  const historyDisk = new Map(); let historyNumber = 0;
   const app = { currentState: 'active', addEventListener(_event, fn) { appListeners.add(fn); return { remove: () => appListeners.delete(fn) }; } };
   const clock = { setTimeout(fn, delay) { const id = ++nextTimer; timers.set(id, { at: now + delay, fn }); return id; }, clearTimeout(id) { timers.delete(id); } };
   const auth = Object.assign(() => ({ profile: owner ? { id: owner } : null }), { getState: () => ({ session: owner ? { user: { id: owner }, access_token: `token-${scope}` } : null }) });
@@ -65,6 +67,13 @@ function scenario(rows, options = {}) {
     const requireLocal = name => {
       if (name === 'react') return { ...hooks, default: hooks };
       if (name === 'react/jsx-runtime') return runtime;
+      if (name.endsWith('MeasuredHistoryList')) return { MeasuredHistoryList: 'FlatList' };
+      if (name.endsWith('services/useReadingWindow')) return load('src/services/useReadingWindow.ts');
+      if (name === './sessionHistory') return { createNativeSessionHistory: options => load('shared/sessionHistory.ts').createSessionHistory({ ...options,
+        namespace: 'native-fixture-' + (++historyNumber), storage: { read: async keys => keys.map(key => historyDisk.get(key) ?? null),
+          write: async entries => entries.forEach(([key,value]) => historyDisk.set(key,value)),
+          clear: async prefix => { for (const key of historyDisk.keys()) if (key.startsWith(prefix)) historyDisk.delete(key); } } }) };
+
       if (name === 'react-native') return { View: 'View', Text: 'Text', FlatList: 'FlatList', TouchableOpacity: 'TouchableOpacity', Image: 'Image',
         RefreshControl: 'RefreshControl', ActivityIndicator: 'ActivityIndicator', StatusBar: 'StatusBar', AppState: app, StyleSheet: { hairlineWidth: 1 } };
       if (name === '@react-navigation/native') return { useFocusEffect: fn => hooks.useEffect(() => focused ? fn() : undefined, [fn, focused]) };
@@ -206,4 +215,21 @@ test('context ordering keeps microseconds and puts null activity after pre-epoch
     { ...row, id: 'first', last_message_time: '2026-01-01T00:00:00.123457Z' }, { ...row, id: 'second', last_message_time: '2026-01-01T00:00:00.123456+00:00' }]
     .sort(h.service.compareContextConversations);
   assert.deepEqual(sorted.map(row => row.id), ['first', 'second', 'old', 'null']); h.dispose();
+});
+
+test('Market and Jobs long sessions restore cold authorized rows while retaining at most 120', async () => {
+  for (const context of ['market', 'jobs']) {
+    const source = conversations(210, context), h = scenario(source, { context }); await h.flush(); const visited = new Set();
+    for (let n = 0; n < 7; n++) {
+      const list = h.list(), value = list.props.history;
+      list.props.data.forEach(row => visited.add(row.id)); assert.ok(list.props.data.length <= 120);
+      list.props.snapshot.pages.forEach(page => value.measure(page.index, 100)); value.setAnchor(list.props.data.at(-1).id);
+      list.props.onScroll({ nativeEvent: { contentOffset: { y: 2000 } } });
+      if (n < 6) { h.more(); await h.flush(); }
+    }
+    assert.equal(visited.size, 210); assert.ok(h.list().props.snapshot.before > 0);
+    source[1].denied = true; await h.list().props.history.around(0); await h.flush();
+    assert.equal(h.list().props.data[0].id, `${context}-0`); assert.ok(!h.list().props.data.some(row => row.id === `${context}-1`));
+    assert.ok(h.calls.filter(call => call.args.p_ids).every(call => call.args.p_ids.length <= 50)); h.dispose();
+  }
 });

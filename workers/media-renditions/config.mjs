@@ -13,13 +13,18 @@ export function validateJob(j) {
   return j;
 }
 export const objectPath = (bucket,path) => `${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`;
-export function serviceConfig(env=process.env) {
+export function workerConfig(env=process.env) {
   const url=new URL(env.SUPABASE_URL || '');
   if(url.protocol!=='https:' || url.username || url.password || url.search || url.hash || url.pathname!=='/')throw new Error('Invalid SUPABASE_URL');
-  if((!env.SUPABASE_SERVICE_ROLE_KEY&&(!env.MEDIA_BROKER_URL||!env.MEDIA_BROKER_KEY)) || (env.CRON_SECRET||'').length<32)throw new Error('Server credentials are missing');
-  return {base:url.origin,key:env.SUPABASE_SERVICE_ROLE_KEY,brokerUrl:env.MEDIA_BROKER_URL,brokerKey:env.MEDIA_BROKER_KEY,cronSecret:env.CRON_SECRET,
+  if(!env.SUPABASE_SERVICE_ROLE_KEY&&(!env.MEDIA_BROKER_URL||!env.MEDIA_BROKER_KEY))throw new Error('Server credentials are missing');
+  return {base:url.origin,key:env.SUPABASE_SERVICE_ROLE_KEY,brokerUrl:env.MEDIA_BROKER_URL,brokerKey:env.MEDIA_BROKER_KEY,
     deadlineMs:Math.min(720000,Math.max(30000,Number(env.MEDIA_WORKER_DEADLINE_MS)||240000)),
     diskBudgetBytes:Math.min(2147483648,Math.max(67108864,Number(env.MEDIA_WORKER_DISK_BYTES)||(env.VERCEL?471859200:2147483648))),
     maxInputBytes:Math.min(536870912,Math.max(1,Number(env.MEDIA_WORKER_MAX_INPUT_BYTES)||(env.VERCEL?134217728:536870912))),
     threads:Math.min(4,Math.max(1,Number(env.MEDIA_WORKER_THREADS)||2))};
+}
+export function serviceConfig(env=process.env) {
+  const config=workerConfig(env);
+  if((env.CRON_SECRET||'').length<32)throw new Error('Server credentials are missing');
+  return {...config,cronSecret:env.CRON_SECRET};
 }

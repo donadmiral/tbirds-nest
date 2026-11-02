@@ -3,6 +3,9 @@ import { applyNavigationInboxAvatars, compareNativeInbox, matchesNativeInbox, na
   readNavigationInboxWindow, refreshNavigationInbox, subscribeNavigationInboxAvatars, type Conversation, type InboxPreview } from '../../services/navigationInbox';
 import { createInboxMergeGuard, inboxQueryKey, type InboxPaging } from '../../../shared/inboxWindow';
 import { createInboxRefreshQueue } from '../../../shared/inboxRefreshQueue';
+import { useReadingWindow } from '../../services/useReadingWindow';
+import { MeasuredHistoryList } from '../../components/MeasuredHistoryList';
+import { retainRecord } from '../../../shared/retainedMaps';
 import { createInboxMentions, readInboxMentionTimes } from '../../../shared/inboxMentions';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { TapTopFlatList } from '../../components/TapTopList';
@@ -62,8 +65,25 @@ export default function ConversationsScreen({ navigation }: any) {
   const [initialInbox] = useState(() => navigationCache.read<Conversation[]>(navigationScope(), 'inbox:personal'));
   const [conversations, setConversationState] = useState<Conversation[]>(initialInbox ?? []);
   const conversationsRef = useRef(conversations); conversationsRef.current = conversations;
+  const headReload = useRef<(() => void) | null>(null), headPending = useRef(false);
+  const renderRevision = useRef(0);
   const setConversations = useCallback((update: React.SetStateAction<Conversation[]>) => {
     const next = typeof update === 'function' ? update(conversationsRef.current) : update;
+    const value = reading.history.current;
+    if (value?.available()) {
+      const snapshot = value.getSnapshot(), before = snapshot.rows;
+      const reordered = next.some((row, index) => row.id !== before[index]?.id);
+      if (reordered && snapshot.before === 0 && snapshot.after === 0 && next.length <= 120) {
+        const version = ++renderRevision.current, scope = navigationScope(), owner = accountRef.current;
+        void reading.commit(next, 'reset', () => mountedRef.current && version === renderRevision.current && navigationScope() === scope && accountRef.current === owner)
+          .catch(() => setLoadError('Conversations could not be saved on this device. Please retry.'));
+        return;
+      }
+      if (reordered) headPending.current = true;
+      value.replaceHot(next);
+      if (reordered && reading.top.current < 80) headReload.current?.();
+      return;
+    }
     conversationsRef.current = next; setConversationState(next);
   }, []);
   const [paging, setPaging] = useState<InboxPaging | null>(() => navigationCache.read(navigationScope(), 'inbox:personal:paging'));
@@ -114,6 +134,21 @@ export default function ConversationsScreen({ navigation }: any) {
   const initialLoadDoneRef = useRef(initialInbox !== null);
   const accountRef = useRef(userId); accountRef.current = userId;
   const inboxScope = useRef(sessionScope);
+  const reading = useReadingWindow<Conversation>({ identity: `${sessionScope}:${userId}:${queryKey}`, id: row => row.id,
+    current: () => mountedRef.current && navigationScope() === sessionScope && accountRef.current === userId,
+    fetch: async (ids, signal) => {
+      const key = inboxQueryKey(optionsRef.current), revision = mergeGuard.current.begin();
+      const current = () => mountedRef.current && navigationScope() === sessionScope && accountRef.current === userId && inboxQueryKey(optionsRef.current) === key;
+      const rows = await readNavigationInboxIds(userId!, optionsRef.current, ids, signal, current);
+      return [...rows.values()].filter(row => matchesNativeInbox(row, optionsRef.current) && mergeGuard.current.canApply(row.id, revision));
+    },
+    rows: rows => { conversationsRef.current = rows; setConversationState(rows); }, error: setLoadError });
+  const { commit: commitWindow, restoreMore } = reading;
+  useEffect(() => {
+    const ids = new Set(conversations.map(row => row.id));
+    setMentionTimes(previous => retainRecord(previous, ids));
+    for (const id of previewHints.current.keys()) if (!ids.has(id)) previewHints.current.delete(id);
+  }, [conversations]);
   useEffect(() => subscribeNavigationInboxAvatars((scope, avatars) => {
     if (scope !== navigationScope() || scope !== inboxScope.current) return;
     setConversations(rows => applyNavigationInboxAvatars(rows, avatars));
@@ -123,6 +158,7 @@ export default function ConversationsScreen({ navigation }: any) {
       const next = navigationScope();
       if (inboxScope.current === next) return;
       inboxScope.current = next; setSessionScope(next);
+      reading.reset(); headPending.current = false;
       listAbort.current?.abort(); moreAbort.current?.abort(); moreAbort.current = null; mergeGuard.current.clear(); previewHints.current.clear(); morePending.current = false; setLoadingMore(false);
       const cached = navigationCache.read<Conversation[]>(next, 'inbox:personal');
       setConversations(cached ?? []); setMentionTimes({}); setLoadError(null); setLoading(cached === null);
@@ -190,6 +226,7 @@ export default function ConversationsScreen({ navigation }: any) {
     const current = () => !request.signal.aborted && alive();
     let deadline: ReturnType<typeof setTimeout> | undefined;
     const options = optionsRef.current, query = inboxQueryKey(options), revision = mergeGuard.current.begin();
+    const previousPaging = pagingRef.current, preserve = !!reading.history.current && reading.top.current >= 80 && previousPaging?.query === query;
     const retainedIds = conversationsRef.current.map(row => row.id);
     setLoadError(null);
     if (!initialLoadDoneRef.current || (pagingRef.current && pagingRef.current.query !== query)) setLoading(true);
@@ -199,16 +236,22 @@ export default function ConversationsScreen({ navigation }: any) {
         : readNavigationInboxWindow(userId, options, { items: conversationsRef.current, paging: pagingRef.current }, false, request.signal, current);
       // The event queue owns its timeout and physical transport slot. A
       // second timeout race here would release that slot before work settles.
-      const result = externalSignal ? await work : await Promise.race([work, new Promise<never>((_resolve, reject) => {
+      let result = externalSignal ? await work : await Promise.race([work, new Promise<never>((_resolve, reject) => {
         deadline = setTimeout(() => { request.abort(); reject(new Error('Conversation read timed out.')); }, 12_000);
       })]);
+      if (!current()) return false;
+      if (result.paging && !preserve && result.items.length > 120) result = await readNavigationInboxWindow(userId, options, null, false, request.signal, current);
       if (!current()) return false;
       if (result.paging && query !== inboxQueryKey(optionsRef.current)) {
         previousQuery.current = ''; pagingRef.current = result.paging; setPaging(result.paging); return false;
       }
-      pagingRef.current = result.paging; setPaging(result.paging);
-      setConversations(rows => mergeGuard.current.commit(preserveNavigationInboxPreviews(result.items, rows, previewHints.current), rows, revision, result.checkedIds)
-        .filter(row => !result.paging || matchesNativeInbox(row, options)).sort(compareNativeInbox));
+      const rows = mergeGuard.current.commit(preserveNavigationInboxPreviews(result.items, conversationsRef.current, previewHints.current), conversationsRef.current, revision, result.checkedIds)
+        .filter(row => !result.paging || matchesNativeInbox(row, options)).sort(compareNativeInbox);
+      if (result.paging) {
+        if (preserve && rows.some(row => !conversationsRef.current.some(previous => previous.id === row.id))) headPending.current = true;
+        await commitWindow(rows, preserve ? 'refresh' : 'reset', current); if (!current()) return false;
+      } else setConversations(rows);
+      pagingRef.current = preserve && result.paging && previousPaging ? { ...previousPaging, summary: result.paging.summary } : result.paging; setPaging(pagingRef.current);
       return true;
     } catch { if (alive() && !externalSignal?.aborted) setLoadError('Your conversations could not be refreshed. Please try again.'); return false; }
     finally {
@@ -217,7 +260,13 @@ export default function ConversationsScreen({ navigation }: any) {
       externalSignal?.removeEventListener('abort', cancel);
       if (listAbort.current === request) listAbort.current = null;
     }
-  }, [userId, sessionScope]);
+  }, [userId, sessionScope, commitWindow]);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    headReload.current = () => { if (timer) return; timer = setTimeout(() => { timer = undefined; if (mountedRef.current) void load(); }, 150); };
+    return () => { if (timer) clearTimeout(timer); headReload.current = null; };
+  }, [load]);
 
   useFocusEffect(useCallback(() => {
     void load();
@@ -235,6 +284,7 @@ export default function ConversationsScreen({ navigation }: any) {
   }, [queryKey, paging?.query, focused, load]);
 
   const loadMore = useCallback(async () => {
+    if (await restoreMore().catch(() => true)) return;
     const previous = pagingRef.current, options = optionsRef.current;
     if (!userId || !focused || loading || morePending.current || !previous?.cursor || previous.query !== inboxQueryKey(options)) return;
     morePending.current = true; setLoadingMore(true);
@@ -248,11 +298,12 @@ export default function ConversationsScreen({ navigation }: any) {
       const next = await Promise.race([readNavigationInboxWindow(userId, options, { items: conversationsRef.current, paging: previous }, true, request.signal, current),
         new Promise<never>((_resolve, reject) => { deadline = setTimeout(() => { request.abort(); reject(new Error('Conversation read timed out.')); }, 12_000); })]);
       if (!current()) return;
+      const rows = mergeGuard.current.commit(preserveNavigationInboxPreviews(next.items, conversationsRef.current, previewHints.current), conversationsRef.current, revision, next.checkedIds).filter(row => matchesNativeInbox(row, options)).sort(compareNativeInbox);
+      await commitWindow(rows, 'append', current); if (!current()) return;
       pagingRef.current = next.paging; setPaging(next.paging); setLoadError(null);
-      setConversations(rows => mergeGuard.current.commit(preserveNavigationInboxPreviews(next.items, rows, previewHints.current), rows, revision, next.checkedIds).filter(row => matchesNativeInbox(row, options)).sort(compareNativeInbox));
     } catch { if (alive()) setLoadError('More conversations could not be loaded. Please try again.'); }
     finally { clearTimeout(deadline); request.abort(); if (moreAbort.current === request) { moreAbort.current = null; morePending.current = false; if (mountedRef.current) setLoadingMore(false); } }
-  }, [userId, focused, loading]);
+  }, [userId, focused, loading, commitWindow, restoreMore]);
 
   useEffect(() => {
     if (!userId || !focused) return;
@@ -766,13 +817,15 @@ const swipeActions = (item: Conversation) => (
           {!search && <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('FindPeople')}><Text style={s.emptyBtnTxt}>Find people</Text></TouchableOpacity>}
         </View>
       ) : (
-        <TapTopFlatList  ListEmptyComponent={<EmptyState icon="message-circle" title="No conversations" line="Start one from anyone profile, or from a listing." />}automaticallyAdjustKeyboardInsets={true}
+        <MeasuredHistoryList<Conversation> history={reading.history.current} snapshot={reading.snapshot} rowGap={8} ListEmptyComponent={<EmptyState icon="message-circle" title="No conversations" line="Start one from anyone profile, or from a listing." />}automaticallyAdjustKeyboardInsets={true}
           data={[...pinned, ...unpinned]}
           keyExtractor={(i: { id: string }) => i.id}
           renderItem={renderItem}
           onEndReached={() => { if (!loadingMore && !loadError) void loadMore(); }}
           onEndReachedThreshold={0.7}
-          onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{ padding: 12, gap: 8, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }}
+          onScroll={event => { handleTabBarScroll(event); reading.top.current = event.nativeEvent.contentOffset.y;
+            if (reading.top.current < 80 && headPending.current) { headPending.current = false; headReload.current?.(); }
+          }} scrollEventThrottle={16} contentContainerStyle={{ padding: 12, gap: 8, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
           removeClippedSubviews={Platform.OS === 'android'}

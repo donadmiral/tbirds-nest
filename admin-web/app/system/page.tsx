@@ -6,6 +6,7 @@ import { serviceClient } from '@/lib/supabaseAdmin';
 import { toggleFlag, publishAnnouncement, retireAnnouncement, addBlockedWord, removeBlockedWord } from '@/lib/actions';
 import Shell from '@/components/Shell';
 import RefreshDesk from '@/components/RefreshDesk';
+import CapacityStatus from '@/components/CapacityStatus';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,7 @@ export default async function SystemPage() {
   }
   const { data: words, error: wordsError } = await svc.from('blocked_words').select('*').order('word');
   if (wordsError) throw new Error('Blocked-word controls could not be loaded.');
+  const capacity = await svc.rpc('capacity_status_v1', { p_history_minutes: 0 });
   return (
     <Shell admin={admin} active="/system" title="Platform controls" sub="Manage feature availability, platform announcements and blocked phrases." pageActions={<RefreshDesk />}>
       <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Feature flags</p>
@@ -100,6 +102,7 @@ export default async function SystemPage() {
           </div>
         ) : <p className="mt-3 text-[12px] text-[#9A9DA4]">Nothing blocked yet. The database refuses matching posts and comments the moment a word lands here.</p>}
       </div>
+      <CapacityStatus data={capacity.error ? null : capacity.data} />
       <div className="mt-6">
         <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Latest 15 received client error reports</p>
         <div className="overflow-hidden rounded-[12px] border border-[#E5E4E0] bg-white">

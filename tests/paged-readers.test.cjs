@@ -9,6 +9,18 @@ vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../s
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText, { module: moduleUnderTest, exports: moduleUnderTest.exports, AbortController });
 const readers = moduleUnderTest.exports;
+function windowClient(total=30000) {
+  return client(call=>{
+    if(call.name==='get_memory_book_window_v3'){
+      const at=Number(String(call.args.p_anchor).replace('page-',''));
+      const start=Math.max(0,at-call.args.p_before),end=Math.min(total,at+call.args.p_after+1);
+      return {data:{version:3,id:'book',can_view:true,revision:'7',anchor_index:at-start,
+        pages:Array.from({length:end-start},(_,i)=>({id:'page-'+(start+i),media_url:'raw-'+(start+i)})),
+        has_previous:start>0,has_more:end<total,next_cursor:end<total?{version:2,viewer:'viewer',album:'book',revision:'7',after:end}:null},error:null};
+    }
+    return {data:bookPage(call.args.p_cursor?.after||0,total),error:null};
+  },{version:1,books:true,inbox:true,books_window:true});
+}
 const plain = value => JSON.parse(JSON.stringify(value));
 const scope = () => ({ viewer: 'viewer', token: 'fixture-token', signal: new AbortController().signal });
 const enabled = { version: 1, books: true, inbox: true };
@@ -159,4 +171,40 @@ test('inbox requests pin identity and transmit filters; full badges and archive 
   assert.equal(request.args.p_filter, 'unread'); assert.equal(request.args.p_exclude_community, true); assert.equal(request.args.p_exclude_requests, true);
   assert.deepEqual(plain(request.args.p_ids), ['chat']); assert.equal(request.headers.Authorization, 'Bearer fixture-token');
   assert.deepEqual(plain(await readers.readInboxUnreadTotals(c, identity)), { personal: 501, market: 709, jobs: 31 });
+});
+
+test('long ordinary book walks retain at most 48 pages and restore the exact page in either direction', async()=>{
+  const c=windowClient(),identity=scope();let book=await readers.readMemoryBookFirst(c,'book',identity);
+  for(let step=0;step<1000;step++){
+    const at=Math.max(0,book.pages.length-6),id=book.pages[at].id,absolute=readers.memoryBookOffset(book)+at;
+    const result=await readers.readMemoryBookWindow(c,book,at,1,identity);
+    book=result.book;assert.equal(book.pages[result.index].id,id);
+    assert.equal(readers.memoryBookOffset(book)+result.index,absolute);assert.ok(book.pages.length<=48);
+    if(!readers.memoryBookHasMore(book))break;
+  }
+  assert.ok(readers.memoryBookOffset(book)>1000);
+  for(let step=0;step<1000&&readers.memoryBookHasPrevious(book);step++){
+    const at=Math.min(5,book.pages.length-1),id=book.pages[at].id,absolute=readers.memoryBookOffset(book)+at;
+    const result=await readers.readMemoryBookWindow(c,book,at,-1,identity);
+    book=result.book;assert.equal(book.pages[result.index].id,id);
+    assert.equal(readers.memoryBookOffset(book)+result.index,absolute);assert.ok(book.pages.length<=48);
+  }
+  assert.equal(readers.memoryBookOffset(book),0);
+});
+
+test('the last retained window is not mistaken for a complete export',async()=>{
+  const c=windowClient(83),identity=scope();let book=await readers.readMemoryBookFirst(c,'book',identity);
+  while(readers.memoryBookHasMore(book))book=(await readers.readMemoryBookWindow(c,book,book.pages.length-1,1,identity)).book;
+  assert.equal(readers.memoryBookHasMore(book),false);assert.equal(readers.memoryBookHasPrevious(book),true);
+  assert.equal(readers.memoryBookIsComplete(book),false);
+  const complete=await readers.readMemoryBookComplete(c,'book',identity);
+  assert.equal(complete.pages.length,83);assert.equal(readers.memoryBookIsComplete(complete),true);
+});
+
+test('window hydration cannot commit after account replacement or accept a mismatched anchor',async()=>{
+  const c=windowClient(),identity=scope(),book=await readers.readMemoryBookFirst(c,'book',identity);
+  let active=true;const fenced={...identity,current:()=>active};
+  await assert.rejects(readers.readMemoryBookWindow(c,book,12,1,fenced,async value=>{active=false;return value;}),/account or reader changed/);
+  const wrong=client(()=>({data:{version:3,id:'book',can_view:true,revision:'7',anchor_index:0,pages:[{id:'another-page'}],has_previous:false,has_more:false,next_cursor:null},error:null}));
+  await assert.rejects(readers.readMemoryBookWindow(wrong,book,12,1,identity),/memory window changed/);
 });

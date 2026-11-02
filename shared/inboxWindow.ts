@@ -88,9 +88,18 @@ export async function appendInboxWindow<T extends { id: string }>(read: InboxRea
 /** An earlier range refresh must not roll back a receipt, a newer targeted
  * refresh, or removal of a conversation. Tombstones last for this session. */
 export function createInboxMergeGuard<T extends { id: string }>() {
-  let revision = 0;
+  let revision = 0, floor = 0;
   const changed = new Map<string, number>();
+  const trim = () => {
+    while (changed.size > 500) {
+      const oldest = changed.entries().next().value!;
+      floor = Math.max(floor, oldest[1]); changed.delete(oldest[0]);
+    }
+  };
   const merge = (incoming: T[], current: T[], requestedAt: number) => {
+    // An evicted tombstone still invalidates every older request. Keeping a
+    // global floor avoids an unbounded per-conversation mutation ledger.
+    if (requestedAt < floor) return current;
     const next = new Map(incoming.map(row => [row.id, row]));
     const existing = new Map(current.map(row => [row.id, row]));
     for (const [id, version] of changed) if (version > requestedAt) {
@@ -102,19 +111,22 @@ export function createInboxMergeGuard<T extends { id: string }>() {
   return {
     revision: () => revision,
     begin: () => ++revision,
-    canApply: (id: string, requestedAt: number) => (changed.get(id) ?? 0) <= requestedAt,
-    touch(ids: string[]) { const next = ++revision; for (const id of ids) changed.set(id, next); },
+    canApply: (id: string, requestedAt: number) => requestedAt >= floor && (changed.get(id) ?? 0) <= requestedAt,
+    touch(ids: string[]) { const next = ++revision; for (const id of ids) { changed.delete(id); changed.set(id, next); } trim(); },
     merge,
     commit(incoming: T[], current: T[], requestedAt: number, checkedIds = [...incoming, ...current].map(row => row.id)) {
+      if (requestedAt < floor) return current;
       const merged = merge(incoming, current, requestedAt), present = new Set(incoming.map(row => row.id));
       // Positive results use request order. A denial/removal is conservative:
       // only a request begun after we observed it may restore that row.
       let removedAt: number | undefined;
       for (const id of checkedIds) if ((changed.get(id) ?? 0) <= requestedAt) {
-        changed.set(id, present.has(id) ? requestedAt : (removedAt ??= ++revision));
+        changed.delete(id); changed.set(id, present.has(id) ? requestedAt : (removedAt ??= ++revision));
       }
+      trim();
       return merged;
     },
-    clear() { changed.clear(); revision = 0; },
+    size: () => changed.size,
+    clear() { changed.clear(); revision = 0; floor = 0; },
   };
 }

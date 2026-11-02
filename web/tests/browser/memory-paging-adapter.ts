@@ -11,7 +11,9 @@ let viewer:string|null=OWNER,authRevision=0;
 const listeners=new Set<(event:string,session:Session|null)=>void>();
 const session=():Session|null=>viewer?{user:{id:viewer},access_token:`fixture-${viewer}-${authRevision}`}:null;
 const held=new Set(['book-next','shelf-next']),pending:{kind:string;release:()=>void}[]=[];
+if(typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('hold-window'))held.add('get_memory_book_window_v3');
 const requests:{name:string;args:Record<string,unknown>;viewer:string|null;aborted?:boolean;pinned?:boolean}[]=[];
+const windowMode=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('window');
 function request(name:string,args:Record<string,unknown>={}){
  let signal:AbortSignal|undefined,authorization:string|undefined,one=false,promise:Promise<Result>|null=null;
  const execute=async()=>{
@@ -23,7 +25,13 @@ function request(name:string,args:Record<string,unknown>={}){
    signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort();
   });
   if(signal?.aborted){record.aborted=true;throw Error('Fixture cancelled');}
-  if(name==='get_paged_reader_capabilities')return{data:{version:1,books:true,inbox:false},error:null};
+  if(name==='get_paged_reader_capabilities')return{data:{version:1,books:true,inbox:false,...(windowMode?{books_window:true}:{})},error:null};
+  if(name==='get_memory_book_window_v3'){
+   if(owner!==OWNER)return{data:{version:3,can_view:false,pages:[]},error:null};
+   const anchor=pages.findIndex(page=>page.id===args.p_anchor),start=Math.max(0,anchor-Number(args.p_before)),end=Math.min(pages.length,anchor+Number(args.p_after)+1);
+   return{data:{version:3,id:BOOK,can_view:true,revision:'1',pages:pages.slice(start,end),anchor_index:anchor-start,
+    has_previous:start>0,has_more:end<pages.length,next_cursor:end<pages.length?{version:2,viewer:owner,album:BOOK,revision:'1',after:end}:null},error:null};
+  }
   if(name==='get_next_memory_book_v2')return{data:null,error:null};
   if(name==='get_memory_book_page_v2'){
    if(owner!==OWNER)return{data:{version:2,can_view:false,pages:[],count:0},error:null};

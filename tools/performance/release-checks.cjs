@@ -18,6 +18,7 @@ const stages = {
   'admin-tests': { cwd: path.join(root, 'admin-web'), args: ['--test', '--test-concurrency=2', ...files('admin-web/tests', /\.cjs$/)] },
   'database-tests': { cwd: root, args: ['--experimental-strip-types', '--test', '--test-concurrency=2', ...files('supabase/tests', /\.test\.(?:cjs|mjs|ts|js)$/)] },
   'rpc-tests': { cwd: path.join(root, 'supabase/tests/rpc-authorization'), args: ['run-all.mjs'] },
+  'media-tests': { cwd: root, args: ['--test', ...files('workers/media-renditions/test', /\.test\.mjs$/)] },
 };
 async function run(name) {
   const stage = stages[name], began = Date.now(), log = path.join(output, name + '.log');

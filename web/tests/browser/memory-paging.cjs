@@ -29,6 +29,43 @@ async function main(){
   checks.push('book editor waits for all three windows; all61 pages remain selectable and readable');
   await page.screenshot({path:path.join(artifacts,'last-book-page.png')});
 
+  await page.goto(origin+'/?window=1&hold-window=1');await page.getByRole('button',{name:'Open book',exact:true}).waitFor();
+  await page.waitForFunction(()=>window.pagingFixture.requests.some(r=>r.name==='get_memory_book_window_v3'));
+  await page.getByRole('button',{name:'Open book',exact:true}).click();
+  for(let position=2;position<=10;position++){
+   await page.getByRole('button',{name:'Next page',exact:true}).last().click();
+   await page.getByText(position+' / 61',{exact:true}).waitFor();
+  }
+  await page.evaluate(()=>window.pagingFixture.release('get_memory_book_window_v3'));
+  await page.waitForFunction(()=>Number(document.querySelector('[data-memory-retained-pages]')?.getAttribute('data-memory-retained-pages'))>24);
+  await page.getByText('10 / 61',{exact:true}).waitFor();
+  checks.push('a delayed window response preserves the current page after nine intervening turns');
+
+  await page.goto(origin+'/?window=1');await page.getByRole('button',{name:'Open book',exact:true}).waitFor();
+  await page.evaluate(()=>window.pagingFixture.release('book-next'));
+  await page.getByRole('button',{name:'Open book',exact:true}).click();
+  for(let position=2;position<=61;position++){
+   await page.getByRole('button',{name:'Next page',exact:true}).last().click();
+   await page.getByText(position+' / 61',{exact:true}).waitFor();
+   assert.ok(await page.locator('[data-memory-retained-pages]').evaluate(node=>Number(node.getAttribute('data-memory-retained-pages'))<=48));
+  }
+  await page.getByRole('button',{name:'Album settings',exact:true}).click();
+  const windowEditor=page.getByRole('dialog',{name:'Book editor',exact:true});await windowEditor.waitFor();
+  assert.equal(await page.locator('[data-memory-retained-pages]').getAttribute('data-memory-retained-pages'),'61');
+  await windowEditor.getByRole('button',{name:'Close',exact:true}).click();
+  await page.getByText('61 / 61',{exact:true}).waitFor();
+  await page.waitForFunction(()=>Number(document.querySelector('[data-memory-retained-pages]')?.getAttribute('data-memory-retained-pages'))<=48);
+  for(let position=60;position>=1;position--){
+   await page.getByRole('button',{name:'Previous page',exact:true}).last().click();
+   await page.getByText(position+' / 61',{exact:true}).waitFor();
+   assert.ok(await page.locator('[data-memory-retained-pages]').evaluate(node=>Number(node.getAttribute('data-memory-retained-pages'))<=48));
+  }
+  const windowReads=await page.evaluate(()=>window.pagingFixture.requests.filter(r=>r.name==='get_memory_book_window_v3'));
+  assert.ok(windowReads.length>=3);assert.ok(windowReads.every(r=>r.args.p_before+r.args.p_after<=47&&r.pinned));
+  assert.ok(windowReads.some(r=>r.args.p_before===35));
+  checks.push('bounded reader walks all61 pages forward and backward, preserves global position, and trims back after complete editor hydration');
+  await page.screenshot({path:path.join(artifacts,'bounded-book-return.png')});
+
   await page.goto(origin+'/?mode=shelf');await page.getByRole('button',{name:'View all',exact:true}).waitFor();
   assert.equal(await page.evaluate(()=>window.pagingFixture.requests.filter(r=>r.name==='get_memory_books_page_v2').length),1);
   await page.getByRole('button',{name:'View all',exact:true}).click();const collection=page.getByRole('dialog',{name:'Your memory books',exact:true});

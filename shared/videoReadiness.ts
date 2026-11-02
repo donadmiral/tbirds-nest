@@ -4,7 +4,8 @@ export type BufferPlayer = {
   readonly status?: string;
   pause(): void;
   release(): void;
-  replaceAsync(source: { uri: string; useCaching: boolean }): Promise<void>;
+  replaceAsync(source: { uri: string; useCaching: boolean; contentType?: 'hls' | 'progressive' }): Promise<void>;
+  currentTime?: number; readonly playing?: boolean; play?(): void;
   addListener?(event: 'statusChange', listener: (event: { status: string }) => void): { remove(): void };
 };
 export type PreparedVideo<P> = {
@@ -15,7 +16,8 @@ export type PreparedVideo<P> = {
 export function createVideoReadinessPool<P extends BufferPlayer>(
   create: () => P,
   onChange: (entry: PreparedVideo<P>) => void,
-  options: { clock?: () => number; maxPlayers?: number; ttlMs?: number; timeoutMs?: number } = {},
+  options: { clock?: () => number; maxPlayers?: number; ttlMs?: number; timeoutMs?: number;
+    playbackSource?: (uri: string) => { uri: string; contentType?: 'hls' | 'progressive' } } = {},
 ) {
   const clock = options.clock ?? Date.now;
   const maxPlayers = Math.max(1, options.maxPlayers ?? 3);
@@ -75,19 +77,40 @@ export function createVideoReadinessPool<P extends BufferPlayer>(
       onChange(entry);
     };
     deadlines.set(entry, setTimeout(() => settled(true), options.timeoutMs ?? 12_000));
+    const selected = options.playbackSource?.(source.uri) ?? { uri: source.uri };
+    let fallbackStarted = selected.uri === source.uri;
+    let recovering = false;
+    const recoverOriginal = () => {
+      if (fallbackStarted || entry.disposed) return false;
+      fallbackStarted = true;
+      recovering = true;
+      const at = Number(entry.player.currentTime) || 0, playing = !!entry.player.playing;
+      entry.ready = false; onChange(entry);
+      const previous = deadlines.get(entry); if (previous) clearTimeout(previous);
+      deadlines.set(entry, setTimeout(() => settled(true), options.timeoutMs ?? 12_000));
+      void entry.player.replaceAsync({ uri: source.uri, useCaching: false }).then(() => {
+        recovering = false;
+        if (entry.disposed) return;
+        if (entry.player.status === 'error') { settled(true); return; }
+        if (at > 0) { try { entry.player.currentTime = at; } catch {} }
+        if (playing) { try { entry.player.play?.(); } catch {} }
+        if (!entry.player.addListener || entry.player.status === 'readyToPlay') settled(false);
+      }).catch(() => { recovering = false; settled(true); });
+      return true;
+    };
     const listener = entry.player.addListener?.('statusChange', event => {
-      if (event.status === 'error') settled(true);
+      if (event.status === 'error') { if (!recovering && !recoverOriginal()) settled(true); }
       else if (event.status === 'readyToPlay') settled(false);
     });
     if (listener) subscriptions.set(entry, listener);
     // A new source never replaces the contents of a player visible elsewhere.
     // The native buffers are ephemeral. No persistent video cache is enabled.
     Promise.resolve().then(() => {
-      if (!entry.disposed) return entry.player.replaceAsync({ uri: source.uri, useCaching: false });
+      if (!entry.disposed) return entry.player.replaceAsync({ ...selected, useCaching: false });
     }).then(() => {
       if (entry.disposed) return;
       if (!entry.player.addListener || entry.player.status === 'readyToPlay') settled(false);
-    }).catch(() => settled(true));
+    }).catch(() => { if (selected.uri !== source.uri && fallbackStarted) return; if (!recoverOriginal()) settled(true); });
     return entry;
   };
 

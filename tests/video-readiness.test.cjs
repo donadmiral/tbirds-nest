@@ -27,6 +27,20 @@ function harness(options = {}) {
   return { pool, players, changes };
 }
 
+test('adaptive preparation keeps canonical identity and recovers the original on one decoder failure', async () => {
+  let listener, calls = [], rejectAdaptive;
+  const player = { status: 'loading', currentTime: 7, playing: true, pause() {}, release() {}, play() { this.playing = true; },
+    replaceAsync(source) { calls.push(source); if (calls.length === 1) return new Promise((_, no) => { rejectAdaptive = no; }); this.status = 'readyToPlay'; return Promise.resolve(); },
+    addListener(_name, fn) { listener = fn; return { remove() {} }; } };
+  const pool = shared.createVideoReadinessPool(() => player, () => {}, { playbackSource: () => ({ uri: 'https://media/master.m3u8', contentType: 'hls' }) });
+  const entry = pool.claim('https://media/original.mp4'); await turn();
+  assert.equal(entry.uri, 'https://media/original.mp4'); assert.equal(calls[0].contentType, 'hls');
+  listener({ status: 'error' }); rejectAdaptive(new Error('decode failed')); await turn();
+  assert.equal(calls.length, 2); assert.equal(calls[1].uri, entry.uri); assert.equal(calls[1].useCaching, false);
+  assert.equal(entry.ready, true); assert.equal(entry.failed, false); assert.equal(player.currentTime, 7); assert.equal(player.playing, true);
+  listener({ status: 'error' }); assert.equal(entry.failed, true); assert.equal(calls.length, 2); pool.clear();
+});
+
 test('a warmed upcoming video is the exact same buffered player when scrolled into view', async () => {
   const h = harness(); h.pool.prefetch([{ uri: 'https://media/next.mp4' }]); await turn();
   const prepared = h.pool.peek('https://media/next.mp4'); prepared.player.resolve(); await turn();

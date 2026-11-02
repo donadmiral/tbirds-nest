@@ -4,9 +4,9 @@ import {Image} from 'expo-image';
 import {MemoryBookTurnMachine,memoryTurnDuration,memoryTurnProgress,memoryTurnShouldCommit,type MemoryTurn,type MemoryTurnDirection} from '../../../shared/memoryBookTurn';
 import {memoryCoverMedia,type MemoryCoverPage} from '../../../shared/memoryBookDesign';
 export type MemoryPageTurnHandle={turn:(direction:MemoryTurnDirection)=>void;cancel:()=>void};
-type Props={pageIds:readonly string[];index:number;width:number;height:number;active:boolean;reduceMotion:boolean;spine:string;title:string;children:ReactNode;renderPreview:(index:number)=>ReactNode;onCommit:(index:number)=>void;onTurningChange:(turning:boolean)=>void;hasMore?:boolean;onNeedMore?:()=>void};
+type Props={pageIds:readonly string[];index:number;width:number;height:number;active:boolean;reduceMotion:boolean;spine:string;title:string;children:ReactNode;renderPreview:(index:number)=>ReactNode;onCommit:(index:number)=>void;onTurningChange:(turning:boolean)=>void;hasMore?:boolean;onNeedMore?:()=>void;hasPrevious?:boolean;onNeedPrevious?:()=>void;pageOffset?:number};
 const PAPER='#FBF6EC',serif=Platform.OS==='ios'?'Georgia':'serif';
-export default forwardRef<MemoryPageTurnHandle,Props>(function MemoryPageTurn({pageIds,index,width,height,active,reduceMotion,spine,title,children,renderPreview,onCommit,onTurningChange,hasMore=false,onNeedMore},ref){
+export default forwardRef<MemoryPageTurnHandle,Props>(function MemoryPageTurn({pageIds,index,width,height,active,reduceMotion,spine,title,children,renderPreview,onCommit,onTurningChange,hasMore=false,onNeedMore,hasPrevious=false,onNeedPrevious,pageOffset=0},ref){
  const machine=useRef(new MemoryBookTurnMachine(pageIds,index)).current,progress=useRef(new Animated.Value(0)).current;
  const callbacks=useRef({onCommit,onTurningChange});callbacks.current={onCommit,onTurningChange};
  const live=useRef(true),gesture=useRef<{token:number;direction:MemoryTurnDirection}|null>(null);
@@ -41,17 +41,17 @@ export default forwardRef<MemoryPageTurnHandle,Props>(function MemoryPageTurn({p
   timer=setTimeout(()=>finish(true,true),duration);
   Animated.timing(progress,{toValue:commit?1:0,duration,easing:Easing.out(Easing.cubic),useNativeDriver:true}).start(({finished})=>finish(finished));
  },[machine,progress,reduceMotion,retireSettlement]);
- const turnPage=useCallback((direction:MemoryTurnDirection)=>{if(!active)return;const next=machine.begin(direction);if(!next){if(!machine.turn&&direction===1&&hasMore)onNeedMore?.();return;}progress.setValue(0);setTurn({...next});callbacks.current.onTurningChange(true);if(reduceMotion){const to=machine.finish(next.token,true);if(to!==null)callbacks.current.onCommit(to);}else settle(next,true);},[active,machine,progress,reduceMotion,settle,hasMore,onNeedMore]);
+ const turnPage=useCallback((direction:MemoryTurnDirection)=>{if(!active)return;const next=machine.begin(direction);if(!next){if(!machine.turn&&direction===1&&hasMore)onNeedMore?.();if(!machine.turn&&direction===-1&&hasPrevious)onNeedPrevious?.();return;}progress.setValue(0);setTurn({...next});callbacks.current.onTurningChange(true);if(reduceMotion){const to=machine.finish(next.token,true);if(to!==null)callbacks.current.onCommit(to);}else settle(next,true);},[active,machine,progress,reduceMotion,settle,hasMore,onNeedMore,hasPrevious,onNeedPrevious]);
  useImperativeHandle(ref,()=>({turn:turnPage,cancel}),[turnPage,cancel]);
  const swipe=useMemo(()=>PanResponder.create({
   onStartShouldSetPanResponder:()=>false,
-  onMoveShouldSetPanResponder:(_event,g)=>active&&!machine.turn&&Math.abs(g.dx)>12&&Math.abs(g.dx)>Math.abs(g.dy)*1.4&&((g.dx<0&&(index<pageIds.length-1||hasMore))||(g.dx>0&&index>0)),
-  onPanResponderGrant:(_event,g)=>{const direction:MemoryTurnDirection=g.dx<0?1:-1,next=machine.begin(direction,true);if(!next){if(direction===1&&hasMore)onNeedMore?.();return;}gesture.current={token:next.token,direction};progress.setValue(0);setTurn({...next});callbacks.current.onTurningChange(true);},
+  onMoveShouldSetPanResponder:(_event,g)=>active&&!machine.turn&&Math.abs(g.dx)>12&&Math.abs(g.dx)>Math.abs(g.dy)*1.4&&((g.dx<0&&(index<pageIds.length-1||hasMore))||(g.dx>0&&(index>0||hasPrevious))),
+  onPanResponderGrant:(_event,g)=>{const direction:MemoryTurnDirection=g.dx<0?1:-1,next=machine.begin(direction,true);if(!next){if(direction===1&&hasMore)onNeedMore?.();if(direction===-1&&hasPrevious)onNeedPrevious?.();return;}gesture.current={token:next.token,direction};progress.setValue(0);setTurn({...next});callbacks.current.onTurningChange(true);},
   onPanResponderMove:(_event,g)=>{const drag=gesture.current;if(!drag)return;const value=memoryTurnProgress(g.dx,width,drag.direction);if(machine.move(drag.token,value))progress.setValue(value);},
   onPanResponderRelease:(_event,g)=>{const drag=gesture.current,current=machine.turn;gesture.current=null;if(!drag||current?.token!==drag.token)return;settle(current,memoryTurnShouldCommit(current.progress,g.vx,current.direction));},
   onPanResponderTerminate:()=>{const drag=gesture.current,current=machine.turn;gesture.current=null;if(drag&&current?.token===drag.token)settle(current,false);},
   onPanResponderTerminationRequest:()=>true,
- }),[active,index,pageIds.length,machine,progress,settle,width,hasMore,onNeedMore]);
+ }),[active,index,pageIds.length,machine,progress,settle,width,hasMore,onNeedMore,hasPrevious,onNeedPrevious]);
  const forward=turn?.direction===1,angle=progress.interpolate({inputRange:[0,1],outputRange:forward?['0deg','-180deg']:['-180deg','0deg']});
  const innerWidth=width-18;
  const hinge=[{perspective:1400},{translateX:-innerWidth/2},{rotateY:angle},{translateX:innerWidth/2}];
@@ -67,9 +67,9 @@ export default forwardRef<MemoryPageTurnHandle,Props>(function MemoryPageTurn({p
    </Animated.View>
    {turn&&!reduceMotion&&<Animated.View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill,{transform:hinge,zIndex:4}]}>
     {turn.direction===-1&&<View style={[StyleSheet.absoluteFill,{backgroundColor:PAPER,backfaceVisibility:'hidden'}]}>{renderPreview(turn.to)}</View>}
-    <View style={[StyleSheet.absoluteFill,{backfaceVisibility:'hidden',transform:[{rotateY:'180deg'}],backgroundColor:'#F3EDDF',alignItems:'center',justifyContent:'center',borderRightWidth:1,borderColor:'#D5CBB8'}]}><Text numberOfLines={3} style={{fontFamily:serif,fontStyle:'italic',fontSize:19,color:'#AC9E87',textAlign:'center',maxWidth:'70%'}}>{title}</Text><Text style={{fontFamily:serif,fontSize:10,color:'#BCAE95',letterSpacing:2,marginTop:14}}>{String(turn.direction===1?turn.from+1:turn.to+1).padStart(2,'0')}</Text><View style={{position:'absolute',right:0,top:0,bottom:0,width:10,backgroundColor:'#A98F5520'}}/></View>
+    <View style={[StyleSheet.absoluteFill,{backfaceVisibility:'hidden',transform:[{rotateY:'180deg'}],backgroundColor:'#F3EDDF',alignItems:'center',justifyContent:'center',borderRightWidth:1,borderColor:'#D5CBB8'}]}><Text numberOfLines={3} style={{fontFamily:serif,fontStyle:'italic',fontSize:19,color:'#AC9E87',textAlign:'center',maxWidth:'70%'}}>{title}</Text><Text style={{fontFamily:serif,fontSize:10,color:'#BCAE95',letterSpacing:2,marginTop:14}}>{String(pageOffset+(turn.direction===1?turn.from+1:turn.to+1)).padStart(2,'0')}</Text><View style={{position:'absolute',right:0,top:0,bottom:0,width:10,backgroundColor:'#A98F5520'}}/></View>
    </Animated.View>}
-   <TouchableOpacity accessibilityLabel="Previous memory" disabled={index===0||!!turn||!active} style={styles.edgeL} onPress={()=>turnPage(-1)}/>
+   <TouchableOpacity accessibilityLabel="Previous memory" disabled={(index===0&&!hasPrevious)||!!turn||!active} style={styles.edgeL} onPress={()=>turnPage(-1)}/>
    <TouchableOpacity accessibilityLabel="Next memory" disabled={(index>=pageIds.length-1&&!hasMore)||!!turn||!active} style={styles.edgeR} onPress={()=>turnPage(1)}/>
   </View>
  </View>;

@@ -12,7 +12,8 @@
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, FlatList, TouchableOpacity, Image, PanResponder, Modal } from 'react-native';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { VideoView } from 'expo-video';
+import { useAdaptiveVideoPlayer as useVideoPlayer } from '../lib/useAdaptiveVideoPlayer';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from './SafeArea';
 import { Gesture, GestureDetector, Directions } from 'react-native-gesture-handler';

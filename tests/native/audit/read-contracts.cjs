@@ -4,6 +4,7 @@
 const OWNER = '10000000-0000-4000-8000-000000000001';
 const PEER = '10000000-0000-4000-8000-000000000002';
 const CONVERSATION = '30000000-0000-4000-8000-000000000001';
+const MESSAGE = '50000000-0000-4000-8000-000000000001';
 const LISTING = '70000000-0000-4000-8000-000000000001';
 const STORY = '40000000-0000-4000-8000-000000000001';
 const POST = '20000000-0000-4000-8000-000000000001';
@@ -75,10 +76,10 @@ function createReadContracts({ base, audit, session, json, reject, notify }) {
       if (table === 'user_restrictions') expected = { select: 'restricted_id', restrictor_id: 'eq.' + OWNER, restricted_id: 'eq.' + PEER };
       if (table === 'post_comment_pins') expected = { select: 'comment_id', post_id: 'eq.' + POST };
       if (table === 'saved_messages') expected = audit.caseId === 'messages-chat'
-        ? { select: 'message_id', user_id: 'eq.' + OWNER }
+        ? { select: 'message_id', user_id: 'eq.' + OWNER, message_id: 'in.(' + MESSAGE + ')' }
         : { select: 'id,message_id,saved_at,message:messages!message_id(id,text,media_url,media_type,created_at,sender:profiles!sender_id(id,full_name,avatar_url),conversation:conversations!conversation_id(id,group_name,user_1,user_2))', user_id: 'eq.' + OWNER, order: 'saved_at.desc' };
       if (table === 'starred_messages') expected = audit.caseId === 'messages-chat'
-        ? { select: 'message_id', conversation_id: 'eq.' + CONVERSATION, starred_by: 'eq.' + OWNER }
+        ? { select: 'message_id', conversation_id: 'eq.' + CONVERSATION, starred_by: 'eq.' + OWNER, message_id: 'in.(' + MESSAGE + ')' }
         : { select: 'id,message_id,starred_at,conversation_id,msg:messages!message_id(id,text,media_url,media_type,created_at,sender_id)', starred_by: 'eq.' + OWNER, order: 'starred_at.desc' };
       if (!exact(query, Object.keys(expected).join(','))
         || Object.keys(expected).some(key => (key === 'select' ? compact(query[key]) : query[key]) !== expected[key])) return reject(method, url.pathname);

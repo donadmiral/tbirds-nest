@@ -10,7 +10,8 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, PanResponder, useWindowDimensions, AccessibilityInfo } from 'react-native';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { VideoView } from 'expo-video';
+import { useAdaptiveVideoPlayer as useVideoPlayer } from '../lib/useAdaptiveVideoPlayer';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from './SafeArea';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';

@@ -30,7 +30,8 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
  Animated as RNAnimated } from 'react-native';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import { VideoView } from 'expo-video';
+import { useAdaptiveVideoPlayer as useVideoPlayer } from '../lib/useAdaptiveVideoPlayer';
 import { FilterLayer } from './stories/StoryFilters';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';

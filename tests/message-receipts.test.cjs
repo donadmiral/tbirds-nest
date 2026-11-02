@@ -31,11 +31,11 @@ test('group receipts use the authenticated member watermark contract',async()=>{
   assert.equal(calls[0].name,'mark_conversation_read_v2'); assert.equal(calls[0].args.p_conversation_id,'group'); assert.equal(calls.length,1);
 });
 test('native actual receipt handler ignores a background, unfocused, unloaded or scrolled-away chat',async()=>{
-  const state={AppState:{currentState:'active'},focusedRef:{current:true},atLatestRef:{current:true},historyLoadedRef:{current:true}};
+  const state={AppState:{currentState:'active'},focusedRef:{current:true},atLatestRef:{current:true},historyLoadedRef:{current:true},latestContentRef:{current:true}};
   let writes=0,refreshes=0;
-  const globals={...state,conversationId:'chat',currentUserId:'me',isGroup:false,accountScopeRef:{current:1},mountedRef:{current:true},activeConversation:{current:'chat'},readObscured:{current:false},readPending:{current:new Set()},readRequested:{current:new Set()},lastRead:{current:''},messagesRef:{current:[{id:'incoming'}]},supabase:{rpc:async()=>{writes++;return{error:null};}},refreshStatus:async()=>{refreshes++;}};
+  const globals={...state,threadHistory:{current:{atLatest:()=>state.latestContentRef.current}},conversationId:'chat',currentUserId:'me',isGroup:false,accountScopeRef:{current:1},mountedRef:{current:true},activeConversation:{current:'chat'},readObscured:{current:false},readPending:{current:new Set()},readRequested:{current:new Set()},lastRead:{current:''},messagesRef:{current:[{id:'incoming'}]},supabase:{rpc:async()=>{writes++;return{error:null};}},refreshStatus:async()=>{refreshes++;}};
   const mark=nativeRead(globals);
-  for (const [ref,key,disabled,enabled] of [[state.AppState,'currentState','background','active'],[state.focusedRef,'current',false,true],[state.atLatestRef,'current',false,true],[state.historyLoadedRef,'current',false,true]]) {
+  for (const [ref,key,disabled,enabled] of [[state.AppState,'currentState','background','active'],[state.focusedRef,'current',false,true],[state.atLatestRef,'current',false,true],[state.historyLoadedRef,'current',false,true],[state.latestContentRef,'current',false,true]]) {
     ref[key]=disabled; await mark(); assert.equal(writes,0); ref[key]=enabled;
   }
   await mark(); assert.equal(writes,1); assert.equal(refreshes,1); await mark(); assert.equal(writes,1);
@@ -43,7 +43,7 @@ test('native actual receipt handler ignores a background, unfocused, unloaded or
 });
 test('failed native receipt does not invent read status and can retry the same message',async()=>{
   let failed=true,writes=0,refreshes=0;
-  const globals={conversationId:'chat',currentUserId:'me',isGroup:false,AppState:{currentState:'active'},focusedRef:{current:true},atLatestRef:{current:true},historyLoadedRef:{current:true},accountScopeRef:{current:1},mountedRef:{current:true},activeConversation:{current:'chat'},readObscured:{current:false},readPending:{current:new Set()},readRequested:{current:new Set()},lastRead:{current:''},messagesRef:{current:[{id:'incoming'}]},supabase:{rpc:async()=>{writes++;return{error:failed?{message:'offline'}:null};}},refreshStatus:async()=>{refreshes++;}};
+  const globals={conversationId:'chat',currentUserId:'me',isGroup:false,AppState:{currentState:'active'},focusedRef:{current:true},atLatestRef:{current:true},historyLoadedRef:{current:true},threadHistory:{current:{atLatest:()=>true}},accountScopeRef:{current:1},mountedRef:{current:true},activeConversation:{current:'chat'},readObscured:{current:false},readPending:{current:new Set()},readRequested:{current:new Set()},lastRead:{current:''},messagesRef:{current:[{id:'incoming'}]},supabase:{rpc:async()=>{writes++;return{error:failed?{message:'offline'}:null};}},refreshStatus:async()=>{refreshes++;}};
   const mark=nativeRead(globals); await mark(); assert.equal(globals.lastRead.current,''); assert.equal(refreshes,0);
   failed=false; await mark(); assert.equal(writes,2); assert.equal(refreshes,1);
 });

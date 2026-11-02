@@ -2,12 +2,16 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Conv, Msg } from './messages';
 import type { MessageCursor } from '../../shared/messageHistory';
 import type { InboxPaging } from '../../shared/inboxWindow';
+import type { SessionHistory } from '../../shared/sessionHistory';
+import type { ThreadWindow } from '../../shared/threadWindow';
 
 export type MessageNavigationMemory = {
   owner: string; context: string; conversations: Conv[]; active: Conv | null; messages: Msg[];
   drafts: [string, string][]; draft: string; query: string; tab: 'chats' | 'groups' | 'unread';
   detailsOpen: boolean; cursor: MessageCursor | null; hasOlder: boolean; top: number; pinned: boolean;
   inboxPaging?: InboxPaging | null;
+  inboxHistory?: SessionHistory<Conv> | null; inboxTop?: number;
+  threadHistory?: ThreadWindow<Msg> | null;
 };
 
 /** Limited-view capabilities are never reusable navigation data. */

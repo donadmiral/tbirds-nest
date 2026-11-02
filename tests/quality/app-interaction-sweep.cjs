@@ -41,7 +41,7 @@ test('native tab effect restores For You immediately and distinguishes a first v
  const cache=createFeedTabCache(),calls=[],state={},frames=[],scrolls=[];
  const context={module:{exports:{}},exports:{},feedTabs:cache,feedMode:'trending',discoverCat:'all',userId:'alice',loading:false,feedError:null,
    visibleFeedScope:'alice:forYou:all',posts:[{id:'first',user_id:'author'}],profilesMap:{author:{id:'author'}},likedPosts:{first:true},bookmarkedPosts:{},repostedPosts:{},
-   feedModeRef:{current:'forYou'},discoverCatRef:{current:'all'},modeFirstRun:{current:false},feedScopeRef:{current:'alice:trending:all'},
+   feedModeRef:{current:'forYou'},discoverCatRef:{current:'all'},modeFirstRun:{current:false},feedScopeRef:{current:'alice:trending:all'},historyRef:{current:null},bindFeedHistory(){},
    cursorRef:{current:{key:1,id:'first'}},hasMoreRef:{current:false},scrollOffsetRef:{current:200},discoverPageRef:{current:{asOf:'2026-10-29T00:00:00Z',offset:0}},
    hiddenIdsRef:{current:new Set()},postsRef:{current:[]},feedMediaScopeRef:{current:'alice:1'},restoredSnapshotRef:{current:false},pendingPostsRef:{current:[]},
    feedListRef:{current:{scrollToOffset:value=>scrolls.push(value)}},requestAnimationFrame:fn=>frames.push(fn),loadFeedRef:{current:(...args)=>calls.push(args)},Date};
@@ -68,7 +68,7 @@ test('native cached disk snapshot keeps its pending cursor refresh across tab ch
  const cache=createFeedTabCache(),calls=[],state={};
  const context={module:{exports:{}},exports:{},feedTabs:cache,feedMode:'trending',discoverCat:'all',userId:'alice',loading:false,feedError:null,
    visibleFeedScope:'alice:forYou:all',posts:[{id:'first',user_id:'author'}],profilesMap:{author:{id:'author'}},likedPosts:{first:true},bookmarkedPosts:{},repostedPosts:{},
-   feedModeRef:{current:'forYou'},discoverCatRef:{current:'all'},modeFirstRun:{current:false},feedScopeRef:{current:'alice:trending:all'},
+   feedModeRef:{current:'forYou'},discoverCatRef:{current:'all'},modeFirstRun:{current:false},feedScopeRef:{current:'alice:trending:all'},historyRef:{current:null},bindFeedHistory(){},
    cursorRef:{current:null},hasMoreRef:{current:false},scrollOffsetRef:{current:200},discoverPageRef:{current:{asOf:'2026-10-29T00:00:00Z',offset:0}},
    hiddenIdsRef:{current:new Set()},postsRef:{current:[]},feedMediaScopeRef:{current:'alice:1'},restoredSnapshotRef:{current:true},pendingPostsRef:{current:[]},
    feedListRef:{current:{scrollToOffset:()=>{}}},requestAnimationFrame:fn=>fn(),loadFeedRef:{current:(...args)=>calls.push(args)},Date};

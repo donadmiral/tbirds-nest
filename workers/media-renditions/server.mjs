@@ -1,5 +1,7 @@
 import http from 'node:http';
 import {timingSafeEqual} from 'node:crypto';
+import {statfs} from 'node:fs/promises';
+import os from 'node:os';
 import {serviceConfig} from './config.mjs';
 import {backend} from './backend.mjs';
 import {createWorker} from './worker.mjs';
@@ -17,7 +19,11 @@ const server=http.createServer(async(req,res)=>{
    // Work stays inside the request; no fire-and-forget job can be frozen at response.
    const result=await worker.drain(stopping.signal);json(result.state==='unavailable'||result.state==='retry'?503:200,result);return;
   }
-  if(path==='/metrics'&&req.method==='GET'){if(!authorized(req.headers.authorization)){json(401,{error:'unauthorized'});return;}json(200,await api.rpc('media_rendition_health_v2',{},AbortSignal.timeout(5000)));return;}
+  if(path==='/metrics'&&req.method==='GET'){
+   if(!authorized(req.headers.authorization)){json(401,{error:'unauthorized'});return;}
+   const disk=await statfs(os.tmpdir()),status=await api.rpc('media_rendition_health_v2',{},AbortSignal.timeout(5000));
+   json(200,{...status,host:{scratch_available_bytes:Number(disk.bavail)*Number(disk.bsize),scratch_budget_bytes:config.diskBudgetBytes,max_input_bytes:config.maxInputBytes,deadline_ms:config.deadlineMs,encoder_threads:config.threads,process_rss_bytes:process.memoryUsage().rss}});return;
+  }
   json(404,{error:'not_found'});
  }catch{if(!res.headersSent)json(503,{error:'temporarily_unavailable'});else res.destroy();}
 });

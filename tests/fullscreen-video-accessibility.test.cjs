@@ -19,6 +19,7 @@ function mount() {
     useState(initial) { const i = cursor++; if (!(i in slots)) slots[i] = typeof initial === 'function' ? initial() : initial;
       return [slots[i], next => { if (disposed) writesAfterDispose++; slots[i] = typeof next === 'function' ? next(slots[i]) : next; }]; },
     useRef(initial) { const i = cursor++; return slots[i] ??= { current: initial }; },
+    useMemo(fn, deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps, deps)) slots[i] = { value: fn(), deps }; return slots[i].value; },
     useCallback(fn, deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps, deps)) slots[i] = { fn, deps }; return slots[i].fn; },
     useEffect(fn, deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps, deps)) { const prev = slots[i]; slots[i] = { deps }; effects.push(() => { prev?.cleanup?.(); slots[i].cleanup = fn(); }); } },
   };
@@ -30,6 +31,19 @@ function mount() {
     require(name) {
       if (name === 'react') return hooks;
       if (name === 'react/jsx-runtime') return runtime;
+      if (name === '../lib/useAdaptiveVideoPlayer') {
+        const transpile = file => ts.transpileModule(fs.readFileSync(path.join(sourceRoot, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+        const shared = { exports: {} }, hook = { exports: {} };
+        vm.runInNewContext(transpile('shared/adaptiveMedia.ts'), { module: shared, exports: shared.exports, URL, AbortController, TextDecoder, Date });
+        vm.runInNewContext(transpile('src/lib/useAdaptiveVideoPlayer.ts'), { module: hook, exports: hook.exports, process: { env: { EXPO_PUBLIC_ADAPTIVE_MEDIA: 'false' } }, require(id) {
+          if (id === 'react') return hooks;
+          if (id === '../../shared/adaptiveMedia') return shared.exports;
+          if (id === 'expo-video') return { useVideoPlayer: (_uri, init) => { if (!initialized) { initialized = true; init(player); } return player; } };
+          throw new Error('Unexpected adaptive import: ' + id);
+        } });
+        return hook.exports;
+      }
+
       if (name === 'react-native') return { View: 'View', Text: 'Text', TouchableOpacity: 'TouchableOpacity', ActivityIndicator: 'ActivityIndicator', StyleSheet: { create: styles => styles, absoluteFill: {}, absoluteFillObject: {} },
         useWindowDimensions: () => ({ width: 400, height: 800 }), Dimensions: { get: () => ({ width: 400, height: 800 }) }, PanResponder: { create: value => ({ panHandlers: value }) },
         AccessibilityInfo: { isScreenReaderEnabled: () => new Promise(resolve => { initialReaderResolve = resolve; }), addEventListener: (_name, fn) => { changedReader = fn; return { remove: () => { changedReader = null; } }; } } };

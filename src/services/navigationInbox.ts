@@ -57,6 +57,7 @@ const avatarJobs = new WeakSet<Promise<unknown>>();
 let avatarVersion = 0;
 let avatarScope: string | null = null;
 const avatarVersions = new Map<string, number>();
+let avatarVersionFloor = 0;
 type GroupAvatar = { id: string; group_avatar_url: string | null };
 
 export function nativeInboxOptions(search = '', filter: 'all' | 'groups' | 'unread' = 'all', archived = false): InboxReadOptions {
@@ -76,8 +77,16 @@ export const compareNativeInbox = (a: Conversation, b: Conversation) =>
     || b.id.localeCompare(a.id);
 
 function rememberAvatarVersion(scope: string, rows: { id: string }[], version: number) {
-  if (avatarScope !== scope) { avatarScope = scope; avatarVersions.clear(); }
-  for (const row of rows) avatarVersions.set(row.id, Math.max(version, avatarVersions.get(row.id) ?? 0));
+  if (avatarScope !== scope) { avatarScope = scope; avatarVersions.clear(); avatarVersionFloor = 0; }
+  if (version <= avatarVersionFloor) return;
+  for (const row of rows) {
+    const latest = Math.max(version, avatarVersions.get(row.id) ?? 0);
+    avatarVersions.delete(row.id); avatarVersions.set(row.id, latest);
+  }
+  while (avatarVersions.size > 2000) {
+    const [id, stamp] = avatarVersions.entries().next().value!;
+    avatarVersionFloor = Math.max(avatarVersionFloor, stamp); avatarVersions.delete(id);
+  }
 }
 function enrichAvatars(work: Promise<unknown>, scope: string, groups: () => GroupAvatar[], version: () => number) {
   if (avatarJobs.has(work)) return;

@@ -14,7 +14,7 @@ import { watchStoryVideoFrame } from '@/lib/storyMediaReadiness';
 import { contentMediaUrls } from '../../shared/contentMedia';
 import { notifyMemoryBookShelfChanged } from "@/lib/memoryBookEvents";
 import {
-  getMemoryBook, getMemoryBookNext, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
+  getMemoryBook, getMemoryBookNext, getMemoryBookWindow, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
   getMyStories, addMemoryPage, getAccessList, setAccess, searchPeople,
   COVER_COLORS, getNextMemoryBook, type MemoryBookInfo, type MemoryAlbum, type MemoryPage, type AccessPerson,
 } from "@/lib/memoryAlbum";
@@ -38,7 +38,7 @@ import { memoryPageSoundtrack } from '../../shared/memoryFilm';
 import { memoryPhotoDuration } from '../../shared/memoryPlayback';
 import { useMemoryPlayback } from '@/lib/useMemoryPlayback';
 import { createMemorySoundtrackSaveHook } from '../../shared/useMemorySoundtrackSave';
-import { memoryBookHasMore, isMemoryBookChanged } from '../../shared/pagedReaders';
+import { memoryBookHasMore, memoryBookHasPrevious, memoryBookOffset, memoryBookIsComplete, isMemoryBookChanged } from '../../shared/pagedReaders';
 const useMemorySoundtrackSave = createMemorySoundtrackSaveHook({ useEffect, useRef, useState });
 
 const AUDIENCES = [
@@ -135,6 +135,7 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
   const [album, setAlbum] = useState<MemoryAlbum | null>(null);
   const [likedPages, setLikedPages] = useState<Set<string>>(new Set());
   const [requestedIndex, setIdx] = useState(0);
+  const indexRef=useRef(0);indexRef.current=requestedIndex;
   const [playMode, setPlayMode] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [filmVisible, setFilmVisible] = useState(false);
@@ -148,6 +149,8 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
   const [view, setView] = useState<"cover" | "book" | "grid">("cover");
   const pageTurn=useRef<MemoryPageTurnHandle>(null);
   const [turning,setTurning]=useState(false);
+  const turningRef=useRef(false);
+  const onTurningChange=useCallback((value:boolean)=>{turningRef.current=value;setTurning(value);},[]);
   const [mediaAttempt, setMediaAttempt] = useState(0);
   const [manage, setManage] = useState(false);
   const [musicOpen,setMusicOpen]=useState(false);
@@ -158,7 +161,11 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
   const displayedAlbum = useRef(album), mediaScope = useRef<string | null>(null), request = useRef<AbortController | null>(null);
   const moreRequest = useRef<{ controller: AbortController; promise: Promise<MemoryAlbum | null> } | null>(null);
   const [loadingPages, setLoadingPages] = useState(false), [preparingBook, setPreparingBook] = useState(false);
-  const completeIntent = useRef(0), pendingTurn = useRef<{ index: number; generation: number } | null>(null);
+  const [refreshingBook,setRefreshingBook]=useState(false);
+  const [mutatingBook,setMutatingBook]=useState(false);
+  const completeIntent = useRef(0), pendingTurn = useRef<{ index: number; generation: number; direction?: -1 | 1 } | null>(null);
+  const completeRequest=useRef<AbortController|null>(null),fullBookMode=useRef(false);
+  fullBookMode.current=preparingBook||mutatingBook||filmVisible||manage||adding||view==='grid';
   useLayoutEffect(() => { displayedAlbum.current = album; }, [album]);
 
   const loadGeneration = useRef(0);
@@ -174,15 +181,31 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
   const load = useCallback(async () => {
     const generation = ++loadGeneration.current;
     request.current?.abort();
+    completeRequest.current?.abort();
     moreRequest.current?.controller.abort(); moreRequest.current=null; setLoadingPages(false); pendingTurn.current = null; completeIntent.current++; setPreparingBook(false);
     if (!uid || !session.scope) return;
     const scope = session.scope, controller = new AbortController();
-    request.current = controller;
-    const current = () => generation === loadGeneration.current && store.getSnapshot().scope === scope;
+    request.current = controller;setRefreshingBook(true);
+    const current = () => !controller.signal.aborted && generation === loadGeneration.current && store.getSnapshot().scope === scope;
     try {
-      const next = await getMemoryBook(ownerId, { signal: controller.signal, previous: displayedAlbum.current, previousScope: mediaScope.current, scope,
-        viewer: uid, current, partial: !filmVisibleRef.current, minimumPages: displayedAlbum.current?.pages.length });
+      const previous=displayedAlbum.current,previousIndex=indexRef.current;
+      let restoredIndex:number|null=null;
+      let next = await getMemoryBook(ownerId, { signal: controller.signal, previous, previousScope: mediaScope.current, scope,
+        viewer: uid, current, partial: !fullBookMode.current, minimumPages: displayedAlbum.current?.pages.length });
       if (!current()) return;
+      if(next&&previous&&memoryBookHasPrevious(previous)&&next._pagination?.windowSupported
+        &&next._pagination.revision===previous._pagination?.revision&&!fullBookMode.current){
+        const restored=await getMemoryBookWindow({...next,pages:previous.pages,_pagination:{...next._pagination,offset:memoryBookOffset(previous)}},
+          Math.min(indexRef.current,previous.pages.length-1),1,{signal:controller.signal,viewer:uid,current});
+        if(!current())return;next=restored.book;restoredIndex=restored.index;
+      }else if(previous&&memoryBookHasPrevious(previous)){
+        restoredIndex=Math.min(memoryBookOffset(previous)+previousIndex,Math.max(0,(next?.pages.length??1)-1));
+      }
+      const visible=displayedAlbum.current?.pages[indexRef.current]?.id;
+      const remapped=visible&&next?next.pages.findIndex(page=>page.id===visible):-1;
+      if(remapped>=0)restoredIndex=remapped;
+      else if(visible&&next?._pagination?.revision&&next._pagination.revision===previous?._pagination?.revision)return;
+      if(restoredIndex!==null){indexRef.current=restoredIndex;setIdx(restoredIndex);const pending=pendingTurn.current as {index:number;generation:number;direction?:-1|1}|null;if(pending)pending.index=restoredIndex;}
       mediaScope.current = scope; displayedAlbum.current = next;
       setAlbum(next); setLoadError(next ? null : "This album is unavailable.");
     } catch {
@@ -192,18 +215,29 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
         ? previous._mediaExpiresAt > Date.now() : !contentMediaUrls(previous, process.env.NEXT_PUBLIC_SUPABASE_URL!).length);
       if (!valid) { displayedAlbum.current = null; setAlbum(null); }
       setLoadError("The album could not refresh. Please retry.");
-    } finally { if (request.current === controller) request.current = null; }
+    } finally { if (request.current === controller) {request.current = null;setRefreshingBook(false);} }
   }, [ownerId, uid, session.scope, store]);
-  const loadMore = useCallback((): Promise<MemoryAlbum | null> => {
+  const loadMore = useCallback((direction: -1 | 1 = 1, forceWindow = false): Promise<MemoryAlbum | null> => {
     if (moreRequest.current) return moreRequest.current.promise;
     const previous = displayedAlbum.current;
-    if (!uid || !session.scope || !previous || !memoryBookHasMore(previous)) return Promise.resolve(previous);
+    if(request.current)return Promise.resolve(previous);
+    if (!uid || !session.scope || !previous || (!forceWindow && !(direction>0?memoryBookHasMore(previous):memoryBookHasPrevious(previous)))) return Promise.resolve(previous);
     const generation = loadGeneration.current, scope = session.scope, controller = new AbortController();
     const current = () => generation === loadGeneration.current && store.getSnapshot().scope === scope && !controller.signal.aborted;
     const job = { controller, promise: Promise.resolve<MemoryAlbum | null>(null) };
     moreRequest.current = job; setLoadingPages(true);
-    job.promise = getMemoryBookNext(previous, { signal: controller.signal, viewer: uid, current }).then(next => {
+    const windowed=previous._pagination?.windowSupported&&!fullBookMode.current&&previous.pages.length>0;
+    job.promise = (windowed
+      ? getMemoryBookWindow(previous,Math.min(indexRef.current,previous.pages.length-1),direction,{signal:controller.signal,viewer:uid,current})
+      : getMemoryBookNext(previous, { signal: controller.signal, viewer: uid, current }).then(book=>({book,index:indexRef.current}))).then(({book:next,index}) => {
       if (!current() || displayedAlbum.current !== previous) throw new Error('The book changed.');
+      if(windowed){
+        if(turningRef.current)return previous;
+        const visible=previous.pages[indexRef.current]?.id;
+        const remapped=next.pages.findIndex(page=>page.id===visible);
+        if(remapped<0)return previous;
+        indexRef.current=remapped;setIdx(remapped);if(pendingTurn.current)pendingTurn.current.index=remapped;
+      }
       displayedAlbum.current = next; setAlbum(next); setLoadError(null); return next;
     }).catch(error => {
       if (current()) { if (isMemoryBookChanged(error)) void load(); else setLoadError('More memories could not load. Please retry.'); }
@@ -212,20 +246,40 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
     return job.promise;
   }, [uid, session.scope, store, load]);
   const prepareCompleteBook = useCallback(async (ready: () => void) => {
+    if(request.current){request.current.abort();request.current=null;loadGeneration.current++;setRefreshingBook(false);}
     const intent = ++completeIntent.current, generation = loadGeneration.current;
-    setPreparingBook(true);
+    const controller=new AbortController();completeRequest.current?.abort();completeRequest.current=controller;
+    fullBookMode.current=true;setPreparingBook(true);
     try {
-      while (memoryBookHasMore(displayedAlbum.current)) {
-        await loadMore();
-        if (intent !== completeIntent.current || generation !== loadGeneration.current) return;
+      if(moreRequest.current)await moreRequest.current.promise;
+      const current=()=>!controller.signal.aborted&&intent===completeIntent.current&&generation===loadGeneration.current&&store.getSnapshot().scope===session.scope;
+      if(!current()||!uid)return;
+      const previous=displayedAlbum.current;
+      let complete=previous;
+      if(complete&&memoryBookHasPrevious(complete))complete=await getMemoryBook(ownerId,{signal:controller.signal,viewer:uid,current,partial:true,minimumPages:24});
+      while(complete&&memoryBookHasMore(complete)){complete=await getMemoryBookNext(complete,{signal:controller.signal,viewer:uid,current});if(!current())return;}
+      if(current()&&complete&&memoryBookIsComplete(complete)){
+        const absoluteIndex=memoryBookOffset(displayedAlbum.current)+indexRef.current;
+        displayedAlbum.current=complete;setAlbum(complete);indexRef.current=Math.min(absoluteIndex,Math.max(0,complete.pages.length-1));setIdx(indexRef.current);ready();
       }
-      if (intent === completeIntent.current && generation === loadGeneration.current) ready();
-    } catch { /* The existing reader error offers a fresh retry; never use a partial book. */ }
-    finally { if (intent === completeIntent.current) setPreparingBook(false); }
-  }, [loadMore]);
+    } catch { if(intent===completeIntent.current&&generation===loadGeneration.current)setLoadError('The complete book could not load. Please retry.'); }
+    finally { if(completeRequest.current===controller)completeRequest.current=null;controller.abort();if (intent === completeIntent.current) setPreparingBook(false); }
+  }, [ownerId,uid,session.scope,store]);
   const reloadAfterChange = () => {
     if (uid) notifyMemoryBookShelfChanged(uid);
     void load();
+  };
+  const movePage=(direction:-1|1)=>{
+    void prepareCompleteBook(()=>{void(async()=>{
+      const current=displayedAlbum.current,at=indexRef.current;
+      const first=current?.pages[at],second=current?.pages[at+direction];
+      if(!first||!second)return;
+      fullBookMode.current=true;setMutatingBook(true);
+      try{if(await swapMemoryPages(first,second)){if(uid)notifyMemoryBookShelfChanged(uid);await load();}
+        else setMutationError('Page order could not save. Retry.');}
+      catch{setMutationError('Page order could not save. Retry.');}
+      finally{setMutatingBook(false);}
+    })();});
   };
 
   useEffect(() => {
@@ -234,7 +288,7 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
     const refresh = () => { if (document.visibilityState === "visible") void load(); };
     const timer = setInterval(refresh, 240000);
     window.addEventListener("focus", refresh); document.addEventListener("visibilitychange", refresh);
-    return () => { live=false; loadGeneration.current += 1; completeIntent.current++; request.current?.abort(); moreRequest.current?.controller.abort(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+    return () => { live=false; loadGeneration.current += 1; completeIntent.current++; const primary=request.current;request.current=null;primary?.abort(); moreRequest.current?.controller.abort(); completeRequest.current?.abort(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [load]);
   useEffect(() => { let live=true;const controller=new AbortController(); if(!album?.user_id)return; void getNextMemoryBook(album.user_id,album.id,controller.signal).then(next=>{if(live)setNextBook(next);}).catch(()=>{});return()=>{live=false;controller.abort();}; }, [album?.id,album?.user_id]);
   // Seed the hearts with what this person already liked.
@@ -258,25 +312,31 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
 
   const pages = useMemo(() => album?.pages ?? [], [album]);
   const idx = Math.min(requestedIndex, Math.max(0, pages.length - 1));
+  const pageOffset=memoryBookOffset(album);
   const page = pages[idx];
   const artwork = memoryArtwork(album?.cover_design, album?.cover_color);
 
   const go = useCallback((d: number) => {
-    if (d > 0 && idx >= pages.length - 1 && memoryBookHasMore(displayedAlbum.current)) {
-      pendingTurn.current = { index: idx, generation: loadGeneration.current };
-      void loadMore().catch(() => { pendingTurn.current = null; });
+    if ((d > 0 && idx >= pages.length - 1 && memoryBookHasMore(displayedAlbum.current))
+      ||(d<0&&idx===0&&memoryBookHasPrevious(displayedAlbum.current))) {
+      const direction=d<0?-1:1;
+      pendingTurn.current = { index: idx, generation: loadGeneration.current,direction };
+      void loadMore(direction).catch(() => { pendingTurn.current = null; });
     } else { pendingTurn.current = null; pageTurn.current?.turn(d < 0 ? -1 : 1); }
   }, [idx, pages.length, loadMore]);
   useEffect(() => {
     const pending = pendingTurn.current;
-    if (pending && pending.generation === loadGeneration.current && pending.index === idx && idx + 1 < pages.length && view === 'book') {
-      pendingTurn.current = null; pageTurn.current?.turn(1);
+    if (pending && pending.generation === loadGeneration.current && pending.index === idx
+      && ((pending.direction??1)>0?idx+1<pages.length:idx>0) && view === 'book') {
+      pendingTurn.current = null; pageTurn.current?.turn(pending.direction??1);
     }
   }, [idx, pages.length, view]);
   useEffect(() => {
-    if (foreground && !filmVisible && !loadError && memoryBookHasMore(album)
-      && (view === 'book' ? idx + 6 >= pages.length : view === 'cover' && pages.length <= 24)) void loadMore().catch(() => {});
-  }, [album, idx, pages.length, view, foreground, filmVisible, loadError, loadMore]);
+    if(!foreground||fullBookMode.current||loadError||turning||refreshingBook||loadingPages)return;
+    if(album?._pagination?.windowSupported&&pages.length>48)void loadMore(1,true).catch(()=>{});
+    else if(view==='book'&&idx<=6&&memoryBookHasPrevious(album))void loadMore(-1).catch(()=>{});
+    else if(memoryBookHasMore(album)&&(view==='book'?idx+6>=pages.length:view==='cover'&&pages.length<=24))void loadMore().catch(()=>{});
+  }, [album,idx,pages.length,view,foreground,filmVisible,manage,adding,preparingBook,mutatingBook,loadError,turning,refreshingBook,loadingPages,loadMore]);
   const finishPage=useCallback(()=>{if(idx>=pages.length-1&&!memoryBookHasMore(displayedAlbum.current))setPlaying(false);else go(1);},[idx,pages.length,go]);
   const movieActive=playMode&&playing&&foreground&&view==='book'&&!filmVisible&&!turning&&!manage&&!adding;
   const photoProgress=useMemoryPlayback(`${album?.id}:${page?.id}:${playRun}`,movieActive&&page?.media_type!=='video'&&(!page?.media_url||readyPage===page?.id),memoryPhotoDuration(page),finishPage);
@@ -309,7 +369,7 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
   }
 
   return (
-    <div className="mx-auto w-full max-w-[720px] px-3 pb-16">
+    <div className="mx-auto w-full max-w-[720px] px-3 pb-16" data-memory-retained-pages={pages.length}>
       <div className="sticky top-0 z-20 -mx-3 mb-4 flex items-center gap-2 border-b border-ink/10 bg-[var(--chrome-glass)] px-3 py-2.5 backdrop-blur-md">
         <button onClick={() => view==='cover'?history.back():closeBook()} className="rounded-full p-2 text-ink/60 hover:bg-black/5" aria-label="Back"><ArrowLeft size={18} /></button>
         <p className="min-w-0 flex-1 truncate text-center font-display text-[23px] text-ink">{album.title}</p>
@@ -362,8 +422,8 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
       ) : null}
       {pages.length>0&&!filmVisible&&(
         <div hidden={view!=='book'} aria-hidden={view!=='book'} inert={view!=='book'}>
-          <MemoryPageTurn ref={pageTurn} key={album.id} pageIds={pages.map(p=>p.id)} index={idx} active={view==='book'&&!manage&&!adding&&!musicOpen} spine={artwork.spine} title={album.title} onCommit={setIdx} onTurningChange={setTurning} hasMore={memoryBookHasMore(album)} onNeedMore={()=>go(1)} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
-                <p className="mb-4 text-center font-display text-[11px] tracking-widest text-[#6F614A]">{String(idx+1).padStart(2,'0')} ─</p>
+          <MemoryPageTurn ref={pageTurn} key={album.id} pageIds={pages.map(p=>p.id)} index={idx} active={view==='book'&&!manage&&!adding&&!musicOpen} spine={artwork.spine} title={album.title} onCommit={setIdx} onTurningChange={onTurningChange} hasMore={memoryBookHasMore(album)} onNeedMore={()=>go(1)} hasPrevious={memoryBookHasPrevious(album)} onNeedPrevious={()=>go(-1)} pageOffset={pageOffset} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={pageOffset+i}/>}>
+                <p className="mb-4 text-center font-display text-[11px] tracking-widest text-[#6F614A]">{String(pageOffset+idx+1).padStart(2,'0')} ─</p>
                 {page ? (
                   <div className={"flex min-h-0 flex-1 flex-col "+(page.style === "polaroid" ? "border border-[#DCD4C7] bg-[#FFFCF6] p-1.5 pb-3" : "")}>
                     <div className="media-frame relative min-h-0 flex-1 overflow-hidden bg-ink">
@@ -399,16 +459,16 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
           </MemoryPageTurn>
           {playMode&&<div role="progressbar" aria-label="Memory playback" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((page?.media_type==='video'?videoProgress:photoProgress)*100)} className="mx-auto mt-4 h-1 max-w-[440px] overflow-hidden rounded-full bg-ink/15"><div className="h-full bg-ink transition-[width] duration-100" style={{width:`${(page?.media_type==='video'?videoProgress:photoProgress)*100}%`}}/></div>}
           <div className="mt-4 flex items-center justify-center gap-3">
-            <button onClick={() => go(-1)} disabled={turning||idx === 0} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Previous page"><ChevronLeft size={18} /></button>
+            <button onClick={() => go(-1)} disabled={turning||pageOffset+idx === 0} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Previous page"><ChevronLeft size={18} /></button>
             <button type="button" aria-label="Play continuous memory film" onClick={playBook} className="min-h-11 min-w-11 rounded-full border border-ink/15 p-2.5 text-ink">{playMode&&playing?<Pause size={18}/>:<Play size={18}/>}</button>
-            <span aria-live="polite" aria-atomic="true" className="rounded-full border border-ink/10 bg-[var(--canvas)] px-4 py-1.5 text-[13px] font-semibold text-ink/70 backdrop-blur">{idx + 1} / {album.count}</span>
+            <span aria-live="polite" aria-atomic="true" className="rounded-full border border-ink/10 bg-[var(--canvas)] px-4 py-1.5 text-[13px] font-semibold text-ink/70 backdrop-blur">{pageOffset + idx + 1} / {album.count}</span>
             <button onClick={async () => {const sid=page?.story_id;if(!sid||reactionLock.current)return;reactionLock.current=true;const generation=loadGeneration.current;try{const {data,error}=await supabase.rpc('toggle_story_reaction',{p_story_id:sid,p_emoji:'❤️'});if(error)throw error;if(generation===loadGeneration.current)setLikedPages(prev=>{const next=new Set(prev);if(data?.reacted)next.add(sid);else next.delete(sid);return next;});}catch{setMutationError('Your reaction could not save. Retry.');}finally{reactionLock.current=false;}}} className={"rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 backdrop-blur " + (page && likedPages.has(String(page.story_id)) ? "text-danger" : "text-muted")} aria-label="Love this memory">{"\u2764"}</button>
-            <button onClick={() => go(1)} disabled={turning||idx >= album.count - 1} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Next page"><ChevronRight size={18} /></button>
+            <button onClick={() => go(1)} disabled={turning||pageOffset+idx >= album.count - 1} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Next page"><ChevronRight size={18} /></button>
           </div>
           {album.is_owner && page ? (
             <div className="mt-3 flex items-center justify-center gap-2">
-              <button onClick={async () => { const other = pages[idx - 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx - 1); reloadAfterChange(); }else setMutationError("Page order could not save. Retry."); } }} disabled={turning||idx === 0} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move earlier"><ArrowUp size={15} /></button>
-              <button onClick={async () => { try { const other = pages[idx + 1] ?? (await loadMore())?.pages[idx + 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx + 1); reloadAfterChange(); }else setMutationError("Page order could not save. Retry."); } } catch { setMutationError("The next page could not load. Retry."); } }} disabled={turning||idx >= album.count - 1} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move later"><ArrowDown size={15} /></button>
+              <button onClick={() => movePage(-1)} disabled={turning||pageOffset+idx === 0} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move earlier"><ArrowUp size={15} /></button>
+              <button onClick={() => movePage(1)} disabled={turning||pageOffset+idx >= album.count - 1} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move later"><ArrowDown size={15} /></button>
               <button disabled={turning} onClick={async () => { if(await updateMemoryPage(page.id, { style: page.style === "polaroid" ? "full" : "polaroid" }))reloadAfterChange();else setMutationError("Page style could not save. Retry."); }} className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-ink/60" title="Switch page style">{page.style === "polaroid" ? "Full page" : "Framed page"}</button>
               <button disabled={turning} onClick={async () => { if (confirm("Remove this memory from the album?")) { if(await deleteMemoryPage(page.id)){setIdx(Math.max(0, idx - 1));reloadAfterChange();}else setMutationError("Page could not be removed. Retry."); } }} className="rounded-full bg-black/5 p-2 text-ink/60 hover:text-danger" title="Remove page"><Trash2 size={15} /></button>
             </div>

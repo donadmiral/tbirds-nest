@@ -6,6 +6,10 @@ import { prepareReactPostSource, assertReactSourceAccess } from '../../services/
 import { ensureCameraPermission, ensureImagePickerLibraryPermission } from '../../services/devicePermissions';
 import { loadConversationTargets } from '../../../shared/conversationTargets';
 import { createFeedTabCache } from '../../../shared/feedTabCache';
+import { createNativeSessionHistory } from '../../services/sessionHistory';
+import type { HistoryPage, HistorySnapshot, SessionHistory } from '../../../shared/sessionHistory';
+import { readPostCounters, recordPostShare } from '../../../shared/postCounters';
+import { retainRecord, retainStamps } from '../../../shared/retainedMaps';
 import { uniqueCollaborators, collaborationName } from '../../../shared/collaborationPeople';
 function stripMd(input: string | null | undefined): string {
   if (!input) return '';
@@ -107,6 +111,7 @@ type Post = {
   /** feed row key: the post id, or post id plus reposter when the row is a repost */
   _rk?: string;
   _mediaExpiresAt?: number;
+  _history?: { profile: ProfileLite; liked: boolean; marked: boolean; reposted: boolean };
   id: string; user_id: string; content: string;
   likes_count: number; comments_count: number; reposts_count: number; bookmarks_count: number; views_count?: number; shares_count?: number;
   created_at?: string | null; media_url?: string | null; location?: string | null;
@@ -143,6 +148,8 @@ function mapFeedRow(r: any): Post {
     reposts_count: r.reposts_count ?? 0, bookmarks_count: r.bookmarks_count ?? 0, shares_count: r.shares_count ?? 0,
     created_at: r.created_at, media_url: r.media_url ?? null,
     _mediaExpiresAt: typeof r._mediaExpiresAt === 'number' && Number.isFinite(r._mediaExpiresAt) ? r._mediaExpiresAt : undefined,
+    _history: { profile: { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar,
+      is_verified: r.author_verified, verified_tier: r.author_verified_tier }, liked: !!r.viewer_liked, marked: !!r.viewer_bookmarked, reposted: !!r.viewer_reposted },
     location: null,
     channel: r.channel ?? null,
     article_title: r.article_title ?? null,
@@ -276,6 +283,15 @@ export default function FeedScreen({ navigation }: any) {
     = useFeedTextDraft(session?.user.id === userId ? userId : null);
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const promoRowsRef = useRef<Post[]>([]);
+  const historyRef = useRef<SessionHistory<Post> | null>(null);
+  const historyStop = useRef<(() => void) | null>(null);
+  const historyReady = useRef<boolean | null>(null);
+  const historyAlive = useRef(true);
+  const [historyWindow, setHistoryWindow] = useState<HistorySnapshot<Post> | null>(null);
+  const historyHeaderHeight = useRef(0);
+  const historyViewport = useRef(0);
+  const historyRects = useRef(new Map<string, { page: number; y: number; height: number }>());
   const [feedOwner, setFeedOwner] = useState(userId);
   const dataSaver = useSettingsStore(state => state.uploadQuality === 'data-saver');
   const autoplayVideos = useSettingsStore(state => state.autoplayVideos);
@@ -348,7 +364,7 @@ export default function FeedScreen({ navigation }: any) {
   const feedTabs = useRef(createFeedTabCache<{
     rows: Post[]; profiles: ProfileMap; likes: Record<string, boolean>; marks: Record<string, boolean>;
     reposts: Record<string, boolean>; cursor: { key: number; id: string } | null; hasMore: boolean;
-    offset: number; discoverPage: { asOf: string; offset: number }; needsCursorRefresh: boolean; mediaScope: string | null;
+    offset: number; discoverPage: { asOf: string; offset: number }; needsCursorRefresh: boolean; mediaScope: string | null; history?: SessionHistory<Post> | null;
   }>()).current;
   const pendingPostsRef = useRef<Post[]>([]);
   const scrollOffsetRef = useRef(0);
@@ -530,8 +546,75 @@ export default function FeedScreen({ navigation }: any) {
   const interactionChangedAt = useRef<Record<string, number>>({});
   const feedLiveAppliedAt = useRef<Record<string, number>>({});
   const feedLiveDeniedAt = useRef<Record<string, number>>({});
+  const feedStampFloor = useRef(-1);
   const liveScope = navigationScope();
   const feedMediaScopeRef = useRef<string | null>(null);
+  const bindFeedHistory = useCallback((value: SessionHistory<Post> | null) => {
+    if (value && !value.available()) value = null;
+    historyStop.current?.(); historyStop.current = null; historyRef.current = value;
+    historyRects.current.clear();
+    if (!value) { setHistoryWindow(null); return; }
+    const owner = useAuthStore.getState().profile?.id, scope = feedScopeRef.current, authScope = navigationScope();
+    const current = () => historyAlive.current && useAuthStore.getState().profile?.id === owner
+      && feedScopeRef.current === scope && navigationScope() === authScope;
+    value.rebind({ current, fetch: async (ids, signal) => {
+      const result = await supabase.rpc('get_feed_rows_by_ids_v1', { p_ids: ids }).abortSignal(signal);
+      if (!current() || signal.aborted) throw new Error('The reading session changed.');
+      if (result.error || !Array.isArray(result.data)) throw new Error('Earlier posts could not be loaded. Please retry.');
+      const granted = await hydratePostMedia(result.data);
+      if (!current() || signal.aborted) throw new Error('The reading session changed.');
+      return granted.map(mapFeedRow).filter(post => !hiddenIdsRef.current.has(post.id) && !isMutedRef.current(post));
+    } });
+    const sync = () => {
+      if (!current()) return;
+      const snapshot = value.getSnapshot(), previous = new Set(postsRef.current.map(post => post.id));
+      const restored = snapshot.rows.filter(post => !previous.has(post.id));
+      if (restored.length) {
+        setProfilesMap(before => { const next = { ...before }; restored.forEach(post => { if (post._history) next[post.user_id] = post._history.profile; }); return next; });
+        const flags = (before: Record<string, boolean>, key: 'liked' | 'marked' | 'reposted') => {
+          const next = { ...before }; restored.forEach(post => { if (post._history) next[post.id] = post._history[key]; }); return next;
+        };
+        setLikedPosts(before => flags(before, 'liked')); setBookmarkedPosts(before => flags(before, 'marked')); setRepostedPosts(before => flags(before, 'reposted'));
+      }
+      postsRef.current = snapshot.rows; setPosts(snapshot.rows); setHistoryWindow(snapshot);
+      if (snapshot.error) setFeedError(snapshot.error);
+    };
+    historyStop.current = value.subscribe(sync); sync();
+  }, []);
+  const commitFeedWindow = useCallback(async (rows: Post[], preserve: boolean, current: () => boolean) => {
+    if (historyReady.current === null) {
+      try { const result = await supabase.rpc('get_feed_rows_by_ids_v1', { p_ids: [] });
+        if (!current()) return rows;
+        historyReady.current = !result.error && Array.isArray(result.data) && result.data.length === 0;
+      } catch { return rows; }
+    }
+    if (!current() || !historyReady.current) return rows;
+    let value = historyRef.current;
+    if (!value) {
+      value = createNativeSessionHistory<Post>({ id: row => row.id, current, fetch: async () => [], pageRows: 6 });
+      try { await value.append(rows); if (!current()) { await value.dispose(); return rows; } bindFeedHistory(value); }
+      catch (error) { await value.dispose(); throw error; }
+    } else if (preserve) value.replaceHot(rows);
+    else {
+      const previous = value, next = createNativeSessionHistory<Post>({ id: row => row.id, current, fetch: async () => [], pageRows: 6 });
+      try { await next.append(rows); if (!current()) { await next.dispose(); return rows; } }
+      catch (error) { await next.dispose(); throw error; }
+      value = next; bindFeedHistory(next); void previous.dispose().catch(() => {});
+    }
+    return value.getSnapshot().rows;
+  }, [bindFeedHistory]);
+  useEffect(() => {
+    historyAlive.current = true;
+    return () => {
+      historyAlive.current = false; historyStop.current?.();
+      const values = new Set([historyRef.current, ...feedTabs.snapshot().map(([, tab]) => tab.history)]);
+      values.forEach(value => { void value?.dispose().catch(() => {}); });
+    };
+  }, [feedTabs]);
+  useEffect(() => {
+    const value = historyRef.current;
+    if (value && value.getSnapshot().rows !== posts && visibleFeedScope === feedScopeRef.current) value.replaceHot(posts);
+  }, [posts, visibleFeedScope]);
   const busyKeysRef = useRef<Record<string, boolean>>({});
   const composerRef    = useRef<TextInput>(null);
   const lastTapMap     = useRef<Record<string, number>>({});
@@ -542,6 +625,29 @@ export default function FeedScreen({ navigation }: any) {
   const [screenFocused, setScreenFocused] = useState(true);
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
   const pageRequestRef = useRef(0);
+
+  useEffect(() => {
+    if (!historyRef.current) return;
+    const retained = [...posts, ...promoRowsRef.current, ...[commentsFor, sharePostTarget, quotingPost, threadingPost, sendPost, viewersPost].filter(Boolean) as Post[]];
+    const ids = new Set(retained.map(post => post.id)); if (insightsPostId) ids.add(insightsPostId);
+    const quoted = new Set(retained.map(post => post.quoted_post_id).filter(Boolean) as string[]);
+    const authors = new Set(retained.map(post => post.user_id));
+    for (const id of quoted) if (quotedMap[id]) authors.add(quotedMap[id].user_id);
+    const prune = <T,>(before: Record<string, T>) => retainRecord(before, ids);
+    setProfilesMap(before => retainRecord(before, authors));
+    setLikedPosts(prune); setBookmarkedPosts(prune); setRepostedPosts(prune); setExpandedPosts(prune);
+    setLikerNames(prune); setCommentPreviews(prune); setCollabs(prune); setPollPosts(prune);
+    setQuotedMap(before => retainRecord(before, quoted));
+    countCacheRef.current = prune(countCacheRef.current);
+    mediaNodeRef.current = prune(mediaNodeRef.current); mediaYRef.current = prune(mediaYRef.current); lastTapMap.current = prune(lastTapMap.current);
+    for (const key of Object.keys(singleTapTimers.current)) if (!ids.has(key)) { clearTimeout(singleTapTimers.current[key]); delete singleTapTimers.current[key]; }
+    for (const id of historyRects.current.keys()) if (!ids.has(id) && !id.startsWith('__')) historyRects.current.delete(id);
+    for (const ref of [feedLiveDeniedAt, feedLiveAppliedAt, interactionChangedAt]) {
+      const result = retainStamps(ref.current, ids); ref.current = result.values; feedStampFloor.current = Math.max(feedStampFloor.current, result.floor);
+    }
+    while (hiddenIdsRef.current.size > 500) { hiddenIdsRef.current.delete(hiddenIdsRef.current.values().next().value!); feedStampFloor.current = Date.now(); }
+  }, [posts, profilesMap, likedPosts, bookmarkedPosts, repostedPosts, expandedPosts, likerNames, commentPreviews, collabs, pollPosts, quotedMap,
+    commentsFor, sharePostTarget, quotingPost, threadingPost, sendPost, viewersPost, insightsPostId]);
 
   const loadFeedRef = useRef<(showLoader: boolean, background?: boolean) => Promise<void>>(undefined);
   const feedWasAway = useRef(false);
@@ -595,6 +701,7 @@ export default function FeedScreen({ navigation }: any) {
     if (commentsForRef.current) return; // the sheet's post stays the active one until the sheet closes
     const first = viewableItems.find((v: any) => v.isViewable);
     setActivePostId(first?.item?.id ?? null);
+    if (first?.item?.id) historyRef.current?.setAnchor(first.item.id);
     // Queue anything that scrolled into view. Flushed in batches below so a
     // fast scroll does not fire one insert per post.
     viewableItems.forEach((v: any) => {
@@ -611,10 +718,11 @@ export default function FeedScreen({ navigation }: any) {
     if (!userId) return;
     const flushSeen = async () => {
       if (useAuthStore.getState().profile?.id !== userId) return;
-      const batch = Array.from(seenPendingRef.current);
+      const batch = Array.from(seenPendingRef.current).slice(0, 100);
       if (batch.length === 0) return;
-      seenPendingRef.current.clear();
+      batch.forEach(id => seenPendingRef.current.delete(id));
       batch.forEach(id => seenSentRef.current.add(id));
+      while (seenSentRef.current.size > 2000) seenSentRef.current.delete(seenSentRef.current.values().next().value!);
       const { error } = await supabase
         .from('post_seen')
         .upsert(batch.map(id => ({ user_id: userId, post_id: id })), { onConflict: 'user_id,post_id' });
@@ -668,7 +776,7 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => closeVideoDwell, [closeVideoDwell]);
 
   const isBusy = (k: string) => !!busyKeysRef.current[k];
-  const liveFence = () => ({ denied: feedLiveDeniedAt.current, applied: feedLiveAppliedAt.current, mutated: interactionChangedAt.current,
+  const liveFence = () => ({ denied: feedLiveDeniedAt.current, applied: feedLiveAppliedAt.current, mutated: interactionChangedAt.current, floor: feedStampFloor.current,
     pending: (id: string) => ['like-', 'bk-', 'rp-'].some(prefix => !!busyKeysRef.current[prefix + id]) });
   const setBusy = (k: string, v: boolean) => {
     busyKeysRef.current[k] = v;
@@ -689,55 +797,31 @@ export default function FeedScreen({ navigation }: any) {
 
   const hydrateShares = useCallback((ids: string[]) => {
     if (!ids.length) return;
-    const requestedAt = Date.now();
-    const isCurrent = metadataFence();
-    // The post row carries the counts the triggers maintain, readable by
-    // everyone. That is the number every phone shows, whatever it can or
-    // cannot read of the underlying like, repost and bookmark rows.
-    supabase.from('posts').select('id, likes_count, reposts_count, bookmarks_count, shares_count').in('id', ids).then(({ data }) => {
-      if (!isCurrent() || !data || !data.length) return;
-      const m: Record<string, any> = {};
-      data.forEach((r: any) => { m[r.id] = r; });
-      const applied = new Set<string>();
-      const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
-      Object.keys(m).forEach(id => {
-        if (!feedSnapshotFresh(id, requestedAt, liveFence())) return;
-        applied.add(id);
-        const r = m[id];
-        countCacheRef.current[id] = {
-          likes_count: pick(r.likes_count, r.like_count, countCacheRef.current[id]?.likes_count ?? 0),
-          reposts_count: pick(r.reposts_count, r.repost_count, countCacheRef.current[id]?.reposts_count ?? 0),
-          bookmarks_count: pick(r.bookmarks_count, r.bookmark_count, countCacheRef.current[id]?.bookmarks_count ?? 0),
-          shares_count: pick(r.shares_count, r.share_count, countCacheRef.current[id]?.shares_count ?? 0),
-        };
-      });
-      setPosts(prev => prev.map(post => applied.has(post.id) && feedSnapshotFresh(post.id, requestedAt, liveFence())
-        ? { ...post, ...countCacheRef.current[post.id] } : post));
-    }, () => {});
-    // Quotes are posts that point at these ids. Counted here so the repost
-    // number means reposts and quotes together, as on X.
-    // Counts from the rows themselves, so a phone that did not do the acting
-    // still shows the real numbers even before the post row's counter catches up.
-    supabase.from('post_reposts').select('post_id').in('post_id', ids).then(({ data }) => {
+    const requestedAt = Date.now(), isCurrent = metadataFence();
+    void readPostCounters(supabase, ids, async () => {
+      const [parents, quotes] = await Promise.all([
+        supabase.from('posts').select('id,likes_count,comments_count,reposts_count,bookmarks_count,views_count,shares_count').in('id', ids),
+        supabase.from('posts').select('quoted_post_id').in('quoted_post_id', ids),
+      ]);
+      if (parents.error || quotes.error) throw parents.error ?? quotes.error;
+      const counts = new Map<string, number>();
+      (quotes.data ?? []).forEach(row => counts.set(row.quoted_post_id, (counts.get(row.quoted_post_id) ?? 0) + 1));
+      return (parents.data ?? []).map(row => ({ ...row, post_id: row.id, quotes_count: counts.get(row.id) ?? 0 }));
+    }).then(rows => {
       if (!isCurrent()) return;
-      const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
-      setPosts(prev => prev.map(pp => ids.includes(pp.id) && feedSnapshotFresh(pp.id, requestedAt, liveFence()) && (m[pp.id] || 0) > (pp.reposts_count || 0) ? { ...pp, reposts_count: m[pp.id] } : pp));
-    }, () => {});
-    supabase.from('post_bookmarks').select('post_id').in('post_id', ids).then(({ data }) => {
-      if (!isCurrent()) return;
-      const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
-      setPosts(prev => prev.map(pp => ids.includes(pp.id) && feedSnapshotFresh(pp.id, requestedAt, liveFence()) && (m[pp.id] || 0) > (pp.bookmarks_count || 0) ? { ...pp, bookmarks_count: m[pp.id] } : pp));
-    }, () => {});
-    supabase.from('posts').select('quoted_post_id').in('quoted_post_id', ids).then(({ data }) => {
-      if (!isCurrent()) return;
-      const q: Record<string, number> = {};
-      (data || []).forEach((r: any) => { if (r.quoted_post_id) q[r.quoted_post_id] = (q[r.quoted_post_id] || 0) + 1; });
-      setPosts(prev => prev.map(pp => ids.includes(pp.id) ? { ...pp, quotes_count: q[pp.id] || 0 } : pp));
-    }, () => {});
+      const byId = new Map(rows.map(row => [row.post_id, row]));
+      setPosts(previous => previous.map(post => {
+        const value = byId.get(post.id);
+        if (!value || !feedSnapshotFresh(post.id, requestedAt, liveFence())) return post;
+        const { post_id: _id, ...counts } = value;
+        countCacheRef.current[post.id] = counts;
+        return { ...post, ...counts };
+      }));
+    }).catch(() => {});
   }, [metadataFence]);
 
   const recordShare = useCallback((p: Post) => {
-    supabase.rpc('increment_share_count', { p_post_id: p.id }).then(() => {}, () => {});
+    void recordPostShare(supabase, p.id, Crypto.randomUUID()).catch(() => {});
     setPosts(prev => prev.map(x => x.id === p.id ? { ...x, shares_count: (x.shares_count ?? 0) + 1 } : x));
   }, []);
 
@@ -806,7 +890,10 @@ export default function FeedScreen({ navigation }: any) {
       pendingPostsRef.current = merged.pending.filter(post => (feedLiveDeniedAt.current[post.id] ?? -1) < requestedAt);
       setPendingPostCount(pendingPostsRef.current.length);
       feedMediaScopeRef.current = mediaScope;
-      setPosts(prev => { const next = mergeNativeFeedLive(merged.rows, prev, requestedAt, liveFence()); postsRef.current = next; return next; });
+      const reconciled = mergeNativeFeedLive(merged.rows, postsRef.current, requestedAt, liveFence());
+      const windowRows = await commitFeedWindow(reconciled, preservePosition, isCurrent);
+      if (!isCurrent()) return;
+      postsRef.current = windowRows; setPosts(windowRows);
       setVisibleFeedScope(scope);
       if (!preservePosition || restoredSnapshotRef.current) {
         cursorRef.current = rows.length
@@ -921,7 +1008,7 @@ export default function FeedScreen({ navigation }: any) {
       if (feedRefreshRequestRef.current === request) feedRefreshRequestRef.current = null;
       if (isCurrent()) { setLoading(false); setRefreshing(false); }
     }
-  }, [userId, hydrateShares, hydrateCollabs, hydratePolls]);
+  }, [userId, hydrateShares, hydrateCollabs, hydratePolls, commitFeedWindow]);
 
   useEffect(() => {
     loadFeedRef.current = loadFeed;
@@ -936,11 +1023,12 @@ export default function FeedScreen({ navigation }: any) {
     if (visibleFeedScope.startsWith(`${userId ?? ''}:`) && !loading && (posts.length > 0 || !feedError)) {
       feedTabs.save(visibleFeedScope, { rows: posts, profiles: profilesMap, likes: likedPosts, marks: bookmarkedPosts,
         reposts: repostedPosts, cursor: cursorRef.current, hasMore: hasMoreRef.current,
-        offset: scrollOffsetRef.current, discoverPage: discoverPageRef.current, needsCursorRefresh: restoredSnapshotRef.current, mediaScope: feedMediaScopeRef.current });
+        offset: scrollOffsetRef.current, discoverPage: discoverPageRef.current, needsCursorRefresh: restoredSnapshotRef.current, mediaScope: feedMediaScopeRef.current, history: historyRef.current });
     }
     const restored = feedTabs.read(feedScopeRef.current);
     const rows = restored?.rows.filter(post => !hiddenIdsRef.current.has(post.id)) ?? [];
     postsRef.current = rows; setPosts(rows);
+    bindFeedHistory(restored?.history ?? null);
     feedMediaScopeRef.current = restored?.mediaScope ?? null;
     setProfilesMap(restored?.profiles ?? {}); setLikedPosts(restored?.likes ?? {});
     setBookmarkedPosts(restored?.marks ?? {}); setRepostedPosts(restored?.reposts ?? {});
@@ -959,7 +1047,7 @@ export default function FeedScreen({ navigation }: any) {
       if (scrollScope === feedScopeRef.current) feedListRef.current?.scrollToOffset({ offset: restored?.offset ?? 0, animated: false });
     });
     loadFeedRef.current?.(!restored, !!restored);
-  }, [feedMode, discoverCat, userId, visibleFeedScope, loading, feedError, feedTabs, posts, profilesMap, likedPosts, bookmarkedPosts, repostedPosts]);
+  }, [feedMode, discoverCat, userId, visibleFeedScope, loading, feedError, feedTabs, posts, profilesMap, likedPosts, bookmarkedPosts, repostedPosts, bindFeedHistory]);
 
   useEffect(() => {
     if (!userId) return;
@@ -977,6 +1065,9 @@ export default function FeedScreen({ navigation }: any) {
     let alive = true;
     const requests = feedRequestRef;
     ++requests.current;
+    historyStop.current?.(); historyStop.current = null;
+    new Set([historyRef.current, ...feedTabs.snapshot().map(([, tab]) => tab.history)]).forEach(value => { void value?.dispose().catch(() => {}); });
+    historyRef.current = null; historyReady.current = null; historyRects.current.clear(); setHistoryWindow(null);
     feedTabs.clear();
     postsRef.current = [];
     feedMediaScopeRef.current = null;
@@ -986,6 +1077,7 @@ export default function FeedScreen({ navigation }: any) {
     setFollowingIds(new Set()); setRequestedIds(new Set()); setWtfSuggestions([]); setPollPosts({}); setCollabs({});
     restoredSnapshotRef.current = false; scrollOffsetRef.current = 0;
     countCacheRef.current = {}; hiddenIdsRef.current.clear();
+    feedStampFloor.current = -1;
     seenPendingRef.current.clear(); seenSentRef.current.clear();
     pendingPostsRef.current = []; setPendingPostCount(0);
     prefetchedImagesRef.current.clear();
@@ -1429,6 +1521,7 @@ export default function FeedScreen({ navigation }: any) {
   }, []);
 
   const [promos, setPromos] = useState<Post[]>([]);
+  promoRowsRef.current = promos;
   const [marketplace, setMarketplace] = useState<{ owner: string; items: MarketplaceRecommendation[] } | null>(null);
   const [marketplaceRefresh, setMarketplaceRefresh] = useState(0);
   const marketplaceRequest = useRef<AbortController | null>(null);
@@ -1961,6 +2054,8 @@ export default function FeedScreen({ navigation }: any) {
 
   const loadMore = useCallback(async () => {
     if (!userId) return;
+    const reading = historyRef.current;
+    if (reading && !reading.atEnd()) { await reading.around((reading.getSnapshot().pages.at(-1)?.index ?? 0) + 1).catch(() => {}); return; }
     const request = feedRequestRef.current;
     const requestedAt = Date.now();
     let pageRequest = pageRequestRef.current;
@@ -1999,13 +2094,15 @@ export default function FeedScreen({ navigation }: any) {
       const hydrated = await hydratePostMedia(rows);
       if (!isCurrent()) return;
       const scored = overlayCounts(hydrated.map(mapFeedRow)).filter(pp => !hiddenIdsRef.current.has(pp.id) && !isMutedRef.current(pp));
+      const fresh = mergeNativeFeedLive(scored, postsRef.current, requestedAt, liveFence());
+      if (reading) { await reading.append(fresh); if (!isCurrent()) return; }
       hasMoreRef.current = rows.length >= PAGE_SIZE;
       cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
       if (mode === 'discover') discoverPageRef.current.offset += rows.length;
       hydrateShares(scored.map(pp => pp.id));
       hydrateCollabs(scored.map(pp => pp.id));
       hydratePolls(scored.map(pp => pp.id));
-      setPosts(prev => { const have = new Set(prev.map(x => x.id)); const add: Post[] = []; for (const p of mergeNativeFeedLive(scored, prev, requestedAt, liveFence())) { if (!have.has(p.id)) { have.add(p.id); add.push(p); } } const next = [...prev, ...add]; postsRef.current = next; return next; });
+      if (!reading) setPosts(prev => { const have = new Set(prev.map(x => x.id)); const add: Post[] = []; for (const p of mergeNativeFeedLive(scored, prev, requestedAt, liveFence())) { if (!have.has(p.id)) { have.add(p.id); add.push(p); } } const next = [...prev, ...add]; postsRef.current = next; return next; });
       setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; }); return pm; });
       setLikedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_liked && feedSnapshotFresh(r.post_id, requestedAt, liveFence())) m[r.post_id] = true; }); return m; });
       setBookmarkedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_bookmarked && feedSnapshotFresh(r.post_id, requestedAt, liveFence())) m[r.post_id] = true; }); return m; });
@@ -2059,7 +2156,7 @@ export default function FeedScreen({ navigation }: any) {
         }
         setCommentPreviews(prev => { const cp = { ...prev }; topC.forEach((c: any) => { if (!feedSnapshotFresh(c.post_id, requestedAt, liveFence())) return; const cur = cp[c.post_id]; if (!cur || (c.likes_count ?? 0) > (cur.likes ?? 0)) { const a = authors2[c.user_id]; cp[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User', likes: c.likes_count ?? 0 }; } }); return cp; });
       }
-    } catch { if (isCurrent() && !pageCommitted) setFeedError('Could not load more posts. Please try again.'); }
+    } catch { if (isCurrent() && !pageCommitted) setFeedError(reading?.getSnapshot().error ?? 'Could not load more posts. Please try again.'); }
     finally { clearTimeout(deadline); if (isCurrent() && pageRequest === pageRequestRef.current) { loadingMoreRef.current = false; setLoadingMore(false); } }
   }, [posts, userId, profilesMap, hydrateShares, hydrateCollabs, hydratePolls]);
 
@@ -2079,32 +2176,35 @@ export default function FeedScreen({ navigation }: any) {
     // scorePost formula threw all of that away on the one tab where it matters,
     // and the churn it caused in list identity stopped onViewableItemsChanged
     // from firing, which is why videos never autoplayed on For You.
-    if (feedMode === 'latest') {
+    if (feedMode === 'latest' && !historyWindow) {
       list.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
     }
     const wtfVisible = wtfSuggestions.filter((p: any) => !followingIds.has(p.id));
-    if (!search && feedMode !== 'discover' && wtfVisible.length >= 3 && list.length > 8) {
-      list = [...list.slice(0, 8), { id: '__wtf', __suggestions: true } as any, ...list.slice(8)];
+    const first = historyWindow?.first ?? 0;
+    if (!search && feedMode !== 'discover' && wtfVisible.length >= 3 && first <= 8 && first + list.length > 8) {
+      const slot = 8 - first;
+      list = [...list.slice(0, slot), { id: '__wtf', __suggestions: true } as any, ...list.slice(slot)];
     }
 if (!search && feedMode !== 'discover' && promos.length > 0) {
       const promoIds = new Set(promos.map(p => p.id)); list = list.filter(p => !promoIds.has(p.id));
       const eligible = promos.filter(post => !isMarketplacePost(post));
       if (eligible.length > 0) {
         const out: any[] = [];
-        let pi = 0;
+        let pi = Math.floor((first + (first > 8 && wtfVisible.length >= 3 ? 1 : 0)) / 6);
         list.forEach((p, i) => {
           out.push(p);
-          if ((i + 1) % 6 === 0 && pi < eligible.length) out.push(eligible[pi++]);
+          if ((first + i + (first > 8 && wtfVisible.length >= 3 ? 1 : 0) + 1) % 6 === 0 && pi < eligible.length) out.push(eligible[pi++]);
         });
         if (pi < eligible.length && out.length > 0 && out.length < 6) out.push(eligible[pi++]);
         list = out;
       }
     }
-    if (!search && feedMode === 'forYou' && marketplaceItems.length && list.length >= MARKETPLACE_SHELF_AFTER) {
-      list = [...list.slice(0, MARKETPLACE_SHELF_AFTER), { id: '__marketplace', media: [], products: [] } as unknown as Post, ...list.slice(MARKETPLACE_SHELF_AFTER)];
+    if (!search && feedMode === 'forYou' && marketplaceItems.length && first < MARKETPLACE_SHELF_AFTER && first + list.length >= MARKETPLACE_SHELF_AFTER) {
+      const slot = MARKETPLACE_SHELF_AFTER - first;
+      list = [...list.slice(0, slot), { id: '__marketplace', media: [], products: [] } as unknown as Post, ...list.slice(slot)];
     }
     return list;
-  }, [posts, feedMode, search, followingIds, wtfSuggestions, promos, isMuted, feedOwner, userId, marketplaceItems]);
+  }, [posts, feedMode, search, followingIds, wtfSuggestions, promos, isMuted, feedOwner, userId, marketplaceItems, historyWindow]);
 
   const preparedPageWindow = useRef<string | null>(null);
   useEffect(() => {
@@ -2531,6 +2631,40 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     openComments,
   ]);
 
+  const historyItems = useMemo(() => {
+    if (!historyWindow) return null;
+    const groups = historyWindow.pages.map(page => ({ ...page, rows: [] as Post[] }));
+    const byPost = new Map(historyWindow.pages.flatMap(page => page.rows.map(post => [post.id, page.index] as const)));
+    const byPage = new Map(groups.map(page => [page.index, page]));
+    let last = groups[0]?.index;
+    for (const post of displayPosts) {
+      const page = byPost.get(post.id) ?? last;
+      if (page !== undefined) byPage.get(page)?.rows.push(post);
+      last = page;
+    }
+    return groups;
+  }, [historyWindow, displayPosts]);
+  const reportHistoryVisible = useCallback(() => {
+    const snapshot = historyRef.current?.getSnapshot(); if (!snapshot) return;
+    const offset = scrollOffsetRef.current - historyHeaderHeight.current, bottom = offset + historyViewport.current;
+    const tops = new Map<number, number>(); let top = snapshot.before;
+    snapshot.pages.forEach(page => { tops.set(page.index, top); top += page.height; });
+    const visible = displayPosts.filter(post => {
+      const rect = historyRects.current.get(post.id); if (!rect || !rect.height) return false;
+      const start = (tops.get(rect.page) ?? 0) + rect.y;
+      return Math.max(0, Math.min(start + rect.height, bottom) - Math.max(start, offset)) / rect.height >= .55;
+    });
+    onViewableItemsChanged({ viewableItems: visible.map(item => ({ item, isViewable: true })) });
+  }, [onViewableItemsChanged, displayPosts]);
+  const renderHistoryPage = useCallback(({ item: page }: { item: HistoryPage<Post> }) => <View style={{ minHeight: page.height || undefined }}>
+    <View onLayout={event => { historyRef.current?.measure(page.index, event.nativeEvent.layout.height); reportHistoryVisible(); }}
+      style={feedMode === 'discover' ? { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, columnGap: 10, rowGap: 10, paddingBottom: 10 } : undefined}>
+      {page.rows.map(post => <View key={post._rk ?? post.id} style={feedMode === 'discover' ? { width: TILE_W } : undefined}
+        onLayout={event => { const { y, height } = event.nativeEvent.layout; historyRects.current.set(post.id, { page: page.index, y, height }); reportHistoryVisible(); }}>
+        {renderPost({ item: post })}
+      </View>)}
+    </View>
+  </View>, [feedMode, TILE_W, renderPost, reportHistoryVisible]);
   const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused && appActive) + '|' + String(!!fsVideo) + '|' + String(commentsHold);
 
   return (
@@ -2597,28 +2731,33 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
               <NewPostsPill count={pendingPostCount} onPress={() => { setRefreshing(true); loadFeed(false); feedListRef.current?.scrollToOffset({ offset: 0, animated: true }); }} />
-            <TapTopFlatList innerRef={feedListRef} key={feedMode === 'discover' ? 'discover-grid' : 'feed-list'} numColumns={feedMode === 'discover' ? 2 : 1} columnWrapperStyle={feedMode === 'discover' ? { paddingHorizontal: 12, gap: 10, marginBottom: 10 } : undefined}
-              data={displayPosts}
-              onScroll={(event: any) => { scrollOffsetRef.current = event.nativeEvent.contentOffset.y; handleTabBarScroll(event); }}
+            <TapTopFlatList innerRef={feedListRef} key={historyItems ? 'measured-history' : feedMode === 'discover' ? 'discover-grid' : 'feed-list'} numColumns={!historyItems && feedMode === 'discover' ? 2 : 1} columnWrapperStyle={!historyItems && feedMode === 'discover' ? { paddingHorizontal: 12, gap: 10, marginBottom: 10 } : undefined}
+              data={historyItems ?? displayPosts}
+              onScroll={(event: any) => {
+                scrollOffsetRef.current = event.nativeEvent.contentOffset.y; historyViewport.current = event.nativeEvent.layoutMeasurement.height;
+                handleTabBarScroll(event); reportHistoryVisible();
+                void historyRef.current?.near(scrollOffsetRef.current - historyHeaderHeight.current, historyViewport.current).catch(() => {});
+              }}
+              onLayout={(event: any) => { historyViewport.current = event.nativeEvent.layout.height; reportHistoryVisible(); }}
               scrollEventThrottle={16}
-              keyExtractor={(p: Post) => p._rk ?? p.id}
-              renderItem={renderPost}
+              keyExtractor={(p: Post | HistoryPage<Post>) => 'index' in p ? `history:${p.index}` : p._rk ?? p.id}
+              renderItem={historyItems ? renderHistoryPage : renderPost}
               onEndReached={loadMore}
               onEndReachedThreshold={2}
-              ListFooterComponent={loadingMore ? <View style={{ paddingVertical: 24 }}><ActivityIndicator color={NAVY} /></View> : null}
+              ListFooterComponent={<>{historyWindow?.after ? <View pointerEvents="none" style={{ height: historyWindow.after }} /> : null}{loadingMore ? <View style={{ paddingVertical: 24 }}><ActivityIndicator color={NAVY} /></View> : null}</>}
 
               extraData={flatListExtra}
-              initialNumToRender={5}
-              maxToRenderPerBatch={5}
+              initialNumToRender={historyItems ? 20 : 5}
+              maxToRenderPerBatch={historyItems ? 20 : 5}
               // Mount nearby images and covers in their actual image views so
               // protected no-store media is ready without a second cache fetch.
-              windowSize={dataSaver ? 5 : 7}
+              windowSize={historyItems ? 101 : dataSaver ? 5 : 7}
               removeClippedSubviews={Platform.OS === 'android'}
               showsVerticalScrollIndicator={false}
               decelerationRate={0.994}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="none"
-              onViewableItemsChanged={onViewableItemsChanged}
+              onViewableItemsChanged={historyItems ? undefined : onViewableItemsChanged}
               viewabilityConfig={viewabilityConfig}
               onScrollBeginDrag={() => {
                 Object.keys(singleTapTimers.current).forEach(k => {
@@ -2628,6 +2767,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               }}
               ListHeaderComponent={
                 <>
+                  <View onLayout={event => { historyHeaderHeight.current = event.nativeEvent.layout.height; reportHistoryVisible(); }}>
                   <AnnouncementBanner />
                   {feedMode === 'trending' && <TrendingStoriesRail />}
                   {feedMode === 'discover' && (
@@ -2666,6 +2806,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   ) : null}
                   {(feedMode === 'forYou' || feedMode === 'latest') && <StoryBar />}
                   <TrendingTopicsStrip />
+                  </View>
+                  {historyWindow?.before ? <View pointerEvents="none" style={{ height: historyWindow.before }} /> : null}
                 </>
               }
               contentContainerStyle={[s.list, !displayPosts.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}

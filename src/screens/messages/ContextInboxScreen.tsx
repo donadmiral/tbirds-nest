@@ -27,6 +27,8 @@ import { useUnreadStore } from '../../stores/unreadStore';
 import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { navigationScope } from '../../lib/navigationCache';
 import { readContextInboxWindow, type ContextInboxWindow } from '../../services/contextInbox';
+import { useReadingWindow } from '../../services/useReadingWindow';
+import { MeasuredHistoryList } from '../../components/MeasuredHistoryList';
 
 function initials(name?: string | null) {
   if (!name) return 'U';
@@ -63,10 +65,19 @@ export default function ContextInboxScreen({ route, navigation }: any) {
   const requestRef = useRef<AbortController | null>(null);
   const generation = useRef(0), focused = useRef(false);
   const currentIdentity = useRef({ scope, ctx, myId }); currentIdentity.current = { scope, ctx, myId };
+  const reading = useReadingWindow<NonNullable<ContextInboxWindow>['rows'][number]>({ identity: `${scope}:${ctx}:${myId}`, id: row => row.id,
+    current: () => navigationScope() === scope && currentIdentity.current.myId === myId && currentIdentity.current.ctx === ctx,
+    fetch: async (ids, signal) => (await readContextInboxWindow(myId!, ctx, null, false, signal,
+      () => navigationScope() === scope && currentIdentity.current.myId === myId && currentIdentity.current.ctx === ctx, ids)).rows,
+    rows: rows => { const current = collectionRef.current; if (current?.scope === scope && current.context === ctx) { const next = { ...current, rows }; collectionRef.current = next; setCollection(next); } },
+    error: setError });
+  const { commit: commitWindow, restoreMore } = reading;
 
   const load = useCallback(async (more = false, pulled = false) => {
     if (!myId || !scope || !focused.current || AppState.currentState !== 'active') return;
+    if (more && await restoreMore().catch(() => true)) return;
     const previous = collectionRef.current?.scope === scope && collectionRef.current.context === ctx ? collectionRef.current : null;
+    const preserve = !more && !pulled && !!reading.history.current && reading.top.current >= 80;
     if (more && (requestRef.current || !previous?.paging?.cursor)) return;
     const version = ++generation.current;
     requestRef.current?.abort();
@@ -77,9 +88,16 @@ export default function ContextInboxScreen({ route, navigation }: any) {
     setError(null); setLoading(!previous?.rows.length); setRefreshing(pulled); setLoadingMore(more);
     let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
-      const result = await Promise.race([readContextInboxWindow(myId, ctx, previous, more, request.signal, current),
+      let result = await Promise.race([readContextInboxWindow(myId, ctx, previous, more, request.signal, current),
         new Promise<never>((_resolve, reject) => { timeout = setTimeout(() => reject(new Error('The conversation read took too long.')), 12000); })]);
       if (!current()) return;
+      if (result.paging && !more && !preserve && result.rows.length > 120) result = await readContextInboxWindow(myId, ctx, null, false, request.signal, current);
+      if (!current()) return;
+      if (result.paging) {
+        const rows = await commitWindow(result.rows, more ? 'append' : preserve ? 'refresh' : 'reset', current);
+        if (!current() || !rows) return;
+        result = { ...result, rows, paging: preserve && previous?.paging ? { ...result.paging, cursor: previous.paging.cursor } : result.paging };
+      }
       collectionRef.current = result; setCollection(result);
       if (!more) void useUnreadStore.getState().refresh();
     } catch {
@@ -92,7 +110,7 @@ export default function ContextInboxScreen({ route, navigation }: any) {
       if (current()) { setLoading(false); setRefreshing(false); setLoadingMore(false); }
       request.abort(); if (requestRef.current === request) requestRef.current = null;
     }
-  }, [myId, scope, ctx]);
+  }, [myId, scope, ctx, commitWindow, restoreMore]);
 
   useFocusEffect(useCallback(() => {
     focused.current = true; void load();
@@ -138,8 +156,10 @@ export default function ContextInboxScreen({ route, navigation }: any) {
           <Text style={s.emptySub}>{emptySub}</Text>
         </View>
       ) : (
-        <FlatList ListEmptyComponent={<EmptyState icon="inbox" title="No conversations" line="Chats about your listings and jobs appear here." />}
+        <MeasuredHistoryList history={reading.history.current} snapshot={reading.snapshot}
+ ListEmptyComponent={<EmptyState icon="inbox" title="No conversations" line="Chats about your listings and jobs appear here." />}
           data={rows}
+          onScroll={event => { reading.top.current = event.nativeEvent.contentOffset.y; }}
           keyExtractor={r => r.conversation_id}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { void load(false, true); }} tintColor={getTheme().ink.faint} />}
           onEndReached={() => { if (!error) void load(true); }}

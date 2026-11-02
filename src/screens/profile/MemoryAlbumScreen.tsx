@@ -45,7 +45,7 @@ import { useMemoryPlayback } from '../../hooks/useMemoryPlayback';
 import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
 import { createMemorySoundtrackSaveHook } from '../../../shared/useMemorySoundtrackSave';
 import { createMemoryReaderRequest } from '../../../shared/memoryReaderRequest';
-import {readMemoryBookFirst,readMemoryBookNext,memoryBookHasMore,isMemoryBookChanged} from '../../../shared/pagedReaders';
+import {readMemoryBookFirst,readDefaultMemoryBookFirst,readMemoryBookNext,readMemoryBookWindow,memoryBookHasMore,memoryBookHasPrevious,memoryBookOffset,memoryBookIsComplete,isMemoryBookChanged} from '../../../shared/pagedReaders';
 import { navigationScope } from '../../lib/navigationCache';
 import {getNextMemoryBook} from '../../services/memoryBooks';
 import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
@@ -84,6 +84,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   const [mutationError, setMutationError] = useState('');
   const [pageActions,setPageActions]=useState<{text:string;style?:'cancel'|'destructive';onPress?:()=>void|Promise<void>}[]|null>(null);
   const pendingPageAction=useRef<(()=>void|Promise<void>)|null>(null);
+  const [pageActionBusy,setPageActionBusy]=useState(false);
   const saveLock = useRef(false);
   const reactionLock=useRef(false);
   useEffect(() => { void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion); const sub=AccessibilityInfo.addEventListener('reduceMotionChanged',setReduceMotion); return()=>sub.remove(); }, []);
@@ -138,7 +139,8 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   const albumRef=useRef<MemoryBook|null>(null);albumRef.current=album;
   const moreRequest=useRef<{request:ReturnType<typeof createMemoryReaderRequest>;promise:Promise<MemoryBook|null>}|null>(null);
   const [loadingPages,setLoadingPages]=useState(false),[preparingBook,setPreparingBook]=useState(false);
-  const completeIntent=useRef(0),pendingTurn=useRef<{index:number;generation:number}|null>(null);
+  const completeIntent=useRef(0),pendingTurn=useRef<{index:number;generation:number;direction?:-1|1}|null>(null);
+  const completeRequest=useRef<ReturnType<typeof createMemoryReaderRequest>|null>(null),fullBookMode=useRef(false);
   const [loading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
   const [grid, setGrid] = useState(false);
@@ -168,8 +170,12 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   const coverAnim = useRef(new Animated.Value(0)).current;
   const pageTurn=useRef<MemoryPageTurnHandle>(null);
   const [turning,setTurning]=useState(false);
+  const turningRef=useRef(false);
+  const onTurningChange=useCallback((value:boolean)=>{turningRef.current=value;setTurning(value);},[]);
   const bookGeneration = useRef(0);
   const idxRef = useRef(0);
+  const [refreshingBook,setRefreshingBook]=useState(false);
+  fullBookMode.current=preparingBook||filmVisible||grid||!!pageActions||!!pendingPageAction.current||pageActionBusy||settings||picker||!!captionFor;
   useEffect(() => { idxRef.current = idx; }, [idx]);
   const soundtrackSave = useMemorySoundtrackSave({ client: supabase, owner: viewerId, book: bookId,
     route: `${ownerId}:${albumIdParam ?? 'default'}`, canEdit: album?.is_owner === true,
@@ -183,28 +189,37 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   const load = useCallback(async () => {
     const generation = ++loadGeneration.current;
     readerRequest.current?.cancel();
+    completeRequest.current?.cancel();
     moreRequest.current?.request.cancel();moreRequest.current=null;setLoadingPages(false);completeIntent.current++;setPreparingBook(false);pendingTurn.current=null;
     const request = createMemoryReaderRequest();
-    readerRequest.current = request;
+    readerRequest.current = request;setRefreshingBook(true);
     const scope = reactionScope.current;
     const readRevision = ++scope.readRevision;
     // A new required read retires the old optional request. If a confirmed
     // soundtrack edit later supersedes this refresh, unknown reactions must
     // remain unavailable rather than wait forever for a discarded response.
     setReactionRead(previous => previous.pending ? { ...previous, pending: false } : previous);
-    if (!ownerId || !viewerId) { request.cancel(); setAlbum(null); setLoading(!authReady); if(authReady)setLoadError(!ownerId?'This album is unavailable.':'Sign in to view this album.'); return; }
+    if (!ownerId || !viewerId) { request.cancel();readerRequest.current=null;setRefreshingBook(false); setAlbum(null); setLoading(!authReady); if(authReady)setLoadError(!ownerId?'This album is unavailable.':'Sign in to view this album.'); return; }
     setLoadError(null);
+    let restoredIndex:number|null=null;
     try {
       // Includes SDK session acquisition and response parsing, before fetch starts.
       const { data, error } = await request.read(async () => {
-        if(!albumIdParam)return supabase.rpc('get_memory_album',{p_owner:ownerId}).abortSignal(request.signal);
         const session=await supabase.auth.getSession();
         if(session.error||session.data.session?.user.id!==viewerId)throw new Error('The account changed.');
         const identity={viewer:viewerId,token:session.data.session.access_token,signal:request.signal,
           current:()=>generation===loadGeneration.current&&viewerRef.current===viewerId};
-        let data=await readMemoryBookFirst<MemoryBook>(supabase,albumIdParam,identity);
-        const retained=albumRef.current?.id===albumIdParam?albumRef.current.pages.length:24;
-        while(data&&memoryBookHasMore(data)&&(data.pages.length<retained||filmVisibleRef.current))data=await readMemoryBookNext(supabase,data,identity);
+        let data=albumIdParam?await readMemoryBookFirst<MemoryBook>(supabase,albumIdParam,identity)
+          :await readDefaultMemoryBookFirst<MemoryBook>(supabase,ownerId,identity);
+        const retained=albumRef.current?.id===data?.id?albumRef.current?.pages.length??24:24;
+        while(data&&memoryBookHasMore(data)&&(data.pages.length<retained||fullBookMode.current))data=await readMemoryBookNext(supabase,data,identity);
+        const previous=albumRef.current;
+        if(data&&previous&&memoryBookHasPrevious(previous)&&data._pagination?.windowSupported
+          &&data._pagination.revision===previous._pagination?.revision&&!fullBookMode.current){
+          const restored=await readMemoryBookWindow(supabase,{...data,pages:previous.pages,_pagination:{...data._pagination,offset:memoryBookOffset(previous)}},
+            Math.min(idxRef.current,previous.pages.length-1),1,identity);
+          data=restored.book;restoredIndex=restored.index;
+        }else if(previous&&memoryBookHasPrevious(previous))restoredIndex=Math.min(memoryBookOffset(previous)+idxRef.current,Math.max(0,(data?.pages.length??1)-1));
         return {data,error:null};
       },15000);
       if (error) throw error;
@@ -212,6 +227,11 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
       // retires this screen's result; shared auth/media operations remain intact.
       const [hydrated] = data ? await request.read(() => hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(data)])) : [];
       if (generation !== loadGeneration.current || viewerRef.current !== viewerId || reactionScope.current !== scope) return;
+      const visible=albumRef.current?.pages[idxRef.current]?.id;
+      const remapped=visible&&hydrated?hydrated.pages.findIndex((page:MemoryBookPage)=>page.id===visible):-1;
+      if(remapped>=0)restoredIndex=remapped;
+      else if(visible&&hydrated?._pagination?.revision&&hydrated._pagination.revision===albumRef.current?._pagination?.revision)return;
+      if(restoredIndex!==null){idxRef.current=restoredIndex;setIdx(restoredIndex);}
       albumRef.current=hydrated??null;setAlbum(hydrated ?? null); setLoadError(null);
       // A successful refresh may remove a page or revoke its source. Do not
       // keep its former signed URL alive in the expanded player.
@@ -255,13 +275,14 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
       }
     } catch {
       if (generation === loadGeneration.current) { setAlbum(null); setPlayingUrl(null); setLoadError('The album could not load. Please retry.'); }
-    } finally { request.cancel(); if (readerRequest.current === request) readerRequest.current = null; if (generation === loadGeneration.current) setLoading(false); }
+    } finally { request.cancel(); if (readerRequest.current === request) {readerRequest.current = null;setRefreshingBook(false);} if (generation === loadGeneration.current) setLoading(false); }
   }, [ownerId, albumIdParam, viewerId, authReady]);
 
-  const loadMore=useCallback(():Promise<MemoryBook|null>=>{
+  const loadMore=useCallback((direction:-1|1=1,forceWindow=false):Promise<MemoryBook|null>=>{
     if(moreRequest.current)return moreRequest.current.promise;
     const previous=albumRef.current;
-    if(!viewerId||!previous||!memoryBookHasMore(previous))return Promise.resolve(previous);
+    if(readerRequest.current)return Promise.resolve(previous);
+    if(!viewerId||!previous||(!forceWindow&&!(direction>0?memoryBookHasMore(previous):memoryBookHasPrevious(previous))))return Promise.resolve(previous);
     const request=createMemoryReaderRequest(),generation=loadGeneration.current,scope=reactionScope.current;
     const current=()=>generation===loadGeneration.current&&viewerRef.current===viewerId&&reactionScope.current===scope;
     const job={request,promise:Promise.resolve<MemoryBook|null>(null)};moreRequest.current=job;setLoadingPages(true);
@@ -269,22 +290,38 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
       const session=await request.read(()=>supabase.auth.getSession(),12000);
       const token=session.data.session?.access_token;
       if(session.error||session.data.session?.user.id!==viewerId||!token)throw new Error('The account changed.');
-      const next=await request.read(()=>readMemoryBookNext(supabase,previous,{viewer:viewerId,token,signal:request.signal,current},async chunk=>{
+      const hydrate=async(chunk:MemoryBook)=>{
         const [hydrated]=await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(chunk)]);return hydrated;
-      }),20000);
+      };
+      const windowed=previous._pagination?.windowSupported&&!fullBookMode.current&&previous.pages.length>0;
+      const result=await request.read(()=>windowed
+        ?readMemoryBookWindow(supabase,previous,Math.min(idxRef.current,previous.pages.length-1),direction,{viewer:viewerId,token,signal:request.signal,current},hydrate)
+        :readMemoryBookNext(supabase,previous,{viewer:viewerId,token,signal:request.signal,current},hydrate).then(book=>({book,index:idxRef.current})),20000);
+      const next=result.book;
       if(!current()||albumRef.current!==previous)throw new Error('The reader changed.');
+      if(windowed){
+        if(turningRef.current)return previous;
+        const visible=previous.pages[idxRef.current]?.id;
+        const remapped=next.pages.findIndex(page=>page.id===visible);
+        if(remapped<0)return previous;
+        idxRef.current=remapped;setIdx(remapped);if(pendingTurn.current)pendingTurn.current.index=remapped;
+      }
       albumRef.current=next;setAlbum(next);setMutationError('');
-      const ids=next.pages.slice(previous.pages.length).map(page=>page.story_id).filter((id):id is string=>!!id),revision=scope.revision;
+      const validIds=new Set(next.pages.map(page=>page.story_id).filter((id):id is string=>!!id));
+      for(const id of scope.changes.keys())if(!validIds.has(id))scope.changes.delete(id);
+      setLikedPages(value=>new Set([...value].filter(id=>validIds.has(id))));
+      setReactionRead(value=>({known:new Set([...value.known].filter(id=>validIds.has(id))),pending:value.pending}));
+      const ids=(windowed?next.pages:next.pages.slice(previous.pages.length)).map(page=>page.story_id).filter((id):id is string=>!!id),revision=scope.revision;
       if(ids.length){
         setReactionRead(value=>({...value,pending:true}));
         void Promise.resolve(supabase.from('story_reactions').select('story_id').eq('user_id',viewerId).in('story_id',ids)).then(({data,error})=>{
-          if(!current())return;
+          if(!current()||albumRef.current!==next)return;
           if(error||!data){setReactionRead(value=>({...value,pending:false}));return;}
           const liked=new Set(data.map(row=>String(row.story_id))),valid=new Set(ids);
           for(const[id,change]of scope.changes)if(change.revision>revision&&valid.has(id)){if(change.reacted)liked.add(id);else liked.delete(id);}
           setLikedPages(value=>new Set([...value].filter(id=>!valid.has(id)).concat([...liked])));
           setReactionRead(value=>({known:new Set([...value.known,...ids]),pending:false}));
-        }).catch(()=>{if(current())setReactionRead(value=>({...value,pending:false}));});
+        }).catch(()=>{if(current()&&albumRef.current===next)setReactionRead(value=>({...value,pending:false}));});
       }
       return next;
     })().catch(error=>{if(current()){if(isMemoryBookChanged(error))void load();else setMutationError('More memories could not load. Tap the next page to retry.');}throw error;})
@@ -292,22 +329,35 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     return job.promise;
   },[viewerId,load]);
   const prepareCompleteBook=useCallback(async(ready:(book:MemoryBook)=>void)=>{
-    const intent=++completeIntent.current,generation=loadGeneration.current;setPreparingBook(true);
-    try{while(memoryBookHasMore(albumRef.current)){await loadMore();if(intent!==completeIntent.current||generation!==loadGeneration.current)return;}
-      if(albumRef.current&&intent===completeIntent.current&&generation===loadGeneration.current)ready(albumRef.current);
-    }catch{/* Never open a whole-book operation with only a page window. */}
-    finally{if(intent===completeIntent.current)setPreparingBook(false);}
-  },[loadMore]);
+    if(readerRequest.current){readerRequest.current.cancel();readerRequest.current=null;loadGeneration.current++;setRefreshingBook(false);}
+    const intent=++completeIntent.current,generation=loadGeneration.current,request=createMemoryReaderRequest();
+    completeRequest.current?.cancel();completeRequest.current=request;fullBookMode.current=true;setPreparingBook(true);
+    const current=()=>intent===completeIntent.current&&generation===loadGeneration.current&&viewerRef.current===viewerId;
+    try{
+      if(moreRequest.current)await moreRequest.current.promise;
+      if(!current()||!viewerId||!albumRef.current)return;
+      const previous=albumRef.current;
+      const session=await request.read(()=>supabase.auth.getSession(),12000);
+      if(session.error||session.data.session?.user.id!==viewerId)throw new Error('The account changed.');
+      const identity={viewer:viewerId,token:session.data.session.access_token,signal:request.signal,current};
+      const hydrate=async(chunk:MemoryBook)=>{const[hydrated]=await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(chunk)]);return hydrated;};
+      let complete:MemoryBook|null=previous;
+      if(memoryBookHasPrevious(complete))complete=await request.read(()=>readMemoryBookFirst<MemoryBook>(supabase,previous.id,identity,hydrate),20000);
+      while(complete&&memoryBookHasMore(complete)){const before=complete;complete=await request.read(()=>readMemoryBookNext(supabase,before,identity,hydrate),20000);if(!current())return;}
+      if(current()&&complete&&memoryBookIsComplete(complete)){const absoluteIndex=memoryBookOffset(albumRef.current)+idxRef.current;albumRef.current=complete;setAlbum(complete);idxRef.current=Math.min(absoluteIndex,Math.max(0,complete.pages.length-1));setIdx(idxRef.current);ready(complete);}
+    }catch{if(current())setMutationError('The complete book could not load. Please retry.');}
+    finally{request.cancel();if(completeRequest.current===request)completeRequest.current=null;if(intent===completeIntent.current)setPreparingBook(false);}
+  },[viewerId]);
 
   useEffect(() => {
     // A route/account change invalidates pending flips and picker responses.
-    bookGeneration.current++; loadGeneration.current++; readerRequest.current?.cancel();moreRequest.current?.request.cancel();completeIntent.current++;albumRef.current=null;
+    bookGeneration.current++; loadGeneration.current++; readerRequest.current?.cancel();moreRequest.current?.request.cancel();completeRequest.current?.cancel();completeIntent.current++;albumRef.current=null;
     reactionScope.current = emptyReactionScope();
     setLikedPages(new Set()); setReactionRead({ known: new Set(), pending: true });
     coverAnim.stopAnimation(); pageTurn.current?.cancel();
     coverAnim.setValue(0); idxRef.current=0;
     setOpened(false); setGrid(false); setPlayMode(false); setPlaying(false); setFilmVisible(false); setIdx(0); setAlbum(null); setBookId(albumIdParam);
-    setPlayingUrl(null); setPicker(false); setSettings(false); setPageActions(null); pendingPageAction.current=null; setCaptionFor(null);
+    setPlayingUrl(null); setPicker(false); setSettings(false); setPageActions(null); pendingPageAction.current=null;setPageActionBusy(false); setCaptionFor(null);
     setMyStories([]); setChosen(new Set()); setAdding(false); setStoriesLoading(false); setMutationError(''); setLoadError(null); setLoading(true);
     const invalidate=()=>{bookGeneration.current++;reactionScope.current=emptyReactionScope();coverAnim.stopAnimation();pageTurn.current?.cancel();};
     return invalidate;
@@ -318,7 +368,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     const refresh = () => { if (AppState.currentState === 'active') void load(); };
     const sub = AppState.addEventListener('change', state => { if (state === 'active') refresh(); });
     const timer = setInterval(refresh, 240000);
-    return () => { loadGeneration.current++; readerRequest.current?.cancel();moreRequest.current?.request.cancel();completeIntent.current++; clearInterval(timer); sub.remove(); };
+    return () => { loadGeneration.current++; const primary=readerRequest.current;readerRequest.current=null;primary?.cancel();moreRequest.current?.request.cancel();completeRequest.current?.cancel();completeIntent.current++; clearInterval(timer); sub.remove(); };
   }, [load, authScopeRevision]);
 
   const openSettings=useCallback(()=>{void prepareCompleteBook(book=>{if(!book.is_owner)return;setTitle(book.title);setSubtitle(book.subtitle??'');setColor(book.cover_color);setDesign(book.cover_design??'keepsake');setCoverStoryId(book.cover_story_id??null);setAud(book.audience);setCoverArtwork(memoryCoverArtwork(book.cover_artwork));setFilmSettings(memoryFilmSettings(book.film_settings));setPresentationRevision(book.presentation_revision);setMutationError('');setSettings(true);});},[prepareCompleteBook]);
@@ -330,6 +380,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     () => [...(album?.pages ?? [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
     [album],
   );
+  const pageOffset=memoryBookOffset(album);
   const draftCoverMedia = memoryCoverMedia(memoryCoverPage(pages, coverStoryId));
 
   useEffect(() => {
@@ -371,14 +422,20 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   }, [coverAnim, reduceMotion]);
 
   const playBook = useCallback(() => {void prepareCompleteBook(()=>{setPlaying(false);setPlayMode(false);setFilmVisible(true);});}, [prepareCompleteBook]);
-  const flipTo=useCallback((dir:1|-1)=>{if(dir===1&&idxRef.current>=(albumRef.current?.pages.length??0)-1&&memoryBookHasMore(albumRef.current)){
-    pendingTurn.current={index:idxRef.current,generation:loadGeneration.current};void loadMore().catch(()=>{pendingTurn.current=null;});
+  const flipTo=useCallback((dir:1|-1)=>{if((dir===1&&idxRef.current>=(albumRef.current?.pages.length??0)-1&&memoryBookHasMore(albumRef.current))
+    ||(dir===-1&&idxRef.current===0&&memoryBookHasPrevious(albumRef.current))){
+    pendingTurn.current={index:idxRef.current,generation:loadGeneration.current,direction:dir};void loadMore(dir).catch(()=>{pendingTurn.current=null;});
   }else{pendingTurn.current=null;pageTurn.current?.turn(dir);}},[loadMore]);
-  useEffect(()=>{const pending=pendingTurn.current;if(pending&&pending.generation===loadGeneration.current&&pending.index===idx&&idx+1<pages.length&&opened){pendingTurn.current=null;pageTurn.current?.turn(1);}},[idx,pages.length,opened]);
-  useEffect(()=>{if(focused&&foreground&&!filmVisible&&!mutationError&&memoryBookHasMore(album)&&(opened?idx+6>=pages.length:pages.length<=24))void loadMore().catch(()=>{});},[focused,foreground,filmVisible,mutationError,album,opened,idx,pages.length,loadMore]);
+  useEffect(()=>{const pending=pendingTurn.current;if(pending&&pending.generation===loadGeneration.current&&pending.index===idx&&((pending.direction??1)>0?idx+1<pages.length:idx>0)&&opened){pendingTurn.current=null;pageTurn.current?.turn(pending.direction??1);}},[idx,pages.length,opened]);
+  useEffect(()=>{
+    if(!focused||!foreground||fullBookMode.current||mutationError||turning||refreshingBook||loadingPages)return;
+    if(album?._pagination?.windowSupported&&pages.length>48)void loadMore(1,true).catch(()=>{});
+    else if(opened&&idx<=6&&memoryBookHasPrevious(album))void loadMore(-1).catch(()=>{});
+    else if(memoryBookHasMore(album)&&(opened?idx+6>=pages.length:pages.length<=24))void loadMore().catch(()=>{});
+  },[focused,foreground,filmVisible,grid,pageActions,pageActionBusy,settings,picker,captionFor,preparingBook,mutationError,album,opened,idx,pages.length,turning,refreshingBook,loadingPages,loadMore]);
 
   const openPicker = useCallback(async () => {
-    if(memoryBookHasMore(albumRef.current)){void prepareCompleteBook(()=>{void openPicker();});return;}
+    if(!memoryBookIsComplete(albumRef.current)){void prepareCompleteBook(()=>{void openPicker();});return;}
     setChosen(new Set()); setPicker(true); setStoriesLoading(true); setStoriesError(''); setMyStories([]); setFailedStoryPreviews(new Set());
     const expectedViewer=viewerRef.current, expectedBook=bookGeneration.current;
     try {
@@ -411,14 +468,14 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   }, [chosen, bookId, load]);
 
   const pageMenu = useCallback(() => {
-    if(memoryBookHasMore(albumRef.current)){void prepareCompleteBook(()=>pageMenu());return;}
+    if(!memoryBookIsComplete(albumRef.current)){void prepareCompleteBook(()=>pageMenu());return;}
     const currentPages=albumRef.current?.pages??pages;
-    const p = currentPages[idxRef.current];
+    const at=idxRef.current,p = currentPages[at];
     if (!album?.is_owner) return;
     if (!p) {setSettings(true);return;}
     setPageActions([
       { text: 'Edit caption', onPress: () => { setCaptionFor(p); setCaptionText(p.caption || ''); } },
-      ...([-1,1] as const).filter(d=>currentPages[idxRef.current+d]).map(d=>({text:d<0?'Move earlier':'Move later',onPress:async()=>{if(saveLock.current)return;saveLock.current=true;const at=idxRef.current;try{const {error}=await supabase.rpc('swap_memory_pages',{p_first:p.id,p_second:currentPages[at+d].id});if(error)throw error;idxRef.current=at+d;setIdx(at+d);await load();}catch{setMutationError('Page order could not save. Retry.');}finally{saveLock.current=false;}}})),
+      ...([-1,1] as const).filter(d=>currentPages[at+d]).map(d=>{const neighbor=currentPages[at+d];return{text:d<0?'Move earlier':'Move later',onPress:async()=>{if(saveLock.current)return;saveLock.current=true;try{const {error}=await supabase.rpc('swap_memory_pages',{p_first:p.id,p_second:neighbor.id});if(error)throw error;await load();}catch{setMutationError('Page order could not save. Retry.');}finally{saveLock.current=false;}}};}),
       { text: p.style==='full'?'Use framed page':'Use full page', onPress:async()=>{const {data,error}=await supabase.from('memory_pages').update({style:p.style==='full'?'polaroid':'full'}).eq('id',p.id).select('id');if(error||!data?.length){setMutationError('Page layout could not save. Retry.');return;}void load();} },
       { text: 'Remove from album', style: 'destructive', onPress: async () => {
         const {data,error}=await supabase.from('memory_pages').delete().eq('id',p.id).select('id');
@@ -541,8 +598,8 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
         </ScrollView>
       ) : grid ? <ScrollView contentContainerStyle={{padding:18,paddingBottom:40}}><Text style={{fontSize:13,color:t.ink.secondary,textAlign:'center',marginBottom:20}}>{pages.length} pages · Select a page to read or edit</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:14}}>{pages.map((pg,i)=><TouchableOpacity key={pg.id} accessibilityLabel={'Open memory '+(i+1)} onPress={()=>{idxRef.current=i;setIdx(i);setGrid(false);}} style={{width:(screenWidth-50)/2,backgroundColor:PAGE_CREAM,borderLeftWidth:6,borderColor:artwork.spine,padding:10,shadowColor:'#000',shadowOpacity:.1,shadowRadius:5,shadowOffset:{width:0,height:3}}}><Text style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',color:'#142642',textAlign:'center',fontSize:10,marginBottom:10}}>{String(i+1).padStart(2,'0')}</Text><View style={{height:(screenWidth-50)/2*1.15,overflow:'hidden'}}><MemoryStoryTile story={pg}/></View><Text numberOfLines={2} style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:13,color:'#142642',marginTop:10}}>{pg.caption||fmtDate(pg.taken_at)}</Text></TouchableOpacity>)}</View>{album.is_owner&&<TouchableOpacity onPress={openPicker} style={{padding:16,alignItems:'center',marginTop:20,borderWidth:1,borderStyle:'dashed',borderRadius:14,borderColor:t.surface.hairline}}><Text style={{color:t.ink.primary}}>+ Add memories</Text></TouchableOpacity>}</ScrollView> : (
         <View style={{ flex: 1, alignItems: 'center',overflow:'hidden' }}>
-          <MemoryPageTurn ref={pageTurn} key={bookId} pageIds={pages.map(p=>p.id)} index={idx} width={pageWidth} height={pageHeight} active={focused&&!filmVisible&&!pageActions&&!settings&&!picker&&!captionFor&&!playingUrl} reduceMotion={reduceMotion} spine={artwork.spine} title={album.title} onCommit={i=>{idxRef.current=i;setIdx(i);}} onTurningChange={setTurning} hasMore={memoryBookHasMore(album)} onNeedMore={()=>flipTo(1)} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
-              <Text style={{textAlign:'center',fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:10,color:'#6F614A',marginBottom:12}}>{String(idx+1).padStart(2,'0')} ─</Text>
+          <MemoryPageTurn ref={pageTurn} key={bookId} pageIds={pages.map(p=>p.id)} index={idx} width={pageWidth} height={pageHeight} active={focused&&!filmVisible&&!pageActions&&!settings&&!picker&&!captionFor&&!playingUrl} reduceMotion={reduceMotion} spine={artwork.spine} title={album.title} onCommit={i=>{idxRef.current=i;setIdx(i);}} onTurningChange={onTurningChange} hasMore={memoryBookHasMore(album)} onNeedMore={()=>flipTo(1)} hasPrevious={memoryBookHasPrevious(album)} onNeedPrevious={()=>flipTo(-1)} pageOffset={pageOffset} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={pageOffset+i}/>}>
+              <Text style={{textAlign:'center',fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:10,color:'#6F614A',marginBottom:12}}>{String(pageOffset+idx+1).padStart(2,'0')} ─</Text>
               {pages.length === 0 ? (
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 }}>
                   <Text style={st.emptyTxt}>{album.is_owner ? 'This book is empty.\nAdd your first memory.' : 'No memories yet.'}</Text>
@@ -603,12 +660,12 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
           {!!nextBook && !memoryBookHasMore(album) && idx>=pages.length-1 && <TouchableOpacity onPress={()=>navigation.replace('MemoryAlbum',{ownerId,albumId:nextBook})}><Text style={{color:t.ink.primary,padding:12,fontWeight:'700'}}>Next book →</Text></TouchableOpacity>}
           {pages.length > 0 ? (
             <View style={st.pagerRow}>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Previous memory" onPress={() => flipTo(-1)} disabled={turning||idx === 0} style={[st.pagerBtn, idx === 0 && { opacity: 0.35 }]}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Previous memory" onPress={() => flipTo(-1)} disabled={turning||pageOffset+idx === 0} style={[st.pagerBtn, pageOffset+idx === 0 && { opacity: 0.35 }]}>
                 <Feather name="chevron-left" size={17} color={t.ink.primary} />
               </TouchableOpacity>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Play continuous memory film" onPress={playBook} style={st.pagerBtn}><Feather name={playMode&&playing?'pause':'play'} size={17} color={t.ink.primary}/></TouchableOpacity>
-              <View style={st.pagerPill}><Text accessibilityLiveRegion="polite" accessibilityLabel={`Page ${idx+1} of ${album.count}`} style={st.pagerTxt}>{idx + 1} / {album.count}</Text></View>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Next memory" onPress={() => flipTo(1)} disabled={turning||idx >= album.count - 1} style={[st.pagerBtn, idx >= album.count - 1 && { opacity: 0.35 }]}>
+              <View style={st.pagerPill}><Text accessibilityLiveRegion="polite" accessibilityLabel={`Page ${pageOffset+idx+1} of ${album.count}`} style={st.pagerTxt}>{pageOffset + idx + 1} / {album.count}</Text></View>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Next memory" onPress={() => flipTo(1)} disabled={turning||pageOffset+idx >= album.count - 1} style={[st.pagerBtn, pageOffset+idx >= album.count - 1 && { opacity: 0.35 }]}>
                 <Feather name="chevron-right" size={17} color={t.ink.primary} />
               </TouchableOpacity>
             </View>
@@ -671,11 +728,11 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
         </View>
       </Modal>
 
-      <Modal visible={!!pageActions} transparent animationType="fade" onRequestClose={()=>setPageActions(null)} onDismiss={()=>{const action=pendingPageAction.current;pendingPageAction.current=null;void action?.();}}>
+      <Modal visible={!!pageActions} transparent animationType="fade" onRequestClose={()=>setPageActions(null)} onDismiss={()=>{const action=pendingPageAction.current;pendingPageAction.current=null;if(action)void Promise.resolve().then(action).catch(()=>setMutationError('The page change could not save. Retry.')).finally(()=>setPageActionBusy(false));else setPageActionBusy(false);}}>
         <View style={st.sheetWrap}>
           <TouchableOpacity accessibilityLabel="Close page options" onPress={()=>setPageActions(null)} style={StyleSheet.absoluteFill}/>
           <View style={st.sheet}><Text style={st.sheetTitle}>Page options</Text>
-            <ScrollView style={{flexGrow:0}}>{(pageActions??[]).map((action,i)=><TouchableOpacity key={i} accessibilityRole="button" onPress={()=>{if(Platform.OS==='ios')pendingPageAction.current=action.onPress??null;setPageActions(null);if(Platform.OS!=='ios')void action.onPress?.();}} style={{minHeight:48,paddingVertical:13,borderBottomWidth:StyleSheet.hairlineWidth,borderColor:t.surface.hairline}}><Text style={{fontSize:16,color:action.style==='destructive'?t.status.danger:t.ink.primary,fontWeight:action.style==='cancel'?'700':'400'}}>{action.text}</Text></TouchableOpacity>)}</ScrollView>
+            <ScrollView style={{flexGrow:0}}>{(pageActions??[]).map((action,i)=><TouchableOpacity key={i} accessibilityRole="button" onPress={()=>{if(action.onPress){fullBookMode.current=true;setPageActionBusy(true);}if(Platform.OS==='ios')pendingPageAction.current=action.onPress??null;setPageActions(null);if(Platform.OS!=='ios'&&action.onPress)void Promise.resolve().then(action.onPress).catch(()=>setMutationError('The page change could not save. Retry.')).finally(()=>setPageActionBusy(false));}} style={{minHeight:48,paddingVertical:13,borderBottomWidth:StyleSheet.hairlineWidth,borderColor:t.surface.hairline}}><Text style={{fontSize:16,color:action.style==='destructive'?t.status.danger:t.ink.primary,fontWeight:action.style==='cancel'?'700':'400'}}>{action.text}</Text></TouchableOpacity>)}</ScrollView>
           </View>
         </View>
       </Modal>

@@ -44,11 +44,12 @@ function harness() {
   function load(file, imports) {
     const exports = {};
     vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText,
-      { exports, require(name) { if (!(name in imports)) throw Error(name); return imports[name]; }, Date, Math, setTimeout(fn) { timers.set(++timerId, fn); return timerId; }, clearTimeout(id) { timers.delete(id); } });
+      { exports, process: { env: { EXPO_PUBLIC_ADAPTIVE_MEDIA: 'false' } }, URL, AbortController, TextDecoder, require(name) { if (!(name in imports)) throw Error(name); return imports[name]; }, Date, Math, setTimeout(fn) { timers.set(++timerId, fn); return timerId; }, clearTimeout(id) { timers.delete(id); } });
     return exports;
   }
   const pool = load('shared/videoReadiness.ts', {});
-  const engine = load('src/lib/videoEngine.ts', { react, 'react-native': { AppState: app }, 'expo-video': { createVideoPlayer: player }, zustand: { create: createStore }, '../../shared/videoReadiness': pool, './navigationCache': { subscribeNavigationScope(fn) { scopeChange = fn; } } });
+  const adaptive = load('shared/adaptiveMedia.ts', {});
+  const engine = load('src/lib/videoEngine.ts', { react, 'react-native': { AppState: app }, 'expo-video': { createVideoPlayer: player }, zustand: { create: createStore }, '../../shared/videoReadiness': pool, '../../shared/adaptiveMedia': adaptive, './navigationCache': { subscribeNavigationScope(fn) { scopeChange = fn; } } });
   function render(deferEffects = false) {
     for (let pass = 0; dirty; pass++) {
       if (pass >= 30) throw Error('Video ownership render loop');

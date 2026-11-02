@@ -34,6 +34,16 @@ function reader(values, extra = {}) {
 const turn = async () => { for (let n = 0; n < 12; n++) await Promise.resolve(); };
 const deferred = () => { let resolve, reject; const promise = new Promise((a, b) => { resolve = a; reject = b; }); return { promise, resolve, reject }; };
 
+test('bounded mutation tombstones retain a global fence against older resurrection', () => {
+  const guard = helper.createInboxMergeGuard(), old = guard.begin();
+  guard.touch(['removed']);
+  for (let n = 0; n < 800; n++) guard.touch(['new-' + n]);
+  assert.equal(guard.size(), 500); assert.equal(guard.canApply('removed', old), false);
+  assert.equal(guard.merge([{ id: 'removed' }], [], old).length, 0);
+  const current = guard.begin(); assert.equal(guard.canApply('removed', current), true);
+  assert.equal(guard.commit([{ id: 'removed' }], [], current).length, 1);
+});
+
 test('opening an inbox with fifty thousand conversations reads only its first thirty and full summary', async () => {
   const r = reader(rows(50000));
   const window = await helper.refreshInboxWindow(r.read, options, null, () => true, compare);

@@ -7,6 +7,7 @@ import { autoplayEnabled, dataSaverEnabled } from "@/lib/mediaPrefs";
 import { PLAYBACK_SPEEDS, playbackWindow, clampVideoTime, formatVideoTime } from "@/lib/videoPlayback";
 import { videoPreloads } from '@/lib/videoReadiness';
 import { getNavigationStore } from '@/lib/navigationCache';
+import { attachAdaptiveVideo } from '@/lib/adaptiveVideo';
 
 import {PostSoundtrack} from './PostSoundtrack';
 import type {SoundtrackSelection} from '../../shared/soundtrack';
@@ -67,6 +68,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const frameRequest = useRef<number | null>(null);
   const frameGeneration = useRef(0);
   const sessionRevoked = useRef(false);
+  const adaptiveAttachment = useRef<ReturnType<typeof attachAdaptiveVideo> | null>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(() => readPrefs().muted);
   const [speed, setSpeed] = useState(() => readPrefs().speed);
@@ -122,7 +124,8 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     warmLease.current?.activate(true);
     // Explicit play may precede React's next commit. Prepare this same element,
     // never a detached duplicate whose buffers would be discarded at playback.
-    if (v.getAttribute('src') !== src) { v.src = src; v.load(); }
+    if (adaptiveAttachment.current) adaptiveAttachment.current.ensure();
+    else if (v.getAttribute('src') !== src) { v.src = src; v.load(); }
     const request = playRequest.current += 1;
     const bounds = playbackWindow(v.duration, trimStart, trimEnd);
     if (bounds.duration) {
@@ -166,7 +169,10 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     // Source ownership is imperative for both warming and explicit play. A
     // subsequent React src assignment would reload the same URL and abort the
     // play() promise started directly by the user's click (notably Data Saver).
-    if (loadSource) { if (v.getAttribute('src') !== src) { v.src = src; v.load(); } return; }
+    if (loadSource) {
+      const attachment = attachAdaptiveVideo(v, src, { shouldPlay: () => wantsPlayback.current }); adaptiveAttachment.current = attachment;
+      return () => { attachment.dispose(); if (adaptiveAttachment.current === attachment) adaptiveAttachment.current = null; };
+    }
     frameGeneration.current++;
     if (frameRequest.current !== null) v.cancelVideoFrameCallback?.(frameRequest.current);
     frameRequest.current = null; frameReadyRef.current = false; setFrameReady(false);
@@ -356,7 +362,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
         onStalled={waitForData}
         onPause={() => { clearStall(); setPlaying(false); void reportDwell(); }}
         onEnded={() => { stop(); remember(src, range.start); }}
-        onError={() => { stop(); setFailed(true); setNotice(""); }}
+        onError={() => { if (adaptiveAttachment.current?.recover()) return; stop(); setFailed(true); setNotice(""); }}
         onLoadedMetadata={() => {
           const v = ref.current;
           if (!v) return;

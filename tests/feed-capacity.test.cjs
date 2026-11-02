@@ -18,6 +18,8 @@ vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../s
 const { feedSnapshotFresh, mergeNativeFeedLive } = liveMergeModule.exports;
 const previewModule = { exports: {} };
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/sharedPostPreview.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports: previewModule.exports, module: previewModule });
+const historyModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/sessionHistory.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText, { exports: historyModule.exports, module: historyModule, AbortController });
 
 
 const source = fs.readFileSync(path.join(__dirname, '../src/screens/feed/FeedScreen.tsx'), 'utf8');
@@ -28,7 +30,7 @@ function visit(node) {
   if (ts.isVariableDeclaration(node) && node.name.getText(ast) === '[mutedWords, setMutedWords]') {
     callbacks.mutedInitial = node.initializer.arguments[0];
   }
-  if (ts.isVariableDeclaration(node) && ['loadFeed', 'loadMore'].includes(node.name.getText(ast))) {
+  if (ts.isVariableDeclaration(node) && ['loadFeed', 'loadMore', 'commitFeedWindow', 'bindFeedHistory'].includes(node.name.getText(ast))) {
     callbacks[node.name.getText(ast)] = node.initializer.arguments[0];
   }
   if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'liveFence') callbacks.liveFence = node.initializer;
@@ -58,6 +60,7 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
   const requests = [], handlers = new Map(), errors = [];
   let currentUser = 'viewer-a', previewState = {}, quotedState = {}, pendingCount = 0, loading = true;
   const pendingResolvers = [];
+  const historyDisk = new Map(); let historyNumber = 0, historyWindow = null, historyFailure = false;
   let postState = [{ id: 'shown', user_id: 'author', comments_count: 4800, likes_count: 0 }];
   const feedRows = [{ post_id: 'shown', author_id: 'author', comments_count: 4800, likes_count: 0, sort_key: 1 }];
   const scope = {
@@ -66,6 +69,13 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
     // These legacy-channel cases exercise the supported capability-off path.
     feedBroadcast: false, screenFocused: true, appActive: true,
     feedLiveDeniedAt: { current: {} }, feedLiveAppliedAt: { current: {} },
+    feedStampFloor: { current: -1 }, historyRef: { current: null }, historyReady: { current: false },
+    historyAlive: { current: true }, historyStop: { current: null }, historyRects: { current: new Map() },
+    setHistoryWindow(value) { historyWindow = value; },
+    createNativeSessionHistory: options => historyModule.exports.createSessionHistory({ ...options, namespace: 'feed-fixture-' + historyNumber++,
+      storage: { read: async keys => keys.map(key => historyDisk.get(key) ?? null),
+        write: async entries => { if (historyFailure) throw Error('device quota'); entries.forEach(([key,value]) => historyDisk.set(key,value)); },
+        clear: async prefix => { for (const key of historyDisk.keys()) if (key.startsWith(prefix)) historyDisk.delete(key); } } }),
     interactionChangedAt: { current: {} }, busyKeysRef: { current: {} },
     feedSnapshotFresh, mergeNativeFeedLive,
     postsRef: { current: postState }, realtimeTimerRef: { current: null },
@@ -125,16 +135,61 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
     },
   };
   scope.liveFence = compile('liveFence', scope);
+  scope.bindFeedHistory = compile('bindFeedHistory', scope);
+  scope.commitFeedWindow = compile('commitFeedWindow', scope);
   return {
     scope, requests, handlers, errors,
     get posts() { return postState; }, get previews() { return previewState; }, get quoted() { return quotedState; },
     get pendingCount() { return pendingCount; }, get loading() { return loading; },
+    get historyWindow() { return historyWindow; }, failHistory(value) { historyFailure = value; },
     switchAccount() { currentUser = 'viewer-b'; },
     removePost() { scope.postsRef.current = []; },
     resolvePending(data) { assert.ok(pendingResolvers.length); pendingResolvers.shift()({ data, error: null }); },
   };
 }
 const comment = (postId = 'shown') => ({ post_id: postId, user_id: 'commenter', body: 'Synthetic comment', likes_count: 1 });
+
+function retainedFeed() {
+  const rows = Array.from({ length: 200 }, (_, n) => ({ post_id: `feed-${n}`, author_id: `author-${n}`, content: `Post ${n}`,
+    sort_key: 200 - n, likes_count: 0, comments_count: 0, media: [], viewer_liked: n % 2 === 0 }));
+  const denied = new Set(), reads = [];
+  const h = harness({ rpc(name, args) {
+    let data;
+    if (name === 'get_feed') {
+      const start = args.p_cursor_id ? rows.findIndex(row => row.post_id === args.p_cursor_id) + 1 : 0;
+      data = rows.slice(start, start + args.p_limit);
+    } else if (name === 'get_feed_rows_by_ids_v1') {
+      reads.push(args.p_ids); data = args.p_ids.map(id => rows.find(row => row.post_id === id)).filter(row => row && !denied.has(row.post_id));
+    } else throw Error('Unexpected reader ' + name);
+    return Object.assign(Promise.resolve({ data, error: null }), { abortSignal() { return this; } });
+  } });
+  h.scope.historyReady.current = true;
+  const refresh = compile('loadFeed', h.scope), more = compile('loadMore', h.scope);
+  const measure = () => { const history = h.scope.historyRef.current; history.getSnapshot().pages.forEach(page => history.measure(page.index, 100)); history.setAnchor(h.posts.at(-1).id); };
+  return { h, refresh, more, measure, denied, reads };
+}
+
+test('native feed callbacks bound long reading and reauthorize measured cold pages in original order', async () => {
+  const f = retainedFeed(); await f.refresh(); const visited = new Set();
+  for (let n = 0; n < 10; n++) {
+    f.h.posts.forEach(post => visited.add(post.id)); assert.ok(f.h.posts.length <= 120); f.measure();
+    if (n < 9) await f.more();
+  }
+  assert.equal(visited.size, 200); assert.ok(f.h.historyWindow.before > 0);
+  f.denied.add('feed-1'); await f.h.scope.historyRef.current.around(0);
+  assert.equal(f.h.posts[0].id, 'feed-0'); assert.ok(!f.h.posts.some(post => post.id === 'feed-1'));
+  assert.ok(f.reads.every(ids => ids.length <= 100)); await f.h.scope.historyRef.current.dispose();
+});
+
+test('native feed cursor advances only after the measured history ledger accepts its next page', async () => {
+  const f = retainedFeed(); await f.refresh(); f.measure();
+  const before = f.h.posts, cursor = f.h.scope.cursorRef.current;
+  f.h.failHistory(true); await f.more();
+  assert.equal(f.h.scope.cursorRef.current, cursor); assert.equal(f.h.posts.length, before.length);
+  assert.ok(f.h.posts.every((post, index) => post === before[index])); assert.equal(f.h.scope.loadingMoreRef.current, false);
+  f.h.failHistory(false); await f.more(); assert.equal(f.h.posts.at(-1).id, 'feed-39');
+  assert.equal(f.h.scope.cursorRef.current.id, 'feed-39'); await f.h.scope.historyRef.current.dispose();
+});
 
 test('off-feed comment insert and delete cause no lookups or state changes', async () => {
   const h = harness();

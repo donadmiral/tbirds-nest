@@ -7,10 +7,11 @@ import { createClient } from "@/lib/supabase/client";
 import { loadConversationTargets, type ConversationTarget } from "../../shared/conversationTargets";
 import { sharePostToConversation } from "@/lib/postSharing";
 import { withTimeout } from "@/lib/withTimeout";
+import { recordPostShare } from "../../shared/postCounters";
 
 function recordShare(postId: string) {
   const supabase = createClient();
-  supabase.rpc("increment_share_count", { p_post_id: postId }).then(() => {}, () => {});
+  void recordPostShare(supabase, postId, crypto.randomUUID()).catch(() => {});
 }
 
 export function ShareMenu(props: Parameters<typeof PostShareMenu>[0]) {

@@ -5,6 +5,7 @@ import { createVideoPlayer, VideoPlayer } from 'expo-video';
 import { create } from 'zustand';
 import { createVideoReadinessPool, type PreparedVideoSource } from '../../shared/videoReadiness';
 import { subscribeNavigationScope } from './navigationCache';
+import { clearAdaptiveMedia, knownAdaptiveMedia, resolveAdaptiveMedia } from '../../shared/adaptiveMedia';
 
 type EngineState = {
   uri: string | null; owner: string | null; postId: string | null;
@@ -27,7 +28,10 @@ const pool = createVideoReadinessPool(() => {
   if (state.player === entry.player && state.uri === entry.uri) state.set(entry.disposed
     ? { player: null, ready: false, failed: false }
     : { ready: entry.ready, failed: entry.failed });
-});
+}, { playbackSource(uri) {
+  const adaptive = process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA === 'true' ? knownAdaptiveMedia(uri) : null;
+  return adaptive ? { uri: adaptive.hlsUrl, contentType: 'hls' } : { uri };
+} });
 
 let pendingSeek: { uri: string; at: number } | null = null;
 export function seekWhenClaimed(uri: string, at: number) { pendingSeek = { uri, at }; }
@@ -36,12 +40,22 @@ export function enginePosition(uri: string): number {
   if (state.uri !== uri || !state.ready) return 0;
   try { return Number(state.player?.currentTime) || 0; } catch { return 0; }
 }
-export function prefetchFeedVideos(sources: PreparedVideoSource[]) { pool.prefetch(sources); }
+export function prefetchFeedVideos(sources: PreparedVideoSource[]) {
+  if (process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA !== 'true') { pool.prefetch(sources); return; }
+  // Discovery happens on the two nearby sources. An immediately claimed card
+  // plays its original without waiting or replacing an already visible player.
+  const generation = ++prefetchGeneration;
+  void Promise.all(sources.slice(0, 2).map(source => resolveAdaptiveMedia(source.uri))).then(() => {
+    if (generation === prefetchGeneration) pool.prefetch(sources.slice(0, 2));
+  });
+}
+let prefetchGeneration = 0;
 export function releaseEngine() {
   pool.release();
   useVideoEngine.getState().set({ owner: null });
 }
 export function clearVideoEngine() {
+  prefetchGeneration++; clearAdaptiveMedia();
   useVideoEngine.getState().set({ ...empty, foreground: AppState.currentState === 'active' });
   pool.clear();
   pendingSeek = null;

@@ -14,6 +14,8 @@ import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
 import { navigationScope } from '../../lib/navigationCache';
 import { readBusinessInboxWindow, type BusinessInboxTab, type BusinessInboxWindow } from '../../services/businessInbox';
+import { useReadingWindow } from '../../services/useReadingWindow';
+import { MeasuredHistoryList } from '../../components/MeasuredHistoryList';
 
 
 function relTime(d?: string | null) {
@@ -46,11 +48,20 @@ export default function BusinessInboxScreen() {
   const errorOperation = useRef<'refresh' | 'more'>('refresh');
   const visible = collection?.scope === scope && collection.businessId === businessId ? collection : null;
   const rows = visible?.rows ?? [], summary = visible?.summary ?? { primary: 0, requests: 0 };
+  const reading = useReadingWindow<BusinessInboxWindow['rows'][number]>({ identity: `${scope}:${owner}:${businessId}:${tab}`, id: row => row.id,
+    current: () => navigationScope() === scope && identity.current.owner === owner && identity.current.businessId === businessId && identity.current.tab === tab,
+    fetch: async (ids, signal) => (await readBusinessInboxWindow(owner!, businessId, tab, null, false, signal,
+      () => navigationScope() === scope && identity.current.owner === owner && identity.current.businessId === businessId && identity.current.tab === tab, ids)).rows,
+    rows: rows => { const previous = windows.current.get(tab); if (previous?.scope === scope && previous.businessId === businessId) { const next = { ...previous, rows }; windows.current.set(tab, next); setCollection(next); } },
+    error: setErr });
+  const { commit: commitWindow, restoreMore } = reading;
 
   const load = useCallback(async (more = false, pulled = false) => {
     if (!businessId || !owner || !scope || !focused.current || AppState.currentState !== 'active') return;
+    if (more && await restoreMore().catch(() => true)) return;
     const cached = windows.current.get(tab);
     const previous = cached?.scope === scope && cached.businessId === businessId ? cached : null;
+    const preserve = !more && !pulled && !!reading.history.current && reading.top.current >= 80;
     if (more && (requestRef.current || !previous?.paging?.cursor)) return;
     const version = ++generation.current; requestRef.current?.abort();
     const request = new AbortController(); requestRef.current = request;
@@ -61,9 +72,16 @@ export default function BusinessInboxScreen() {
     setErr(null); setLoading(!previous); setLoadingMore(more); setRefreshing(pulled);
     let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
-      const result = await Promise.race([readBusinessInboxWindow(owner, businessId, tab, previous, more, request.signal, current),
+      let result = await Promise.race([readBusinessInboxWindow(owner, businessId, tab, previous, more, request.signal, current),
         new Promise<never>((_resolve, reject) => { timeout = setTimeout(() => reject(new Error('The business inbox took too long.')), 12000); })]);
       if (!current()) return;
+      if (result.paging && !more && !preserve && result.rows.length > 120) result = await readBusinessInboxWindow(owner, businessId, tab, null, false, request.signal, current);
+      if (!current()) return;
+      if (result.paging) {
+        const rows = await commitWindow(result.rows, !result.paging.canView ? 'reset' : more ? 'append' : preserve ? 'refresh' : 'reset', current);
+        if (!current() || !rows) return;
+        result = { ...result, rows, paging: preserve && result.paging.canView && previous?.paging ? { ...result.paging, cursor: previous.paging.cursor } : result.paging };
+      }
       if (!result.paging) {
         windows.current.set('primary', { ...result, tab: 'primary' }); windows.current.set('requests', { ...result, tab: 'requests' });
       } else if (!result.paging.canView) windows.current.clear();
@@ -75,7 +93,7 @@ export default function BusinessInboxScreen() {
       clearTimeout(timeout); if (current()) { setLoading(false); setLoadingMore(false); setRefreshing(false); }
       request.abort(); if (requestRef.current === request) requestRef.current = null;
     }
-  }, [businessId, owner, scope, tab]);
+  }, [businessId, owner, scope, tab, commitWindow, restoreMore]);
 
   useFocusEffect(useCallback(() => {
     focused.current = true; void load();
@@ -121,8 +139,9 @@ export default function BusinessInboxScreen() {
           <Text style={st.emptySub}>When customers message {businessName}, the whole team sees it here.</Text>
         </View>
       ) : (
-        <FlatList
+        <MeasuredHistoryList history={reading.history.current} snapshot={reading.snapshot}
           data={rows.filter((r: any) => tab === 'requests' ? r.is_request : !r.is_request)}
+          onScroll={event => { reading.top.current = event.nativeEvent.contentOffset.y; }}
           ListHeaderComponent={
             <View style={{ flexDirection: 'row', paddingHorizontal: 2, paddingBottom: 8, gap: 8 }}>
               {(['primary', 'requests'] as const).map(tabKey => {

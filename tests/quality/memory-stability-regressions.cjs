@@ -38,7 +38,7 @@ test('a renewed signed image source can display after the old source failed',()=
 });
 test('screen navigation delegates to the reader that owns and locks the turn',()=>{
  const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const flipTo=useCallback'),end=src.indexOf('  useEffect',start),directions=[];
- const scope={pageTurn:{current:{turn:value=>directions.push(value)}},useCallback:f=>f,idxRef:{current:0},albumRef:{current:{pages:[{},{}]}},pendingTurn:{current:null},memoryBookHasMore:()=>false,loadMore:()=>Promise.resolve()};
+ const scope={pageTurn:{current:{turn:value=>directions.push(value)}},useCallback:f=>f,idxRef:{current:0},albumRef:{current:{pages:[{},{}]}},pendingTurn:{current:null},memoryBookHasMore:()=>false,memoryBookHasPrevious:()=>false,loadMore:()=>Promise.resolve()};
  vm.runInNewContext(compile(src.slice(start,end)+'\nthis.flipTo=flipTo;'),scope);scope.flipTo(1);scope.flipTo(-1);assert.deepEqual(directions,[1,-1]);
  scope.pageTurn.current=null;assert.doesNotThrow(()=>scope.flipTo(1));
 });

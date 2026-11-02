@@ -9,6 +9,7 @@ const ORIGIN = 'https://uaulhuelcfkjwojtymmw.supabase.co';
 const OWNER = '10000000-0000-4000-8000-000000000001';
 const PEER = '10000000-0000-4000-8000-000000000002';
 const CONVERSATION = '30000000-0000-4000-8000-000000000001';
+const MESSAGE = '50000000-0000-4000-8000-000000000001';
 const LISTING = '70000000-0000-4000-8000-000000000001';
 const modules = new Map();
 
@@ -55,6 +56,7 @@ function actual(spec, sdk) {
   if (spec.name === 'seller_review_page') return loadTs('shared/marketReviews.ts').getSellerReviewPage(sdk, PEER, LISTING)
     .then(data => ({ data, error: null }));
   const variables = { supabase: sdk, client: sdk, myId: OWNER, userId: OWNER, currentUserId: OWNER,
+    ids: [MESSAGE],
     targetId: PEER, sellerId: PEER, conversationId: CONVERSATION,
     snapshot: '2026-10-31T12:00:00.000Z', asOf: '2026-10-31T12:00:00.000Z', offset: 0,
     PAGE_SIZE: 20, q: 'qa_jordan', postMode: 'top', tag: '#memories', ctx: spec.context, context: spec.context,

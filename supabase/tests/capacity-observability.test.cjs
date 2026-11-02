@@ -13,6 +13,7 @@ test('capacity monitoring uses bounded samples and fails closed without measurem
       drop function if exists public.capacity_status_v1(integer);
       drop function if exists public.post_counter_status_v1();
       drop function if exists public.notification_fanout_status_v1();
+      drop function if exists public.notification_worker_status_v1();
       drop function if exists public.media_processing_status_v1();
       do $$begin
        if not exists(select 1 from pg_roles where rolname='anon') then create role anon; end if;
@@ -68,6 +69,8 @@ test('capacity monitoring uses bounded samples and fails closed without measurem
         select jsonb_build_object('fanout_enabled',true,'dispatch_enabled',true,'fanout_pending',12,'dispatch_pending',8,
          'fanout_dead',0,'dispatch_dead',1,'count_cap',100001,'oldest_fanout_at',now()-interval '3 minutes',
          'oldest_dispatch_at',now()-interval '4 minutes')$$;
+       create function public.notification_worker_status_v1() returns jsonb language sql as $$
+        select jsonb_build_object('enabled',true,'last_completed_at',now(),'active_ticks',1)$$;
        create function public.media_processing_status_v1() returns jsonb language sql as $$
         select jsonb_build_object('worker_enabled',true,'states','{"pending":3,"retry":2,"processing":1,"failed":10}'::jsonb,
          'oldest_pending_seconds',1000,'worker_last_seen_at',null,'expired_leases',5,'cleanup_pending',1000)$$;`);
@@ -89,7 +92,25 @@ test('capacity monitoring uses bounded samples and fails closed without measurem
         select '{"worker_enabled":true,"states":{"pending":0,"retry":0,"processing":0,"failed":0},"oldest_pending_seconds":0,"expired_leases":0,"cleanup_pending":0}'::jsonb$$;`);
       await db.query('select public.capacity_capture_v1()');
       assert.equal(await db.query("select count(*) from capacity_ops.alerts where resolved_at is null and key not like 'database_%'"), '0');
-      await db.query('drop function public.post_counter_status_v1(); drop function public.notification_fanout_status_v1(); drop function public.media_processing_status_v1();');
+      await db.query('drop function public.post_counter_status_v1(); drop function public.notification_fanout_status_v1(); drop function public.notification_worker_status_v1(); drop function public.media_processing_status_v1();');
+    });
+    await t.test('a disabled or silent push consumer is visible even with an empty queue', async () => {
+      await db.query(`create function public.notification_fanout_status_v1() returns jsonb language sql as $$
+        select '{"fanout_enabled":true,"dispatch_enabled":true,"fanout_pending":0,"dispatch_pending":0}'::jsonb$$;
+       create function public.notification_worker_status_v1() returns jsonb language sql as $$
+        select '{"enabled":false,"active_ticks":0}'::jsonb$$;`);
+      await db.query('select public.capacity_capture_v1()');
+      assert.equal(await db.query("select severity from capacity_ops.alerts where key='notification_dispatch_worker_unavailable' and resolved_at is null"),'critical');
+      await db.query(`create or replace function public.notification_worker_status_v1() returns jsonb language sql as $$
+        select jsonb_build_object('enabled',true,'last_completed_at',now()-interval '4 minutes','active_ticks',2)$$;`);
+      const value = JSON.parse(await db.query('select public.capacity_capture_v1()'));
+      assert.equal(value.components.notification_worker.pending,2);
+      assert.equal(await db.query("select severity from capacity_ops.alerts where key='notification_worker_silence_seconds' and resolved_at is null"),'critical');
+      await db.query(`create or replace function public.notification_worker_status_v1() returns jsonb language sql as $$
+        select jsonb_build_object('enabled',true,'last_completed_at',now(),'active_ticks',0)$$;`);
+      await db.query('select public.capacity_capture_v1()');
+      assert.equal(await db.query("select count(*) from capacity_ops.alerts where key in('notification_dispatch_worker_unavailable','notification_worker_silence_seconds') and resolved_at is null"),'0');
+      await db.query('drop function public.notification_fanout_status_v1(); drop function public.notification_worker_status_v1();');
     });
     await t.test('malformed component metrics fail visibly without suppressing database monitoring', async () => {
       await db.query(`create function public.post_counter_status_v1() returns jsonb language sql as $$

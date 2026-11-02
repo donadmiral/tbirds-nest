@@ -30,6 +30,8 @@ function harness(rows) {
     useEffect(fn, deps) { const n = cursor++, old = slots[n]; if (!old || !same(old.deps, deps)) {
       slots[n] = { deps }; effects.push(() => { old?.cleanup?.(); slots[n].cleanup = fn(); }); } },
   };
+  hooks.useLayoutEffect = hooks.useEffect;
+  const historyDisk = new Map(); let historyNumber = 0;
   const app = { currentState: 'active', addEventListener(_name, fn) { appEvents.add(fn); return { remove: () => appEvents.delete(fn) }; } };
   const clock = { setTimeout(fn, delay) { const n = ++nextTimer; timers.set(n, { fn, at: now + delay }); return n; }, clearTimeout(n) { timers.delete(n); } };
   const navigation = { navigate(...args) { navigation.calls.push(args); }, calls: [] };
@@ -77,6 +79,13 @@ function harness(rows) {
     const requireLocal = name => {
       if (name === 'react') return { ...hooks, default: hooks };
       if (name === 'react/jsx-runtime') return runtime;
+      if (name.endsWith('MeasuredHistoryList')) return { MeasuredHistoryList: 'TapTopFlatList' };
+      if (name.endsWith('services/useReadingWindow')) return load('src/services/useReadingWindow.ts');
+      if (name === './sessionHistory') return { createNativeSessionHistory: options => load('shared/sessionHistory.ts').createSessionHistory({ ...options,
+        namespace: 'native-fixture-' + (++historyNumber), storage: { read: async keys => keys.map(key => historyDisk.get(key) ?? null),
+          write: async entries => entries.forEach(([key,value]) => historyDisk.set(key,value)),
+          clear: async prefix => { for (const key of historyDisk.keys()) if (key.startsWith(prefix)) historyDisk.delete(key); } } }) };
+
       if (name === 'react-native') return { View: 'View', Text: 'Text', TextInput: 'TextInput', TouchableOpacity: 'TouchableOpacity',
         Image: 'Image', StatusBar: 'StatusBar', StyleSheet: { create: value => value, hairlineWidth: 1 }, Platform: { OS: 'ios' }, AppState: app,
         ActionSheetIOS: { showActionSheetWithOptions() {} }, Alert: { alert() {} } };
@@ -139,6 +148,23 @@ test('native inbox retains full Archived count while rendering a bounded first p
   h.more(); h.more(); await h.flush(); assert.equal(h.list().props.data.length, 60);
   h.more(); await h.flush(); assert.equal(h.list().props.data.length, 65);
   assert.equal(h.calls.filter(call => call.name === 'get_inbox_page_v2').length, 3); h.dispose();
+});
+
+test('long native inbox walks retain 120 conversations and restore authorized measured history', async () => {
+  const source = conversations(240, 90), h = harness(source); await h.flush(); const visited = new Set();
+  for (let n = 0; n < 8; n++) {
+    const list = h.list(), rows = list.props.data, value = list.props.history;
+    rows.forEach(row => visited.add(row.id)); assert.ok(rows.length <= 120);
+    list.props.snapshot.pages.forEach(page => value.measure(page.index, 100)); value.setAnchor(rows.at(-1).id);
+    list.props.onScroll({ nativeEvent: { contentOffset: { y: 2000 }, layoutMeasurement: { height: 800 } } });
+    if (n < 7) { h.more(); await h.flush(); }
+  }
+  assert.equal(visited.size, 240); assert.ok(h.list().props.snapshot.before > 0);
+  source[1].denied = true;
+  await h.list().props.history.around(0); await h.flush();
+  assert.equal(h.list().props.data[0].id, 'chat-0'); assert.ok(!h.list().props.data.some(row => row.id === 'chat-1'));
+  assert.ok(h.calls.filter(call => call.name === 'get_inbox_page_v2' && call.args.p_ids).every(call => call.args.p_ids.length <= 50));
+  assert.equal(h.cache.read('1:owner', 'inbox:personal:paging').summary.archivedPersonal, 90); h.dispose();
 });
 
 test('an inbox containing only archived chats still exposes the existing Archived row', async () => {

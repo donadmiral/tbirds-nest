@@ -13,7 +13,9 @@ const legacyOriginal = 'https://synthetic.invalid/storage/v1/object/public/post-
 const legacyGranted = 'https://synthetic.invalid/functions/v1/media-content/post-media/legacy.jpg?token=' + 'b'.repeat(64);
 let quoteMode: 'legacy' | 'text' | 'missing' = 'legacy';
 const base = posts[0];
-const rows: FeedRow[] = Array.from({ length: 36 }, (_, index) => {
+const boundedHistory = new URLSearchParams(window.location.search).has('history');
+const historyReads: string[][] = [], denied = new Set<string>();
+const rows: FeedRow[] = Array.from({ length: boundedHistory ? 260 : 36 }, (_, index) => {
   const video = index === 1 || index > 1 && index % 3 === 0;
   return {
     ...base, post_id: id(index + 1), sort_key: 1000 - index,
@@ -22,7 +24,7 @@ const rows: FeedRow[] = Array.from({ length: 36 }, (_, index) => {
     ...(index === 5 ? { quoted_post_id: quotedSourceId } : {}),
     created_at: new Date(Date.now() - (index + 1) * 3600000).toISOString(),
     media: [{ id: mediaId(index + 1),
-      url: index === 0 ? '/delayed-image.svg' : index === 1 ? '/delayed-video.mp4' : video ? `/video.mp4?post=${index + 1}` : `/coast.svg?post=${index + 1}`,
+      url: !boundedHistory && index === 0 ? '/delayed-image.svg' : !boundedHistory && index === 1 ? '/delayed-video.mp4' : video ? `/video.mp4?post=${index + 1}` : `/coast.svg?post=${index + 1}`,
       media_type: video ? 'video' : 'image', width: index < 2 ? null : 1200, height: index < 2 ? null : 720, sort_order: 0 }],
   };
 });
@@ -92,6 +94,12 @@ synthetic.from = (table: string) => {
   return query;
 };
 synthetic.rpc = (name, args = {}) => {
+  if (name === 'get_feed_rows_by_ids_v1') {
+    const ids = Array.isArray(args.p_ids) ? args.p_ids as string[] : []; historyReads.push(ids);
+    return Promise.resolve(boundedHistory ? { data: rows.filter(row => ids.includes(row.post_id) && !denied.has(row.post_id)).map(row => ({ ...row })), error: null }
+      : { data: null, error: { code: 'PGRST202', message: 'History readiness is disabled in the short wheel case.' } });
+  }
+  if (boundedHistory && name === 'get_feed_visibility') return Promise.resolve({ data: (args.p_ids as string[]).filter(id => !denied.has(id)).map(post_id => ({ post_id, snapshot_eligible: true })), error: null });
   if (name === 'get_poll' && args.p_post_id === id(5)) return readAsyncBlock('poll', [
     { option_id: 'poll-option-1', label: pollLabel, votes: 4, viewer_vote: null, ends_at: '2099-01-01T00:00:00Z', total: 7 },
     { option_id: 'poll-option-2', label: 'Read the next post', votes: 3, viewer_vote: null, ends_at: '2099-01-01T00:00:00Z', total: 7 },
@@ -113,7 +121,7 @@ synthetic.rpc = (name, args = {}) => {
     if (request.aborted) return { data: null, error: { message: 'Synthetic request cancelled' } };
     const offset = cursor ? rows.findIndex(row => row.post_id === cursor) + 1 : 0;
     // A network response gives the controller fresh objects, even for unchanged data.
-    return { data: JSON.parse(JSON.stringify(rows.slice(offset, offset + 20))) as FeedRow[], error: null };
+    return { data: JSON.parse(JSON.stringify(rows.slice(offset, offset + 20).filter(row => !denied.has(row.post_id)))) as FeedRow[], error: null };
   })();
   return {
     abortSignal(value: AbortSignal) { signal = value; return this; },
@@ -134,6 +142,7 @@ synthetic.functions.invoke = async (name, options) => {
 };
 
 const scrollFixture = {
+  historyReads, deny(ids: string[]) { ids.forEach(id => denied.add(id)); },
   metadataReads, feedRequests, asyncReads, grantReads, quotedSourceId, quotedContent, pollLabel, legacyOriginal, legacyGranted,
   releaseRecipe,
   failRecipeReads(value: boolean) { failRecipes = value; },
@@ -156,6 +165,7 @@ const scrollFixture = {
 };
 declare global { interface Window { __scrollFixture: typeof scrollFixture } }
 window.__scrollFixture = scrollFixture;
+if (boundedHistory) { scrollFixture.release(); releaseRecipe(); }
 localStorage.setItem('pc_autoplay', 'on');
 const overlays = document.createElement('div');
 document.body.append(overlays);

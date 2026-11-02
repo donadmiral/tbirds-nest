@@ -66,6 +66,11 @@ function component(file, api, options = {}) {
     if (name === '@react-navigation/native') return { useNavigation: () => ({ goBack() {} }), useRoute: () => ({ params: { businessId: 'business', businessName: 'Audit business' } }), useFocusEffect() {} };
     if (name.endsWith('/stores/authStore')) return { useAuthStore: () => ({ profile: { id: 'owner' } }) };
     if (name.endsWith('/lib/navigationCache')) return { navigationScope: () => 'theme-owner' };
+    if (name.endsWith('/services/useReadingWindow')) return { useReadingWindow: () => ({
+      history: { current: null }, snapshot: null, top: { current: 0 },
+      commit: async rows => rows, reset() {}, restoreMore: async () => false,
+    }) };
+    if (name.endsWith('/components/MeasuredHistoryList')) return { MeasuredHistoryList: 'FlatList' };
     if (name.endsWith('/shared/verification')) return { currentVerificationStatus: () => options.verificationStatus || null };
     if (name.endsWith('/services/supabase')) return { supabase: {} };
     if (name === '@expo/vector-icons') return { Feather: 'Icon' };

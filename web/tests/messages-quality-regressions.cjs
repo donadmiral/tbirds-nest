@@ -5,8 +5,13 @@ const vm = require('node:vm');
 const { test } = require('node:test');
 const ts = require('typescript');
 const root = path.join(__dirname, '..');
-const compile = file => ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
+const compile = file => ts.transpileModule(fs.readFileSync(file, 'utf8'), { fileName: file, compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
 const sources = {
+  '@/lib/sessionHistory': compile(path.join(root, 'lib/sessionHistory.ts')),
+  '../../shared/sessionHistory': compile(path.join(root, '../shared/sessionHistory.ts')),
+  '../../shared/threadWindow': compile(path.join(root, '../shared/threadWindow.ts')),
+  '../../shared/retainedMaps': compile(path.join(root, '../shared/retainedMaps.ts')),
+  './messageHistory': compile(path.join(root, '../shared/messageHistory.ts')),
   '@/lib/messageNavigationMemory': compile(path.join(root, 'lib/messageNavigationMemory.ts')),
   '../../shared/navigationCache': compile(path.join(root, '../shared/navigationCache.ts')),
   '@/lib/profileLookup': compile(path.join(root, 'lib/profileLookup.ts')),
@@ -75,9 +80,9 @@ function scenario(initial = [row(1)], options = {}) {
     return { data: call.single ? data[0] || null : data, error: null };
   };
   const client = {
-    auth: { getSession: async () => ({ data: { session: authUser ? { user: { id: authUser } } : null }, error: null }), onAuthStateChange: callback => { authListener = callback; return { data: { subscription: { unsubscribe() {} } } }; } },
+    auth: { getSession: async () => ({ data: { session: authUser ? { user: { id: authUser }, access_token: 'synthetic-message-session' } : null }, error: null }), onAuthStateChange: callback => { authListener = callback; return { data: { subscription: { unsubscribe() {} } } }; } },
     from(table) { const call = { table, op: 'select', filters: {} }; const chain = {
-      abortSignal() { return chain; }, select(value) { call.select = value; return chain; }, eq(k,v) { call.filters[k] = v; return chain; }, is(k,v) { call.filters[k] = v; return chain; }, in(k,v) { call.filters[k] = v; return chain; },
+      abortSignal() { return chain; }, setHeader(key,value) { call.headers = { ...call.headers, [key]: value }; return chain; }, select(value) { call.select = value; return chain; }, eq(k,v) { call.filters[k] = v; return chain; }, is(k,v) { call.filters[k] = v; return chain; }, in(k,v) { call.filters[k] = v; return chain; },
       order() { return chain; }, limit(value) { call.limit = value; return chain; }, or(value) { call.filter = value; return chain; }, maybeSingle() { call.single = true; return chain; }, single() { call.single = true; return chain; },
       insert(input) { call.op = 'insert'; call.input = input; return chain; }, update(input) { call.op = 'update'; call.input = input; return chain; }, upsert(input) { call.op = 'upsert'; call.input = input; return chain; }, delete() { call.op = 'delete'; return chain; },
       then(ok,bad) { return Promise.resolve().then(() => execute(call)).then(ok,bad); },
@@ -134,13 +139,15 @@ function scenario(initial = [row(1)], options = {}) {
   const browserDocument = { body: { style: {} }, visibilityState: options.hidden ? 'hidden' : 'visible', hasFocus: () => options.focused !== false,
     addEventListener(name, fn) { const set = browserEvents.get(name) || new Set(); set.add(fn); browserEvents.set(name, set); }, removeEventListener(name, fn) { browserEvents.get(name)?.delete(fn); } };
   const localStorage = { get length() { return stored.size; }, key: i => [...stored.keys()][i], getItem: key => stored.get(key) ?? null, setItem: (key,value) => stored.set(key,value), removeItem: key => stored.delete(key) }; 
+  const historyStored = new Map();
+  const sessionStorage = { get length() { return historyStored.size; }, key: i => [...historyStored.keys()][i], getItem: key => historyStored.get(key) ?? null, setItem: (key,value) => historyStored.set(key,value), removeItem: key => historyStored.delete(key) };
   const load = name => {
     if (cache.has(name)) return cache.get(name).exports;
     if (name.endsWith('.module.css')) return { __esModule: true, default: new Proxy({}, { get: (_, key) => String(key) }) };
     if (name === 'react') return hooks;
     if (name === 'react/jsx-runtime') return runtime;
     if (name === '@/lib/supabase/client') return { createClient: () => client };
-    if (name === '@/lib/navigationCache') return {getNavigationStore:()=>navigationStore};
+    if (name === '@/lib/navigationCache' || name === './navigationCache') return {getNavigationStore:()=>navigationStore};
     if (name === '@/lib/messages') {
       const actual = load('@/lib/messagesActual');
       return { ...actual, loadConversations: async (_owner,context='personal') => convs.filter(row=>row.context===context),
@@ -157,7 +164,7 @@ function scenario(initial = [row(1)], options = {}) {
     if (name === 'next/image') return { __esModule: true, default: 'img' };
     if (!sources[name]) return new Proxy({}, { get: (_,key) => String(key) });
     const module = { exports: {} }; cache.set(name,module);
-    vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, process:{env:options.env||{}}, Error, URLSearchParams, AbortController, crypto: require('node:crypto').webcrypto,
+    vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, process:{env:options.env||{}}, Error, URLSearchParams, AbortController, crypto: require('node:crypto').webcrypto, sessionStorage,
       window: { localStorage, addEventListener: browserDocument.addEventListener, removeEventListener: browserDocument.removeEventListener, location, history: browserHistory, matchMedia: () => ({ matches: !!options.narrow, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: browserDocument,
       navigator: options.navigator || {}, MediaRecorder: options.MediaRecorder, Blob,
       queueMicrotask, setTimeout: (fn,delay) => setTimeout(fn, options.deadlineMs && delay === 12000 ? options.deadlineMs : delay), clearTimeout, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => { const timer = setTimeout(fn,0); timers.add(timer); return timer; }, cancelAnimationFrame: clearTimeout,
@@ -167,8 +174,12 @@ function scenario(initial = [row(1)], options = {}) {
   };
   const Component = options.marketBadge ? load('@/components/MarketUnreadDot').MarketUnreadDot
     : options.forwardPicker ? load('@/components/ForwardConversationPicker').ForwardConversationPicker : load('@/components/MessagesApp').MessagesApp;
-  const dom = { children: [], style: {}, scrollTop: 0, scrollHeight: 100, clientHeight: 50, value: 'selected-file', addEventListener(name, fn) { domEvents.set(name, fn); }, removeEventListener(name) { domEvents.delete(name); } };
-  function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component(options.forwardPicker ? { owner: authUser, context: options.context || 'personal', activeId: options.activeId ?? null, conversations: [], paged: true, busy: false, onSelect: options.onSelect ?? (()=>{}) } : {context:options.context||'personal'}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const committed=layoutEffects; layoutEffects=[]; committed.forEach(effect => effect.cleanup?.()); committed.forEach(effect => effect.create()); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
+  const dom = { children: [], style: {}, scrollTop: 0, scrollHeight: 100, clientHeight: 50, value: 'selected-file', getBoundingClientRect: () => ({ top: 0 }), addEventListener(name, fn) { domEvents.set(name, fn); }, removeEventListener(name) { domEvents.delete(name); } };
+  const threadContent = { getBoundingClientRect: () => ({ top: -dom.scrollTop }) };
+  const inboxEvents = new Map(), inboxDom = { scrollTop: 0, clientHeight: 800, getBoundingClientRect: () => ({ top: 0 }),
+    addEventListener(name, fn) { inboxEvents.set(name, fn); }, removeEventListener(name) { inboxEvents.delete(name); } };
+  const inboxContent = { getBoundingClientRect: () => ({ top: -inboxDom.scrollTop }) };
+  function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component(options.forwardPicker ? { owner: authUser, context: options.context || 'personal', activeId: options.activeId ?? null, conversations: [], paged: true, busy: false, onSelect: options.onSelect ?? (()=>{}) } : {context:options.context||'personal'}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=node.props['data-thread-window'] ? threadContent : node.props['data-inbox-window'] ? inboxContent : node.props['data-inbox-scroll'] ? inboxDom : dom; }); nodes(tree).filter(node => node.type === 'MeasuredThreadMessage').forEach(node => node.props.measure(node.props.id, 100)); const committed=layoutEffects; layoutEffects=[]; committed.forEach(effect => effect.cleanup?.()); committed.forEach(effect => effect.create()); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
   render();
   return { navigationValues:navValues, client, rows: () => rows, writes, reads, rpcs, dom, listeners, location,
     find: predicate => nodes(tree).find(predicate), all: predicate => nodes(tree).filter(predicate),
@@ -186,6 +197,7 @@ function scenario(initial = [row(1)], options = {}) {
     visible(value) { browserDocument.visibilityState = value ? 'visible' : 'hidden'; this.event('visibilitychange'); },
     focused(value) { options.focused = value; this.event('focus'); },
     scroll(top, height = 1000) { dom.scrollHeight = height; dom.scrollTop = top; domEvents.get('scroll')?.(); render(); },
+    inboxScroll(top) { inboxDom.scrollTop = top; inboxEvents.get('scroll')?.(); render(); },
     async flush() { for(let i=0;i<8;i++){ await new Promise(resolve=>setImmediate(resolve)); render(); } },
     unmount() { slots.forEach(slot=>slot?.cleanup?.()); timers.forEach(clearTimeout); },
   };
@@ -475,6 +487,24 @@ test('paged web inbox opens thirty rows and scrolls through the complete inbox w
   app.intersect(); await app.flush(); assert.equal(cards().length, 95);
   assert.equal(new Set(cards().map(node => node.key)).size, 95);
   app.unmount(); assert.equal(app.navigationValues.get('messages:personal').inboxPaging.cursor, null);
+});
+
+test('long web inbox reading retains 120 conversations and restores authorized earlier pages', async () => {
+  const conversations = inboxRows(240), app = scenario([], { conversations, paged: true }); await app.flush();
+  const cards = () => app.all(node => node.type === 'button' && node.props['aria-label']?.startsWith('Open conversation with Conversation chat'));
+  const visited = new Set();
+  for (let n = 0; n < 8; n++) {
+    cards().forEach(node => visited.add(node.key)); assert.ok(cards().length <= 120);
+    const pages = app.all(node => node.type === 'MeasuredHistoryPage');
+    assert.ok(pages.length); pages.forEach(node => node.props.measure(node.props.index, 100)); await app.flush();
+    app.inboxScroll(pages.at(-1).props.index * 100 + 1); await app.flush();
+    if (n < 7) { app.intersect(); await app.flush(); }
+  }
+  assert.equal(visited.size, 240); assert.ok(!cards().some(node => node.key === 'chat0'));
+  conversations[1].denied = true; app.inboxScroll(0); await app.flush();
+  assert.equal(cards()[0].key, 'chat0'); assert.ok(!cards().some(node => node.key === 'chat1'));
+  assert.ok(app.rpcs.filter(call => call.args.p_ids).every(call => call.args.p_ids.length <= 50));
+  assert.ok(cards().length <= 120); app.unmount();
 });
 
 test('web search and Unread find authorized conversations beyond the first page', async () => {

@@ -202,7 +202,8 @@ test('the deployed entrypoint forwards the request cancellation signal into both
  vm.runInNewContext(code,{exports:{},fetch,Headers,console:{warn(){}},Deno:{env:{get:()=>origin},serve(){}},require(name){
   if(name==='npm:@supabase/supabase-js@2.112.3')return{createClient:()=>({rpc:()=>({abortSignal(signal){received=signal;return Promise.resolve({data:null,error:null});}})})};
   if(name==='./handler.ts')return{createMediaContentHandler(value){deps=value;return()=>{};}};
-  if(name==='../_shared/serviceRoleFetch.ts')return load('supabase/functions/_shared/serviceRoleFetch.ts');throw Error(name);
+    if(name==='../_shared/serviceRoleFetch.ts')return load('supabase/functions/_shared/serviceRoleFetch.ts');
+    if(name==='./adaptive.ts')return load('supabase/functions/media-content/adaptive.ts');throw Error(name);
  }});
  const controller=new AbortController();await deps.resolve(token,bucket,objectPath,controller.signal);assert.equal(received,controller.signal);
 });

@@ -9,7 +9,7 @@ const { renderToStaticMarkup } = require('react-dom/server');
 const root = path.join(__dirname, '..');
 function load(file, overrides = {}) {
   const module = { exports: {} };
-  const js = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
+  const js = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { fileName: file, compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
   vm.runInNewContext(js, { module, exports: module.exports, require: name => overrides[name] ?? require(name),
     performance, AbortController, Map, Set, Promise, URL, setTimeout, clearTimeout, queueMicrotask, console,
     process: { env: { NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co' } } });
@@ -27,7 +27,7 @@ function harness(seedRows = [row('first')], seedError = null, options = {}) {
   const cache = shared.createFeedSnapshotStore({ getItem: async key => saved.get(key) ?? null, setItem: async (key,value) => saved.set(key,value), removeItem: async key => saved.delete(key) });
   const client = { rpc(name,args) { calls.push({name,args}); return reply(name,args); } };
   const seed = { owner: 'alice', rows: seedRows, mutedWords: [], error: seedError };
-  const controller = createHomeFeedController(client, seed, cache, event => measurements.push(event), options.hydrate, undefined, options.mediaContext);
+  const controller = createHomeFeedController(client, seed, cache, event => measurements.push(event), options.hydrate, undefined, options.mediaContext, options.historyFactory);
   return {controller,client,seed,calls,cache,saved,measurements,setReply(fn){reply=fn;}};
 }
 
@@ -49,6 +49,32 @@ test('signing out clears visible posts and fences pending requests', async () =>
   const h=harness(), pending=deferred();h.setReply(()=>pending.promise);
   const old=h.controller.load();h.controller.setOwner(null);pending.resolve({data:[row('obsolete')],error:null});await old;
   assert.equal(h.controller.getSnapshot().rows.length,0);assert.equal(h.controller.getSnapshot().owner,null);h.controller.dispose();
+});
+
+test('bounded hide fences cannot revive discarded IDs from an old full response', async () => {
+  const h = harness(), pending = deferred(); h.setReply(() => pending.promise);
+  const old = h.controller.load();
+  for (let n = 0; n < 2100; n++) h.controller.hide(`old-${n}`);
+  assert.equal(h.controller.remember().hidden.length, 2000);
+  pending.resolve({ data: [row('old-0')], error: null }); await old;
+  assert.ok(!h.controller.getSnapshot().rows.some(row => row.post_id === 'old-0'));
+  assert.equal(h.controller.getSnapshot().loading, false);
+  h.controller.dispose();
+});
+
+test('a replacement authenticated session activates a new bounded ledger after its first page', async () => {
+  const { createSessionHistory } = load('../shared/sessionHistory.ts');
+  const created = [], disk = new Map();
+  const h = harness([row('alice')], null, { historyFactory: options => {
+    const value = createSessionHistory({ ...options, namespace: 'test-' + created.length,
+      storage: { read: async keys => keys.map(key => disk.get(key) ?? null), write: async entries => entries.forEach(([key,value]) => disk.set(key,value)),
+        clear: async prefix => { for (const key of disk.keys()) if (key.startsWith(prefix)) disk.delete(key); } } }); created.push(value); return value;
+  } });
+  await h.controller.start(); assert.ok(h.controller.getSnapshot().history);
+  h.controller.setOwner('bob'); await tick(); await tick();
+  assert.equal(created.length, 2); assert.equal(created[0].available(), false);
+  assert.equal(h.controller.getSnapshot().owner, 'bob'); assert.ok(h.controller.getSnapshot().history);
+  assert.equal(h.controller.getSnapshot().rows[0].post_id, 'fresh'); h.controller.dispose();
 });
 test('background refresh keeps reading position, holds new posts and removes revoked rows', async () => {
   const older=row('older'),h=harness([row('first'),older,row('revoked')]);
@@ -138,6 +164,7 @@ test('the actual HomeFeed server rendering includes post content before JavaScri
   const h=harness();const empty=()=>null;
   const overrides={
     '@/lib/navigationCache':{getNavigationStore:()=>({getSnapshot:()=>({owner:null,scope:null}),getServerSnapshot:()=>({owner:null,scope:null}),subscribe:()=>()=>{},cache:{read:()=>null}})},
+    '@/lib/sessionHistory': { createWebSessionHistory: () => { throw Error('Server render must not start client history.'); } },
     '../../shared/feedLive':load('../shared/feedLive.ts'), '@/lib/usePostInteractions':{applyPostInteractionsLive:()=>true},
     '@/lib/mediaPrefs': { dataSaverEnabled: () => false },
     '@/lib/homeFeedController':{createHomeFeedController}, '@/lib/homeFeedScroll':load('lib/homeFeedScroll.ts'), '@/lib/contentMedia':{hydratePostMedia:async rows=>rows}, '@/lib/feedCache':{getFeedCache:()=>h.cache}, '../../shared/feedSnapshot':shared, '../../shared/feedMedia':load('../shared/feedMedia.ts'),

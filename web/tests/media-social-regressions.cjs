@@ -11,9 +11,14 @@ const source = ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/p
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
 }).outputText;
 const compiled = { exports: {} };
+const counters = { exports: {} };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../../shared/postCounters.ts'), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { module: counters, exports: counters.exports });
 vm.runInNewContext(source, {
   module: compiled, exports: compiled.exports, require: name => {
     if (name === '@/lib/interactions') return {};
+    if (name === '../../shared/postCounters') return counters.exports;
     return require(name);
   }, setTimeout, clearTimeout, queueMicrotask, Map, Set,
 });
@@ -38,6 +43,7 @@ function harness() {
     return { data: found ? { post_id: filters.post_id } : null, error: null };
   }
   const client = {
+    rpc: async () => ({ data: null, error: { code: 'PGRST202' } }),
     auth: {
       getSession: () => { sessionReads.push(viewer); return Promise.resolve().then(session); },
       onAuthStateChange: fn => { authListener = fn; return { data: { subscription: { unsubscribe() {} } } }; },

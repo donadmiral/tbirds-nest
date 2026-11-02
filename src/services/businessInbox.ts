@@ -31,7 +31,7 @@ export function compareBusinessConversations(a: BusinessConversation, b: Busines
  * or substituted user identity. Chat's existing actAsId navigation is separate. */
 export async function readBusinessInboxWindow(owner: string, businessId: string, tab: BusinessInboxTab,
   previous: BusinessInboxWindow | null = null, append = false, signal?: AbortSignal,
-  current?: () => boolean): Promise<BusinessInboxWindow> {
+  current?: () => boolean, requestedIds?: string[]): Promise<BusinessInboxWindow> {
   const scope = navigationScope(), session = useAuthStore.getState().session;
   if (!scope || session?.user.id !== owner) throw new Error('Sign in to load the business inbox.');
   const valid = () => navigationScope() === scope && current?.() !== false && !signal?.aborted;
@@ -66,6 +66,16 @@ export async function readBusinessInboxWindow(owner: string, businessId: string,
     return { rows, summary, paging: { cursor: cursorNext, canView: data.can_view } };
   };
   const prior = previous?.scope === scope && previous.businessId === businessId ? previous : null;
+  if (requestedIds) {
+    if (requestedIds.length > 100) throw new Error('At most 100 conversations can be restored together.');
+    const rows: BusinessConversation[] = []; let summary = { primary: 0, requests: 0 };
+    for (let from = 0; from < requestedIds.length; from += 50) {
+      const page = (await readPage(null, requestedIds.slice(from, from + 50)))!;
+      if (!page.paging.canView) return { scope, businessId, tab, ...page };
+      summary = page.summary; rows.push(...page.rows.filter(row => matches(row, tab)));
+    }
+    return { scope, businessId, tab, rows, summary, paging: { cursor: null, canView: true } };
+  }
   const compatible = prior?.paging && prior.tab === tab ? prior : null;
   if (append) {
     if (!compatible) throw new Error('The business inbox changed. Please refresh.');

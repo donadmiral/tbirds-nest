@@ -6,7 +6,7 @@ import type { StoryMediaTransform, StoryRow } from "@/lib/stories";
 import { memoryAlbumStoryLayers } from '../../shared/memoryStoryPresentation';
 import { withTimeout } from './withTimeout';
 import { retainMemoryBookMedia } from './memoryReadiness';
-import { readMemoryBookFirst, readMemoryBookNext, memoryBookHasMore, readMemoryShelfFirst, readMemoryShelfNext, readNextMemoryBook,
+import { readMemoryBookFirst, readMemoryBookNext, readMemoryBookWindow, memoryBookHasMore, readMemoryShelfFirst, readMemoryShelfNext, readNextMemoryBook,
   type MemoryPagination, type MemoryShelfPagination } from '../../shared/pagedReaders';
 
 export type MemoryPage = {
@@ -113,6 +113,20 @@ export async function getMemoryBookNext(previous: MemoryAlbum, options: MemoryRe
   if (error || !viewer || (options.viewer && viewer !== options.viewer)) throw error ?? new Error('The account changed.');
   return withTimeout(readMemoryBookNext(supabase, previous, { viewer, token: data.session?.access_token,
     signal: options.signal, current: options.current }, async chunk => {
+      const [hydrated] = await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(chunk)], { auth: supabase.auth,
+        functions: { invoke: (name, request) => supabase.functions.invoke(name, { ...request, signal: options.signal }) } });
+      return hydrated;
+    }), 12_000);
+}
+
+export async function getMemoryBookWindow(previous: MemoryAlbum, index: number, direction: -1 | 1,
+  options: MemoryReadOptions): Promise<{ book: MemoryAlbum; index: number }> {
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.getSession();
+  const viewer = data.session?.user.id;
+  if (error || !viewer || (options.viewer && viewer !== options.viewer)) throw error ?? new Error('The account changed.');
+  return withTimeout(readMemoryBookWindow(supabase, previous, index, direction,
+    { viewer, token: data.session?.access_token, signal: options.signal, current: options.current }, async chunk => {
       const [hydrated] = await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(chunk)], { auth: supabase.auth,
         functions: { invoke: (name, request) => supabase.functions.invoke(name, { ...request, signal: options.signal }) } });
       return hydrated;

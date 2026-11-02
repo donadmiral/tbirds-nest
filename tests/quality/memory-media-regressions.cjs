@@ -30,8 +30,8 @@ function scenario(platform) {
     setAlbum: value => albums.push(value), setLoadError: value => errors.push(value), setLoading() {}, setPlayingUrl() {}, setLikedPages() {}, setReactionRead() {},
     setTitle() {}, setSubtitle() {}, setCoverStoryId() {}, setColor() {}, setAud() {}, setBookId() {},
   };
-  Object.assign(scope, { AbortController, moreRequest: { current: null }, completeIntent: { current: 0 }, pendingTurn: { current: null },
-    setLoadingPages() {}, setPreparingBook() {}, albumRef: { current: null }, displayedAlbum: { current: null },
+  Object.assign(scope, { AbortController, moreRequest: { current: null }, completeRequest: { current: null }, fullBookMode: { current: false }, completeIntent: { current: 0 }, pendingTurn: { current: null },
+    setLoadingPages() {}, setPreparingBook() {}, setRefreshingBook() {}, setIdx() {}, idxRef: { current: 0 }, indexRef: { current: 0 }, albumRef: { current: null }, displayedAlbum: { current: null },
     filmVisibleRef: { current: false }, memoryBookHasMore: () => false, mediaScope: { current: null }, request: { current: null },
     session: { scope: 'viewer-session' }, store: { getSnapshot: () => ({ scope: 'viewer-session' }) },
     readMemoryBookFirst: async () => { const { data, error } = await request.promise; if (error) throw error; return data; },

@@ -52,6 +52,8 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === 'next/image') return {__esModule:true,default:'img'};
     if (name === '@/lib/videoPlayback') return helper;
     if (name === '@/lib/videoReadiness') return preloadModule;
+    if (name === '@/lib/adaptiveVideo') return moduleFor(compile('lib/adaptiveVideo.ts'));
+    if (name.includes('shared/adaptiveMedia')) return sharedModule('adaptiveMedia.ts');
     if (name === '@/lib/navigationCache') return { getNavigationStore: () => navigationStore };
     if (name.includes('shared/soundtrack')) return soundtrackHelpers;
     if (name.includes('shared/discover')) return discoverHelpers;
@@ -73,7 +75,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
   };
   function moduleFor(code) {
     const module = { exports: {} };
-    vm.runInNewContext(code, { module, exports: module.exports, require: requireModule, window, document, crypto: { randomUUID: () => 'test-session' },
+    vm.runInNewContext(code, { module, exports: module.exports, require: requireModule, window, document, process: { env: { NEXT_PUBLIC_ADAPTIVE_MEDIA: 'false' } }, crypto: { randomUUID: () => 'test-session' },
       IntersectionObserver: class { constructor(callback, options) { if (options?.rootMargin) warmCallback = callback; else ioCallback = callback; } observe() {} disconnect() {} },
       ResizeObserver: class { observe() {} disconnect() {} }, setTimeout: (...args) => { const timer = setTimeout(...args); timer.unref(); return timer; }, clearTimeout });
     return module.exports;

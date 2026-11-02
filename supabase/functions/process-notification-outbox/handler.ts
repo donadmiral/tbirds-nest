@@ -8,7 +8,7 @@ type Outcome = { outcome: 'delivered' | 'skipped' | 'retry' | 'dead'; error: str
 type Dependencies = { service: Pick<SupabaseClient, 'from' | 'rpc'>; serviceKey: string; fetch: typeof fetch;
   authorizeLegacyService?: (request: Request, signal: AbortSignal) => Promise<boolean>;
   authorizeWorker?: (request: Request, signal: AbortSignal) => Promise<boolean>;
-  now?: () => number; deadlineMs?: number; maxJobs?: number;
+  now?: () => number; deadlineMs?: number; maxJobs?: number; expoAccessToken?: string;
   deliver?: (request: Request) => Promise<Response> };
 
 // HTTP success alone is not a provider receipt. Known partial acceptance must
@@ -61,7 +61,7 @@ export function createNotificationOutboxHandler(deps: Dependencies) {
         try {
           const remaining = Math.min(20_000, deadline - (now() - started) - 1_500);
           const deliver = deps.deliver ?? createCompatiblePushHandler({ service: deps.service, serviceKey: deps.serviceKey,
-            fetch: deps.fetch, now, deadlineMs: remaining });
+            fetch: deps.fetch, now, deadlineMs: remaining, expoAccessToken: deps.expoAccessToken });
           const response = await waitForPush(deliver(new Request('https://internal.invalid/notification', {
             method: 'POST', headers: { Authorization: 'Bearer ' + deps.serviceKey, 'Content-Type': 'application/json' },
             body: JSON.stringify({ record: { id: lease.notification_id } }),

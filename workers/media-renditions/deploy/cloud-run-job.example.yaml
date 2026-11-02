@@ -1,0 +1,56 @@
+# Reviewable full-profile host option. Not applied by this repository or CI.
+# Fill the owned billing project, least-privilege service account, immutable
+# image digest and pinned Secret Manager version before an authorized deploy.
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  name: platinum-media-renditions
+  labels:
+    cloud.googleapis.com/location: us-central1
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    spec:
+      taskCount: 1
+      parallelism: 1
+      template:
+        spec:
+          serviceAccountName: media-renditions@GCP_PROJECT_ID.iam.gserviceaccount.com
+          timeoutSeconds: 780
+          maxRetries: 0
+          volumes:
+            - name: scratch
+              emptyDir:
+                medium: Disk
+                sizeLimit: 2Gi
+          containers:
+            - image: us-central1-docker.pkg.dev/GCP_PROJECT_ID/media/renditions@sha256:IMAGE_DIGEST
+              command: ["/usr/bin/tini", "--", "node", "run-job.mjs"]
+              resources:
+                limits:
+                  cpu: "2"
+                  memory: 4Gi
+              volumeMounts:
+                - name: scratch
+                  mountPath: /scratch
+              env:
+                - name: TMPDIR
+                  value: /scratch
+                - name: SUPABASE_URL
+                  value: https://SUPABASE_PROJECT_ID.supabase.co
+                - name: MEDIA_BROKER_URL
+                  value: https://SUPABASE_PROJECT_ID.supabase.co/functions/v1/media-broker
+                - name: MEDIA_BROKER_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-renditions-broker-key
+                      key: "SECRET_VERSION"
+                - name: MEDIA_WORKER_MAX_INPUT_BYTES
+                  value: "536870912"
+                - name: MEDIA_WORKER_DISK_BYTES
+                  value: "2147483648"
+                - name: MEDIA_WORKER_DEADLINE_MS
+                  value: "720000"
+                - name: MEDIA_WORKER_THREADS
+                  value: "2"

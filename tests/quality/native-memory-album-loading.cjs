@@ -266,7 +266,7 @@ test('paged native continuation failure leaves the loaded book readable and cann
     await h.flush(); await h.authorize(largeBook(), 0); h.press('Play continuous memory film with original music');
     h.books[1].reject(Error('temporary continuation failure')); await h.flush();
     assert.ok(h.visible('Open book')); assert.ok(!h.nodes.some(node => node.type === 'MemoryFilm'));
-    assert.match(h.text(), /More memories could not load/);
+    assert.match(h.text(), /The complete book could not load/);
     await h.open(); assert.ok(h.visible('Page 1 of 61'));
   } finally { h.dispose(); }
 });

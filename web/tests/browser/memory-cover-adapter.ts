@@ -50,6 +50,8 @@ export function createClient():ReturnType<typeof actualClient>{
  return {auth:{getSession:async()=>({data:{session:session()},error:null}),getUser:async(jwt?:string)=>({data:{user:{id:jwt?.replace('synthetic-','')??user}},error:null}),onAuthStateChange:(callback:(event:string,value:Session|null)=>void)=>{listeners.add(callback);return{data:{subscription:{unsubscribe:()=>listeners.delete(callback)}}};}},rpc,from:()=>query} as unknown as ReturnType<typeof actualClient>;
 }
 export async function getMemoryBook(){return savedBook();}
+export async function getMemoryBookNext(book:MemoryAlbum){return book;}
+export async function getMemoryBookWindow(book:MemoryAlbum,index:number){return {book,index};}
 export async function getMemoryBooks(){const book=savedBook();return {is_owner:true,books:book?[book]:[]};}
 // This fixture stores one complete book, so the adjacent-book reader is empty.
 export async function getNextMemoryBook(){return null;}

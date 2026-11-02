@@ -2,6 +2,7 @@
 
 import { createHomeFeedController, type FeedSeed, type FeedMode, type HomeFeedMemory } from "@/lib/homeFeedController";
 import { getNavigationStore } from "@/lib/navigationCache";
+import { createWebSessionHistory } from '@/lib/sessionHistory';
 import { restoreHomeFeedScroll } from "@/lib/homeFeedScroll";
 import { hydratePostMedia, retainFeedMedia } from "@/lib/contentMedia";
 import { getFeedCache } from "@/lib/feedCache";
@@ -10,7 +11,7 @@ import { renewFeedMedia } from "../../shared/feedMedia";
 import { createFeedLive, feedLiveWindow } from '../../shared/feedLive';
 import { applyPostInteractionsLive } from '@/lib/usePostInteractions';
 
-import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { ArrowUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -35,6 +36,20 @@ const MODES = [
 // Appending another page must not render every already-visible media player.
 // Controller rows retain their identity until their actual data changes.
 const FeedPostCard = memo(PostCard);
+
+/** Only measured, complete pages leave the DOM. Ordinary wheel/touch scrolling
+ * stays with the browser; the two spacers retain the exact document geometry. */
+function FeedHistoryPage({ index, height, measure, children }: { index: number; height: number;
+  measure: (index: number, height: number) => void; children: ReactNode }) {
+  const content = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const node = content.current; if (!node) return;
+    const update = () => measure(index, node.getBoundingClientRect().height);
+    update(); const observer = new ResizeObserver(update); observer.observe(node);
+    return () => observer.disconnect();
+  }, [index, measure]);
+  return <div data-history-page={index} style={{ minHeight: height || undefined }}><div ref={content}>{children}</div></div>;
+}
 
 const EMPTY_COPY: Record<string, { title: string; sub: string }> = {
   for_you: { title: "Nothing here yet.", sub: "Follow people and your feed builds itself." },
@@ -67,7 +82,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   }, rows => renewFeedMedia(rows, value => hydratePostMedia(value)),
     navigationStore.getSnapshot().owner === seed.owner
       ? navigationStore.cache.read<HomeFeedMemory>(navigationStore.getSnapshot().scope, 'home:personal') : null,
-    { scope: () => navigationStore.getSnapshot().scope, retain: retainFeedMedia }));
+    { scope: () => navigationStore.getSnapshot().scope, retain: retainFeedMedia }, createWebSessionHistory));
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   const { mode, rows: posts, loading, loadingMore, hasMore, error, pending: pendingNew } = state;
   const uidRef = useRef<string | null>(seed.owner);
@@ -122,10 +137,8 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const feedRef = useRef<HTMLDivElement | null>(null);
-  // Variable-height posts stay in document flow. Window virtualization was
-  // correcting scroll offsets as media loaded and cards changed height,
-  // causing the page to jump underneath a normal wheel/touch gesture.
-  // Infinite paging and lazy media still bound network and decoding work.
+  // Rows keep their native document flow. Only complete measured pages may
+  // become equal-height spacers; there are no estimated-height corrections.
   const newDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const feedLiveRef = useRef<ReturnType<typeof createFeedLive> | null>(null);
   const [feedBroadcast, setFeedBroadcast] = useState(false);
@@ -142,7 +155,11 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   useEffect(() => {
     const cacheScope = navigationStore.getSnapshot().owner === seed.owner ? navigationStore.getSnapshot().scope : null;
     lastFeedScroll.current = controller.getSnapshot().scrollRestore?.top ?? window.scrollY;
-    const rememberScroll = () => { if (window.location.pathname === '/home') lastFeedScroll.current = window.scrollY; };
+    const rememberScroll = () => { if (window.location.pathname === '/home') {
+      lastFeedScroll.current = window.scrollY;
+      const node = listRef.current;
+      if (node) controller.approachHistory(-node.getBoundingClientRect().top, window.innerHeight);
+    } };
     window.addEventListener('scroll', rememberScroll, { passive: true });
     const syncMediaSession = () => {
       const session = navigationStore.getSnapshot();
@@ -229,7 +246,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
     window.addEventListener('pc-media-preferences', observe);
     document.addEventListener('visibilitychange', observe);
     return () => { io?.disconnect(); window.removeEventListener('pc-media-preferences', observe); document.removeEventListener('visibilitychange', observe); };
-  }, [load, posts.length, controller]);
+  }, [load, posts, controller]);
 
   // Seen reporting: the phone's exact batch semantics - 6s flush, retry on failure.
   useEffect(() => {
@@ -249,6 +266,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       if (batch.length === 0) return;
       sending = true;
       batch.forEach(id => { seenPendingRef.current.delete(id); seenSentRef.current.add(id); });
+      while (seenSentRef.current.size > 2000) seenSentRef.current.delete(seenSentRef.current.values().next().value!);
       try {
         const { error } = await supabase.from("post_seen")
           .upsert(batch.map(id => ({ user_id: userId, post_id: id })), { onConflict: "user_id,post_id" });
@@ -321,6 +339,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       const rows = controller.getSnapshot().rows;
       const anchor = rows.find(row => visible.has(row.post_id))?.post_id ?? interestAnchorRef.current;
       interestAnchorRef.current = anchor;
+      if (anchor) controller.setHistoryAnchor(anchor);
       feedLiveRef.current?.setWindow(feedLiveWindow(rows.map(post => ({ id: post.post_id, authorId: post.author_id })), anchor));
     }, { threshold: 0.01 });
     interestObserverRef.current = observer;
@@ -430,7 +449,10 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       ) : (
         <div>
           <div ref={listRef} data-feed-content="true">
-            {posts.filter(p => !isMarketplacePost(p)).map((p, i) => {
+            {state.history?.before ? <div aria-hidden="true" data-history-before="true" style={{ height: state.history.before, overflowAnchor: 'none' }} /> : null}
+            {(state.history?.pages ?? [{ index: 0, first: 0, rows: posts, height: 0 }]).map(page => {
+              const cards = page.rows.filter(p => !isMarketplacePost(p)).map((p, localIndex) => {
+              const i = page.first + localIndex;
               const slot = i === 1 ? promos[0] : (i > 1 && (i - 1) % 6 === 0 ? promos[Math.floor((i - 1) / 6)] : null);
               return (
                 <div key={p.post_id + ((p as unknown as { reposted_by_id?: string | null }).reposted_by_id ?? "")} data-index={i}>
@@ -441,7 +463,10 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
                   {mode === 'for_you' && i === MARKETPLACE_SHELF_AFTER - 1 ? <MarketplaceShelf items={marketplaceItems} /> : null}
                 </div>
               );
+              });
+              return state.history ? <FeedHistoryPage key={page.index} index={page.index} height={page.height} measure={controller.measurePage}>{cards}</FeedHistoryPage> : cards;
             })}
+            {state.history?.after ? <div aria-hidden="true" data-history-after="true" style={{ height: state.history.after, overflowAnchor: 'none' }} /> : null}
           </div>
           <div ref={sentinelRef} />
           {loadingMore ? <Skeleton /> : null}

@@ -17,6 +17,7 @@ const maxJobs = Number.isSafeInteger(configuredJobs) && configuredJobs > 0 ? Mat
 Deno.serve(async request => {
   let consumed: string | null = null;
   const response = await createNotificationOutboxHandler({ service, serviceKey, fetch: fetcher, maxJobs,
+    expoAccessToken: Deno.env.get('EXPO_ACCESS_TOKEN'),
     authorizeLegacyService,
     authorizeWorker: async (incoming, signal) => {
       const token = /^Bearer (pc_notify_[a-f0-9]{64})$/.exec(incoming.headers.get('Authorization') ?? '')?.[1];

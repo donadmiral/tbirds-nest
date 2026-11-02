@@ -1,0 +1,33 @@
+import { useEffect, useMemo } from 'react';
+import { useVideoPlayer, type VideoPlayer } from 'expo-video';
+import { knownAdaptiveMedia, resolveAdaptiveMedia } from '../../shared/adaptiveMedia';
+
+/** Keeps the existing native player and controls; upgrades only before playback. */
+export function useAdaptiveVideoPlayer(uri: string, setup?: (player: VideoPlayer) => void): VideoPlayer {
+  const source = useMemo(() => {
+    const ready = process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA === 'true' ? knownAdaptiveMedia(uri) : null;
+    return ready ? { uri: ready.hlsUrl, contentType: 'hls' as const, useCaching: false } : { uri, useCaching: false };
+  }, [uri]);
+  const player = useVideoPlayer(source, setup);
+  useEffect(() => {
+    if (process.env.EXPO_PUBLIC_ADAPTIVE_MEDIA !== 'true') return;
+    let alive = true, adaptive = source.uri !== uri, restoring = false;
+    const recover = () => {
+      if (!alive || !adaptive || restoring) return;
+      restoring = true; adaptive = false;
+      const at = player.currentTime, playing = player.playing;
+      void player.replaceAsync({ uri, useCaching: false }).then(() => {
+        if (!alive) return;
+        try { if (at > 0) player.currentTime = at; if (playing) player.play(); } catch {}
+      }).catch(() => {}).finally(() => { restoring = false; });
+    };
+    const listener = player.addListener('statusChange', event => { if (event.status === 'error') recover(); });
+    if (!adaptive) void resolveAdaptiveMedia(uri).then(async ready => {
+      if (!ready || !alive || player.playing || player.currentTime > .05) return;
+      adaptive = true;
+      try { await player.replaceAsync({ uri: ready.hlsUrl, contentType: 'hls', useCaching: false }); } catch { recover(); }
+    });
+    return () => { alive = false; listener.remove(); };
+  }, [player, source, uri]);
+  return player;
+}

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { readPostCounters } from '../../shared/postCounters';
 
 export type PostInteractionSeed = { liked: boolean; bookmarked: boolean; likesCount: number; bookmarksCount?: number };
 export type PostInteractionSnapshot = PostInteractionSeed & { bookmarksCount: number; pending: boolean; error: string | null; uncertain: boolean };
@@ -74,7 +75,11 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
   }
   async function read(id: string, owner: string): Promise<PostInteractionSeed & { bookmarksCount: number }> {
     const [post, like, bookmark] = await Promise.all([
-      client.from("posts").select("likes_count, bookmarks_count").eq("id", id).maybeSingle(),
+      readPostCounters(client, [id], async () => {
+        const value = await client.from('posts').select('likes_count,comments_count,reposts_count,bookmarks_count,views_count').eq('id', id).maybeSingle();
+        if (value.error) throw value.error;
+        return value.data ? [{ ...value.data, post_id: id }] : [];
+      }).then(rows => ({ data: rows[0] ?? null, error: null })),
       client.from("post_likes").select("post_id").eq("post_id", id).eq("user_id", owner).maybeSingle(),
       client.from("post_bookmarks").select("post_id").eq("post_id", id).eq("user_id", owner).maybeSingle(),
     ]);

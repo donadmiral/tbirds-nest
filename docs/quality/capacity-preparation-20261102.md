@@ -2,18 +2,22 @@
 
 The target is more than five million daily active users while preserving the current product experience. This implementation reduces avoidable work and introduces bounded, reversible server contracts. It does not establish the capacity of a hosted deployment. Daily users must be translated into measured concurrency, sessions, requests, media consumption and regional traffic before a capacity sign-off.
 
-## Implemented foundations
+## Implemented capacity work
 
 | Area | Change | Compatibility boundary |
 | --- | --- | --- |
 | Background traffic | Event-driven recovery replaces healthy idle health, typing and inactive-call polling. Retry work pauses in the background, uses jitter and recovers on reconnect/focus. | Active calls, presence expiry, durable message IDs, the outbox and final typing state remain covered by regression tests. |
 | Feed change delivery | Private, ID-only Broadcast interests and a durable coalescing queue replace broad feed delivery when enabled. Client windows, joins and refresh requests have explicit budgets. | Disabled by default; ranking, row keys, scrolling and the new-posts pill keep their existing contracts. |
 | Feed metadata | Nearby poll, collaborator, tag and edit reads share bounded batches. Cancellation propagates into media signing; old sessions cannot publish late results. | No completed cross-viewer metadata cache. A failed renewal retains already-confirmed presentation metadata. |
-| Post counters | Statement-level grouped deltas replace repeated full recount triggers, with canonical reconciliation and protection for derived counter fields. | Existing counter meanings are retained; views remain separate. Hot-post serialization still requires a later design. |
-| Books and shelves | Seek-based page readers, incremental hydration and exact cover/count metadata avoid downloading every page to open a book. | Disabled by default. Complete films, editors, grids and pickers explicitly finish reading all pages. |
+| Feed ranking | Narrow ranking tuples and an indexed score frontier avoid hydrating every eligible card. The frontier proves that unseen scores cannot displace the returned page. | Exact canonical scoring, diversity and cursors are retained. A proof-budget limit, unresolved raw-score ties and future timestamps use the original exact query. Those fallback workloads still need measurement. |
+| Post counters | Transactional 64-way counter shards distribute engagement writes. Current readers and mutation responses use exact aggregates; a worker coalesces legacy snapshots. | Legacy columns target a one-second refresh. A stalled worker activates synchronous compatibility behavior after five seconds. Historical displayed values and individual counter meanings require explicit cutover treatment. |
+| Books and shelves | Seek-based readers and bidirectional 48-page windows bound ordinary reading while retaining exact cover/count metadata and global page positions. | Complete films, editors, grids and pickers explicitly finish reading all pages. Returning to ordinary reading trims the payload without moving the visible page. |
 | Inboxes | Personal, context and acting-business readers have separate compatible contracts. Initial pages and retained-ID reads are bounded; badges and tab totals describe the full authorized scope. | Disabled by default. Existing access, request, archive, sender and unread rules are tested against the legacy readers. |
-| Admin | Service-only aggregate readers return compact dashboard and analytics results rather than downloading large platform tables to count them in the application. | Exact result semantics and existing presentation are retained. These are still primary-database scans, not maintained reporting projections. |
-| Media processing | Durable, versioned jobs, bounded leases, retry/dead-letter state, private immutable derivatives, version checks and physical Storage cleanup replace in-place remux assumptions. | All processing/delivery gates start disabled. Originals remain available. A faststart MP4 is not a substitute for adaptive streaming, CDN design or provider capacity. |
+| Long sessions | Web and native feeds/inboxes retain bounded active content. A session-scoped identifier/geometry ledger supports authorized restoration of earlier rows. | Measured geometry preserves native scrolling and the visible anchor. Private content and signed URLs are not persisted in the ledger. Quota failure retains current content and gives an explicit retry/refresh path. |
+| Notifications | Transactional recipient snapshots, paged fanout, fenced dispatch leases and retained dead letters replace synchronous group expansion. | Existing preferences, badges and ordinary push payloads remain on the compatible path. Partial provider acceptance is retained for reconciliation instead of resending already accepted devices. |
+| Admin | Maintained reporting projections and 256-way aggregate shards replace repeated whole-platform scans. Minute/day aggregates retain exact boundary handling. | Existing dashboard/analytics meanings, arbitrary as-of dates and Unicode grouping are tested against the canonical readers. Operational sampling appears in the existing platform-controls desk. |
+| Media processing and delivery | Versioned HLS ladders, a faststart fallback, immutable private assets, atomic publication, bounded retries and physical cleanup run through a separate FFmpeg worker and authorized delivery gateway. Shared caches reuse immutable Storage capabilities internally. | Originals remain available. The adaptive path is gated, supports one bounded decoder fallback, and has an explicit 30-second authorization-cache bound. Custom composition/export engines retain original sources. |
+| Operations | Bounded operational samples, queue/connection alerts, dated provider-reservation records and a measured stage validator make rollout status inspectable. | Unknown limits, missing samples, expired reservations and unapproved budgets never count as capacity evidence. These tools do not provision or infer hosted capacity. |
 
 Operational repairs and release-version evidence that disclose private deployment details are maintained in the private implementation handoff, outside this public repository.
 
@@ -28,6 +32,8 @@ The important compatibility checks include the final event in a burst, a timeout
 - [Feed delivery and durable queue](feed-live-rollout.md): explicit delivery/join budgets, worker health, privacy checks and the default-off activation sequence.
 - [Book, shelf and versioned inbox readers](paged-readers-rollout.md): complete-reading behavior, cursor identity, exact semantics, index preparation and rollback.
 - [Personal inbox clients](inbox-client-rollout.md): loaded-range reconciliation, full badges, forwarding, message invalidation and session fences.
+- [Capacity release operations](capacity-release-operations.md): activation dependencies, worker/monitoring operation, rollback and measured upgrade gates.
+- [Adaptive media](../../workers/media-renditions/README.md): worker/gateway deployment, credentials, scratch limits, authorization and cleanup.
 
 Apply additive schema changes to QA before deploying clients. Compare the target's canonical authorization/read contracts with the tested versions, verify effective grants, and retain old APIs. Enable a capability only after its actual authenticated hosted path has passed. A successful schema installation or a disabled capability is not evidence that the new path is active for users.
 
@@ -43,7 +49,7 @@ node web/tests/browser/memory-paging.cjs
 
 The full runner includes native, web and admin TypeScript checks and regression suites, database contracts and RPC authorization tests. The browser workflow additionally exercises actual app components, decoding/export paths, navigation and admin controls using synthetic fixtures.
 
-The `database-concurrency` CI job creates a disposable PostgreSQL 17 database with no TCP listener and runs counter, feed-queue, paging, context/business inbox, media-processing and service-authorization contracts. The real PostgreSQL tests require dedicated `pc_scale_*` databases and reject hosted targets; some contract files use PGlite when the real database variables are absent. Report real-database and emulated results separately.
+The `database-concurrency` CI job creates disposable PostgreSQL 17 databases with no TCP listener and runs counter, indexed-feed, durable-fanout, reporting, book-window, monitoring, inbox, media and service-authorization contracts. The real PostgreSQL tests require dedicated `pc_scale_*` databases and reject hosted targets; some contract files use PGlite when the real database variables are absent. Report real-database and emulated results separately. Media tests generate and decode actual synthetic video; the browser tests exercise the production reader components with synthetic responses.
 
 Browser fixture timing, synthetic row counts and local query plans are diagnostic evidence. They do not measure production throughput, network conditions, provider quotas, mobile GPU behavior or the performance of the public deployment.
 
@@ -51,10 +57,8 @@ Browser fixture timing, synthetic row counts and local query plans are diagnosti
 
 1. Complete the compatible operational rollout and reconcile exact web, admin, native and backend releases.
 2. Verify and gradually activate the new authenticated QA paths, including private Broadcast delivery, permission changes, membership removal and reconnect behavior.
-3. Replace the remaining expensive feed candidate/ranking work, design hot-post counter distribution and durable notification fanout, and move large reporting work onto maintained projections or an appropriate reporting path.
-4. Bound long-session retained feed/inbox history without changing scroll behavior. Rendered native cells are bounded; retained arrays, maps and web DOM history are not yet fully bounded.
-5. Complete the rendition, CDN/cache, media authorization, external-processing and recovery architecture. Measure actual hosted upload, playback, Range behavior, cleanup and worker resource use.
-6. Establish measured infrastructure capacity, provider quotas, reserve resources, monitoring, restore/failover behavior and an approved operating budget.
-7. Run representative authenticated mixed workloads, regional playback tests, a 24-hour soak, viral-post tests, reconnect bursts and failure recovery. Advance through the planned DAU-equivalent stages only when latency, errors, correctness, queue age and recovery gates pass.
+3. Deploy the separate media worker/gateway, configure their protected credentials and scheduler, and validate hosted publication, playback, Range behavior, cleanup and worker resource use. The full input profile requires an appropriately sized scratch volume; a smaller worker must not claim oversized jobs.
+4. Establish measured infrastructure capacity, confirmed provider quotas, reserve resources, active monitoring, restore/failover behavior and an approved operating budget. Select capacity using measured per-stage demand and actual provider entitlements.
+5. Run representative authenticated mixed workloads, regional playback tests, a 24-hour soak, viral-post tests, reconnect bursts and failure recovery. Include indexed-feed fallback cases, cold authorization caches, video source replacement, worker loss, counter-worker stalls and long-session backward navigation. Advance through the planned DAU-equivalent stages only when latency, errors, correctness, queue age and recovery gates pass.
 
 The workload calculator in `tools/performance/capacity-model.cjs` remains an offline planning model. Its old polling estimates are explicitly labeled historical; current candidate recovery traffic is marked unmeasured. Neither a calculator result nor a single successful load stage warrants an unlimited-user guarantee.

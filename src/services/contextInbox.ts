@@ -42,7 +42,7 @@ export function compareContextConversations(a: ContextConversation, b: ContextCo
  * global badge, and the existing unread store retains its own canonical RPC. */
 export async function readContextInboxWindow(owner: string, context: ContextInboxKind,
   previous: ContextInboxWindow | null = null, append = false, signal?: AbortSignal,
-  current?: () => boolean): Promise<ContextInboxWindow> {
+  current?: () => boolean, requestedIds?: string[]): Promise<ContextInboxWindow> {
   const scope = navigationScope(), session = useAuthStore.getState().session;
   if (!scope || session?.user.id !== owner) throw new Error('Sign in to load conversations.');
   const valid = () => navigationScope() === scope && current?.() !== false && !signal?.aborted;
@@ -80,6 +80,12 @@ export async function readContextInboxWindow(owner: string, context: ContextInbo
     return { rows, cursor: next };
   };
   const compatible = previous?.scope === scope && previous.context === context && previous.paging?.context === context ? previous : null;
+  if (requestedIds) {
+    if (requestedIds.length > 100) throw new Error('At most 100 conversations can be restored together.');
+    const rows: ContextConversation[] = [];
+    for (let from = 0; from < requestedIds.length; from += 50) rows.push(...(await readPage(null, requestedIds.slice(from, from + 50)))!.rows);
+    return { scope, context, rows, paging: { version: 2, context, cursor: null } };
+  }
   if (append) {
     if (!compatible) throw new Error('The conversation reader changed. Please refresh.');
     if (!compatible.paging?.cursor) return compatible;

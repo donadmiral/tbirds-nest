@@ -92,7 +92,7 @@ begin
  into v_db from pg_stat_database where datname=current_database();
  -- Fixed allowlist only. Optional component RPCs keep private queue layouts
  -- decoupled and must return bounded aggregate data, never user payloads.
- foreach v_name in array array['post_counter_status_v1','notification_fanout_status_v1','admin_reporting_status_v1','media_processing_status_v1','feed_ranking_status_v1'] loop
+ foreach v_name in array array['post_counter_status_v1','notification_fanout_status_v1','notification_worker_status_v1','admin_reporting_status_v1','media_processing_status_v1','feed_ranking_status_v1'] loop
   v_key:=replace(v_name,'_status_v1','');
   if to_regprocedure('public.'||v_name||'()') is null then
    v_component:=jsonb_build_object('state','not_installed');
@@ -131,6 +131,13 @@ begin
      perform capacity_ops.set_alert('notification_dispatch_age_seconds',coalesce(greatest(0,extract(epoch from v_at-v_timestamp)),0),30,120);
      perform capacity_ops.set_alert('notification_dead_letters',
       coalesce((v_component->>'fanout_dead')::integer,0)+coalesce((v_component->>'dispatch_dead')::integer,0),1,1);
+    elsif v_key='notification_worker' then
+     v_timestamp:=(v_component->>'last_completed_at')::timestamptz;
+     v_age:=case when coalesce((v_component->>'enabled')::boolean,false)
+      then case when v_timestamp is null then 180 else greatest(0,extract(epoch from v_at-v_timestamp)) end else 0 end;
+     v_component:=v_component||jsonb_build_object('pending',coalesce((v_component->>'active_ticks')::integer,0),
+      'last_completed_seconds',v_age);
+     perform capacity_ops.set_alert('notification_worker_silence_seconds',v_age,90,180);
     elsif v_key='media_processing' then
      v_states:=coalesce(v_component->'states','{}'::jsonb);
      v_pending:=coalesce((v_states->>'pending')::integer,0)+coalesce((v_states->>'retry')::integer,0)+coalesce((v_states->>'processing')::integer,0);
@@ -154,6 +161,9 @@ begin
   end if;
   v_components:=v_components||jsonb_build_object(v_key,v_component);
  end loop;
+ perform capacity_ops.set_alert('notification_dispatch_worker_unavailable',
+  case when coalesce((v_components->'notification_fanout'->>'dispatch_enabled')::boolean,false)
+   and not coalesce((v_components->'notification_worker'->>'enabled')::boolean,false) then 1 else 0 end,1,1);
  if to_regclass('feed_live.pending') is not null then
   execute 'select count(*) from (select 1 from feed_live.pending limit 10001) q' into v_pending;
   execute 'select greatest(0,extract(epoch from clock_timestamp()-queued_at)) from feed_live.pending order by queued_at limit 1' into v_age;

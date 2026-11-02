@@ -9,6 +9,9 @@ const ts = require('typescript');
 // tests execute PostCard, MediaGallery, their shared hook/store, write helper,
 // and confirmed comment-count publisher together through their real handlers.
 const sources = new Map();
+sources.set('../../shared/postCounters', ts.transpileModule(fs.readFileSync(path.join(__dirname, '../../shared/postCounters.ts'), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText);
 sources.set('../../shared/collaborationPeople', ts.transpileModule(fs.readFileSync(path.join(__dirname, '../../shared/collaborationPeople.ts'), 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
 }).outputText);
@@ -56,6 +59,7 @@ function scenario() {
     addEventListener: add, removeEventListener: remove,
     dispatchEvent: event => [...(listeners.get(event.type) || [])].forEach(listener => listener(event)), scrollTo() {} };
   const client = {
+    rpc: async () => ({ data: null, error: { code: 'PGRST202' } }),
     auth: { getSession: async () => ({ data: { session: { user: { id: 'qa' } } }, error: null }),
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
     from(table) {
