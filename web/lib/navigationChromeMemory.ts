@@ -12,7 +12,7 @@ const NEUTRAL = new Set(['api', 'auth', 'login', 'signup', 'reset-password', 'fo
 const STANDARD = new Set([
   ...PRIMARY_DESTINATIONS.map(item => item.href.split('/')[1]),
   ...MORE_DESTINATIONS.map(item => item.href.split('/')[1]),
-  'search', 'explore', 'album', 'topic',
+  'search', 'explore', 'album', 'topic', 'live',
 ]);
 
 /** Only ordinary AppShell destinations and the recorded owner's profile opt in. */

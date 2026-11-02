@@ -3,7 +3,7 @@ import { themedSheet, useTheme } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import VideoThumb from '../../components/VideoThumb';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList,
   ActivityIndicator, Image, StatusBar, Keyboard,
@@ -12,6 +12,7 @@ import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createRecentSearchStore } from '../../../shared/recentSearches';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
@@ -29,8 +30,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'market', label: 'Market' },
 ];
 
-const RECENT_KEY = 'tbn_recent_searches_v1';
-const MAX_RECENT = 8;
+
 
 function initials(name?: string | null) {
   if (!name) return 'U';
@@ -54,13 +54,15 @@ export default function SearchScreen({ navigation }: any) {
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
   const focused = useIsFocused();
-  const recentKey = `${RECENT_KEY}:${myId || 'signed-out'}`;
+  const [history] = useState(() => createRecentSearchStore(AsyncStorage));
+  const historyState = useSyncExternalStore(history.subscribe, history.getSnapshot, history.getServerSnapshot);
+  const recent = historyState.owner === myId ? historyState.entries.map(entry => entry.term) : [];
+  useEffect(() => { void history.bind(myId); return () => { void history.bind(null); }; }, [history, myId]);
 
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('people');
   const [postMode, setPostMode] = useState<'top' | 'latest'>('top');
   const [loading, setLoading] = useState(false);
-  const [recent, setRecent] = useState<string[]>([]);
 
   const [people, setPeople] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
@@ -80,34 +82,21 @@ export default function SearchScreen({ navigation }: any) {
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; request.current++; }; }, []);
   useEffect(() => {
     let alive = true;
-    setRecent([]); setQuery(''); setPeople([]); setPosts([]); setJobs([]); setListings([]); setTrendingTags([]); setErrors({});
+    setQuery(''); setPeople([]); setPosts([]); setJobs([]); setListings([]); setTrendingTags([]); setErrors({});
     request.current++;
     if (myId) {
-      AsyncStorage.getItem(recentKey).then(value => {
-        if (!alive || !value) return;
-        try { const saved = JSON.parse(value); if (Array.isArray(saved)) setRecent(saved.filter(item => typeof item === 'string').slice(0, MAX_RECENT)); } catch {}
-      }).catch(() => {});
       void Promise.resolve(supabase.rpc('get_trending_topics', { p_limit: 8 })).then(({ data, error }) => {
         if (alive && !error) setTrendingTags(data || []);
       }).catch(() => {});
     }
     return () => { alive = false; };
-  }, [myId, recentKey]);
+  }, [myId]);
 
-  const saveRecent = useCallback(async (term: string) => {
-    const value = term.trim();
-    if (!value || !myId) return;
-    setRecent(previous => {
-      const next = [value, ...previous.filter(item => item.toLowerCase() !== value.toLowerCase())].slice(0, MAX_RECENT);
-      void AsyncStorage.setItem(recentKey, JSON.stringify(next)).catch(() => {});
-      return next;
-    });
-  }, [recentKey, myId]);
-
-  const clearRecent = async () => {
-    setRecent([]);
-    await AsyncStorage.removeItem(recentKey).catch(() => {});
-  };
+  const saveRecent = useCallback((term: string) => {
+    if (history.getSnapshot().owner !== myId) return Promise.resolve();
+    return history.record(term);
+  }, [history, myId]);
+  const clearRecent = () => { if (history.getSnapshot().owner === myId) void history.clear(); };
 
   const runSearch = useCallback(async (term: string) => {
     const q = term.trim(), owner = identity.current, version = ++request.current;
@@ -317,6 +306,7 @@ export default function SearchScreen({ navigation }: any) {
             placeholder="People, posts, jobs, market"
             accessibilityLabel="Search Platinum"
             autoCorrect={false}
+            maxLength={200}
             placeholderTextColor={t.ink.secondary}
             keyboardAppearance={isDark ? "dark" : "light"}
             style={s.searchInput}
@@ -375,7 +365,7 @@ export default function SearchScreen({ navigation }: any) {
               {recent.length > 0 ? (
               <View style={s.recentHeader}>
                 <Text style={s.recentTitle}>Recent</Text>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear recent searches" style={{ minHeight: 44, justifyContent: 'center' }} onPress={clearRecent}><Text style={s.recentClear}>Clear</Text></TouchableOpacity>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear recent searches" style={{ minHeight: 44, justifyContent: 'center' }} onPress={clearRecent}><Text style={s.recentClear}>Clear all</Text></TouchableOpacity>
               </View>
             ) : null}
             </View>
@@ -391,20 +381,14 @@ export default function SearchScreen({ navigation }: any) {
             </View>
           }
           renderItem={({ item }) => (
-            <TouchableOpacity style={s.recentRow} onPress={() => setQuery(item)} activeOpacity={0.7}>
+            <TouchableOpacity style={s.recentRow} onPress={() => { void saveRecent(item); setQuery(item); }} activeOpacity={0.7}>
               <Feather name="clock" size={15} color={t.ink.secondary} />
               <Text style={s.recentTxt} numberOfLines={1}>{item}</Text>
               <TouchableOpacity
                 accessibilityRole="button"
                 accessibilityLabel={`Remove ${item} from recent searches`}
                 style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}
-                onPress={() => {
-                  setRecent(prev => {
-                    const next = prev.filter(x => x !== item);
-                    AsyncStorage.setItem(recentKey, JSON.stringify(next)).catch(() => {});
-                    return next;
-                  });
-                }}
+                onPress={event => { event.stopPropagation(); if (history.getSnapshot().owner === myId) void history.remove(item); }}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <Feather name="x" size={15} color={t.ink.muted} />

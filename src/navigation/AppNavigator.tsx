@@ -1,3 +1,4 @@
+import LiveStreamsScreen from '../screens/feed/LiveStreamsScreen';
 import ReactCaptureScreen from '../screens/feed/ReactCaptureScreen';
 import LaunchVeil from '../components/LaunchVeil';
 import ProfileRestore from '../components/ProfileRestore';
@@ -157,6 +158,7 @@ function FeedStackNav() {
   return (
     <FeedStack.Navigator screenOptions={{ headerShown: false }}>
       <FeedStack.Screen name="FeedMain"      component={FeedScreen} />
+      <FeedStack.Screen name="LiveStreams" component={LiveStreamsScreen} />
       <FeedStack.Screen name="Search"        component={SearchScreen} />
       <FeedStack.Screen name="Notifications" component={NotificationsScreen} />
       <FeedStack.Screen name="ArticleReader" component={ArticleReaderScreen} />

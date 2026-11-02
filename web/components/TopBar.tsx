@@ -1,4 +1,6 @@
 "use client";
+import { RecentSearchList } from "./RecentSearchList";
+import { useRecentSearches } from "@/lib/useRecentSearches";
 import NextImage from "next/image";
 
 import { useEffect, useRef, useState } from "react";
@@ -21,6 +23,20 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
   const pathname = usePathname();
   const unread = useUnreadNotifications() ?? 0;
   const [query, setQuery] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const history = useRecentSearches();
+  const searchForm = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    const outside = (event: PointerEvent) => { if (!searchForm.current?.contains(event.target as Node)) setHistoryOpen(false); };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, []);
+  useEffect(() => { setHistoryOpen(false); setQuery(''); }, [pathname, history.owner]);
+  const openSearch = (term: string) => {
+    if (term.trim()) void history.record(term);
+    setHistoryOpen(false);
+    router.push(term.trim() ? '/search?q=' + encodeURIComponent(term.trim()) : '/search');
+  };
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const [failedAvatar, setFailedAvatar] = useState<string | null>(null);
@@ -51,13 +67,22 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
   return <header data-app-chrome className={chrome.topbar}>
     <div className={chrome.mobileBrand}><Link href="/home" aria-label="Platinum Circles home"><Wordmark size={19} /></Link></div>
     {parent ? <Link href={parent.href} className={chrome.backLink} title={parent.label}><ArrowLeft size={18} strokeWidth={1.8} aria-hidden /><span>{parent.label}</span></Link> : null}
-    <form role="search" aria-label="Search Platinum Circles" className={chrome.search} action="/search" onSubmit={event => {
-      event.preventDefault(); const term = query.trim(); router.push(term ? "/search?q=" + encodeURIComponent(term) : "/search");
+    <form ref={searchForm} role="search" aria-label="Search Platinum Circles" className={chrome.search}
+      onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHistoryOpen(false); }}
+      onKeyDown={event => {
+        if (event.key === 'Escape') { event.preventDefault(); searchRef.current?.focus(); setHistoryOpen(false); }
+        if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && historyOpen) {
+          const choices = Array.from(searchForm.current?.querySelectorAll<HTMLButtonElement>('[data-recent-search]') ?? []);
+          if (choices.length) { event.preventDefault(); const current = choices.indexOf(document.activeElement as HTMLButtonElement); const next = event.key === 'ArrowDown' ? (current + 1) % choices.length : (current <= 0 ? choices.length - 1 : current - 1); choices[next].focus(); }
+        }
+      }} action="/search" onSubmit={event => {
+      event.preventDefault(); openSearch(query);
     }}>
       <Search size={19} strokeWidth={1.75} aria-hidden />
       <label className="sr-only" htmlFor="global-search">Search Platinum Circles</label>
-      <input id="global-search" ref={searchRef} name="q" type="search" autoComplete="off" maxLength={200} placeholder="Search Platinum Circles" value={query} onChange={event => setQuery(event.target.value)} />
-      {query ? <button type="button" aria-label="Clear search" onClick={() => { setQuery(""); searchRef.current?.focus(); }}><X size={17} aria-hidden /></button> : <kbd aria-hidden>⌘ K</kbd>}
+      <input id="global-search" ref={searchRef} aria-expanded={historyOpen} aria-controls="global-recent-searches" onFocus={() => setHistoryOpen(true)} onClick={() => setHistoryOpen(true)} name="q" type="search" autoComplete="off" maxLength={200} placeholder="Search Platinum Circles" value={query} onChange={event => { setQuery(event.target.value); setHistoryOpen(true); }} />
+      {query ? <button type="button" aria-label="Clear search" onClick={() => { setQuery(""); setHistoryOpen(true); searchRef.current?.focus(); }}><X size={17} aria-hidden /></button> : <kbd aria-hidden>⌘ K</kbd>}
+      {historyOpen ? <div className={chrome.searchHistory}><RecentSearchList id="global-recent-searches" query={query} onSelect={openSearch} /></div> : null}
     </form>
     <div className={chrome.topActions}>
       <span className={chrome.mobileMore}><MoreMenu mobile profileHref={profileHref} /></span>

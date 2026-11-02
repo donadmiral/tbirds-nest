@@ -1,0 +1,54 @@
+{
+  "result": "passed",
+  "mode": "real React components with local mock identity and empty Live RPC boundary",
+  "checks": [
+    "submit saves history",
+    "recent order",
+    "reload persistence",
+    "arrow navigation",
+    "escape dismiss",
+    "query filtering",
+    "individual remove",
+    "clear all persists",
+    "account switch isolation",
+    "history recovery for original owner",
+    "Live after Trending",
+    "44px target",
+    "no page overflow"
+  ],
+  "viewports": [
+    {
+      "width": 320,
+      "overflow": false,
+      "iconTouchTarget": {
+        "width": 47,
+        "height": 44
+      }
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "iconTouchTarget": {
+        "width": 47,
+        "height": 44
+      }
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "iconTouchTarget": {
+        "width": 47,
+        "height": 44
+      }
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "iconTouchTarget": {
+        "width": 47,
+        "height": 44
+      }
+    }
+  ],
+  "pageErrors": []
+}

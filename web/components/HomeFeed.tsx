@@ -12,6 +12,7 @@ import { createFeedLive, feedLiveWindow } from '../../shared/feedLive';
 import { applyPostInteractionsLive } from '@/lib/usePostInteractions';
 
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { LiveEntry } from "./LiveEntry";
 import { ArrowUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -92,6 +93,10 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const [composerGeneration, setComposerGeneration] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const requestedFeed = searchParams.get('feed');
+  useEffect(() => {
+    if (requestedFeed === 'latest' || requestedFeed === 'trending' || requestedFeed === 'for_you') controller.setMode(requestedFeed, window.scrollY);
+  }, [controller, requestedFeed]);
   // The ads wizard's format tiles land here: open the composer set to the
   // chosen kind, and after posting go back to the wizard with the post picked.
   const [composeKind, setComposeKind] = useState<"post" | "media" | "video" | "poll" | undefined>(undefined);
@@ -391,11 +396,13 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
           {MODES.map((m) => {
             const active = mode === m.key;
             return (
-              <button key={m.key}
+              <span key={m.key} className="contents">
+              {m.key === 'trending' ? <Link href="/discover" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted hover:text-ink sm:flex-none sm:px-3.5 sm:text-[14.5px]">Discover</Link> : null}
+              <button
                 aria-pressed={active}
                 onClick={() => setMode(m.key)}
                 className={
-                  "relative shrink-0 px-3.5 py-3 text-[14.5px] transition-colors duration-[180ms] " +
+                  "relative min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-[13px] transition-colors duration-[180ms] sm:flex-none sm:px-3.5 sm:text-[14.5px] " +
                   (active ? "font-semibold text-ink" : "text-muted hover:text-ink/80")
                 }
               >
@@ -407,9 +414,10 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
                   }
                   aria-hidden
                 />
-              </button>
+              </button></span>
             );
           })}
+          <LiveEntry />
         </div>
       </div>
 

@@ -2703,12 +2703,15 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 const label = m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : m === 'discover' ? 'Discover' : 'Trending';
                 const accent = m === 'discover' ? t.status.innovation : t.ink.primary;
                 return (
-                  <TouchableOpacity key={m} style={{ alignItems: 'center', paddingVertical: 8, paddingHorizontal: 4, marginRight: 14 }} onPress={() => setFeedMode(m)} activeOpacity={0.7}>
+                  <TouchableOpacity key={m} style={{ alignItems: 'center', paddingVertical: 8, paddingHorizontal: 2, flex: 1, minWidth: 0 }} onPress={() => setFeedMode(m)} activeOpacity={0.7}>
                     <Text style={{ fontSize: 15, fontWeight: on ? '800' : '500', color: on ? t.ink.primary : t.ink.secondary, letterSpacing: -0.2 }}>{label}</Text>
                     <View style={{ height: 3, width: 20, borderRadius: 2, marginTop: 5, backgroundColor: on ? accent : 'transparent' }} />
                   </TouchableOpacity>
                 );
               })}
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Live streams" onPress={() => navigation.navigate('LiveStreams')} style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
+                <Feather name="radio" size={23} color={t.ink.primary} />
+              </TouchableOpacity>
             </View>
           </View>
 

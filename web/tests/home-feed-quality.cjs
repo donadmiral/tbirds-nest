@@ -173,6 +173,7 @@ test('the actual HomeFeed server rendering includes post content before JavaScri
     '@/components/StoryRings':{StoryRings:empty}, '@/components/Composer':{Composer:empty},
     '@/components/AnnouncementBanner':{AnnouncementBanner:empty}, '@/components/SponsoredCard':{SponsoredCard:empty}, '@/lib/ads':{getActivePromos:async()=>[]},
     '../../shared/marketplaceRecommendations':marketplace,
+    './LiveEntry': load('components/LiveEntry.tsx', { './LiveIcon': load('components/LiveIcon.tsx') }),
     './MarketplaceShelf':load('components/MarketplaceShelf.tsx', { '../../shared/marketplaceRecommendations':marketplace }),
   };
   const {default:HomeFeed}=load('components/HomeFeed.tsx',overrides);

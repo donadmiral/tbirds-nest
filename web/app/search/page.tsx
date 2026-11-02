@@ -1,5 +1,7 @@
 "use client";
 
+import { RecentSearchList } from "@/components/RecentSearchList";
+import { useRecentSearches } from "@/lib/useRecentSearches";
 import { profilePath } from "@/lib/profileLookup";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -26,8 +28,6 @@ type PlaceHit = { name: string; kind: string; hits: number };
 type DirectoryHit = { id: string; name: string; description: string | null; member_count: number; icon_url: string | null };
 type Topic = { topic: string; post_count: number };
 
-const RECENT_KEY = "tbn_recent_searches_v1";
-const MAX_RECENT = 8;
 const CHIPS: [string, string][] = [["all", "All"], ["people", "People"], ["posts", "Posts"], ["media", "Media"], ["articles", "Articles"], ["jobs", "Jobs"], ["market", "Market"], ["places", "Places"], ["channels", "Channels"], ["communities", "Communities"]];
 
 type SearchData = { people: Person[]; posts: PostHit[]; jobs: JobHit[]; listings: ListingHit[]; media: MediaHit[]; articles: ArticleHit[]; places: PlaceHit[]; channels: DirectoryHit[]; communities: DirectoryHit[] };
@@ -74,13 +74,14 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [topicsError, setTopicsError] = useState(false);
   const [topicsAttempt, setTopicsAttempt] = useState(0);
-  const [recent, setRecent] = useState<string[]>([]);
+  const history = useRecentSearches();
+  const saveRecent = history.record;
   const [postMode, setPostMode] = useState<"top" | "latest">("top");
   const [paging, setPaging] = useState<Set<Vertical>>(new Set());
   const pageLocks = useRef(new Set<string>());
   const activeKey = useRef("");
   const authVersion = useRef(0);
-  const [recentKey, setRecentKey] = useState(RECENT_KEY + ":anonymous");
+
   const queryKey = q.trim() + "\0" + postMode;
   useEffect(() => { activeKey.current = queryKey; }, [queryKey]);
   const searched = result?.key === queryKey;
@@ -104,11 +105,6 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
       if (!alive || uid === next) return;
       uid = next; authVersion.current += 1;
       setResult(null); setPaging(new Set());
-      const key = RECENT_KEY + ":" + (next ?? "anonymous"); setRecentKey(key);
-      try {
-        const values: unknown = JSON.parse(window.localStorage.getItem(key) ?? "[]");
-        setRecent(Array.isArray(values) ? values.filter((value): value is string => typeof value === "string").slice(0, MAX_RECENT) : []);
-      } catch { setRecent([]); }
       setRetry((value) => value + 1);
     };
     const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => bind(session?.user.id ?? null));
@@ -116,28 +112,9 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
     return () => { alive = false; authVersion.current += 1; auth.subscription.unsubscribe(); };
   }, [supabase]);
 
-  const saveRecent = useCallback((term: string) => {
-    const t = term.trim();
-    if (!t) return;
-    setRecent((prev) => {
-      const next = [t, ...prev.filter((x) => x.toLowerCase() !== t.toLowerCase())].slice(0, MAX_RECENT);
-      try { window.localStorage.setItem(recentKey, JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
-  }, [recentKey]);
-
-  const removeRecent = (term: string) => {
-    setRecent((prev) => {
-      const next = prev.filter((x) => x !== term);
-      try { window.localStorage.setItem(recentKey, JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
-  };
-
-  const clearRecent = () => {
-    setRecent([]);
-    try { window.localStorage.removeItem(recentKey); } catch { /* ignore */ }
-  };
+  useEffect(() => {
+    if (history.ready && history.owner && initialQuery.trim()) void saveRecent(initialQuery);
+  }, [history.ready, history.owner, initialQuery, saveRecent]);
 
   const fetchPage = useCallback(async (vertical: Vertical, query: string, offset: number, asOf: string) => {
     const args: Record<string, unknown> = { p_limit: PAGE_SIZE, p_offset: offset, p_as_of: asOf };
@@ -258,9 +235,10 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
           onKeyDown={(e) => { if (e.key === "Enter") saveRecent(q); }}
           placeholder="Search Platinum Circles"
           aria-label="Search Platinum Circles"
-          autoFocus
-          className="w-full rounded-lg bg-surface py-3 pl-11 pr-4 text-[15px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+          autoFocus maxLength={200} autoComplete="off"
+          className="w-full rounded-lg bg-surface py-3 pl-11 pr-12 text-[15px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
         />
+        {q ? <button type="button" aria-label="Clear search" className="absolute right-1 top-1 grid min-h-10 min-w-10 place-items-center rounded-lg text-muted" onClick={() => setQ('')}><X size={18} /></button> : null}
       </div>
       </div>
 
@@ -277,6 +255,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
 
       {q.trim().length < 2 ? (
         <>
+          <div className="pt-4"><RecentSearchList query={q} onSelect={setQ} /></div>
           {topicsError ? <div role="alert" className="pt-5 text-sm text-muted"><p>Trending topics could not load. You can still search.</p><button type="button" className="mt-2 underline" onClick={() => { setTopicsError(false); setTopicsAttempt(value => value + 1); }}>Try again</button></div> : null}
           {topics.length > 0 ? (
             <div className="pt-5">
@@ -293,21 +272,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
               </div>
             </div>
           ) : null}
-          {recent.length > 0 ? (
-            <div className="pt-1">
-              <div className="flex items-center justify-between">
-                <p className={head}>Recent</p>
-                <button onClick={clearRecent} className="pt-4 text-[12px] font-medium text-muted transition-colors duration-[140ms] hover:text-ink">Clear</button>
-              </div>
-              {recent.map((r) => (
-                <div key={r} className="flex items-center gap-3 rounded-md px-1 py-2 transition-colors duration-[140ms] hover:bg-surface">
-                  <Search size={15} className="shrink-0 text-muted" />
-                  <button onClick={() => setQ(r)} className="min-w-0 flex-1 truncate text-left text-[14px] text-ink">{r}</button>
-                  <button onClick={() => removeRecent(r)} title="Remove" className="shrink-0 rounded-full p-1 text-muted transition-colors duration-[140ms] hover:bg-surface-elevated hover:text-ink"><X size={14} /></button>
-                </div>
-              ))}
-            </div>
-          ) : null}
+
         </>
       ) : searchError ? (
         <ErrorState title="Could not complete your search" onRetry={() => { setResult(null); setRetry((value) => value + 1); }} />

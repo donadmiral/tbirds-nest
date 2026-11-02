@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { NavigationLink as Link } from './NavigationLink';
 import { usePathname } from "next/navigation";
 import { BarChart3, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
+import { LiveIcon } from "./LiveIcon";
 import { Wordmark } from "@/components/Wordmark";
 import { PersonName } from "@/components/PersonName";
 import { useUnreadNotifications } from "@/lib/useUnreadNotifications";
@@ -64,6 +65,9 @@ export function Nav({ name, username, business = false, avatarUrl = null, verifi
           {collapsed ? null : <><span>{item.label}</span>{count > 0 ? <b className={chrome.badge}>{count > 99 ? "99+" : count}</b> : null}</>}
         </Link>;
       })}
+      <Link href="/live" className={chrome.navItem} aria-current={pathname.startsWith('/live') ? 'page' : undefined} aria-label="Live streams" title={collapsed ? "Live streams" : undefined}>
+        <LiveIcon size={22} />{collapsed ? null : <span>Live streams</span>}
+      </Link>
       <Link href={profileHref} onClick={event => repeat(event, profileHref)} className={chrome.navItem} aria-current={isDestinationActive(pathname, profileHref) ? "page" : undefined} title={collapsed ? "Profile" : undefined} aria-label="Profile">
         <User size={22} strokeWidth={1.75} aria-hidden />{collapsed ? null : <span>Profile</span>}
       </Link>

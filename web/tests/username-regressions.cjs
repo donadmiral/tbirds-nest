@@ -79,6 +79,9 @@ function harness(file, name = 'default', props = {}) {
   };
   const jsx = (type, props) => ({ type, props });
   const imports = {
+    './LiveIcon': { LiveIcon: 'LiveIcon' },
+    './RecentSearchList': { RecentSearchList: 'RecentSearchList' },
+    '@/lib/useRecentSearches': { useRecentSearches: () => ({ owner: viewer, entries: [], ready: true, record: () => Promise.resolve(), remove: () => Promise.resolve(), clear: () => Promise.resolve() }) },
     react,
     'react/jsx-runtime': { jsx, jsxs: jsx, Fragment: 'Fragment' },
     'next/navigation': { usePathname: () => '/home', useRouter: () => ({ push: href => calls.routes.push(href), replace: href => calls.routes.push(href), refresh: () => calls.refreshes++ }) },

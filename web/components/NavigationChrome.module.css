@@ -208,3 +208,8 @@
     outline-offset: -2px;
   }
 }
+
+/* Search history belongs to the header, above the feed, and never clips at mobile widths. */
+.search { position: relative; }
+.searchHistory { position: absolute; z-index: 60; top: calc(100% + 8px); left: 0; right: 0; max-height: min(65dvh, 520px); overflow-y: auto; overscroll-behavior: contain; border-radius: 12px; box-shadow: 0 12px 32px #0002; }
+.search .searchHistory button { display: flex; min-height: 44px; }
