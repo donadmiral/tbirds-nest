@@ -51,6 +51,8 @@ export function createClient():ReturnType<typeof actualClient>{
 }
 export async function getMemoryBook(){return savedBook();}
 export async function getMemoryBooks(){const book=savedBook();return {is_owner:true,books:book?[book]:[]};}
+// This fixture stores one complete book, so the adjacent-book reader is empty.
+export async function getNextMemoryBook(){return null;}
 export async function getMyStories(){return stories;}
 export async function getAccessList(){return [];}
 export async function searchPeople(){return [];}

@@ -1,7 +1,7 @@
 # Files the phone build never needs. EAS uses this file instead of .gitignore.
 node_modules/
 **/node_modules/
-.git/
+.git
 .expo/
 .next/
 **/.next/
