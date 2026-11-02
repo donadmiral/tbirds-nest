@@ -8,7 +8,7 @@ import { getFeedCache } from "@/lib/feedCache";
 import { dataSaverEnabled } from '@/lib/mediaPrefs';
 import { renewFeedMedia } from "../../shared/feedMedia";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -29,6 +29,10 @@ const MODES = [
   { key: "latest", label: "Latest" },
   { key: "trending", label: "Trending" },
 ] as const;
+
+// Appending another page must not render every already-visible media player.
+// Controller rows retain their identity until their actual data changes.
+const FeedPostCard = memo(PostCard);
 
 const EMPTY_COPY: Record<string, { title: string; sub: string }> = {
   for_you: { title: "Nothing here yet.", sub: "Follow people and your feed builds itself." },
@@ -359,7 +363,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
               return (
                 <div key={p.post_id + ((p as unknown as { reposted_by_id?: string | null }).reposted_by_id ?? "")} data-index={i}>
                   <div data-pid={p.post_id} data-aid={p.author_id} ref={observeSeen}>
-                    <PostCard post={p} />
+                    <FeedPostCard post={p} />
                   </div>
                   {slot && slot.post_id !== p.post_id ? <SponsoredCard promo={slot} /> : null}
                   {mode === 'for_you' && i === MARKETPLACE_SHELF_AFTER - 1 ? <MarketplaceShelf items={marketplaceItems} /> : null}

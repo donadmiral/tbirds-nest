@@ -1,0 +1,17 @@
+{
+  "capturedAt": "2026-11-02T00:31:57.991715+00:00",
+  "sourceHashes": {
+    "web/tests/browser/social-fixture.tsx": "794caae482b0e663271f8023431112cc1394379f3119931422973e87b3cdcbe0",
+    "web/tests/browser/social-run.cjs": "060a6a70e2681b8c8ddd6ffea46e62d4bca6a4dc5912affd9fdcd105b4d827aa",
+    "web/tests/browser/social-navigation.cjs": "a744df2acee1d1fedce4d0e00232bd93b963044ca81a9787f42cc95f0a7f315b",
+    "web/components/ScrollMemory.tsx": "6f66b5ecc1810eb72f87d3c26f64938f3ad1a34ac41d7795efe18f6939e19ba8",
+    "web/lib/homeFeedScroll.ts": "30b5393d538664aef461183f54d665187ada1526341e6ccddd1a36bc09d606e6",
+    "web/components/HomeFeed.tsx": "33c9bedb06787a635bdf016f3303c6904131195d688d1196d55e49977b82372a",
+    "web/components/MediaGallery.tsx": "04d3571b397bdcdb904108de9307c0e859c8a496f879b169effdd21890c22065",
+    "web/components/PostCard.tsx": "3753cb3a154001adb3eb75468f2a34e1f65cbc692477b25b6cea257b5a26f6d7",
+    "web/lib/homeFeedController.ts": "f32ece4774976ed0223745fa7d8516c7e440f729672ddbec623a42c14069f33b",
+    "web/components/NavigationPopover.tsx": "1e6d8532302ffcd9b6e547f52ef71d5c60eb9b8c3fd51e3428fc0ebeacd7804f",
+    "web/components/DiscoverViewer.tsx": "610fd7f31880eae4b71b8727062831d9ce529d503f4ee89fc55162d6b075226b",
+    "web/components/GlobalMediaLightbox.tsx": "5de7a144c65f00b9c8ba480f3cf5de5bdaee427335177e08c6b6e93e1d89ee94"
+  }
+}

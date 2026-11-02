@@ -1,10 +1,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
 const root=path.join(__dirname,'../..');
 const allNodes=tree=>{const list=[];function walk(n){if(Array.isArray(n))return n.forEach(walk);if(!n||typeof n!=='object')return;list.push(n);walk(n.props?.children);}walk(tree);return list;};
-function runtime(native=false){
+function runtime(native=false,preferences={}){
  let hooks,currentUser='viewer',authListener,callState='idle';const cache=new Map(),listeners=new Map(),calls=[];
- const dims={width:390,height:844},document={body:{style:{overflow:''}},visibilityState:'visible',activeElement:null,addEventListener:(k,f)=>listeners.set(k,f),removeEventListener:k=>listeners.delete(k)};
- const window={addEventListener:(k,f)=>listeners.set(k,f),removeEventListener:k=>listeners.delete(k)};
+ const dims={width:390,height:844},document={body:{style:{overflow:'',paddingRight:''}},documentElement:{clientWidth:1000},visibilityState:'visible',activeElement:null,addEventListener:(k,f)=>listeners.set(k,f),removeEventListener:k=>listeners.delete(k)};
+ const window={innerWidth:1024,getComputedStyle:node=>({paddingRight:node.style.paddingRight||'0px'}),matchMedia:()=>({matches:!!preferences.reducedMotion}),addEventListener:(k,f)=>listeners.set(k,f),removeEventListener:k=>listeners.delete(k)};
  const authStore=Object.assign(fn=>fn({profile:{id:currentUser}}),{getState:()=>({profile:{id:currentUser}}),subscribe:fn=>{authListener=fn;return()=>{};}});
  const client={auth:{getSession:async()=>({data:{session:{user:{id:currentUser}}}}),onAuthStateChange:fn=>{authListener=fn;return {data:{subscription:{unsubscribe(){}}}};}},rpc:(...args)=>{calls.push(args);return Promise.resolve({});}};
  const jsx=(type,props,key)=>({type,props,key});const react=new Proxy({__esModule:true},{get:(o,k)=>k==='__esModule'?true:k==='default'?react:(...args)=>hooks[k](...args)});
@@ -32,7 +32,7 @@ function runtime(native=false){
  }
  function mount(Component,initial){
   let props=initial,tree,dirty=true,cursor=0,pending=[];const slots=[];
-  const dom={clientHeight:700,clientWidth:390,scrollTop:0,scrollTo({top}){this.scrollTop=top;},focus(){document.activeElement=this;},querySelectorAll:()=>[]};
+  const dom={clientHeight:700,clientWidth:390,scrollTop:0,scrollCalls:[],focusCalls:[],scrollTo(options){this.scrollTop=options.top;this.scrollCalls.push(options);},focus(options){document.activeElement=this;this.focusCalls.push(options);},querySelectorAll:()=>[]};
   const same=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
   const h={useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],v=>{const value=typeof v==='function'?v(slots[i]):v;if(!Object.is(value,slots[i])){slots[i]=value;dirty=true;}}];},useRef(value){const i=cursor++;return slots[i]??={current:value};},useEffect(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps)){const prior=slots[i];slots[i]={deps};pending.push(()=>{prior?.cleanup?.();slots[i].cleanup=fn();});}},useCallback(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={value:fn,deps};return slots[i].value;},useMemo(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={value:fn(),deps};return slots[i].value;}};
   h.useLayoutEffect=h.useEffect;
@@ -58,6 +58,31 @@ test('web viewer loads near the end, retains active post after append, and pause
 });
 test('web viewer closes on an account change and restores page scrolling',async()=>{
  const rt=runtime(),Component=rt.load('FILE:web/components/DiscoverViewer.tsx').DiscoverViewer;let closed=0;const app=rt.mount(Component,props({onClose(){closed++;}}));await Promise.resolve();rt.account('other');assert.equal(closed,1);assert.equal(rt.document.body.style.overflow,'hidden');app.unmount();assert.equal(rt.document.body.style.overflow,'');
+});
+test('web viewer preserves the desktop scrollbar gap and restores opener focus without scrolling',()=>{
+ const rt=runtime(),Component=rt.load('FILE:web/components/DiscoverViewer.tsx').DiscoverViewer,focus=[];
+ rt.document.body.style.overflow='auto';rt.document.body.style.paddingRight='7px';
+ rt.document.activeElement={isConnected:true,focus:options=>focus.push(options)};
+ const app=rt.mount(Component,props());
+ assert.equal(rt.document.body.style.overflow,'hidden');assert.equal(rt.document.body.style.paddingRight,'31px');
+ assert.equal(app.dom.focusCalls.length,1);assert.equal(app.dom.focusCalls[0].preventScroll,true);
+ app.unmount();assert.equal(rt.document.body.style.overflow,'auto');assert.equal(rt.document.body.style.paddingRight,'7px');
+ assert.equal(focus.length,1);assert.equal(focus[0].preventScroll,true);
+});
+test('web viewer leaves an existing modal scroll lock intact and skips detached opener focus',()=>{
+ const rt=runtime(),Component=rt.load('FILE:web/components/DiscoverViewer.tsx').DiscoverViewer;
+ rt.document.body.style.overflow='hidden';rt.document.body.style.paddingRight='24px';rt.document.documentElement.clientWidth=1024;
+ rt.document.activeElement={isConnected:false,focus(){assert.fail('detached opener must not take focus');}};
+ const app=rt.mount(Component,props());assert.equal(rt.document.body.style.paddingRight,'24px');
+ app.unmount();assert.equal(rt.document.body.style.overflow,'hidden');assert.equal(rt.document.body.style.paddingRight,'24px');
+});
+test('web viewer keyboard paging follows the current reduced-motion preference',()=>{
+ const preferences={reducedMotion:false},rt=runtime(false,preferences),Component=rt.load('FILE:web/components/DiscoverViewer.tsx').DiscoverViewer;
+ const app=rt.mount(Component,props());let prevented=0;
+ const pageDown=()=>app.label('Discover viewer').props.onKeyDown({key:'PageDown',target:{closest:()=>null},preventDefault(){prevented++;}});
+ pageDown();assert.equal(app.dom.scrollCalls.at(-1).top,2800);assert.equal(app.dom.scrollCalls.at(-1).behavior,'smooth');
+ preferences.reducedMotion=true;pageDown();assert.equal(app.dom.scrollCalls.at(-1).top,2800);assert.equal(app.dom.scrollCalls.at(-1).behavior,'instant');
+ assert.equal(prevented,2);app.unmount();
 });
 test('web sensitive media cannot mount a player until explicitly revealed',()=>{
  const rt=runtime(),Component=rt.load('FILE:web/components/DiscoverViewer.tsx').DiscoverViewer;const viewer=rt.mount(Component,props());const itemType=viewer.find(n=>typeof n.type==='function'&&n.type.name==='DiscoverItem').type;

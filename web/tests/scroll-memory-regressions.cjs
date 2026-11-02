@@ -14,7 +14,7 @@ function compile(relative) {
 const source = compile('../components/ScrollMemory.tsx');
 const cacheSource = compile('../../shared/navigationCache.ts');
 
-function scenario(saved = 800, { height = 1000, route = '/musa', owner = 'a' } = {}) {
+function scenario(saved = 800, { height = 1000, route = '/musa', owner = 'a', homeMemory = null } = {}) {
   const listeners = new Map(), frames = new Map(), scrolls = [];
   let pathname, search, effect, cleanup, nextId = 0, now = 0, storageCalls = 0;
   let session = { owner, scope: owner ? '1:' + owner : null, revision: 1, initialized: true, changed: false };
@@ -39,6 +39,7 @@ function scenario(saved = 800, { height = 1000, route = '/musa', owner = 'a' } =
   };
   const key = next => { const url = new URL(next, 'https://fixture.invalid'); return 'scroll:' + url.pathname + '?' + url.searchParams.toString(); };
   cache.save(session.scope, key(route), saved);
+  if (homeMemory) cache.save(session.scope, 'home:personal', homeMemory);
   const exports = {};
   vm.runInNewContext(source, {
     exports, document, window, URLSearchParams, performance: { now: () => now },
@@ -140,6 +141,25 @@ test('resolved content restores before paint without reading or writing browser 
   h.window.scrollY = 900; h.dispatch('scroll'); h.unmount();
   assert.equal(h.read('/musa'), 900);
   assert.equal(h.storageCalls(), 0);
+});
+
+test('valid warm Home memory owns restoration while generic route offsets still record', () => {
+  const h = scenario(800, { height: 2400, route: '/home', homeMemory: { owner: 'a', tab: { mediaScope: '1:a' } } });
+  assert.deepEqual(h.scrolls, [], 'Generic route memory must not race Home\'s measured-layout restoration');
+  assert.equal(h.frames.size, 0);
+  h.window.scrollY = 800; h.dispatch('scroll');
+  assert.equal(h.read('/home'), 800);
+  h.window.scrollY = 920; h.dispatch('scroll'); h.unmount();
+  assert.equal(h.read('/home'), 920); assert.equal(h.listenerCount(), 0);
+});
+
+test('cold Home and incompatible session memory retain generic route restoration', () => {
+  for (const homeMemory of [null, { owner: 'b', tab: { mediaScope: '1:a' } }, { owner: 'a', tab: { mediaScope: 'old:a' } }]) {
+    const h = scenario(800, { height: 2400, route: '/home', homeMemory });
+    assert.deepEqual(h.scrolls, [[0, 800]]); h.unmount();
+  }
+  const profile = scenario(800, { height: 2400, route: '/musa', homeMemory: { owner: 'a', tab: { mediaScope: '1:a' } } });
+  assert.deepEqual(profile.scrolls, [[0, 800]], 'Home ownership does not disable other routes'); profile.unmount();
 });
 
 test('shorter content has a bounded restoration deadline and clamps to the available height', () => {

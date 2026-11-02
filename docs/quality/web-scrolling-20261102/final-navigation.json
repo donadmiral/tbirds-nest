@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-11-02T00:31:50.493971+00:00",
+  "reason": "Final navigation timing uses a microtask after layout commits, before first animation-frame observation. All other inputs from the full 65-file suite remain unchanged.",
+  "checks": [
+    {
+      "name": "final-navigation",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/home-feed-scroll.cjs",
+        "tests/scroll-memory-regressions.cjs",
+        "tests/home-feed-quality.cjs"
+      ],
+      "exitCode": 0,
+      "durationMs": 1237,
+      "log": "final-navigation.log"
+    },
+    {
+      "name": "final-typescript",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exitCode": 0,
+      "durationMs": 19683,
+      "log": "final-typescript.log"
+    }
+  ],
+  "hashes": {
+    "web/lib/homeFeedScroll.ts": "30b5393d538664aef461183f54d665187ada1526341e6ccddd1a36bc09d606e6",
+    "web/components/ScrollMemory.tsx": "6f66b5ecc1810eb72f87d3c26f64938f3ad1a34ac41d7795efe18f6939e19ba8",
+    "web/tests/home-feed-scroll.cjs": "d0d789b17f9d41e580f65510c3e9c9957adf5e8e225ebed4c2cb45b8b5c565fc",
+    "web/tests/scroll-memory-regressions.cjs": "71da00457d9edc8b3f55639c589a88f888e232702ce3a538577fd04525b07cc8"
+  },
+  "changedInputs": []
+}

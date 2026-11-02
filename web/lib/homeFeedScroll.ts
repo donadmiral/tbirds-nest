@@ -56,8 +56,10 @@ export function restoreHomeFeedScroll(controller: Controller, element: () => HTM
     }
     timer = setTimeout(tick, 100);
   };
-  // The caller runs in a layout effect. A ready retained view must not paint at
-  // the route's default offset first; only incomplete media height needs a retry.
-  tick();
+  // Child layout effects measure the real card width and update their reserved
+  // frames during this commit. Restore at the end of that task, before any
+  // animation-frame observers or paint, so anchoring cannot move a position
+  // restored against the old sizes. The active guard also fences queued work.
+  queueMicrotask(tick);
   return finish;
 }

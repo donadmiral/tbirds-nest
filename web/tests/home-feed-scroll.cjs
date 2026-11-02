@@ -22,7 +22,8 @@ const row = id => ({ post_id: id, author_id: 'author', content: id, created_at: 
 
 function scenario(memory) {
   let now = 0, nextId = 0, cleanup;
-  const listeners = new Map(), timers = new Map(), frames = new Map(), scrolls = [], calls = [];
+  const listeners = new Map(), timers = new Map(), frames = new Map(), microtasks = [], scrolls = [], calls = [];
+  const layout = () => { while (microtasks.length) microtasks.shift()(); };
   const dispatch = name => [...(listeners.get(name) ?? [])].forEach(callback => callback({}));
   const events = {
     addEventListener(name, callback) { const set = listeners.get(name) ?? new Set(); set.add(callback); listeners.set(name, set); },
@@ -45,6 +46,7 @@ function scenario(memory) {
     clearTimeout(id) { timers.delete(id); },
     requestAnimationFrame(callback) { const id = ++nextId; frames.set(id, callback); return id; },
     cancelAnimationFrame(id) { frames.delete(id); },
+    queueMicrotask(callback) { microtasks.push(callback); },
   });
   // Execute the actual component's restore effect and click handler, rather
   // than a copied version of the HomeFeed wiring.
@@ -70,12 +72,12 @@ function scenario(memory) {
   const handler = { exports: {} };
   vm.runInNewContext(compile('export const choose = ' + choose), { module: handler, exports: handler.exports, controller, window });
   return {
-    controller, window, document, rootElement, timers, frames, scrolls, calls, dispatch, commit,
+    controller, window, document, rootElement, timers, frames, microtasks, scrolls, calls, dispatch, commit, layout,
     choose: handler.exports.choose,
     setReply(fn) { reply = fn; },
     height(value) { document.body.scrollHeight = document.documentElement.scrollHeight = value; },
-    frame() { now += 16; for (const [id, callback] of [...frames]) { frames.delete(id); callback(); } },
-    advance(ms) { const until = now + ms; let steps = 0; while (true) { const next = [...timers].filter(([, timer]) => timer.at <= until).sort((a, b) => a[1].at - b[1].at)[0]; if (!next) break; assert.ok(++steps < 1000); const [id, timer] = next; now = timer.at; timers.delete(id); timer.callback(); } now = until; },
+    frame() { layout(); now += 16; for (const [id, callback] of [...frames]) { frames.delete(id); callback(); } },
+    advance(ms) { layout(); const until = now + ms; let steps = 0; while (true) { const next = [...timers].filter(([, timer]) => timer.at <= until).sort((a, b) => a[1].at - b[1].at)[0]; if (!next) break; assert.ok(++steps < 1000); const [id, timer] = next; now = timer.at; timers.delete(id); timer.callback(); } now = until; },
     listenerCount() { return [...listeners.values()].reduce((count, callbacks) => count + callbacks.size, 0); },
     unmount() { cleanup?.(); controller.dispose(); },
   };
@@ -94,14 +96,28 @@ test('a first mount leaves route restoration in charge and mode clicks remember 
   await settle(); h.unmount(); assert.equal(h.listenerCount(), 0);
 });
 
-test('a warm route with enough retained height restores before the first animation frame', () => {
+test('a warm route restores before paint after child layout measurements have settled', () => {
   const previous = scenario(), memory = previous.controller.remember(780); previous.unmount();
   const h = scenario(memory); assert.equal(h.window.scrollY, 0);
   h.commit();
-  assert.equal(h.window.scrollY, 780, 'layout commit must restore the existing page before paint');
+  assert.equal(h.window.scrollY, 0, 'Do not restore against child frames that have not committed their measured sizes');
+  assert.equal(h.microtasks.length, 1);
+  h.height(6800); h.layout();
+  assert.equal(h.window.scrollY, 780, 'Even the first animation-frame observer sees the saved position and settled layout');
   assert.equal(h.scrolls.length, 1); assert.equal(h.frames.size, 0); assert.equal(h.timers.size, 0);
   assert.equal(h.controller.getSnapshot().scrollRestore, null); assert.equal(h.listenerCount(), 0);
   h.frame(); h.advance(1000); assert.equal(h.scrolls.length, 1); h.unmount();
+});
+
+test('wheel intent before the first frame cancels a warm route restore', () => {
+  const previous = scenario(), memory = previous.controller.remember(780); previous.unmount();
+  const h = scenario(memory); h.commit();
+  const stale = h.microtasks[0];
+  h.dispatch('wheel'); h.window.scrollY = 120;
+  h.frame(); stale(); h.advance(1000);
+  assert.equal(h.window.scrollY, 120); assert.equal(h.scrolls.length, 0);
+  assert.equal(h.frames.size, 0); assert.equal(h.listenerCount(), 0);
+  assert.equal(h.controller.getSnapshot().scrollRestore, null); h.unmount();
 });
 
 test('restoration waits for the correct rendered mode and usable content height, then runs only once', async () => {
@@ -165,7 +181,7 @@ test('rapid changes retain unapplied offsets and obsolete callbacks cannot finis
   const obsolete = [...h.timers.values()][0].callback;
   h.choose('latest'); h.commit(); const later = h.controller.getSnapshot().scrollRestore;
   obsolete(); assert.equal(h.controller.getSnapshot().scrollRestore.id, later.id);
-  h.height(6000); h.advance(100); assert.equal(h.scrolls.at(-1).top, 700); await settle();
+  h.height(6000); h.frame(); h.advance(100); assert.equal(h.scrolls.at(-1).top, 700); await settle();
   h.choose('for_you'); h.commit(); h.frame(); assert.equal(h.scrolls.at(-1).top, 1600);
   await settle(); h.unmount();
 });

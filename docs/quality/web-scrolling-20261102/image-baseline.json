@@ -1,0 +1,67 @@
+{
+  "scope": "Actual production HomeFeed, chrome, MediaGallery, VideoPlayer, composer and Messages. Synthetic Auth/data/router; local HTTP SVG and range-served H.264. Real Playwright mouse.wheel events. Frame intervals are local development-fixture main-thread responsiveness evidence, not production GPU/device benchmarks or physical mouse hardware.",
+  "executablePath": "/tmp/platinum-web-admin-chrome156/chrome-linux64/chrome",
+  "chromiumVersion": "156.0.8078.80",
+  "head": "06759cd0ef944ae56c2240cc4881ee27682e073d",
+  "hashes": {
+    "web/components/HomeFeed.tsx": "33c9bedb06787a635bdf016f3303c6904131195d688d1196d55e49977b82372a",
+    "web/components/MediaGallery.tsx": "d1f867c15ee24a41231d9069d178aeb7d90c5686ba8ec1a86cad02a1da486a8e",
+    "web/components/VideoPlayer.tsx": "0bce5a85dfab3ead0c58d513f7a6635ef58e7b71a148a1be8eacab613956d070",
+    "web/components/NavigationPopover.tsx": "1e6d8532302ffcd9b6e547f52ef71d5c60eb9b8c3fd51e3428fc0ebeacd7804f",
+    "web/lib/homeFeedController.ts": "f32ece4774976ed0223745fa7d8516c7e440f729672ddbec623a42c14069f33b",
+    "web/tests/browser/scroll-fixture.tsx": "9ba7de39c9f0a1f1f28e12c499655bcd158536ad576651dc970351ee639eadad",
+    "web/tests/browser/scroll-run.cjs": "438cd2682ce0dffd0902f2075de036ae1de224d1991a12f2a7d191603b2da759"
+  },
+  "checks": [],
+  "traces": [
+    {
+      "label": "delayed image geometry",
+      "before": {
+        "y": 0,
+        "cardTop": 496.25,
+        "cardHeight": 180.796875,
+        "frameWidth": 638,
+        "frameHeight": 0,
+        "documentHeight": 12188
+      },
+      "after": {
+        "y": 0,
+        "cardTop": 496.25,
+        "cardHeight": 340.796875,
+        "frameWidth": 638,
+        "frameHeight": 160,
+        "documentHeight": 12348
+      }
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "path": "/delayed-image.svg",
+      "range": null
+    },
+    {
+      "path": "/coast.svg?post=3",
+      "range": null
+    },
+    {
+      "path": "/delayed-video.mp4",
+      "range": "bytes=0-"
+    }
+  ],
+  "failure": "AssertionError [ERR_ASSERTION]: delayed image geometry: cardHeight changed from 180.796875 to 340.796875\n    at assertGeometry (/workspace/scratch/22ba32471a78/platinum-circles/web/tests/browser/scroll-run.cjs:73:12)\n    at /workspace/scratch/22ba32471a78/platinum-circles/web/tests/browser/scroll-run.cjs:127:13\n    at async check (/workspace/scratch/22ba32471a78/platinum-circles/web/tests/browser/scroll-run.cjs:24:36)\n    at async main (/workspace/scratch/22ba32471a78/platinum-circles/web/tests/browser/scroll-run.cjs:124:5)",
+  "baselineOverrides": {
+    "commit": "06759cd0ef944ae56c2240cc4881ee27682e073d",
+    "files": [
+      {
+        "file": "/tmp/platinum-scroll-head-MediaGallery.tsx",
+        "sha256": "e48ea7464c71bdbd160ea1ae2452373d2faf88014ebceafd1c25819339d4b1e5"
+      },
+      {
+        "file": "/tmp/platinum-scroll-head-homeFeedController.ts",
+        "sha256": "f4e389cc9ff57a00a38b3c719a8e52c4fbc50940e943244a4f41009b82f14125"
+      }
+    ],
+    "note": "Compiler aliases override these two product modules with git06759cd source (relative imports rewritten to original repository paths); other module hashes in this receipt describe contemporaneous working-tree code."
+  }
+}

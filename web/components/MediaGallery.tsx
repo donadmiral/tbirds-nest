@@ -116,6 +116,9 @@ function EditPlanes({ e }: { e: PostMediaEditRecipe | null | undefined }) {
   );
 }
 type Dims = { w: number; h: number };
+function dimensions(w: number | null | undefined, h: number | null | undefined): Dims | null {
+  return typeof w === 'number' && typeof h === 'number' && Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0 ? { w, h } : null;
+}
 export type ViewerPost = {
   author_id?: string | null;
   post_id: string;
@@ -149,9 +152,12 @@ function fitted(w: number | null | undefined, h: number | null | undefined, avai
 
 export function MediaGallery(props: Parameters<typeof PostMediaGallery>[0]) {return <PostMediaGallery key={props.postId} {...props}/>;}
 function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, onDoubleClick: onFeedDoubleClick }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost; fullFrame?: boolean; onDoubleClick?: (e: React.MouseEvent) => void }) {
+  // Equivalent feed arrays do not invalidate authorized metadata. Recheck
+  // when a source changes or a media item starts/stops needing an edit lookup.
+  const metadataKey = JSON.stringify(media.filter(m => UUID_ID.test(m.id)).map(m => [m.id, m.url, m.edit === undefined]));
   const [edits, setEdits] = useState<Record<string, PostMediaEditRecipe | null>>({});
   useEffect(() => {
-    const need = media.filter(m => m.edit === undefined && UUID_ID.test(m.id)).map(m => m.id);
+    const need = (JSON.parse(metadataKey) as [string, string, boolean][]).filter(([, , missingEdit]) => missingEdit).map(([id]) => id);
     if (!need.length) return;
     const client = createClient();
     let live = true, version = 0;
@@ -174,13 +180,13 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
     document.addEventListener('visibilitychange', visible);
     const { data } = client.auth.onAuthStateChange(() => { version++; setEdits({}); queueMicrotask(() => { if (live) void refresh(); }); });
     return () => { live = false; version++; clearInterval(timer); document.removeEventListener('visibilitychange', visible); data.subscription.unsubscribe(); };
-  }, [media, postId]);
+  }, [metadataKey, postId]);
   const editOf = (m: MediaItem) => (m.edit !== undefined ? m.edit : edits[m.id]) ?? null;
   const [tags, setTags] = useState<Record<string, MediaTag[]>>({});
-  const [metadataSource,setMetadataSource]=useState(media);
-  if(metadataSource!==media){setMetadataSource(media);setEdits({});setTags({});}
+  const [metadataSource,setMetadataSource]=useState(metadataKey);
+  if(metadataSource!==metadataKey){setMetadataSource(metadataKey);setEdits({});setTags({});}
   useEffect(() => {
-    const need = media.filter(m => UUID_ID.test(m.id)).map(m => m.id);
+    const need = (JSON.parse(metadataKey) as [string, string, boolean][]).map(([id]) => id);
     if (!need.length) return;
     const client = createClient();
     let live = true, version = 0;
@@ -199,7 +205,7 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
     void refresh();
     const { data } = client.auth.onAuthStateChange(() => { version++; setTags({}); queueMicrotask(() => { if (live) void refresh(); }); });
     return () => { live = false; version++; data.subscription.unsubscribe(); };
-  }, [media, postId]);
+  }, [metadataKey, postId]);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const mediaPaneRef = useRef<HTMLDivElement | null>(null);
@@ -342,26 +348,37 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
   }
 
   const measure = useCallback((id: string, w: number, h: number) => {
-    if (w > 0 && h > 0) setTrueDims((r) => (r[id] && r[id].w === w && r[id].h === h ? r : { ...r, [id]: { w, h } }));
+    if (dimensions(w, h)) setTrueDims((r) => (r[id] && r[id].w === w && r[id].h === h ? r : { ...r, [id]: { w, h } }));
   }, []);
 
   if (media.length === 0) return null;
   const item = media[Math.min(idx, media.length - 1)];
-  const known = trueDims[item.id] ?? (item.width && item.height ? { w: item.width, h: item.height } : null);
-  const fittedDims = fitted(known?.w, known?.h, availW, maxH, editOf(item)?.rotation ?? 0);
-  // Video takes the whole card width and caps its height at 4:5, exactly as
-  // Instagram's feed does. A tall clip is cover-cropped to that box in the
-  // feed; post detail opts into fitting the full frame inside the same box.
+  const declared = dimensions(item.width, item.height);
+  const known = trueDims[item.id] ?? declared;
+  // Reserve document space from the feed response before media loads. Late
+  // natural dimensions and legacy edit lookups only change content inside
+  // this frame, so they cannot move the reader or animate the scroll anchor.
+  // Older rows without dimensions use a stable 4:3 image or 4:5 video frame.
+  const frameEdit = item.edit;
+  const frameKnown = declared ?? { w: 1200, h: 900 };
+  const declaredImage = fitted(frameKnown.w, frameKnown.h, availW, maxH, frameEdit?.rotation ?? 0);
   const explicitFrame = !!(editOf(item)?.aspectRatio || editOf(item)?.aspect);
-  const chosenRatio = postAspectRatio(editOf(item),known?.w,known?.h);
+  const declaredFrame = !!(frameEdit?.aspectRatio || frameEdit?.aspect);
+  const chosenRatio = postAspectRatio(frameEdit,declared?.w,declared?.h);
   const chosenWidth = Math.min(availW,maxH*chosenRatio);
-  const dims = explicitFrame && availW ? {w:chosenWidth,h:Math.round(chosenWidth/chosenRatio)} : item.media_type === "video" && availW
-    ? { w: availW, h: Math.round(Math.min(known?.w && known?.h ? availW * (known.h / known.w) : availW * 1.25, availW * 1.25)) }
-    : fittedDims;
+  const dims = declaredFrame && availW ? {w:chosenWidth,h:Math.max(1,Math.round(chosenWidth/chosenRatio))} : item.media_type === "video" && availW
+    ? { w: availW, h: Math.max(1,Math.round(Math.min(declared ? availW * (declared.h / declared.w) : availW * 1.25, availW * 1.25))) }
+    : declaredImage;
+  const contentRatio = postAspectRatio(editOf(item), known?.w, known?.h);
+  const contentWidth = dims ? Math.min(dims.w, dims.h * contentRatio) : availW;
+  // A recipe fetched after the card appears keeps its authored crop inside
+  // the reserved space rather than changing the document's height.
+  const contentDims = explicitFrame && dims ? { w: contentWidth, h: Math.max(1, Math.round(contentWidth / contentRatio)) } : dims;
+  const fittedDims = fitted(known?.w ?? frameKnown.w, known?.h ?? frameKnown.h, contentDims?.w ?? availW, contentDims?.h ?? maxH, editOf(item)?.rotation ?? 0);
   const altOf = (m: MediaItem, i: number) => m.alt_text || "Post media " + (i + 1);
   const showPanel = !!post && !immersive;
   const viewerItem = lightbox === null ? null : media[lightbox];
-  const viewerKnown = viewerItem ? trueDims[viewerItem.id] ?? (viewerItem.width && viewerItem.height ? { w: viewerItem.width, h: viewerItem.height } : null) : null;
+  const viewerKnown = viewerItem ? trueDims[viewerItem.id] ?? dimensions(viewerItem.width, viewerItem.height) : null;
   const viewerImage = viewerItem?.media_type !== 'video'
     ? fitted(viewerKnown?.w, viewerKnown?.h, viewerSize.w, viewerSize.h, viewerItem ? editOf(viewerItem)?.rotation ?? 0 : 0, 1) : null;
 
@@ -457,7 +474,6 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
   function onDragEnd() { dragRef.current = null; }
 
   const arrow = "absolute top-1/2 -translate-y-1/2 rounded-full bg-ink/70 p-1.5 text-white transition-colors duration-[140ms] hover:bg-ink/90";
-  const heightTransition = reduced ? "" : " transition-[height] duration-200";
   const count = (n?: number) => (n ?? 0) >= 1000 ? ((n ?? 0) / 1000).toFixed(1).replace(/\.0$/, "") + "K" : String(n ?? 0);
 
   return (
@@ -467,22 +483,22 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
         {lightbox !== null ? (
           <div style={dims ? { height: dims.h + "px" } : undefined} className="w-full" />
         ) : (
-        <div className={"flex items-center justify-center" + heightTransition}
+        <div className="flex items-center justify-center"
           style={dims ? { height: dims.h + "px" } : undefined}
         >
           {item.media_type === "video" ? (
-            <div style={dims ? { width: dims.w + "px", height: dims.h + "px" } : { width: "100%" }}>
+            <div style={contentDims ? { width: contentDims.w + "px", height: contentDims.h + "px" } : { width: "100%" }}>
               <div className="relative h-full w-full overflow-hidden"><VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount}
-                fullFrame={fullFrame && !explicitFrame}
+                fullFrame={(fullFrame || !declared) && !explicitFrame}
                 width={known?.w} height={known?.h}
                 onDims={(w, h) => measure(item.id, w, h)}
                 edit={editOf(item)} soundtrack={readSoundtrack(editOf(media[0])?.soundtrack)} mediaOverlay={<EditPlanes e={editOf(item)} />}
                 allowPlayback={!item.is_sensitive || !!revealed[item.id]}
                 onExpand={() => openViewer(idx)}
-              /><TagLayer mode="list" tags={tags[item.id] || []} w={dims?.w} h={dims?.h} /></div>
+              /><TagLayer mode="list" tags={tags[item.id] || []} w={contentDims?.w} h={contentDims?.h} /></div>
             </div>
           ) : (
-            <div className="relative flex items-center justify-center" style={dims ? { width: dims.w, height: dims.h } : undefined}>
+            <div className="relative flex items-center justify-center overflow-hidden" style={contentDims ? { width: contentDims.w, height: contentDims.h } : undefined}>
 
             <NextImage unoptimized={dataSaverEnabled() || !item.url.includes('/storage/v1/object/public/')} width={known?.w || 1200} height={known?.h || 900} src={dataSaverEnabled() ? displayImageUrl(item.url, 480)! : item.url}
               loader={publicImageLoader} sizes="(max-width: 700px) 92vw, 640px"
@@ -496,12 +512,12 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
               aria-label={"Open " + altOf(item, idx)}
               alt={altOf(item, idx)}
               loading="lazy"
-              style={explicitFrame && dims ? {width:dims.w,height:dims.h,objectFit:editOf(item)?.fit||'cover',...editStyle(editOf(item))} : fittedDims ? { width: fittedDims.sourceW, height: fittedDims.sourceH, maxWidth: 'none', maxHeight: 'none', flexShrink: 0, ...editStyle(editOf(item)) } : editStyle(editOf(item))}
+              style={explicitFrame && contentDims ? {width:contentDims.w,height:contentDims.h,objectFit:editOf(item)?.fit||'cover',...editStyle(editOf(item))} : fittedDims ? { width: fittedDims.sourceW, height: fittedDims.sourceH, maxWidth: 'none', maxHeight: 'none', flexShrink: 0, ...editStyle(editOf(item)) } : editStyle(editOf(item))}
               className={"cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
             />
               <EditPlanes e={editOf(item)} />
               <PostSoundtrack selection={readSoundtrack(editOf(media[0])?.soundtrack)} active={!viewerOpen&&(!item.is_sensitive||!!revealed[item.id])} className="absolute bottom-2 right-2"/>
-              <TagLayer tags={tags[item.id] || []} w={dims?.w} h={dims?.h} />
+              <TagLayer tags={tags[item.id] || []} w={contentDims?.w} h={contentDims?.h} />
             </div>
           )}
         </div>

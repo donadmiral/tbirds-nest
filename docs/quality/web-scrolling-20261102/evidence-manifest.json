@@ -1,0 +1,15 @@
+{
+  "createdAt": "2026-11-02T00:33:14.516507+00:00",
+  "files": {
+    "final-navigation.json": "0c7ae50ae78bd59368394832724576c3d8fbe6cd7699cd9f7abf04a2f928bc3f",
+    "image-baseline.json": "af85194d8f6d8289aa62a20bc3e4b1df7fcdaf90e3e633810bf0e2393dcc6609",
+    "integration.json": "9c69f5b66d834999070cac4836e752376a82b938bc32d76a05af20f663878ce3",
+    "media-readiness.json": "694afe152025e339ae4bfee48d536db4fedb55f8ca426a621ef470ac1a4812ef",
+    "navigation-baseline.json": "083bca0f4e055af42e2f84b33732508a294981534b408014c8454b1c402e802a",
+    "social-results.json": "a4d1dd0576311f7d12c30e2fc48b50337c2901c74016625e19a6c67d943b2dac",
+    "social-source-after.json": "5c9451908c8000aa56ca8c4ddc804c3808248c4ca5dc8d7fe8f7959264bc345a",
+    "social-source-before.json": "561615d76c3d6bdc51fb0fb9612b027b965f1f518f230ed2401b96f3204fcbfb",
+    "warm-navigation-frames.json": "930ccf0634754afee7f97a24199e702b2e879eb8d7b549fd764b6f8720462e69",
+    "wheel-results.json": "880a88433eff6fd379c786404b4fd67c64c4b47114238fd764889d6b6dedaf43"
+  }
+}

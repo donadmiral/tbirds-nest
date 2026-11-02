@@ -21,13 +21,13 @@ const { createHomeFeedController, filterMutedFeedRows } = load('lib/homeFeedCont
 const row = (id, likes = 0) => ({ post_id: id, author_id: 'author', content: 'Visible content ' + id, created_at: '2026-10-22T12:00:00Z', media: [], products: [], likes_count: likes, sort_key: 100 });
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
-function harness(seedRows = [row('first')], seedError = null) {
+function harness(seedRows = [row('first')], seedError = null, options = {}) {
   const calls = [], saved = new Map(), measurements = [];
   let reply = async (_name, args) => ({ data: args.p_ids ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : [row('fresh')], error: null });
   const cache = shared.createFeedSnapshotStore({ getItem: async key => saved.get(key) ?? null, setItem: async (key,value) => saved.set(key,value), removeItem: async key => saved.delete(key) });
   const client = { rpc(name,args) { calls.push({name,args}); return reply(name,args); } };
   const seed = { owner: 'alice', rows: seedRows, mutedWords: [], error: seedError };
-  const controller = createHomeFeedController(client, seed, cache, event => measurements.push(event));
+  const controller = createHomeFeedController(client, seed, cache, event => measurements.push(event), options.hydrate, undefined, options.mediaContext);
   return {controller,client,seed,calls,cache,saved,measurements,setReply(fn){reply=fn;}};
 }
 
@@ -51,10 +51,11 @@ test('signing out clears visible posts and fences pending requests', async () =>
   assert.equal(h.controller.getSnapshot().rows.length,0);assert.equal(h.controller.getSnapshot().owner,null);h.controller.dispose();
 });
 test('background refresh keeps reading position, holds new posts and removes revoked rows', async () => {
-  const h=harness([row('first'),row('older'),row('revoked')]);
+  const older=row('older'),h=harness([row('first'),older,row('revoked')]);
   h.setReply(async(name)=>({data:name==='get_feed'?[row('new'),row('first',5)]:['new','first','older'].map(post_id=>({post_id,snapshot_eligible:true})),error:null}));
   await h.controller.load(false,true);
-  const s=h.controller.getSnapshot();assert.deepEqual(Array.from(s.rows,r=>r.post_id),['first','older']);assert.equal(s.rows[0].likes_count,5);assert.equal(s.pending,1);h.controller.dispose();
+  const s=h.controller.getSnapshot();assert.deepEqual(Array.from(s.rows,r=>r.post_id),['first','older']);assert.equal(s.rows[0].likes_count,5);assert.equal(s.pending,1);
+  assert.equal(s.rows[1],older,'Revalidating visibility must not reset an unchanged retained card');h.controller.dispose();
 });
 test('network errors preserve readable posts and release the loading state for retry', async () => {
   const h=harness();h.setReply(async()=>({data:null,error:{message:'offline'}}));await h.controller.load();
@@ -66,6 +67,67 @@ test('pagination requests are deduplicated and old pages cannot enter a refreshe
   const one=h.controller.load(true);await h.controller.load(true);assert.equal(h.calls.length,1);
   h.controller.setOwner(null);pending.resolve({data:[row('old-page')],error:null});await one;
   assert.equal(h.controller.getSnapshot().rows.length,0);h.controller.dispose();
+});
+
+test('appending a page preserves existing row and media identity and renews only the new media', async () => {
+  const { renewFeedMedia } = load('../shared/feedMedia.ts'), hydrated = [];
+  const expiry = Date.now() + 180000;
+  const seeds = Array.from({ length: 20 }, (_, i) => ({ ...row('shown-' + i), _mediaExpiresAt: expiry,
+    media: [{ id: 'clip-' + i, url: 'https://media.example/authorized-' + i + '.mp4', media_type: 'video' }] }));
+  const h = harness(seeds, null, { hydrate: rows => renewFeedMedia(rows, async incoming => {
+    hydrated.push(...incoming.map(item => item.post_id));
+    return incoming.map(item => ({ ...item, _mediaExpiresAt: expiry }));
+  }) });
+  h.setReply(async () => ({ data: [{ ...row('next'), media: [{ id: 'photo', url: 'https://media.example/next.jpg', media_type: 'image' }] }], error: null }));
+  await h.controller.load(true);
+  const result = h.controller.getSnapshot().rows;
+  assert.equal(result.length, 21);
+  assert.deepEqual(hydrated, ['next'], 'Still-current media never repeats authorization hydration while paging');
+  seeds.forEach((seed, index) => {
+    assert.equal(result[index], seed, 'An appended page must not rerender an unchanged retained card');
+    assert.equal(result[index].media, seed.media, 'Existing media metadata keeps its identity');
+  });
+  h.controller.dispose();
+});
+
+test('appending a page still replaces expiring media while preserving other retained rows', async () => {
+  const { renewFeedMedia } = load('../shared/feedMedia.ts'), hydrated = [];
+  const expiry = Date.now() + 180000;
+  const seeds = Array.from({ length: 20 }, (_, i) => ({ ...row('shown-' + i), _mediaExpiresAt: i === 0 ? Date.now() + 59000 : expiry,
+    media: [{ id: 'clip-' + i, url: 'https://media.example/old-' + i + '.mp4', media_type: 'video' }] }));
+  const h = harness(seeds, null, { hydrate: rows => renewFeedMedia(rows, async incoming => {
+    hydrated.push(...incoming.map(item => item.post_id));
+    return incoming.map(item => ({ ...item, _mediaExpiresAt: expiry,
+      media: item.media.map(media => ({ ...media, url: 'https://media.example/renewed-' + media.id + '.mp4' })) }));
+  }) });
+  h.setReply(async () => ({ data: [row('next')], error: null }));
+  await h.controller.load(true);
+  const result = h.controller.getSnapshot().rows;
+  assert.deepEqual(hydrated, ['shown-0', 'next']);
+  assert.notEqual(result[0], seeds[0]);
+  assert.notEqual(result[0].media, seeds[0].media);
+  assert.equal(result[0].media[0].url, 'https://media.example/renewed-clip-0.mp4');
+  assert.equal(result[0]._mediaExpiresAt, expiry);
+  assert.equal(result[1], seeds[1]);
+  assert.equal(seeds[0].media[0].url, 'https://media.example/old-0.mp4', 'Renewal does not mutate earlier snapshots');
+  h.controller.dispose();
+});
+
+test('media normalization removes unavailable sources without copying or mutating valid retained rows', async () => {
+  const good = { id: 'visible', url: 'https://media.example/visible.jpg', media_type: 'image' };
+  const unavailable = { ...row('unavailable'), media: [good, { id: 'denied', url: null }, { id: 'empty', url: '' }] };
+  const seeds = [unavailable, ...Array.from({ length: 19 }, (_, i) => row('shown-' + i))];
+  const h = harness(seeds);
+  h.setReply(async () => ({ data: [{ ...row('next'), media: undefined }], error: null }));
+  await h.controller.load(true);
+  const result = h.controller.getSnapshot().rows;
+  assert.equal(result[0].media.length, 1);
+  assert.equal(result[0].media[0], good);
+  assert.notEqual(result[0], unavailable);
+  assert.equal(unavailable.media.length, 3, 'Filtering does not mutate a retained snapshot');
+  assert.equal(result[1], seeds[1]);
+  assert.equal(result.at(-1).media.length, 0, 'Missing media is still normalized to an empty list');
+  h.controller.dispose();
 });
 test('muted words apply to server rows and hidden posts cannot return after refresh', async () => {
   assert.equal(filterMutedFeedRows([row('hidden'),row('visible')],['hidden']).length,1);
@@ -112,10 +174,47 @@ test('metadata refresh preserves current exact media grants and same-account ses
   assert.equal(c.getSnapshot().rows.length, 0, 'Old decoded media is removed before the next session read');
   await tick();
   assert.equal(hydration.at(-1)[0].media[0].url, original, 'New session cannot reuse the old grant');
+  assert.notEqual(c.getSnapshot().rows[0], old, 'Reference preservation never crosses authenticated sessions');
+  assert.notEqual(c.getSnapshot().rows[0].media, old.media);
   const restored = createHomeFeedController(h.client, { ...h.seed, rows: [] }, h.cache, undefined, undefined, memory,
     { scope: () => scope, retain: adapter.retainFeedMedia });
   assert.equal(restored.getSnapshot().rows.length, 0, 'Memory from another session is not displayed');
   restored.dispose(); c.dispose(); h.controller.dispose();
+});
+
+test('authorized refresh applies changed media sources and edit recipes instead of retaining obsolete identity', async () => {
+  const content = load('../shared/contentMedia.ts');
+  const reuse = load('../shared/feedMediaReuse.ts', { './contentMedia': content });
+  const adapter = load('lib/contentMedia.ts', { '../../shared/contentMedia': content, '../../shared/feedMediaReuse': reuse, './supabase/client': { createClient() {} } });
+  const { renewFeedMedia } = load('../shared/feedMedia.ts');
+  const canonical = name => 'https://example.supabase.co/storage/v1/object/public/post-media/author/' + name;
+  const capability = (name, token) => 'https://example.supabase.co/functions/v1/media-content/post-media/author/' + name + '?token=' + token.repeat(64);
+  for (const change of [{ file: 'replacement.mp4', trimStart: 0 }, { file: 'clip.mp4', trimStart: 2 }]) {
+    const expiry = Date.now() + 180000, hydration = [];
+    const original = { ...row('first'), _mediaExpiresAt: expiry,
+      media: [{ id: 'clip', url: capability('clip.mp4', 'a'), media_type: 'video', edit: { trimStart: 0 } }] };
+    const incoming = { ...row('first', 9),
+      media: [{ id: 'clip', url: canonical(change.file), media_type: 'video', edit: { trimStart: change.trimStart } }] };
+    const h = harness([original], null, {
+      mediaContext: { scope: () => 'alice:1', retain: adapter.retainFeedMedia },
+      hydrate: rows => renewFeedMedia(rows, async values => {
+        hydration.push(...values);
+        return values.map(item => ({ ...item, _mediaExpiresAt: expiry,
+          media: item.media.map(media => ({ ...media, url: capability(change.file, 'b') })) }));
+      }),
+    });
+    h.setReply(async (_name, args) => ({ data: args.p_ids ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : [incoming], error: null }));
+    await h.controller.load(false, true);
+    const current = h.controller.getSnapshot().rows[0];
+    assert.equal(hydration.length, 1, 'Actual media changes require renewed authorization');
+    assert.equal(hydration[0].media[0].url, canonical(change.file));
+    assert.notEqual(current, original);
+    assert.notEqual(current.media, original.media);
+    assert.equal(current.media[0].url, capability(change.file, 'b'));
+    assert.equal(current.media[0].edit.trimStart, change.trimStart);
+    assert.equal(current.likes_count, 9, 'Fresh non-media metadata still updates');
+    h.controller.dispose();
+  }
 });
 
 test('same-account A to B to A session changes fence pending feed hydration', async () => {

@@ -451,7 +451,7 @@ test('inline portrait and landscape images fit their 90/270 degree rotated boxes
     const screen = scenario().mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width, height, edit: { rotation } }] }, 'gallery');
     screen.render();
     const image = screen.find(n => n.type === 'img' && n.props.role === 'button');
-    const frame = screen.find(n => n.type === 'div' && n.props.className === 'relative flex items-center justify-center');
+    const frame = screen.find(n => n.type === 'div' && n.props.className === 'relative flex items-center justify-center overflow-hidden');
     assertRotatedFits(image.props.style, rotation, frame.props.style.width, frame.props.style.height);
     assert.ok(frame.props.style.width <= 600); assert.ok(frame.props.style.height <= 700);
     assert.match(image.props.style.transform, new RegExp(`rotate\\(${rotation}deg\\)`));
@@ -472,11 +472,53 @@ test('malformed image dimensions never produce nonfinite fitted CSS values', () 
   for (const width of [Infinity, NaN, -1]) {
     const screen = scenario().mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width, height: 180 }] }, 'gallery');
     screen.render(); const style = screen.find(n => n.type === 'img' && n.props.role === 'button').props.style;
-    assert.equal(style.width, undefined); assert.equal(style.height, undefined); screen.unmount();
+    assert.ok(Number.isFinite(style.width) && style.width > 0); assert.ok(Number.isFinite(style.height) && style.height > 0); screen.unmount();
   }
   const screen = scenario().mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width: 320, height: 180, edit: { rotation: NaN } }] }, 'gallery');
   screen.render(); const style = screen.find(n => n.type === 'img' && n.props.role === 'button').props.style;
   assert.equal(style.width, 400); assert.equal(style.height, 225); screen.unmount();
+});
+
+test('late image dimensions fit inside the reserved card without moving its document space', () => {
+  for (const [width, height] of [[800, 1600], [1920, 1080]]) {
+    const screen = scenario().mount({ media: [{ id: 'late', url: 'late.jpg', media_type: 'image' }] }, 'gallery');
+    screen.render();
+    const box = () => screen.find(n => n.type === 'div' && n.props.className === 'flex items-center justify-center');
+    const image = () => screen.find(n => n.type === 'img' && n.props.role === 'button');
+    const heightBefore = box().props.style.height;
+    assert.equal(heightBefore, '450px', 'Missing dimensions reserve a 4:3 frame at the measured 600px width');
+    image().props.onLoad({ currentTarget: { naturalWidth: width, naturalHeight: height } });
+    screen.render();
+    assert.equal(box().props.style.height, heightBefore);
+    assertRotatedFits(image().props.style, 0, 600, 450);
+    assert.ok(Math.abs(image().props.style.width / image().props.style.height - width / height) < 0.01, 'The loaded picture keeps its natural proportions');
+    screen.unmount();
+  }
+});
+
+test('late video metadata keeps the reserved frame while the player fits the complete clip', () => {
+  const screen = scenario().mount({ media: [{ id: 'late', url: 'late.mp4', media_type: 'video' }] }, 'gallery');
+  screen.render();
+  const box = () => screen.find(n => n.type === 'div' && n.props.className === 'flex items-center justify-center');
+  const player = () => screen.find(n => n.type === 'NestedVideoPlayer');
+  const heightBefore = box().props.style.height;
+  assert.equal(heightBefore, '750px');
+  player().props.onDims(1920, 1080); screen.render();
+  assert.equal(box().props.style.height, heightBefore);
+  assert.equal(player().props.fullFrame, true);
+  assert.equal(player().props.width, 1920); assert.equal(player().props.height, 1080);
+  screen.unmount();
+});
+
+test('decoded media cannot override the layout dimensions supplied by the feed', () => {
+  const screen = scenario().mount({ media: [{ id: 'declared', url: 'declared.jpg', media_type: 'image', width: 800, height: 600 }] }, 'gallery');
+  screen.render();
+  const box = () => screen.find(n => n.type === 'div' && n.props.className === 'flex items-center justify-center');
+  const heightBefore = box().props.style.height;
+  screen.find(n => n.type === 'img' && n.props.role === 'button').props.onLoad({ currentTarget: { naturalWidth: 480, naturalHeight: 960 } });
+  screen.render();
+  assert.equal(box().props.style.height, heightBefore, 'Responsive image decoding must not resize the surrounding card');
+  screen.unmount();
 });
 
 function openImage(screen) {

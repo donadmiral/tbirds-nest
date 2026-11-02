@@ -8,6 +8,7 @@ import { TopBar } from '../../components/TopBar';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { ThemeProvider } from '../../components/ThemeProvider';
 import { ConnectionBanner } from '../../components/ConnectionBanner';
+import { ScrollMemory } from '../../components/ScrollMemory';
 import HomeFeed from '../../components/HomeFeed';
 import { HomeRail } from '../../components/HomeRail';
 import SettingsPage from '../../app/settings/page';
@@ -48,6 +49,6 @@ function Fixture() {
   else if (pathname.startsWith('/channels/')) content = <ChannelPage key={owner + pathname} />;
   else if (pathname === '/watch' || pathname === '/discover') content = <><PageHeader title={pathname === '/watch' ? 'Watch' : 'Discover'} subtitle="Explore videos and stories from your circles." /><DiscoverFeed videosOnly={pathname === '/watch'} /></>;
   else content = <section className="rounded-xl border border-ink/10 bg-white p-8"><h1 className="text-2xl font-bold">{pathname === '/login' ? 'Sign in' : 'Destination reached'}</h1><p className="mt-3 text-sm text-muted">This fixture verifies navigation to {pathname}. The destination workflow is outside this test.</p><Link href="/home" className="mt-5 inline-block underline">Return to Home</Link></section>;
-  return <ThemeProvider><Nav name={me.full_name} username={me.username} /><div className={chrome.frame}><TopBar name={me.full_name} username={me.username} /><div className={home ? chrome.content : chrome.wideContent}><main className={home ? chrome.mainColumn : ''}>{settings ? <SettingsNavigation /> : null}{content}</main>{home ? <aside className={chrome.rightRail}><div><HomeRail /></div></aside> : null}</div></div><MobileTabBar userId={me.id} name={me.full_name} username={me.username} /><ConnectionBanner /><div data-fixture-label style={{ position: 'fixed', right: 8, bottom: 0, zIndex: 200, pointerEvents: 'none', font: '9px Arial', padding: '3px 8px', background: '#ffffffed', color: '#304462', borderRadius: '5px 5px 0 0' }}>LOCAL UI VERIFICATION · SYNTHETIC RECORDS · NO LIVE ACCOUNT</div></ThemeProvider>;
+  return <ThemeProvider><Nav name={me.full_name} username={me.username} /><ScrollMemory /><div className={chrome.frame}><TopBar name={me.full_name} username={me.username} /><div className={home ? chrome.content : chrome.wideContent}><main className={home ? chrome.mainColumn : ''}>{settings ? <SettingsNavigation /> : null}{content}</main>{home ? <aside className={chrome.rightRail}><div><HomeRail /></div></aside> : null}</div></div><MobileTabBar userId={me.id} name={me.full_name} username={me.username} /><ConnectionBanner /><div data-fixture-label style={{ position: 'fixed', right: 8, bottom: 0, zIndex: 200, pointerEvents: 'none', font: '9px Arial', padding: '3px 8px', background: '#ffffffed', color: '#304462', borderRadius: '5px 5px 0 0' }}>LOCAL UI VERIFICATION · SYNTHETIC RECORDS · NO LIVE ACCOUNT</div></ThemeProvider>;
 }
 createRoot(document.getElementById('root')!).render(<Fixture />);

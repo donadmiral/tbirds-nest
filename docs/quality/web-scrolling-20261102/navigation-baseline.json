@@ -1,0 +1,45 @@
+{
+  "scope": "Actual production HomeFeed, chrome, MediaGallery, VideoPlayer, composer and Messages. Synthetic Auth/data/router; local HTTP SVG and range-served H.264. Real Playwright mouse.wheel events. Frame intervals are local development-fixture main-thread responsiveness evidence, not production GPU/device benchmarks or physical mouse hardware.",
+  "executablePath": "/tmp/platinum-web-admin-chrome156/chrome-linux64/chrome",
+  "chromiumVersion": "156.0.8078.80",
+  "head": "06759cd0ef944ae56c2240cc4881ee27682e073d",
+  "hashes": {
+    "web/components/HomeFeed.tsx": "33c9bedb06787a635bdf016f3303c6904131195d688d1196d55e49977b82372a",
+    "web/components/MediaGallery.tsx": "04d3571b397bdcdb904108de9307c0e859c8a496f879b169effdd21890c22065",
+    "web/components/VideoPlayer.tsx": "0bce5a85dfab3ead0c58d513f7a6635ef58e7b71a148a1be8eacab613956d070",
+    "web/components/NavigationPopover.tsx": "1e6d8532302ffcd9b6e547f52ef71d5c60eb9b8c3fd51e3428fc0ebeacd7804f",
+    "web/components/GlobalMediaLightbox.tsx": "5de7a144c65f00b9c8ba480f3cf5de5bdaee427335177e08c6b6e93e1d89ee94",
+    "web/components/DiscoverViewer.tsx": "610fd7f31880eae4b71b8727062831d9ce529d503f4ee89fc55162d6b075226b",
+    "web/components/ScrollMemory.tsx": "215972f9f86dc707f93a40375a161c032e89dbdebe79327b752fecbbb086dfdb",
+    "web/lib/homeFeedController.ts": "f32ece4774976ed0223745fa7d8516c7e440f729672ddbec623a42c14069f33b",
+    "web/lib/homeFeedScroll.ts": "f8a7bdffb52968016cc7d259afe87e42388bc4b0d9d59c5fc91881ab60b2ccc1",
+    "web/tests/browser/social-fixture.tsx": "794caae482b0e663271f8023431112cc1394379f3119931422973e87b3cdcbe0",
+    "web/tests/browser/scroll-fixture.tsx": "97cf3566cbc1d6b226ec963187e59d951e0ff5eebc9e14d9cd731a70574f63e7",
+    "web/tests/browser/scroll-run.cjs": "a090164f8aa6a53ef9ae759bc258761042186de9a8bde839a5556046747072b4"
+  },
+  "changedInputs": [],
+  "checks": [
+    "Late image decode keeps the feed frame and page position fixed",
+    "Late video metadata keeps the feed frame and page position fixed",
+    "A late authored square crop stays clipped inside the reserved feed frame",
+    "Mouse wheel follows native distance without acceleration or reverse jumps",
+    "Appending a page preserves existing cards, metadata work and the visible anchor",
+    "Navigation popover and composer preserve a scrolled page and native wheel resumes"
+  ],
+  "traces": [
+    {
+      "label": "navigation restoration",
+      "before": {
+        "y": 12204,
+        "count": 36
+      },
+      "pending": {
+        "y": 12588,
+        "count": 36
+      }
+    }
+  ],
+  "errors": [],
+  "failure": "AssertionError [ERR_ASSERTION]: returning Home lost retained content or scroll position\n+ actual - expected\n\n  {\n    count: 36,\n+   y: 12588\n-   y: 12204\n  }\n\n    at /workspace/scratch/22ba32471a78/platinum-circles/web/tests/browser/scroll-run.cjs:210:14\n    at async check (/workspace/scratch/22ba32471a78/platinum-circles/web/tests/browser/scroll-run.cjs:26:36)\n    at async main (/workspace/scratch/22ba32471a78/platinum-circles/web/tests/browser/scroll-run.cjs:203:5)",
+  "summaryNote": "Navigation failure excerpt from the intermediate rAF-only build with both actual restoration components mounted. Other trace entries omitted. Source hashes identify that intermediate build."
+}

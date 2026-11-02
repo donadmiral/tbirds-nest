@@ -123,7 +123,13 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
         rows = existing.map(row => latest.get(row.post_id) ?? row);
         pending = incoming.filter(row => !shown.has(row.post_id)).length;
       } else rows = incoming;
-      rows = (await hydrate(rows)).map(row => ({ ...row, media: (row.media ?? []).filter(item => typeof item.url === 'string' && item.url.length > 0) }));
+      rows = (await hydrate(rows)).map(row => {
+        const hasUrl = (item: FeedRow['media'][number]) => typeof item.url === 'string' && item.url.length > 0;
+        // Renewal already preserves still-authorized rows. Keep that identity
+        // while paging so existing cards do not reset their media metadata.
+        if (row.media?.every(hasUrl)) return row;
+        return { ...row, media: (row.media ?? []).filter(hasUrl) };
+      });
       if (!valid()) return;
       mediaScope = requestScope;
       // Snapshot rows may be cached before the first network page establishes a cursor.

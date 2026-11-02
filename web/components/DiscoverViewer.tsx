@@ -57,18 +57,27 @@ export function DiscoverViewer({posts,initialId,hasMore,loading,error,loadMore,o
   const scroller=useRef<HTMLDivElement>(null),dialog=useRef<HTMLDivElement>(null),didPosition=useRef(false);
   const current=useRef({onClose,comments,posts,activeId});useLayoutEffect(()=>{current.current={onClose,comments,posts,activeId};},[onClose,comments,posts,activeId]);
   const index=discoverIndex(posts.map(p=>p.post_id),activeId);
-  const position=useCallback((i:number,behavior:ScrollBehavior='smooth')=>{const node=scroller.current;if(node)node.scrollTo({top:Math.max(0,Math.min(posts.length-1,i))*node.clientHeight,behavior});},[posts.length]);
+  const position=useCallback((i:number)=>{const node=scroller.current;if(node)node.scrollTo({top:Math.max(0,Math.min(posts.length-1,i))*node.clientHeight,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});},[posts.length]);
   useEffect(()=>{if(!didPosition.current&&posts.length&&scroller.current){didPosition.current=true;scroller.current.scrollTop=index*scroller.current.clientHeight;}},[posts.length,index]);
   useEffect(()=>{if(discoverNeedsMore(index,posts.length,hasMore,loading,error))void loadMore();},[index,posts.length,hasMore,loading,error,loadMore]);
+  useLayoutEffect(()=>{
+    const previous=document.activeElement as HTMLElement|null;
+    const overflow=document.body.style.overflow,padding=document.body.style.paddingRight;
+    const gap=window.innerWidth-document.documentElement.clientWidth;
+    const existingPadding=gap>0?parseFloat(window.getComputedStyle(document.body).paddingRight)||0:0;
+    document.body.style.overflow='hidden';
+    if(gap>0)document.body.style.paddingRight=existingPadding+gap+'px';
+    dialog.current?.focus({preventScroll:true});
+    return()=>{document.body.style.overflow=overflow;document.body.style.paddingRight=padding;if(previous?.isConnected)previous.focus({preventScroll:true});};
+  },[]);
   useEffect(()=>{
-    const previous=document.activeElement as HTMLElement|null;const overflow=document.body.style.overflow;document.body.style.overflow='hidden';dialog.current?.focus();
     const visibility=()=>setVisible(document.visibilityState==='visible');document.addEventListener('visibilitychange',visibility);
     const client=createClient();let owner:string|null|undefined;let live=true;
     const {data}=client.auth.onAuthStateChange((_event,session)=>{const id=session?.user.id??null;if(owner!==undefined&&owner!==id)current.current.onClose();owner=id;});
     void client.auth.getSession().then(({data})=>{if(live&&owner===undefined)owner=data.session?.user.id??null;});
     const resize=()=>{const node=scroller.current;if(node)node.scrollTop=discoverIndex(current.current.posts.map(p=>p.post_id),current.current.activeId)*node.clientHeight;};
     window.addEventListener('resize',resize);
-    return()=>{live=false;document.body.style.overflow=overflow;document.removeEventListener('visibilitychange',visibility);window.removeEventListener('resize',resize);data.subscription.unsubscribe();previous?.focus();};
+    return()=>{live=false;document.removeEventListener('visibilitychange',visibility);window.removeEventListener('resize',resize);data.subscription.unsubscribe();};
   },[]);
   const key=(e:React.KeyboardEvent)=>{
     if(e.key==='Escape'){e.preventDefault();if(comments)setComments(null);else onClose();return;}

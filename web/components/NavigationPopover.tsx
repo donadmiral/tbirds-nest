@@ -23,6 +23,7 @@ export function NavigationPopover({ label, trigger, className = '', side = 'bott
 
   useLayoutEffect(() => {
     if (!open) return;
+    let positionFrame: number | null = null;
     const place = () => {
       const anchor = triggerRef.current?.getBoundingClientRect();
       const panel = panelRef.current;
@@ -30,16 +31,28 @@ export function NavigationPopover({ label, trigger, className = '', side = 'bott
       const width = panel.offsetWidth, height = panel.offsetHeight, edge = 12;
       const left = side === 'right' ? anchor.right + 12 : anchor.right - width;
       const top = side === 'right' ? anchor.top : anchor.bottom + 10;
-      setPosition({
+      const next = {
         left: Math.max(edge, Math.min(left, window.innerWidth - width - edge)),
         top: Math.max(edge, Math.min(top, window.innerHeight - height - edge)),
-      });
+      };
+      setPosition(previous => previous.left === next.left && previous.top === next.top ? previous : next);
+    };
+    const schedule = (event: Event) => {
+      // Scrolling the disclosure's own contents cannot move its trigger.
+      if (event.type === 'scroll' && event.target instanceof Node && panelRef.current?.contains(event.target)) return;
+      if (positionFrame !== null) return;
+      positionFrame = requestAnimationFrame(() => { positionFrame = null; place(); });
     };
     place();
-    const frame = requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus());
-    window.addEventListener('resize', place);
-    window.addEventListener('scroll', place, true);
-    return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true); };
+    const frame = requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus({ preventScroll: true }));
+    window.addEventListener('resize', schedule);
+    window.addEventListener('scroll', schedule, { capture: true, passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      if (positionFrame !== null) cancelAnimationFrame(positionFrame);
+      window.removeEventListener('resize', schedule);
+      window.removeEventListener('scroll', schedule, true);
+    };
   }, [open, side]);
 
   useEffect(() => {
@@ -47,7 +60,7 @@ export function NavigationPopover({ label, trigger, className = '', side = 'bott
     const inside = (target: EventTarget | null) => target instanceof Node && (panelRef.current?.contains(target) || triggerRef.current?.contains(target));
     const outside = (event: Event) => { if (!inside(event.target)) setOpenedOn(null); };
     const key = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { event.preventDefault(); setOpenedOn(null); triggerRef.current?.focus(); return; }
+      if (event.key === 'Escape') { event.preventDefault(); setOpenedOn(null); triggerRef.current?.focus({ preventScroll: true }); return; }
       if (!panelRef.current?.contains(document.activeElement)) return;
       if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key) || document.activeElement?.matches('input, textarea, select')) return;
       const items = [...panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(node => node.getClientRects().length > 0);

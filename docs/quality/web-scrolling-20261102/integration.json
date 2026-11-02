@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-11-02T00:30:20.506738+00:00",
+  "baseCommit": "06759cd0ef944ae56c2240cc4881ee27682e073d",
+  "checks": [
+    {
+      "name": "web-regressions",
+      "command": [
+        "bash",
+        "-c",
+        "node --test --test-reporter=spec --test-concurrency=2 tests/*.cjs tests/quality/*.cjs"
+      ],
+      "exitCode": 0,
+      "durationMs": 23775,
+      "totals": {
+        "tests": 65,
+        "suites": 0,
+        "pass": 65,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "web-regressions.log"
+    },
+    {
+      "name": "web-typescript",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exitCode": 0,
+      "durationMs": 17513,
+      "totals": {},
+      "log": "web-typescript.log"
+    }
+  ],
+  "hashes": {
+    "web/components/DiscoverViewer.tsx": "610fd7f31880eae4b71b8727062831d9ce529d503f4ee89fc55162d6b075226b",
+    "web/components/GlobalMediaLightbox.tsx": "5de7a144c65f00b9c8ba480f3cf5de5bdaee427335177e08c6b6e93e1d89ee94",
+    "web/components/HomeFeed.tsx": "33c9bedb06787a635bdf016f3303c6904131195d688d1196d55e49977b82372a",
+    "web/components/MediaGallery.tsx": "04d3571b397bdcdb904108de9307c0e859c8a496f879b169effdd21890c22065",
+    "web/components/NavigationPopover.tsx": "1e6d8532302ffcd9b6e547f52ef71d5c60eb9b8c3fd51e3428fc0ebeacd7804f",
+    "web/components/ScrollMemory.tsx": "6f66b5ecc1810eb72f87d3c26f64938f3ad1a34ac41d7795efe18f6939e19ba8",
+    "web/lib/homeFeedController.ts": "f32ece4774976ed0223745fa7d8516c7e440f729672ddbec623a42c14069f33b",
+    "web/lib/homeFeedScroll.ts": "f8a7bdffb52968016cc7d259afe87e42388bc4b0d9d59c5fc91881ab60b2ccc1",
+    "web/tests/browser/social-fixture.tsx": "794caae482b0e663271f8023431112cc1394379f3119931422973e87b3cdcbe0",
+    "web/tests/discover-viewer-quality.cjs": "fd6fbcad5e11bbabb9ced7992a9db196ea51dbaa6f86b2066db21e528d459883",
+    "web/tests/home-feed-quality.cjs": "ac12ecccc206fcfd889be69c6a8f2baa84bca8c0dd2600a83cd526f5af20cac8",
+    "web/tests/home-feed-scroll.cjs": "9dad893b59a6a7215c21ac1c73497d662f798a30c80fb585db019e248e29a31e",
+    "web/tests/scroll-memory-regressions.cjs": "71da00457d9edc8b3f55639c589a88f888e232702ce3a538577fd04525b07cc8",
+    "web/tests/video-player-regressions.cjs": "b84673b2dca373707670cb4345aa8a3098bafcf4611bf89a387032c4077555f8"
+  },
+  "changedInputs": []
+}

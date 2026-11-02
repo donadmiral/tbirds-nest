@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { displayImageUrl } from "@/lib/media";
 
@@ -15,6 +15,7 @@ export function GlobalMediaLightbox() {
   const [ty, setTy] = useState(0);
   const [live, setLive] = useState(false);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
   const pts = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ d: number; z: number; cx: number; cy: number; tx: number; ty: number } | null>(null);
   const drag = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
@@ -29,14 +30,26 @@ export function GlobalMediaLightbox() {
     return () => window.removeEventListener("pc-view-media", onView);
   }, []);
 
-  useEffect(() => {
-    if (!url) return;
+  const opened = !!url;
+  useLayoutEffect(() => {
+    if (!opened) return;
+    const previous = document.activeElement as HTMLElement | null;
     const prev = document.body.style.overflow;
+    const padding = document.body.style.paddingRight;
+    const gap = window.innerWidth - document.documentElement.clientWidth;
+    const existingPadding = gap > 0 ? parseFloat(window.getComputedStyle(document.body).paddingRight) || 0 : 0;
     document.body.style.overflow = "hidden";
+    if (gap > 0) document.body.style.paddingRight = existingPadding + gap + "px";
+    closeRef.current?.focus({ preventScroll: true });
     function onKey(e: KeyboardEvent) { if (e.key === "Escape") setUrl(null); }
     window.addEventListener("keydown", onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
-  }, [url]);
+    return () => {
+      document.body.style.overflow = prev;
+      document.body.style.paddingRight = padding;
+      window.removeEventListener("keydown", onKey);
+      if (previous?.isConnected) previous.focus({ preventScroll: true });
+    };
+  }, [opened]);
 
   const clampZ = (z: number) => Math.max(1, Math.min(4, z));
   // Zoom about a viewport point p: keep the image point under p fixed.
@@ -105,7 +118,7 @@ export function GlobalMediaLightbox() {
   if (!url) return null;
   return (
     <div role="dialog" aria-modal="true" aria-label="Media viewer" className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-black/95" onClick={() => setUrl(null)}>
-      <button onClick={() => setUrl(null)} aria-label="Close" className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><X size={18} /></button>
+      <button ref={closeRef} onClick={() => setUrl(null)} aria-label="Close" className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><X size={18} /></button>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img ref={imgRef} src={displayImageUrl(url, 2000)!}
         onError={(e) => { if (e.currentTarget.src !== url) e.currentTarget.src = url; }}
