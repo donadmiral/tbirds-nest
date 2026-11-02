@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "target": "captured production visual baseline; replacement for the five reader source units only",
+  "migration": "supabase/migrations/20261102162736_production_compatible_paged_readers.sql",
+  "migration_sha256": "313992657718625b1de347c247eb44d015570955eea3193bde1447f6dd5b092c",
+  "source_units": [
+    {
+      "path": "supabase/migrations/20261102064915_bounded_book_and_inbox_readers.sql",
+      "sha256": "4de177e625716a9a3055aa3b1b610bcb2dbdcfeee6b6676e724a288d00f14a27",
+      "adaptations": [
+        {
+          "label": "replace dependency preflight with exact production preflight",
+          "occurrences": 1,
+          "before": "do $preflight$\nbegin\n  if to_regprocedure('memory_creative.actor(boolean)') is null\n    or to_regprocedure('memory_creative.ack(public.memory_albums)') is null\n    or to_regprocedure('public.sound_rights_allow(uuid,text)') is null\n    or to_regprocedure('public.get_context_unread()') is null\n    or to_regcollation('pg_catalog.\"und-x-icu\"') is null\n    or to_regnamespace('read_paging') is not null then\n    raise exception 'PAGED_READERS_BASELINE_REQUIRED';\n  end if;\nend $preflight$;\n",
+          "after": "-- The production-specific baseline and isolated guards are checked above.\n"
+        },
+        {
+          "label": "automatic optional-column revision tracking",
+          "occurrences": 1,
+          "before": "create trigger paged_story_revision after delete or update of id,user_id,media_url,media_type,\n  thumbnail_url,caption,text_background,stickers_json,media_transform,filter_id,duration_sec,\n  dual_front_url,audio_sound_id,audio_duration_sec,audio_title,audio_url on public.stories\n  for each row execute function read_paging.library_changed();",
+          "after": "create trigger paged_story_revision after delete or update on public.stories\n  for each row execute function read_paging_support.story_changed();"
+        },
+        {
+          "label": "optional audio projection with canonical rights delegation",
+          "occurrences": 1,
+          "before": "|| case when p_audio then jsonb_build_object('audio_sound_id',s.audio_sound_id,\n    'audio_duration_sec',s.audio_duration_sec,'audio_title',s.audio_title,\n    'audio_url',case when s.audio_sound_id is not null and public.sound_rights_allow(s.audio_sound_id,'memory_album')\n      then s.audio_url end) else '{}'::jsonb end",
+          "after": "|| read_paging_support.audio(s,p_audio)"
+        },
+        {
+          "label": "optional soundtrack projection",
+          "occurrences": 1,
+          "before": "'count',total,'soundtrack',a.soundtrack)||memory_creative.ack(a)",
+          "after": "'count',total)||read_paging_support.soundtrack(a)||memory_creative.ack(a)"
+        },
+        {
+          "label": "require actual service role and matching JWT proof",
+          "occurrences": 1,
+          "before": "if auth.role() is distinct from 'service_role' then\n    raise exception 'SERVICE_ROLE_REQUIRED' using errcode='42501';\n  end if;",
+          "after": "if current_setting('role',true) is distinct from 'service_role'\n    or auth.role() is distinct from 'service_role' or auth.jwt()->>'role' is distinct from 'service_role' then\n    raise exception 'SERVICE_ROLE_REQUIRED' using errcode='42501';\n  end if;"
+        },
+        {
+          "label": "isolate memory_creative.actor",
+          "occurrences": 3,
+          "before": "memory_creative.actor(",
+          "after": "read_paging_support.actor("
+        },
+        {
+          "label": "isolate memory_creative.ack",
+          "occurrences": 2,
+          "before": "memory_creative.ack(",
+          "after": "read_paging_support.ack("
+        },
+        {
+          "label": "book capability requires eligible current authority",
+          "occurrences": 1,
+          "before": "s.books_ready and auth.uid() is not null",
+          "after": "s.books_ready and read_paging_support.eligible()"
+        },
+        {
+          "label": "inbox capability requires eligible current authority",
+          "occurrences": 1,
+          "before": "s.inbox_ready and auth.uid() is not null",
+          "after": "s.inbox_ready and read_paging_support.eligible()"
+        }
+      ]
+    },
+    {
+      "path": "supabase/migrations/20261102074640_bounded_context_inbox_reader.sql",
+      "sha256": "2d04c8ec7dbb32feb1e481c63797a7f7d0ea973af1cde6c15257e30956a749f0",
+      "adaptations": []
+    },
+    {
+      "path": "supabase/migrations/20261102075537_bounded_business_inbox_reader.sql",
+      "sha256": "af691abf7665c382bf633f5cb292954383aef63949b99a1faccc45a59b2b664b",
+      "adaptations": []
+    },
+    {
+      "path": "supabase/migrations/20261102075616_bounded_inbox_mentions.sql",
+      "sha256": "dc0020a4aac8eee2272c941cfc64f8ae76eda5c4136bc5789d1919dd157cfc9f",
+      "adaptations": []
+    },
+    {
+      "path": "supabase/migrations/20261102091728_bounded_memory_book_windows.sql",
+      "sha256": "e41bb8e86038051a373cf93a947f8333bf7f8ba82f44e8b0a6b35b1718511c6e",
+      "adaptations": [
+        {
+          "label": "isolate memory_creative.actor",
+          "occurrences": 2,
+          "before": "memory_creative.actor(",
+          "after": "read_paging_support.actor("
+        },
+        {
+          "label": "book capability requires eligible current authority",
+          "occurrences": 2,
+          "before": "s.books_ready and auth.uid() is not null",
+          "after": "s.books_ready and read_paging_support.eligible()"
+        },
+        {
+          "label": "inbox capability requires eligible current authority",
+          "occurrences": 1,
+          "before": "s.inbox_ready and auth.uid() is not null",
+          "after": "s.inbox_ready and read_paging_support.eligible()"
+        }
+      ]
+    }
+  ],
+  "helper_sources": [
+    "supabase/migrations/20261029231440_bounded_media_delivery.sql",
+    "supabase/migrations/20261029224812_account_storage_erasure.sql",
+    "supabase/migrations/20261031001826_memory_book_creative_presentation.sql",
+    "supabase/migrations/20261031012445_memory_book_creative_mutations.sql"
+  ],
+  "readiness": "books=false,inbox=false; no public creative capability or music rights primitive is fabricated"
+}

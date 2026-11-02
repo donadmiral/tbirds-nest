@@ -57,6 +57,7 @@ for (const {script, env = {}} of [
   {script: './test-legacy-chat-media-compatibility.mjs'},
   {script: './test-legacy-public-media-snapshots.mjs'},
   {script: './test-memory-book-visual-presentation.mjs'},
+  {script: './test-production-compatible-paged-readers.mjs'},
   {script: './test-memory-book-creative.mjs'},
   {script: './test-memory-book-creative.mjs',env:{MEMORY_CREATIVE_MUSIC_ORDER:'before'}},
   {script: './test-memory-book-creative.mjs',env:{MEMORY_CREATIVE_MUSIC_ORDER:'after'}},
