@@ -15,12 +15,14 @@ test('capacity monitoring uses bounded samples and fails closed without measurem
       drop function if exists public.notification_fanout_status_v1();
       drop function if exists public.notification_worker_status_v1();
       drop function if exists public.media_processing_status_v1();
+      drop function if exists public.media_sandbox_status_v1();
       do $$begin
        if not exists(select 1 from pg_roles where rolname='anon') then create role anon; end if;
        if not exists(select 1 from pg_roles where rolname='authenticated') then create role authenticated; end if;
        if not exists(select 1 from pg_roles where rolname='service_role') then create role service_role; end if;
       end$$;`);
     await db.query(fs.readFileSync(path.join(__dirname, '../migrations/20261102090637_capacity_observability.sql'), 'utf8'));
+    await db.query(fs.readFileSync(path.join(__dirname, '../migrations/20261102180521_capacity_media_sandbox_observability.sql'), 'utf8'));
     await t.test('no observations and no reservations cannot appear ready', async () => {
       const status = JSON.parse(await db.query('select public.capacity_status_v1(0)'));
       assert.equal(status.stale, true);
@@ -46,6 +48,7 @@ test('capacity monitoring uses bounded samples and fails closed without measurem
       assert.ok(first.database.bytes > 0);
       assert.ok(first.connections.maximum > 0);
       assert.equal(first.components.post_counter.state, 'not_installed');
+      assert.equal(first.components.media_sandbox.state, 'not_installed');
       await db.query('select public.capacity_capture_v1()');
       assert.ok(Number(await db.query('select count(*) from capacity_ops.samples')) <= 2);
       const status = JSON.parse(await db.query('select public.capacity_status_v1(60)'));
@@ -120,6 +123,31 @@ test('capacity monitoring uses bounded samples and fails closed without measurem
       assert.ok(value.database.bytes > 0);
       assert.ok(!JSON.stringify(value).includes('PRIVATE_INVALID_DATE'));
       await db.query('drop function public.post_counter_status_v1()');
+    });
+    await t.test('sandbox enforcement caps produce bounded usage alerts without inventing approved spend', async () => {
+      const status = {enabled:true,active_reservations:1,daily_wall_cap_seconds:1560,monthly_wall_cap_seconds:6240,
+        daily_wall_reserved_seconds:1560,monthly_wall_reserved_seconds:5460};
+      const install = value => db.query(`create or replace function public.media_sandbox_status_v1() returns jsonb language sql as $$
+        select '${JSON.stringify(value)}'::jsonb$$;`);
+      await install(status);
+      const value = JSON.parse(await db.query('select public.capacity_capture_v1()'));
+      assert.equal(value.components.media_sandbox.pending,1);
+      assert.equal(value.components.media_sandbox.pending_is_lower_bound,false);
+      assert.equal(value.components.media_sandbox.daily_budget_used_percent,100);
+      assert.equal(value.components.media_sandbox.monthly_budget_used_percent,87.5);
+      assert.equal(await db.query("select severity from capacity_ops.alerts where key='media_sandbox_daily_budget_percent' and resolved_at is null"),'critical');
+      assert.equal(await db.query("select severity from capacity_ops.alerts where key='media_sandbox_monthly_budget_percent' and resolved_at is null"),'warning');
+      const publicStatus = JSON.parse(await db.query('select public.capacity_status_v1(0)'));
+      assert.ok(publicStatus.providers.every(p => !p.budget_approved && p.monthly_budget_usd === null));
+      await install({...status,enabled:false});
+      await db.query('select public.capacity_capture_v1()');
+      assert.equal(await db.query("select count(*) from capacity_ops.alerts where key like 'media_sandbox_%' and resolved_at is null"),'0');
+      await install({...status,daily_wall_cap_seconds:0});
+      const malformed = JSON.parse(await db.query('select public.capacity_capture_v1()'));
+      assert.equal(malformed.components.media_sandbox.state,'invalid_status');
+      assert.ok(malformed.database.bytes>0);
+      assert.equal(await db.query("select severity from capacity_ops.alerts where key='media_sandbox_status_unavailable' and resolved_at is null"),'critical');
+      await db.query('drop function public.media_sandbox_status_v1(); select public.capacity_capture_v1();');
     });
     await t.test('provider reservations need evidence, positive capacity and a current confirmation', async () => {
       await db.query(`update capacity_ops.provider_limits set reserved_peak=100,confirmed_at=now()-interval '1 minute',

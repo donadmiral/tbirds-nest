@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-02T18:13:25.318332+00:00",
+  "flags": {
+    "books": false,
+    "inbox": false,
+    "fanout": false,
+    "counters": false,
+    "dispatch": false,
+    "telemetry": true,
+    "indexed_feed": false,
+    "admin_projection": false
+  },
+  "frontier_source_md5": "014705c6f587aaa7adaf43e2f408f1d0",
+  "inline_helper_installed": true,
+  "catalog_policy_uses_contract": true,
+  "canonical_visibility_source_md5": "bd469b35c28c5f71bf6d84faed221c42"
+}

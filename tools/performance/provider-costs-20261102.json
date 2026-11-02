@@ -1,0 +1,647 @@
+{
+  "version": 1,
+  "asOf": "2026-11-02",
+  "kind": "unapproved-assumption-based-operating-budget-and-quota-requisition",
+  "currency": "USD",
+  "notInvoiceOrSupportedCapacityClaim": true,
+  "workloadSource": {
+    "model": "tools/performance/capacity-model.cjs",
+    "scenarios": "tools/performance/capacity-scenarios.json",
+    "scenarioSha256": "772acac48196b6eb72c300cdf3493527c704c951e698ed154fc8311993fe1aeb"
+  },
+  "sources": {
+    "supabase_egress": "https://supabase.com/docs/guides/platform/manage-your-usage/egress",
+    "supabase_auth": "https://supabase.com/docs/guides/platform/manage-your-usage/monthly-active-users",
+    "supabase_realtime": "https://supabase.com/docs/guides/realtime/pricing",
+    "supabase_realtime_egress": "https://supabase.com/kb/troubleshooting/realtime-egress-faq",
+    "supabase_storage": "https://supabase.com/docs/guides/platform/manage-your-usage/storage-size",
+    "supabase_disk": "https://supabase.com/docs/guides/platform/manage-your-usage/disk-size",
+    "supabase_compute": "https://supabase.com/docs/guides/platform/manage-your-usage/compute",
+    "supabase_compute_limits": "https://supabase.com/docs/guides/platform/compute-and-disk",
+    "supabase_billing": "https://supabase.com/docs/guides/platform/billing-on-supabase",
+    "vercel_paygo_cdn": "https://vercel.com/docs/manage-cdn-usage",
+    "vercel_region_iad1": "https://vercel.com/docs/pricing/regional-pricing/iad1",
+    "vercel_region_range": "https://vercel.com/docs/pricing/regional-pricing",
+    "vercel_fluid": "https://vercel.com/docs/functions/usage-and-pricing",
+    "vercel_pricing": "https://vercel.com/pricing",
+    "vercel_flat_rate": "https://vercel.com/changelog/flat-rate-cdn-is-now-ga-for-pro-teams",
+    "vercel_flat_rate_conditions": "https://vercel.com/legal/service-terms",
+    "vercel_sandbox": "https://vercel.com/sandbox",
+    "vercel_sandbox_pricing": "https://vercel.com/docs/sandbox/pricing",
+    "vercel_budget": "https://vercel.com/docs/spend-management",
+    "vercel_budget_cli": "https://vercel.com/docs/cli/budgets"
+  },
+  "rates": {
+    "supabaseUncachedEgressUsdPerGb": {
+      "value": 0.09,
+      "source": "supabase_egress"
+    },
+    "supabaseCachedEgressUsdPerGb": {
+      "value": 0.03,
+      "source": "supabase_egress"
+    },
+    "supabaseAuthUsdPerMau": {
+      "value": 0.00325,
+      "source": "supabase_auth"
+    },
+    "supabaseRealtimeUsdPerMillionMessages": {
+      "value": 2.5,
+      "source": "supabase_realtime"
+    },
+    "supabaseRealtimeUsdPerThousandPeakConnections": {
+      "value": 10,
+      "source": "supabase_realtime"
+    },
+    "supabaseStorageUsdPerGbHour": {
+      "value": 0.00002919,
+      "source": "supabase_storage"
+    },
+    "supabaseGp3DiskUsdPerGbHour": {
+      "value": 0.000171,
+      "source": "supabase_disk"
+    },
+    "supabase16xlUsdPerHour": {
+      "value": 5.12,
+      "source": "supabase_compute"
+    },
+    "supabaseLargeUsdPerHour": {
+      "value": 0.1517,
+      "source": "supabase_compute"
+    },
+    "supabaseEdgeUsdPerMillionInvocations": {
+      "value": 2,
+      "source": "supabase_billing"
+    },
+    "supabaseProUsdPerMonth": {
+      "value": 25,
+      "source": "supabase_billing"
+    },
+    "vercelProUsdPerMemberMonth": {
+      "value": 20,
+      "source": "vercel_pricing"
+    },
+    "vercelViewerTransferUsdPerGb": {
+      "low": 0.15,
+      "high": 0.35,
+      "source": "vercel_region_range"
+    },
+    "vercelFastOriginTransferUsdPerGbIad1": {
+      "value": 0.06,
+      "source": "vercel_region_iad1"
+    },
+    "vercelCdnUsdPerMillionRequests": {
+      "low": 2,
+      "high": 3.2,
+      "source": "vercel_region_range"
+    },
+    "vercelFunctionUsdPerMillionInvocations": {
+      "value": 0.6,
+      "source": "vercel_pricing"
+    },
+    "vercelActiveCpuUsdPerCoreHourIad1": {
+      "value": 0.128,
+      "source": "vercel_fluid"
+    },
+    "vercelFunctionMemoryUsdPerGbHourIad1": {
+      "value": 0.0106,
+      "source": "vercel_fluid"
+    },
+    "vercelRuntimeCacheUsdPerMillionReadUnitsIad1": {
+      "value": 0.4,
+      "source": "vercel_region_iad1"
+    },
+    "vercelRuntimeCacheUsdPerMillionWriteUnitsIad1": {
+      "value": 4,
+      "source": "vercel_region_iad1"
+    },
+    "sandboxActiveCpuUsdPerCoreHourIad1": {
+      "value": 0.128,
+      "source": "vercel_sandbox_pricing"
+    },
+    "sandboxMemoryUsdPerGbHourIad1": {
+      "value": 0.0212,
+      "source": "vercel_sandbox_pricing"
+    },
+    "sandboxUsdPerMillionCreations": {
+      "value": 0.6,
+      "source": "vercel_sandbox_pricing"
+    },
+    "sandboxTransferUsdPerGbPaygoReference": {
+      "value": 0.15,
+      "source": "vercel_sandbox_pricing",
+      "note": "Published default iad1 Enterprise rate, used as scale price reference; Pro network is in Flat Rate CDN when eligible. Observed validation host is pdx1, not a billed fleet. Exact region and capacity contract require quote."
+    }
+  },
+  "common": {
+    "days": 30,
+    "hours": 720,
+    "dau": 5000000,
+    "decimalGbBytes": 1000000000,
+    "ratesArePublicReferencesNotAccountEntitlements": true,
+    "volumeDiscountOrCreditUsd": 0,
+    "creditPolicy": "Gross usage charges; no shared included usage or credits deducted because actual remaining organization/team allowances are unknown.",
+    "approvedMonthlyBudgetUsd": null,
+    "executionPolicy": "No paid plan upgrade or reservation purchased; bounded use of existing subscriptions/allowances; exact marginal bill unavailable.",
+    "claimedMarginalValidationBillUsd": null,
+    "approvedPaidUpgrade": false,
+    "contingencyFraction": 0.2,
+    "capacityHeadroomFraction": 0.3,
+    "webShareOfDauForAssetBudget": 0.2,
+    "extraStaticRequestsPerWebDau": 16,
+    "additionalAdminRequestsPerDay": 25000,
+    "privateGatewayShareOfMediaBytesAndRequests": 1,
+    "viewerByteOverheadFraction": 0,
+    "overheadNote": "Codec bitrate in the repo model is treated as delivered payload. Retries, container/HTTP overhead, bots, and other omitted operations are not measured; 20% contingency is an allowance, not a strict upper bound.",
+    "realtimeBillingModel": "Billed message multipliers include recipients; raw writes are not treated as one billed realtime message.",
+    "registeredAccountBytes": 2000,
+    "retainedPostBytes": 2000,
+    "retainedChatMessageBytes": 1000,
+    "rawViewRowsIncludedInDatabaseDiskEstimate": false,
+    "databaseDiskNote": "Posts/messages/accounts only, multiplied for indexes/overhead and free-space reserve. Raw view counts are not assumed unique retained rows. Other tables, queues, notifications, WAL, backups, and IOPS need measured sizing.",
+    "databaseEquivalentComputeNote": "1–3 16XL-equivalent node costs are a price allowance, not a chosen topology or supported-throughput claim. Base disk sizing exceeds the 16XL recommended 10TB and requires partition/retention design or a custom provider quote.",
+    "encodeResources": {
+      "vcpus": 2,
+      "memoryGb": 4,
+      "maximumInputBytes": 536870912
+    },
+    "encodeResourceNote": "512MiB is maximum admitted input, not the average upload size. Per-job time ranges are assumptions awaiting the new hosted worker measurements."
+  },
+  "sensitivity": {
+    "low": {
+      "authMauPerDau": 1,
+      "supabaseMediaByteCacheHitRatio": 0.95,
+      "extraRealtimeMessagesPerDau": 20,
+      "billedRealtimePerChatMessage": 2,
+      "billedRealtimePerLike": 1,
+      "billedRealtimePerPost": 1,
+      "averageRealtimeEgressBytesPerBilledMessage": 500,
+      "averageApplicationResponseBytes": 2000,
+      "appEdgeFunctionShare": 0.05,
+      "appVercelFunctionShare": 0.02,
+      "mediaAuthorizationColdFraction": 0.05,
+      "mediaAuthorizationCallsPerColdRequest": 2,
+      "mediaAuthorizationResponseBytes": 512,
+      "gatewayActiveCpuSecondsPerRequest": 0.001,
+      "gatewayAmortizedGbSecondsPerRequest": 0.05,
+      "appActiveCpuSecondsPerVercelRequest": 0.005,
+      "appAmortizedGbSecondsPerVercelRequest": 0.1,
+      "runtimeCacheReadUnitsPerMediaRequest": 2,
+      "runtimeCacheWriteUnitsPerMediaRequest": 0.1,
+      "frontendStaticBytesPerWebDau": 250000,
+      "databaseIndexAndBloatMultiplier": 2,
+      "databaseFreeSpaceMultiplier": 1.3,
+      "databaseEquivalentNodes": 1,
+      "encodeWallSeconds": {
+        "light": 30,
+        "base": 60
+      },
+      "workerBrokerCallsPerVideo": 50
+    },
+    "high": {
+      "authMauPerDau": 4,
+      "supabaseMediaByteCacheHitRatio": 0,
+      "extraRealtimeMessagesPerDau": 200,
+      "billedRealtimePerChatMessage": 6,
+      "billedRealtimePerLike": 2,
+      "billedRealtimePerPost": 10,
+      "averageRealtimeEgressBytesPerBilledMessage": 2000,
+      "averageApplicationResponseBytes": 10000,
+      "appEdgeFunctionShare": 0.25,
+      "appVercelFunctionShare": 0.1,
+      "mediaAuthorizationColdFraction": 1,
+      "mediaAuthorizationCallsPerColdRequest": 2,
+      "mediaAuthorizationResponseBytes": 512,
+      "gatewayActiveCpuSecondsPerRequest": 0.01,
+      "gatewayAmortizedGbSecondsPerRequest": 0.5,
+      "appActiveCpuSecondsPerVercelRequest": 0.02,
+      "appAmortizedGbSecondsPerVercelRequest": 1,
+      "runtimeCacheReadUnitsPerMediaRequest": 2,
+      "runtimeCacheWriteUnitsPerMediaRequest": 2,
+      "frontendStaticBytesPerWebDau": 1000000,
+      "databaseIndexAndBloatMultiplier": 4,
+      "databaseFreeSpaceMultiplier": 1.3,
+      "databaseEquivalentNodes": 3,
+      "encodeWallSeconds": {
+        "light": 120,
+        "base": 240
+      },
+      "workerBrokerCallsPerVideo": 200
+    }
+  },
+  "videoUploadAssumptions": {
+    "light": {
+      "fractionOfUploads": 0.25
+    },
+    "base": {
+      "fractionOfUploads": 0.5
+    }
+  },
+  "currentAccountEvidence": {
+    "supabase": {
+      "organization": "Pearl Group",
+      "plan": "Pro",
+      "productionRef": "prlkikhckbifseosbukl",
+      "region": "us-west-2",
+      "postgres": "17.6",
+      "observedMaxConnections": 60,
+      "observedSharedBuffersMib": 224,
+      "observedWorkMemKib": 2184,
+      "observedDatabaseBytes": 81202323,
+      "observedAt": "2026-11-02T17:43:32.44447Z",
+      "receipt": "docs/quality/capacity-db-measurements-20261102/provider-baseline.json",
+      "actualComputeSku": null,
+      "actualPoolerClientLimit": null,
+      "spendCap": null,
+      "approvedAdditionalMonthlyBudgetUsd": null
+    },
+    "vercel": {
+      "teamId": "team_yu7fUehO2z7E6QHF6Nvxp3tC",
+      "slug": "intobank",
+      "confirmedPlanByThisReader": null,
+      "planEvidence": "Rolling-release billing returned unsupported plan, consistent with Hobby but not an explicit account plan field.",
+      "budgetUsd": null,
+      "usageEndpoint": "404 costs_not_found",
+      "usageEndpointIsZeroSpendProof": false,
+      "currentDashboardAccess": "ordinary sign-in required",
+      "verifiedPrivateGatewayRegion": "iad1"
+    },
+    "sandbox": {
+      "observedAt": "2026-11-02T17:50:33Z",
+      "id": "sbx_OsKWVLn3THR3cLl5fE12kYlmGCYJ",
+      "region": "pdx1",
+      "vcpus": 2,
+      "visibleRamBytes": 4492595200,
+      "scratchBytes": 68652367872,
+      "immutableNodeImageSha256": "6927dfce823159a574dc3b87fa327cde48533c7498b92492c31179a5477c9fd6",
+      "source": "Vercel Sandbox provision/readback reported by release coordinator; this is one observed host, not a reserved fleet."
+    },
+    "nullMeans": "Unknown, not zero. Public defaults are kept separate from owned-account settings."
+  },
+  "validationStages": [
+    {
+      "name": "bounded-existing-subscriptions",
+      "newPaidPlanOrReservationPurchased": false,
+      "claimedMarginalSpendUsd": null,
+      "policy": "No paid plan upgrade or reservation purchased; bounded use of existing subscriptions/allowances; exact marginal bill unavailable.",
+      "resources": {
+        "sandboxVcpus": 2,
+        "sandboxMemoryGb": 4,
+        "maximumConcurrentSessions": 1,
+        "maximumRunSeconds": 780,
+        "maximumRunsPerDay": 2,
+        "maximumRunsPerMonth": 8,
+        "chargeFullRunBeforeCreate": true,
+        "monthlyDispatcherActiveCpuUpperBoundCoreHours": 3.466666666666667,
+        "monthlyDispatcherMemoryUpperBoundGbHours": 6.933333333333334
+      },
+      "separatelyBounded": [
+        "Bootstrap",
+        "Acceptance tests"
+      ],
+      "publicHobbyQuotaReference": {
+        "activeCpuCoreHours": 5,
+        "memoryGbHours": 420,
+        "outboundGb": 20,
+        "extraUsageCharged": false,
+        "exhaustedQuotaBehavior": "Sandbox creation paused",
+        "source": "vercel_sandbox_pricing"
+      },
+      "controls": [
+        "Use current subscriptions and available allowance; fail closed on quota exhaustion.",
+        "Do not upgrade, add a card, disable a spend cap, or purchase a resource reservation.",
+        "Remaining allowance is shared and unconfirmed; dispatcher limits do not account for bootstrap/tests/other projects.",
+        "Stop sessions after bounded work; do not claim an invoice of zero.",
+        "Hobby has no additional Sandbox usage charges, but the account plan is not exposed as a definitive field; existing QA charges are separate."
+      ]
+    },
+    {
+      "name": "optional-isolated-measurement",
+      "approved": false,
+      "maximumProposedAdditionalSpendUsd": 50,
+      "allocationUsd": {
+        "oneVercelProMemberMonthIfRequired": 20,
+        "supabaseLargeCompute24Hours": 3.64,
+        "sandboxActiveCpuAndMemoryUpTo20CoreHours40GbHours": 3.41,
+        "meteredApiAndTransferAllowance": 12,
+        "unallocatedReserve": 10.95
+      },
+      "workloadCaps": {
+        "wallHours": 24,
+        "sandboxActiveCpuCoreHours": 20,
+        "sandboxMemoryGbHours": 40,
+        "appRequests": 100000,
+        "mediaRequests": 20000,
+        "sourceAndViewerBytesCombined": 10000000000,
+        "maxAuthMauAdded": 10
+      },
+      "prerequisites": [
+        "Confirm actual account plan/current spend and existing subscription before quoting the incremental price.",
+        "Approve exact ceiling and service availability behavior; a team-wide pause affects web and admin.",
+        "Confirm quota/billing meter before and after; stop well below allowance because provider enforcement can lag.",
+        "No paid action is authorized by this proposal."
+      ]
+    }
+  ],
+  "providerRequisition": {
+    "status": "prepared-not-submitted-not-reserved",
+    "quoteCurrency": "USD",
+    "proposedTerm": "30-day validation then monthly operating agreement; no commitment made",
+    "requiredWrittenEvidence": [
+      "Viewer CDN unit prices and region mix at 5.805/34.11PB per30days, with request/peak throughput limits.",
+      "Supabase cached and uncached egress prices and private signed-object cache behavior; no double-counting discount assumed.",
+      "Auth quota for5M–20M MAU and measured token/login bursts.",
+      "Realtime quotas for125k/442709 connections plus30% reserve and delivered-message throughput shown in results.",
+      "Database compute, disk, IOPS, pooler, failover/restore and lag limits matched to measured query mix.",
+      "Sandbox per-job2vCPU/4GB,512MiB input, sufficient verified scratch, bounded runtime and the modeled simultaneous jobs plus30% reserve.",
+      "Gross monthly cost ceiling, included credits, overage behavior, pause scope, alert destinations, support and resource reservation expiry."
+    ],
+    "approvedBudgetUsd": null,
+    "reservationIds": [],
+    "vendorContactSent": false,
+    "paidUpgradePerformed": false
+  },
+  "excludedOrUnmeasured": [
+    "Enterprise contract minimums/discounts and custom capacity pricing.",
+    "Taxes, currency conversion and payment fees.",
+    "SMS/email delivery, Apple/Google commercial fees, moderation, third-party APIs and staffing.",
+    "PITR/backups, additional diskIOPS/throughput, log retention/drains, replicas/partition topology beyond the stated equivalent-cost allowance.",
+    "Image transformations, non-video derivative CPU, cache units above the specified budget, retransmissions/bots/reconnect storms.",
+    "Recovery, subscriptions and entry traffic after removed idle polling; no historical timer counts were added."
+  ],
+  "results": [
+    {
+      "scenario": "light",
+      "workload": {
+        "applicationRequestsPerMonth": 18000000000,
+        "additionalAdminRequestsPerMonth": 750000,
+        "peakApplicationRps": 20833.333333333332,
+        "mediaRequestsPerMonth": 15000000000,
+        "peakMediaRps": 17361.111111111113,
+        "viewerGbPerMonth": 5805000,
+        "viewerPbPerMonth": 5.805,
+        "averageMediaGbps": 17.916666666666668,
+        "peakMediaGbps": 53.75,
+        "peakRealtimeConnections": 125000,
+        "objectGbAtOneYearRetention": 912500,
+        "objectGbMonthOneAverage": 37500,
+        "encodedVideosPerMonth": 1875000,
+        "originalVideoGbPerMonth": 9375,
+        "derivativeVideoGbPerMonth": 9375,
+        "requiredPeakApplicationRpsWith30PercentHeadroom": 27084,
+        "requiredPeakMediaGbpsWith30PercentHeadroom": 69.875,
+        "requiredPeakRealtimeConnectionsWith30PercentHeadroom": 162500
+      },
+      "estimates": {
+        "low": {
+          "derived": {
+            "mau": 5000000,
+            "billedRealtimeMessagesPerMonth": 3453000000,
+            "peakBilledRealtimeMessagesPerSecond": 3996.5277777777774,
+            "mediaAuthorizationCallsPerMonth": 1500000000,
+            "applicationEdgeInvocationsPerMonth": 900037500,
+            "webAndAdminFunctionInvocationsPerMonth": 360015000,
+            "primaryDatabaseDiskGbAllowance": 5038.8,
+            "totalDatabaseDiskGbAllowance": 5038.8,
+            "encodeWallHoursPerMonth": 15625,
+            "encodeActiveCpuHoursPerMonth": 31250,
+            "encodeMemoryGbHoursPerMonth": 62500,
+            "peakConcurrentEncodeJobs": 66,
+            "peakEncodeJobsWith30PercentHeadroom": 85
+          },
+          "costsUsd": {
+            "supabaseMediaEgress": 191565,
+            "vercelMediaViewerTransfer": 870750,
+            "vercelMediaGatewayOriginTransfer": 348300,
+            "vercelMediaCdnRequests": 30000,
+            "vercelMediaFunctionInvocations": 9000,
+            "vercelMediaFunctionCpu": 533.33,
+            "vercelMediaFunctionMemory": 2208.33,
+            "vercelMediaCacheReads": 12000,
+            "vercelMediaCacheWrites": 6000,
+            "supabaseAuth": 16250,
+            "supabaseRealtimeMessages": 8632.5,
+            "supabaseRealtimeConnections": 1250,
+            "supabaseApplicationEgress": 3240.14,
+            "supabaseRealtimeEgress": 155.39,
+            "supabaseAuthorizationEgress": 69.12,
+            "supabaseAppEdgeInvocations": 1800.08,
+            "supabaseMediaAuthorizationEdgeInvocations": 3000,
+            "vercelWebAndAdminFunctions": 386.02,
+            "vercelWebAndAdminCdnRequests": 1680.03,
+            "vercelWebAndAdminDataTransfer": 1276.21,
+            "supabaseObjectStorageAtOneYear": 19177.83,
+            "supabaseDatabaseComputeAllowance": 3686.4,
+            "supabaseDatabaseDiskAllowance": 620.38,
+            "sandboxEncodeCpu": 4000,
+            "sandboxEncodeMemory": 1325,
+            "sandboxCreations": 1.13,
+            "supabaseEncodeSourceEgress": 843.75,
+            "sandboxDerivativeUploadTransfer": 1406.25,
+            "supabaseWorkerBrokerInvocations": 187.5,
+            "baseSubscriptionReferences": 45
+          },
+          "grossMonthlySubtotalUsd": 1539389.37,
+          "contingencyUsd": 307877.87,
+          "planningEnvelopeUsd": 1847267.24,
+          "objectStorageMonthOneUsd": 788.13,
+          "directStorageDeliveryComparisonSubtotalUsd": 257528.58,
+          "directStorageDeliveryComparisonEnvelopeUsd": 309034.3,
+          "directComparisonCaveat": "Hypothetical removal of private Vercel media path and media-broker authorization costs only; security/revocation parity, current ticket architecture and provider capacity are not established. This is not an approved implementation."
+        },
+        "high": {
+          "derived": {
+            "mau": 20000000,
+            "billedRealtimeMessagesPerMonth": 31230000000,
+            "peakBilledRealtimeMessagesPerSecond": 36145.833333333336,
+            "mediaAuthorizationCallsPerMonth": 30000000000,
+            "applicationEdgeInvocationsPerMonth": 4500187500,
+            "webAndAdminFunctionInvocationsPerMonth": 1800075000,
+            "primaryDatabaseDiskGbAllowance": 10077.6,
+            "totalDatabaseDiskGbAllowance": 30232.800000000003,
+            "encodeWallHoursPerMonth": 62500,
+            "encodeActiveCpuHoursPerMonth": 125000,
+            "encodeMemoryGbHoursPerMonth": 250000,
+            "peakConcurrentEncodeJobs": 261,
+            "peakEncodeJobsWith30PercentHeadroom": 339
+          },
+          "costsUsd": {
+            "supabaseMediaEgress": 522450,
+            "vercelMediaViewerTransfer": 2031750,
+            "vercelMediaGatewayOriginTransfer": 348300,
+            "vercelMediaCdnRequests": 48000,
+            "vercelMediaFunctionInvocations": 9000,
+            "vercelMediaFunctionCpu": 5333.33,
+            "vercelMediaFunctionMemory": 22083.33,
+            "vercelMediaCacheReads": 12000,
+            "vercelMediaCacheWrites": 120000,
+            "supabaseAuth": 65000,
+            "supabaseRealtimeMessages": 78075,
+            "supabaseRealtimeConnections": 1250,
+            "supabaseApplicationEgress": 16200.68,
+            "supabaseRealtimeEgress": 5621.4,
+            "supabaseAuthorizationEgress": 1382.4,
+            "supabaseAppEdgeInvocations": 9000.38,
+            "supabaseMediaAuthorizationEdgeInvocations": 60000,
+            "vercelWebAndAdminFunctions": 7660.32,
+            "vercelWebAndAdminCdnRequests": 7296.24,
+            "vercelWebAndAdminDataTransfer": 17880.31,
+            "supabaseObjectStorageAtOneYear": 19177.83,
+            "supabaseDatabaseComputeAllowance": 11059.2,
+            "supabaseDatabaseDiskAllowance": 3722.26,
+            "sandboxEncodeCpu": 16000,
+            "sandboxEncodeMemory": 5300,
+            "sandboxCreations": 1.13,
+            "supabaseEncodeSourceEgress": 843.75,
+            "sandboxDerivativeUploadTransfer": 1406.25,
+            "supabaseWorkerBrokerInvocations": 750,
+            "baseSubscriptionReferences": 45
+          },
+          "grossMonthlySubtotalUsd": 3446588.8,
+          "contingencyUsd": 689317.76,
+          "planningEnvelopeUsd": 4135906.56,
+          "objectStorageMonthOneUsd": 788.13,
+          "directStorageDeliveryComparisonSubtotalUsd": 788739.73,
+          "directStorageDeliveryComparisonEnvelopeUsd": 946487.68,
+          "directComparisonCaveat": "Hypothetical removal of private Vercel media path and media-broker authorization costs only; security/revocation parity, current ticket architecture and provider capacity are not established. This is not an approved implementation."
+        }
+      }
+    },
+    {
+      "scenario": "base",
+      "workload": {
+        "applicationRequestsPerMonth": 30000000000,
+        "additionalAdminRequestsPerMonth": 750000,
+        "peakApplicationRps": 57870.37037037037,
+        "mediaRequestsPerMonth": 30000000000,
+        "peakMediaRps": 57870.37037037037,
+        "viewerGbPerMonth": 34110000,
+        "viewerPbPerMonth": 34.11,
+        "averageMediaGbps": 105.27777777777777,
+        "peakMediaGbps": 526.3888888888889,
+        "peakRealtimeConnections": 442709,
+        "objectGbAtOneYearRetention": 3650000,
+        "objectGbMonthOneAverage": 150000,
+        "encodedVideosPerMonth": 7500000,
+        "originalVideoGbPerMonth": 75000,
+        "derivativeVideoGbPerMonth": 75000,
+        "requiredPeakApplicationRpsWith30PercentHeadroom": 75232,
+        "requiredPeakMediaGbpsWith30PercentHeadroom": 684.3055555555557,
+        "requiredPeakRealtimeConnectionsWith30PercentHeadroom": 575521
+      },
+      "estimates": {
+        "low": {
+          "derived": {
+            "mau": 5000000,
+            "billedRealtimeMessagesPerMonth": 4356000000,
+            "peakBilledRealtimeMessagesPerSecond": 8402.777777777777,
+            "mediaAuthorizationCallsPerMonth": 3000000000,
+            "applicationEdgeInvocationsPerMonth": 1500037500,
+            "webAndAdminFunctionInvocationsPerMonth": 600015000,
+            "primaryDatabaseDiskGbAllowance": 14718.6,
+            "totalDatabaseDiskGbAllowance": 14718.6,
+            "encodeWallHoursPerMonth": 125000,
+            "encodeActiveCpuHoursPerMonth": 250000,
+            "encodeMemoryGbHoursPerMonth": 500000,
+            "peakConcurrentEncodeJobs": 869,
+            "peakEncodeJobsWith30PercentHeadroom": 1129
+          },
+          "costsUsd": {
+            "supabaseMediaEgress": 1125630,
+            "vercelMediaViewerTransfer": 5116500,
+            "vercelMediaGatewayOriginTransfer": 2046600,
+            "vercelMediaCdnRequests": 60000,
+            "vercelMediaFunctionInvocations": 18000,
+            "vercelMediaFunctionCpu": 1066.67,
+            "vercelMediaFunctionMemory": 4416.67,
+            "vercelMediaCacheReads": 24000,
+            "vercelMediaCacheWrites": 12000,
+            "supabaseAuth": 16250,
+            "supabaseRealtimeMessages": 10890,
+            "supabaseRealtimeConnections": 4430,
+            "supabaseApplicationEgress": 5400.14,
+            "supabaseRealtimeEgress": 196.02,
+            "supabaseAuthorizationEgress": 138.24,
+            "supabaseAppEdgeInvocations": 3000.08,
+            "supabaseMediaAuthorizationEdgeInvocations": 6000,
+            "vercelWebAndAdminFunctions": 643.35,
+            "vercelWebAndAdminCdnRequests": 2160.03,
+            "vercelWebAndAdminDataTransfer": 1377.01,
+            "supabaseObjectStorageAtOneYear": 76711.32,
+            "supabaseDatabaseComputeAllowance": 3686.4,
+            "supabaseDatabaseDiskAllowance": 1812.15,
+            "sandboxEncodeCpu": 32000,
+            "sandboxEncodeMemory": 10600,
+            "sandboxCreations": 4.5,
+            "supabaseEncodeSourceEgress": 6750,
+            "sandboxDerivativeUploadTransfer": 11250,
+            "supabaseWorkerBrokerInvocations": 750,
+            "baseSubscriptionReferences": 45
+          },
+          "grossMonthlySubtotalUsd": 8602307.56,
+          "contingencyUsd": 1720461.51,
+          "planningEnvelopeUsd": 10322769.08,
+          "objectStorageMonthOneUsd": 3152.52,
+          "directStorageDeliveryComparisonSubtotalUsd": 1313585.99,
+          "directStorageDeliveryComparisonEnvelopeUsd": 1576303.19,
+          "directComparisonCaveat": "Hypothetical removal of private Vercel media path and media-broker authorization costs only; security/revocation parity, current ticket architecture and provider capacity are not established. This is not an approved implementation."
+        },
+        "high": {
+          "derived": {
+            "mau": 20000000,
+            "billedRealtimeMessagesPerMonth": 33660000000,
+            "peakBilledRealtimeMessagesPerSecond": 64930.555555555555,
+            "mediaAuthorizationCallsPerMonth": 60000000000,
+            "applicationEdgeInvocationsPerMonth": 7500187500,
+            "webAndAdminFunctionInvocationsPerMonth": 3000075000,
+            "primaryDatabaseDiskGbAllowance": 29437.2,
+            "totalDatabaseDiskGbAllowance": 88311.6,
+            "encodeWallHoursPerMonth": 500000,
+            "encodeActiveCpuHoursPerMonth": 1000000,
+            "encodeMemoryGbHoursPerMonth": 2000000,
+            "peakConcurrentEncodeJobs": 3473,
+            "peakEncodeJobsWith30PercentHeadroom": 4514
+          },
+          "costsUsd": {
+            "supabaseMediaEgress": 3069900,
+            "vercelMediaViewerTransfer": 11938500,
+            "vercelMediaGatewayOriginTransfer": 2046600,
+            "vercelMediaCdnRequests": 96000,
+            "vercelMediaFunctionInvocations": 18000,
+            "vercelMediaFunctionCpu": 10666.67,
+            "vercelMediaFunctionMemory": 44166.67,
+            "vercelMediaCacheReads": 24000,
+            "vercelMediaCacheWrites": 240000,
+            "supabaseAuth": 65000,
+            "supabaseRealtimeMessages": 84150,
+            "supabaseRealtimeConnections": 4430,
+            "supabaseApplicationEgress": 27000.68,
+            "supabaseRealtimeEgress": 6058.8,
+            "supabaseAuthorizationEgress": 2764.8,
+            "supabaseAppEdgeInvocations": 15000.38,
+            "supabaseMediaAuthorizationEdgeInvocations": 120000,
+            "vercelWebAndAdminFunctions": 12766.99,
+            "vercelWebAndAdminCdnRequests": 11136.24,
+            "vercelWebAndAdminDataTransfer": 22800.31,
+            "supabaseObjectStorageAtOneYear": 76711.32,
+            "supabaseDatabaseComputeAllowance": 11059.2,
+            "supabaseDatabaseDiskAllowance": 10872.92,
+            "sandboxEncodeCpu": 128000,
+            "sandboxEncodeMemory": 42400,
+            "sandboxCreations": 4.5,
+            "supabaseEncodeSourceEgress": 6750,
+            "sandboxDerivativeUploadTransfer": 11250,
+            "supabaseWorkerBrokerInvocations": 3000,
+            "baseSubscriptionReferences": 45
+          },
+          "grossMonthlySubtotalUsd": 18149034.46,
+          "contingencyUsd": 3629806.89,
+          "planningEnvelopeUsd": 21778841.35,
+          "objectStorageMonthOneUsd": 3152.52,
+          "directStorageDeliveryComparisonSubtotalUsd": 3608336.33,
+          "directStorageDeliveryComparisonEnvelopeUsd": 4330003.59,
+          "directComparisonCaveat": "Hypothetical removal of private Vercel media path and media-broker authorization costs only; security/revocation parity, current ticket architecture and provider capacity are not established. This is not an approved implementation."
+        }
+      }
+    }
+  ]
+}

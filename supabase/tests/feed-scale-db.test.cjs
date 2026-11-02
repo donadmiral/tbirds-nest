@@ -32,6 +32,8 @@ before(async () => {
     set request.jwt.claim.sub='${VIEWER}';`);
   await exec(migration);
   await exec(sql('20261102092828_indexed_feed_rank_frontier.sql'));
+  await exec(sql('20261102175247_feed_catalog_inline_visibility.sql'));
+  await exec(sql('20261102180219_feed_frontier_defer_partial_scoring.sql'));
   await exec('select configure_indexed_feed_v1(true);');
   await exec('begin;set role authenticated;');
 });
@@ -96,4 +98,79 @@ test('future timestamps retain the canonical fallback and the current result',as
   assert.deepEqual(await rows("select * from get_feed('for_you',null,null,20)"),
     await rows("select * from get_feed_before_scale('for_you',null,null,20)"));
   await exec(`reset role;delete from posts where id='${id(400001)}';set role authenticated;`);
+});
+
+test('an exhausted short page scores its complete frontier once and preserves exact cards',async()=>{
+ const selected=[1,49,97,145,193,241].map(n=>id(30000+n));
+ const [saved]=await rows("select pg_get_functiondef('feed_ranking.score(uuid[],text)'::regprocedure) definition");
+ await exec('reset role;'+saved.definition.replace('FUNCTION feed_ranking.score(','FUNCTION feed_ranking.score_test_original(')+`;
+  create sequence feed_ranking.score_test_calls;
+  grant usage,select on sequence feed_ranking.score_test_calls to authenticated;
+  grant execute on function feed_ranking.score_test_original(uuid[],text) to authenticated;
+  create or replace function feed_ranking.score(p_ids uuid[],p_mode text)
+  returns table(id uuid,author_id uuid,raw_score numeric,sort_key double precision,tied boolean)
+  language plpgsql stable security invoker set search_path='' as $$begin
+   perform nextval('feed_ranking.score_test_calls');
+   return query select * from feed_ranking.score_test_original(p_ids,p_mode);
+  end$$;
+  create policy capacity_test_short_frontier on posts as restrictive for select to authenticated
+   using(id=any(array[${selected.map(v=>`'${v}'::uuid`).join(',')} ]));
+  set role authenticated;`);
+ const [proof]=await rows("select feed_ranking.select_page('for_you',null,null,20) result");
+ assert.equal(proof.result.fallback,false);assert.equal(proof.result.candidates,6);assert.equal(proof.result.days,6);
+ const [calls]=await rows('select last_value,is_called from feed_ranking.score_test_calls');
+ assert.equal(calls.is_called,true);assert.equal(Number(calls.last_value),1);
+ assert.deepEqual(await rows("select * from get_feed('for_you',null,null,20)"),
+  await rows("select * from get_feed_before_scale('for_you',null,null,20)"));
+ await exec('reset role;drop policy capacity_test_short_frontier on posts;'+saved.definition+';drop function feed_ranking.score_test_original(uuid[],text);drop sequence feed_ranking.score_test_calls;set role authenticated;');
+});
+
+
+test('catalog inline authorization exactly follows canonical visibility and caller posts RLS',async()=>{
+ const p=id(30002),author=id(102);
+ const visible=async()=>rows(`select post_id from feed_ranking.catalog where post_id='${p}'`);
+ assert.equal((await rows("select feed_ranking.visibility_contract_current() ok"))[0].ok,true);
+ for(const [change,undo] of [
+  [`insert into hidden_posts values('${VIEWER}','${p}')`,`delete from hidden_posts`],
+  [`insert into muted_authors values('${VIEWER}','${author}')`,`delete from muted_authors`],
+  [`insert into blocked_users values('${author}','${VIEWER}')`,`delete from blocked_users`],
+  [`update posts set audience='mentioned' where id='${p}'`,`update posts set audience='everyone' where id='${p}'`],
+  [`update profiles set profile_visibility='private' where id='${author}'`,`update profiles set profile_visibility='public' where id='${author}'`],
+  [`update posts set archived_at=now() where id='${p}'`,`update posts set archived_at=null where id='${p}'`],
+  [`create policy capacity_test_authority on posts as restrictive for select to authenticated using(id<>'${p}')`,`drop policy capacity_test_authority on posts`],
+ ]){
+  await exec('reset role;'+change+';set role authenticated;');
+  assert.deepEqual(await visible(),await rows(`select post_id from get_feed_visibility(array['${p}'::uuid])`));
+  assert.deepEqual(await visible(),[]);
+  await exec('reset role;'+undo+';set role authenticated;');
+  assert.equal((await visible()).length,1);
+ }
+});
+
+test('future canonical authority changes immediately fall back to the live RPC',async()=>{
+ await exec(`reset role;create or replace function public.get_feed_visibility(p_ids uuid[])
+ returns table(post_id uuid,snapshot_eligible boolean) language plpgsql stable security invoker set search_path='' as $$
+ begin return query select null::uuid,false where false;end$$;set role authenticated;`);
+ assert.equal((await rows('select feed_ranking.visibility_contract_current() ok'))[0].ok,false);
+ assert.deepEqual(await rows('select post_id from feed_ranking.catalog limit 10'),[]);
+ await exec('reset role;'+sql('20261022211411_feed_snapshot_visibility.sql')+';set role authenticated;');
+ assert.equal((await rows('select feed_ranking.visibility_contract_current() ok'))[0].ok,true);
+});
+
+test('catalog preserves canonical EXECUTE revocation and unauthenticated errors',async()=>{
+ await exec(`reset role;revoke execute on function get_feed_visibility(uuid[]) from authenticated;
+ do $$begin
+  set local role authenticated;
+  if feed_ranking.visibility_contract_current() then raise exception 'ignored revoked authority';end if;
+  begin perform post_id from feed_ranking.catalog limit 1;raise exception 'accepted revoked visibility';
+  exception when insufficient_privilege then null;end;
+  reset role;
+ end$$;
+ grant execute on function get_feed_visibility(uuid[]) to authenticated;
+ set request.jwt.claim.sub='';
+ do $$begin set local role authenticated;
+  begin perform post_id from feed_ranking.catalog limit 1;raise exception 'accepted empty identity';
+  exception when insufficient_privilege then null;end;
+  reset role;
+ end$$;set request.jwt.claim.sub='${VIEWER}';set role authenticated;`);
 });

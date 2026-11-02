@@ -1,0 +1,815 @@
+{
+  "version": 1,
+  "qa_project_ref": "uaulhuelcfkjwojtymmw",
+  "authorization": "QA-only isolated synthetic account, no customer notifications; production reads only by this measuring agent",
+  "migrations": [
+    {
+      "file": "20261102175247_feed_catalog_inline_visibility.sql",
+      "sha256": "8850532ffd2749f2adc779788a6c9285cb936184e5853af3a691571e3c08d776",
+      "postflight": {
+        "at": "2026-11-02T18:00:10.904426+00:00",
+        "helper": {
+          "config": [
+            "search_path=\"\""
+          ],
+          "volatile": "s",
+          "prosecdef": false,
+          "anon_execute": false,
+          "authenticated_execute": true
+        },
+        "settings": {
+          "enabled": true,
+          "singleton": true
+        },
+        "migration": {
+          "name": "feed_catalog_inline_visibility",
+          "version": "20261102175956"
+        },
+        "canonical_source_md5": "bd469b35c28c5f71bf6d84faed221c42",
+        "policy_uses_contract": true
+      }
+    },
+    {
+      "file": "20261102180219_feed_frontier_defer_partial_scoring.sql",
+      "sha256": "5cdc737eadb15df8becb0b640e383778de23dae6f6a22e43d3deda3fae4e488e",
+      "postflight": {
+        "at": "2026-11-02T18:04:34.268599+00:00",
+        "enabled": true,
+        "invoker": true,
+        "migration": {
+          "name": "feed_frontier_defer_partial_scoring",
+          "version": "20261102180420"
+        },
+        "source_md5": "014705c6f587aaa7adaf43e2f408f1d0",
+        "anon_execute": false,
+        "authenticated_execute": true
+      }
+    }
+  ],
+  "plans": {
+    "feed_plan": [
+      {
+        "QUERY PLAN": [
+          {
+            "Plan": {
+              "Node Type": "Function Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Function Name": "get_feed",
+              "Alias": "get_feed",
+              "Startup Cost": 0.25,
+              "Total Cost": 10.25,
+              "Plan Rows": 1000,
+              "Plan Width": 590,
+              "Actual Startup Time": 410.072,
+              "Actual Total Time": 410.073,
+              "Actual Rows": 10,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 18378,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning": {
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning Time": 0.059,
+            "Triggers": [],
+            "Execution Time": 410.143
+          }
+        ]
+      }
+    ],
+    "frontier_plan": [
+      {
+        "QUERY PLAN": [
+          {
+            "Plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32,
+              "Actual Startup Time": 260.041,
+              "Actual Total Time": 260.041,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 11813,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning": {
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning Time": 0.013,
+            "Triggers": [],
+            "Execution Time": 260.057
+          }
+        ]
+      }
+    ],
+    "hydrate_plan": [
+      {
+        "QUERY PLAN": [
+          {
+            "Plan": {
+              "Node Type": "Function Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Function Name": "get_feed_rows_by_ids_v1",
+              "Alias": "get_feed_rows_by_ids_v1",
+              "Startup Cost": 0.25,
+              "Total Cost": 10.25,
+              "Plan Rows": 1000,
+              "Plan Width": 590,
+              "Actual Startup Time": 51.948,
+              "Actual Total Time": 51.95,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 5306,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning": {
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning Time": 0.044,
+            "Triggers": [],
+            "Execution Time": 52.011
+          }
+        ]
+      }
+    ],
+    "after_feed_plan": [
+      {
+        "QUERY PLAN": [
+          {
+            "Plan": {
+              "Node Type": "Function Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Function Name": "get_feed",
+              "Alias": "get_feed",
+              "Startup Cost": 0.25,
+              "Total Cost": 10.25,
+              "Plan Rows": 1000,
+              "Plan Width": 590,
+              "Actual Startup Time": 321.026,
+              "Actual Total Time": 321.028,
+              "Actual Rows": 10,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 16654,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 1,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning": {
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning Time": 0.045,
+            "Triggers": [],
+            "Execution Time": 321.089
+          }
+        ]
+      }
+    ],
+    "after_frontier_plan": [
+      {
+        "QUERY PLAN": [
+          {
+            "Plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32,
+              "Actual Startup Time": 178.496,
+              "Actual Total Time": 178.497,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 10143,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning": {
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning Time": 0.011,
+            "Triggers": [],
+            "Execution Time": 178.513
+          }
+        ]
+      }
+    ],
+    "final_feed_plan": [
+      {
+        "QUERY PLAN": [
+          {
+            "Plan": {
+              "Node Type": "Function Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Function Name": "get_feed",
+              "Alias": "get_feed",
+              "Startup Cost": 0.25,
+              "Total Cost": 10.25,
+              "Plan Rows": 1000,
+              "Plan Width": 590,
+              "Actual Startup Time": 244.728,
+              "Actual Total Time": 244.729,
+              "Actual Rows": 10,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 14421,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning": {
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning Time": 0.038,
+            "Triggers": [],
+            "Execution Time": 244.787
+          }
+        ]
+      }
+    ],
+    "final_frontier_plan": [
+      {
+        "QUERY PLAN": [
+          {
+            "Plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32,
+              "Actual Startup Time": 91.588,
+              "Actual Total Time": 91.588,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 7928,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning": {
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            },
+            "Planning Time": 0.01,
+            "Triggers": [],
+            "Execution Time": 91.603
+          }
+        ]
+      }
+    ]
+  },
+  "samples": [
+    {
+      "at": "2026-11-02T17:57:12.193013+00:00",
+      "db": {
+        "blks_hit": 2936435520,
+        "blks_read": 3214,
+        "deadlocks": 0,
+        "temp_bytes": 68102802830,
+        "xact_commit": 2452674,
+        "xact_rollback": 42521
+      },
+      "fanout": {
+        "version": 1,
+        "count_cap": 100001,
+        "fanout_dead": 0,
+        "dispatch_dead": 0,
+        "last_drain_at": "2026-11-02T17:57:11.346894+00:00",
+        "fanout_enabled": true,
+        "fanout_pending": 0,
+        "dispatch_enabled": false,
+        "dispatch_pending": 0,
+        "last_dispatch_at": "2026-11-02T17:06:51.568259+00:00",
+        "oldest_fanout_at": null,
+        "oldest_dispatch_at": null
+      },
+      "counter": {
+        "shards": 64,
+        "enabled": true,
+        "pending": 0,
+        "version": 1,
+        "last_error": null,
+        "lag_target_ms": 1000,
+        "last_flush_at": "2026-11-02T17:57:11.923117+00:00",
+        "pending_capped": false,
+        "oldest_pending_at": null,
+        "synchronous_fallback": false
+      },
+      "connections": {
+        "active": 2,
+        "clients": 18,
+        "lock_waiters": 0,
+        "total_processes": 27
+      },
+      "fixture_fanout": {
+        "dead": 0,
+        "done": 176,
+        "shards": 176,
+        "pending": 0,
+        "completion_max_ms": 1031.427,
+        "completion_p95_ms": 1030.0005,
+        "created_notifications": 0
+      }
+    },
+    {
+      "at": "2026-11-02T18:03:58.675356+00:00",
+      "db": {
+        "blks_hit": 2939646524,
+        "blks_read": 3214,
+        "deadlocks": 0,
+        "temp_bytes": 68147408106,
+        "xact_commit": 2456663,
+        "xact_rollback": 42523
+      },
+      "fanout": {
+        "version": 1,
+        "count_cap": 100001,
+        "fanout_dead": 0,
+        "dispatch_dead": 0,
+        "last_drain_at": "2026-11-02T18:03:58.611182+00:00",
+        "fanout_enabled": true,
+        "fanout_pending": 0,
+        "dispatch_enabled": false,
+        "dispatch_pending": 0,
+        "last_dispatch_at": "2026-11-02T17:06:51.568259+00:00",
+        "oldest_fanout_at": null,
+        "oldest_dispatch_at": null
+      },
+      "counter": {
+        "shards": 64,
+        "enabled": true,
+        "pending": 0,
+        "version": 1,
+        "last_error": null,
+        "lag_target_ms": 1000,
+        "last_flush_at": "2026-11-02T18:03:58.29841+00:00",
+        "pending_capped": false,
+        "oldest_pending_at": null,
+        "synchronous_fallback": false
+      },
+      "connections": {
+        "active": 2,
+        "clients": 15,
+        "lock_waiters": 0,
+        "total_processes": 24
+      },
+      "fixture_fanout": {
+        "dead": 0,
+        "done": 208,
+        "shards": 208,
+        "pending": 0,
+        "completion_max_ms": 1031.427,
+        "completion_p95_ms": 1029.57135,
+        "created_notifications": 0
+      }
+    },
+    {
+      "at": "2026-11-02T18:06:18.851978+00:00",
+      "db": {
+        "blks_hit": 2941081357,
+        "blks_read": 3214,
+        "deadlocks": 0,
+        "temp_bytes": 68169741386,
+        "xact_commit": 2458269,
+        "xact_rollback": 42523
+      },
+      "fanout": {
+        "version": 1,
+        "count_cap": 100001,
+        "fanout_dead": 0,
+        "dispatch_dead": 0,
+        "last_drain_at": "2026-11-02T18:06:18.520428+00:00",
+        "fanout_enabled": true,
+        "fanout_pending": 0,
+        "dispatch_enabled": false,
+        "dispatch_pending": 0,
+        "last_dispatch_at": "2026-11-02T17:06:51.568259+00:00",
+        "oldest_fanout_at": null,
+        "oldest_dispatch_at": null
+      },
+      "counter": {
+        "shards": 64,
+        "enabled": true,
+        "pending": 0,
+        "version": 1,
+        "last_error": null,
+        "lag_target_ms": 1000,
+        "last_flush_at": "2026-11-02T18:06:18.19705+00:00",
+        "pending_capped": false,
+        "oldest_pending_at": null,
+        "synchronous_fallback": false
+      },
+      "connections": {
+        "active": 2,
+        "clients": 19,
+        "lock_waiters": 0,
+        "total_processes": 28
+      },
+      "fixture_fanout": {
+        "dead": 0,
+        "done": 384,
+        "shards": 384,
+        "pending": 0,
+        "completion_max_ms": 1031.427,
+        "completion_p95_ms": 984.95525,
+        "created_notifications": 0
+      }
+    },
+    {
+      "at": "2026-11-02T18:09:46.730396+00:00",
+      "db": {
+        "blks_hit": 2944694900,
+        "blks_read": 3219,
+        "deadlocks": 0,
+        "temp_bytes": 68192077702,
+        "xact_commit": 2461202,
+        "xact_rollback": 42523
+      },
+      "fanout": {
+        "version": 1,
+        "count_cap": 100001,
+        "fanout_dead": 0,
+        "dispatch_dead": 0,
+        "last_drain_at": "2026-11-02T18:09:46.574448+00:00",
+        "fanout_enabled": true,
+        "fanout_pending": 0,
+        "dispatch_enabled": false,
+        "dispatch_pending": 0,
+        "last_dispatch_at": "2026-11-02T17:06:51.568259+00:00",
+        "oldest_fanout_at": null,
+        "oldest_dispatch_at": null
+      },
+      "counter": {
+        "shards": 64,
+        "enabled": true,
+        "pending": 0,
+        "version": 1,
+        "last_error": null,
+        "lag_target_ms": 1000,
+        "last_flush_at": "2026-11-02T18:09:45.944863+00:00",
+        "pending_capped": false,
+        "oldest_pending_at": null,
+        "synchronous_fallback": false
+      },
+      "connections": {
+        "active": 2,
+        "clients": 17,
+        "lock_waiters": 0,
+        "total_processes": 26
+      },
+      "fixture_fanout": {
+        "dead": 0,
+        "done": 1696,
+        "shards": 1696,
+        "pending": 0,
+        "completion_max_ms": 1031.427,
+        "completion_p95_ms": 984.678,
+        "created_notifications": 0
+      }
+    }
+  ],
+  "admin_projection_timings": {
+    "connection": "Privileged connector SQL under postgres; not an authenticated admin HTTP measurement",
+    "rows": [
+      {
+        "scope": "dashboard",
+        "iteration": 1,
+        "server_ms": 5.463,
+        "canonical_equal": true
+      },
+      {
+        "scope": "dashboard",
+        "iteration": 2,
+        "server_ms": 1.665,
+        "canonical_equal": true
+      },
+      {
+        "scope": "dashboard",
+        "iteration": 3,
+        "server_ms": 1.405,
+        "canonical_equal": true
+      },
+      {
+        "scope": "dashboard",
+        "iteration": 4,
+        "server_ms": 0.823,
+        "canonical_equal": true
+      },
+      {
+        "scope": "dashboard",
+        "iteration": 5,
+        "server_ms": 0.828,
+        "canonical_equal": true
+      },
+      {
+        "scope": "dashboard",
+        "iteration": 6,
+        "server_ms": 1.938,
+        "canonical_equal": true
+      },
+      {
+        "scope": "dashboard",
+        "iteration": 7,
+        "server_ms": 0.48,
+        "canonical_equal": true
+      },
+      {
+        "scope": "dashboard",
+        "iteration": 8,
+        "server_ms": 0.419,
+        "canonical_equal": true
+      },
+      {
+        "scope": "dashboard",
+        "iteration": 9,
+        "server_ms": 0.479,
+        "canonical_equal": true
+      },
+      {
+        "scope": "dashboard",
+        "iteration": 10,
+        "server_ms": 0.404,
+        "canonical_equal": true
+      },
+      {
+        "scope": "analytics",
+        "iteration": 1,
+        "server_ms": 1.166,
+        "canonical_equal": true
+      },
+      {
+        "scope": "analytics",
+        "iteration": 2,
+        "server_ms": 0.535,
+        "canonical_equal": true
+      },
+      {
+        "scope": "analytics",
+        "iteration": 3,
+        "server_ms": 0.437,
+        "canonical_equal": true
+      },
+      {
+        "scope": "analytics",
+        "iteration": 4,
+        "server_ms": 0.449,
+        "canonical_equal": true
+      },
+      {
+        "scope": "analytics",
+        "iteration": 5,
+        "server_ms": 0.461,
+        "canonical_equal": true
+      },
+      {
+        "scope": "analytics",
+        "iteration": 6,
+        "server_ms": 0.593,
+        "canonical_equal": true
+      },
+      {
+        "scope": "analytics",
+        "iteration": 7,
+        "server_ms": 0.276,
+        "canonical_equal": true
+      },
+      {
+        "scope": "analytics",
+        "iteration": 8,
+        "server_ms": 0.235,
+        "canonical_equal": true
+      },
+      {
+        "scope": "analytics",
+        "iteration": 9,
+        "server_ms": 0.229,
+        "canonical_equal": true
+      },
+      {
+        "scope": "analytics",
+        "iteration": 10,
+        "server_ms": 0.263,
+        "canonical_equal": true
+      }
+    ]
+  },
+  "restore": {
+    "feed": {
+      "exact": true,
+      "enabled": false,
+      "version": 1,
+      "index_batch": 64,
+      "fallback_preserves_ranking": true,
+      "max_candidates_before_fallback": 10000
+    },
+    "fanout": {
+      "version": 1,
+      "count_cap": 100001,
+      "fanout_dead": 0,
+      "dispatch_dead": 0,
+      "last_drain_at": "2026-11-02T18:11:09.826542+00:00",
+      "fanout_enabled": false,
+      "fanout_pending": 0,
+      "dispatch_enabled": false,
+      "dispatch_pending": 0,
+      "last_dispatch_at": "2026-11-02T17:06:51.568259+00:00",
+      "oldest_fanout_at": null,
+      "oldest_dispatch_at": null
+    },
+    "readers": {
+      "singleton": true,
+      "books_ready": false,
+      "inbox_ready": false
+    },
+    "counters": {
+      "shards": 64,
+      "enabled": false,
+      "pending": 0,
+      "version": 1,
+      "last_error": null,
+      "lag_target_ms": 1000,
+      "last_flush_at": "2026-11-02T18:11:10.3442+00:00",
+      "pending_capped": false,
+      "oldest_pending_at": null,
+      "synchronous_fallback": false
+    },
+    "restored_at": "2026-11-02T18:11:10.34811+00:00"
+  },
+  "cleanup": {
+    "at": "2026-11-02T18:11:41.680827+00:00",
+    "admin": {
+      "enabled": false,
+      "version": 1,
+      "transactional": true,
+      "profile_shards": 256,
+      "last_reconciled_at": "2026-11-02T16:10:08.324015+00:00",
+      "heartbeat_bucket_seconds": 60
+    },
+    "created_notifications": 0,
+    "remaining_fixture_jobs": 0,
+    "media_fixture_preserved": true,
+    "remaining_fixture_shards": 0,
+    "remaining_fixture_rank_rows": 0,
+    "removed_closed_synthetic_membership_records": 3
+  },
+  "qa_final_resource_baseline": {
+    "at": "2026-11-02T18:12:15.856874+00:00",
+    "settings": {
+      "jit": {
+        "unit": null,
+        "setting": "off"
+      },
+      "work_mem": {
+        "unit": "kB",
+        "setting": "3500"
+      },
+      "shared_buffers": {
+        "unit": "8kB",
+        "setting": "32768"
+      },
+      "max_connections": {
+        "unit": null,
+        "setting": "60"
+      },
+      "track_io_timing": {
+        "unit": null,
+        "setting": "off"
+      },
+      "effective_cache_size": {
+        "unit": "8kB",
+        "setting": "98304"
+      },
+      "superuser_reserved_connections": {
+        "unit": null,
+        "setting": "3"
+      }
+    },
+    "connections": {
+      "active": 2,
+      "clients": 16,
+      "lock_waiters": 0
+    },
+    "project_ref": "uaulhuelcfkjwojtymmw",
+    "database_bytes": 47904435
+  }
+}

@@ -35,7 +35,7 @@ export function backend({base,key,brokerUrl,brokerKey,fetchImpl=fetch}) {
  };
 }
 
-const operation={claim_media_rendition_v2:'claim',check_media_rendition_v2:'check',register_media_rendition_assets_v2:'register',finish_media_rendition_v2:'finish',reconcile_media_renditions_v2:'reconcile',claim_media_rendition_cleanup_v2:'claim_cleanup',finish_media_rendition_cleanup_v2:'finish_cleanup',prune_media_renditions_v2:'prune',media_rendition_health_v2:'status',resolve_media_delivery:'ticket',resolve_media_rendition_v2:'rendition'};
+const operation={claim_media_rendition_v2:'claim',check_media_rendition_v2:'check',register_media_rendition_assets_v2:'register',finish_media_rendition_v2:'finish',reconcile_media_renditions_v2:'reconcile',claim_media_rendition_cleanup_v2:'claim_cleanup',finish_media_rendition_cleanup_v2:'finish_cleanup',prune_media_renditions_v2:'prune',media_rendition_health_v2:'status',resolve_media_delivery:'ticket',resolve_media_rendition_v2:'rendition',reserve_media_sandbox_v1:'sandbox_reserve',attach_media_sandbox_v1:'sandbox_attach',pending_media_sandboxes_v1:'sandbox_pending',finish_media_sandbox_v1:'sandbox_finish',media_sandbox_status_v1:'sandbox_status'};
 const jobProof=j=>({p_job_id:j.job_id,p_lease_id:j.lease_id,p_attempt:j.attempt});
 function scopedBackend({base,brokerUrl,brokerKey,fetchImpl}){
  const origin=new URL(base).origin,endpoint=new URL(brokerUrl);

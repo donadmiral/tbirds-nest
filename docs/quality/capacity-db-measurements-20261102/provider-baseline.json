@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "kind": "read-only owned-account provider baseline",
+  "project_ref": "prlkikhckbifseosbukl",
+  "source": "Supabase connected account get_organization and execute_sql; no public defaults substituted for account evidence",
+  "organization": {
+    "id": "lgzjbukuydzrczdeprzv",
+    "name": "Pearl Group",
+    "plan": "pro",
+    "tier": "tier_pro"
+  },
+  "production_database": {
+    "at": "2026-11-02T17:43:32.44447+00:00",
+    "version": "PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+    "settings": {
+      "work_mem": {
+        "unit": "kB",
+        "source": "configuration file",
+        "setting": "2184"
+      },
+      "shared_buffers": {
+        "unit": "8kB",
+        "source": "configuration file",
+        "setting": "28672"
+      },
+      "max_connections": {
+        "unit": null,
+        "source": "configuration file",
+        "setting": "60"
+      },
+      "track_io_timing": {
+        "unit": null,
+        "source": "default",
+        "setting": "off"
+      },
+      "statement_timeout": {
+        "unit": "ms",
+        "source": "configuration file",
+        "setting": "120000"
+      },
+      "effective_cache_size": {
+        "unit": "8kB",
+        "source": "configuration file",
+        "setting": "49152"
+      },
+      "maintenance_work_mem": {
+        "unit": "kB",
+        "source": "configuration file",
+        "setting": "32768"
+      },
+      "max_parallel_workers": {
+        "unit": null,
+        "source": "configuration file",
+        "setting": "2"
+      },
+      "max_worker_processes": {
+        "unit": null,
+        "source": "configuration file",
+        "setting": "6"
+      },
+      "reserved_connections": {
+        "unit": null,
+        "source": "default",
+        "setting": "0"
+      },
+      "superuser_reserved_connections": {
+        "unit": null,
+        "source": "default",
+        "setting": "3"
+      },
+      "max_parallel_workers_per_gather": {
+        "unit": null,
+        "source": "configuration file",
+        "setting": "1"
+      },
+      "idle_in_transaction_session_timeout": {
+        "unit": "ms",
+        "source": "default",
+        "setting": "0"
+      }
+    },
+    "connections": {
+      "idle": 7,
+      "total": 16,
+      "active": 1,
+      "lock_waiters": 0,
+      "by_backend_type": {
+        "archiver": 1,
+        "walwriter": 1,
+        "checkpointer": 1,
+        "client backend": 8,
+        "pg_cron launcher": 1,
+        "background writer": 1,
+        "autovacuum launcher": 1,
+        "pg_net 0.20.0 worker": 1,
+        "logical replication launcher": 1
+      }
+    },
+    "role_limits": {
+      "anon": -1,
+      "postgres": -1,
+      "service_role": -1,
+      "authenticated": -1,
+      "authenticator": -1
+    },
+    "database_bytes": 81202323,
+    "database_stats": {
+      "blks_hit": 11279408497,
+      "sessions": 747040,
+      "blks_read": 2613,
+      "conflicts": 0,
+      "deadlocks": 0,
+      "temp_bytes": 1478457523768,
+      "temp_files": 430648,
+      "active_time": 129010936.222,
+      "numbackends": 10,
+      "stats_reset": "2026-03-30T19:02:21.724308+00:00",
+      "tup_deleted": 197664,
+      "tup_fetched": 8191648109,
+      "tup_updated": 226903,
+      "xact_commit": 15083752,
+      "session_time": 97149884931.936,
+      "tup_inserted": 264661,
+      "tup_returned": 15654232042,
+      "blk_read_time": 0,
+      "xact_rollback": 281640,
+      "blk_write_time": 0,
+      "sessions_fatal": 0,
+      "sessions_killed": 7,
+      "checksum_failures": 0,
+      "sessions_abandoned": 241,
+      "checksum_last_failure": null,
+      "idle_in_transaction_time": 12755274.099
+    },
+    "pgrst_pool_setting": null
+  },
+  "confirmed": {
+    "max_connections": 60,
+    "superuser_reserved_connections": 3,
+    "shared_buffers_mib": 224,
+    "work_mem_kib": 2184
+  },
+  "unconfirmed": [
+    "actual compute SKU",
+    "connection-pool client and pool size limits",
+    "custom Auth rate limits",
+    "custom Realtime capacity limits",
+    "spend cap configuration",
+    "reserved throughput or capacity",
+    "approved operating budget"
+  ],
+  "limitations": [
+    "Database cumulative counters begin at stats_reset; they are not measurement-window rates.",
+    "60 max_connections does not uniquely identify the compute SKU.",
+    "This is not a production load test or a supported DAU claim."
+  ]
+}
