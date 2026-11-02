@@ -8,6 +8,7 @@ import { StableAsyncBlock } from "@/components/StableAsyncBlock";
 import { sharedPostMediaLabel } from "../../shared/sharedPostPreview";
 import { productDestination } from "../../shared/productDestination";
 import { uniqueCollaborators, collaborationName } from "../../shared/collaborationPeople";
+import { readPostCollaborators, subscribePostMetadataSession } from "@/lib/postMetadata";
 
 import { profilePath } from "@/lib/profileLookup";
 import { usePollFlag } from "@/lib/pollCheck";
@@ -37,7 +38,8 @@ import { ArticleBody } from "@/components/ArticleBody";
 import { LikesModal } from "@/components/LikesModal";
 import { ShareMenu } from "@/components/ShareMenu";
 import { Comments } from "@/components/Comments";
-import { COMMENT_COUNT_UPDATED, refreshCommentCount, type CommentCountUpdate } from "@/lib/commentCounts";
+import { COMMENT_COUNT_UPDATED, refreshCommentCount, reconcileLiveCommentCount, type CommentCountUpdate } from "@/lib/commentCounts";
+import { getNavigationStore } from "@/lib/navigationCache";
 import { displayImageUrl } from "@/lib/media";
 import type { FeedRow } from "@/lib/feed";
 import { RelativeTime } from "@/components/RelativeTime";
@@ -51,13 +53,19 @@ function count(n: number): string {
   return n > 0 ? String(n) : "";
 }
 
-function useToggle(initialOn: boolean, initialCount: number, action: (id: string, on: boolean) => Promise<boolean>, postId: string) {
+function useToggle(initialOn: boolean, initialCount: number, action: (id: string, on: boolean) => Promise<boolean>, postId: string, requestedAt?: number) {
   const [on, setOn] = useState(initialOn);
   const [n, setN] = useState(initialCount);
   const busy = useRef(false);
+  const changedAt = useRef(-1);
+  useEffect(() => {
+    if (busy.current || (changedAt.current >= 0 && (requestedAt ?? -1) <= changedAt.current)) return;
+    setOn(initialOn); setN(initialCount);
+  }, [initialOn, initialCount, requestedAt]);
   async function set(next: boolean) {
     if (busy.current || next === on) return;
     busy.current = true;
+    changedAt.current = Date.now();
     setOn(next);
     setN((v) => Math.max(0, v + (next ? 1 : -1)));
     try {
@@ -67,6 +75,10 @@ function useToggle(initialOn: boolean, initialCount: number, action: (id: string
       setN(n);
     } finally {
       busy.current = false;
+      changedAt.current = Date.now();
+      // The final batch must start after this write settles. Earlier feed
+      // props can never roll an optimistic or confirmed repost backward.
+      window.dispatchEvent(new CustomEvent('pc-feed-post-changed', { detail: { postId } }));
     }
   }
   async function flip(e: React.MouseEvent) {
@@ -112,18 +124,23 @@ function PostContent({ post, hideMedia, inlineComments = true }: { post: FeedRow
   const [previousScope,setPreviousScope]=useState(scope);
   if(previousScope!==scope){setPreviousScope(scope);setCollabNames([]);setCollabsOpen(false);setGalleryImages([]);}
   useEffect(() => {
-    let dead = false;
-    supabase.from("post_collaborators").select("user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, is_verified, verified_tier)").eq("post_id", post.post_id).eq("status", "accepted").then(({ data }) => {
-      if (dead) return;
-      type Pr = { username?: string | null; full_name?: string | null; is_verified?: boolean | null; verified_tier?: string | null };
-      const names = ((data ?? []) as { user_id: string; profile?: Pr | Pr[] }[]).flatMap(r => {
-        const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile;
-        return pr ? [{ id: r.user_id, name: collaborationName(pr, post.author_name), username: pr.username || '', verified: !!pr.is_verified, tier: pr.verified_tier ?? null }] : [];
-      });
-      setCollabNames(uniqueCollaborators(names, post.author_id));
-    });
-    return () => { dead = true; };
-  }, [supabase, post.post_id, post.author_id, post.author_name]);
+    let live = true, version = 0;
+    const load = async () => {
+      const run = ++version;
+      try {
+        const data = await readPostCollaborators(post.post_id);
+        if (!live || run !== version) return;
+        const names = data.flatMap(r => {
+          const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile;
+          return pr ? [{ id: r.user_id, name: collaborationName(pr, post.author_name), username: pr.username || '', verified: !!pr.is_verified, tier: pr.verified_tier ?? null }] : [];
+        });
+        setCollabNames(uniqueCollaborators(names, post.author_id));
+      } catch { /* A failed optional read does not remove a confirmed label. */ }
+    };
+    const unsubscribe = subscribePostMetadataSession(() => { version++; setCollabNames([]); setCollabsOpen(false); void load(); });
+    void load();
+    return () => { live = false; version++; unsubscribe(); };
+  }, [post.post_id, post.author_id, post.author_name]);
   const [listKind, setListKind] = useState<"likes" | "reposts" | "bookmarks">("likes");
   const [expanded, setExpanded] = useState(false);
   // Comments open right under the card, so the post and its video stay in view while you read and reply.
@@ -135,17 +152,28 @@ function PostContent({ post, hideMedia, inlineComments = true }: { post: FeedRow
     const update = (event: Event) => {
       const detail = (event as CustomEvent<CommentCountUpdate>).detail;
       if (detail?.postId !== post.post_id || !Number.isSafeInteger(detail.count) || detail.count < 0) return;
-      latestCommentUpdate.current = detail;
-      setCommentUpdate(detail);
+      if (detail.ownerId !== undefined && detail.ownerId !== getNavigationStore().getSnapshot().owner) return;
+      const update = { ...detail, confirmedAt: detail.confirmedAt ?? Date.now() };
+      latestCommentUpdate.current = update;
+      setCommentUpdate(update);
     };
     window.addEventListener(COMMENT_COUNT_UPDATED, update);
-    return () => window.removeEventListener(COMMENT_COUNT_UPDATED, update);
+    const unsubscribe = subscribePostMetadataSession(() => { latestCommentUpdate.current = null; setCommentUpdate(null); });
+    return () => { window.removeEventListener(COMMENT_COUNT_UPDATED, update); unsubscribe(); };
   }, [post.post_id]);
   useEffect(() => {
     // A late feed response may predate a confirmed mutation. Reconcile changed
     // seed props instead of overwriting the live total with an older value.
-    if (latestCommentUpdate.current?.postId === post.post_id) void refreshCommentCount(supabase, post.post_id);
-  }, [post.post_id, post.comments_count, supabase]);
+    const latest = latestCommentUpdate.current;
+    if (latest?.postId !== post.post_id) return;
+    const owner = getNavigationStore().getSnapshot().owner;
+    const decision = reconcileLiveCommentCount(latest, post.comments_count, post._liveRequestedAt, post._liveOwner, owner);
+    if (decision === 'apply') {
+      const update = { postId: post.post_id, count: post.comments_count, confirmedAt: post._liveRequestedAt, ownerId: owner };
+      latestCommentUpdate.current = update; setCommentUpdate(update);
+    } else if (decision === 'batch') window.dispatchEvent(new CustomEvent('pc-feed-post-changed', { detail: { postId: post.post_id } }));
+    else if (decision === 'legacy') void refreshCommentCount(supabase, post.post_id);
+  }, [post.post_id, post.comments_count, post._liveRequestedAt, post._liveOwner, supabase]);
   const text = post.content ?? post.body ?? "";
   const rbw = post as unknown as { reposted_by_name?: string | null };
   const whyReason = rbw.reposted_by_name ? rbw.reposted_by_name + " reposted this"
@@ -186,7 +214,7 @@ function PostContent({ post, hideMedia, inlineComments = true }: { post: FeedRow
     likesCount: post.likes_count, bookmarksCount: post.bookmarks_count });
   const like = { on: social.liked, n: social.likesCount, set: social.setLike,
     flip: (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); void social.setLike(!social.liked); } };
-  const repost = useToggle(post.viewer_reposted, post.reposts_count, toggleRepost, post.post_id);
+  const repost = useToggle(post.viewer_reposted, post.reposts_count, toggleRepost, post.post_id, post._liveRequestedAt);
   const mark = { on: social.bookmarked, n: social.bookmarksCount,
     flip: (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); void social.setBookmark(!social.bookmarked); } };
   const profileHref = profilePath(post.author_username, post.author_id);

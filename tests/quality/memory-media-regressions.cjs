@@ -15,7 +15,7 @@ function scenario(platform) {
   const file = platform === 'web' ? 'web/components/MemoryAlbum.tsx' : 'src/screens/profile/MemoryAlbumScreen.tsx';
   const source = fs.readFileSync(path.join(__dirname, '../..', file), 'utf8');
   const start = source.indexOf('  const load = useCallback(async () => {');
-  const end = source.indexOf('\n  useEffect(() => {', start);
+  const end = source.indexOf('\n  const loadMore', start);
   assert.ok(start >= 0 && end > start);
   const request = deferred(), albums = [], errors = [];
   request.promise.abortSignal = signal => { request.signal = signal; return request.promise; };
@@ -30,6 +30,13 @@ function scenario(platform) {
     setAlbum: value => albums.push(value), setLoadError: value => errors.push(value), setLoading() {}, setPlayingUrl() {}, setLikedPages() {}, setReactionRead() {},
     setTitle() {}, setSubtitle() {}, setCoverStoryId() {}, setColor() {}, setAud() {}, setBookId() {},
   };
+  Object.assign(scope, { AbortController, moreRequest: { current: null }, completeIntent: { current: 0 }, pendingTurn: { current: null },
+    setLoadingPages() {}, setPreparingBook() {}, albumRef: { current: null }, displayedAlbum: { current: null },
+    filmVisibleRef: { current: false }, memoryBookHasMore: () => false, mediaScope: { current: null }, request: { current: null },
+    session: { scope: 'viewer-session' }, store: { getSnapshot: () => ({ scope: 'viewer-session' }) },
+    readMemoryBookFirst: async () => { const { data, error } = await request.promise; if (error) throw error; return data; },
+  });
+  scope.supabase.auth = { getSession: async () => ({ data: { session: { user: { id: 'viewer' }, access_token: 'test' } }, error: null }) };
   const compiled = ts.transpileModule(source.slice(start, end) + '\nthis.load = load;', { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   vm.runInNewContext(compiled, scope);
   return { scope, request, albums, errors, finish(data) { request.resolve(platform === 'web' ? data : {data, error: null}); } };

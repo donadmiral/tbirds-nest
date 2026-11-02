@@ -7,14 +7,16 @@ export const feedSnapshots = createFeedSnapshotStore(AsyncStorage);
 const owns = (account: string) => useAuthStore.getState().profile?.id === account;
 
 /** Reconcile all current IDs in batches, at most two requests in flight. */
-export async function reconcileFeedVisibility(account: string, ids: string[], isCurrent: () => boolean): Promise<Set<string> | null> {
+export async function reconcileFeedVisibility(account: string, ids: string[], isCurrent: () => boolean, signal?: AbortSignal): Promise<Set<string> | null> {
   const unique = [...new Set(ids)];
   const visible = new Set<string>();
   for (let index = 0; index < unique.length; index += 200) {
-    if (!isCurrent() || !owns(account)) return null;
+    if (!isCurrent() || !owns(account) || signal?.aborted) return null;
     const batches = [unique.slice(index, index + 100), unique.slice(index + 100, index + 200)].filter(batch => batch.length);
-    const results = await Promise.all(batches.map(batch => supabase.rpc('get_feed_visibility', { p_ids: batch })));
-    if (!isCurrent() || !owns(account)) return null;
+    const results = await Promise.all(batches.map(batch => {
+      const work = supabase.rpc('get_feed_visibility', { p_ids: batch }); return signal ? work.abortSignal(signal) : work;
+    }));
+    if (!isCurrent() || !owns(account) || signal?.aborted) return null;
     if (results.some(result => result.error)) throw new Error('Could not refresh post visibility. Please try again.');
     results.forEach(result => (result.data ?? []).forEach((row: any) => visible.add(row.post_id)));
   }

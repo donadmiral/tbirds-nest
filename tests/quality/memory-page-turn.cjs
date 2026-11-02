@@ -28,6 +28,12 @@ test('a cancelled, reordered or replaced book rejects its old animation callback
  assert.equal(m.finish(old.token,true),null);assert.equal(m.turn.token,current.token);m.sync(['two','one','three'],0);assert.equal(m.finish(current.token,true),null);assert.equal(m.index,0);
  const next=m.begin(1);m.sync(['new-book'],0);assert.equal(m.finish(next.token,true),null);assert.equal(m.turn,null);
 });
+test('appending a fetched page preserves the active turn and still retires reordered content',()=>{
+ const m=new MemoryBookTurnMachine(ids),turn=m.begin(1,true);m.move(turn.token,.5);
+ m.sync([...ids,'four','five'],0);assert.equal(m.turn.token,turn.token);assert.equal(m.turn.progress,.5);
+ assert.equal(m.finish(turn.token,true),1);m.sync([...ids,'four','five'],1);
+ const next=m.begin(1);m.sync(['one','three','two','four','five'],1);assert.equal(m.finish(next.token,true),null);
+});
 test('front and back hinge angles are continuous and reduced motion has no timed turn',()=>{
  assert.ok(memoryTurnAngle(0,1)===0);assert.equal(memoryTurnAngle(.5,1),-90);assert.equal(memoryTurnAngle(1,1),-180);
  assert.equal(memoryTurnAngle(0,-1),-180);assert.equal(memoryTurnAngle(.5,-1),-90);assert.ok(memoryTurnAngle(1,-1)===0);
@@ -102,6 +108,10 @@ test('native equivalent page arrays preserve the active turn while distinct iden
  const h=nativeHarness();h.ref.current.turn(1);h.render({pageIds:[...ids]});h.advance(h.animations[0].options.duration);assert.deepEqual(h.commits,[1]);
  const other=nativeHarness({pageIds:['a|b','c']});other.ref.current.turn(1);other.render({pageIds:['a','b|c']});other.advance(other.animations[0].options.duration);other.finish(0,true);assert.deepEqual(other.commits,[]);
 });
+test('native background page append does not interrupt the active hinge or skip the requested page',()=>{
+ const h=nativeHarness();h.ref.current.turn(1);h.render({pageIds:[...ids,'four']});
+ h.advance(h.animations[0].options.duration);h.finish(0,true);assert.deepEqual(h.commits,[1]);
+});
 test('native animated sheets keep exactly one live media child and static adjacent previews',()=>{
  const h=nativeHarness();assert.equal(walk(h.render()).filter(n=>n.type==='LivePlayer').length,1);h.ref.current.turn(1);let nodes=walk(h.render());assert.equal(nodes.filter(n=>n.type==='LivePlayer').length,1);assert.equal(nodes.filter(n=>n.type==='StaticPreview').length,1);assert.equal(nodes.find(n=>n.type==='AnimatedView'&&n.props.accessibilityElementsHidden===true)?.props.pointerEvents,'none');
  h.finish();h.render({index:1});h.ref.current.turn(-1);nodes=walk(h.render());assert.equal(nodes.filter(n=>n.type==='LivePlayer').length,1);assert.equal(nodes.filter(n=>n.type==='StaticPreview').length,1);
@@ -140,6 +150,11 @@ test('web committed swipe changes one page and preserves the single media child 
 test('web tap and keyboard requests share a lock, and reduced motion commits without a frame',()=>{
  const h=webHarness();h.ref.current.turn(1);h.ref.current.turn(1);h.ref.current.turn(-1);assert.equal(h.frames.size,1);h.step(600);assert.deepEqual(h.commits,[1]);h.render({index:1});h.ref.current.turn(1);h.ref.current.cancel();h.step(600);assert.deepEqual(h.commits,[1]);
  const r=webHarness(true);r.ref.current.turn(1);assert.equal(r.frames.size,0);assert.deepEqual(r.commits,[1]);r.ref.current.turn(1);assert.deepEqual(r.commits,[1]);r.render({index:1});r.ref.current.turn(1);assert.deepEqual(r.commits,[1,2]);
+});
+test('web background page append keeps the active hinge and boundary intent requests more without wrapping',()=>{
+ const h=webHarness();h.ref.current.turn(1);h.render({pageIds:[...ids,'four']});h.step(600);assert.deepEqual(h.commits,[1]);
+ let requests=0;h.render({index:3,hasMore:true,onNeedMore:()=>requests++});h.ref.current.turn(1);
+ assert.equal(requests,1);assert.deepEqual(h.commits,[1]);assert.equal(h.frames.size,0);
 });
 
 test('shared-video covers use the authorized poster before needing a video frame',()=>{

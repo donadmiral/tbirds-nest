@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { requestTime, measureRead } from '@/lib/requestTime';
 import AdminIcon from '@/components/AdminIcon';
-import { completeRead } from '@/lib/completeRead';
+import { loadAdminOverview } from '@/lib/adminOverview';
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
 import { allowedDesks, hasFullOverview, canPerform } from '@/lib/permissions';
@@ -17,7 +17,6 @@ import { resolveModerationMedia } from '@/lib/moderationMedia';
 export const dynamic = 'force-dynamic';
 
 const TIER_LABEL: Record<string, string> = { public_figure: 'Green', business: 'Space grey', official: 'Platinum' };
-const ACTIVE_WINDOW_MIN = 5;
 
 const PANEL: React.CSSProperties = { minWidth: 0, borderRadius: 12, background: 'var(--panel)', border: '1px solid var(--line)', boxShadow: '0 1px 2px rgba(11,30,61,0.025)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
@@ -37,15 +36,6 @@ const IC = {
   gear: 'controls',
   staff: 'staff',
 } as const;
-
-function dayKey(d: Date) { return d.toISOString().slice(0, 10); }
-
-function bucketByDay(rows: { created_at: string }[], days: string[]) {
-  const map: Record<string, number> = {};
-  days.forEach(d => { map[d] = 0; });
-  rows.forEach(r => { const k = r.created_at.slice(0, 10); if (k in map) map[k] += 1; });
-  return days.map(d => map[d]);
-}
 
 function pctDelta(now: number, before: number): { text: string; fg: string } {
   if (before <= 0) return { text: now > 0 ? 'new' : 'flat', fg: now > 0 ? 'var(--ok)' : 'rgba(var(--on),0.35)' };
@@ -67,21 +57,12 @@ export default async function DashboardPage() {
   const svc = serviceClient();
 
   const now = await requestTime();
-  const activeSince = new Date(now - ACTIVE_WINDOW_MIN * 60000).toISOString();
-  const from30 = new Date(now - 30 * 86400000).toISOString();
-  const from7 = new Date(now - 7 * 86400000).toISOString();
-  const from14 = new Date(now - 14 * 86400000).toISOString();
   const from24h = new Date(now - 86400000).toISOString();
-  const days30 = Array.from({ length: 30 }, (_, i) => dayKey(new Date(now - (29 - i) * 86400000)));
 
   const { value: [
-    users, verified, active, apps, pr, lr, ur, audit, tickets, bizApps, flags, daily,
-    prAll, lrAll, urAll, appAll, recent, topPostsRes, locRes, cerr,
-    vAll, vReview, vApproved, vRejected,
+    overview, apps, pr, lr, ur, audit, tickets, bizApps, flags, daily, recent, topPostsRes, cerr,
   ], elapsedMs: readsElapsedMs } = await measureRead(() => Promise.all([
-    svc.from('profiles').select('id', { count: 'exact', head: true }),
-    svc.from('profiles').select('id', { count: 'exact', head: true }).eq('is_verified', true),
-    svc.from('profiles').select('id', { count: 'exact', head: true }).gte('last_seen', activeSince),
+    loadAdminOverview(svc, 'dashboard', now),
     svc.from('verification_applications').select('id, applicant_id, tier, category, created_at', { count: 'exact' }).in('status', ['submitted', 'under_review']).order('created_at', { ascending: true }).limit(6),
     svc.from('post_reports').select('id, reason, created_at', { count: 'exact' }).eq('status', 'open').order('created_at', { ascending: true }).limit(4),
     svc.from('listing_reports').select('id, reason, created_at', { count: 'exact' }).eq('status', 'open').order('created_at', { ascending: true }).limit(4),
@@ -91,28 +72,17 @@ export default async function DashboardPage() {
     svc.from('business_applications').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
     svc.from('feature_flags').select('key, enabled, note').order('key'),
     svc.from('daily_stats').select('day, dau, new_signups, posts, comments, likes, messages, stories, listings, jobs').order('day', { ascending: false }).limit(30),
-    svc.from('post_reports').select('created_at', { count: 'exact' }).gte('created_at', from30).limit(2000),
-    svc.from('listing_reports').select('created_at', { count: 'exact' }).gte('created_at', from30).limit(2000),
-    svc.from('user_reports').select('created_at', { count: 'exact' }).gte('created_at', from30).limit(2000),
-    svc.from('verification_applications').select('created_at', { count: 'exact' }).gte('created_at', from30).limit(2000),
     svc.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier, location, account_type, created_at').order('created_at', { ascending: false }).limit(6),
     svc.from('posts').select('*').order('likes_count', { ascending: false, nullsFirst: false }).limit(12),
-    svc.from('profiles').select('location', { count: 'exact' }).not('location', 'is', null).limit(5000),
     svc.from('client_errors').select('id', { count: 'exact', head: true }).gte('created_at', from24h),
-    svc.from('verification_applications').select('id', { count: 'exact', head: true }),
-    svc.from('verification_applications').select('id', { count: 'exact', head: true }).in('status', ['under_review', 'approved', 'rejected']),
-    svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
-    svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
   ]));
 
-  const dashboardResults = [users, verified, active, apps, pr, lr, ur, audit, tickets, bizApps, flags, daily,
-    prAll, lrAll, urAll, appAll, recent, topPostsRes, locRes, cerr, vAll, vReview, vApproved, vRejected];
+  const dashboardResults = [apps, pr, lr, ur, audit, tickets, bizApps, flags, daily, recent, topPostsRes, cerr];
   if (dashboardResults.some(result => result.error)) throw new Error('Dashboard information could not be loaded.');
-  if ([users, verified, active, apps, pr, lr, ur, tickets, bizApps, cerr, vAll, vReview, vApproved, vRejected].some(result => result.count === null)) {
+  if ([apps, pr, lr, ur, tickets, bizApps, cerr].some(result => result.count === null)) {
     throw new Error('Dashboard counts could not be confirmed.');
   }
-  for (const result of [prAll, lrAll, urAll, appAll, locRes]) completeRead(result, 'Dashboard aggregate');
-  const members = users.count ?? 0;
+  const members = overview.profiles.members;
   const appRows = apps.data ?? [];
   const names: Record<string, { full_name: string | null; username: string | null }> = {};
   if (appRows.length) {
@@ -132,19 +102,18 @@ export default async function DashboardPage() {
   const signups7 = signupSeries.slice(-7).reduce((a, b) => a + b, 0);
   const signupsPrev7 = signupSeries.slice(-14, -7).reduce((a, b) => a + b, 0);
 
-  const reportRows = [...(prAll.data ?? []), ...(lrAll.data ?? []), ...(urAll.data ?? [])] as { created_at: string }[];
-  const reportSeries = bucketByDay(reportRows, days30);
-  const reports7 = reportRows.filter(r => r.created_at >= from7).length;
-  const reportsPrev7 = reportRows.filter(r => r.created_at >= from14 && r.created_at < from7).length;
-  const appSeries = bucketByDay((appAll.data ?? []) as { created_at: string }[], days30);
-  const apps7 = ((appAll.data ?? []) as { created_at: string }[]).filter(r => r.created_at >= from7).length;
-  const appsPrev7 = ((appAll.data ?? []) as { created_at: string }[]).filter(r => r.created_at >= from14 && r.created_at < from7).length;
+  const reportSeries = overview.reports.series;
+  const reports7 = overview.reports.week;
+  const reportsPrev7 = overview.reports.previous_week;
+  const appSeries = overview.verifications.series;
+  const apps7 = overview.verifications.week;
+  const appsPrev7 = overview.verifications.previous_week;
 
   const [prOpen, lrOpen, urOpen] = [pr.count ?? 0, lr.count ?? 0, ur.count ?? 0];
 
   const cards = [
     { label: 'Total members', value: members, icon: IC.users, color: 'var(--c1)', spark: signupSeries, delta: pctDelta(signups7, signupsPrev7), note: 'signups this week against last', href: '/users' },
-    { label: 'Active now', value: active.count ?? 0, icon: IC.pulse, color: 'var(--c2)', spark: dauSeries, delta: {text: '', fg: 'var(--txt)'}, note: 'seen during the last 5 minutes', href: '/users' },
+    { label: 'Active now', value: overview.profiles.active, icon: IC.pulse, color: 'var(--c2)', spark: dauSeries, delta: {text: '', fg: 'var(--txt)'}, note: 'seen during the last 5 minutes', href: '/users' },
     { label: 'Open reports', value: prOpen + lrOpen + urOpen, icon: IC.flag, color: 'var(--c5)', spark: reportSeries, delta: pctDelta(reports7, reportsPrev7), note: 'opened this week against last', href: '/reports' },
     { label: 'Pending verifications', value: apps.count ?? 0, icon: IC.seal, color: 'var(--c3)', spark: appSeries, delta: pctDelta(apps7, appsPrev7), note: 'applied this week against last', href: '/queue' },
   ];
@@ -183,16 +152,8 @@ export default async function DashboardPage() {
     .map(p => ({ ...p, score: (p.likes_count || 0) + (p.comments_count || 0) + (p.shares_count || 0) }))
     .filter(p => p.score > 0).sort((a, b) => b.score - a.score).slice(0, 5);
 
-  const locBuckets: Record<string, { label: string; n: number }> = {};
-  ((locRes.data ?? []) as { location: string | null }[]).forEach(r => {
-    const raw = (r.location || '').replace(/\s+/g, ' ').trim();
-    if (!raw) return;
-    const k = raw.toLowerCase();
-    if (!locBuckets[k]) locBuckets[k] = { label: raw, n: 0 };
-    locBuckets[k].n += 1;
-  });
-  const located = Object.values(locBuckets).reduce((a, b) => a + b.n, 0);
-  const topLocations = Object.values(locBuckets).sort((a, b) => b.n - a.n).slice(0, 5);
+  const located = overview.profiles.located;
+  const topLocations = overview.profiles.locations.slice(0, 5);
 
   const flagRows = (flags.data ?? []) as { key: string; enabled: boolean; note: string | null }[];
   const lastStatDay = daysRows.length ? String(daysRows[daysRows.length - 1].day) : null;
@@ -207,10 +168,10 @@ export default async function DashboardPage() {
   ];
 
   const funnel = [
-    { label: 'Applications received', value: vAll.count ?? 0 },
-    { label: 'Reached review', value: vReview.count ?? 0 },
-    { label: 'Approved', value: vApproved.count ?? 0 },
-    { label: 'Rejected', value: vRejected.count ?? 0 },
+    { label: 'Applications received', value: overview.verifications.total },
+    { label: 'Reached review', value: overview.verifications.reached_review },
+    { label: 'Approved', value: overview.verifications.approved },
+    { label: 'Rejected', value: overview.verifications.rejected },
   ];
   const funnelMax = Math.max(1, funnel[0].value);
 

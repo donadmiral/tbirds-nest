@@ -22,20 +22,27 @@ export function isCallInvitationOpen(session: CallSession): boolean {
 
 /** Realtime is a hint, not delivery storage: recover missed invitations after
  * a reload, a suspended tab, or a subscription reconnect. All reads retain RLS. */
-export async function getPendingIncomingCalls(userId: string): Promise<CallSession[]> {
+export async function getPendingIncomingCalls(userId: string, signal?: AbortSignal): Promise<CallSession[]> {
   const supabase = createClient();
   const since = new Date(Date.now() - 90000).toISOString();
+  const directQuery = supabase.from('call_sessions').select('*').eq('receiver_id', userId).eq('status', 'ringing')
+    .gte('created_at', since).order('created_at', { ascending: false }).limit(10);
+  const invitedQuery = supabase.from('call_participants').select('call_session_id').eq('user_id', userId).eq('status', 'invited')
+    .gte('created_at', since).order('created_at', { ascending: false }).limit(10);
   const [direct, invited] = await Promise.all([
-    supabase.from('call_sessions').select('*').eq('receiver_id', userId).eq('status', 'ringing')
-      .gte('created_at', since).order('created_at', { ascending: false }).limit(10),
-    supabase.from('call_participants').select('call_session_id').eq('user_id', userId).eq('status', 'invited')
-      .gte('created_at', since).order('created_at', { ascending: false }).limit(10),
+    signal ? directQuery.abortSignal(signal) : directQuery,
+    signal ? invitedQuery.abortSignal(signal) : invitedQuery,
   ]);
   const ids = (invited.data ?? []).map(row => String(row.call_session_id));
-  const group = ids.length ? await supabase.from('call_sessions').select('*').in('id', ids)
+  const groupQuery = ids.length ? supabase.from('call_sessions').select('*').in('id', ids)
     .eq('is_group_call', true).in('status', ['ringing', 'active']).order('created_at', { ascending: false }).limit(10) : null;
-  return [...(direct.data ?? []), ...(group?.data ?? [])].filter(isCallInvitationOpen)
+  const group = groupQuery ? await (signal ? groupQuery.abortSignal(signal) : groupQuery) : null;
+  const calls = [...(direct.data ?? []), ...(group?.data ?? [])].filter(isCallInvitationOpen)
     .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)) as CallSession[];
+  // Preserve an actionable direct/group invitation when only the independent
+  // other query fails. Empty error results must still trigger recovery backoff.
+  if (!calls.length && (direct.error || invited.error || group?.error)) throw direct.error || invited.error || group?.error;
+  return calls;
 }
 
 export async function startOneToOneCall(receiverId: string, conversationId: string | null, isVideo: boolean): Promise<CallSession | null> {

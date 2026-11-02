@@ -7,6 +7,9 @@ export type MediaDeliveryDiagnostic = {
 type Dependencies = {
   base: string; serviceKey: string;
   resolve(token: string, bucket: string, path: string, signal: AbortSignal): Promise<{ bucket: string; path: string; version: string; expiresAt: string } | null>;
+  resolveVariant?(token: string, bucket: string, path: string, version: string, signal: AbortSignal): Promise<{
+    bucket: string; path: string; version: string; etag: string; sourceVersion: string;
+  } | { unavailable: true } | null>;
   fetch: typeof fetch;
   randomId?(): string;
   diagnostic?(event: MediaDeliveryDiagnostic): void;
@@ -14,9 +17,9 @@ type Dependencies = {
   streamIdleTimeoutMs?: number;
 };
 const headers = {
-  'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'range',
+  'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'range, if-range',
   'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-  'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges, Server-Timing',
+  'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges, ETag, Server-Timing',
   'Cache-Control': 'private, no-store, max-age=0', 'CDN-Cache-Control': 'no-store',
   'Vary': 'Range', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff',
   'Content-Security-Policy': "default-src 'none'; sandbox",
@@ -126,14 +129,29 @@ export function createMediaContentHandler(deps: Dependencies) {
       startupTimer = setTimeout(() => stop('timeout'), deps.startupTimeoutMs ?? 12000);
       const grant = await measure('authorization', () => deps.resolve(token, bucket, path, controller.signal));
       if (!grant || grant.bucket !== bucket || grant.path !== path || typeof grant.version !== 'string' || !grant.version) { stop('complete'); return error(403); }
+      // Selection uses the persisted ticket's creation time, never a TTL guess.
+      // One playback URL therefore keeps its byte layout across Range requests.
+      const chooseVariant = () => deps.resolveVariant && ['post-media', 'story-media'].includes(bucket)
+        ? deps.resolveVariant(token, bucket, path, grant.version, controller.signal) : Promise.resolve(null);
+      const variant = await wait(chooseVariant());
+      if (variant && 'unavailable' in variant) { stop('complete'); return error(410); }
+      if (variant && (variant.bucket !== 'derived-media' || variant.sourceVersion !== grant.version || !variant.version || !variant.etag
+        || variant.path.split('/')[0] !== path.split('/')[0]
+        || !/^[0-9a-f-]{36}\/_derived_v1\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(mp4|mov)$/i.test(variant.path))) {
+        stop('complete'); return error(503);
+      }
+      const selected = variant || grant;
+      const representationTag = '"pc-' + encodeURIComponent(JSON.stringify([grant.version, selected.version])) + '"';
+      // A stale or weak If-Range requests the complete selected representation.
+      const upstreamRange = request.headers.has('If-Range') && request.headers.get('If-Range') !== representationTag ? null : range;
       const upstream = await measure('storage_headers', () => {
-        const storageUrl = new URL(`${new URL(deps.base).origin}/storage/v1/object/authenticated/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`);
+        const storageUrl = new URL(`${new URL(deps.base).origin}/storage/v1/object/authenticated/${selected.bucket}/${selected.path.split('/').map(encodeURIComponent).join('/')}`);
         // A fresh cache key prevents trusted processing replacements from serving
         // previously cached bytes while the database version is already newer.
-        storageUrl.searchParams.set('cacheNonce', `${grant.version}-${deps.randomId?.() ?? crypto.randomUUID()}`);
+        storageUrl.searchParams.set('cacheNonce', `${grant.version}${variant ? '-' + variant.version : ''}-${deps.randomId?.() ?? crypto.randomUUID()}`);
         return deps.fetch(storageUrl.href, {
           method: request.method, headers: { Authorization: `Bearer ${deps.serviceKey}`, apikey: deps.serviceKey,
-            'Cache-Control': 'no-store', 'Accept-Encoding': 'identity', ...(range ? { Range: range } : {}) },
+            'Cache-Control': 'no-store', 'Accept-Encoding': 'identity', ...(upstreamRange ? { Range: upstreamRange } : {}) },
           cache: 'no-store', redirect: 'error', signal: controller.signal,
         }).then(response => {
           activeUpstream = response;
@@ -151,6 +169,11 @@ export function createMediaContentHandler(deps: Dependencies) {
       }
       const after = await measure('revalidation', () => deps.resolve(token, bucket, path, controller.signal));
       if (!after || after.version !== grant.version || after.path !== path || after.bucket !== bucket) { stop('complete'); return error(403); }
+      if (variant) {
+        const current = await wait(chooseVariant());
+        if (!current || 'unavailable' in current || current.path !== variant.path || current.version !== variant.version
+          || current.etag !== variant.etag || upstream.headers.get('ETag')?.trim().replace(/^"|"$/g, '') !== variant.etag) { stop('complete'); return error(410); }
+      }
       const mime = upstream.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() || '';
       if (!/^(?:image\/(?:jpeg|png|webp|gif|heic|heif|avif)|video\/(?:mp4|quicktime|webm)|audio\/[a-z0-9.+-]+|application\/(?:pdf|octet-stream))$/.test(mime)) { stop('complete'); return error(415); }
       // fetch may transparently decompress a response while retaining its
@@ -159,7 +182,7 @@ export function createMediaContentHandler(deps: Dependencies) {
       const encoding = upstream.headers.get('Content-Encoding')?.trim().toLowerCase();
       if (encoding && encoding !== 'identity') throw new Error('Unexpected media encoding');
       const expectedBytes = responseSize(upstream);
-      const output = new Headers({ ...headers, 'Content-Type': mime, 'Content-Disposition': mime === 'application/octet-stream' ? 'attachment' : 'inline' });
+      const output = new Headers({ ...headers, 'Content-Type': mime, 'ETag': representationTag, 'Content-Disposition': mime === 'application/octet-stream' ? 'attachment' : 'inline' });
       for (const name of ['Content-Length', 'Content-Range', 'Accept-Ranges']) {
         const value = upstream.headers.get(name); if (value) output.set(name, value);
       }

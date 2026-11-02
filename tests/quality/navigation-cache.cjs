@@ -147,7 +147,7 @@ function inboxHarness({ sign } = {}) {
   let currentSession=session('a','s'); const native=nativeHarness(),calls=[];let reply;
   const client={from:table=>query(table),rpc:name=>query(name)};
   function query(table){const call={table,filters:{},header:null,signal:null};const q={setHeader(name,value){call.header=[name,value];return q;},abortSignal(value){call.signal=value;return q;},then(ok,bad){calls.push(call);return Promise.resolve().then(()=>reply(call)).then(ok,bad);}};for(const method of ['select','or','order'])q[method]=()=>q;for(const method of ['eq','in'])q[method]=(key,value)=>{call.filters[key]=value;return q;};return q;}
-  const service=load('src/services/navigationInbox.ts',{'../../shared/messageReceipts':load('shared/messageReceipts.ts'),'../lib/navigationCache':native.native,'../stores/authStore':{useAuthStore:{getState:()=>({session:currentSession})}},'./supabase':{supabase:client},'./chatMediaService':{isChatMediaUrl:url=>typeof url==='string'&&url.startsWith('private-'),signGroupAvatars:sign|| (async rows=>rows)}});
+  const service=load('src/services/navigationInbox.ts',{'../../shared/messageReceipts':load('shared/messageReceipts.ts'),'../../shared/inboxWindow':load('shared/inboxWindow.ts'),'../../shared/pagedReaders':{readInboxPage:async()=>null},'../lib/navigationCache':native.native,'../stores/authStore':{useAuthStore:{getState:()=>({session:currentSession})}},'./supabase':{supabase:client},'./chatMediaService':{isChatMediaUrl:url=>typeof url==='string'&&url.startsWith('private-'),signGroupAvatars:sign|| (async rows=>rows)}});
   return {...native,calls,service,setReply:fn=>{reply=fn;},change(value){currentSession=value;native.change(value);}};
 }
 const inboxRows = call => {

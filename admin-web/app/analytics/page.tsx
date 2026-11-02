@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { requestTime } from '@/lib/requestTime';
-import { completeRead } from '@/lib/completeRead';
+import { loadAdminOverview } from '@/lib/adminOverview';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
@@ -29,43 +29,27 @@ function delta(now: number, before: number): { text: string; fg: string } {
   return { text: r, fg: pct > 0 ? 'var(--ok)' : pct < 0 ? 'var(--bad)' : 'rgba(var(--on),0.4)' };
 }
 
-function weekStart(iso: string) {
-  const d = new Date(iso);
-  const day = (d.getUTCDay() + 6) % 7;
-  d.setUTCDate(d.getUTCDate() - day);
-  return d.toISOString().slice(0, 10);
-}
-
 export default async function AnalyticsPage() {
   const admin = await requireDesk('/analytics');
   const now = await requestTime();
   const svc = serviceClient();
 
-  const cohortFrom = new Date(now - 70 * 86400000).toISOString();
-
-  const [daysRes, membersRes, bizRes, verifiedRes, bizVerifiedRes, tierRes, postRes, cohortRes, locRes] = await Promise.all([
+  const [daysRes, overview, postRes] = await Promise.all([
     svc.from('daily_stats').select('*').order('day', { ascending: false }).limit(90),
-    svc.from('profiles').select('id', { count: 'exact', head: true }),
-    svc.from('profiles').select('id', { count: 'exact', head: true }).eq('account_type', 'business'),
-    svc.from('profiles').select('id', { count: 'exact', head: true }).eq('is_verified', true),
-    svc.from('profiles').select('id', { count: 'exact', head: true }).eq('account_type', 'business').eq('is_verified', true),
-    svc.from('profiles').select('verified_tier', { count: 'exact' }).eq('is_verified', true).limit(2000),
+    loadAdminOverview(svc, 'analytics', now),
     svc.from('posts').select('*').order('likes_count', { ascending: false, nullsFirst: false }).limit(12),
-    svc.from('profiles').select('created_at, last_seen', { count: 'exact' }).gte('created_at', cohortFrom).limit(5000),
-    svc.from('profiles').select('location', { count: 'exact' }).not('location', 'is', null).limit(5000),
   ]);
 
-  for (const result of [tierRes, cohortRes, locRes]) completeRead(result, 'Analytics aggregate');
   const desc = (daysRes.data ?? []) as Day[];
   const rows = [...desc].reverse();
   const last30 = rows.slice(-30);
   const last7 = desc.slice(0, 7);
   const prev7 = desc.slice(7, 14);
 
-  const members = membersRes.count ?? 0;
-  const businesses = bizRes.count ?? 0;
-  const verified = verifiedRes.count ?? 0;
-  const bizVerified = bizVerifiedRes.count ?? 0;
+  const members = overview.profiles.members;
+  const businesses = overview.profiles.businesses;
+  const verified = overview.profiles.verified;
+  const bizVerified = overview.profiles.business_verified;
   const bizPlain = Math.max(0, businesses - bizVerified);
 
   const series30 = (key: string) => last30.map(r => Number(r[key]) || 0);
@@ -95,11 +79,9 @@ export default async function AnalyticsPage() {
     { label: 'Everyone else', value: Math.max(0, members - verified - bizPlain), color: 'rgba(var(--on),0.16)' },
   ].filter(s => s.value > 0);
 
-  const tierCount: Record<string, number> = {};
-  (tierRes.data ?? []).forEach((r: { verified_tier: string | null }) => { const k = r.verified_tier || 'unrecorded'; tierCount[k] = (tierCount[k] || 0) + 1; });
   const TIER_LABEL: Record<string, string> = { public_figure: 'Green seal', business: 'Space grey seal', official: 'Platinum seal', unrecorded: 'Tier not recorded' };
   const TIER_COLOR: Record<string, string> = { public_figure: 'var(--ok)', business: 'rgba(var(--on),0.34)', official: 'var(--pearl)', unrecorded: 'rgba(var(--on),0.16)' };
-  const tierSlices: Slice[] = Object.keys(tierCount).map(k => ({ label: TIER_LABEL[k] || k, value: tierCount[k], color: TIER_COLOR[k] || 'var(--c4)' }));
+  const tierSlices: Slice[] = overview.tiers.map(({ key, n }) => ({ label: TIER_LABEL[key] || key, value: n, color: TIER_COLOR[key] || 'var(--c4)' }));
 
   const ACTION_KEYS = ['posts', 'comments', 'likes', 'messages', 'stories', 'listings', 'jobs'];
   const totalOf = (r: Day) => ACTION_KEYS.reduce((a, k) => a + (Number(r[k]) || 0), 0);
@@ -153,33 +135,10 @@ export default async function AnalyticsPage() {
     .sort((a, b) => b.score - a.score)
     .slice(0, 6);
 
-  const cohortRaw = (cohortRes.data ?? []) as { created_at: string; last_seen: string | null }[];
-  const cohortMap: Record<string, { size: number; kept: number[] }> = {};
-  cohortRaw.forEach(p => {
-    const w = weekStart(p.created_at);
-    if (!cohortMap[w]) cohortMap[w] = { size: 0, kept: [0, 0, 0, 0] };
-    const c = cohortMap[w];
-    c.size += 1;
-    if (p.last_seen) {
-      const livedDays = (new Date(p.last_seen).getTime() - new Date(p.created_at).getTime()) / 86400000;
-      [7, 14, 21, 28].forEach((mark, i) => { if (livedDays >= mark) c.kept[i] += 1; });
-    }
-  });
-  const cohorts = Object.keys(cohortMap).sort().reverse().map(w => {
-    const ageDays = (now - new Date(w).getTime()) / 86400000 - 7;
-    return { week: w, size: cohortMap[w].size, kept: cohortMap[w].kept, ageDays };
-  });
+  const cohorts = overview.cohorts.map(c => ({ ...c, ageDays: (now - new Date(c.week).getTime()) / 86400000 - 7 }));
 
-  const locBuckets: Record<string, { label: string; n: number }> = {};
-  (locRes.data ?? []).forEach((r: { location: string | null }) => {
-    const raw = (r.location || '').replace(/\s+/g, ' ').trim();
-    if (!raw) return;
-    const key = raw.toLowerCase();
-    if (!locBuckets[key]) locBuckets[key] = { label: raw, n: 0 };
-    locBuckets[key].n += 1;
-  });
-  const located = Object.values(locBuckets).reduce((a, b) => a + b.n, 0);
-  const topLocations = Object.values(locBuckets).sort((a, b) => b.n - a.n).slice(0, 8);
+  const located = overview.profiles.located;
+  const topLocations = overview.profiles.locations;
   const locMax = Math.max(1, ...topLocations.map(l => l.n));
   const noLocation = Math.max(0, members - located);
 

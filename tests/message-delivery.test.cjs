@@ -61,7 +61,7 @@ test('outbox flush skips other accounts and legacy IDs and retains uncertain del
   const source=fs.readFileSync(path.join(root,'src/stores/netStore.ts'),'utf8');const ast=ts.createSourceFile('net.ts',source,ts.ScriptTarget.Latest,true);let fn;
   ast.statements.forEach(node=>{if(ts.isFunctionDeclaration(node)&&node.name.text==='flushOutbox')fn=node.getText(ast);});
   const client=server();const other={...intent,id:'other-id',owner_auth_id:'another',key:'other-id'};const legacy={key:'legacy'};const mine={...intent,owner_auth_id:'owner',key:intent.id};let queue=[other,legacy,mine],attempts=0;
-  const code='let flushing=false; const outboxWrite=Promise.resolve(); const waitForOutboxHydration=async()=>{};\n'+fn+'\nexport { flushOutbox };';
+  const code='let flushing=false; const started=false; const outboxWrite=Promise.resolve(); const waitForOutboxHydration=async()=>{};\n'+fn+'\nexport { flushOutbox };';
   const result=run(code,{require:()=>({supabase:client}),useNetStore:{getState:()=>({outbox:queue,removeFromOutbox:key=>{queue=queue.filter(row=>row.key!==key);}})},deliverMessage:async(_client,item,reconcileFirst)=>{attempts++;assert.equal(reconcileFirst,true);assert.equal(item.id,intent.id);return{status:'pending'};}});
   await result.flushOutbox();assert.equal(attempts,1);assert.equal(queue.length,3);
 });

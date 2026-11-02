@@ -65,6 +65,7 @@ function component(file, api, options = {}) {
     if (name.endsWith('/components/SafeArea')) return { SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ bottom: 0 }) };
     if (name === '@react-navigation/native') return { useNavigation: () => ({ goBack() {} }), useRoute: () => ({ params: { businessId: 'business', businessName: 'Audit business' } }), useFocusEffect() {} };
     if (name.endsWith('/stores/authStore')) return { useAuthStore: () => ({ profile: { id: 'owner' } }) };
+    if (name.endsWith('/lib/navigationCache')) return { navigationScope: () => 'theme-owner' };
     if (name.endsWith('/shared/verification')) return { currentVerificationStatus: () => options.verificationStatus || null };
     if (name.endsWith('/services/supabase')) return { supabase: {} };
     if (name === '@expo/vector-icons') return { Feather: 'Icon' };
@@ -120,7 +121,8 @@ test('Verification actual form input/placeholder and successful or rejected stat
 test('Business inbox actual selected/unselected tabs keep paired readable ink', () => {
   for (const mode of ['light','dark','lightsOut']) {
     const api = theme(); api.set(mode);
-    const tree = component(prefix + 'BusinessInboxScreen.tsx', api, { states: { 0: [{ conversation_id: 'one', is_request: false }], 1: false } })();
+    const tree = component(prefix + 'BusinessInboxScreen.tsx', api, { states: { 0: { scope: 'theme-owner', businessId: 'business', tab: 'primary',
+      rows: [{ conversation_id: 'one', is_request: false }], summary: { primary: 1, requests: 0 }, paging: null }, 1: false } })();
     const list = walk(tree).find(n => n.type === 'FlatList'); assert.ok(list);
     const buttons = walk(list.props.ListHeaderComponent).filter(n => n.type === 'TouchableOpacity'); assert.equal(buttons.length, 2);
     for (const button of buttons) { const label = walk(button).find(n => n.type === 'Text'); assert.ok(contrast(label.props.style.color, button.props.style.backgroundColor, api.getTheme().surface.canvas) >= 4.5); }

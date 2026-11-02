@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, Modal, TextInput, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
+import { getMemoryBooks } from '../../services/memoryBooks';
 import { useTheme } from '../../theme/useTheme';
 import MemoryBookCover from '../memory/MemoryBookCover';
 import { MEMORY_FEATURED_DESIGNS as MEMORY_DESIGNS } from '../../../shared/memoryBookDesign';
@@ -13,7 +14,7 @@ export default function SaveToMemorySheet({visible,onClose,storyId,storyIds,user
  const ids=useMemo(()=>JSON.parse(idsKey) as string[],[idsKey]);
  const [books,setBooks]=useState<any[]>([]),[loading,setLoading]=useState(false),[saved,setSaved]=useState<Set<string>>(new Set()),[busy,setBusy]=useState<string|null>(null),[error,setError]=useState(''),[creating,setCreating]=useState(false),[title,setTitle]=useState(''),[design,setDesign]=useState('postcard');
  const epoch=useRef(0),lock=useRef(false);
- const load=useCallback(async()=>{const g=++epoch.current;setLoading(true);setError('');try{const {data,error:e}=await supabase.rpc('get_memory_albums',{p_owner:userId});if(e||!data?.is_owner)throw e||Error('Access');const safe=await hydrateMemoryAlbumMedia(data.books??[]);if(g===epoch.current)setBooks(safe);}catch{if(g===epoch.current)setError('Books could not load. Tap Retry.');}finally{if(g===epoch.current)setLoading(false);}},[userId]);
+ const load=useCallback(async()=>{const g=++epoch.current;setLoading(true);setError('');try{const data=await getMemoryBooks(userId,{viewer:userId,current:()=>g===epoch.current});if(!data.is_owner)throw Error('Access');const safe=await hydrateMemoryAlbumMedia(data.books??[]);if(g===epoch.current)setBooks(safe);}catch{if(g===epoch.current)setError('Books could not load. Tap Retry.');}finally{if(g===epoch.current)setLoading(false);}},[userId]);
  useEffect(()=>{epoch.current++;setBooks([]);setSaved(new Set());setCreating(false);setTitle('');setBusy(null);lock.current=false;if(visible)void load();return()=>{epoch.current++;};},[visible,idsKey,load]);
  const authorize=async()=>{const {data,error:e}=await supabase.auth.getSession();if(e||data.session?.user.id!==userId)throw Error('Account changed. Reopen the book picker.');};
  const add=async(bookId:string,g:number)=>{for(const id of ids){if(g!==epoch.current)return;await authorize();const {error:e}=await supabase.rpc('add_memory_page',{p_story_id:id,p_album_id:bookId});if(e)throw e;}if(g===epoch.current)setSaved(v=>new Set(v).add(bookId));};

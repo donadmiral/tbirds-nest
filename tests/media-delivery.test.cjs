@@ -16,6 +16,7 @@ function harness(options={}) {
  const proof={bucket,path:objectPath,version:'object-version',expiresAt:new Date(Date.now()+300000).toISOString()};
  const handler=create({base:origin,serviceKey:'server-secret',randomId:()=>`read-${reads.length}`,
   startupTimeoutMs:options.startupTimeoutMs,streamIdleTimeoutMs:options.streamIdleTimeoutMs,diagnostic:event=>events.push(event),
+  resolveVariant:options.resolveVariant,
   resolve:async(...args)=>{
    grants.push(args);
    if(options.resolve)return options.resolve({...proof},grants.length,args[3]);
@@ -198,9 +199,35 @@ test('identity encoding, redirect refusal and exact Range bytes preserve safe pl
 test('the deployed entrypoint forwards the request cancellation signal into both proof RPCs',async()=>{
  let deps,received;
  const code=ts.transpileModule(fs.readFileSync(path.join(__dirname,'../supabase/functions/media-content/index.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
- vm.runInNewContext(code,{exports:{},fetch,console:{warn(){}},Deno:{env:{get:()=>origin},serve(){}},require(name){
+ vm.runInNewContext(code,{exports:{},fetch,Headers,console:{warn(){}},Deno:{env:{get:()=>origin},serve(){}},require(name){
   if(name==='npm:@supabase/supabase-js@2.112.3')return{createClient:()=>({rpc:()=>({abortSignal(signal){received=signal;return Promise.resolve({data:null,error:null});}})})};
-  if(name==='./handler.ts')return{createMediaContentHandler(value){deps=value;return()=>{};}};throw Error(name);
+  if(name==='./handler.ts')return{createMediaContentHandler(value){deps=value;return()=>{};}};
+  if(name==='../_shared/serviceRoleFetch.ts')return load('supabase/functions/_shared/serviceRoleFetch.ts');throw Error(name);
  }});
  const controller=new AbortController();await deps.resolve(token,bucket,objectPath,controller.signal);assert.equal(received,controller.signal);
+});
+
+const variant={bucket:'derived-media',path:'10000000-0000-4000-8000-000000000001/_derived_v1/20000000-0000-4000-8000-000000000001/30000000-0000-4000-8000-000000000001.mp4',version:'derived-version',etag:'derived-etag',sourceVersion:'object-version'};
+function variantFetch(href,init){const ranged=!!init.headers.Range;return new Response(init.method==='HEAD'?null:'private-bytes',{status:ranged?206:200,headers:{'Content-Type':'video/mp4','Content-Length':'13','Accept-Ranges':'bytes',ETag:'"derived-etag"',...(ranged?{'Content-Range':'bytes 0-12/100'}:{})}});}
+test('variant selection occurs only after original access and never exposes a sibling redirect',async()=>{
+ let choices=0;const denied=harness({denied:true,resolveVariant:async()=>{choices++;return variant;}});assert.equal((await denied.handler(new Request(url))).status,403);assert.equal(choices,0);
+ const h=harness({resolveVariant:async(...args)=>{choices++;assert.equal(args[0],token);assert.equal(args[3],'object-version');return variant;},fetch:variantFetch});
+ const result=await h.handler(new Request(url));assert.equal(result.status,200);assert.equal(await result.text(),'private-bytes');assert.ok(new URL(h.reads[0].href).pathname.endsWith(variant.path));assert.equal(result.headers.get('Location'),null);assert.match(result.headers.get('Cache-Control'),/no-store/);assert.equal(h.grants.length,2);
+});
+test('HEAD, GET and Range share a stable representation tag; If-Range mismatch requests the whole selected file',async()=>{
+ const h=harness({resolveVariant:async()=>variant,fetch:variantFetch});const first=await h.handler(new Request(url));const etag=first.headers.get('ETag');await first.body.cancel();
+ const head=await h.handler(new Request(url,{method:'HEAD'}));assert.equal(head.headers.get('ETag'),etag);assert.equal(head.headers.get('Content-Length'),'13');
+ const partial=await h.handler(new Request(url,{headers:{Range:'bytes=-13','If-Range':etag}}));assert.equal(partial.status,206);assert.equal(partial.headers.get('ETag'),etag);assert.equal(h.reads.at(-1).init.headers.Range,'bytes=-13');await partial.body.cancel();
+ const full=await h.handler(new Request(url,{headers:{Range:'bytes=0-12','If-Range':'"another-file"'}}));assert.equal(full.status,200);assert.equal(h.reads.at(-1).init.headers.Range,undefined);await full.body.cancel();
+});
+test('pending or failed jobs keep the original source path, while a revoked selected variant refuses the old representation',async()=>{
+ const pending=harness({resolveVariant:async()=>null});const original=await pending.handler(new Request(url));assert.equal(original.status,200);assert.ok(new URL(pending.reads[0].href).pathname.endsWith(objectPath));await original.body.cancel();
+ const retired=harness({resolveVariant:async()=>({unavailable:true})});assert.equal((await retired.handler(new Request(url))).status,410);assert.equal(retired.reads.length,0);
+});
+test('derived version or ETag replacement after header fetch suppresses bytes and never falls through to original',async()=>{
+ let n=0;const changed=harness({resolveVariant:async()=>++n===1?variant:{...variant,version:'changed'},fetch:variantFetch});assert.equal((await changed.handler(new Request(url))).status,410);assert.equal(changed.reads.length,1);
+ const wrong=harness({resolveVariant:async()=>variant,fetch:async()=>new Response('other',{headers:{'Content-Type':'video/mp4',ETag:'"wrong"'}})});assert.equal((await wrong.handler(new Request(url))).status,410);
+});
+test('source permission revocation still wins over a valid derived publication',async()=>{
+ const h=harness({resolveVariant:async()=>variant,revoke:2,fetch:variantFetch});assert.equal((await h.handler(new Request(url))).status,403);assert.equal(h.reads.length,1);
 });

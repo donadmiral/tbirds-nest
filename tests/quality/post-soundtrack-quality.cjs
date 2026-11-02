@@ -10,6 +10,8 @@ const sound = {exports:{}};
 vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/soundtrack.ts'),'utf8')), sound);
 const collaborators = { exports: {} };
 vm.runInNewContext(compile(fs.readFileSync(path.join(root, 'shared/collaborationPeople.ts'), 'utf8')), collaborators);
+const handoff = { exports: {} };
+vm.runInNewContext(compile(fs.readFileSync(path.join(root, 'shared/reactDraftHandoff.ts'), 'utf8')), handoff);
 const music=sound.exports, selection={soundId:'11111111-1111-4111-8111-111111111111',startSec:12,durationSec:8,volume:0.7,originalVolume:0};
 test('soundtrack parser rejects corrupt values and exposes only a bounded recipe',()=>{
  assert.equal(music.readSoundtrack({...selection,durationSec:Infinity}),null);
@@ -29,7 +31,7 @@ function publicationFixture({failTable,loseTable,failUpload=0,switchOnTable,musi
  const start=text.indexOf('  const createPost = async () => {'),end=text.indexOf('  const loadMore =',start);
  const rows={},calls=[],alerts=[],uploads=[];let id=0,failed=false,owner='owner',author='owner';
  const context={
-   uniqueCollaborators:collaborators.exports.uniqueCollaborators,ORIGINAL_AUDIO_ENABLED:musicAvailable,publicationBusy:{current:false},publicationAttempt:{current:null},userId:'owner',composerText:'Hello',
+   uniqueCollaborators:collaborators.exports.uniqueCollaborators,reactDraftAttribution:handoff.exports.reactDraftAttribution,ORIGINAL_AUDIO_ENABLED:musicAvailable,publicationBusy:{current:false},publicationAttempt:{current:null},userId:'owner',composerText:'Hello',
    composerMedia:[{uri:'file://photo.jpg',type:'image',ext:'jpg',width:100,height:100,edit:{rotation:90,flipX:true,tags:[{user_id:'friend',nx:.3,ny:.7}]}}],
    composerSoundtrack:selection,exclusivePost:false,innovationPost:false,innoField:null,innoStage:null,
    postAudience:'everyone',commentPolicy:'everyone',postCategory:null,articleTitle:'',quotingPost:null,threadingPost:null,

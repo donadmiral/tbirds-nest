@@ -10,7 +10,7 @@ name: Type and quality gates
 
 on:
   push:
-    branches: [master, codex/completion-20261101]
+    branches: [master, codex/completion-20261101, codex/web-admin-media-parity-20261101]
   pull_request:
   workflow_dispatch:
 
@@ -18,6 +18,57 @@ permissions:
   contents: read
 
 jobs:
+  database-concurrency:
+    name: Isolated PostgreSQL 17 concurrency contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PGHOST: /tmp/pc-capacity-ci-socket
+      PGPORT: '5432'
+      PGUSER: pc_test
+      PC_TEST_PSQL: /usr/bin/psql
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - run: npm ci --prefix supabase/tests/rpc-authorization --no-fund
+      - name: Start a disposable database with no TCP listener
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+          mkdir -p "$PGHOST"
+          chmod 777 "$PGHOST"
+          docker run --detach --name pc-capacity-postgres \
+            --env POSTGRES_HOST_AUTH_METHOD=trust --env POSTGRES_USER=pc_test \
+            --mount "type=bind,src=$PGHOST,dst=/var/run/postgresql" \
+            postgres:17.11 -c listen_addresses='' -c jit=off
+          ready=false
+          for attempt in $(seq 1 60); do
+            if pg_isready --dbname=postgres; then ready=true; break; fi
+            sleep 1
+          done
+          test "$ready" = true
+          psql --dbname=postgres --command='select version(), inet_server_addr();'
+          for database in pc_scale_counters pc_scale_feed pc_scale_paging pc_scale_context pc_scale_business pc_scale_mentions pc_scale_media_jobs pc_scale_service_proof; do
+            createdb "$database"
+          done
+      - name: Verify real lock waits, retries, access boundaries and cleanup
+        run: |
+          PGDATABASE=pc_scale_counters node supabase/tests/engagement-counters-concurrency.test.cjs
+          PGDATABASE=pc_scale_feed node supabase/tests/feed-live.test.cjs
+          PGDATABASE=pc_scale_paging node supabase/tests/paged-readers-concurrency.test.cjs
+          PGDATABASE=pc_scale_context node supabase/tests/context-inbox-db.test.cjs
+          PGDATABASE=pc_scale_business node supabase/tests/business-inbox-db.test.cjs
+          PGDATABASE=pc_scale_mentions node supabase/tests/inbox-mentions-db.test.cjs
+          PGDATABASE=pc_scale_media_jobs node supabase/tests/media-processing-db.test.cjs
+          PGDATABASE=pc_scale_service_proof node supabase/tests/service-authorization-proof-db.test.cjs
+      - name: Remove the disposable database
+        if: always()
+        run: docker rm --force pc-capacity-postgres || true
+
   edge-tls:
     name: Link preview Edge TLS
     runs-on: ubuntu-latest

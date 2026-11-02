@@ -3,6 +3,8 @@ import { navigationCache, navigationScope } from '../lib/navigationCache';
 import { useAuthStore } from '../stores/authStore';
 import { supabase } from './supabase';
 import { isChatMediaUrl, signGroupAvatars } from './chatMediaService';
+import { readInboxPage, type InboxReadOptions, type ReaderScope } from '../../shared/pagedReaders';
+import { appendInboxWindow, readInboxIds, refreshInboxWindow, type InboxPaging, type InboxWindow } from '../../shared/inboxWindow';
 
 export type Conversation = {
   id: string;
@@ -22,12 +24,131 @@ export type Conversation = {
   is_pinned: boolean;
   is_muted: boolean;
   is_archived: boolean;
+  context?: string;
+  manually_unread?: boolean;
+  other_is_verified?: boolean;
+  other_verified_tier?: string | null;
+  last_sender_id?: string | null;
+  last_sender_name?: string | null;
 };
+export type InboxPreview = { id: string; last_message?: string | null; last_message_time?: string | null;
+  last_sender_id?: string | null; last_sender_name?: string | null };
+function previewStamp(value?: string | null) {
+  // Postgres JSON and Realtime may spell the same UTC instant differently.
+  // Retain all six fractional digits; millisecond truncation can confuse two
+  // different senders in a busy conversation.
+  const match = value?.match(/^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(?:\.(\d{1,6}))?(?:Z|\+00(?::?00)?)$/);
+  return match ? `${match[1]}.${(match[2] ?? '').padEnd(6, '0')}` : value ?? '';
+}
+export function preserveNavigationInboxPreviews(rows: Conversation[], previous: Conversation[], hints: Map<string, InboxPreview>) {
+  const old = new Map(previous.map(row => [row.id, row]));
+  return rows.map(row => {
+    const candidate = [hints.get(row.id), old.get(row.id)].find(value => value
+      && (value.last_sender_id !== undefined || value.last_sender_name !== undefined)
+      && (value.last_message || '') === row.last_message
+      && previewStamp(value.last_message_time) === previewStamp(row.last_message_time));
+    return candidate ? { ...row, last_sender_id: candidate.last_sender_id, last_sender_name: candidate.last_sender_name } : row;
+  });
+}
 
 type InboxAvatar = { id: string; url: string | null };
 const avatarListeners = new Set<(scope: string, avatars: InboxAvatar[]) => void>();
-const avatarJobs = new WeakSet<Promise<Conversation[]>>();
+const avatarJobs = new WeakSet<Promise<unknown>>();
 let avatarVersion = 0;
+let avatarScope: string | null = null;
+const avatarVersions = new Map<string, number>();
+type GroupAvatar = { id: string; group_avatar_url: string | null };
+
+export function nativeInboxOptions(search = '', filter: 'all' | 'groups' | 'unread' = 'all', archived = false): InboxReadOptions {
+  return { context: 'personal', order: 'pinned', folder: archived ? 'archived' : 'active', groups: true,
+    deleted: false, search, searchMode: 'native', filter, excludeCommunity: true, excludeRequests: true };
+}
+export function matchesNativeInbox(row: Conversation, options: InboxReadOptions): boolean {
+  if ((row.context || 'personal') !== 'personal') return false;
+  if (options.folder === 'archived') return row.is_archived;
+  if (row.is_archived || row.group_type === 'community' || row.request_pending) return false;
+  return (!(options.search ?? '') || row.other_name.toLowerCase().includes(options.search!.toLowerCase()))
+    && (options.filter === 'groups' ? row.is_group : options.filter === 'unread' ? row.unread_count > 0 : true);
+}
+export const compareNativeInbox = (a: Conversation, b: Conversation) =>
+  Number(b.is_pinned) - Number(a.is_pinned)
+    || new Date(b.last_message_time ?? 0).getTime() - new Date(a.last_message_time ?? 0).getTime()
+    || b.id.localeCompare(a.id);
+
+function rememberAvatarVersion(scope: string, rows: { id: string }[], version: number) {
+  if (avatarScope !== scope) { avatarScope = scope; avatarVersions.clear(); }
+  for (const row of rows) avatarVersions.set(row.id, Math.max(version, avatarVersions.get(row.id) ?? 0));
+}
+function enrichAvatars(work: Promise<unknown>, scope: string, groups: () => GroupAvatar[], version: () => number) {
+  if (avatarJobs.has(work)) return;
+  avatarJobs.add(work);
+  void work.then(async () => {
+    if (navigationScope() !== scope) return;
+    const pending = groups().filter(row => avatarVersions.get(row.id) === version());
+    if (!pending.length) return;
+    const signed = await signGroupAvatars(pending);
+    if (navigationScope() !== scope) return;
+    const avatars = signed.filter(row => avatarVersions.get(row.id) === version())
+      .map(row => ({ id: row.id, url: row.group_avatar_url || null }));
+    if (!avatars.length) return;
+    const cached = navigationCache.read<Conversation[]>(scope, 'inbox:personal');
+    if (cached) navigationCache.save(scope, 'inbox:personal', applyNavigationInboxAvatars(cached, avatars));
+    avatarListeners.forEach(listener => listener(scope, avatars));
+  }).catch(() => { /* Initials remain usable when a private photo cannot load. */ });
+}
+
+type InboxWire = { id: string; is_group: boolean; other_id: string | null; title: string; username: string | null;
+  avatar: string | null; last_message: string; last_message_time: string | null; unread: number; context: string;
+  group_emoji?: string | null; group_type?: string | null; group_ref_id?: string | null; request_pending?: boolean;
+  is_pinned: boolean; is_muted: boolean; is_archived: boolean; manually_unread?: boolean;
+  other_is_verified?: boolean; other_verified_tier?: string | null };
+function nativePageReader(readerScope: ReaderScope, scope: string, version: number, groups: Map<string, GroupAvatar>) {
+  return async (options: InboxReadOptions) => {
+    const page = await readInboxPage<InboxWire>(supabase, readerScope, options);
+    if (!page) return null;
+    rememberAvatarVersion(scope, page.items, version);
+    const items: Conversation[] = page.items.map(row => {
+      const privatePhoto = row.is_group && isChatMediaUrl(row.avatar);
+      if (privatePhoto) groups.set(row.id, { id: row.id, group_avatar_url: row.avatar });
+      const avatar = privatePhoto ? null : row.avatar;
+      return { ...row, other_user_id: row.other_id || '', other_name: row.title, other_username: row.username,
+        other_avatar: avatar, group_avatar_url: row.is_group ? avatar : null, unread_count: row.unread };
+    });
+    return { ...page, items };
+  };
+}
+
+function nativeReaderScope(userId: string, signal?: AbortSignal, current?: () => boolean) {
+  const scope = navigationScope(), session = useAuthStore.getState().session;
+  if (!scope || session?.user.id !== userId) throw new Error('Sign in to load conversations.');
+  return { scope, reader: { viewer: userId, token: session.access_token, signal,
+    current: () => navigationScope() === scope && current?.() !== false } satisfies ReaderScope };
+}
+
+export function readNavigationInboxWindow(userId: string, options: InboxReadOptions,
+  previous: InboxWindow<Conversation> | null = null, continuation = false, signal?: AbortSignal, current?: () => boolean): Promise<InboxWindow<Conversation>> {
+  const { scope, reader } = nativeReaderScope(userId, signal, current), version = ++avatarVersion;
+  const groups = new Map<string, GroupAvatar>(), read = nativePageReader(reader, scope, version, groups);
+  const work = (async () => {
+    const result = continuation && previous
+      ? await appendInboxWindow(read, options, previous, row => matchesNativeInbox(row, options), compareNativeInbox)
+      : await refreshInboxWindow(read, options, previous, row => matchesNativeInbox(row, options), compareNativeInbox);
+    if (result) return result;
+    const items = await refreshNavigationInbox(userId);
+    if (signal?.aborted || !reader.current()) throw new Error('The conversation reader changed.');
+    return { items, paging: null, checkedIds: [...new Set([...items.map(row => row.id), ...(previous?.items.map(row => row.id) ?? [])])] };
+  })();
+  enrichAvatars(work, scope, () => [...groups.values()], () => version);
+  return work;
+}
+
+export function readNavigationInboxIds(userId: string, options: InboxReadOptions, ids: string[], signal?: AbortSignal, current?: () => boolean) {
+  const { scope, reader } = nativeReaderScope(userId, signal, current), version = ++avatarVersion;
+  const groups = new Map<string, GroupAvatar>();
+  const work = readInboxIds(nativePageReader(reader, scope, version, groups), options, ids);
+  enrichAvatars(work, scope, () => [...groups.values()], () => version);
+  return work;
+}
 
 export function subscribeNavigationInboxAvatars(listener: (scope: string, avatars: InboxAvatar[]) => void) {
   avatarListeners.add(listener);
@@ -56,6 +177,17 @@ export function refreshNavigationInbox(userId: string): Promise<Conversation[]> 
     const current = () => {
       if (signal.aborted || navigationScope() !== scope) throw new Error('The account changed.');
     };
+    const collected = new Map<string, GroupAvatar>();
+    const previous = navigationCache.read<Conversation[]>(scope, 'inbox:personal');
+    const paging = navigationCache.read<InboxPaging>(scope, 'inbox:personal:paging');
+    const paged = await refreshInboxWindow(nativePageReader({ viewer: userId, token: accessToken, signal,
+      current: () => !signal.aborted && navigationScope() === scope }, scope, version, collected), nativeInboxOptions(),
+      previous ? { items: previous, paging } : null, row => matchesNativeInbox(row, nativeInboxOptions()), compareNativeInbox);
+    if (paged) {
+      current(); groupsToSign = [...collected.values()];
+      navigationCache.save(scope, 'inbox:personal:paging', paged.paging);
+      return paged.items;
+    }
     const direct = async () => {
       const dm = await pin(supabase.from('conversations').select('*').or(`user_1.eq.${userId},user_2.eq.${userId}`).eq('is_group', false).order('last_message_time', { ascending: false }));
       if (dm.error) throw new Error('Conversations could not be refreshed. Please try again.');
@@ -133,21 +265,12 @@ export function refreshNavigationInbox(userId: string): Promise<Conversation[]> 
         return tb - ta;
       });
 
+    rememberAvatarVersion(scope, list, version);
+    navigationCache.save(scope, 'inbox:personal:paging', null);
     return list;
   });
   // Membership-authorized conversation text is ready now. Private group photos
   // keep their existing grant check and fill in separately, without gating DMs.
-  if (!avatarJobs.has(work)) {
-    avatarJobs.add(work);
-    void work.then(async () => {
-      if (!groupsToSign.length || navigationScope() !== scope || version !== avatarVersion) return;
-      const signed = await signGroupAvatars(groupsToSign);
-      if (navigationScope() !== scope || version !== avatarVersion) return;
-      const avatars = signed.map(row => ({ id: row.id, url: row.group_avatar_url || null }));
-      const cached = navigationCache.read<Conversation[]>(scope, 'inbox:personal');
-      if (cached) navigationCache.save(scope, 'inbox:personal', applyNavigationInboxAvatars(cached, avatars));
-      avatarListeners.forEach(listener => listener(scope, avatars));
-    }).catch(() => { /* The visible initials remain usable if a photo fails. */ });
-  }
+  enrichAvatars(work, scope, () => groupsToSign, () => version);
   return work;
 }

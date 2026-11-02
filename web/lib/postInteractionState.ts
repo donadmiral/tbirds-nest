@@ -4,7 +4,7 @@ export type PostInteractionSeed = { liked: boolean; bookmarked: boolean; likesCo
 export type PostInteractionSnapshot = PostInteractionSeed & { bookmarksCount: number; pending: boolean; error: string | null; uncertain: boolean };
 type Kind = "like" | "bookmark";
 type Actions = Record<Kind, (id: string, on: boolean, viewer: string, isCurrent?: () => boolean) => Promise<boolean>>;
-type Entry = { value: PostInteractionSnapshot | null; listeners: Set<() => void>; version: number; touched: boolean; reconcile: boolean };
+type Entry = { value: PostInteractionSnapshot | null; listeners: Set<() => void>; version: number; touched: boolean; reconcile: boolean; changedAt: number; liveAt: number };
 const EMPTY: PostInteractionSnapshot = { liked: false, bookmarked: false, likesCount: 0, bookmarksCount: 0, pending: false, error: null, uncertain: false };
 
 // Feed seeds avoid additional reads on launch. After any mutation, all mounted
@@ -22,7 +22,7 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
       if (entries.size >= 200) for (const [key, value] of entries) {
         if (!value.listeners.size && !value.value?.pending) { entries.delete(key); break; }
       }
-      result = { value: null, listeners: new Set(), version: 0, touched: generation > 1, reconcile: false };
+      result = { value: null, listeners: new Set(), version: 0, touched: generation > 1, reconcile: false, changedAt: -1, liveAt: -1 };
       entries.set(id, result);
     }
     return result;
@@ -39,6 +39,7 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
     if (initial && next) return;
     entries.forEach((target) => {
       if (!initial) target.version++;
+      target.changedAt = Date.now(); target.liveAt = -1;
       target.touched = true;
       put(target, { ...EMPTY, likesCount: target.value?.likesCount ?? 0, bookmarksCount: target.value?.bookmarksCount ?? 0, uncertain: !!next,
         pending: initial && !!target.value?.pending });
@@ -95,6 +96,7 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
     const before = target.value ?? EMPTY;
     const version = ++target.version;
     target.touched = true;
+    target.changedAt = Date.now();
     put(target, { ...before, pending: true, error: null });
     start();
     await ready;
@@ -138,6 +140,7 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
       if (current()) put(target, { ...before, pending: false, uncertain: true,
         error: "Could not confirm this change. Check the status before trying again." });
     } finally {
+      if (current()) target.changedAt = Date.now();
       const latest = entries.get(id);
       if (latest?.reconcile && !latest.value?.pending) {
         latest.reconcile = false;
@@ -150,6 +153,17 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
 
   return {
     snapshot: (id: string) => entries.get(id)?.value ?? null,
+    applyLive(id: string, owner: string, seed: PostInteractionSeed, requestedAt: number) {
+      const target = entries.get(id);
+      if (!target) return true; // Unmounted cards will receive the feed seed.
+      if (viewer !== owner || target.value?.pending || requestedAt <= target.changedAt || requestedAt < target.liveAt) return false;
+      if (!Number.isSafeInteger(seed.likesCount) || seed.likesCount < 0
+        || !Number.isSafeInteger(seed.bookmarksCount) || seed.bookmarksCount! < 0) return false;
+      target.touched = true; target.liveAt = requestedAt;
+      const value = { ...seed, bookmarksCount: seed.bookmarksCount!, pending: false, error: null, uncertain: false };
+      if (!target.value || Object.entries(value).some(([key, field]) => target.value![key as keyof PostInteractionSnapshot] !== field)) put(target, value);
+      return true;
+    },
     seed(id: string, seed: PostInteractionSeed) {
       if (!id) return;
       const target = entry(id);
@@ -168,7 +182,7 @@ export function createPostInteractionStore(client: SupabaseClient, actions: Acti
       start();
       // Saved or another device may have changed this post since unmount.
       // A pending write stays in charge until its own readback has completed.
-      if (viewer && (target.value?.uncertain || (remount && target.touched && target.value))) void refresh(id);
+      if (viewer && (target.value?.uncertain || (remount && target.touched && target.value && Date.now() - target.liveAt > 10000))) void refresh(id);
       return () => {
         target.listeners.delete(listener);
         // Let an already-dispatched write finish and reconcile in the cache.

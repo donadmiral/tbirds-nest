@@ -32,7 +32,9 @@ export class MemoryBookTurnMachine {
   constructor(ids:readonly string[],index=0){this.ids=[...ids];this.index=this.clamp(index);}
   private clamp(index:number){return Math.max(0,Math.min(index,Math.max(0,this.ids.length-1)));}
   sync(ids:readonly string[],index:number){
-    const changed=ids.length!==this.ids.length||ids.some((id,i)=>id!==this.ids[i]);
+    // Appending an authorized page window must not cancel an in-flight turn
+    // between existing pages. Reorders/removals/replacements still retire it.
+    const changed=ids.length<this.ids.length||this.ids.some((id,i)=>id!==ids[i]);
     this.ids=[...ids];const next=this.clamp(index);
     if(changed||next!==this.index||this.turn?.phase==='committed')this.cancel();
     this.index=next;

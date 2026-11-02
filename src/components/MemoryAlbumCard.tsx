@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, ActivityIndicator, useWindowDimensions, Platform, AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
-import { supabase } from '../services/supabase';
 import { hydrateMemoryAlbumMedia, withoutPrivateMedia } from '../services/contentMedia';
 import { useAuthStore } from '../stores/authStore';
 import { profileRead } from '../utils/profileRead';
@@ -12,6 +11,7 @@ import MemoryBookCover from './memory/MemoryBookCover';
 import MemoryBookDesigner from './memory/MemoryBookDesigner';
 import { MEMORY_COVER_COLORS, memoryCoverMedia, memoryAudienceLabel } from '../../shared/memoryBookDesign';
 import type {MemoryBookshelf,MemoryBookSummary,MemoryBookNavigation} from '../../shared/memoryBookModels';
+import {getMemoryBooks,getMemoryBooksNext} from '../services/memoryBooks';
 export const COVER_COLORS = MEMORY_COVER_COLORS;
 
 export default function MemoryAlbumCard({ownerId,navigation}:{ownerId?:string|null;navigation:Pick<MemoryBookNavigation,'navigate'>}) {
@@ -24,26 +24,29 @@ export default function MemoryAlbumCard({ownerId,navigation}:{ownerId?:string|nu
  const epoch=useRef(0),loadedOwner=useRef<string|null>(null),loadedScope=useRef<typeof scope.current|null>(null);
  const pendingRead=useRef<{scope:typeof scope.current;promise:Promise<void>}|null>(null);
  const [loading,setLoading]=useState(true);
+ const rawShelf=useRef<MemoryBookshelf|null>(null),moreRequest=useRef<AbortController|null>(null);
+ const [loadingMore,setLoadingMore]=useState(false);
  const refresh=useCallback(()=>{
   const owner=scope.current;
   // Focus, foreground and a just-created book can all ask for the same read.
   // Share it instead of invalidating a successful response with another load.
   if(pendingRead.current?.scope===owner)return pendingRead.current.promise;
   const id=++epoch.current;
+  moreRequest.current?.abort();
   const current=()=>scope.current===owner&&id===epoch.current;
-  if(loadedScope.current!==owner){loadedOwner.current=ownerId??null;loadedScope.current=owner;setData(null);}
+  if(loadedScope.current!==owner){loadedOwner.current=ownerId??null;loadedScope.current=owner;rawShelf.current=null;setData(null);}
   setLoading(true);setError('');
   if(!ownerId||!viewerId){setLoading(false);return Promise.resolve();}
   const pending={scope:owner,promise:Promise.resolve()};
   pendingRead.current=pending;
   pending.promise=(async()=>{
    try{
-    const {data:result,error:e}=await profileRead(supabase.rpc('get_memory_albums',{p_owner:ownerId}));
+    const result=await profileRead(getMemoryBooks(ownerId,{viewer:viewerId,current,partial:true,minimumBooks:rawShelf.current?.books.length}));
     if(!current())return;
-    if(e||!result||!Array.isArray(result.books))throw e||Error('Memory books could not load. Tap to retry.');
+    if(!result||!Array.isArray(result.books))throw Error('Memory books could not load. Tap to retry.');
     // Titles, counts and create/open controls are already server-authorized.
     // Never hold the entire shelf hostage to its separate cover signing step.
-    setData({...result,books:withoutPrivateMedia(result.books)});
+    rawShelf.current=result;setData({...result,books:withoutPrivateMedia(result.books)});
     setLoading(false);
     try{
      const books=await profileRead(hydrateMemoryAlbumMedia(result.books),25000);
@@ -54,7 +57,30 @@ export default function MemoryAlbumCard({ownerId,navigation}:{ownerId?:string|nu
   })();
   return pending.promise;
  },[ownerId,viewerId]);
- useFocusEffect(useCallback(()=>{void refresh();const timer=setInterval(()=>{if(AppState.currentState==='active')void refresh();},240000);const sub=AppState.addEventListener('change',state=>{if(state==='active')void refresh();});return()=>{epoch.current++;pendingRead.current=null;clearInterval(timer);sub.remove();};},[refresh]));
+ useEffect(()=>{
+  if(!collection||loading||!ownerId||!viewerId||!rawShelf.current?._pagination?.cursor)return;
+  const controller=new AbortController(),g=epoch.current,owner=scope.current;
+  moreRequest.current=controller;setLoadingMore(true);
+  const current=()=>!controller.signal.aborted&&g===epoch.current&&scope.current===owner;
+  void(async()=>{
+   // Let the first small cover batch finish before appending another one, so a
+   // late first-page signer cannot replace the expanded collection.
+   await pendingRead.current?.promise;
+   while(current()&&rawShelf.current?._pagination?.cursor){
+    const previous=rawShelf.current,next=await profileRead(getMemoryBooksNext(previous,{viewer:viewerId,signal:controller.signal,current}));
+    if(!current())return;
+    rawShelf.current=next;
+    const added=withoutPrivateMedia(next.books.slice(previous.books.length));
+    setData(value=>value?{...next,books:[...value.books,...added]}:{...next,books:withoutPrivateMedia(next.books)});
+    try{const signed=await profileRead(hydrateMemoryAlbumMedia(next.books.slice(previous.books.length)),25000);
+      if(current())setData(value=>value?{...value,books:[...value.books.slice(0,previous.books.length),...signed]}:value);
+    }catch{if(current())setError('Some book covers could not load. Your books can still open. Tap to retry.');}
+   }
+  })().catch(()=>{if(current())setError('More books could not load. Tap Retry to complete the collection.');})
+    .finally(()=>{if(moreRequest.current===controller){moreRequest.current=null;setLoadingMore(false);}});
+  return()=>controller.abort();
+ },[collection,loading,ownerId,viewerId]);
+ useFocusEffect(useCallback(()=>{void refresh();const timer=setInterval(()=>{if(AppState.currentState==='active')void refresh();},240000);const sub=AppState.addEventListener('change',state=>{if(state==='active')void refresh();});return()=>{epoch.current++;pendingRead.current=null;moreRequest.current?.abort();clearInterval(timer);sub.remove();};},[refresh]));
  useEffect(()=>{pendingCreate.current=false;pendingDestination.current=null;setCreating(false);setCollection(false);},[ownerId,viewerId]);
  if(!ownerId)return null;
  const shelf=loadedScope.current===scope.current&&loadedOwner.current===ownerId?data:null;
@@ -76,7 +102,7 @@ export default function MemoryAlbumCard({ownerId,navigation}:{ownerId?:string|nu
   <Modal visible={collection} animationType="slide" onRequestClose={()=>setCollection(false)} onDismiss={()=>{if(pendingCreate.current){pendingCreate.current=false;setCreating(true);}else finishNavigation();}}><SafeAreaView style={{flex:1,backgroundColor:isDark?t.surface.canvas:'#FCFAF5'}}><View style={{flexDirection:'row',paddingHorizontal:16,alignItems:'center',justifyContent:'space-between',height:58}}><TouchableOpacity accessibilityLabel="Back to profile" onPress={()=>setCollection(false)} style={{padding:10}}><Feather name="chevron-left" size={24} color={t.ink.primary}/></TouchableOpacity><Text style={{fontFamily:serif,fontSize:24,color:t.ink.primary}}>Memory books</Text>{shelf?.is_owner?<TouchableOpacity accessibilityLabel="New memory book" onPress={()=>{if(Platform.OS==='ios')pendingCreate.current=true;setCollection(false);if(Platform.OS!=='ios')setCreating(true);}} style={{padding:10}}><Feather name="plus" size={24} color={t.ink.primary}/></TouchableOpacity>:<View style={{width:44}}/>}</View>
    <TextInput accessibilityLabel="Search memory books" value={query} onChangeText={setQuery} placeholder="Search your books" placeholderTextColor={t.ink.secondary} style={{marginHorizontal:18,marginBottom:16,borderRadius:24,paddingHorizontal:18,paddingVertical:12,backgroundColor:t.surface.hairline,color:t.ink.primary}}/>
    <View style={{marginHorizontal:18,marginBottom:20,flexDirection:'row',backgroundColor:t.surface.hairline,borderRadius:22}}>{['All','Public','Private'].map(f=><TouchableOpacity key={f} onPress={()=>setFilter(f)} accessibilityRole="tab" accessibilityState={{selected:filter===f}} style={{flex:1,alignItems:'center',padding:11,borderRadius:22,backgroundColor:filter===f?(isDark?t.brand.base:'#E7DDC7'):'transparent'}}><Text style={{color:filter===f&&isDark?'#FFF':t.ink.primary,fontWeight:filter===f?'700':'400'}}>{f}</Text></TouchableOpacity>)}</View>
-   <ScrollView contentContainerStyle={{paddingHorizontal:16,paddingBottom:30}}><View style={{flexDirection:'row',flexWrap:'wrap',gap:16}}>{filtered.map((b:MemoryBookSummary)=>card(b,true))}</View>{!filtered.length&&<Text style={{textAlign:'center',color:t.ink.secondary,padding:30}}>No books match your search.</Text>}</ScrollView>
+   <ScrollView contentContainerStyle={{paddingHorizontal:16,paddingBottom:30}}><View style={{flexDirection:'row',flexWrap:'wrap',gap:16}}>{filtered.map((b:MemoryBookSummary)=>card(b,true))}</View>{(loadingMore||rawShelf.current?._pagination?.cursor)&&<View style={{padding:20,alignItems:'center'}}><Text style={{color:t.ink.secondary}}>{error?'More books are available.':'Loading more books…'}</Text>{!!error&&<TouchableOpacity accessibilityRole="button" onPress={()=>void refresh()} style={{padding:12}}><Text style={{color:t.ink.primary}}>Retry books</Text></TouchableOpacity>}</View>}{!filtered.length&&!rawShelf.current?._pagination?.cursor&&<Text style={{textAlign:'center',color:t.ink.secondary,padding:30}}>No books match your search.</Text>}</ScrollView>
   </SafeAreaView></Modal>
   <MemoryBookDesigner visible={creating} ownerId={ownerId} onClose={()=>setCreating(false)} onDismiss={finishNavigation} onCreated={id=>{if(Platform.OS==='ios')pendingDestination.current={ownerId,albumId:id};setCreating(false);void refresh();if(Platform.OS!=='ios')navigation.navigate('MemoryAlbum',{ownerId,albumId:id});}}/>
  </View>;

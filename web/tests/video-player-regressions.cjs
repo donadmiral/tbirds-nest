@@ -61,6 +61,11 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === '@/lib/useBrowserMediaQuery') return moduleFor(compile('lib/useBrowserMediaQuery.ts'));
     if (name === '@/lib/mediaPrefs') return { dataSaverEnabled: () => saver, autoplayEnabled: () => autoplay };
     if (name === '@/lib/usePostInteractions') return { usePostInteractions: (_id, seed) => ({ ...seed, pending: false, error: null, uncertain: false }) };
+    if (name === '@/lib/postMetadata') return {
+      readPostMediaEdits: async (_postId, ids) => Object.fromEntries(ids.map(id => [id, null])),
+      readPostMediaTags: async () => [],
+      subscribePostMetadataSession: listener => navigationStore.subscribe(listener),
+    };
     if (name === '@/lib/supabase/client') return { createClient: () => client };
     if (name === '@/components/VideoPlayer') return { VideoPlayer: 'NestedVideoPlayer' };
     if (name === '@/lib/media') return { displayImageUrl: value => value, srcSetFor: () => ({}) };

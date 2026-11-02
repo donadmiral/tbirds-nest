@@ -6,12 +6,14 @@
  */
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet, useTheme } from '../../theme/useTheme';
-import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, StatusBar } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, StatusBar, AppState, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
-import { supabase } from '../../services/supabase';
+import { useAuthStore } from '../../stores/authStore';
+import { navigationScope } from '../../lib/navigationCache';
+import { readBusinessInboxWindow, type BusinessInboxTab, type BusinessInboxWindow } from '../../services/businessInbox';
 
 
 function relTime(d?: string | null) {
@@ -31,25 +33,58 @@ export default function BusinessInboxScreen() {
   const businessId: string = route.params?.businessId;
   const businessName: string = route.params?.businessName || 'Business';
 
-  const [rows, setRows] = useState<any[]>([]);
+  const { profile } = useAuthStore();
+  const owner = profile?.id ?? null, scope = navigationScope();
+  const [collection, setCollection] = useState<BusinessInboxWindow | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<'primary' | 'requests'>('primary');
+  const [loadingMore, setLoadingMore] = useState(false), [refreshing, setRefreshing] = useState(false);
+  const windows = useRef(new Map<BusinessInboxTab, BusinessInboxWindow>());
+  const requestRef = useRef<AbortController | null>(null), generation = useRef(0), focused = useRef(false);
+  const identity = useRef({ scope, owner, businessId, tab }); identity.current = { scope, owner, businessId, tab };
+  const errorOperation = useRef<'refresh' | 'more'>('refresh');
+  const visible = collection?.scope === scope && collection.businessId === businessId ? collection : null;
+  const rows = visible?.rows ?? [], summary = visible?.summary ?? { primary: 0, requests: 0 };
+
+  const load = useCallback(async (more = false, pulled = false) => {
+    if (!businessId || !owner || !scope || !focused.current || AppState.currentState !== 'active') return;
+    const cached = windows.current.get(tab);
+    const previous = cached?.scope === scope && cached.businessId === businessId ? cached : null;
+    if (more && (requestRef.current || !previous?.paging?.cursor)) return;
+    const version = ++generation.current; requestRef.current?.abort();
+    const request = new AbortController(); requestRef.current = request;
+    const current = () => focused.current && generation.current === version && !request.signal.aborted
+      && identity.current.scope === scope && identity.current.owner === owner && identity.current.businessId === businessId
+      && identity.current.tab === tab && navigationScope() === scope;
+    if (previous) setCollection(previous);
+    setErr(null); setLoading(!previous); setLoadingMore(more); setRefreshing(pulled);
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const result = await Promise.race([readBusinessInboxWindow(owner, businessId, tab, previous, more, request.signal, current),
+        new Promise<never>((_resolve, reject) => { timeout = setTimeout(() => reject(new Error('The business inbox took too long.')), 12000); })]);
+      if (!current()) return;
+      if (!result.paging) {
+        windows.current.set('primary', { ...result, tab: 'primary' }); windows.current.set('requests', { ...result, tab: 'requests' });
+      } else if (!result.paging.canView) windows.current.clear();
+      else windows.current.set(tab, result);
+      setCollection(result);
+    } catch {
+      if (current()) { errorOperation.current = more ? 'more' : 'refresh'; setErr(more ? 'More conversations could not be loaded. Please try again.' : 'The business inbox could not be loaded. Please try again.'); }
+    } finally {
+      clearTimeout(timeout); if (current()) { setLoading(false); setLoadingMore(false); setRefreshing(false); }
+      request.abort(); if (requestRef.current === request) requestRef.current = null;
+    }
+  }, [businessId, owner, scope, tab]);
 
   useFocusEffect(useCallback(() => {
-    let live = true;
-    (async () => {
-      if (!businessId) return;
-      setErr(null);
-      try {
-        const { data, error } = await supabase.rpc('get_business_conversations', { p_business_id: businessId });
-        if (error) throw error;
-        if (live) setRows(data ?? []);
-      } catch (e: any) { if (live) setErr(e?.message || 'Could not load inbox'); }
-      finally { if (live) setLoading(false); }
-    })();
-    return () => { live = false; };
-  }, [businessId]));
+    focused.current = true; void load();
+    const appState = AppState.addEventListener('change', state => {
+      if (state === 'active') void load();
+      else { generation.current++; requestRef.current?.abort(); requestRef.current = null; }
+    });
+    return () => { focused.current = false; generation.current++; requestRef.current?.abort(); requestRef.current = null; appState.remove(); };
+  }, [load]));
 
   const openChat = useCallback((r: any) => {
     navigation.navigate('Chat', {
@@ -77,9 +112,9 @@ export default function BusinessInboxScreen() {
 
       {loading ? (
         <ListRowSkeleton />
-      ) : err ? (
-        <View style={st.center}><Text style={st.errTxt}>{err}</Text></View>
-      ) : rows.length === 0 ? (
+      ) : err && (!visible || summary.primary + summary.requests === 0) ? (
+        <View style={st.center}><Text style={st.errTxt}>{err}</Text><TouchableOpacity accessibilityRole="button" onPress={() => { void load(); }}><Text style={st.name}>Try again</Text></TouchableOpacity></View>
+      ) : summary.primary + summary.requests === 0 ? (
         <View style={st.center}>
           <Feather name="inbox" size={38} color={t.ink.muted} />
           <Text style={st.emptyTitle}>No conversations yet</Text>
@@ -91,7 +126,7 @@ export default function BusinessInboxScreen() {
           ListHeaderComponent={
             <View style={{ flexDirection: 'row', paddingHorizontal: 2, paddingBottom: 8, gap: 8 }}>
               {(['primary', 'requests'] as const).map(tabKey => {
-                const n = rows.filter((r: any) => tabKey === 'requests' ? r.is_request : !r.is_request).length;
+                const n = summary[tabKey];
                 const on = tab === tabKey;
                 return (
                   <TouchableOpacity key={tabKey} onPress={() => setTab(tabKey)} style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 16, backgroundColor: on ? t.ink.primary : t.surface.raised }}>
@@ -102,6 +137,12 @@ export default function BusinessInboxScreen() {
             </View>
           }
           keyExtractor={r => r.conversation_id}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { void load(false, true); }} tintColor={t.ink.muted} />}
+          onEndReached={() => { if (!err) void load(true); }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={err ? <View style={{ padding: 16, alignItems: 'center' }}><Text style={st.errTxt}>{err}</Text>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry business inbox" onPress={() => { void load(errorOperation.current === 'more'); }}><Text style={st.name}>Try again</Text></TouchableOpacity>
+          </View> : loadingMore ? <View style={{ padding: 16 }}><ActivityIndicator color={t.ink.primary} /></View> : null}
           ItemSeparatorComponent={() => <View style={st.sep} />}
           contentContainerStyle={{ paddingVertical: 4, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}

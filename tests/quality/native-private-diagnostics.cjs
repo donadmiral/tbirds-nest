@@ -66,6 +66,7 @@ function pushHarness(options = {}) {
   const imports = {
     'expo-device': { isDevice: true, deviceName },
     'expo-notifications': notifications,
+    './devicePermissions': { ensureNotificationPermission: notifications.getPermissionsAsync },
     'expo-constants': { default: { expoConfig: { extra: { eas: { projectId } } } } },
     'react-native': { AppState: { currentState: 'active' }, Platform: { OS: options.android ? 'android' : 'ios' } },
     './pushTokenService': { pushTokenService: {

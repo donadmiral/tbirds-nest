@@ -6,7 +6,10 @@ import Link from "next/link";
 import { ArrowLeft, Camera, Info, Mail, MoreHorizontal, Search, Send, FileText, Tag, Wallet, Paperclip, Mic, Square, Phone, SquarePen, UserRound, Video, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { loadConversations, type Conv, type Msg } from "@/lib/messages";
+import { loadConversations, loadConversationWindow, loadMoreConversations, lookupConversations,
+  webInboxOptions, matchesWebInbox, compareWebInbox, type Conv, type Msg } from "@/lib/messages";
+import { createInboxMergeGuard, inboxQueryKey, type InboxPaging } from '../../shared/inboxWindow';
+import { createInboxRefreshQueue } from '../../shared/inboxRefreshQueue';
 import { signChatMedia, isChatMediaUrl, withoutChatMedia } from "@/lib/chatMedia";
 import { enqueueMessage, readOutbox, sendOutboxMessage, clearOutbox, forgetOutboxMessage, type OutboxMessage } from "@/lib/messageOutbox";
 import { StoryAvatar } from "@/components/StoryAvatar";
@@ -20,10 +23,12 @@ import { RelativeTime } from "@/components/RelativeTime";
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from "../../shared/messageHistory";
 import { editMessage, reactToMessage, pinMessage, forwardMessage, canForwardMessage } from "@/lib/messageActions";
 import { acknowledgeConversationRead, canMarkConversationRead } from "../../shared/messageReceipts";
+import { createTypingActivity, type TypingRow } from "../../shared/typingActivity";
 import { GifPicker } from "@/components/GifPicker";
 import { parseStoryMessageReference } from "../../shared/storyMessageReference";
 import { RichText } from "@/components/RichText";
 import { NewMessageDialog } from "@/components/NewMessageDialog";
+import { ForwardConversationPicker } from '@/components/ForwardConversationPicker';
 import { withTimeout } from "@/lib/withTimeout";
 import { getNavigationStore } from '@/lib/navigationCache';
 import { navigationMessages, revalidateMessageWindow, type MessageNavigationMemory } from '@/lib/messageNavigationMemory';
@@ -57,7 +62,21 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [shareDetails,setShareDetails] = useState<"contact"|"location"|null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [uid, setUid] = useState<string | null>(navigationMemory?.owner ?? null);
-  const [convs, setConvs] = useState<Conv[]>(navigationMemory?.conversations ?? []);
+  const [convs, setConversationState] = useState<Conv[]>(navigationMemory?.conversations ?? []);
+  const convsRef = useRef(convs); convsRef.current = convs;
+  const setConvs = useCallback((update: Conv[] | ((rows: Conv[]) => Conv[])) => {
+    const rows = typeof update === 'function' ? update(convsRef.current) : update;
+    convsRef.current = rows; setConversationState(rows);
+  }, []);
+  const [inboxPaging, setInboxPagingState] = useState<InboxPaging | null>(navigationMemory?.inboxPaging ?? null);
+  const inboxPagingRef = useRef(inboxPaging);
+  const setInboxPaging = useCallback((paging: InboxPaging | null) => { inboxPagingRef.current = paging; setInboxPagingState(paging); }, []);
+  const inboxMerge = useRef(createInboxMergeGuard<Conv>());
+  const inboxReads = useRef(new Set<AbortController>());
+  const inboxMorePending = useRef(false);
+  const inboxMoreAbort = useRef<AbortController | null>(null);
+  const [loadingMoreConvs, setLoadingMoreConvs] = useState(false);
+  const inboxSentinel = useRef<HTMLDivElement | null>(null);
   const [loadingConvs, setLoadingConvs] = useState(navigationMemory === null);
   const [active, setActive] = useState<Conv | null>(navigationMemory?.active ?? null);
   const [msgs, setMsgs] = useState<Msg[]>(navigationMemory?.messages ?? []);
@@ -112,6 +131,10 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [detailsOpen, setDetailsOpen] = useState(navigationMemory?.detailsOpen ?? true);
   // Chats holds people and plain groups; a community's chat lives under Groups, labelled, the same as on the phone.
   const [tab, setTab] = useState<"chats" | "groups" | "unread">(navigationMemory?.tab ?? 'chats');
+  const inboxOptionsRef = useRef(webInboxOptions(context, query, tab));
+  inboxOptionsRef.current = webInboxOptions(context, query, tab);
+  const inboxQuery = inboxQueryKey(inboxOptionsRef.current);
+  const previousInboxQuery = useRef(inboxQuery);
   const [offers, setOffers] = useState<Record<string, OfferLive>>({});
   const [refListing, setRefListing] = useState<MiniListing | null>(null);
   const [countering, setCountering] = useState<string | null>(null);
@@ -177,6 +200,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const saved = navigationStore.cache.read<MessageNavigationMemory>(session.scope, `messages:${context}`);
     const memory = saved?.owner === session.owner && saved.context === context ? saved : null;
     historyAbort.current?.abort(); inboxAbort.current?.abort();
+    inboxReads.current.forEach(request => request.abort()); inboxReads.current.clear(); inboxMerge.current.clear();
+    inboxMorePending.current = false; setLoadingMoreConvs(false); setInboxPaging(memory?.inboxPaging ?? null);
     accountGeneration.current += 1; setAccountVersion(accountGeneration.current);
     historyGeneration.current += 1; inboxGeneration.current += 1;
     uploadGeneration.current += 1; uploadPending.current = false;
@@ -200,6 +225,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     if (!uid || loadingConvs || contentContext !== context) return;
     remembered.current = { owner: uid, context, conversations: convs, active, messages: navigationMessages(msgs),
       drafts: [...drafts.current], draft, query, tab, detailsOpen, cursor: historyCursor.current, hasOlder,
+      inboxPaging,
       top: listRef.current?.scrollTop ?? 0, pinned: pinnedRef.current };
   });
   useLayoutEffect(() => {
@@ -245,7 +271,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         const receipt = `${key}:${newest}`;
         if (lastRead.current === receipt) break;
         await acknowledgeConversationRead(supabase, { conversationId: c.id, userId, isGroup: c.is_group });
-        if (current()) { lastRead.current = receipt; setConvs(list => list.map(item => item.id === c.id ? { ...item, unread: 0 } : item)); }
+        if (current()) { lastRead.current = receipt; inboxMerge.current.touch([c.id]); setConvs(list => list.map(item => item.id === c.id ? { ...item, unread: 0 } : item)); }
       }
     } catch { /* A failed receipt remains unread until the next visible retry. */ }
     finally { readPending.current.delete(key); }
@@ -401,35 +427,98 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     finally { if (current()) { olderPending.current = false; setLoadingOlder(false); } }
   }, [supabase, hasOlder, hydrateOffers, loadReactions]);
 
-  const loadInbox = useCallback(async (quiet = false) => {
+  const loadInbox = useCallback(async (quiet = false, externalSignal?: AbortSignal) => {
     const generation = inboxGeneration.current += 1;
-    const current = () => componentLive.current && inboxGeneration.current === generation;
     inboxAbort.current?.abort();
+    inboxMoreAbort.current?.abort(); inboxMoreAbort.current = null; inboxMorePending.current = false; setLoadingMoreConvs(false);
     const request = new AbortController(); inboxAbort.current = request;
+    const account = accountGeneration.current;
+    const current = () => !request.signal.aborted && componentLive.current && inboxGeneration.current === generation && accountGeneration.current === account;
+    const cancel = () => request.abort(); externalSignal?.addEventListener('abort', cancel, { once: true });
+    if (externalSignal?.aborted) cancel();
+    const options = inboxOptionsRef.current, key = inboxQueryKey(options), revision = inboxMerge.current.begin();
+    const target = new URLSearchParams(window.location.search).get('c');
+    const activeAtStart = activeRef.current?.id;
+    const extraIds = [target, activeAtStart].filter((id): id is string => !!id);
 
     try {
-      const { data, error } = await withTimeout(supabase.auth.getSession(), 12000);
+      const authWork = supabase.auth.getSession();
+      const { data, error } = externalSignal ? await authWork : await withTimeout(authWork, 12000);
       if (error) throw error;
-      if (!current()) return;
+      if (!current()) return false;
       if (!quiet && !remembered.current) setLoadingConvs(true);
       setConversationError(null);
       const id = data.session?.user.id ?? null;
       uidRef.current = id; setUid(id);
-      if (!id) { setConvs([]); return; }
-      const list = await withTimeout(loadConversations(id, context, request.signal, data.session?.access_token), 12000);
-      if (!current() || uidRef.current !== id) return;
-      setConvs(list);
-      const target = new URLSearchParams(window.location.search).get('c');
-      const selected = target && target !== dismissedTarget.current ? list.find(item => item.id === target) : null;
-      if (restoreThread.current && activeRef.current) {
-        restoreThread.current = false;
-        const confirmed = list.find(item => item.id === activeRef.current?.id);
-        if (confirmed) void openConv(confirmed, false, true);
-        else { activeRef.current = null; setActive(null); setMsgs([]); setDraft(''); historyReady.current = false; }
+      if (!id) { setConvs([]); setInboxPaging(null); return true; }
+      const work = loadConversationWindow({ viewer: id, token: data.session?.access_token,
+        signal: request.signal, current }, options, { items: convsRef.current, paging: inboxPagingRef.current }, extraIds);
+      // The event queue retains its physical slot through ignored aborts;
+      // only direct UI loads use their own recoverable timeout race.
+      const result = externalSignal ? await work : await withTimeout(work, 12000);
+      if (!current() || uidRef.current !== id) return false;
+      if (result.paging && key !== inboxQueryKey(inboxOptionsRef.current)) {
+        previousInboxQuery.current = ''; setInboxPaging(result.paging); return false;
+      }
+      setInboxPaging(result.paging);
+      const canUpdateActive = !!activeAtStart && inboxMerge.current.canApply(activeAtStart, revision);
+      const canSelectTarget = !!target && inboxMerge.current.canApply(target, revision);
+      setConvs(rows => inboxMerge.current.commit(result.items, rows, revision, result.checkedIds)
+        .filter(row => !result.paging || matchesWebInbox(row, options)).sort(compareWebInbox));
+      const currentTarget = new URLSearchParams(window.location.search).get('c');
+      const selected = canSelectTarget && target && currentTarget === target && target !== dismissedTarget.current ? result.resolved.get(target) : null;
+      if (canUpdateActive && activeAtStart && activeRef.current?.id === activeAtStart) {
+        const confirmed = result.resolved.get(activeAtStart);
+        if (confirmed && restoreThread.current) { restoreThread.current = false; void openConv(confirmed, false, true); }
+        else if (confirmed) { activeRef.current = confirmed; setActive(confirmed); }
+        else { restoreThread.current = false; activeRef.current = null; setActive(null); setMsgs([]); setDraft(''); historyReady.current = false; }
       } else if (selected && !activeRef.current) void openConv(selected, false);
-    } catch { if (current()) setConversationError('Conversations could not be loaded. Please try again.'); }
-    finally { request.abort(); if (inboxAbort.current === request) inboxAbort.current = null; if (current()) setLoadingConvs(false); }
-  }, [supabase, context, openConv]);
+      return true;
+    } catch { if (current()) setConversationError('Conversations could not be loaded. Please try again.'); return false; }
+    finally {
+      if (current()) setLoadingConvs(false);
+      request.abort(); externalSignal?.removeEventListener('abort', cancel);
+      if (inboxAbort.current === request) inboxAbort.current = null;
+    }
+  }, [supabase, context, openConv, setConvs, setInboxPaging]);
+
+  useEffect(() => {
+    if (previousInboxQuery.current === inboxQuery) return;
+    previousInboxQuery.current = inboxQuery;
+    if (!inboxPagingRef.current && !loadingConvs) return;
+    inboxGeneration.current++; inboxAbort.current?.abort(); setLoadingConvs(true);
+    const timer = setTimeout(() => { void loadInbox(true); }, 250);
+    return () => clearTimeout(timer);
+  }, [inboxQuery, inboxPaging?.query, loadInbox]);
+
+  const loadMoreInbox = useCallback(async () => {
+    const paging = inboxPagingRef.current, owner = uidRef.current, options = inboxOptionsRef.current;
+    if (!owner || loadingConvs || inboxMorePending.current || !paging?.cursor || paging.query !== inboxQueryKey(options)
+      || document.visibilityState === 'hidden') return;
+    inboxMorePending.current = true; setLoadingMoreConvs(true);
+    const request = new AbortController(); inboxReads.current.add(request); inboxMoreAbort.current = request;
+    const account = accountGeneration.current, generation = inboxGeneration.current, revision = inboxMerge.current.begin();
+    const current = () => !request.signal.aborted && componentLive.current && uidRef.current === owner
+      && accountGeneration.current === account && inboxGeneration.current === generation && inboxQueryKey(inboxOptionsRef.current) === paging.query;
+    try {
+      const { data, error } = await withTimeout(supabase.auth.getSession(), 12000);
+      if (error || data.session?.user.id !== owner) throw error ?? new Error('The account changed.');
+      const result = await withTimeout(loadMoreConversations({ viewer: owner, token: data.session.access_token, signal: request.signal, current },
+        options, { items: convsRef.current, paging }), 12000);
+      if (!current()) return;
+      setInboxPaging(result.paging); setConversationError(null);
+      setConvs(rows => inboxMerge.current.commit(result.items, rows, revision, result.checkedIds).filter(row => matchesWebInbox(row, options)).sort(compareWebInbox));
+    } catch { if (current()) setConversationError('More conversations could not be loaded. Please try again.'); }
+    finally { request.abort(); inboxReads.current.delete(request);
+      if (inboxMoreAbort.current === request) { inboxMoreAbort.current = null; inboxMorePending.current = false; if (componentLive.current) setLoadingMoreConvs(false); } }
+  }, [supabase, loadingConvs, setConvs, setInboxPaging]);
+
+  useEffect(() => {
+    const element = inboxSentinel.current;
+    if (!element || !inboxPaging?.cursor || loadingConvs || loadingMoreConvs || conversationError || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(entries => { if (entries.some(entry => entry.isIntersecting)) void loadMoreInbox(); }, { rootMargin: '600px 0px' });
+    observer.observe(element); return () => observer.disconnect();
+  }, [inboxPaging, loadingConvs, loadingMoreConvs, conversationError, compact, activeId, loadMoreInbox]);
 
   useEffect(() => {
     componentLive.current = true;
@@ -447,6 +536,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       if (_event === 'SIGNED_OUT' && uidRef.current) clearOutbox(uidRef.current);
       if (uidRef.current !== nextId || changedSession) {
         historyAbort.current?.abort(); inboxAbort.current?.abort(); remembered.current = null; restoreThread.current = false;
+        inboxReads.current.forEach(request => request.abort()); inboxReads.current.clear(); inboxMerge.current.clear();
+        setInboxPaging(null); inboxMorePending.current = false; setLoadingMoreConvs(false);
         setNewMessageOpen(false);
         accountGeneration.current += 1; setAccountVersion(accountGeneration.current);
         setPrivateMedia(null); setShareDetails(null); setViewedPrivateIds(new Set());
@@ -461,27 +552,52 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         if (nextId) authReload = setTimeout(() => { if (componentLive.current) void loadInbox(); }, 0);
       }
     });
-    return () => { live = false; componentLive.current = false; historyAbort.current?.abort(); inboxAbort.current?.abort(); clearTimeout(authReload); subscription.unsubscribe(); inboxGeneration.current += 1; historyGeneration.current += 1; };
+    return () => { live = false; componentLive.current = false; historyAbort.current?.abort(); inboxAbort.current?.abort(); inboxReads.current.forEach(request => request.abort()); inboxReads.current.clear(); clearTimeout(authReload); subscription.unsubscribe(); inboxGeneration.current += 1; historyGeneration.current += 1; };
   }, [supabase, loadInbox, navigationMemory, navigationStore]);
 
   useEffect(() => {
     if (!uid) return;
     let live = true;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const refresh = () => {
-      if (!live || document.visibilityState === 'hidden') return;
-      clearTimeout(timer);
-      timer = setTimeout(() => { if (live && uidRef.current === uid) void loadInbox(true); }, 200);
+    const account = accountGeneration.current;
+    const current = () => live && componentLive.current && uidRef.current === uid && accountGeneration.current === account;
+    const updates = createInboxRefreshQueue({ active: document.visibilityState !== 'hidden',
+      read: async (ids, signal) => {
+        if (!current()) return;
+        if (!ids || !inboxPagingRef.current) { if (!await loadInbox(true, signal)) throw new Error('Conversation refresh failed.'); return; }
+        const options = inboxOptionsRef.current, key = inboxQueryKey(options), revision = inboxMerge.current.begin();
+        const { data, error } = await supabase.auth.getSession();
+        if (error || data.session?.user.id !== uid) throw error ?? new Error('The account changed.');
+        const rows = await lookupConversations({ viewer: uid, token: data.session.access_token, signal, current }, options, ids);
+        if (!current() || signal.aborted || inboxQueryKey(inboxOptionsRef.current) !== key) return;
+        const changed = new Set(ids), previous = convsRef.current;
+        const activeMayUpdate = activeRef.current && inboxMerge.current.canApply(activeRef.current.id, revision);
+        const next = [...previous.filter(row => !changed.has(row.id)), ...rows.values()].filter(row => matchesWebInbox(row, options));
+        const merged = inboxMerge.current.commit(next, previous, revision, ids).filter(row => matchesWebInbox(row, options)).sort(compareWebInbox);
+        setConvs(merged); setConversationError(null);
+        if (activeMayUpdate && activeRef.current && changed.has(activeRef.current.id)) {
+          const confirmed = rows.get(activeRef.current.id);
+          if (confirmed) { activeRef.current = confirmed; setActive(confirmed); }
+          else closeConversation(false);
+        }
+      },
+      onError: () => { if (current()) setConversationError('Conversations could not be refreshed. Please try again.'); },
+    });
+    const refresh = () => updates.refresh();
+    const changed = (payload: { new?: unknown; old?: unknown }, conversation = false) => {
+      const row = (payload.new && Object.keys(payload.new).length ? payload.new : payload.old) as { id?: string; conversation_id?: string } | undefined;
+      const id = conversation ? row?.id : row?.conversation_id;
+      if (inboxPagingRef.current && id) updates.changed(id); else updates.refresh();
     };
+    const visibility = () => updates.setActive(document.visibilityState !== 'hidden');
     const channel = supabase.channel(`web_inbox_${uid}_${context}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, refresh)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, payload => changed(payload, true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, changed)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_members', filter: `user_id=eq.${uid}` }, refresh)
-      .subscribe();
+      .subscribe(status => { if (status === 'SUBSCRIBED') updates.refresh(); });
     window.addEventListener('focus', refresh); window.addEventListener('online', refresh);
-    document.addEventListener('visibilitychange', refresh);
-    return () => { live = false; clearTimeout(timer); void supabase.removeChannel(channel); window.removeEventListener('focus', refresh); window.removeEventListener('online', refresh); document.removeEventListener('visibilitychange', refresh); };
-  }, [supabase, uid, context, loadInbox]);
+    document.addEventListener('visibilitychange', visibility);
+    return () => { live = false; updates.dispose(); void supabase.removeChannel(channel); window.removeEventListener('focus', refresh); window.removeEventListener('online', refresh); document.removeEventListener('visibilitychange', visibility); };
+  }, [supabase, uid, context, loadInbox, setConvs]);
 
   useEffect(() => {
     if (!active || !uid) return;
@@ -512,18 +628,25 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       })
       .subscribe();
 
-    const fetchTyping = async () => {
-      const { data } = await supabase.from("conversation_typing").select("*").eq("conversation_id", active.id);
-      const fresh = ((data ?? []) as { user_id: string; is_typing: boolean; updated_at: string }[])
-        .filter((r) => r.user_id !== uid && r.is_typing && Date.now() - new Date(r.updated_at).getTime() >= 0 && Date.now() - new Date(r.updated_at).getTime() < 7000);
-      if (current()) setOtherTyping(fresh.length > 0);
-    };
+    const typing = createTypingActivity({
+      active: document.visibilityState !== 'hidden',
+      accept: row => row.conversation_id === active.id && row.user_id !== uid,
+      onChange: rows => { if (current()) setOtherTyping(rows.length > 0); },
+      read: async signal => {
+        const { data, error } = await supabase.from("conversation_typing").select("*").eq("conversation_id", active.id).abortSignal(signal);
+        if (error) throw error;
+        return current() ? (data ?? []) as TypingRow[] : [];
+      },
+    });
     const typeCh = supabase
       .channel("web_typing_" + active.id)
-      .on("postgres_changes", { event: "*", schema: "public", table: "conversation_typing", filter: "conversation_id=eq." + active.id }, fetchTyping)
-      .subscribe();
-    const typePoll = setInterval(fetchTyping, 3000);
-    void fetchTyping();
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversation_typing", filter: "conversation_id=eq." + active.id }, payload => { if (current()) typing.change(payload); })
+      .subscribe(status => typing.status(status));
+    const typingVisibility = () => typing.setActive(document.visibilityState !== 'hidden');
+    const typingRefresh = () => { if (document.visibilityState !== 'hidden') typing.refresh(); };
+    document.addEventListener('visibilitychange', typingVisibility);
+    window.addEventListener('online', typingRefresh);
+    typing.refresh();
     const reactionChannel = supabase.channel('web_reactions_' + active.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, (payload) => { const messageId = (payload.new as { message_id?: string }).message_id || (payload.old as { message_id?: string }).message_id; const rows = messageId ? msgsRef.current.filter(row => row.id === messageId) : msgsRef.current; for (let i = 0; i < rows.length; i += MESSAGE_PAGE_SIZE) void loadReactions(rows.slice(i, i + MESSAGE_PAGE_SIZE), active.id); })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations', filter: 'id=eq.' + active.id }, () => { void loadPin(active.id); })
@@ -533,7 +656,9 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       live = false;
       supabase.removeChannel(ch);
       supabase.removeChannel(typeCh);
-      clearInterval(typePoll);
+      typing.dispose();
+      document.removeEventListener('visibilitychange', typingVisibility);
+      window.removeEventListener('online', typingRefresh);
       supabase.removeChannel(reactionChannel);
     };
   }, [supabase, active, uid, hydrateOffers, loadReactions, loadPin, markVisibleRead]);
@@ -817,11 +942,49 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       window.history.replaceState(window.history.state, '', window.location.pathname + (search.size ? '?' + search.toString() : ''));
     }
   }
+  const resolveInboxConversation = useCallback(async (id: string) => {
+    const owner = uidRef.current, account = accountGeneration.current;
+    if (!owner) return null;
+    const request = new AbortController(); inboxReads.current.add(request);
+    const current = () => !request.signal.aborted && componentLive.current && uidRef.current === owner && accountGeneration.current === account;
+    const revision = inboxMerge.current.begin(), options = inboxOptionsRef.current;
+    try {
+      const { data, error } = await withTimeout(supabase.auth.getSession(), 12000);
+      if (error || data.session?.user.id !== owner) throw error ?? new Error('The account changed.');
+      const scope = { viewer: owner, token: data.session.access_token, signal: request.signal, current };
+      if (inboxPagingRef.current) {
+        const rows = await withTimeout(lookupConversations(scope, options, [id]), 12000);
+        if (!current()) return null;
+        if (!inboxMerge.current.canApply(id, revision)) return convsRef.current.find(row => row.id === id)
+          ?? (activeRef.current?.id === id ? activeRef.current : null);
+        const row = rows.get(id) ?? null;
+        const previous = convsRef.current;
+        const next = [...previous.filter(item => item.id !== id), ...(row && matchesWebInbox(row, inboxOptionsRef.current) ? [row] : [])];
+        const merged = inboxMerge.current.commit(next, previous, revision, [id]).sort(compareWebInbox);
+        setConvs(merged);
+        return row;
+      }
+      const rows = await withTimeout(loadConversations(owner, context, request.signal, data.session.access_token), 12000);
+      if (!current()) return null;
+      const mayResolve = inboxMerge.current.canApply(id, revision);
+      setConvs(previous => inboxMerge.current.commit(rows, previous, revision).sort(compareWebInbox));
+      return mayResolve ? rows.find(row => row.id === id) ?? null : convsRef.current.find(row => row.id === id) ?? null;
+    } finally { request.abort(); inboxReads.current.delete(request); }
+  }, [supabase, context, setConvs]);
+
   const handleHistory=useEffectEvent(() => {
       const id = new URLSearchParams(window.location.search).get('c');
       const target = id ? convs.find(conversation => conversation.id === id) : null;
       if (target && activeRef.current?.id !== id) void openConv(target, false);
-      else if (!target && activeRef.current) closeConversation(false);
+      else if (!id && activeRef.current) closeConversation(false);
+      else if (id && !target && activeRef.current?.id !== id) {
+        const account = accountGeneration.current;
+        void resolveInboxConversation(id).then(row => {
+          if (!componentLive.current || accountGeneration.current !== account || new URLSearchParams(window.location.search).get('c') !== id) return;
+          if (row) void openConv(row, false);
+          else { closeConversation(false); setConversationError('The conversation is no longer available.'); }
+        }).catch(() => { if (componentLive.current && accountGeneration.current === account) setConversationError('The conversation could not be loaded. Please try again.'); });
+      }
   });
   const handleNavigationKey=useEffectEvent((event: KeyboardEvent) => {
       if (event.key !== 'Escape' || !activeRef.current) return;
@@ -885,7 +1048,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       {actionError ? <div role="alert" className="mb-2 text-sm text-danger"><p>{actionError}</p>{attachmentDraft ? <button type="button" disabled={sendingFile} className="mt-1 underline" onClick={() => void attach([attachmentDraft])}>Retry attachment</button> : null}</div> : null}
       {notice ? <p role="status" className="mb-2 text-sm text-ink">{notice}</p> : null}
       {editing || replyTo ? <div className="mb-2 flex items-center justify-between gap-3 rounded-md bg-surface p-2 text-sm text-ink"><span className="truncate">{editing ? 'Editing message' : 'Replying to: ' + (replyTo?.text || 'Attachment')}</span><button type="button" onClick={() => { if (editing) setDraft(active ? drafts.current.get(active.id) || '' : ''); setEditing(null); setReplyTo(null); }}>Cancel</button></div> : null}
-      {forwarding ? <div className="mb-2 rounded-md bg-surface p-3 text-sm text-ink"><div className="flex justify-between"><strong>Forward to</strong><button type="button" disabled={!!busyMessage} onClick={() => setForwarding(null)}>Cancel</button></div><div className="mt-2 max-h-40 overflow-y-auto">{convs.filter(c => c.id !== active?.id && !c.request_pending).map(c => <button type="button" key={c.id} disabled={!!busyMessage} className="block w-full rounded px-2 py-2 text-left hover:bg-surface-elevated" onClick={() => { if (uid) void runMessageAction(forwarding, async () => { await forwardMessage(supabase, forwarding, c, uid); if (activeRef.current?.id === forwarding.conversation_id) { setForwarding(null); setNotice('Forwarded to ' + c.title + '.'); } }); }}>{c.title}</button>)}{convs.filter(c => c.id !== active?.id && !c.request_pending).length === 0 ? <p>No other conversations available.</p> : null}</div></div> : null}
+      {forwarding && uid ? <div className="mb-2 rounded-md bg-surface p-3 text-sm text-ink"><div className="flex justify-between"><strong>Forward to</strong><button type="button" disabled={!!busyMessage} onClick={() => setForwarding(null)}>Cancel</button></div><ForwardConversationPicker key={`${accountVersion}:${uid}:${context}:${forwarding.id}`} owner={uid} context={context} activeId={active?.id ?? null} conversations={convs} paged={!!inboxPaging} busy={!!busyMessage} onSelect={c => { void runMessageAction(forwarding, async () => { await forwardMessage(supabase, forwarding, c, uid); if (activeRef.current?.id === forwarding.conversation_id) { setForwarding(null); setNotice('Forwarded to ' + c.title + '.'); } }); }} /></div> : null}
     <div className={workspace.composer} data-recording={recording}>
       <button onClick={() => fileRef.current?.click()} disabled={sendingFile || sending || !!editing || recording} title="Attach" aria-label="Attach a file" className="rounded-md p-2.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-accent disabled:opacity-40">
         <Paperclip size={18} />
@@ -925,11 +1088,10 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const newConversation = async (id: string) => {
     const account = accountGeneration.current, owner = uidRef.current;
     if (!owner) throw new Error('Sign in to start a conversation.');
-    const list = await withTimeout(loadConversations(owner, context));
+    const conversation = await resolveInboxConversation(id);
     if (!componentLive.current || account !== accountGeneration.current || uidRef.current !== owner) return;
-    const conversation = list.find(item => item.id === id);
     if (!conversation) throw new Error('The conversation is not available yet. Please try again.');
-    setConvs(list); await openConv(conversation);
+    await openConv(conversation);
   };
   const newMessageDialog = uid && context === 'personal' ? <NewMessageDialog open={newMessageOpen} ownerId={uid} onClose={() => setNewMessageOpen(false)} onOpen={newConversation} /> : null;
   const inboxHeader = <div className={workspace.inboxHeader}>
@@ -955,6 +1117,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             ) : (
               shownConvs.map(convButton)
             )}
+            <div ref={inboxSentinel} aria-hidden className="h-px" />
           </>
         ) : (
           <>
@@ -1000,6 +1163,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           ) : (
             shownConvs.map(convButton)
           )}
+          <div ref={inboxSentinel} aria-hidden className="h-px" />
         </div>
       </section>
 

@@ -107,7 +107,8 @@ function snapshot({ mediaType = 'text', readiness = [], available = true, platfo
     vidPlayer: { duration: 4, pause() {} }, FileSystem: { cacheDirectory: 'file:///cache/', deleteAsync: async uri => calls.push(['delete', uri]) },
     composeStoryVideo: async (request, signal) => { calls.push(['compose', request]); return compose ? compose(request, signal) : { uri: request.outputUri }; },
     prepareStoryExportAudio: async (...args) => { calls.push(['prepare-audio']); return prepareAudio ? prepareAudio(...args) : { layer: { uri: 'file:///private-audio.wav', start: 1, duration: 2, volume: 1, loop: true }, assertRights: async () => calls.push(['rights']), release: async () => calls.push(['release-audio']) }; },
-    MediaLibrary: { requestPermissionsAsync: (...args) => { assert.equal(args[0], true, 'saving requests add-only media access'); return permissions(...args); }, saveToLibraryAsync: async uri => { calls.push(['save', uri]); return saveToLibrary?.(uri); } },
+    ensureMediaLibraryPermission: options => { assert.equal(options.writeOnly, true, 'saving requests add-only media access'); return permissions(options.writeOnly); },
+    MediaLibrary: { requestPermissionsAsync: () => { throw new Error('Photos permission must use the shared permission broker.'); }, saveToLibraryAsync: async uri => { calls.push(['save', uri]); return saveToLibrary?.(uri); } },
     captureRef: async (target, options) => { assert.equal(target, ref); calls.push(['capture', options]); return 'file:///rendered.png'; }, releaseCapture: uri => calls.push(['release', uri]),
     Haptics: { notificationAsync: async () => {}, NotificationFeedbackType: { Success: 1 } }, Alert: { alert: (...args) => calls.push(['alert', ...args]) },
   };

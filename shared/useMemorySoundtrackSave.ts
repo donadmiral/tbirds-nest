@@ -1,5 +1,6 @@
 import { readSoundtrack, type SoundtrackSelection } from './soundtrack';
 import type { MemoryPlaybackHooks } from './useMemoryPlayback';
+import { readMemoryBookFirst, type MemoryCollection } from './pagedReaders';
 
 export const BOOK_SOUNDTRACK_TIMEOUT_MS = 20000;
 type Session = { user: { id: string }; access_token: string };
@@ -97,10 +98,11 @@ export function createMemorySoundtrackSaveHook({ useEffect, useRef, useState }: 
           // Only a read of this book can establish the saved value before retrying.
           if (result.error) throw new Error('The book soundtrack save could not be confirmed.');
         }
-        const result = await interruptible(client.rpc('get_memory_book', { p_album: book }).setHeader('Authorization', authorization).abortSignal(controller.signal), controller.signal);
+        const result = await interruptible(readMemoryBookFirst<MemoryCollection & { is_owner?: boolean; user_id?: string; soundtrack?: unknown }>(client, book,
+          { viewer: owner, token: data.session.access_token, signal: controller.signal, current }), controller.signal);
         ensure();
-        const row = result.data as { id?: unknown; is_owner?: unknown; user_id?: unknown; soundtrack?: unknown } | null;
-        if (result.error || !row || row.id !== book || row.is_owner !== true || !('soundtrack' in row) || (row.user_id != null && row.user_id !== owner)) throw new Error('The saved book soundtrack could not be checked.');
+        const row = result;
+        if (!row || row.id !== book || row.is_owner !== true || !('soundtrack' in row) || (row.user_id != null && row.user_id !== owner)) throw new Error('The saved book soundtrack could not be checked.');
         const actual = row.soundtrack == null ? null : readSoundtrack(row.soundtrack);
         if (row.soundtrack != null && !actual) throw new Error('The saved book soundtrack could not be checked.');
         callback.current(book, actual);

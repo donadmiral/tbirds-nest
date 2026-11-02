@@ -1,5 +1,9 @@
-import { navigationCache, navigationScope } from '../../lib/navigationCache';
-import { applyNavigationInboxAvatars, refreshNavigationInbox, subscribeNavigationInboxAvatars, type Conversation } from '../../services/navigationInbox';
+import { navigationCache, navigationScope, subscribeNavigationScope } from '../../lib/navigationCache';
+import { applyNavigationInboxAvatars, compareNativeInbox, matchesNativeInbox, nativeInboxOptions, preserveNavigationInboxPreviews, readNavigationInboxIds,
+  readNavigationInboxWindow, refreshNavigationInbox, subscribeNavigationInboxAvatars, type Conversation, type InboxPreview } from '../../services/navigationInbox';
+import { createInboxMergeGuard, inboxQueryKey, type InboxPaging } from '../../../shared/inboxWindow';
+import { createInboxRefreshQueue } from '../../../shared/inboxRefreshQueue';
+import { createInboxMentions, readInboxMentionTimes } from '../../../shared/inboxMentions';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { TapTopFlatList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
@@ -7,11 +11,12 @@ import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, StatusBar, ActionSheetIOS, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, StatusBar, ActionSheetIOS, Alert, Platform, AppState } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather , Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import { createTypingActivity, type TypingRow } from '../../../shared/typingActivity';
 import { useUnreadStore } from '../../stores/unreadStore';
 import { storiesService } from '../../services/storiesService';
 import { supabase } from '../../services/supabase';
@@ -51,23 +56,45 @@ export default function ConversationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
+  const focused = useIsFocused();
+  const [sessionScope, setSessionScope] = useState(navigationScope);
 
   const [initialInbox] = useState(() => navigationCache.read<Conversation[]>(navigationScope(), 'inbox:personal'));
-  const [conversations, setConversations] = useState<Conversation[]>(initialInbox ?? []);
+  const [conversations, setConversationState] = useState<Conversation[]>(initialInbox ?? []);
+  const conversationsRef = useRef(conversations); conversationsRef.current = conversations;
+  const setConversations = useCallback((update: React.SetStateAction<Conversation[]>) => {
+    const next = typeof update === 'function' ? update(conversationsRef.current) : update;
+    conversationsRef.current = next; setConversationState(next);
+  }, []);
+  const [paging, setPaging] = useState<InboxPaging | null>(() => navigationCache.read(navigationScope(), 'inbox:personal:paging'));
+  const pagingRef = useRef(paging); pagingRef.current = paging;
+  const mergeGuard = useRef(createInboxMergeGuard<Conversation>());
+  const previewHints = useRef(new Map<string, InboxPreview>());
+  const listAbort = useRef<AbortController | null>(null);
+  const moreAbort = useRef<AbortController | null>(null);
+  const morePending = useRef(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [typingConvIds, setTypingConvIds] = useState<Set<string>>(new Set());
   const [showArchived, setShowArchived] = useState(false);
   const [mentionTimes, setMentionTimes] = useState<Record<string, number>>({});
+  const mentionsReader = useRef<ReturnType<typeof createInboxMentions> | null>(null);
   const openedTimes = useDraftStore(s => s.openedTimes);
+  const mentionAmnesty = useDraftStore(s => userId ? s.mentionAmnesty?.[userId] ?? 0 : 0);
   useEffect(() => {
-    if (showArchived && !conversations.some(c => c.is_archived && ((c as any).context || 'personal') === 'personal')) {
+    if (showArchived && (paging ? paging.summary.archivedPersonal === 0
+      : !conversations.some(c => c.is_archived && ((c as any).context || 'personal') === 'personal'))) {
       setShowArchived(false);
     }
-  }, [showArchived, conversations]);
+  }, [showArchived, conversations, paging]);
   const [loading, setLoading] = useState(initialInbox === null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const loadGeneration = useRef(0);
   const [search, setSearch]  = useState('');
   const [tab, setTab]        = useState<'all' | 'groups' | 'unread'>('all');
+  const optionsRef = useRef(nativeInboxOptions(search, tab, showArchived));
+  optionsRef.current = nativeInboxOptions(search, tab, showArchived);
+  const queryKey = inboxQueryKey(optionsRef.current);
+  const baseQueryKey = inboxQueryKey(nativeInboxOptions());
   // Reuses the same source the story strip draws from, so a ring here and a
   // ring on the feed never disagree.
   const [storyRings, setStoryRings] = useState<Record<string, boolean>>({});
@@ -86,79 +113,169 @@ export default function ConversationsScreen({ navigation }: any) {
   const mountedRef = useRef(true);
   const initialLoadDoneRef = useRef(initialInbox !== null);
   const accountRef = useRef(userId); accountRef.current = userId;
-  const inboxScope = useRef(navigationScope());
+  const inboxScope = useRef(sessionScope);
   useEffect(() => subscribeNavigationInboxAvatars((scope, avatars) => {
     if (scope !== navigationScope() || scope !== inboxScope.current) return;
     setConversations(rows => applyNavigationInboxAvatars(rows, avatars));
   }), []);
   useEffect(() => {
-    const next = navigationScope();
-    if (inboxScope.current === next) return;
-    inboxScope.current = next;
-    const cached = navigationCache.read<Conversation[]>(next, 'inbox:personal');
-    setConversations(cached ?? []); setLoadError(null); setLoading(cached === null);
-    initialLoadDoneRef.current = cached !== null; loadGeneration.current++;
+    const sync = () => {
+      const next = navigationScope();
+      if (inboxScope.current === next) return;
+      inboxScope.current = next; setSessionScope(next);
+      listAbort.current?.abort(); moreAbort.current?.abort(); moreAbort.current = null; mergeGuard.current.clear(); previewHints.current.clear(); morePending.current = false; setLoadingMore(false);
+      const cached = navigationCache.read<Conversation[]>(next, 'inbox:personal');
+      setConversations(cached ?? []); setMentionTimes({}); setLoadError(null); setLoading(cached === null);
+      const nextPaging = navigationCache.read<InboxPaging>(next, 'inbox:personal:paging');
+      pagingRef.current = nextPaging; setPaging(nextPaging);
+      initialLoadDoneRef.current = cached !== null; loadGeneration.current++;
+    };
+    sync(); return subscribeNavigationScope(sync);
   }, [userId]);
   useEffect(() => {
-    if (initialLoadDoneRef.current) navigationCache.save(inboxScope.current, 'inbox:personal', conversations);
-  }, [conversations]);
+    if (initialLoadDoneRef.current && (!paging || paging.query === baseQueryKey)) {
+      navigationCache.save(inboxScope.current, 'inbox:personal', conversations);
+      navigationCache.save(inboxScope.current, 'inbox:personal:paging', paging);
+    }
+  }, [conversations, paging, baseQueryKey]);
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => { mountedRef.current = false; listAbort.current?.abort(); moreAbort.current?.abort(); };
   }, []);
 
-useEffect(() => {
-    if (!userId) return;
+  // Preview/order/avatar changes must not restart the typing subscription.
+  const typingConversations = conversations.map(row => row.id).sort().join(',');
+  useEffect(() => {
+    setTypingConvIds(new Set());
+    if (!userId || !focused || !typingConversations) return;
     let live = true;
-    const tick = async () => {
-      try {
-        const { data } = await supabase
+    const scope = inboxScope.current, mine = new Set(typingConversations.split(','));
+    const current = () => live && accountRef.current === userId && inboxScope.current === scope && navigationScope() === scope;
+    const typing = createTypingActivity({
+      active: AppState.currentState === 'active', intervalMs: 3500, lifetimeMs: 8000,
+      accept: row => row.user_id !== userId && mine.has(row.conversation_id),
+      onChange: rows => {
+        if (!current()) return;
+        const next = new Set(rows.map(row => row.conversation_id));
+        setTypingConvIds(prev => prev.size === next.size && [...prev].every(id => next.has(id)) ? prev : next);
+      },
+      read: async signal => {
+        const { data, error } = await supabase
           .from('conversation_typing')
-          .select('conversation_id, user_id, updated_at')
+          .select('conversation_id, user_id, is_typing, updated_at')
           .eq('is_typing', true)
-          .gt('updated_at', new Date(Date.now() - 8000).toISOString());
-        if (!live) return;
-        const mine = new Set(conversations.map(c => c.id));
-        const next = new Set<string>();
-        (data || []).forEach((r: any) => {
-          if (r.user_id !== userId && mine.has(r.conversation_id)) next.add(r.conversation_id);
-        });
-        setTypingConvIds(prev => {
-          if (prev.size === next.size && [...prev].every(x => next.has(x))) return prev;
-          return next;
-        });
-      } catch {}
-    };
-    tick();
-    const iv = setInterval(tick, 3500);
+          .gt('updated_at', new Date(Date.now() - 8000).toISOString()).abortSignal(signal);
+        if (error) throw error;
+        return current() ? (data ?? []) as TypingRow[] : [];
+      },
+    });
     const ch = supabase.channel(`list_typing_${userId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_typing' }, () => tick())
-      .subscribe();
-    return () => { live = false; clearInterval(iv); supabase.removeChannel(ch); };
-  }, [userId, conversations]);
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_typing' }, payload => { if (current()) typing.change(payload); })
+      .subscribe(status => typing.status(status));
+    const appState = AppState.addEventListener('change', state => typing.setActive(state === 'active'));
+    typing.refresh();
+    return () => { live = false; typing.dispose(); appState.remove(); void supabase.removeChannel(ch); };
+  }, [userId, focused, typingConversations, sessionScope]);
 
-  const load = useCallback(async () => {
-    if (!userId) { setLoading(false); return; }
+  const load = useCallback(async (externalSignal?: AbortSignal) => {
+    if (!userId) { setLoading(false); return false; }
     const generation = ++loadGeneration.current;
-    const current = () => mountedRef.current && accountRef.current === userId && generation === loadGeneration.current && navigationScope() === inboxScope.current;
+    listAbort.current?.abort();
+    moreAbort.current?.abort(); moreAbort.current = null; morePending.current = false; setLoadingMore(false);
+    const request = new AbortController(); listAbort.current = request;
+    const cancel = () => request.abort(); externalSignal?.addEventListener('abort', cancel, { once: true });
+    if (externalSignal?.aborted) cancel();
+    const alive = () => mountedRef.current && accountRef.current === userId && generation === loadGeneration.current && navigationScope() === inboxScope.current;
+    const current = () => !request.signal.aborted && alive();
+    let deadline: ReturnType<typeof setTimeout> | undefined;
+    const options = optionsRef.current, query = inboxQueryKey(options), revision = mergeGuard.current.begin();
+    const retainedIds = conversationsRef.current.map(row => row.id);
     setLoadError(null);
-    if (!initialLoadDoneRef.current) setLoading(true);
+    if (!initialLoadDoneRef.current || (pagingRef.current && pagingRef.current.query !== query)) setLoading(true);
     try {
-      const list = await refreshNavigationInbox(userId);
-      if (current()) setConversations(navigationCache.read<Conversation[]>(inboxScope.current, 'inbox:personal') ?? list);
-    } catch { if (current()) setLoadError('Your conversations could not be refreshed. Please try again.'); }
+      const work = query === inboxQueryKey(nativeInboxOptions()) && !pagingRef.current
+        ? refreshNavigationInbox(userId).then(items => ({ items, paging: navigationCache.read<InboxPaging>(inboxScope.current, 'inbox:personal:paging'), checkedIds: [...retainedIds, ...items.map(row => row.id)] }))
+        : readNavigationInboxWindow(userId, options, { items: conversationsRef.current, paging: pagingRef.current }, false, request.signal, current);
+      // The event queue owns its timeout and physical transport slot. A
+      // second timeout race here would release that slot before work settles.
+      const result = externalSignal ? await work : await Promise.race([work, new Promise<never>((_resolve, reject) => {
+        deadline = setTimeout(() => { request.abort(); reject(new Error('Conversation read timed out.')); }, 12_000);
+      })]);
+      if (!current()) return false;
+      if (result.paging && query !== inboxQueryKey(optionsRef.current)) {
+        previousQuery.current = ''; pagingRef.current = result.paging; setPaging(result.paging); return false;
+      }
+      pagingRef.current = result.paging; setPaging(result.paging);
+      setConversations(rows => mergeGuard.current.commit(preserveNavigationInboxPreviews(result.items, rows, previewHints.current), rows, revision, result.checkedIds)
+        .filter(row => !result.paging || matchesNativeInbox(row, options)).sort(compareNativeInbox));
+      return true;
+    } catch { if (alive() && !externalSignal?.aborted) setLoadError('Your conversations could not be refreshed. Please try again.'); return false; }
     finally {
-      if (current()) { setLoading(false); initialLoadDoneRef.current = true; }
+      clearTimeout(deadline);
+      if (alive()) { setLoading(false); initialLoadDoneRef.current = true; }
+      externalSignal?.removeEventListener('abort', cancel);
+      if (listAbort.current === request) listAbort.current = null;
     }
-  }, [userId]);
+  }, [userId, sessionScope]);
 
   useFocusEffect(useCallback(() => {
     void load();
+    return () => { loadGeneration.current++; listAbort.current?.abort(); moreAbort.current?.abort(); };
   }, [load]));
 
+  const previousQuery = useRef(queryKey);
   useEffect(() => {
-    if (!userId) return;
+    if (previousQuery.current === queryKey) return;
+    previousQuery.current = queryKey;
+    if (!pagingRef.current && initialLoadDoneRef.current) return; // old backends keep local filtering
+    loadGeneration.current++; listAbort.current?.abort(); setLoading(true);
+    const timer = setTimeout(() => { if (focused) void load(); }, 250);
+    return () => clearTimeout(timer);
+  }, [queryKey, paging?.query, focused, load]);
+
+  const loadMore = useCallback(async () => {
+    const previous = pagingRef.current, options = optionsRef.current;
+    if (!userId || !focused || loading || morePending.current || !previous?.cursor || previous.query !== inboxQueryKey(options)) return;
+    morePending.current = true; setLoadingMore(true);
+    const generation = loadGeneration.current, scope = inboxScope.current, revision = mergeGuard.current.begin();
+    const request = new AbortController(); moreAbort.current = request;
+    let deadline: ReturnType<typeof setTimeout> | undefined;
+    const alive = () => mountedRef.current && generation === loadGeneration.current && scope === navigationScope()
+      && accountRef.current === userId && inboxQueryKey(optionsRef.current) === previous.query;
+    const current = () => !request.signal.aborted && alive();
+    try {
+      const next = await Promise.race([readNavigationInboxWindow(userId, options, { items: conversationsRef.current, paging: previous }, true, request.signal, current),
+        new Promise<never>((_resolve, reject) => { deadline = setTimeout(() => { request.abort(); reject(new Error('Conversation read timed out.')); }, 12_000); })]);
+      if (!current()) return;
+      pagingRef.current = next.paging; setPaging(next.paging); setLoadError(null);
+      setConversations(rows => mergeGuard.current.commit(preserveNavigationInboxPreviews(next.items, rows, previewHints.current), rows, revision, next.checkedIds).filter(row => matchesNativeInbox(row, options)).sort(compareNativeInbox));
+    } catch { if (alive()) setLoadError('More conversations could not be loaded. Please try again.'); }
+    finally { clearTimeout(deadline); request.abort(); if (moreAbort.current === request) { moreAbort.current = null; morePending.current = false; if (mountedRef.current) setLoadingMore(false); } }
+  }, [userId, focused, loading]);
+
+  useEffect(() => {
+    if (!userId || !focused) return;
+
+    let live = true;
+    const scope = inboxScope.current;
+    const current = () => live && mountedRef.current && accountRef.current === userId && navigationScope() === scope;
+    const updates = createInboxRefreshQueue({ active: AppState.currentState === 'active',
+      read: async (ids, signal) => {
+        if (!current()) return;
+        if (!ids || !pagingRef.current) { if (!await load(signal)) throw new Error('Conversation refresh failed.'); return; }
+        const options = optionsRef.current, query = inboxQueryKey(options), revision = mergeGuard.current.begin();
+        const fresh = await readNavigationInboxIds(userId, options, ids, signal, current);
+        if (!current() || signal.aborted || inboxQueryKey(optionsRef.current) !== query) return;
+        const changed = new Set(ids), rows = conversationsRef.current;
+        const next = [...rows.filter(row => !changed.has(row.id)), ...fresh.values()].filter(row => matchesNativeInbox(row, options));
+        const merged = mergeGuard.current.commit(preserveNavigationInboxPreviews(next, rows, previewHints.current), rows, revision, ids).filter(row => matchesNativeInbox(row, options)).sort(compareNativeInbox);
+        setConversations(merged); setLoadError(null);
+      },
+      onError: () => { if (current()) setLoadError('Your conversations could not be refreshed. Please try again.'); },
+    });
+    const appState = AppState.addEventListener('change', state => updates.setActive(state === 'active'));
+    const changed = (id?: string) => { if (id) updates.changed(id); else updates.refresh(); };
 
     const sortInbox = (rows: Conversation[]) => {
       return [...rows].sort((a, b) => {
@@ -176,6 +293,18 @@ useEffect(() => {
         { event: 'UPDATE', schema: 'public', table: 'conversations' },
         (payload) => {
           const convRow = payload.new as any;
+          if (!current()) return;
+          if (typeof convRow.id === 'string' && (typeof convRow.last_sender_id === 'string' || typeof convRow.last_sender_name === 'string')) {
+            previewHints.current.delete(convRow.id);
+            previewHints.current.set(convRow.id, { id: convRow.id,
+              last_message: typeof convRow.last_message === 'string' ? convRow.last_message : '',
+              last_message_time: typeof convRow.last_message_time === 'string' ? convRow.last_message_time : null,
+              last_sender_id: typeof convRow.last_sender_id === 'string' ? convRow.last_sender_id : null,
+              last_sender_name: typeof convRow.last_sender_name === 'string' ? convRow.last_sender_name : null });
+            if (previewHints.current.size > 200) previewHints.current.delete(previewHints.current.keys().next().value!);
+          }
+          if (pagingRef.current || AppState.currentState !== 'active') { changed(convRow.id); return; }
+          mergeGuard.current.touch([convRow.id]);
           setConversations(prev => {
             const idx = prev.findIndex(c => c.id === convRow.id);
             if (idx === -1) return prev;
@@ -193,7 +322,9 @@ useEffect(() => {
           });
         }
       )
-      .subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_settings', filter: `user_id=eq.${userId}` }, () => updates.refresh())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_members', filter: `user_id=eq.${userId}` }, () => updates.refresh())
+      .subscribe(status => { if (status === 'SUBSCRIBED') { updates.refresh(); mentionsReader.current?.refresh(); } });
 
     const msgCh = supabase
       .channel(`inbox_msg_${userId}`)
@@ -204,11 +335,14 @@ useEffect(() => {
           const msg = payload.new as any;
           if (!msg.conversation_id || msg.sender_id === userId) return;
           if (msg.receiver_id && msg.receiver_id !== userId) return; // someone else's DM
+          if (!current()) return;
+          if (pagingRef.current || AppState.currentState !== 'active') { changed(msg.conversation_id); return; }
+          mergeGuard.current.touch([msg.conversation_id]);
 
           setConversations(prev => {
             const idx = prev.findIndex(c => c.id === msg.conversation_id);
             if (idx === -1) {
-              load();
+              updates.refresh();
               return prev;
             }
 
@@ -240,6 +374,9 @@ useEffect(() => {
         (payload) => {
           const msg = payload.new as any;
           if (!msg.conversation_id) return;
+          if (!current()) return;
+          if (pagingRef.current || AppState.currentState !== 'active') { changed(msg.conversation_id); return; }
+          mergeGuard.current.touch([msg.conversation_id]);
 
           const preview = msg.text || (
             msg.media_type === 'image' ? '📷 Photo'
@@ -251,7 +388,7 @@ useEffect(() => {
           setConversations(prev => {
             const idx = prev.findIndex(c => c.id === msg.conversation_id);
             if (idx === -1) {
-              load();
+              updates.refresh();
               return prev;
             }
 
@@ -267,13 +404,14 @@ useEffect(() => {
           });
         }
       )
-      .subscribe();
+      .subscribe(status => { if (status === 'SUBSCRIBED') { updates.refresh(); mentionsReader.current?.refresh(); } });
 
     return () => {
+      live = false; updates.dispose(); appState.remove();
       supabase.removeChannel(convCh);
       supabase.removeChannel(msgCh);
     };
-  }, [userId, load]);
+  }, [userId, focused, load, setConversations]);
 
   // ── Conversation settings helpers ─────────────────────────────────────────
 
@@ -285,9 +423,11 @@ useEffect(() => {
       conversation_id: convId, user_id: userId,
       ...patch, updated_at: new Date().toISOString(),
     }, { onConflict: 'conversation_id,user_id' }); } catch (e) { console.log('[UPSERT_SETTING]', e); }
+    mergeGuard.current.touch([convId]);
     setConversations(prev => prev.map(c =>
       c.id === convId ? { ...c, ...patch } : c
     ).filter(c => !('is_deleted' in patch && patch.is_deleted && c.id === convId)));
+    if (pagingRef.current) void load();
   };
 
   const showContextMenu = (conv: Conversation) => {
@@ -341,21 +481,26 @@ useEffect(() => {
   // ── Open chat ─────────────────────────────────────────────────────────────
 
 const setConvSetting = useCallback(async (conv: Conversation, patch: Record<string, any>) => {
+    mergeGuard.current.touch([conv.id]);
     setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, ...patch } : c));
     try {
-      await supabase.from('conversation_settings').upsert({
+      const result = await supabase.from('conversation_settings').upsert({
         conversation_id: conv.id, user_id: userId, ...patch,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'conversation_id,user_id' });
+      if (result.error) throw result.error;
+      if (pagingRef.current) void load();
     } catch {
+      mergeGuard.current.touch([conv.id]);
       setConversations(prev => prev.map(c => c.id === conv.id
         ? { ...c, ...Object.fromEntries(Object.keys(patch).map(k => [k, (conv as any)[k]])) } : c));
     }
-  }, [userId]);
+  }, [userId, load, setConversations]);
 
   const openChat = (conv: Conversation) => {
     useDraftStore.getState().markOpened(conv.id);
     if ((conv as any).manually_unread) setConvSetting(conv, { manually_unread: false } as any);
+    mergeGuard.current.touch([conv.id]);
     setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c));
     navigation.navigate('Chat', {
       conversationId: conv.id,
@@ -396,43 +541,63 @@ const setConvSetting = useCallback(async (conv: Conversation, patch: Record<stri
       : true;
     return matchSearch && matchTab;
   });
+  const archivedCount = paging?.summary.archivedPersonal
+    ?? conversations.filter(c => c.is_archived && (c.context || 'personal') === 'personal').length;
 
   // ── Render conversation row ───────────────────────────────────────────────
 
-useEffect(() => {
-    if (!userId || conversations.length === 0) return;
+  useEffect(() => {
+    if (!userId || !focused) return;
     let live = true;
-    (async () => {
-      try {
-        const { data: ment } = await supabase
-          .from('message_mentions')
-          .select('message_id, created_at')
-          .eq('mentioned_user_id', userId)
-          .gt('created_at', new Date(Date.now() - 7 * 86400000).toISOString());
-const timeByMsg: Record<string, number> = {};
-        (ment || []).forEach((r: any) => { timeByMsg[r.message_id] = new Date(r.created_at).getTime(); });
+    let verified = false;
+    const scope = sessionScope;
+    const current = () => live && mountedRef.current && accountRef.current === userId && navigationScope() === scope;
+    const amnesty = () => {
+      if (current() && verified && ((useDraftStore as any).persist?.hasHydrated?.() ?? true)) {
+        useDraftStore.getState().ensureMentionAmnesty(userId);
+      }
+    };
+    const reader = createInboxMentions({ active: AppState.currentState === 'active', paged: () => !!pagingRef.current,
+      read: (ids, since, signal) => {
+        const session = useAuthStore.getState().session;
+        if (session?.user.id !== userId || !current()) return Promise.reject(new Error('The account changed.'));
+        return readInboxMentionTimes(supabase, { viewer: userId, token: session.access_token, signal, current }, ids, since);
+      },
+      legacy: async (since, signal) => {
+        const session = useAuthStore.getState().session;
+        if (session?.user.id !== userId || !current()) throw new Error('The account changed.');
+        const pin = (query: any) => query.setHeader('Authorization', `Bearer ${session.access_token}`).abortSignal(signal);
+        const { data: ment, error: mentionError } = await pin(supabase
+          .from('message_mentions').select('message_id, created_at').eq('mentioned_user_id', userId).gt('created_at', since));
+        if (mentionError) throw mentionError;
+        if (!current() || signal.aborted) throw new Error('The mention reader changed.');
+        const timeByMsg: Record<string, number> = {};
+        (ment || []).forEach((row: any) => { timeByMsg[row.message_id] = new Date(row.created_at).getTime(); });
         const msgIds = Object.keys(timeByMsg);
-        const times: Record<string, number> = {};
+        const times = new Map<string, number>();
         if (msgIds.length) {
-          const { data: msgs } = await supabase
-            .from('messages').select('id, conversation_id').in('id', msgIds);
-          (msgs || []).forEach((m: any) => {
-            if (!m.conversation_id) return;
-            times[m.conversation_id] = Math.max(times[m.conversation_id] || 0, timeByMsg[m.id] || 0);
+          const { data: msgs, error } = await pin(supabase.from('messages').select('id, conversation_id').in('id', msgIds));
+          if (error) throw error;
+          (msgs || []).forEach((row: any) => {
+            if (row.conversation_id) times.set(row.conversation_id, Math.max(times.get(row.conversation_id) || 0, timeByMsg[row.id] || 0));
           });
         }
-        if (!live) return;
-        // one-time amnesty: a fresh opened-clock forgives all existing mentions
-        const hydrated = (useDraftStore as any).persist?.hasHydrated?.() ?? true;
-        const ot = useDraftStore.getState().openedTimes;
-        if (hydrated && Object.keys(ot).length === 0) {
-          Object.keys(times).forEach(id => useDraftStore.getState().markOpened(id));
-        }
-        setMentionTimes(times);
-      } catch {}
-    })();
-    return () => { live = false; };
-  }, [userId, conversations]);
+        if (!current() || signal.aborted) throw new Error('The mention reader changed.');
+        return times;
+      },
+      onChange: (times, checked) => {
+        if (!current()) return;
+        verified ||= checked; amnesty(); setMentionTimes(times);
+      },
+    });
+    mentionsReader.current = reader;
+    const appState = AppState.addEventListener('change', state => reader.setActive(state === 'active'));
+    const hydration = (useDraftStore as any).persist?.onFinishHydration?.(amnesty);
+    return () => { live = false; reader.dispose(); appState.remove(); hydration?.(); if (mentionsReader.current === reader) mentionsReader.current = null; };
+  }, [userId, focused, sessionScope]);
+  useEffect(() => {
+    mentionsReader.current?.update(filtered.map(row => ({ id: row.id, activity: `${row.last_message_time ?? ''}\0${row.last_message}` })));
+  }, [filtered, focused, sessionScope]);
 
 const swipeActions = (item: Conversation) => (
     <View style={{ flexDirection: 'row' }}>
@@ -515,7 +680,7 @@ const swipeActions = (item: Conversation) => (
             ) : (
             <Text style={[s.cardPreview, hasUnread && s.cardPreviewBold]} numberOfLines={1}>
               {(() => {
-                const mentioned = (mentionTimes[item.id] || 0) > (openedTimes[item.id] || 0);
+                const mentioned = (mentionTimes[item.id] || 0) > Math.max(openedTimes[item.id] || 0, mentionAmnesty);
                 const raw = item.last_message ? youPrefix + item.last_message : 'No messages yet';
                 if (!mentioned) return raw;
                 return String(raw).split(/(@[A-Za-z0-9_\.]{2,30})/g).map((part, i) =>
@@ -591,9 +756,9 @@ const swipeActions = (item: Conversation) => (
 
       {/* List */}
       {loadError ? <View style={{ paddingHorizontal: 16, paddingVertical: 10 }}><Text accessibilityRole="alert" style={{ color: t.ink.secondary }}>{loadError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => void load()} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: t.status.link }}>Retry conversations</Text></TouchableOpacity></View> : null}
-      {loading && conversations.length === 0 ? (
+      {loading && filtered.length === 0 ? (
         <View style={s.center}><ConversationsSkeleton /></View>
-      ) : loadError && conversations.length === 0 ? <View style={s.center} /> : filtered.length === 0 ? (
+      ) : loadError && conversations.length === 0 ? <View style={s.center} /> : filtered.length === 0 && !showArchived && archivedCount === 0 ? (
         <View style={s.empty}>
           <Feather name="message-circle" size={44} color="#E5E5EA" />
           <Text style={s.emptyTitle}>{search ? 'No results' : tab === 'unread' ? 'All caught up' : 'No messages yet'}</Text>
@@ -605,6 +770,8 @@ const swipeActions = (item: Conversation) => (
           data={[...pinned, ...unpinned]}
           keyExtractor={(i: { id: string }) => i.id}
           renderItem={renderItem}
+          onEndReached={() => { if (!loadingMore && !loadError) void loadMore(); }}
+          onEndReachedThreshold={0.7}
           onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{ padding: 12, gap: 8, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
@@ -613,7 +780,7 @@ const swipeActions = (item: Conversation) => (
           maxToRenderPerBatch={10}
           windowSize={10}
           ListHeaderComponent={(() => {
-            const archCount = conversations.filter(c => c.is_archived && ((c as any).context || 'personal') === 'personal').length;
+            const archCount = archivedCount;
             return (
             <View>
               {!showArchived && archCount > 0 && (

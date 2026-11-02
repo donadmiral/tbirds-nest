@@ -3,6 +3,9 @@ import type { PostMediaEditRecipe } from "@/components/VideoPlayer";
 // Mirrors the get_feed RPC return table (migration 0095).
 export type FeedRow = {
   _mediaExpiresAt?: number;
+  /** Client request time/owner of an authorized live-state snapshot. */
+  _liveRequestedAt?: number;
+  _liveOwner?: string;
   post_id: string;
   author_id: string;
   content: string | null;

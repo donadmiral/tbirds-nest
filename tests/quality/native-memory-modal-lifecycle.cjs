@@ -150,6 +150,7 @@ function exportHarness({ os = 'ios' } = {}) {
   const modules = {
     react, 'react/jsx-runtime': { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) }, 'react-native': native,
     'expo-media-library': { requestPermissionsAsync: async () => { photos++; return { granted: true }; }, saveToLibraryAsync: async () => { photos++; } },
+    '../../services/devicePermissions': { ensureMediaLibraryPermission: async () => { photos++; return { granted: true }; } },
     'react-native-view-shot': { captureRef: async () => { throw Error('This lifecycle case does not capture pixels'); }, releaseCapture() {} },
     '../../../modules/boomerang/memoryComposition': { memoryMovieCompositionAvailable: true },
     '../../../shared/memoryMovieAccess': { memoryMovieContentStamp: expected => JSON.stringify(expected) },

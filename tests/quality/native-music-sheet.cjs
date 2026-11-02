@@ -61,6 +61,9 @@ function picker(options = {}) {
     'react-native': native, '@expo/vector-icons': { Feather: 'Icon' }, '../../../shared/musicAvailability': { ORIGINAL_AUDIO_ENABLED: true }, '../../../shared/originalAudioAvailability': { ORIGINAL_AUDIO_PREPARING: 'Preparing original audio' },
     '../../../shared/soundtrackPicker': { soundtrackRead: options.boundedRead || (work => work) },
     '../../contexts/CallContext': { useCallContext: () => ({ callState }) }, '../../stores/authStore': { useAuthStore: { getState: () => auth, subscribe(fn) { authListeners.add(fn); return () => authListeners.delete(fn); } } },
+    '../../services/devicePermissions': { async ensureMicrophonePermission() {
+      permissionReads++; return options.permission ? options.permission() : { granted: true };
+    } },
     '../AppleMusicSheet': { AppleMusicPicker: 'AppleMusicPicker' }, '../SafeArea': { useSafeAreaInsets: () => ({ top: 59, bottom: 34 }) }, './storyPanels': { MiniSlider: 'Slider' }, '../OriginalAudioUpload': { OriginalAudioUpload: 'OriginalAudioUpload' },
     'expo-file-system/legacy': { async deleteAsync(uri) { deleted.push(uri); } },
     '../../services/originalAudioService': {
@@ -74,7 +77,7 @@ function picker(options = {}) {
     } },
     'expo-av': { Audio: {
       async setAudioModeAsync(mode) { audioEvents.push(['mode', mode]); await options.mode?.(mode); },
-      async requestPermissionsAsync() { permissionReads++; return options.permission ? options.permission() : { granted: true }; },
+      async requestPermissionsAsync() { throw new Error('Microphone permission must use the shared permission broker.'); },
       RecordingOptionsPresets: { HIGH_QUALITY: {} }, Recording: { async createAsync() { audioEvents.push(['create-recording']); return { recording: options.createRecording ? await options.createRecording(makeRecording) : makeRecording() }; } },
       Sound: { async createAsync(source, opts) { const load = { source, opts }; loads.push(load); return { sound: options.load ? await options.load(load, makeSound) : makeSound(source.uri) }; } },
     } },

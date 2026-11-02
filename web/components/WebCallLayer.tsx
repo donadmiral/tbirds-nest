@@ -5,6 +5,7 @@ import { Phone, PhoneOff, Video, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { startOneToOneCall, startGroupCall, getDailyRoom, setCallStatus, endCall, joinGroupCall, leaveGroupCall, declineGroupCall, getPendingIncomingCalls, isCallInvitationOpen, type CallSession } from "@/lib/calls";
 import { flushPendingCallCloses, queueCallClose, type CallCloseIntent } from "@/lib/callRecovery";
+import { createRecoveryReader } from "../../shared/recoveryReader";
 
 import { acquireCallMedia } from "@/lib/callMedia";
 
@@ -37,6 +38,8 @@ export function WebCallLayer() {
   const [callError, setCallError] = useState<string | null>(null);
   const activeCallRef = useRef<CallSession | null>(null);
   const incomingRef = useRef<Incoming | null>(null);
+  const refreshIncomingRef = useRef<(() => void) | null>(null);
+  const answeringInvitations = useRef(new Map<string, number>());
   const generation = useRef(0);
   const busy = useRef(false);
   const live = useRef(true);
@@ -93,6 +96,9 @@ export function WebCallLayer() {
     activeCallRef.current = null;
     busy.current = false;
     setActiveCall(null); setConnecting(false); setReconnecting(false); setCallError(null);
+    // Invitations arriving while occupied are still in the authorized inbox.
+    // Reconcile when available again without restoring a healthy idle poll.
+    refreshIncomingRef.current?.();
     // Record and send closure independently of a stalled media teardown.
     const closing = session && account && (record || session.is_group_call) ? closeSession(session, account) : Promise.resolve(true);
     const [, closed] = await Promise.all([teardownFrame().finally(() => unlockMedia(release)), closing]);
@@ -112,6 +118,7 @@ export function WebCallLayer() {
           sendCloseKeepalive(activeCallRef.current, tokenRef.current);
         }
         generation.current += 1; incomingGeneration.current += 1;
+        answeringInvitations.current.clear();
         busy.current = false; activeCallRef.current = null; incomingRef.current = null; unlockIncomingMedia();
         setActiveCall(null); setIncoming(null); setConnecting(false); setReconnecting(false); setCallError(null);
         const release = mediaRelease.current; mediaRelease.current = null;
@@ -128,6 +135,7 @@ export function WebCallLayer() {
         sendCloseKeepalive(activeCallRef.current, tokenRef.current);
       }
       live.current = false; unlockIncomingMedia(); generation.current += 1; incomingGeneration.current += 1; subscription.unsubscribe(); const release = mediaRelease.current; mediaRelease.current = null; void teardownFrame().finally(() => unlockMedia(release));
+      answeringInvitations.current.clear();
     };
   }, [supabase, teardownFrame, unlockMedia, unlockIncomingMedia]);
 
@@ -154,6 +162,7 @@ export function WebCallLayer() {
     if (busy.current || activeCallRef.current || !uidRef.current || (incomingRef.current && incomingRef.current.id !== invitationId)) return;
     busy.current = true; lockMedia();
     const operation = ++generation.current, account = uidRef.current;
+    if (invitationId) answeringInvitations.current.set(invitationId, operation);
     const current = () => live.current && generation.current === operation && uidRef.current === account;
     let session: CallSession | null = null;
     setConnecting(true); setReconnecting(false); setCallError(null);
@@ -207,9 +216,16 @@ export function WebCallLayer() {
         // A failed close is retried independently; do not hold the call button
         // hostage to a stalled signaling request after local media is gone.
         busy.current = false;
+        refreshIncomingRef.current?.();
         await closing;
       }
-    } finally { if (current()) busy.current = false; }
+    } finally {
+      if (current()) busy.current = false;
+      if (invitationId && answeringInvitations.current.get(invitationId) === operation) {
+        answeringInvitations.current.delete(invitationId);
+        if (live.current && uidRef.current === account && !busy.current && !activeCallRef.current && !incomingRef.current) refreshIncomingRef.current?.();
+      }
+    }
   }, [hangup, closeSession, teardownFrame, lockMedia, unlockMedia]);
 
   useEffect(() => {
@@ -280,9 +296,9 @@ export function WebCallLayer() {
 
   useEffect(() => {
     if (!uid) return;
-    let valid = true, scanning = false, checking = false;
+    let valid = true, checking = false;
     const receive = async (session: CallSession) => {
-      if (!valid || uidRef.current !== uid || !ringing(session) || busy.current || activeCallRef.current || incomingRef.current) return;
+      if (!valid || uidRef.current !== uid || !ringing(session) || busy.current || activeCallRef.current || incomingRef.current || answeringInvitations.current.has(session.id)) return;
       if (!session.is_group_call && session.receiver_id !== uid) return;
       const operation = incomingGeneration.current += 1;
       const initial = { ...session, caller_name: 'Someone' + (session.is_group_call ? ' · group call' : '') };
@@ -295,16 +311,20 @@ export function WebCallLayer() {
         }
       } catch { /* Keep the actionable invitation when the optional name lookup fails. */ }
     };
-    const recover = async () => {
-      if (!valid || scanning || uidRef.current !== uid || busy.current || activeCallRef.current || incomingRef.current) return;
-      scanning = true;
-      try {
-        const calls = await getPendingIncomingCalls(uid);
-        if (valid && uidRef.current === uid && calls[0]) await receive(calls[0]);
-      } catch { /* Realtime or the next reconnect can retry. */ }
-      finally { scanning = false; }
-    };
-    const refresh = () => { void recover(); };
+    const recovery = createRecoveryReader({
+      active: document.visibilityState !== 'hidden', intervalMs: 30000, maxIntervalMs: 30000,
+      read: async signal => {
+        if (!valid || uidRef.current !== uid || busy.current || activeCallRef.current || incomingRef.current) return;
+        const calls = await getPendingIncomingCalls(uid, signal);
+        // A canceled answer may still be committing its admission/close. Skip
+        // that invitation while recovering a different waiting caller.
+        const next = calls.find(call => !answeringInvitations.current.has(call.id));
+        if (!signal.aborted && valid && uidRef.current === uid && next) await receive(next);
+      },
+    });
+    const refresh = () => { if (document.visibilityState !== 'hidden') recovery.refresh(); };
+    refreshIncomingRef.current = refresh;
+    const visibility = () => recovery.setActive(document.visibilityState !== 'hidden');
     const ch = supabase.channel('web_incoming_calls_' + uid)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'call_sessions', filter: 'receiver_id=eq.' + uid }, p => { void receive(p.new as CallSession); })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'call_participants', filter: 'user_id=eq.' + uid }, async p => {
@@ -312,10 +332,10 @@ export function WebCallLayer() {
         if (row.status !== 'invited') return;
         const { data } = await supabase.from('call_sessions').select('*').eq('id', row.call_session_id).maybeSingle();
         if (data) void receive(data as CallSession);
-      }).subscribe(status => { if (status === 'SUBSCRIBED') refresh(); });
+      }).subscribe(status => recovery.setConnected(status === 'SUBSCRIBED'));
     refresh();
     window.addEventListener('online', refresh); window.addEventListener('focus', refresh);
-    const recoveryTimer = setInterval(refresh, 30000);
+    document.addEventListener('visibilitychange', visibility);
     const timer = setInterval(async () => {
       const invite = incomingRef.current;
       if (!invite || checking) return;
@@ -327,11 +347,12 @@ export function WebCallLayer() {
       if (valid && uidRef.current === uid && incomingRef.current?.id === invite.id && (!ringing(invite)
         || (!error && (!data || !ringing(data as CallSession))) || (participant && !participant.error && participant.data?.status !== 'invited'))) {
         incomingGeneration.current += 1; incomingRef.current = null; setIncoming(null); unlockIncomingMedia();
+        refresh();
       }
       } catch { /* Retry status without hiding a still-valid invitation on a network failure. */ }
       finally { checking = false; }
     }, 5000);
-    return () => { valid = false; clearInterval(timer); clearInterval(recoveryTimer); window.removeEventListener('online', refresh); window.removeEventListener('focus', refresh); void supabase.removeChannel(ch); };
+    return () => { valid = false; if (refreshIncomingRef.current === refresh) refreshIncomingRef.current = null; clearInterval(timer); recovery.dispose(); window.removeEventListener('online', refresh); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', visibility); void supabase.removeChannel(ch); };
   }, [supabase, uid, lockIncomingMedia, unlockIncomingMedia]);
 
   function answer() {
@@ -351,6 +372,11 @@ export function WebCallLayer() {
     incomingRef.current = null; const operation = incomingGeneration.current += 1; const account = uidRef.current; setIncoming(null); unlockIncomingMedia();
     try { if (session.is_group_call) await declineGroupCall(session.id); else await setCallStatus(session.id, 'declined'); }
     catch { if (live.current && uidRef.current === account && incomingGeneration.current === operation && !activeCallRef.current && !busy.current) setCallError('The invitation is no longer available.'); }
+    finally {
+      // Wait for the decline to settle so its own stale invitation cannot win
+      // the next read. A replacement account owns a different recovery reader.
+      if (live.current && uidRef.current === account && incomingGeneration.current === operation) refreshIncomingRef.current?.();
+    }
   }
   return (
     <>

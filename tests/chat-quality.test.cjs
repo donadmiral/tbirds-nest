@@ -87,10 +87,8 @@ test('edited private photos are fenced at the chooser and after upload',async()=
   owner='new-owner';wait.resolve({url:'private-object'});assert.equal(await pending,false);assert.equal(sends.length,0);
   const next=send({uri:'edited2.jpg',width:10,height:10,base64:'preview'});context.attachmentScopeRef.current='different-chat';choice.find(b=>b.text==='Normal').onPress();assert.equal(await next,false);assert.equal(uploads.length,1);
 });
-test('late native history and typing from another account cannot repopulate the same chat',async()=>{
+test('late native history from another account cannot repopulate the same chat',async()=>{
   const wait=defer(),h=historyHarness(()=>wait.promise);const pending=h.fetch();h.context.accountScopeRef.current='next-account';wait.resolve({data:[row(1)],error:null});await pending;assert.equal(h.state.rows.length,0);
-  const typeWait=defer();let changed=false;const context={accountScopeRef:{current:'old'},conversationId:'a',currentUserId:'me',mountedRef:{current:true},activeConversation:{current:'a'},setTypingUserId(){changed=true;},setOtherTyping(){changed=true;},supabase:{from(){return{select(){return this;},eq(){return typeWait.promise;}};}}};
-  const typing=evaluate(callbacks.fetchTyping,context)();context.accountScopeRef.current='next';typeWait.resolve({data:[{user_id:'other',is_typing:true,updated_at:new Date().toISOString()}]});await typing;assert.equal(changed,false);
 });
 
 test('native sealed image/video bubbles never mount ordinary thumbnails, image viewers or playback',()=>{

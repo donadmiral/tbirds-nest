@@ -17,6 +17,9 @@ export function createFeedTabCache<T>(ttlMs = 30 * 60_000, clock: () => number =
       return [...tabs].filter(([, saved]) => clock() - saved.savedAt >= 0 && clock() - saved.savedAt < ttlMs)
         .map(([key, saved]) => [key, saved.value]);
     },
+    update(map: (value: T) => T) {
+      for (const [key, saved] of tabs) tabs.set(key, { ...saved, value: map(saved.value) });
+    },
     clear() { tabs.clear(); },
   };
 }

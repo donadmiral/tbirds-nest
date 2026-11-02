@@ -13,6 +13,7 @@ const artifacts = process.env.PLATINUM_SCROLL_ARTIFACTS || '/tmp/platinum-web-sc
 const executablePath = process.env.PLATINUM_CHROMIUM || '/tmp/platinum-web-admin-chrome156/chrome-linux64/chrome';
 const sourceFiles = ['web/app/globals.css', 'web/components/HomeFeed.tsx', 'web/components/PostCard.tsx', 'web/components/PollCard.tsx', 'web/components/StableAsyncBlock.tsx', 'web/components/SharedPostThumbnail.tsx', 'web/components/MediaGallery.tsx', 'web/components/VideoPlayer.tsx', 'web/components/NavigationPopover.tsx', 'web/components/GlobalMediaLightbox.tsx', 'web/components/DiscoverViewer.tsx', 'web/components/ScrollMemory.tsx', 'web/lib/asyncBlockGeometry.ts', 'web/lib/useSharedPostPreview.ts', 'web/lib/contentMedia.ts', 'shared/contentMedia.ts', 'shared/sharedPostPreview.ts', 'web/lib/homeFeedController.ts', 'web/lib/homeFeedScroll.ts', 'web/tests/browser/social-fixture.tsx', 'web/tests/browser/scroll-fixture.tsx', 'web/tests/browser/scroll-run.cjs'];
 const sourceHashes = () => Promise.all(sourceFiles.map(async file => [file, createHash('sha256').update(await fs.readFile(path.join(repo, file))).digest('hex')])).then(Object.fromEntries);
+sourceFiles.push('shared/keyedBatchReader.ts', 'shared/feedLive.ts', 'web/lib/postMetadata.ts', 'web/lib/pollCheck.ts', 'web/lib/commentCounts.ts');
 const checks = [], traces = [], errors = [], requests = [];
 const id = index => `20000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 const mediaId = index => `80000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
@@ -157,6 +158,16 @@ async function main() {
       assert.equal(crop.overflow, 'hidden', 'authored scale bleeds outside the inner crop');
       assert.ok(Math.abs(crop.width - crop.height) <= 1, 'authored square aspect was not applied inside the frame');
       await assertGeometry('delayed crop geometry', before, await geometry(page, 1)); traces.push({ label: 'late square crop', ...crop });
+    });
+    await check('A failed metadata renewal retains the confirmed authored crop and reading position', async () => {
+      const before = await geometry(page, 1);
+      await page.evaluate(() => { window.__scrollFixture.failRecipeReads(true); document.dispatchEvent(new Event('visibilitychange')); });
+      await page.waitForFunction(() => window.__scrollFixture.metadataReads.some(read => read.failed));
+      await turns(page, 12);
+      const transform = await page.locator(`[data-pid="${id(1)}"] [data-media-opener]`).evaluate(image => getComputedStyle(image).transform);
+      assert.ok(transform.startsWith('matrix(2,'), 'a failed metadata read reverted the confirmed authored crop');
+      await assertGeometry('failed metadata renewal', before, await geometry(page, 1));
+      await page.evaluate(() => window.__scrollFixture.failRecipeReads(false));
     });
     await check('Mouse wheel follows native distance without acceleration or reverse jumps', async () => {
       await wheel(page, 'detented wheel', 120, 8, 4);

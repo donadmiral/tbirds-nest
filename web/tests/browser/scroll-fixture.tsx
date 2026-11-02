@@ -30,7 +30,7 @@ const rows: FeedRow[] = Array.from({ length: 36 }, (_, index) => {
 // page two from its real IntersectionObserver as the wheel approaches the end.
 posts.splice(0, posts.length, ...rows.slice(0, 20));
 
-type MetadataRead = { table: string; ids: string[]; postId: string | null };
+type MetadataRead = { table: string; ids: string[]; postId: string | null; failed?: boolean };
 type FeedRequest = { cursor: string | null; held: boolean; finished: boolean; aborted: boolean };
 type AsyncKind = 'poll' | 'quote';
 type AsyncRead = { kind: AsyncKind; held: boolean; finished: boolean };
@@ -51,6 +51,7 @@ async function readAsyncBlock(kind: AsyncKind, data: unknown) {
 let holdPage = true, holdRefresh = false;
 let releaseRecipe!: () => void;
 const recipeReady = new Promise<void>(resolve => { releaseRecipe = resolve; });
+let failRecipes = false;
 const pending = new Set<() => void>();
 const synthetic = createClient() as unknown as {
   from: (table: string) => { eq: (key: string, value: unknown) => unknown; in: (key: string, value: string[]) => unknown;
@@ -68,8 +69,14 @@ synthetic.from = (table: string) => {
     query.eq = (key, value) => { if (key === 'post_id') read.postId = String(value); return eq(key, value); };
     query.in = (key, values) => { if (key === 'id' || key === 'media_id') read.ids = [...values]; return inside(key, values); };
     const then = query.then.bind(query);
-    query.then = (yes, no) => table === 'post_media' && read.postId === id(1)
-      ? recipeReady.then(() => ({ data: [{ id: mediaId(1), edit: { aspectRatio: 1, scale: 2 } }], error: null })).then(yes, no)
+    // The production metadata reader now coalesces media IDs across cards and
+    // validates their parent post. Keep the same delayed authored recipe at
+    // this actual query boundary instead of requiring the old per-card eq().
+    query.then = (yes, no) => table === 'post_media' && read.ids.includes(mediaId(1))
+      ? recipeReady.then(() => {
+        if (failRecipes) { read.failed = true; return { data: null, error: { message: 'Synthetic metadata renewal failure' } }; }
+        return { data: [{ id: mediaId(1), post_id: id(1), edit: { aspectRatio: 1, scale: 2 } }], error: null };
+      }).then(yes, no)
       : then(yes, no);
   }
   if (table === 'posts') {
@@ -129,6 +136,7 @@ synthetic.functions.invoke = async (name, options) => {
 const scrollFixture = {
   metadataReads, feedRequests, asyncReads, grantReads, quotedSourceId, quotedContent, pollLabel, legacyOriginal, legacyGranted,
   releaseRecipe,
+  failRecipeReads(value: boolean) { failRecipes = value; },
   holdAsyncBlocks() {
     for (const kind of ['poll', 'quote'] as const) if (!asyncHolds.has(kind)) {
       let release!: () => void; const promise = new Promise<void>(resolve => { release = resolve; });

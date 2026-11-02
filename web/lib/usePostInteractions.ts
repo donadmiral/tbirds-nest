@@ -11,6 +11,11 @@ function sharedStore() {
 }
 const serverSnapshot = () => null;
 
+/** One authorized feed batch updates all mounted copies without per-card reads. */
+export function applyPostInteractionsLive(postId: string, owner: string, seed: PostInteractionSeed, requestedAt: number) {
+  return sharedStore().applyLive(postId, owner, seed, requestedAt);
+}
+
 export function usePostInteractions(postId: string, seed: PostInteractionSeed) {
   const shared = sharedStore();
   const subscribe = useCallback((listener: () => void) => shared.subscribe(postId, listener), [shared, postId]);

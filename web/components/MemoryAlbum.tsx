@@ -14,9 +14,9 @@ import { watchStoryVideoFrame } from '@/lib/storyMediaReadiness';
 import { contentMediaUrls } from '../../shared/contentMedia';
 import { notifyMemoryBookShelfChanged } from "@/lib/memoryBookEvents";
 import {
-  getMemoryBook, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
+  getMemoryBook, getMemoryBookNext, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
   getMyStories, addMemoryPage, getAccessList, setAccess, searchPeople,
-  COVER_COLORS, getMemoryBooks, type MemoryBookInfo, type MemoryAlbum, type MemoryPage, type AccessPerson,
+  COVER_COLORS, getNextMemoryBook, type MemoryBookInfo, type MemoryAlbum, type MemoryPage, type AccessPerson,
 } from "@/lib/memoryAlbum";
 
 import { memoryArtwork, memoryCoverMedia, memoryCoverPage, MEMORY_FEATURED_DESIGNS as MEMORY_DESIGNS } from '../../shared/memoryBookDesign';
@@ -38,6 +38,7 @@ import { memoryPageSoundtrack } from '../../shared/memoryFilm';
 import { memoryPhotoDuration } from '../../shared/memoryPlayback';
 import { useMemoryPlayback } from '@/lib/useMemoryPlayback';
 import { createMemorySoundtrackSaveHook } from '../../shared/useMemorySoundtrackSave';
+import { memoryBookHasMore, isMemoryBookChanged } from '../../shared/pagedReaders';
 const useMemorySoundtrackSave = createMemorySoundtrackSaveHook({ useEffect, useRef, useState });
 
 const AUDIENCES = [
@@ -137,6 +138,7 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
   const [playMode, setPlayMode] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [filmVisible, setFilmVisible] = useState(false);
+  const filmVisibleRef=useRef(filmVisible);filmVisibleRef.current=filmVisible;
   const playRun = 0;
   const [foreground, setForeground] = useState(true);
   const [readyPage, setReadyPage] = useState('');
@@ -154,6 +156,9 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
   const [nextBook, setNextBook] = useState<MemoryBookInfo | null>(null);
   const uid = session.owner;
   const displayedAlbum = useRef(album), mediaScope = useRef<string | null>(null), request = useRef<AbortController | null>(null);
+  const moreRequest = useRef<{ controller: AbortController; promise: Promise<MemoryAlbum | null> } | null>(null);
+  const [loadingPages, setLoadingPages] = useState(false), [preparingBook, setPreparingBook] = useState(false);
+  const completeIntent = useRef(0), pendingTurn = useRef<{ index: number; generation: number } | null>(null);
   useLayoutEffect(() => { displayedAlbum.current = album; }, [album]);
 
   const loadGeneration = useRef(0);
@@ -169,12 +174,14 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
   const load = useCallback(async () => {
     const generation = ++loadGeneration.current;
     request.current?.abort();
+    moreRequest.current?.controller.abort(); moreRequest.current=null; setLoadingPages(false); pendingTurn.current = null; completeIntent.current++; setPreparingBook(false);
     if (!uid || !session.scope) return;
     const scope = session.scope, controller = new AbortController();
     request.current = controller;
     const current = () => generation === loadGeneration.current && store.getSnapshot().scope === scope;
     try {
-      const next = await getMemoryBook(ownerId, { signal: controller.signal, previous: displayedAlbum.current, previousScope: mediaScope.current, scope });
+      const next = await getMemoryBook(ownerId, { signal: controller.signal, previous: displayedAlbum.current, previousScope: mediaScope.current, scope,
+        viewer: uid, current, partial: !filmVisibleRef.current, minimumPages: displayedAlbum.current?.pages.length });
       if (!current()) return;
       mediaScope.current = scope; displayedAlbum.current = next;
       setAlbum(next); setLoadError(next ? null : "This album is unavailable.");
@@ -187,6 +194,35 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
       setLoadError("The album could not refresh. Please retry.");
     } finally { if (request.current === controller) request.current = null; }
   }, [ownerId, uid, session.scope, store]);
+  const loadMore = useCallback((): Promise<MemoryAlbum | null> => {
+    if (moreRequest.current) return moreRequest.current.promise;
+    const previous = displayedAlbum.current;
+    if (!uid || !session.scope || !previous || !memoryBookHasMore(previous)) return Promise.resolve(previous);
+    const generation = loadGeneration.current, scope = session.scope, controller = new AbortController();
+    const current = () => generation === loadGeneration.current && store.getSnapshot().scope === scope && !controller.signal.aborted;
+    const job = { controller, promise: Promise.resolve<MemoryAlbum | null>(null) };
+    moreRequest.current = job; setLoadingPages(true);
+    job.promise = getMemoryBookNext(previous, { signal: controller.signal, viewer: uid, current }).then(next => {
+      if (!current() || displayedAlbum.current !== previous) throw new Error('The book changed.');
+      displayedAlbum.current = next; setAlbum(next); setLoadError(null); return next;
+    }).catch(error => {
+      if (current()) { if (isMemoryBookChanged(error)) void load(); else setLoadError('More memories could not load. Please retry.'); }
+      throw error;
+    }).finally(() => { if (moreRequest.current === job) { moreRequest.current = null; setLoadingPages(false); } });
+    return job.promise;
+  }, [uid, session.scope, store, load]);
+  const prepareCompleteBook = useCallback(async (ready: () => void) => {
+    const intent = ++completeIntent.current, generation = loadGeneration.current;
+    setPreparingBook(true);
+    try {
+      while (memoryBookHasMore(displayedAlbum.current)) {
+        await loadMore();
+        if (intent !== completeIntent.current || generation !== loadGeneration.current) return;
+      }
+      if (intent === completeIntent.current && generation === loadGeneration.current) ready();
+    } catch { /* The existing reader error offers a fresh retry; never use a partial book. */ }
+    finally { if (intent === completeIntent.current) setPreparingBook(false); }
+  }, [loadMore]);
   const reloadAfterChange = () => {
     if (uid) notifyMemoryBookShelfChanged(uid);
     void load();
@@ -198,9 +234,9 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
     const refresh = () => { if (document.visibilityState === "visible") void load(); };
     const timer = setInterval(refresh, 240000);
     window.addEventListener("focus", refresh); document.addEventListener("visibilitychange", refresh);
-    return () => { live=false; loadGeneration.current += 1; request.current?.abort(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+    return () => { live=false; loadGeneration.current += 1; completeIntent.current++; request.current?.abort(); moreRequest.current?.controller.abort(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [load]);
-  useEffect(() => { let live=true; if(!album?.user_id)return; void getMemoryBooks(album.user_id).then(shelf=>{if(!live)return;const at=shelf.books.findIndex(b=>b.id===album.id);setNextBook(at>=0?shelf.books[at+1]??null:null);}).catch(()=>{});return()=>{live=false;}; }, [album?.id,album?.user_id]);
+  useEffect(() => { let live=true;const controller=new AbortController(); if(!album?.user_id)return; void getNextMemoryBook(album.user_id,album.id,controller.signal).then(next=>{if(live)setNextBook(next);}).catch(()=>{});return()=>{live=false;controller.abort();}; }, [album?.id,album?.user_id]);
   // Seed the hearts with what this person already liked.
   useEffect(() => {
     if (!uid || !album) return;
@@ -208,8 +244,15 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
     const generation=loadGeneration.current;
     const ids = (album.pages ?? []).map((pg) => pg.story_id).filter(id=>typeof id==='string'&&id.length>0);
     if (!ids.length) return;
-    supabase.from("story_reactions").select("story_id").eq("user_id", uid).in("story_id", ids)
-      .then(({ data }) => {if(alive&&generation===loadGeneration.current)setLikedPages(new Set((data ?? []).map((r) => String(r.story_id))));});
+    void (async () => {
+      const liked = new Set<string>();
+      for (let at = 0; at < ids.length; at += 100) {
+        const { data, error } = await supabase.from("story_reactions").select("story_id").eq("user_id", uid).in("story_id", ids.slice(at, at + 100));
+        if (!alive || generation !== loadGeneration.current || error) return;
+        (data ?? []).forEach(row => liked.add(String(row.story_id)));
+      }
+      if (alive && generation === loadGeneration.current) setLikedPages(liked);
+    })();
     return()=>{alive=false;};
   }, [uid, album, supabase]);
 
@@ -218,14 +261,29 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
   const page = pages[idx];
   const artwork = memoryArtwork(album?.cover_design, album?.cover_color);
 
-  const go = useCallback((d: number) => {pageTurn.current?.turn(d<0?-1:1);}, []);
-  const finishPage=useCallback(()=>{if(idx>=pages.length-1)setPlaying(false);else pageTurn.current?.turn(1);},[idx,pages.length]);
+  const go = useCallback((d: number) => {
+    if (d > 0 && idx >= pages.length - 1 && memoryBookHasMore(displayedAlbum.current)) {
+      pendingTurn.current = { index: idx, generation: loadGeneration.current };
+      void loadMore().catch(() => { pendingTurn.current = null; });
+    } else { pendingTurn.current = null; pageTurn.current?.turn(d < 0 ? -1 : 1); }
+  }, [idx, pages.length, loadMore]);
+  useEffect(() => {
+    const pending = pendingTurn.current;
+    if (pending && pending.generation === loadGeneration.current && pending.index === idx && idx + 1 < pages.length && view === 'book') {
+      pendingTurn.current = null; pageTurn.current?.turn(1);
+    }
+  }, [idx, pages.length, view]);
+  useEffect(() => {
+    if (foreground && !filmVisible && !loadError && memoryBookHasMore(album)
+      && (view === 'book' ? idx + 6 >= pages.length : view === 'cover' && pages.length <= 24)) void loadMore().catch(() => {});
+  }, [album, idx, pages.length, view, foreground, filmVisible, loadError, loadMore]);
+  const finishPage=useCallback(()=>{if(idx>=pages.length-1&&!memoryBookHasMore(displayedAlbum.current))setPlaying(false);else go(1);},[idx,pages.length,go]);
   const movieActive=playMode&&playing&&foreground&&view==='book'&&!filmVisible&&!turning&&!manage&&!adding;
   const photoProgress=useMemoryPlayback(`${album?.id}:${page?.id}:${playRun}`,movieActive&&page?.media_type!=='video'&&(!page?.media_url||readyPage===page?.id),memoryPhotoDuration(page),finishPage);
   const videoProgress = videoPlayback.page === page?.id ? videoPlayback.progress : 0;
-  const openBook=()=>{setPlayMode(false);setPlaying(false);setView('book');};
-  const closeBook=()=>{setPlaying(false);setPlayMode(false);setView('cover');};
-  const playBook=()=>{setPlaying(false);setPlayMode(false);setFilmVisible(true);};
+  const openBook=()=>{completeIntent.current++;setPreparingBook(false);setPlayMode(false);setPlaying(false);setView('book');};
+  const closeBook=()=>{completeIntent.current++;pendingTurn.current=null;setPreparingBook(false);setPlaying(false);setPlayMode(false);setView('cover');};
+  const playBook=()=>{void prepareCompleteBook(()=>{setPlaying(false);setPlayMode(false);setFilmVisible(true);});};
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -255,14 +313,14 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
       <div className="sticky top-0 z-20 -mx-3 mb-4 flex items-center gap-2 border-b border-ink/10 bg-[var(--chrome-glass)] px-3 py-2.5 backdrop-blur-md">
         <button onClick={() => view==='cover'?history.back():closeBook()} className="rounded-full p-2 text-ink/60 hover:bg-black/5" aria-label="Back"><ArrowLeft size={18} /></button>
         <p className="min-w-0 flex-1 truncate text-center font-display text-[23px] text-ink">{album.title}</p>
-        {view!=="cover"&&<button onClick={() => setView(view === "book" ? "grid" : "book")} className="min-h-11 min-w-11 rounded-full p-2 text-ink/70 hover:bg-black/10" aria-label={view === "book" ? "View all pages" : "Read book"}>
+        {view!=="cover"&&<button onClick={() => view==='book'?void prepareCompleteBook(()=>setView('grid')):setView('book')} className="min-h-11 min-w-11 rounded-full p-2 text-ink/70 hover:bg-black/10" aria-label={view === "book" ? "View all pages" : "Read book"}>
           {view === "book" ? <Grid3x3 size={19} /> : <BookOpen size={19} />}
         </button>}
         {album.is_owner ? (
           <>
-            <button onClick={() => setAdding(true)} className="rounded-full bg-black/5 p-2 text-ink/70 hover:bg-black/10" title="Add memories"><Plus size={17} /></button>
+            <button onClick={() => void prepareCompleteBook(()=>setAdding(true))} className="rounded-full bg-black/5 p-2 text-ink/70 hover:bg-black/10" title="Add memories"><Plus size={17} /></button>
             <button type="button" aria-label="Book soundtrack" disabled={soundtrackSave.busy || soundtrackSave.needsConfirmation} onClick={()=>setMusicOpen(true)} className="min-h-11 rounded-full border border-ink/15 px-3 text-sm disabled:opacity-50">Music</button>
-            <button onClick={() => setManage(true)} className="rounded-full bg-black/5 p-2 text-ink/70 hover:bg-black/10" title="Album settings"><Settings2 size={17} /></button>
+            <button onClick={() => void prepareCompleteBook(()=>setManage(true))} className="rounded-full bg-black/5 p-2 text-ink/70 hover:bg-black/10" title="Album settings"><Settings2 size={17} /></button>
           </>
         ) : null}
       </div>
@@ -272,15 +330,16 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
       <PostSoundtrack key={album.id} selection={album.soundtrack} use="memory_album" active={view==='book'&&foreground&&!filmVisible&&(!playMode||playing)&&!manage&&!adding&&!musicOpen} autoPlay={playMode} controls={!playMode} className="mb-3" />
       {filmVisible && pages.length > 0 && <MemoryFilm key={`${album.id}:${uid}`} bookId={album.id} revision={album.presentation_revision} filmSettings={album.film_settings} title={album.title} pages={pages} soundtrack={album.soundtrack} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} />}
       {mutationError&&<p role="alert" className="mb-3 text-sm text-danger">{mutationError}</p>}
+      {preparingBook&&loadingPages&&<p role="status" className="mb-3 text-sm text-muted">Preparing the complete book…</p>}
       {loadError&&<p role="alert" className="mb-3 text-sm text-muted">{loadError} <button type="button" className="underline" onClick={() => void load()}>Retry</button></p>}
       {view === "cover" ? (
         <section className="mx-auto flex max-w-[360px] flex-col items-center px-5 pb-8 pt-8 sm:pt-10">
           <button type="button" aria-label={'Open '+album.title} onClick={openBook} className="w-full max-w-[300px] text-left transition-transform hover:-translate-y-1"><ResponsiveMemoryBookCover coverPages={album.cover_pages??pages} artwork={album.cover_artwork} title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))}/></button>
           {album.subtitle&&<p className="mt-7 text-center font-display text-[23px] leading-tight text-ink">{album.subtitle}</p>}
-          <p className="mt-3 text-sm text-muted">{pages.length} {pages.length===1?'memory':'memories'}</p>
+          <p className="mt-3 text-sm text-muted">{album.count} {album.count===1?'memory':'memories'}</p>
           <button onClick={openBook} className="mt-7 min-h-12 w-full rounded-2xl bg-[#142642] px-6 py-3 font-display text-[23px] text-[#FFFFFF]">Open book</button>
           {pages.length>0&&<button type="button" onClick={playBook} className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-ink/20 px-6 py-3 font-semibold text-ink"><Play size={18}/>Play memories</button>}
-          {album.is_owner&&<button onClick={()=>setAdding(true)} className="mt-3 min-h-12 w-full rounded-2xl border border-ink/15 px-6 py-3 text-sm text-ink">+ Add memories</button>}
+          {album.is_owner&&<button onClick={()=>void prepareCompleteBook(()=>setAdding(true))} className="mt-3 min-h-12 w-full rounded-2xl border border-ink/15 px-6 py-3 text-sm text-ink">+ Add memories</button>}
         </section>
       ) : pages.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-20">
@@ -303,7 +362,7 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
       ) : null}
       {pages.length>0&&!filmVisible&&(
         <div hidden={view!=='book'} aria-hidden={view!=='book'} inert={view!=='book'}>
-          <MemoryPageTurn ref={pageTurn} key={album.id} pageIds={pages.map(p=>p.id)} index={idx} active={view==='book'&&!manage&&!adding&&!musicOpen} spine={artwork.spine} title={album.title} onCommit={setIdx} onTurningChange={setTurning} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
+          <MemoryPageTurn ref={pageTurn} key={album.id} pageIds={pages.map(p=>p.id)} index={idx} active={view==='book'&&!manage&&!adding&&!musicOpen} spine={artwork.spine} title={album.title} onCommit={setIdx} onTurningChange={setTurning} hasMore={memoryBookHasMore(album)} onNeedMore={()=>go(1)} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
                 <p className="mb-4 text-center font-display text-[11px] tracking-widest text-[#6F614A]">{String(idx+1).padStart(2,'0')} ─</p>
                 {page ? (
                   <div className={"flex min-h-0 flex-1 flex-col "+(page.style === "polaroid" ? "border border-[#DCD4C7] bg-[#FFFCF6] p-1.5 pb-3" : "")}>
@@ -342,14 +401,14 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
           <div className="mt-4 flex items-center justify-center gap-3">
             <button onClick={() => go(-1)} disabled={turning||idx === 0} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Previous page"><ChevronLeft size={18} /></button>
             <button type="button" aria-label="Play continuous memory film" onClick={playBook} className="min-h-11 min-w-11 rounded-full border border-ink/15 p-2.5 text-ink">{playMode&&playing?<Pause size={18}/>:<Play size={18}/>}</button>
-            <span aria-live="polite" aria-atomic="true" className="rounded-full border border-ink/10 bg-[var(--canvas)] px-4 py-1.5 text-[13px] font-semibold text-ink/70 backdrop-blur">{idx + 1} / {pages.length}</span>
+            <span aria-live="polite" aria-atomic="true" className="rounded-full border border-ink/10 bg-[var(--canvas)] px-4 py-1.5 text-[13px] font-semibold text-ink/70 backdrop-blur">{idx + 1} / {album.count}</span>
             <button onClick={async () => {const sid=page?.story_id;if(!sid||reactionLock.current)return;reactionLock.current=true;const generation=loadGeneration.current;try{const {data,error}=await supabase.rpc('toggle_story_reaction',{p_story_id:sid,p_emoji:'❤️'});if(error)throw error;if(generation===loadGeneration.current)setLikedPages(prev=>{const next=new Set(prev);if(data?.reacted)next.add(sid);else next.delete(sid);return next;});}catch{setMutationError('Your reaction could not save. Retry.');}finally{reactionLock.current=false;}}} className={"rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 backdrop-blur " + (page && likedPages.has(String(page.story_id)) ? "text-danger" : "text-muted")} aria-label="Love this memory">{"\u2764"}</button>
-            <button onClick={() => go(1)} disabled={turning||idx >= pages.length - 1} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Next page"><ChevronRight size={18} /></button>
+            <button onClick={() => go(1)} disabled={turning||idx >= album.count - 1} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Next page"><ChevronRight size={18} /></button>
           </div>
           {album.is_owner && page ? (
             <div className="mt-3 flex items-center justify-center gap-2">
               <button onClick={async () => { const other = pages[idx - 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx - 1); reloadAfterChange(); }else setMutationError("Page order could not save. Retry."); } }} disabled={turning||idx === 0} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move earlier"><ArrowUp size={15} /></button>
-              <button onClick={async () => { const other = pages[idx + 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx + 1); reloadAfterChange(); }else setMutationError("Page order could not save. Retry."); } }} disabled={turning||idx >= pages.length - 1} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move later"><ArrowDown size={15} /></button>
+              <button onClick={async () => { try { const other = pages[idx + 1] ?? (await loadMore())?.pages[idx + 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx + 1); reloadAfterChange(); }else setMutationError("Page order could not save. Retry."); } } catch { setMutationError("The next page could not load. Retry."); } }} disabled={turning||idx >= album.count - 1} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move later"><ArrowDown size={15} /></button>
               <button disabled={turning} onClick={async () => { if(await updateMemoryPage(page.id, { style: page.style === "polaroid" ? "full" : "polaroid" }))reloadAfterChange();else setMutationError("Page style could not save. Retry."); }} className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-ink/60" title="Switch page style">{page.style === "polaroid" ? "Full page" : "Framed page"}</button>
               <button disabled={turning} onClick={async () => { if (confirm("Remove this memory from the album?")) { if(await deleteMemoryPage(page.id)){setIdx(Math.max(0, idx - 1));reloadAfterChange();}else setMutationError("Page could not be removed. Retry."); } }} className="rounded-full bg-black/5 p-2 text-ink/60 hover:text-danger" title="Remove page"><Trash2 size={15} /></button>
             </div>
@@ -358,7 +417,7 @@ function MemoryAlbumController({ ownerId: albumRef, store, session }: { ownerId:
       )}
 
       {page&&view==='book'&&memoryPageSoundtrack(page)?<PostSoundtrack key={page.id+':audio'} selection={memoryPageSoundtrack(page)} use="memory_album" active={!filmVisible&&!turning&&!manage&&!adding&&!musicOpen} controls className="mt-4 text-center"/>:null}
-      {nextBook&&view==='book'&&idx>=pages.length-1&&<Link href={'/album/'+nextBook.id} className="mx-auto mt-5 block w-fit rounded-full bg-pearl px-5 py-2 text-sm font-semibold text-on-pearl">Next book: {nextBook.title}</Link>}
+      {nextBook&&view==='book'&&!memoryBookHasMore(album)&&idx>=pages.length-1&&<Link href={'/album/'+nextBook.id} className="mx-auto mt-5 block w-fit rounded-full bg-pearl px-5 py-2 text-sm font-semibold text-on-pearl">Next book: {nextBook.title}</Link>}
       {adding && album.is_owner ? <AddMemories albumId={album.id} onChanged={() => notifyMemoryBookShelfChanged(uid!)} onClose={() => { setAdding(false); load(); }} existing={pages} /> : null}
       {manage && album.is_owner ? <ManageAlbum key={`${album.id}:${uid}`} ownerId={uid!} album={album} onClose={() => { setManage(false); load(); }} /> : null}
     </div>

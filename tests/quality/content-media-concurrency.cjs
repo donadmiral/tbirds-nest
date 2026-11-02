@@ -107,8 +107,10 @@ test('A to B to A account changes during signing invalidate the original capabil
   } finally { h.releaseSigners(); await Promise.allSettled([work]); await h.client.auth.stopAutoRefresh(); }
 });
 
-function transport(fetcher) {
+function transport(fetcher, observe = () => {}) {
   let captured;
+  const network = compile('shared/networkActivity.ts');
+  network.subscribeNetworkActivity(observe);
   compile('src/services/supabase.ts',{
     __DEV__:false,fetch:fetcher,process:{env:{EXPO_PUBLIC_SUPABASE_URL:base,EXPO_PUBLIC_SUPABASE_ANON_KEY:'test-only-key'}},
     require(name){
@@ -117,6 +119,7 @@ function transport(fetcher) {
       if(name==='@react-native-async-storage/async-storage')return{};
       if(name==='react-native-url-polyfill/auto')return{};
       if(name==='../../shared/authFetch')return compile('shared/authFetch.ts');
+      if(name==='../../shared/networkActivity')return network;
       throw Error(name);
     },
   });
@@ -128,6 +131,18 @@ test('a request cancelled before transport does not start network work',async()=
   await assert.rejects(fetcher(base,{signal:controller.signal}),{name:'AbortError'});
   await assert.rejects(fetcher(new Request(base,{signal:controller.signal})),{name:'AbortError'});
   assert.equal(calls,0);
+});
+test('native transport reports real reachability without mistaking cancelled reads for offline',async()=>{
+  const outcomes = [];
+  const successful = transport(async()=>new Response('{}',{status:403}), value=>outcomes.push(value));
+  await successful(base+'/rest/v1/messages'); assert.deepEqual(outcomes,[true], 'a denied HTTP response is still reachable');
+  const failure = transport(async()=>{throw Error('network unavailable');},value=>outcomes.push(value));
+  await assert.rejects(failure(base+'/rest/v1/messages')); assert.deepEqual(outcomes,[true,false]);
+  const controller = new AbortController(), wait = deferred();
+  const cancelled = transport(()=>wait.promise,value=>outcomes.push(value));
+  const request=cancelled(base+'/rest/v1/messages',{signal:controller.signal});
+  controller.abort();wait.reject(Object.assign(Error('navigation cancellation'),{name:'AbortError'}));
+  await assert.rejects(request);assert.deepEqual(outcomes,[true,false], 'foreground/route aborts must not start health probes');
 });
 test('transport removes its caller abort listener after success and failure',async()=>{
   for(const failure of [false,true]){

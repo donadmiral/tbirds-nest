@@ -123,34 +123,71 @@ async function bounded<T>(work: Promise<T>): Promise<T> {
   finally { if (timer) clearTimeout(timer); }
 }
 
+function assertMediaActive(signal?: AbortSignal) {
+  if (!signal?.aborted) return;
+  const error = new Error('Media access was cancelled.'); error.name = 'AbortError'; throw error;
+}
+
+async function authPhase<T>(read: () => Promise<T>, signal?: AbortSignal): Promise<T> {
+  assertMediaActive(signal);
+  // Auth methods do not accept a per-call signal. An owning batch must keep
+  // its slot until that operation really finishes; the app's Auth transport
+  // owns its network deadline. A cancellation must not hide active Auth I/O.
+  const result = signal ? await read() : await bounded(read());
+  assertMediaActive(signal);
+  return result;
+}
+
+async function signingPhase<T>(invoke: (signal?: AbortSignal) => Promise<T>, signal?: AbortSignal): Promise<T> {
+  assertMediaActive(signal);
+  if (!signal) return bounded(invoke());
+  const controller = new AbortController();
+  let timedOut = false;
+  const cancel = () => controller.abort();
+  signal.addEventListener('abort', cancel, { once: true });
+  if (signal.aborted) cancel();
+  const timer = setTimeout(() => { timedOut = true; controller.abort(); }, 20000);
+  try {
+    assertMediaActive(signal);
+    // Await the SDK's actual transport/body completion after abort. The outer
+    // batch can reject its callers promptly while retaining this active slot.
+    const result = await invoke(controller.signal);
+    assertMediaActive(signal);
+    if (timedOut) throw new Error('Media access timed out. Please try again.');
+    return result;
+  } finally { clearTimeout(timer); signal.removeEventListener('abort', cancel); }
+}
+
 export type ContentMediaClient = {
   auth: {
     getUser(jwt?: string): Promise<{ data: { user: { id: string } | null }; error: unknown }>;
     getSession(): Promise<{ data: { session: { user: { id: string }; access_token: string } | null }; error: unknown }>;
     onAuthStateChange?(callback: (event: string, session: { user: { id: string } } | null) => void): { data: { subscription: { unsubscribe(): void } } };
   };
-  functions: { invoke(name: string, options: { body: Record<string, unknown>; headers?: Record<string, string> }): Promise<{ data: unknown; error: unknown }> };
+  functions: { invoke(name: string, options: { body: Record<string, unknown>; headers?: Record<string, string>; signal?: AbortSignal }): Promise<{ data: unknown; error: unknown }> };
 };
 
-export async function hydrateContentMedia<T>(client: ContentMediaClient, base: string, rows: T[], kind: ContentKind): Promise<T[]> {
+export async function hydrateContentMedia<T>(client: ContentMediaClient, base: string, rows: T[], kind: ContentKind, signal?: AbortSignal): Promise<T[]> {
+  assertMediaActive(signal);
   if (!rows.length || !hasContentMedia(rows, base)) return rows;
   const refs = contentReferences(rows, kind);
   const batches = [];
   for (let i = 0; i < refs.length; i += 50) batches.push({ references: refs.slice(i, i + 50), delivery: 'no-store' });
-  return hydrateMediaBatches(client, base, rows, batches);
+  return hydrateMediaBatches(client, base, rows, batches, signal);
 }
 
 /** Unpublished uploads are previewed only for the verified storage owner. */
-export async function hydrateOwnerUploadMedia<T>(client: ContentMediaClient, base: string, rows: T[]): Promise<T[]> {
+export async function hydrateOwnerUploadMedia<T>(client: ContentMediaClient, base: string, rows: T[], signal?: AbortSignal): Promise<T[]> {
+  assertMediaActive(signal);
   const urls = [...new Set(contentMediaUrls(canonicalContentMedia(rows, base), base))];
   if (!urls.length) return rows;
   const batches = [];
   for (let i = 0; i < urls.length; i += 40) batches.push({ uploads: urls.slice(i, i + 40), delivery: 'no-store' });
-  return hydrateMediaBatches(client, base, rows, batches);
+  return hydrateMediaBatches(client, base, rows, batches, signal);
 }
 
-async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, rows: T[], batches: Record<string, unknown>[]): Promise<T[]> {
-  const { data: initial, error: initialError } = await bounded(client.auth.getSession());
+async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, rows: T[], batches: Record<string, unknown>[], signal?: AbortSignal): Promise<T[]> {
+  const { data: initial, error: initialError } = await authPhase(() => client.auth.getSession(), signal);
   const viewerId = initial.session?.user.id, token = initial.session?.access_token;
   if (initialError || !viewerId || !token) throw new Error('Sign in again to view this media.');
   let accountChanged = false;
@@ -159,13 +196,14 @@ async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, 
   const watcher = client.auth.onAuthStateChange?.((event, session) => {
     if (event === 'SIGNED_OUT' || session?.user.id !== viewerId) accountChanged = true;
   });
-  const assertCurrent = () => { if (accountChanged) throw new Error('Your account changed. Reload this content.'); };
+  const assertCurrent = () => { assertMediaActive(signal); if (accountChanged) throw new Error('Your account changed. Reload this content.'); };
   try {
     // getUser() without a JWT holds the SDK's shared session lock while doing
     // a network request. That blocked unrelated profile/posts/books queries
     // before their fetch deadline even started. Verify the captured JWT with
     // the server explicitly; this overload does not acquire that lock.
-    const { data: auth, error: authError } = await bounded(client.auth.getUser(token));
+    assertCurrent();
+    const { data: auth, error: authError } = await authPhase(() => client.auth.getUser(token), signal);
     assertCurrent();
     if (authError || !auth.user) throw new Error('Sign in again to view this media.');
     if (auth.user.id !== viewerId) throw new Error('Your account changed. Reload this content.');
@@ -180,7 +218,9 @@ async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, 
       // Sign for the same verified identity even if the shared client changes
       // accounts while the request is in flight. The server still authorizes
       // every reference; no canonical URL becomes a capability on the client.
-      const { data, error } = await bounded(client.functions.invoke('content-media-sign', { body, headers: { Authorization: `Bearer ${token}` } }));
+      const { data, error } = await signingPhase(activeSignal => client.functions.invoke('content-media-sign', {
+        body, headers: { Authorization: `Bearer ${token}` }, ...(activeSignal ? { signal: activeSignal } : {}),
+      }), signal);
       assertCurrent();
       if (error || !data || typeof data !== 'object') throw new Error('Media could not be loaded. Please try again.');
       const result = data as { urls?: Array<{ key: string; url: string }>; expiresAt?: number };
@@ -199,7 +239,8 @@ async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, 
     const results = await Promise.allSettled(workers);
     const rejection = results.find((result): result is PromiseRejectedResult => result.status === 'rejected');
     if (rejection) throw rejection.reason;
-    const { data: session, error: sessionError } = await bounded(client.auth.getSession());
+    assertCurrent();
+    const { data: session, error: sessionError } = await authPhase(() => client.auth.getSession(), signal);
     assertCurrent();
     if (sessionError || session.session?.user.id !== viewerId) throw new Error('Your account changed. Reload this content.');
     if (expiry <= Date.now()) throw new Error('Media access expired. Please try again.');

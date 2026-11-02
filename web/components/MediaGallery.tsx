@@ -18,10 +18,10 @@ import { RichText } from "@/components/RichText";
 import { displayImageUrl } from "@/lib/media";
 import { dataSaverEnabled } from "@/lib/mediaPrefs";
 import { createClient } from "@/lib/supabase/client";
-import { hydratePostMedia } from "@/lib/contentMedia";
-import { orderTimeout } from "../../shared/orderRequest";
+import { readPostMediaEdits, readPostMediaTags, subscribePostMetadataSession } from "@/lib/postMetadata";
 import { usePostInteractions } from "@/lib/usePostInteractions";
-import { COMMENT_COUNT_UPDATED, refreshCommentCount, type CommentCountUpdate } from "@/lib/commentCounts";
+import { COMMENT_COUNT_UPDATED, refreshCommentCount, reconcileLiveCommentCount, type CommentCountUpdate } from "@/lib/commentCounts";
+import { getNavigationStore } from "@/lib/navigationCache";
 
 import {PostSoundtrack} from "./PostSoundtrack";
 import {readSoundtrack} from "../../shared/soundtrack";
@@ -134,6 +134,8 @@ export type ViewerPost = {
   reposts_count?: number;
   viewer_liked?: boolean;
   viewer_bookmarked?: boolean;
+  _liveRequestedAt?: number;
+  _liveOwner?: string;
 };
 
 function fitted(w: number | null | undefined, h: number | null | undefined, availW: number, maxH: number, rotation = 0, maxScale = 1.25): (Dims & { sourceW: number; sourceH: number }) | null {
@@ -159,27 +161,21 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
   useEffect(() => {
     const need = (JSON.parse(metadataKey) as [string, string, boolean][]).filter(([, , missingEdit]) => missingEdit).map(([id]) => id);
     if (!need.length) return;
-    const client = createClient();
     let live = true, version = 0;
     const refresh = async () => {
       const run = ++version;
       try {
-        const { data, error } = await orderTimeout(client.from("post_media").select("id, edit").eq("post_id", postId).in("id", need));
-        if (error) throw error;
-        const [safe] = await hydratePostMedia([{ post_id: postId, post_media: data ?? [] }], client);
+        const next = await readPostMediaEdits(postId, need);
         if (!live || run !== version) return;
-        const next: Record<string, PostMediaEditRecipe | null> = {};
-        need.forEach(id => { next[id] = null; });
-        safe.post_media.forEach((row: {id:string;edit?:PostMediaEditRecipe|null}) => { next[row.id] = row.edit ?? null; });
         setEdits(next);
-      } catch { if (live && run === version) setEdits({}); }
+      } catch { /* Keep the last confirmed crop during a failed renewal. Source/session changes clear it explicitly. */ }
     };
     void refresh();
-    const timer = setInterval(() => { void refresh(); }, 240000);
+    const timer = setInterval(() => { if (document.visibilityState === 'visible') void refresh(); }, 240000);
     const visible = () => { if (document.visibilityState === 'visible') void refresh(); };
     document.addEventListener('visibilitychange', visible);
-    const { data } = client.auth.onAuthStateChange(() => { version++; setEdits({}); queueMicrotask(() => { if (live) void refresh(); }); });
-    return () => { live = false; version++; clearInterval(timer); document.removeEventListener('visibilitychange', visible); data.subscription.unsubscribe(); };
+    const unsubscribe = subscribePostMetadataSession(() => { version++; setEdits({}); void refresh(); });
+    return () => { live = false; version++; clearInterval(timer); document.removeEventListener('visibilitychange', visible); unsubscribe(); };
   }, [metadataKey, postId]);
   const editOf = (m: MediaItem) => (m.edit !== undefined ? m.edit : edits[m.id]) ?? null;
   const [tags, setTags] = useState<Record<string, MediaTag[]>>({});
@@ -188,23 +184,21 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
   useEffect(() => {
     const need = (JSON.parse(metadataKey) as [string, string, boolean][]).map(([id]) => id);
     if (!need.length) return;
-    const client = createClient();
     let live = true, version = 0;
     const refresh = async () => {
       const run = ++version;
       try {
-        const { data, error } = await orderTimeout(client.from("post_media_tags").select("media_id, user_id, nx, ny, profile:profiles!post_media_tags_user_id_fkey(full_name, username, avatar_url, verified_tier)").in("media_id", need));
-        if (error) throw error;
+        const data = await readPostMediaTags(need);
         if (!live || run !== version) return;
         const next: Record<string, MediaTag[]> = {};
         need.forEach(id => { next[id] = []; });
         (data ?? []).forEach((row) => { const profile = (Array.isArray(row.profile)?row.profile[0]:row.profile) || {}; (next[row.media_id] ||= []).push({ user_id: row.user_id, nx: Number(row.nx) || 0.5, ny: Number(row.ny) || 0.5, full_name: profile.full_name ?? null, username: profile.username ?? null, avatar_url: profile.avatar_url ?? null, verified_tier: profile.verified_tier ?? null }); });
         setTags(next);
-      } catch { if (live && run === version) setTags({}); }
+      } catch { /* A transient read failure does not erase already-confirmed tags. */ }
     };
     void refresh();
-    const { data } = client.auth.onAuthStateChange(() => { version++; setTags({}); queueMicrotask(() => { if (live) void refresh(); }); });
-    return () => { live = false; version++; data.subscription.unsubscribe(); };
+    const unsubscribe = subscribePostMetadataSession(() => { version++; setTags({}); void refresh(); });
+    return () => { live = false; version++; unsubscribe(); };
   }, [metadataKey, postId]);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
@@ -242,15 +236,26 @@ function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, 
     const update = (event: Event) => {
       const detail = (event as CustomEvent<CommentCountUpdate>).detail;
       if (detail?.postId !== commentPostId || !Number.isSafeInteger(detail.count) || detail.count < 0) return;
-      latestCommentUpdate.current = detail;
-      setCommentUpdate(detail);
+      if (detail.ownerId !== undefined && detail.ownerId !== getNavigationStore().getSnapshot().owner) return;
+      const update = { ...detail, confirmedAt: detail.confirmedAt ?? Date.now() };
+      latestCommentUpdate.current = update;
+      setCommentUpdate(update);
     };
     window.addEventListener(COMMENT_COUNT_UPDATED, update);
-    return () => window.removeEventListener(COMMENT_COUNT_UPDATED, update);
+    const unsubscribe = subscribePostMetadataSession(() => { latestCommentUpdate.current = null; setCommentUpdate(null); });
+    return () => { window.removeEventListener(COMMENT_COUNT_UPDATED, update); unsubscribe(); };
   }, [commentPostId]);
   useEffect(() => {
-    if (commentPostId && latestCommentUpdate.current?.postId === commentPostId) void refreshCommentCount(createClient(), commentPostId);
-  }, [commentPostId, commentSeed]);
+    const latest = latestCommentUpdate.current;
+    if (!commentPostId || latest?.postId !== commentPostId || commentSeed === undefined) return;
+    const owner = getNavigationStore().getSnapshot().owner;
+    const decision = reconcileLiveCommentCount(latest, commentSeed, post?._liveRequestedAt, post?._liveOwner, owner);
+    if (decision === 'apply') {
+      const update = { postId: commentPostId, count: commentSeed, confirmedAt: post?._liveRequestedAt, ownerId: owner };
+      latestCommentUpdate.current = update; setCommentUpdate(update);
+    } else if (decision === 'batch') window.dispatchEvent(new CustomEvent('pc-feed-post-changed', { detail: { postId: commentPostId } }));
+    else if (decision === 'legacy') void refreshCommentCount(createClient(), commentPostId);
+  }, [commentPostId, commentSeed, post?._liveRequestedAt, post?._liveOwner]);
 
   useLayoutEffect(() => {
     const el = wrapRef.current;

@@ -39,13 +39,16 @@ const flush = async (...components) => {
 
 function scenario(initialCount = 0) {
   const listeners = new Map(), alerts = [], writes = [], countReads = [];
+  const sessionListeners = new Set(), events = [];
+  let session = { owner: 'author', scope: 'author:1', revision: 1 };
+  const navigation = { getSnapshot: () => session };
   let total = initialCount, rows = [], threadError = null, insert = () => ({ error: null }), remove = () => ({ error: null });
   let readCount = () => ({ data: { comments_count: total }, error: null });
   class CustomEvent { constructor(type, options) { this.type = type; this.detail = options.detail; } }
   const window = {
     addEventListener(type, listener) { const set = listeners.get(type) || new Set(); set.add(listener); listeners.set(type, set); },
     removeEventListener(type, listener) { listeners.get(type)?.delete(listener); },
-    dispatchEvent(event) { [...(listeners.get(event.type) || [])].forEach(listener => listener(event)); },
+    dispatchEvent(event) { events.push(event); [...(listeners.get(event.type) || [])].forEach(listener => listener(event)); },
     confirm: () => true,
   };
   const client = {
@@ -71,7 +74,8 @@ function scenario(initialCount = 0) {
     },
   };
   const helperModule = { exports: {} };
-  vm.runInNewContext(helperSource, { module: helperModule, exports: helperModule.exports, window, CustomEvent });
+  vm.runInNewContext(helperSource, { module: helperModule, exports: helperModule.exports, window, CustomEvent,
+    require(id) { if (id === './navigationCache') return { getNavigationStore: () => navigation }; throw Error(id); } });
   const helper = helperModule.exports;
 
   function mount(kind, props) {
@@ -100,6 +104,8 @@ function scenario(initialCount = 0) {
         if (id === '@/lib/profileLookup') return profileModule.exports;
         if (id === '@/lib/supabase/client') return { createClient: () => client };
         if (id === '@/lib/pollCheck') return { usePollFlag: () => false };
+        if (id === '@/lib/postMetadata') return { readPostCollaborators: async () => [], subscribePostMetadataSession: listener => { sessionListeners.add(listener); return () => sessionListeners.delete(listener); } };
+        if (id === '@/lib/navigationCache') return { getNavigationStore: () => navigation };
         if (id === '@/lib/usePostInteractions') return { usePostInteractions: (_id, seed) => ({ ...seed, pending: false, error: null, uncertain: false }) };
         if (id === '@/lib/feed') return { timeAgo: () => 'now' };
         if (id === 'next/navigation') return { useRouter: () => ({ push() {} }) };
@@ -126,7 +132,9 @@ function scenario(initialCount = 0) {
     render(); return component;
   }
   const post = (id = 'post', count = initialCount) => ({ post_id: id, comments_count: count, content: 'Synthetic post', author_id: 'author', author_name: 'Author', author_username: 'author', likes_count: 0, reposts_count: 0, bookmarks_count: 0, media: [] });
-  return { mount, post, helper, client, alerts, writes, countReads,
+  return { mount, post, helper, client, alerts, writes, countReads, events,
+    event(detail) { window.dispatchEvent(new CustomEvent('pc-comment-count-updated', { detail })); },
+    setOwner(owner) { session = { owner, scope: owner + ':' + (session.revision + 1), revision: session.revision + 1 }; sessionListeners.forEach(listener => listener()); },
     set total(value) { total = value; }, set rows(value) { rows = value; }, set threadError(value) { threadError = value; },
     set insert(fn) { insert = fn; }, set remove(fn) { remove = fn; }, set readCount(fn) { readCount = fn; },
   };
@@ -143,6 +151,36 @@ test('a comment submission updates every mounted matching card with the server t
   assert.equal(s.writes.length, 1); assert.equal(s.writes[0].input.content, 'New comment');
   assert.equal(comments.find(n => n.type === 'textarea').props.value, '');
   assert.equal(s.countReads.length, 1, 'one reconciliation serves all mounted copies');
+});
+
+test('newer authorized live totals reconcile without per-card count queries', async () => {
+  const s = scenario(1), card = s.mount('card', { post: s.post() });
+  s.event({ postId: 'post', count: 5, confirmedAt: 10, ownerId: 'author' }); await flush(card);
+  const before = s.countReads.length;
+  card.props({ post: { ...s.post('post', 8), _liveRequestedAt: 11, _liveOwner: 'author' } }); await flush(card);
+  assert.equal(card.total, '8'); assert.equal(s.countReads.length, before);
+  card.props({ post: { ...s.post('post', 2), _liveRequestedAt: 9, _liveOwner: 'author' } }); await flush(card);
+  assert.equal(card.total, '8'); assert.equal(s.countReads.length, before);
+  assert.ok(s.events.some(event => event.type === 'pc-feed-post-changed' && event.detail.postId === 'post'));
+});
+
+test('live totals from another account cannot replace a confirmed comment count', async () => {
+  const s = scenario(1), card = s.mount('card', { post: s.post() });
+  s.event({ postId: 'post', count: 5, confirmedAt: 10, ownerId: 'author' }); await flush(card);
+  card.props({ post: { ...s.post('post', 99), _liveRequestedAt: 11, _liveOwner: 'other' } }); await flush(card);
+  assert.equal(card.total, '5'); assert.equal(s.countReads.length, 0);
+  s.event({ postId: 'post', count: 100, confirmedAt: 12, ownerId: 'other' }); await flush(card);
+  assert.equal(card.total, '5');
+});
+
+test('an old comment reconciliation is discarded across an account round trip', async () => {
+  const s = scenario(1), late = deferred(), card = s.mount('card', { post: s.post() });
+  s.readCount = () => late.promise;
+  const request = s.helper.refreshCommentCount(s.client, 'post'); await flush();
+  s.setOwner('other'); s.setOwner('author');
+  late.resolve({ data: { comments_count: 77 }, error: null }); await request; await flush(card);
+  assert.equal(card.total, '1');
+  assert.equal(s.events.filter(event => event.type === 'pc-comment-count-updated').length, 0);
 });
 
 test('deleting a parent uses the server total after cascading reply deletion', async () => {

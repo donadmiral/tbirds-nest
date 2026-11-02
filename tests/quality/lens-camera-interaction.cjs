@@ -17,6 +17,7 @@ function harness({micGranted=true,token=true,stopLens=async()=>'file://lens.mp4'
  vm.runInNewContext(compile(fs.readFileSync(path.join(root,'src/screens/stories/StoryFunCameraScreen.tsx'),'utf8')+'\nexport { FunCameraInner };'),{module,exports:module.exports,console,Date,process:{env:token?{EXPO_PUBLIC_CAMERAKIT_API_TOKEN:'synthetic',EXPO_PUBLIC_CAMERAKIT_LENS_GROUP_ID:'synthetic'}:{}},setTimeout(fn,ms){const id=++timerId;timers.set(id,{fn,ms});return id;},clearTimeout:id=>timers.delete(id),require(name){
   if(name==='react')return hooks;if(name==='react/jsx-runtime')return runtime;if(name==='react-native')return native;
   if(name==='expo-camera')return{CameraView:'CameraView',useCameraPermissions:()=>[{granted:true},async()=>{}],useMicrophonePermissions:()=>[{granted:micGranted},async()=>{micRequests++;return{granted:micGranted};}]};
+  if(name==='../../hooks/useDevicePermissions')return{useCameraPermissions:()=>[{granted:true},async()=>{}],useMicrophonePermissions:()=>[{granted:micGranted},async()=>{micRequests++;return{granted:micGranted};}]};
   if(name==='expo-av')return{Audio:{setAudioModeAsync:async()=>{}}};
   if(name==='expo-haptics')return{selectionAsync(){},impactAsync(){},ImpactFeedbackStyle:{Light:1,Medium:2}};
   if(name==='react-native-gesture-handler')return{PinchGestureHandler:'Pinch',State:{END:1,CANCELLED:2}};

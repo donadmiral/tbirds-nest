@@ -97,7 +97,9 @@ function scenario() {
     if (id === 'react') return new Proxy({}, { get: (_, key) => (...args) => currentHooks[key](...args) });
     if (id === 'react/jsx-runtime') return runtime;
     if (id === '@/lib/supabase/client') return { createClient: () => client };
+    if (id === '@/lib/navigationCache' || id === './navigationCache') return { getNavigationStore: () => ({ getSnapshot: () => ({ owner: 'qa', scope: 'qa:1', revision: 1 }) }) };
     if (id === '@/lib/pollCheck') return { usePollFlag: () => false };
+    if (id === '@/lib/postMetadata') return { readPostCollaborators: async () => [], readPostMediaEdits: async () => ({}), readPostMediaTags: async () => [], subscribePostMetadataSession: () => () => {} };
     if (id === '@/lib/mediaPrefs') return { dataSaverEnabled: () => false };
     if (id === '@/lib/feed') return { timeAgo: () => 'now' };
     if (id === '@/lib/media') return { displayImageUrl: value => value, srcSetFor: () => ({}) };

@@ -8,13 +8,19 @@ export const validExpoToken = (value: unknown): value is string => typeof value 
   && /^(ExpoPushToken|ExponentPushToken)\[[A-Za-z0-9_-]{1,200}\]$/.test(value);
 
 export async function servicePushAuthorized(request: Request, key: string): Promise<boolean> {
-  const supplied = /^Bearer ([^\s]+)$/i.exec(request.headers.get('Authorization') || '')?.[1];
-  if (!supplied || key.length < 32 || supplied.length > 4096) return false;
+  const bearer = /^Bearer ([^\s]+)$/i.exec(request.headers.get('Authorization') || '')?.[1];
+  const supplied = [bearer, request.headers.get('apikey')].filter((value): value is string => !!value && value.length <= 4096);
+  if (!supplied.length || key.length < 32) return false;
   const digest = async (value: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)));
-  const [a, b] = await Promise.all([digest(supplied), digest(key)]);
-  let difference = 0;
-  for (let i = 0; i < a.length; i++) difference |= a[i] ^ b[i];
-  return difference === 0;
+  const expected = await digest(key);
+  const candidates = await Promise.all(supplied.map(digest));
+  let matched = false;
+  for (const candidate of candidates) {
+    let difference = 0;
+    for (let i = 0; i < expected.length; i++) difference |= candidate[i] ^ expected[i];
+    matched = matched || difference === 0;
+  }
+  return matched;
 }
 
 export function waitForPush<T>(work: PromiseLike<T>, signal: AbortSignal): Promise<T> {

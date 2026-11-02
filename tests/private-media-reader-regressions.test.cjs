@@ -65,26 +65,57 @@ test('native unavailable post clears retained media before any row fetch', async
   const run = nativeLoad({ visible:false }); await run.load();
   assert.equal(run.state.post,null); assert.equal(run.state.galleryImages.length,0); assert.equal(run.reads.length,0);
 });
-function webEdits({ pending, fail = false } = {}) {
+function webEdits({ pending, fail = false, sourcePostId = postId } = {}) {
   const ast = source('web/components/MediaGallery.tsx');
   const component = find(ast,n=>ts.isFunctionDeclaration(n)&&n.name?.text==='PostMediaGallery');
-  const effect = component.body.statements.find(n=>ts.isExpressionStatement(n)&&ts.isCallExpression(n.expression)&&n.expression.expression.getText(ast)==='useEffect').expression.arguments[0];
-  let edits={}, onAuth, readCount=0, hydrationCount=0, cleaned=false;
-  const filters = {};
-  const client = { auth:{onAuthStateChange(callback){onAuth=callback;return{data:{subscription:{unsubscribe(){cleaned=true;}}}};}}, from(){ const q={select(){return q;},eq(k,v){filters[k]=v;return q;},in(k,v){filters[k]=v;return q;},then(ok,bad){readCount++;return Promise.resolve(pending).then(()=>({data:[{id:mediaId,edit:{coverUrl:canonical}}],error:null})).then(ok,bad);}};return q;} };
-  const context = { media:[{id:mediaId}],postId,UUID_ID:/^[0-9a-f-]{36}$/i,setEdits(value){edits=value;},createClient:()=>client,
-    orderTimeout:work=>Promise.resolve(work),hydratePostMedia:async(rows)=>{hydrationCount++;if(fail)throw new Error('Denied');assert.equal(rows[0].post_id,postId);return JSON.parse(JSON.stringify(rows).replaceAll(canonical,signed));},
+  const effect = component.body.statements.find(n=>ts.isExpressionStatement(n)&&ts.isCallExpression(n.expression)&&n.expression.expression.getText(ast)==='useEffect'&&n.expression.arguments[0].getText(ast).includes('readPostMediaEdits(')).expression.arguments[0];
+  const key = find(component,n=>ts.isVariableDeclaration(n)&&n.name.getText(ast)==='metadataKey').initializer;
+  let edits={}, readCount=0, hydrationCount=0, cleaned=false, revision=1;
+  const filters = {}, references = [], listeners = new Set(), work = [];
+  const client = { from(){ const q={select(){return q;},in(k,v){filters[k]=Array.from(v);return q;},abortSignal(signal){assert.ok(signal instanceof AbortSignal);return q;},then(ok,bad){readCount++;return Promise.resolve(pending).then(()=>({data:[{id:mediaId,post_id:sourcePostId,edit:{coverUrl:canonical}}],error:null})).then(ok,bad);}};return q;} };
+  const compileModule = (file, require) => {
+    const module = { exports: {} };
+    const code = ts.transpileModule(fs.readFileSync(path.join(root,file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
+    vm.runInNewContext(code,{module,exports:module.exports,require,window:{},Map,Set,AbortController,setTimeout,clearTimeout});
+    return module.exports;
+  };
+  const batch = compileModule('shared/keyedBatchReader.ts');
+  const metadata = compileModule('web/lib/postMetadata.ts',name=>{
+    if(name==='../../shared/keyedBatchReader')return batch;
+    if(name==='./supabase/client')return{createClient:()=>client};
+    if(name==='./navigationCache')return{getNavigationStore:()=>({getSnapshot:()=>({revision,scope:'viewer:'+revision}),subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);}})};
+    if(name==='./contentMedia')return{hydratePostMedia:async(rows,_client,signal)=>{
+      assert.ok(signal instanceof AbortSignal);references.push(rows);hydrationCount++;
+      if(fail)throw new Error('Denied');assert.equal(rows[0].post_id,postId);
+      return JSON.parse(JSON.stringify(rows).replaceAll(canonical,signed));
+    }};
+    throw new Error('Unexpected metadata module '+name);
+  });
+  const context = { media:[{id:mediaId,url:canonical}],postId,UUID_ID:/^[0-9a-f-]{36}$/i,setEdits(value){edits=value;},
+    readPostMediaEdits(parent,ids){const read=metadata.readPostMediaEdits(parent,ids);work.push(read);return read;},
+    subscribePostMetadataSession(listener){const unsubscribe=metadata.subscribePostMetadataSession(listener);return()=>{cleaned=true;unsubscribe();};},
     setInterval:()=>1,clearInterval(){},queueMicrotask,document:{visibilityState:'visible',addEventListener(){},removeEventListener(){}} };
+  context.metadataKey=execute(key,ast,context);
   const cleanup=execute(effect,ast,context)();
-  return {get edits(){return edits;},filters,cleanup,auth:()=>onAuth(),get hydrated(){return hydrationCount;},get readCount(){return readCount;},get cleaned(){return cleaned;}};
+  return {get edits(){return edits;},filters,references,cleanup,auth(){revision++;listeners.forEach(fn=>fn());},
+    async flush(){while(work.length)await Promise.allSettled(work.splice(0));await new Promise(done=>setImmediate(done));},
+    get hydrated(){return hydrationCount;},get readCount(){return readCount;},get cleaned(){return cleaned;}};
 }
 test('web lazy edit cover is post-bound and hydrated before it reaches playback', async () => {
-  const run=webEdits();await new Promise(done=>setImmediate(done));
-  assert.equal(run.filters.post_id,postId);assert.equal(run.edits[mediaId].coverUrl,signed);assert.equal(run.hydrated,1);
-  run.auth();assert.equal(Object.keys(run.edits).length,0);await new Promise(done=>setImmediate(done));
+  const run=webEdits();await run.flush();
+  assert.deepEqual(run.filters.id,[mediaId]);assert.equal(run.references[0][0].post_id,postId);
+  assert.equal(run.edits[mediaId].coverUrl,signed);assert.equal(run.hydrated,1);
+  run.auth();assert.equal(Object.keys(run.edits).length,0);await run.flush();
   assert.equal(run.readCount,2);run.cleanup();assert.equal(run.cleaned,true);
 });
 test('web lazy edit failures and disposed requests never retain raw cover URLs', async () => {
-  const denied=webEdits({fail:true});await new Promise(done=>setImmediate(done));assert.equal(Object.keys(denied.edits).length,0);denied.cleanup();
-  const pending=deferred(),disposed=webEdits({pending:pending.promise});disposed.cleanup();pending.resolve();await new Promise(done=>setImmediate(done));assert.equal(Object.keys(disposed.edits).length,0);
+  const denied=webEdits({fail:true});await denied.flush();assert.equal(Object.keys(denied.edits).length,0);denied.cleanup();
+  const pending=deferred(),disposed=webEdits({pending:pending.promise});
+  for(let n=0;n<50&&!disposed.readCount;n++)await new Promise(done=>setTimeout(done,2));
+  assert.equal(disposed.readCount,1,'the request is actually in flight before disposal');
+  disposed.cleanup();pending.resolve();await disposed.flush();assert.equal(Object.keys(disposed.edits).length,0);
+});
+test('a batched lazy edit from another parent post cannot be signed or retained', async () => {
+  const run=webEdits({sourcePostId:'33333333-3333-4333-8333-333333333333'});await run.flush();
+  assert.equal(run.hydrated,0);assert.equal(run.edits[mediaId],null);run.cleanup();
 });

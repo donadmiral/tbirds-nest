@@ -94,6 +94,8 @@ import { hydratePostMedia, withoutPrivateMedia, retainFeedMedia } from '../../se
 import { sharedPostPreview } from '../../../shared/sharedPostPreview';
 import { renewFeedMedia } from '../../../shared/feedMedia';
 import { feedSnapshots, savePublicFeedSnapshot, reconcileFeedVisibility } from '../../services/feedSnapshot';
+import { createFeedLive, feedLiveWindow } from '../../../shared/feedLive';
+import { feedSnapshotFresh, mergeNativeFeedLive } from '../../../shared/feedLiveMerge';
 import { mergeFeedRefresh, feedPrefetchUrls } from '../../../shared/feedSnapshot';
 import { useSettingsStore } from '../../stores/settingsStore';
 import PostInsightsSheet from '../../components/PostInsightsSheet';
@@ -523,6 +525,12 @@ export default function FeedScreen({ navigation }: any) {
   const commentPreviewsRef = useRef<Record<string, CommentPreview>>({});
   const sharingPostRef = useRef<Record<string, boolean>>({});
   const postsRef = useRef<Post[]>([]);
+  const feedLiveRef = useRef<ReturnType<typeof createFeedLive> | null>(null);
+  const [feedBroadcast, setFeedBroadcast] = useState(false);
+  const interactionChangedAt = useRef<Record<string, number>>({});
+  const feedLiveAppliedAt = useRef<Record<string, number>>({});
+  const feedLiveDeniedAt = useRef<Record<string, number>>({});
+  const liveScope = navigationScope();
   const feedMediaScopeRef = useRef<string | null>(null);
   const busyKeysRef = useRef<Record<string, boolean>>({});
   const composerRef    = useRef<TextInput>(null);
@@ -536,10 +544,15 @@ export default function FeedScreen({ navigation }: any) {
   const pageRequestRef = useRef(0);
 
   const loadFeedRef = useRef<(showLoader: boolean, background?: boolean) => Promise<void>>(undefined);
+  const feedWasAway = useRef(false);
 
   useFocusEffect(useCallback(() => {
     setScreenFocused(true);
+    // Channels pause away from this screen. Revalidate once on return to
+    // cover changes missed by an older server's legacy subscriptions.
+    if (feedWasAway.current) void loadFeedRef.current?.(false, true);
     return () => {
+      feedWasAway.current = true;
       setScreenFocused(false);
       Keyboard.dismiss();
     };
@@ -655,8 +668,15 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => closeVideoDwell, [closeVideoDwell]);
 
   const isBusy = (k: string) => !!busyKeysRef.current[k];
+  const liveFence = () => ({ denied: feedLiveDeniedAt.current, applied: feedLiveAppliedAt.current, mutated: interactionChangedAt.current,
+    pending: (id: string) => ['like-', 'bk-', 'rp-'].some(prefix => !!busyKeysRef.current[prefix + id]) });
   const setBusy = (k: string, v: boolean) => {
     busyKeysRef.current[k] = v;
+    const match = /^(?:like|bk|rp)-(.+)$/.exec(k);
+    if (match) {
+      interactionChangedAt.current[match[1]] = Date.now();
+      if (!v) feedLiveRef.current?.invalidate([match[1]]);
+    }
     setBusyKeys(p => { const n = { ...p }; if (v) n[k] = true; else delete n[k]; return n; });
   };
 
@@ -669,6 +689,7 @@ export default function FeedScreen({ navigation }: any) {
 
   const hydrateShares = useCallback((ids: string[]) => {
     if (!ids.length) return;
+    const requestedAt = Date.now();
     const isCurrent = metadataFence();
     // The post row carries the counts the triggers maintain, readable by
     // everyone. That is the number every phone shows, whatever it can or
@@ -677,8 +698,11 @@ export default function FeedScreen({ navigation }: any) {
       if (!isCurrent() || !data || !data.length) return;
       const m: Record<string, any> = {};
       data.forEach((r: any) => { m[r.id] = r; });
+      const applied = new Set<string>();
       const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
       Object.keys(m).forEach(id => {
+        if (!feedSnapshotFresh(id, requestedAt, liveFence())) return;
+        applied.add(id);
         const r = m[id];
         countCacheRef.current[id] = {
           likes_count: pick(r.likes_count, r.like_count, countCacheRef.current[id]?.likes_count ?? 0),
@@ -687,7 +711,8 @@ export default function FeedScreen({ navigation }: any) {
           shares_count: pick(r.shares_count, r.share_count, countCacheRef.current[id]?.shares_count ?? 0),
         };
       });
-      setPosts(prev => overlayCounts(prev));
+      setPosts(prev => prev.map(post => applied.has(post.id) && feedSnapshotFresh(post.id, requestedAt, liveFence())
+        ? { ...post, ...countCacheRef.current[post.id] } : post));
     }, () => {});
     // Quotes are posts that point at these ids. Counted here so the repost
     // number means reposts and quotes together, as on X.
@@ -696,12 +721,12 @@ export default function FeedScreen({ navigation }: any) {
     supabase.from('post_reposts').select('post_id').in('post_id', ids).then(({ data }) => {
       if (!isCurrent()) return;
       const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
-      setPosts(prev => prev.map(pp => ids.includes(pp.id) && (m[pp.id] || 0) > (pp.reposts_count || 0) ? { ...pp, reposts_count: m[pp.id] } : pp));
+      setPosts(prev => prev.map(pp => ids.includes(pp.id) && feedSnapshotFresh(pp.id, requestedAt, liveFence()) && (m[pp.id] || 0) > (pp.reposts_count || 0) ? { ...pp, reposts_count: m[pp.id] } : pp));
     }, () => {});
     supabase.from('post_bookmarks').select('post_id').in('post_id', ids).then(({ data }) => {
       if (!isCurrent()) return;
       const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
-      setPosts(prev => prev.map(pp => ids.includes(pp.id) && (m[pp.id] || 0) > (pp.bookmarks_count || 0) ? { ...pp, bookmarks_count: m[pp.id] } : pp));
+      setPosts(prev => prev.map(pp => ids.includes(pp.id) && feedSnapshotFresh(pp.id, requestedAt, liveFence()) && (m[pp.id] || 0) > (pp.bookmarks_count || 0) ? { ...pp, bookmarks_count: m[pp.id] } : pp));
     }, () => {});
     supabase.from('posts').select('quoted_post_id').in('quoted_post_id', ids).then(({ data }) => {
       if (!isCurrent()) return;
@@ -719,6 +744,7 @@ export default function FeedScreen({ navigation }: any) {
   const loadFeed = useCallback(async (showLoader = false, background = false) => {
     if (!userId) return;
     const request = ++feedRequestRef.current;
+    const requestedAt = Date.now();
     feedRefreshRequestRef.current = request;
     const scope = feedScopeRef.current;
     const mode = feedModeRef.current;
@@ -777,11 +803,10 @@ export default function FeedScreen({ navigation }: any) {
       const merged = mergeFeedRefresh(retained, stable, preservePosition);
       merged.rows = (await renewFeedMedia(merged.rows, hydratePostMedia)).map(post => ({ ...post, media: (post.media ?? []).filter(item => typeof item.url === 'string' && item.url.length > 0) }));
       if (!isCurrent()) return;
-      pendingPostsRef.current = merged.pending;
-      setPendingPostCount(merged.pending.length);
-      postsRef.current = merged.rows;
+      pendingPostsRef.current = merged.pending.filter(post => (feedLiveDeniedAt.current[post.id] ?? -1) < requestedAt);
+      setPendingPostCount(pendingPostsRef.current.length);
       feedMediaScopeRef.current = mediaScope;
-      setPosts(merged.rows);
+      setPosts(prev => { const next = mergeNativeFeedLive(merged.rows, prev, requestedAt, liveFence()); postsRef.current = next; return next; });
       setVisibleFeedScope(scope);
       if (!preservePosition || restoredSnapshotRef.current) {
         cursorRef.current = rows.length
@@ -808,9 +833,13 @@ export default function FeedScreen({ navigation }: any) {
         rm0[r.post_id] = !!r.viewer_reposted;
       });
       setProfilesMap(prev => preservePosition ? { ...prev, ...pmFromFeed } : pmFromFeed);
-      setLikedPosts(prev => preservePosition ? { ...prev, ...lm0 } : lm0);
-      setBookmarkedPosts(prev => preservePosition ? { ...prev, ...bm0 } : bm0);
-      setRepostedPosts(prev => preservePosition ? { ...prev, ...rm0 } : rm0);
+      const mergeFlags = (prev: Record<string, boolean>, incoming: Record<string, boolean>) => {
+        const next = preservePosition ? { ...prev } : {};
+        Object.keys(incoming).forEach(id => { if ((feedLiveDeniedAt.current[id] ?? -1) < requestedAt)
+          next[id] = feedSnapshotFresh(id, requestedAt, liveFence()) ? incoming[id] : !!prev[id]; });
+        return next;
+      };
+      setLikedPosts(prev => mergeFlags(prev, lm0)); setBookmarkedPosts(prev => mergeFlags(prev, bm0)); setRepostedPosts(prev => mergeFlags(prev, rm0));
       const likerIds = scored.filter(p => p.likes_count > 0).map(p => p.id);
       if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data }) => { if (!isCurrent()) return; const m: Record<string, string[]> = {}; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); setLikerNames(prev => preservePosition ? { ...prev, ...m } : m); });
       const qIds = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
@@ -874,7 +903,13 @@ export default function FeedScreen({ navigation }: any) {
             }
           });
 
-          setCommentPreviews(prev => preservePosition ? { ...prev, ...cpMap } : cpMap);
+          setCommentPreviews(prev => {
+            const next = preservePosition ? { ...prev } : {};
+            Object.keys(cpMap).forEach(id => {
+              if (!feedSnapshotFresh(id, requestedAt, liveFence())) { if (prev[id]) next[id] = prev[id]; }
+              else next[id] = cpMap[id];
+            }); return next;
+          });
         }
       }
     } catch {
@@ -989,11 +1024,113 @@ export default function FeedScreen({ navigation }: any) {
 
   useEffect(() => {
     if (!screenFocused || !appActive) return;
-    const timer = setInterval(() => { void loadFeedRef.current?.(false, true); }, 240_000);
+    const timer = setInterval(() => { void loadFeedRef.current?.(false, true); void feedLiveRef.current?.start(); }, 240_000);
     return () => clearInterval(timer);
   }, [screenFocused, appActive]);
 
   useEffect(() => {
+    setFeedBroadcast(false);
+    interactionChangedAt.current = {};
+    feedLiveAppliedAt.current = {}; feedLiveDeniedAt.current = {};
+    if (!userId) return;
+    let live = true;
+    const current = () => live && useAuthStore.getState().profile?.id === userId && navigationScope() === liveScope;
+    const remove = (ids: Set<string>) => {
+      if (!ids.size || !current()) return;
+      ids.forEach(id => { feedLiveDeniedAt.current[id] = Date.now(); delete feedLiveAppliedAt.current[id]; });
+      void feedSnapshots.clear(userId);
+      feedTabs.update(tab => ({ ...tab, rows: tab.rows.filter(post => !ids.has(post.id)) }));
+      postsRef.current = postsRef.current.filter(post => !ids.has(post.id));
+      setPosts(postsRef.current);
+      setCommentPreviews(prev => {
+        const next = { ...prev }; ids.forEach(id => { delete next[id]; delete countCacheRef.current[id]; }); return next;
+      });
+    };
+    const coordinator = createFeedLive({
+      client: supabase, owner: userId, current, active: screenFocused && appActive,
+      mode: enabled => { if (current()) setFeedBroadcast(enabled); },
+      hasPending: () => pendingPostsRef.current.length > 0,
+      head: async request => {
+        const requestedAt = Date.now();
+        const scope = feedScopeRef.current, mode = feedModeRef.current, category = discoverCatRef.current;
+        const work = mode === 'discover'
+          ? supabase.rpc('get_discover_page', { p_category: category === 'all' || category === 'videos' ? null : category,
+              p_video: category === 'videos', p_limit: PAGE_SIZE, p_offset: 0, p_as_of: discoverPageRef.current.asOf })
+          : supabase.rpc('get_feed', { p_mode: feedModeToServer(mode), p_cursor_key: null, p_cursor_id: null, p_limit: PAGE_SIZE });
+        const { data, error } = await work.abortSignal(request.signal);
+        if (!current() || !request.current() || scope !== feedScopeRef.current) return;
+        if (error) throw error;
+        const shown = new Set(postsRef.current.map(post => post.id));
+        pendingPostsRef.current = ((data ?? []) as any[]).map(mapFeedRow)
+          .filter(post => !shown.has(post.id) && !hiddenIdsRef.current.has(post.id) && !isMutedRef.current(post)
+            && (feedLiveDeniedAt.current[post.id] ?? -1) < requestedAt);
+        setPendingPostCount(pendingPostsRef.current.length);
+      },
+      access: async (authors, request) => {
+        const selected = postsRef.current.filter(post => !authors || authors.includes(post.user_id)).map(post => post.id);
+        const valid = () => current() && request.current();
+        const allowed = await reconcileFeedVisibility(userId, selected, valid, request.signal);
+        if (allowed && valid()) remove(new Set(selected.filter(id => !allowed.has(id))));
+      },
+      apply: (ids, rows, requestedAt) => {
+        if (!current()) return;
+        const byId = new Map(rows.map(row => [row.post_id, row]));
+        remove(new Set(ids.filter(id => !byId.has(id))));
+        const muted = new Set(postsRef.current.filter(post => {
+          const row = byId.get(post.id); return row && isMutedRef.current({ ...post, content: row.content ?? row.body ?? '' });
+        }).map(post => post.id));
+        remove(muted); rows = rows.filter(row => !muted.has(row.post_id));
+        const retry = rows.filter(row => ['like-', 'bk-', 'rp-'].some(prefix => busyKeysRef.current[prefix + row.post_id])
+          || (interactionChangedAt.current[row.post_id] ?? -1) >= requestedAt).map(row => row.post_id);
+        const retrySet = new Set(retry), accepted = rows.filter(row => !retrySet.has(row.post_id));
+        const acceptedById = new Map(accepted.map(row => [row.post_id, row]));
+        accepted.forEach(row => { feedLiveAppliedAt.current[row.post_id] = requestedAt; });
+        accepted.forEach(row => { countCacheRef.current[row.post_id] = {
+          likes_count: row.likes_count, reposts_count: row.reposts_count, bookmarks_count: row.bookmarks_count, shares_count: row.shares_count,
+        }; });
+        setPosts(prev => prev.map(post => {
+          const row = acceptedById.get(post.id); if (!row) return post;
+          const patch = { content: row.content ?? row.body ?? '', likes_count: row.likes_count, comments_count: row.comments_count,
+            reposts_count: row.reposts_count, bookmarks_count: row.bookmarks_count, shares_count: row.shares_count, views_count: row.views_count };
+          if (Object.entries(patch).every(([key, value]) => post[key as keyof Post] === value)) return post;
+          return { ...post, ...patch };
+        }));
+        const flags = (prev: Record<string, boolean>, field: 'viewer_liked' | 'viewer_bookmarked' | 'viewer_reposted') => {
+          let next = prev;
+          accepted.forEach(row => { if (prev[row.post_id] !== row[field]) { if (next === prev) next = { ...prev }; next[row.post_id] = row[field]; } });
+          return next;
+        };
+        setLikedPosts(prev => flags(prev, 'viewer_liked')); setBookmarkedPosts(prev => flags(prev, 'viewer_bookmarked'));
+        setRepostedPosts(prev => flags(prev, 'viewer_reposted'));
+        setCommentPreviews(prev => {
+          let next = prev;
+          accepted.forEach(row => {
+            const value = row.comment_id ? { body: row.comment_body ?? '', authorName: row.comment_author ?? 'User' } : null;
+            if ((!value && prev[row.post_id]) || (value && (value.body !== prev[row.post_id]?.body || value.authorName !== prev[row.post_id]?.authorName))) {
+              if (next === prev) next = { ...prev };
+              if (value) next[row.post_id] = value; else delete next[row.post_id];
+            }
+          }); return next;
+        });
+        return retry;
+      },
+    });
+    feedLiveRef.current = coordinator;
+    coordinator.setWindow(feedLiveWindow(postsRef.current.map(post => ({ id: post.id, authorId: post.user_id })), activePostId));
+    void coordinator.start();
+    return () => { live = false; coordinator.dispose(); if (feedLiveRef.current === coordinator) feedLiveRef.current = null; };
+    // Visibility/window updates below do not recreate this account-bound owner.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, liveScope, feedTabs]);
+
+  useEffect(() => { feedLiveRef.current?.setActive(screenFocused && appActive); }, [screenFocused, appActive, userId, liveScope]);
+  useEffect(() => {
+    feedLiveRef.current?.setWindow(feedLiveWindow(posts.map(post => ({ id: post.id, authorId: post.user_id })), activePostId));
+  }, [posts, activePostId, userId, liveScope]);
+  useEffect(() => { feedLiveRef.current?.pendingChanged(); }, [pendingPostCount]);
+
+  useEffect(() => {
+    if (feedBroadcast || !userId || !screenFocused || !appActive) return;
     let feedLive = true;
     const hasFeedPost = (postId: string) => feedLive
       && useAuthStore.getState().profile?.id === userId
@@ -1166,7 +1303,7 @@ export default function FeedScreen({ navigation }: any) {
       supabase.removeChannel(postUpdateCh);
       if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
     };
-  }, [loadFeed, scheduleRefresh, userId, feedMode]);
+  }, [loadFeed, scheduleRefresh, userId, feedMode, feedBroadcast, screenFocused, appActive]);
 
   const toggleLike = useCallback(async (postId: string) => {
     if (!userId || isBusy(`like-${postId}`)) return;
@@ -1825,6 +1962,7 @@ export default function FeedScreen({ navigation }: any) {
   const loadMore = useCallback(async () => {
     if (!userId) return;
     const request = feedRequestRef.current;
+    const requestedAt = Date.now();
     let pageRequest = pageRequestRef.current;
     const scope = feedScopeRef.current;
     const mode = feedModeRef.current;
@@ -1867,11 +2005,11 @@ export default function FeedScreen({ navigation }: any) {
       hydrateShares(scored.map(pp => pp.id));
       hydrateCollabs(scored.map(pp => pp.id));
       hydratePolls(scored.map(pp => pp.id));
-      setPosts(prev => { const have = new Set(prev.map(x => x.id)); const add: any[] = []; for (const p of scored) { if (!have.has(p.id)) { have.add(p.id); add.push(p); } } return [...prev, ...add]; });
+      setPosts(prev => { const have = new Set(prev.map(x => x.id)); const add: Post[] = []; for (const p of mergeNativeFeedLive(scored, prev, requestedAt, liveFence())) { if (!have.has(p.id)) { have.add(p.id); add.push(p); } } const next = [...prev, ...add]; postsRef.current = next; return next; });
       setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; }); return pm; });
-      setLikedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_liked) m[r.post_id] = true; }); return m; });
-      setBookmarkedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_bookmarked) m[r.post_id] = true; }); return m; });
-      setRepostedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_reposted) m[r.post_id] = true; }); return m; });
+      setLikedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_liked && feedSnapshotFresh(r.post_id, requestedAt, liveFence())) m[r.post_id] = true; }); return m; });
+      setBookmarkedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_bookmarked && feedSnapshotFresh(r.post_id, requestedAt, liveFence())) m[r.post_id] = true; }); return m; });
+      setRepostedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_reposted && feedSnapshotFresh(r.post_id, requestedAt, liveFence())) m[r.post_id] = true; }); return m; });
       // Paging can continue as soon as usable rows arrive. Slow comments or
       // source-card enrichment must not keep the next page behind this lock.
       pageCommitted = true;
@@ -1919,7 +2057,7 @@ export default function FeedScreen({ navigation }: any) {
           if (!isCurrent()) return;
           (aData ?? []).forEach((a: any) => { authors2[a.id] = a; });
         }
-        setCommentPreviews(prev => { const cp = { ...prev }; topC.forEach((c: any) => { const cur = cp[c.post_id]; if (!cur || (c.likes_count ?? 0) > (cur.likes ?? 0)) { const a = authors2[c.user_id]; cp[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User', likes: c.likes_count ?? 0 }; } }); return cp; });
+        setCommentPreviews(prev => { const cp = { ...prev }; topC.forEach((c: any) => { if (!feedSnapshotFresh(c.post_id, requestedAt, liveFence())) return; const cur = cp[c.post_id]; if (!cur || (c.likes_count ?? 0) > (cur.likes ?? 0)) { const a = authors2[c.user_id]; cp[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User', likes: c.likes_count ?? 0 }; } }); return cp; });
       }
     } catch { if (isCurrent() && !pageCommitted) setFeedError('Could not load more posts. Please try again.'); }
     finally { clearTimeout(deadline); if (isCurrent() && pageRequest === pageRequestRef.current) { loadingMoreRef.current = false; setLoadingMore(false); } }
@@ -2886,7 +3024,9 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         onClose={() => {
           const id = commentsFor?.id;
           setCommentsFor(null);
-          if (id) supabase.from('posts').select('comments_count').eq('id', id).maybeSingle().then(({ data }) => { const n = (data as any)?.comments_count; if (typeof n === 'number') setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, comments_count: n } : p))); }, () => {});
+          if (id && feedBroadcast) {
+            interactionChangedAt.current[id] = Date.now(); feedLiveRef.current?.invalidate([id]);
+          } else if (id) supabase.from('posts').select('comments_count').eq('id', id).maybeSingle().then(({ data }) => { const n = (data as any)?.comments_count; if (typeof n === 'number') setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, comments_count: n } : p))); }, () => {});
         }}
       />
       <Modal visible={!!fsVideo} animationType="fade" onRequestClose={() => setFsVideo(null)}>

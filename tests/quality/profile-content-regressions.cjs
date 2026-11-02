@@ -362,14 +362,23 @@ test('private Profile media verification and every signing batch use the initiat
   const gate=deferred(),h=own();const calls=[];
   h.client.auth={getUser:async token=>{calls.push({kind:'user',token});return{data:{user:{id:'owner'}},error:null};}};
   h.client.functions={invoke:async(name,options)=>{calls.push({kind:'sign',name,options});return gate.promise;}};
-  const rows=rangeRows(1,65).map(row=>({...row,post_media:[{url:raw,media_type:'image'}]}));
+  // More than three batches leaves queued work beyond the bounded concurrent
+  // window, so the account-change assertion still detects a late dispatch.
+  const rows=rangeRows(1,201).map(row=>({...row,post_media:[{url:raw,media_type:'image'}]}));
   const run=h.refs.profileContentRead('owner','1:owner',new AbortController().signal,reader=>reader.sign(rows));await turn();
-  assert.equal(calls[0].token,'owner-token');assert.equal(calls[1].options.headers.Authorization,'Bearer owner-token');
-  assert.equal(calls[1].options.body.references.length,50);assert.equal(calls[1].options.body.delivery,'no-store');
+  assert.equal(calls[0].token,'owner-token');
+  const signing=calls.filter(call=>call.kind==='sign');
+  assert.equal(signing.length,3,'only the bounded initial signing window starts');
+  signing.forEach(call=>{
+    assert.equal(call.options.headers.Authorization,'Bearer owner-token');
+    assert.equal(call.options.body.references.length,50);assert.equal(call.options.body.delivery,'no-store');
+  });
+  assert.equal(new Set(signing.flatMap(call=>call.options.body.references.map(ref=>ref.id))).size,150);
+  const started=calls.length;
   h.account('second');h.account('owner');await assert.rejects(run,/cancelled/);
   gate.resolve({data:{urls:[],expiresAt:Date.now()+60_000},error:null});await turn();
-  assert.equal(calls.length,2,'a late first media batch cannot dispatch the second under another session');
-  assert.equal(calls[1].options.signal.aborted,true);assert.equal(h.listeners.size,0);
+  assert.equal(calls.length,started,'late in-flight batches cannot dispatch queued work under another session');
+  assert.ok(signing.every(call=>call.options.signal.aborted));assert.equal(h.listeners.size,0);
 });
 
 test('profile scroll offsets stay separate for each tab and are applied without animation before paint',()=>{

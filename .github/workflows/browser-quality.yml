@@ -51,6 +51,7 @@ jobs:
       MEDIA_READINESS_OUTPUT: /tmp/platinum-browser-evidence/media-readiness
       MEDIA_READINESS_EVIDENCE: /tmp/platinum-browser-evidence/media-readiness
       STORY_MEMORY_QA_OUTPUT: /tmp/platinum-browser-evidence/story-memory-readiness
+      PC_PAGING_BROWSER_ARTIFACTS: /tmp/platinum-browser-evidence/memory-paging
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         id: checkout
@@ -138,6 +139,9 @@ jobs:
       - name: Exercise book design, persistence, conflicts and account changes
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/memory-cover-run.cjs
+      - name: Exercise complete paged books, shelves and account changes
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node web/tests/browser/memory-paging.cjs
       - name: Verify private original uploads, microphone capture and retained music exports
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/music-library-export.cjs
@@ -181,5 +185,6 @@ jobs:
             /tmp/platinum-browser-evidence/story-memory-readiness/*.json
             /tmp/platinum-browser-evidence/admin-media-readiness/*.png
             /tmp/platinum-browser-evidence/admin-media-readiness/*.json
+            /tmp/platinum-browser-evidence/memory-paging/*.json
           if-no-files-found: ignore
           retention-days: 7

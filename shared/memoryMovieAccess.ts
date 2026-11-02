@@ -4,6 +4,7 @@ import {memoryFilmSettings} from './memoryBookCreative';
 import {readSoundtrack} from './soundtrack';
 import type {MemoryBook} from './memoryBookModels';
 import type {MemoryMoviePage} from './memoryMoviePlan';
+import {readMemoryBookComplete} from './pagedReaders';
 
 type MovieAccessClient={
  rpc:(name:string,args:Record<string,unknown>)=>PromiseLike<{data:unknown;error:unknown}>;
@@ -53,9 +54,8 @@ export async function openMemoryMovieAccess(options:{client:MovieAccessClient;ba
    if(currentSession.error||currentSession.data.session?.user.id!==viewer||!currentSession.data.session.access_token)throw new Error('Your account changed. The movie export was cancelled.');
    const user=await bounded(client.auth.getUser(currentSession.data.session.access_token),signal);
    if(user.error||user.data.user?.id!==viewer||!live||invalid)throw new Error('Your account changed. The movie export was cancelled.');
-   const {data,error}=await bounded(client.rpc('get_memory_book',{p_album:bookId}),signal);
-   const book=data as MemoryBook|null;
-   if(error||!book||book.id!==bookId||book.can_view!==true||!Array.isArray(book.pages))throw new Error('This book is no longer available. No movie was saved.');
+   const book=await bounded(readMemoryBookComplete<MemoryBook>(client,bookId,{viewer,token:currentSession.data.session.access_token,signal,current:()=>live&&!invalid}),signal);
+   if(!book||book.id!==bookId||book.can_view!==true||!Array.isArray(book.pages))throw new Error('This book is no longer available. No movie was saved.');
    if(expected.revision!=null&&book.presentation_revision!==expected.revision||memoryMovieContentStamp({title:book.title,pages:book.pages,filmSettings:book.film_settings,soundtrack:book.soundtrack},base)!==stamp)throw new Error('This book changed during export. Reopen it to make the current movie.');
    if(!live||invalid||signal.aborted)throw new Error('Memory movie export was cancelled.');return memoryAlbumStoryLayers(book);
   })();

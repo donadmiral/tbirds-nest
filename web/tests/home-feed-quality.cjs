@@ -137,7 +137,8 @@ test('muted words apply to server rows and hidden posts cannot return after refr
 test('the actual HomeFeed server rendering includes post content before JavaScript hydration', () => {
   const h=harness();const empty=()=>null;
   const overrides={
-    '@/lib/navigationCache':{getNavigationStore:()=>({getSnapshot:()=>({owner:null,scope:null}),cache:{read:()=>null}})},
+    '@/lib/navigationCache':{getNavigationStore:()=>({getSnapshot:()=>({owner:null,scope:null}),getServerSnapshot:()=>({owner:null,scope:null}),subscribe:()=>()=>{},cache:{read:()=>null}})},
+    '../../shared/feedLive':load('../shared/feedLive.ts'), '@/lib/usePostInteractions':{applyPostInteractionsLive:()=>true},
     '@/lib/mediaPrefs': { dataSaverEnabled: () => false },
     '@/lib/homeFeedController':{createHomeFeedController}, '@/lib/homeFeedScroll':load('lib/homeFeedScroll.ts'), '@/lib/contentMedia':{hydratePostMedia:async rows=>rows}, '@/lib/feedCache':{getFeedCache:()=>h.cache}, '../../shared/feedSnapshot':shared, '../../shared/feedMedia':load('../shared/feedMedia.ts'),
     '@/lib/supabase/client':{createClient:()=>h.client}, 'next/navigation':{useRouter:()=>({push(){},refresh(){},replace(){}}),useSearchParams:()=>new URLSearchParams()},
@@ -152,6 +153,79 @@ test('the actual HomeFeed server rendering includes post content before JavaScri
   assert.match(html,/Visible content first/);assert.match(html,/data-feed-content="true"/);
   assert.match(html,/data-feed-owner="alice" data-feed-mode="for_you"/);
   assert.doesNotMatch(html,/animate-pulse/);
+});
+
+test('authorized live batches update absolute counts without moving rows, media or the current scroll anchor', () => {
+  const h = harness([row('first'), row('second')]), first = h.controller.getSnapshot().rows[0], second = h.controller.getSnapshot().rows[1];
+  h.controller.applyLive('alice', ['first'], [{ post_id: 'first', content: 'Edited', body: null, likes_count: 20, comments_count: 3,
+    reposts_count: 4, bookmarks_count: 5, views_count: 6, viewer_liked: true, viewer_bookmarked: true, viewer_reposted: false }], 100);
+  const state = h.controller.getSnapshot();
+  assert.deepEqual(Array.from(state.rows, value => value.post_id), ['first', 'second']);
+  assert.equal(state.rows[0].likes_count, 20); assert.equal(state.rows[0].content, 'Edited');
+  assert.equal(state.rows[0].media, first.media); assert.equal(state.rows[1], second); assert.equal(state.scrollRestore, null);
+  assert.equal(h.calls.length, 0, 'Canonical batch application itself does not fan out into per-card reads');
+  h.controller.applyLive('bob', ['first'], [], 200); assert.equal(h.controller.getSnapshot().rows.length, 2); h.controller.dispose();
+});
+
+test('lost access removes matching retained rows and tab caches without turning revocation into a permanent hide', async () => {
+  const h = harness([row('first'), row('second')]);
+  h.controller.setMode('latest', 345); await tick();
+  h.controller.applyLive('alice', ['first'], [], Date.now());
+  h.setReply(async (_name, args) => ({ data: args.p_ids ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : [row('second')], error: null }));
+  h.controller.setMode('for_you', 123);
+  assert.deepEqual(Array.from(h.controller.getSnapshot().rows, value => value.post_id), ['second']);
+  assert.equal(h.controller.getSnapshot().scrollRestore.top, 345, 'Revocation preserves that tab\'s document position');
+  await tick(); await new Promise(resolve => setTimeout(resolve, 2));
+  h.setReply(async (_name, args) => ({ data: args.p_ids ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : [row('first')], error: null }));
+  await h.controller.load(); assert.equal(h.controller.getSnapshot().rows[0].post_id, 'first', 'Later reauthorization can restore access'); h.controller.dispose();
+});
+
+test('a late full feed response cannot revive a revoked post or undo a newer authorized batch during hydration', async () => {
+  const hydration = deferred(), h = harness([row('first'), row('second')], null, { hydrate: () => hydration.promise });
+  await h.controller.start(); await tick(); assert.ok(h.saved.size > 0, 'The test starts with a real public disk snapshot');
+  h.setReply(async (_name, args) => ({ data: args.p_ids ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : [row('first', 1), row('second', 1)], error: null }));
+  const pending = h.controller.load(false, true); await tick();
+  h.controller.applyLive('alice', ['first', 'second'], [{ post_id: 'second', content: 'Newer', body: null, likes_count: 15,
+    comments_count: 4, reposts_count: 1, bookmarks_count: 0, views_count: 7, viewer_liked: true, viewer_bookmarked: false, viewer_reposted: false }], Date.now() + 1);
+  hydration.resolve([row('first', 1), row('second', 1)]); await pending;
+  const state = h.controller.getSnapshot(); assert.deepEqual(Array.from(state.rows, value => value.post_id), ['second']);
+  assert.equal(state.rows[0].likes_count, 15); assert.equal(state.rows[0].content, 'Newer');
+  await tick(); assert.ok([...h.saved.values()].every(value => !JSON.parse(value).rows.some(row => row.post_id === 'first')), 'A request started before purge cannot rewrite the revoked row to disk');
+  h.controller.dispose();
+});
+
+test('a global head hint performs one bounded read independent of retained scroll depth', async () => {
+  let hydrations = 0;
+  const h = harness(Array.from({ length: 1000 }, (_, index) => row(String(index))), null, { hydrate: async rows => { hydrations++; return rows; } });
+  const before = h.controller.getSnapshot().rows;
+  h.setReply(async () => ({ data: [row('new'), row('0')], error: null }));
+  const signal = new AbortController().signal;
+  await h.controller.checkHead({ signal, current: () => true });
+  assert.equal(h.calls.length, 1); assert.equal(h.calls[0].name, 'get_feed'); assert.equal(h.calls[0].args.p_limit, 20);
+  assert.equal(h.controller.getSnapshot().pending, 1); assert.equal(h.controller.getSnapshot().rows, before);
+  assert.equal(hydrations, 0, 'A hint never renews media or runs the full feed pipeline'); h.controller.dispose();
+});
+
+test('live content edits retain muted-word filtering without permanently hiding a post', async () => {
+  const h = harness([row('first'), row('second')]);
+  const controller = createHomeFeedController(h.client, { ...h.seed, mutedWords: ['muted text'] }, h.cache);
+  controller.applyLive('alice', ['first'], [{ post_id: 'first', content: 'Now has muted text', body: null,
+    likes_count: 1, comments_count: 0, reposts_count: 0, bookmarks_count: 0, views_count: 0,
+    viewer_liked: false, viewer_bookmarked: false, viewer_reposted: false }], Date.now());
+  assert.deepEqual(Array.from(controller.getSnapshot().rows, value => value.post_id), ['second']);
+  await new Promise(resolve => setTimeout(resolve, 2));
+  h.setReply(async () => ({ data: [row('first')], error: null })); await controller.load();
+  assert.equal(controller.getSnapshot().rows[0].post_id, 'first'); controller.dispose(); h.controller.dispose();
+});
+
+test('background cancellation stops retained access batches and fences a late visibility result', async () => {
+  const h = harness(Array.from({ length: 501 }, (_, index) => row(String(index)))), held = deferred();
+  let active = true; const controller = new AbortController();
+  h.setReply(() => held.promise);
+  const work = h.controller.reconcileLiveAccess(null, { signal: controller.signal, current: () => active });
+  assert.equal(h.calls.length, 2); active = false; controller.abort(); held.resolve({ data: [], error: null }); await work;
+  assert.equal(h.calls.length, 2, 'No further access batch starts while the feed is paused');
+  assert.equal(h.controller.getSnapshot().rows.length, 501, 'An obsolete empty result cannot remove the resumed feed'); h.controller.dispose();
 });
 
 test('metadata refresh preserves current exact media grants and same-account session changes reauthorize', async () => {

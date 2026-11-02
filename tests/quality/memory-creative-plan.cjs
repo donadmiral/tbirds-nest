@@ -169,7 +169,7 @@ function accessFixture(){
  const base='https://project.example',page={id:storyId,story_id:storyId,media_type:'image',media_url:base+'/storage/v1/object/public/story-media/owner/photo.jpg'};
  let book={id:bookId,title:'Days',is_owner:true,can_view:true,pages:[page],presentation_revision:2},listener=null;
  const failures=[],controller=new AbortController();let reads=0,unsubscribed=0;
- const client={auth:{getUser:async()=>({data:{user:{id:owner}},error:null}),getSession:async()=>({data:{session:{user:{id:owner},access_token:'fixture-only'}},error:null}),onAuthStateChange:callback=>{listener=callback;return{data:{subscription:{unsubscribe(){unsubscribed++;}}}};}},rpc:async()=>{reads++;return{data:book,error:null};}};
+ const client={auth:{getUser:async()=>({data:{user:{id:owner}},error:null}),getSession:async()=>({data:{session:{user:{id:owner},access_token:'fixture-only'}},error:null}),onAuthStateChange:callback=>{listener=callback;return{data:{subscription:{unsubscribe(){unsubscribed++;}}}};}},rpc:async name=>{if(name==='get_paged_reader_capabilities')return{data:{version:1,books:false,inbox:false},error:null};reads++;return{data:book,error:null};}};
  const expected={title:'Days',pages:[{...page,media_url:base+'/functions/v1/media-content/story-media/owner/photo.jpg?token='+'a'.repeat(64)}],revision:2};
  return {client,base,expected,bookId,signal:controller.signal,onInvalid:error=>failures.push(error.message),failures,setBook:value=>{book=value;},book:()=>book,emit:id=>listener('SIGNED_IN',{user:{id}}),reads:()=>reads,unsubscribed:()=>unsubscribed};
 }

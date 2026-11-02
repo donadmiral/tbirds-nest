@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
 const root=path.resolve(__dirname,'../..');
 const source=file=>fs.readFileSync(path.join(root,file),'utf8');
-const compile=(file,globals={})=>{const module={exports:{}};vm.runInNewContext(ts.transpileModule(source(file),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,URL,console,...globals});return module.exports;};
+const compile=(file,globals={})=>{const module={exports:{}};vm.runInNewContext(ts.transpileModule(source(file),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,URL,AbortController,console,...globals});return module.exports;};
 const media=compile('shared/contentMedia.ts'),design=compile('shared/memoryBookDesign.ts');
 const base='https://shelf-fixture.invalid',raw=base+'/storage/v1/object/public/story-media/owner/photo.jpg',signed=base+'/storage/v1/object/sign/story-media/owner/photo.jpg?token=synthetic';
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return{promise,resolve,reject};};
@@ -22,6 +22,8 @@ function harness(){
  const client={rpc(name,args){const gate=deferred();requests.push({name,args,...gate});return gate.promise;}};
  const hydrate=rows=>{const gate=deferred();covers.push({rows,...gate});return gate.promise;};
  const mods={react,'react/jsx-runtime':{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})},'react-native':native,'@react-navigation/native':{useFocusEffect:fn=>react.useEffect(()=>focused?fn():undefined,[fn,focused])},'@expo/vector-icons':{Feather:'Icon'},'../services/supabase':{supabase:client},'../services/contentMedia':{hydrateMemoryAlbumMedia:hydrate,withoutPrivateMedia:rows=>media.replaceContentMedia(rows,base,new Map())},'../stores/authStore':{useAuthStore:select=>select({session:viewer?{user:{id:viewer}}:null})},'../utils/profileRead':{profileRead:request=>Promise.resolve(request)},'../theme/useTheme':{useTheme:()=>({isDark:false,t:{ink:{primary:'#111',secondary:'#555'},surface:{canvas:'#fff',hairline:'#eee'},brand:{base:'#222'}}})},'./SafeArea':{SafeAreaView:'SafeArea'},'./memory/MemoryBookCover':{default:'BookCover',__esModule:true},'./memory/MemoryBookDesigner':{default:'Designer',__esModule:true},'../../shared/memoryBookDesign':design};
+ const unpack=async request=>{const {data,error}=await request;if(error)throw error;return data;};
+ mods['../services/memoryBooks']={getMemoryBooks:(owner,options)=>unpack(client.rpc('get_memory_albums',{p_owner:owner,options})),getMemoryBooksNext:(shelf,options)=>unpack(client.rpc('get_memory_books_page_v2',{previous:shelf,options}))};
  const component=compile('src/components/MemoryAlbumCard.tsx',{require:name=>{assert.ok(name in mods,name);return mods[name];},setInterval:fn=>{const id=intervals.size+1;intervals.set(id,fn);return id;},clearInterval:id=>intervals.delete(id)}).default;
  const nav={navigate:(route,args)=>navigation.push({route,args})};
  function render(){cursor=0;tree=component({ownerId:owner,navigation:nav});while(effects.length)effects.shift()();cursor=0;tree=component({ownerId:owner,navigation:nav});return tree;}

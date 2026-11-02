@@ -13,7 +13,7 @@ function sourceParts(file){
 }
 function fixture(native){
  const parts=sourceParts(native?'src/screens/feed/FeedScreen.tsx':'web/components/HomeFeed.tsx'),pending=[],timers=new Map(),loads=[],hidden=[];let nextTimer=0,epoch=0,owner='owner',items={owner,items:[{id:'a',seller_id:'blocked'},{id:'b',seller_id:'kept'}]};
- const scope={AbortController,userId:owner,feedMode:'forYou',screenFocused:true,appActive:true,state:{owner},mode:'for_you',uidRef:{current:owner},marketplaceRequest:{current:null},supabase:{},
+ const scope={AbortController,userId:owner,feedMode:'forYou',screenFocused:true,appActive:true,state:{owner},mode:'for_you',uidRef:{current:owner},marketplaceRequest:{current:null},supabase:{},feedLiveRef:{current:null},
   setMarketplace(value){items=typeof value==='function'?value(items):value;},setMarketplaceRefresh(fn){epoch=fn(epoch);},useAuthStore:{getState:()=>({profile:{id:owner}})},readMarketplaceRecommendations(_client,signal){return new Promise(resolve=>pending.push({signal,resolve}));},
   setTimeout(fn){const id=++nextTimer;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);},
   load:()=>loads.push('web'),loadFeed:()=>loads.push('native'),setRefreshing(){},setMomentRefreshKey(){},document:{visibilityState:'visible'},controller:{getSnapshot:()=>({rows:[{post_id:'p',author_id:'blocked'},{post_id:'q',author_id:'kept'}]}),hide:id=>hidden.push(id)},

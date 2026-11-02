@@ -104,25 +104,33 @@ test('a malformed or mismatched server proof never authorizes a download', async
     const h = setup({ proof }); await h.run(); assert.equal(h.downloads.length, 0); assert.equal(h.writes.length, 0);
   }
 });
-test('the actual entry uses an authenticated uncached download and a non-upserting Storage update', async () => {
-  let captured; const requests = [], updates = [];
-  const client = { storage: { from: bucket => ({ update: async (...args) => { updates.push({ bucket, args }); return { error: null }; } }) } };
+test('the durable entry streams authenticated source data and uploads only a distinct immutable path', async () => {
+  let captured; const requests = [], uploads = [];
+  const client = { storage: { from: bucket => ({ upload: async (...args) => { uploads.push({ bucket, args }); return { error: null }; } }) } };
   const source = ts.transpileModule(fs.readFileSync(path.join(root, 'index.ts'), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   vm.runInNewContext(source, {
     exports: {}, URL, AbortSignal,
     require: name => name.includes('supabase-js') ? { createClient: () => client }
-      : name.includes('handler') ? { createFaststartHandler: deps => { captured = deps; return () => {}; } } : { faststartRemux },
+      : name.includes('durable') ? { createDurableFaststartHandler: deps => { captured = deps; return () => {}; } }
+      : name.includes('legacyServiceAuthorization') ? { createLegacyServiceAuthorizer: () => async () => false }
+      : { serviceRoleFetch: fetcher => fetcher },
     Deno: { env: { get: key => key === 'SUPABASE_URL' ? 'https://project.test' : serviceKey }, serve: () => {} },
     fetch: async (...args) => { requests.push(args); return new Response(video, { headers: { ETag: '"source-etag"' } }); },
   });
-  const downloaded = await captured.download('story-media', `${owner}/with space.mp4`, 'version-1', lease);
-  assert.equal(downloaded.etag, '"source-etag"');
+  const job = { job_id: objectId, lease_id: lease, source_id: objectId, source_version: 'version-1', source_bucket: 'story-media',
+    source_path: `${owner}/with space.mp4`, source_mime: 'video/mp4', output_bucket: 'derived-media', output_path: `${owner}/_derived_v1/${objectId}/${lease}.mp4` };
+  const signal = new AbortController().signal;
+  const downloaded = await captured.download(job, signal);
+  assert.equal(downloaded.headers.get('ETag'), '"source-etag"');
   assert.equal(requests[0][0].origin, 'https://project.test');
-  assert.match(requests[0][0].pathname, /\/storage\/v1\/object\/authenticated\/story-media\/.*with%20space.mp4$/);
-  assert.equal(requests[0][0].searchParams.get('faststart_version'), 'version-1');
-  assert.equal(requests[0][1].cache, 'no-store');
-  await captured.update('story-media', payload.record.name, video, 'video/mp4', { platinum_faststart_lease: lease });
-  assert.equal(updates[0].args[2].upsert, false); assert.equal(updates[0].args[2].metadata.platinum_faststart_lease, lease);
+  assert.match(requests[0][0].pathname, /with%20space.mp4$/);
+  assert.equal(requests[0][0].searchParams.get('source_version'), 'version-1');
+  assert.equal(requests[0][1].cache, 'no-store'); assert.equal(requests[0][1].signal, signal);
+  await captured.upload(job, video, signal);
+  assert.equal(uploads[0].args[0], job.output_path);
+  assert.equal(uploads[0].args[2].upsert, false);
+  assert.equal(uploads[0].args[2].metadata.processing_lease_id, lease);
+  assert.equal(uploads[0].args[2].metadata.source_version, job.source_version);
 });

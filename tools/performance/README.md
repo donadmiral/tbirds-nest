@@ -4,6 +4,8 @@
 
 `capacity-scenarios.json` contains illustrative light/base/heavy workloads at 5M, 10M and 20M DAU. Replace these assumptions with measured product behavior before sizing infrastructure. Native share refers to active session-time. Background HTTP/API operations and media requests are separate from primary application traffic. The output preserves those distinctions and its limitations.
 
+The `sourcePolling` result is a **historical timer reference from before the event-driven recovery changes**, retained to show the avoidable work in that version. It is not the new client's measured traffic. The new `candidateBackgroundRecovery` daily count is deliberately `null`: healthy idle checks have been removed, but entry, subscription handshakes, foreground, reconnect, active calls, queued messages and failed reads still need real traffic measurements. Do not subtract the historical number from a production bill or assume the candidate generates zero background work.
+
 From the repository root:
 
 ```sh

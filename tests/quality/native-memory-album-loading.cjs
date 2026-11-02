@@ -25,13 +25,13 @@ const words = node => Array.isArray(node) ? node.map(words).join('') : typeof no
  * scheduling, native primitives/animation acknowledgement, auth, transport and
  * media delivery are controlled. This proves component state/ownership; it is
  * not a native-pixel test or a diagnosis of the retained iPhone loading delay. */
-function harness({ heldAuth = false, heldMedia = false, heldBody = false, actualMedia = false, fakeClock = false, heldAnimation = false, reducedMotion = true, platform = 'ios' } = {}) {
+function harness({ heldAuth = false, heldMedia = false, heldBody = false, actualMedia = false, fakeClock = false, heldAnimation = false, reducedMotion = true, platform = 'ios', paged = false } = {}) {
   const slots = [], effects = [], books = [], reactions = [], toggles = [], media = [], soundtrackSaves = [], authListeners = new Set(), appListeners = new Set();
   const animationAcknowledgements = [], sessions = [], bodies = [];
   const timers = new Map(); let clock = 0, timerId = 0;
   const schedule = fakeClock ? (fn, ms = 0) => { const id = ++timerId; timers.set(id, { fn, at: clock + ms }); return id; } : setTimeout;
   const unschedule = fakeClock ? id => timers.delete(id) : clearTimeout;
-  let cursor = 0, dirty = true, mounted = true, tree, owner = OWNER, postUnmountWrites = 0;
+  let cursor = 0, dirty = true, mounted = true, tree, owner = OWNER, postUnmountWrites = 0, availableSession = !heldAuth;
   const session = deferred();
   const sessionResult = () => ({ data: { session: { user: { id: owner }, access_token: 'synthetic-test-token' } }, error: null });
   if (!heldAuth) session.resolve(sessionResult());
@@ -89,14 +89,18 @@ function harness({ heldAuth = false, heldMedia = false, heldBody = false, actual
     auth: {
       getSession: () => {
         const task = sessions.length ? deferred() : session;
-        if (!heldAuth) task.resolve(sessionResult());
+        const resolve = task.resolve;
+        task.resolve = value => { if (!value.error) availableSession = true; resolve(value); };
+        if (availableSession) task.resolve(sessionResult());
         sessions.push(task); return task.promise;
       },
       onAuthStateChange(callback) { authListeners.add(callback); return { data: { subscription: { unsubscribe: () => authListeners.delete(callback) } } }; },
     },
     rpc(name, args) {
-      if (name === 'get_memory_book') {
-        if (!heldBody) return queued(books, { args, owner });
+      if (name === 'get_paged_reader_capabilities') return Promise.resolve({ data: { version: 1, books: paged, inbox: false }, error: null });
+      if (name === 'get_next_memory_book_v2') return Promise.resolve({ data: null, error: null });
+      if (name === 'get_memory_book' || name === 'get_memory_book_page_v2') {
+        if (!heldBody) return queued(books, { name, args, owner });
         // Execute the installed PostgREST parser while response.text is held.
         const { PostgrestClient } = require('@supabase/postgrest-js');
         return new PostgrestClient('https://reader.invalid/rest/v1', { fetch: async (_url, init) => {
@@ -157,6 +161,7 @@ function harness({ heldAuth = false, heldMedia = false, heldBody = false, actual
       const key = path.relative(root, path.resolve(path.dirname(absolute), name)).replace(/\\/g, '/');
       if (Object.hasOwn(mocks, key)) return mocks[key];
       if (key.startsWith('shared/')) return load(`${key}.ts`);
+      if (key === 'src/services/memoryBooks') return load(`${key}.ts`);
       if (key.startsWith('src/components/')) return { __esModule: true, default: path.basename(key) };
       throw Error(`Unhandled import ${name} in ${file}`);
     };
@@ -191,7 +196,17 @@ function harness({ heldAuth = false, heldMedia = false, heldBody = false, actual
       assert.ok(node, `visible button ${label}`); return node;
     },
     press(label) { const node = h.button(label); assert.ok(!node.props.disabled, `enabled button ${label}`); return node.props.onPress(); },
-    async authorize(value = book(), index = books.length - 1) { await flush(); assert.ok(books[index], `book request ${index}`); books[index].resolve({ data: value, error: null }); await flush(); },
+    async authorize(value = book(), index = books.length - 1) {
+      await flush(); assert.ok(books[index], `book request ${index}`); const task = books[index];
+      if (task.name === 'get_memory_book_page_v2') {
+        const start = task.args.p_cursor?.after || 0, end = Math.min(value.pages.length, start + 24);
+        value = { ...(start === 0 ? value : { id: value.id, can_view: value.can_view }), version: 2,
+          metadata_included: start === 0, revision: '1', pages: value.pages.slice(start, end), has_more: end < value.pages.length,
+          next_cursor: end < value.pages.length ? { version: 2, viewer: owner, album: value.id, revision: '1', after: end } : null };
+      }
+      task.resolve({ data: value, error: null }); await flush();
+    },
+    get nodes() { return nodes(tree); },
     async open() { h.press('Open book'); await flush(); },
     async page(index) { const page = nodes(tree).find(node => node.type === 'MemoryPageTurn'); assert.ok(page); page.props.onCommit(index); await flush(); },
     async removeSoundtrack() {
@@ -204,7 +219,7 @@ function harness({ heldAuth = false, heldMedia = false, heldBody = false, actual
       picker.props.onClose(); await flush();
     },
     route(id, routeOwner = OWNER) { props.route = { params: { ownerId: routeOwner, albumId: id } }; dirty = true; },
-    account(next) { owner = next; for (const listener of [...authListeners]) listener(next ? 'SIGNED_IN' : 'SIGNED_OUT', next ? { user: { id: next } } : null); },
+    account(next) { owner = next; availableSession = true; for (const listener of [...authListeners]) listener(next ? 'SIGNED_IN' : 'SIGNED_OUT', next ? { user: { id: next } } : null); },
     refresh() { for (const listener of [...appListeners]) listener('active'); },
     dispose() { if (mounted) { mounted = false; slots.forEach(slot => slot?.cleanup?.()); } },
     get postUnmountWrites() { return postUnmountWrites; },
@@ -216,6 +231,56 @@ test('held optional reactions do not block the actual authorized reader', async 
   const h = harness();
   try { await h.flush(); await h.authorize(); assert.equal(h.reactions.length, 1); assert.equal(h.loading(), false); assert.ok(h.visible('Edit memory book')); assert.ok(h.visible('Open book')); }
   finally { h.dispose(); }
+});
+
+const largeBook = () => book('book-a', Array.from({ length: 61 }, (_, i) => ({
+  id: `page-${i}`, story_id: `story-${i}`, media_type: 'text', caption: `Memory ${i}`, sort_order: i,
+})));
+for (const action of ['film', 'settings', 'grid']) {
+  test(`paged native ${action} waits for all memories while the first authorized window remains readable`, async () => {
+    const h = harness({ paged: true }); const full = largeBook();
+    try {
+      await h.flush(); await h.authorize(full, 0);
+      assert.ok(h.visible('Open book')); assert.equal(h.books.length, 2, 'one adjacent window preloads on the cover');
+      if (action === 'film') h.press('Play continuous memory film with original music');
+      else if (action === 'settings') h.press('Edit memory book');
+      else { await h.open(); assert.ok(h.visible('Page 1 of 61')); h.press('View all pages'); }
+      await h.flush();
+      assert.equal(h.nodes.some(node => node.type === 'MemoryFilm'), false);
+      assert.equal(h.nodes.some(node => node.type === 'MemoryCoverControls'), false);
+      assert.equal(h.visible('Open memory 61'), false);
+      await h.authorize(full, 1);
+      assert.equal(h.books.length, 3); assert.equal(h.nodes.some(node => node.type === 'MemoryFilm'), false);
+      await h.authorize(full, 2);
+      if (action === 'film') assert.equal(h.nodes.find(node => node.type === 'MemoryFilm').props.pages.length, 61);
+      if (action === 'settings') assert.ok(h.nodes.some(node => node.type === 'MemoryBookCover' && node.props.coverPages?.length === 61), 'the editor receives every page for cover selection');
+      if (action === 'grid') assert.ok(h.visible('Open memory 61'));
+      assert.ok(h.books.every(request => request.args.p_limit === 24));
+    } finally { h.dispose(); }
+  });
+}
+
+test('paged native continuation failure leaves the loaded book readable and cannot open a partial film', async () => {
+  const h = harness({ paged: true });
+  try {
+    await h.flush(); await h.authorize(largeBook(), 0); h.press('Play continuous memory film with original music');
+    h.books[1].reject(Error('temporary continuation failure')); await h.flush();
+    assert.ok(h.visible('Open book')); assert.ok(!h.nodes.some(node => node.type === 'MemoryFilm'));
+    assert.match(h.text(), /More memories could not load/);
+    await h.open(); assert.ok(h.visible('Page 1 of 61'));
+  } finally { h.dispose(); }
+});
+
+test('paged native account change retires the pending complete-film intent and old continuation', async () => {
+  const h = harness({ paged: true });
+  try {
+    await h.flush(); await h.authorize(largeBook(), 0); h.press('Play continuous memory film with original music');
+    const old = h.books[1]; h.account('other'); await h.flush();
+    old.resolve({ data: { version: 2, id: 'book-a', can_view: true, metadata_included: false,
+      revision: '1', pages: [], has_more: false, next_cursor: null }, error: null }); await h.flush();
+    assert.ok(!h.nodes.some(node => node.type === 'MemoryFilm'));
+    assert.ok(!h.visible('Open book'), 'the replacement account must authorize its own book');
+  } finally { h.dispose(); }
 });
 
 test('unknown initial reaction state cannot expose an actionable Like guess', async () => {

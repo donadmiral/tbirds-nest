@@ -51,7 +51,7 @@ const context = { ...hosts, s: new Proxy({}, { get: () => ({}) }),
   profile: fixtureContext.profiles[0], userId: fixtureContext.OWNER, computeMatchScore: () => 0,
   STATUS_META: {}, categoryLabel: value => value, formatTime: () => '302d', cardWidth: 178, priceLabel: () => '$12',
   useDraftStore: { getState: () => ({ drafts: {} }) }, storyRings: {}, typingConvIds: new Set(),
-  mentionTimes: {}, openedTimes: {}, avatarColor: () => '#111', initials: () => 'JE', relTime: () => '302d',
+  mentionTimes: {}, openedTimes: {}, mentionAmnesty: 0, avatarColor: () => '#111', initials: () => 'JE', relTime: () => '302d',
 };
 function render(file, name, item) { return evaluate(variable(file, name), context)({ item }); }
 const glyphs = JSON.parse(read('node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/Feather.json'));

@@ -20,6 +20,7 @@ function render({facing='back',mode='photo',active=true,phase='idle',micGranted=
     '@expo/vector-icons':{Feather:'Icon'},'expo-haptics':{impactAsync:async()=>{},notificationAsync:async()=>{},ImpactFeedbackStyle:{Heavy:1,Medium:2,Light:3},NotificationFeedbackType:{Success:1}},
     'expo-camera':{CameraView:'Camera',useCameraPermissions:()=>[{granted:true},async()=>({granted:true})],useMicrophonePermissions:()=>[{granted:micGranted},microphone]},
     'expo-linear-gradient':{LinearGradient:'Gradient'},'../../components/stories/DualCameraComposerBridge':{prepareDualAsset:async()=>({})},'../../components/stories/dual/dualCaptureTypes':{DEFAULT_LAYOUT:{}}};
+  modules['../../hooks/useDevicePermissions']={useCameraPermissions:modules['expo-camera'].useCameraPermissions,useMicrophonePermissions:modules['expo-camera'].useMicrophonePermissions};
   const exports={};
   vm.runInNewContext(code,{exports,require:name=>{if(!(name in modules))throw new Error(name);return modules[name];},console,
     setTimeout:fn=>{timers.push(fn);return fn;},clearTimeout:fn=>{const i=timers.indexOf(fn);if(i>=0)timers.splice(i,1);},setInterval:fn=>{timers.push(fn);return fn;},clearInterval:fn=>{const i=timers.indexOf(fn);if(i>=0)timers.splice(i,1);}});

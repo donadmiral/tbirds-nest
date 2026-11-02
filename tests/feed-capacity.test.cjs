@@ -13,6 +13,9 @@ const { mergeFeedRefresh } = sharedModule.exports;
 const mediaModule = { exports: {} };
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/feedMedia.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports: mediaModule.exports, module: mediaModule, setTimeout, clearTimeout });
 const { renewFeedMedia } = mediaModule.exports;
+const liveMergeModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/feedLiveMerge.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports: liveMergeModule.exports, module: liveMergeModule });
+const { feedSnapshotFresh, mergeNativeFeedLive } = liveMergeModule.exports;
 const previewModule = { exports: {} };
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/sharedPostPreview.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports: previewModule.exports, module: previewModule });
 
@@ -28,6 +31,7 @@ function visit(node) {
   if (ts.isVariableDeclaration(node) && ['loadFeed', 'loadMore'].includes(node.name.getText(ast))) {
     callbacks[node.name.getText(ast)] = node.initializer.arguments[0];
   }
+  if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'liveFence') callbacks.liveFence = node.initializer;
   if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useEffect'
     && node.arguments[0]?.getText(ast).includes("supabase.channel('feed_live')")) {
     callbacks.realtime = node.arguments[0];
@@ -59,6 +63,11 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
   const scope = {
     console: { log: (...args) => errors.push(args) }, setTimeout, clearTimeout,
     userId: 'viewer-a', posts: postState, profilesMap: {}, PAGE_SIZE: 20,
+    // These legacy-channel cases exercise the supported capability-off path.
+    feedBroadcast: false, screenFocused: true, appActive: true,
+    feedLiveDeniedAt: { current: {} }, feedLiveAppliedAt: { current: {} },
+    interactionChangedAt: { current: {} }, busyKeysRef: { current: {} },
+    feedSnapshotFresh, mergeNativeFeedLive,
     postsRef: { current: postState }, realtimeTimerRef: { current: null },
     feedRequestRef: { current: 0 }, feedRefreshRequestRef: { current: null }, resolvedFeedRequestRef: { current: 0 }, pageRequestRef: { current: 0 },
     feedScopeRef: { current: 'viewer-a:latest:all' }, discoverCatRef: { current: 'all' },
@@ -115,6 +124,7 @@ function harness({ previewRows = [], quotedRows = [], heldTable = null, rpc } = 
       removeChannel() {},
     },
   };
+  scope.liveFence = compile('liveFence', scope);
   return {
     scope, requests, handlers, errors,
     get posts() { return postState; }, get previews() { return previewState; }, get quoted() { return quotedState; },

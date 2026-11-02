@@ -1,0 +1,28 @@
+do $$ begin
+ if not exists(select 1 from pg_roles where rolname='anon') then create role anon; end if;
+ if not exists(select 1 from pg_roles where rolname='authenticated') then create role authenticated; end if;
+ if not exists(select 1 from pg_roles where rolname='service_role') then create role service_role; end if;
+end $$;
+create schema auth; create schema storage; create schema extensions;
+create extension pgcrypto with schema extensions;
+create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
+create table auth.users(id uuid primary key,deleted_at timestamptz);
+grant usage on schema auth,public to anon,authenticated,service_role;
+create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text,version text,owner uuid,owner_id text,metadata jsonb,user_metadata jsonb,unique(bucket_id,name));
+create table storage.buckets(id text primary key,name text,public boolean not null default false,file_size_limit bigint,allowed_mime_types text[]);
+insert into storage.buckets(id,name,public) values('post-media','post-media',true),('story-media','story-media',true);
+alter table storage.objects enable row level security; alter table storage.buckets enable row level security;
+grant usage on schema storage to anon,authenticated;
+grant select,insert,update,delete on storage.objects,storage.buckets to anon,authenticated;
+create policy fixture_broad_legacy_objects on storage.objects for all to public using(true) with check(true);
+create policy fixture_broad_legacy_buckets on storage.buckets for all to public using(true) with check(true);
+create table posts(id uuid primary key,user_id uuid,media_url text,image_url text);
+create table post_media(id uuid primary key,post_id uuid,url text,edit jsonb);
+create table stories(id uuid primary key,user_id uuid,media_url text,thumbnail_url text,dual_front_url text,stickers_json jsonb,media_transform jsonb);
+create table content_media_bindings(entity_kind text,entity_id uuid,bucket_id text,object_path text,uploader_id uuid,bound_at timestamptz default now(),primary key(entity_kind,entity_id,bucket_id,object_path));
+create function content_media_document(k text,i uuid) returns jsonb language sql stable as $$select jsonb_build_object('media_url',media_url) from(select media_url from public.posts where k='post' and id=i union all select media_url from public.stories where k='story' and id=i)r limit 1$$;
+create function content_media_strings(doc jsonb) returns setof text language sql immutable as $$select distinct value #>> '{}' from jsonb_path_query(coalesce(doc,'{}'::jsonb),'lax $.** ? (@.type() == "string")') value$$;
+create function fixture_fails(command text) returns boolean language plpgsql as $$begin execute command; return false; exception when others then return true; end $$;
+grant execute on function fixture_fails(text) to anon,authenticated,service_role;
+create schema media_delivery;
+create table media_delivery.tickets(token_digest bytea primary key,object_id uuid,object_version text,bucket_id text,object_path text,created_at timestamptz,expires_at timestamptz);

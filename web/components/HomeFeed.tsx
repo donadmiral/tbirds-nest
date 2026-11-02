@@ -7,6 +7,8 @@ import { hydratePostMedia, retainFeedMedia } from "@/lib/contentMedia";
 import { getFeedCache } from "@/lib/feedCache";
 import { dataSaverEnabled } from '@/lib/mediaPrefs';
 import { renewFeedMedia } from "../../shared/feedMedia";
+import { createFeedLive, feedLiveWindow } from '../../shared/feedLive';
+import { applyPostInteractionsLive } from '@/lib/usePostInteractions';
 
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowUp } from "lucide-react";
@@ -59,6 +61,7 @@ function Skeleton() {
 export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const [supabase] = useState(createClient);
   const [navigationStore] = useState(getNavigationStore);
+  const navigationSession = useSyncExternalStore(navigationStore.subscribe, navigationStore.getSnapshot, navigationStore.getServerSnapshot);
   const [controller] = useState(() => createHomeFeedController(supabase, seed, getFeedCache(), value => {
     window.dispatchEvent(new CustomEvent('pc-performance', { detail: { event: 'feed', ...value } }));
   }, rows => renewFeedMedia(rows, value => hydratePostMedia(value)),
@@ -124,6 +127,11 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   // causing the page to jump underneath a normal wheel/touch gesture.
   // Infinite paging and lazy media still bound network and decoding work.
   const newDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const feedLiveRef = useRef<ReturnType<typeof createFeedLive> | null>(null);
+  const [feedBroadcast, setFeedBroadcast] = useState(false);
+  const [pageVisible, setPageVisible] = useState(true);
+  const interestObserverRef = useRef<IntersectionObserver | null>(null);
+  const interestAnchorRef = useRef<string | null>(null);
   const lastFeedScroll = useRef(0);
 
   useLayoutEffect(() => {
@@ -161,7 +169,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       for (const post of controller.getSnapshot().rows) if (post.author_id === detail.authorId) controller.hide(post.post_id);
       void load(false);
     };
-    const onVisibility = () => { if (document.visibilityState === 'visible') { void load(false, true); refreshMarketplace(); } };
+    const onVisibility = () => { if (document.visibilityState === 'visible') { void load(false, true); void feedLiveRef.current?.start(); refreshMarketplace(); } };
     window.addEventListener('pc-refresh-feed', onRefresh);
     window.addEventListener('pc-feed-hidden', onHidden);
     window.addEventListener('pc-feed-author-hidden', onAuthorHidden);
@@ -254,11 +262,75 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   }, [supabase]);
 
   const observeSeen = useCallback((el: HTMLDivElement | null) => {
-    if (el) seenObserverRef.current?.observe(el);
+    if (el) { seenObserverRef.current?.observe(el); interestObserverRef.current?.observe(el); }
   }, []);
+
+  useEffect(() => {
+    const visible = () => { const active = document.visibilityState === 'visible'; setPageVisible(active); feedLiveRef.current?.setActive(active); };
+    visible(); document.addEventListener('visibilitychange', visible);
+    return () => document.removeEventListener('visibilitychange', visible);
+  }, []);
+
+  useEffect(() => {
+    setFeedBroadcast(false);
+    const owner = state.owner, scope = navigationSession.scope;
+    if (!owner || navigationSession.owner !== owner) return;
+    let live = true;
+    const current = () => live && uidRef.current === owner && controller.getSnapshot().owner === owner
+      && navigationStore.getSnapshot().scope === scope;
+    const coordinator = createFeedLive({
+      client: supabase, owner, current, active: document.visibilityState === 'visible',
+      mode: enabled => { if (current()) setFeedBroadcast(enabled); },
+      hasPending: () => controller.getSnapshot().pending > 0,
+      head: request => controller.checkHead(request),
+      access: (authors, request) => controller.reconcileLiveAccess(authors, request),
+      apply: (ids, rows, requestedAt) => {
+        if (!current()) return;
+        const retry = rows.filter(row => !applyPostInteractionsLive(row.post_id, owner, {
+          liked: row.viewer_liked, bookmarked: row.viewer_bookmarked, likesCount: row.likes_count, bookmarksCount: row.bookmarks_count,
+        }, requestedAt)).map(row => row.post_id);
+        const waiting = new Set(retry);
+        controller.applyLive(owner, ids.filter(id => !waiting.has(id)), rows.filter(row => !waiting.has(row.post_id)), requestedAt);
+        return retry;
+      },
+    });
+    feedLiveRef.current = coordinator;
+    coordinator.setWindow(feedLiveWindow(controller.getSnapshot().rows.map(post => ({ id: post.post_id, authorId: post.author_id })), interestAnchorRef.current));
+    void coordinator.start();
+    const changed = (event: Event) => {
+      const postId = (event as CustomEvent).detail?.postId;
+      if (typeof postId === 'string' && current()) coordinator.invalidate([postId]);
+    };
+    window.addEventListener('pc-feed-post-changed', changed);
+    return () => { live = false; coordinator.dispose(); if (feedLiveRef.current === coordinator) feedLiveRef.current = null;
+      window.removeEventListener('pc-feed-post-changed', changed); };
+  }, [controller, load, state.owner, navigationSession.owner, navigationSession.scope, navigationStore, supabase]);
+
+  useEffect(() => {
+    feedLiveRef.current?.setWindow(feedLiveWindow(posts.map(post => ({ id: post.post_id, authorId: post.author_id })), interestAnchorRef.current));
+  }, [posts, state.owner, navigationSession.scope]);
+  useEffect(() => { feedLiveRef.current?.pendingChanged(); }, [pendingNew]);
+
+  useEffect(() => {
+    const visible = new Set<string>();
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        const id = (entry.target as HTMLElement).dataset.pid;
+        if (id) { if (entry.isIntersecting) visible.add(id); else visible.delete(id); }
+      });
+      const rows = controller.getSnapshot().rows;
+      const anchor = rows.find(row => visible.has(row.post_id))?.post_id ?? interestAnchorRef.current;
+      interestAnchorRef.current = anchor;
+      feedLiveRef.current?.setWindow(feedLiveWindow(rows.map(post => ({ id: post.post_id, authorId: post.author_id })), anchor));
+    }, { threshold: 0.01 });
+    interestObserverRef.current = observer;
+    listRef.current?.querySelectorAll<HTMLElement>('[data-pid]').forEach(element => observer.observe(element));
+    return () => { observer.disconnect(); interestObserverRef.current = null; };
+  }, [controller, state.owner]);
 
   // New posts pill: realtime inserts, debounced like the phone, never yanks scroll.
   useEffect(() => {
+    if (feedBroadcast || !state.owner || !pageVisible) return;
     const ch = supabase
       .channel("web_feed_new_posts")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "posts" }, (p) => {
@@ -269,7 +341,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); if (newDebounceRef.current) clearTimeout(newDebounceRef.current); };
-  }, [supabase, load]);
+  }, [supabase, load, feedBroadcast, state.owner, pageVisible]);
 
   // Lazy image elements prepare their own nearby pixels. Detached Image warms
   // cannot be reused for private no-store responses and duplicate those reads.

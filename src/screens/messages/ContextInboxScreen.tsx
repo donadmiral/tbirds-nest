@@ -13,37 +13,20 @@ import VerifiedBadge from '../../components/VerifiedBadge';
  * seller with ten enquiries needs to know which item each one is about, and
  * that is precisely what Facebook Marketplace messaging fails to show.
  */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator,
-  Image, RefreshControl, StatusBar,
+  Image, RefreshControl, StatusBar, AppState,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
-import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useUnreadStore } from '../../stores/unreadStore';
 import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
-
-type Row = {
-  conversation_id: string;
-  is_group: boolean;
-  other_id: string | null;
-  other_name: string | null;
-  other_username: string | null;
-  other_avatar: string | null;
-  last_message: string | null;
-  last_message_time: string | null;
-  last_message_sender_id: string | null;
-  unread_count: number;
-  context: string;
-  context_ref_id: string | null;
-  ref_title: string | null;
-  ref_subtitle: string | null;
-  ref_image: string | null;
-};
+import { navigationScope } from '../../lib/navigationCache';
+import { readContextInboxWindow, type ContextInboxWindow } from '../../services/contextInbox';
 
 function initials(name?: string | null) {
   if (!name) return 'U';
@@ -68,24 +51,57 @@ export default function ContextInboxScreen({ route, navigation }: any) {
   const { profile } = useAuthStore();
   const myId = (profile as any)?.id ?? null;
 
-  const [rows, setRows] = useState<Row[]>([]);
+  const scope = navigationScope();
+  const [collection, setCollection] = useState<ContextInboxWindow | null>(null);
+  const collectionRef = useRef(collection); collectionRef.current = collection;
+  const rows = collection?.scope === scope && collection.context === ctx ? collection.rows : [];
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorOperation = useRef<'refresh' | 'more'>('refresh');
+  const requestRef = useRef<AbortController | null>(null);
+  const generation = useRef(0), focused = useRef(false);
+  const currentIdentity = useRef({ scope, ctx, myId }); currentIdentity.current = { scope, ctx, myId };
 
-  const load = useCallback(async () => {
-    setError(null);
-    const { data, error: err } = await supabase.rpc('get_conversations_by_context', {
-      p_context: ctx, p_include_groups: false,
+  const load = useCallback(async (more = false, pulled = false) => {
+    if (!myId || !scope || !focused.current || AppState.currentState !== 'active') return;
+    const previous = collectionRef.current?.scope === scope && collectionRef.current.context === ctx ? collectionRef.current : null;
+    if (more && (requestRef.current || !previous?.paging?.cursor)) return;
+    const version = ++generation.current;
+    requestRef.current?.abort();
+    const request = new AbortController(); requestRef.current = request;
+    const current = () => focused.current && generation.current === version && !request.signal.aborted
+      && currentIdentity.current.scope === scope && currentIdentity.current.ctx === ctx
+      && currentIdentity.current.myId === myId && navigationScope() === scope;
+    setError(null); setLoading(!previous?.rows.length); setRefreshing(pulled); setLoadingMore(more);
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const result = await Promise.race([readContextInboxWindow(myId, ctx, previous, more, request.signal, current),
+        new Promise<never>((_resolve, reject) => { timeout = setTimeout(() => reject(new Error('The conversation read took too long.')), 12000); })]);
+      if (!current()) return;
+      collectionRef.current = result; setCollection(result);
+      if (!more) void useUnreadStore.getState().refresh();
+    } catch {
+      if (current()) {
+        errorOperation.current = more ? 'more' : 'refresh';
+        setError(more ? 'More conversations could not be loaded. Please try again.' : 'Conversations could not be loaded. Please try again.');
+      }
+    } finally {
+      clearTimeout(timeout);
+      if (current()) { setLoading(false); setRefreshing(false); setLoadingMore(false); }
+      request.abort(); if (requestRef.current === request) requestRef.current = null;
+    }
+  }, [myId, scope, ctx]);
+
+  useFocusEffect(useCallback(() => {
+    focused.current = true; void load();
+    const appState = AppState.addEventListener('change', state => {
+      if (state === 'active') void load();
+      else { generation.current++; requestRef.current?.abort(); requestRef.current = null; }
     });
-    if (err) { setError(err.message); setLoading(false); setRefreshing(false); return; }
-    setRows((data ?? []) as Row[]);
-    setLoading(false);
-    setRefreshing(false);
-    useUnreadStore.getState().refresh();
-  }, [ctx]);
-
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+    return () => { focused.current = false; generation.current++; requestRef.current?.abort(); requestRef.current = null; appState.remove(); };
+  }, [load]));
 
   const title = ctx === 'market' ? 'Market messages' : 'Job messages';
   const emptyTitle = ctx === 'market' ? 'No buyer or seller chats' : 'No recruiter chats';
@@ -106,12 +122,12 @@ export default function ContextInboxScreen({ route, navigation }: any) {
 
       {loading ? (
         <View style={s.centered}><ActivityIndicator color={getTheme().brand.base} /></View>
-      ) : error ? (
+      ) : error && rows.length === 0 ? (
         <View style={s.centered}>
           <Feather name="alert-circle" size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>Could not load messages</Text>
           <Text style={s.emptySub}>{error}</Text>
-          <TouchableOpacity style={s.cta} onPress={() => { setLoading(true); load(); }}>
+          <TouchableOpacity style={s.cta} onPress={() => { void load(); }}>
             <Text style={s.ctaTxt}>Try again</Text>
           </TouchableOpacity>
         </View>
@@ -125,7 +141,15 @@ export default function ContextInboxScreen({ route, navigation }: any) {
         <FlatList ListEmptyComponent={<EmptyState icon="inbox" title="No conversations" line="Chats about your listings and jobs appear here." />}
           data={rows}
           keyExtractor={r => r.conversation_id}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={getTheme().ink.faint} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { void load(false, true); }} tintColor={getTheme().ink.faint} />}
+          onEndReached={() => { if (!error) void load(true); }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={error ? <View style={{ padding: space.md, alignItems: 'center' }}>
+            <Text style={s.emptySub}>{error}</Text>
+            <TouchableOpacity style={s.cta} accessibilityRole="button" accessibilityLabel="Retry conversations" onPress={() => { void load(errorOperation.current === 'more'); }}>
+              <Text style={s.ctaTxt}>Try again</Text>
+            </TouchableOpacity>
+          </View> : loadingMore ? <View style={{ padding: space.md }}><ActivityIndicator color={getTheme().brand.base} /></View> : null}
           contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item }) => {

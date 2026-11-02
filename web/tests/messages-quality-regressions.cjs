@@ -12,6 +12,14 @@ const sources = {
   '@/lib/profileLookup': compile(path.join(root, 'lib/profileLookup.ts')),
   '@/lib/withTimeout': compile(path.join(root, 'lib/withTimeout.ts')),
   '@/components/MessagesApp': compile(path.join(root, 'components/MessagesApp.tsx')),
+  '@/components/ForwardConversationPicker': compile(path.join(root, 'components/ForwardConversationPicker.tsx')),
+  '@/components/MarketUnreadDot': compile(path.join(root, 'components/MarketUnreadDot.tsx')),
+  '@/lib/messagesActual': compile(path.join(root, 'lib/messages.ts')),
+  '../../shared/pagedReaders': compile(path.join(root, '../shared/pagedReaders.ts')),
+  '../../shared/inboxWindow': compile(path.join(root, '../shared/inboxWindow.ts')),
+  '../../shared/inboxRefreshQueue': compile(path.join(root, '../shared/inboxRefreshQueue.ts')),
+  '../../shared/typingActivity': compile(path.join(root, '../shared/typingActivity.ts')),
+  './recoveryReader': compile(path.join(root, '../shared/recoveryReader.ts')),
   '@/lib/messageOutbox': compile(path.join(root, 'lib/messageOutbox.ts')),
   '../../shared/messageDelivery': compile(path.join(root, '../shared/messageDelivery.ts')),
   '@/lib/messageActions': compile(path.join(root, 'lib/messageActions.ts')),
@@ -27,6 +35,8 @@ const actions = moduleFor(sources['@/lib/messageActions']);
 const safeChatMedia = moduleFor(compile(path.join(root, 'lib/chatMedia.ts')));
 const id = n => '00000000-0000-4000-8000-' + String(n).padStart(12, '0');
 const row = (n, props = {}) => ({ id: id(n), conversation_id: 'a', sender_id: 'me', receiver_id: 'other', text: 'Message ' + n, media_url: null, media_type: null, reply_to_id: null, created_at: '2026-10-20T10:00:00.123456+00:00', ...props });
+const inboxRows = count => Array.from({ length: count }, (_, n) => ({ id: `chat${n}`, title: `Conversation chat${n}`, other_id: 'other',
+  context: 'personal', is_group: false, unread: 0, last_message: `Preview ${n}`, last_message_time: new Date(Date.UTC(2026, 9, 30) - n * 60000).toISOString() }));
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 const text = node => typeof node === 'string' || typeof node === 'number' ? String(node) : Array.isArray(node) ? node.map(text).join('') : node?.type === 'RichText' ? node.props.text : text(node?.props?.children ?? '');
 function nodes(tree) { const out = []; const walk = node => { if (Array.isArray(node)) return node.forEach(walk); if (!node || typeof node !== 'object') return; out.push(node); if (typeof node.type === 'function') walk(node.type(node.props)); else walk(node.props?.children); }; walk(tree); return out; }
@@ -34,7 +44,9 @@ function nodes(tree) { const out = []; const walk = node => { if (Array.isArray(
 function scenario(initial = [row(1)], options = {}) {
   let rows = [...initial], reactions = [], pins = {}, tree, dirty = true, effects = [], layoutEffects = [], cursor = 0;
   const slots = [], writes = [], reads = [], rpcs = [], listeners = [], timers = new Set(), browserEvents = new Map(), domEvents = new Map();
-  const convs = ['a', 'b'].map(value => ({ id: value, title: 'Conversation ' + value, other_id: 'other', context: 'personal', is_group: !!options.group, unread: 0, last_message: '', last_message_time: null }));
+  const convs = options.conversations ?? ['a', 'b'].map(value => ({ id: value, title: 'Conversation ' + value, other_id: 'other', context: 'personal', is_group: !!options.group, unread: 0, last_message: '', last_message_time: null }));
+  let inboxReadOverride;
+  const intersections = new Set();
   let readOverride, writeOverride, rpcFailure = false;
   let authUser = 'me', authListener;
   const execute = async call => {
@@ -70,7 +82,28 @@ function scenario(initial = [row(1)], options = {}) {
       insert(input) { call.op = 'insert'; call.input = input; return chain; }, update(input) { call.op = 'update'; call.input = input; return chain; }, upsert(input) { call.op = 'upsert'; call.input = input; return chain; }, delete() { call.op = 'delete'; return chain; },
       then(ok,bad) { return Promise.resolve().then(() => execute(call)).then(ok,bad); },
     }; return chain; },
-    rpc: async (name, args) => { rpcs.push({ name, args }); if (rpcFailure) return { error: { message: 'denied' } }; if (name === 'set_pinned_message') pins[args.p_conversation_id] = args.p_message_id; return { data: null, error: null }; },
+    rpc: async (name, args) => {
+      rpcs.push({ name, args }); if (rpcFailure) return { error: { message: 'denied' } };
+      if (name === 'get_paged_reader_capabilities') return { data: { version: 1, inbox: !!options.paged, books: false }, error: null };
+      if (name === 'get_inbox_unread_totals_v2') {
+        if (inboxReadOverride) { const response = await inboxReadOverride({ totals: true, owner: authUser }); if (response) return response; }
+        return { data: { version: 2, personal: 0, market: options.marketUnread ?? 87, jobs: 0 }, error: null };
+      }
+      if (name === 'get_inbox_page_v2') {
+        if (inboxReadOverride) { const response = await inboxReadOverride(args); if (response) return response; }
+        let all = convs.filter(row => row.context === args.p_context && !row.denied);
+        if (args.p_ids) all = all.filter(row => args.p_ids.includes(row.id));
+        else all = all.filter(row => !(args.p_exclude_community && row.is_group && row.group_type === 'community')
+          && !(args.p_exclude_requests && row.request_pending)
+          && (args.p_filter === 'groups' ? row.is_group : args.p_filter === 'unread' ? row.unread > 0 : true)
+          && (!args.p_search?.trim() || (row.title + ' ' + (row.username ?? '')).toLowerCase().includes(args.p_search.trim().toLowerCase())));
+        const offset = args.p_cursor?.offset ?? 0, items = all.slice(offset, offset + args.p_limit), more = offset + items.length < all.length;
+        return { data: { version: 2, items, has_more: more, next_cursor: more ? { viewer: authUser, offset: offset + items.length } : null,
+          summary: { total: convs.length, archived_personal: 0 }, badges_included: false }, error: null };
+      }
+      if (name === 'set_pinned_message') pins[args.p_conversation_id] = args.p_message_id;
+      return { data: null, error: null };
+    },
     channel() { const chain = { on(event, filter, callback) { listeners.push({ filter, callback }); return chain; }, subscribe() { return chain; } }; return chain; }, removeChannel() {},
     storage: { from() { return { upload: async () => options.uploadResponse ? options.uploadResponse() : ({ error: options.uploadFailure ? { message: 'offline' } : null }), getPublicUrl: () => ({ data: { publicUrl: 'https://media.test/file' } }) }; } },
   };
@@ -90,10 +123,11 @@ function scenario(initial = [row(1)], options = {}) {
   const cache = new Map();
   const navValues = options.navigationValues || new Map();
   let navOwner = 'me', navScope = '1:me', navChanged = false, navRevision = 1;
+  const navListeners = new Set();
   const navigationStore = { getSnapshot:()=>({owner:navOwner,scope:navScope,changed:navChanged,initialized:true}), cache:{
     read:(scope,key)=>scope===navScope?navValues.get(key)??null:null,
     save:(scope,key,value)=>{if(scope!==navScope)return false;navValues.set(key,value);return true;},
-  }};
+  }, subscribe(fn) { navListeners.add(fn); return () => navListeners.delete(fn); }};
   const stored = new Map();
   const location = { pathname: '/messages', search: options.search || '' };
   const browserHistory = { state: {}, pushState(state, _, url) { this.state = state; location.search = new URL(url, 'https://example.test').search; }, replaceState(state, _, url) { this.state = state; location.search = new URL(url, 'https://example.test').search; } };
@@ -107,8 +141,17 @@ function scenario(initial = [row(1)], options = {}) {
     if (name === 'react/jsx-runtime') return runtime;
     if (name === '@/lib/supabase/client') return { createClient: () => client };
     if (name === '@/lib/navigationCache') return {getNavigationStore:()=>navigationStore};
-    if (name === '@/lib/messages') return { loadConversations: async (_owner,context='personal') => convs.filter(row=>row.context===context) };
-    if (name === '@/lib/chatMedia') return { signChatMedia: options.signChatMedia || (async rows => rows), isChatMediaUrl: safeChatMedia.isChatMediaUrl, withoutChatMedia: safeChatMedia.withoutChatMedia };
+    if (name === '@/lib/messages') {
+      const actual = load('@/lib/messagesActual');
+      return { ...actual, loadConversations: async (_owner,context='personal') => convs.filter(row=>row.context===context),
+        loadConversationWindow: options.paged ? actual.loadConversationWindow : async (scope, readOptions) => {
+          const items = convs.filter(row => row.context === readOptions.context);
+          return { items, paging: null, resolved: new Map(items.map(row => [row.id, row])) };
+        } };
+    }
+    if (name === '@/components/ForwardConversationPicker' && !options.forwardPicker) return { ForwardConversationPicker: props => runtime.jsx('div', { children:
+      props.conversations.filter(row => row.id !== props.activeId && !row.request_pending).map(row => runtime.jsx('button', { disabled: props.busy, onClick: () => props.onSelect(row), children: row.title })) }) };
+    if (name === '@/lib/chatMedia') return { signGroupAvatars: async rows => rows, signChatMedia: options.signChatMedia || (async rows => rows), isChatMediaUrl: safeChatMedia.isChatMediaUrl, withoutChatMedia: safeChatMedia.withoutChatMedia };
     if (name === '@/lib/feed') return { timeAgo: () => 'now' };
     if (name === 'next/link') return { __esModule: true, default: 'Link' };
     if (name === 'next/image') return { __esModule: true, default: 'img' };
@@ -117,13 +160,15 @@ function scenario(initial = [row(1)], options = {}) {
     vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, process:{env:options.env||{}}, Error, URLSearchParams, AbortController, crypto: require('node:crypto').webcrypto,
       window: { localStorage, addEventListener: browserDocument.addEventListener, removeEventListener: browserDocument.removeEventListener, location, history: browserHistory, matchMedia: () => ({ matches: !!options.narrow, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: browserDocument,
       navigator: options.navigator || {}, MediaRecorder: options.MediaRecorder, Blob,
-      queueMicrotask, setTimeout, clearTimeout, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => { const timer = setTimeout(fn,0); timers.add(timer); return timer; }, cancelAnimationFrame: clearTimeout,
+      queueMicrotask, setTimeout: (fn,delay) => setTimeout(fn, options.deadlineMs && delay === 12000 ? options.deadlineMs : delay), clearTimeout, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => { const timer = setTimeout(fn,0); timers.add(timer); return timer; }, cancelAnimationFrame: clearTimeout,
       ResizeObserver: class { observe() {} disconnect() {} }, MutationObserver: class { observe() {} disconnect() {} },
+      IntersectionObserver: class { constructor(callback) { this.callback = callback; } observe() { intersections.add(this.callback); } disconnect() { intersections.delete(this.callback); } },
     }); return module.exports;
   };
-  const Component = load('@/components/MessagesApp').MessagesApp;
+  const Component = options.marketBadge ? load('@/components/MarketUnreadDot').MarketUnreadDot
+    : options.forwardPicker ? load('@/components/ForwardConversationPicker').ForwardConversationPicker : load('@/components/MessagesApp').MessagesApp;
   const dom = { children: [], style: {}, scrollTop: 0, scrollHeight: 100, clientHeight: 50, value: 'selected-file', addEventListener(name, fn) { domEvents.set(name, fn); }, removeEventListener(name) { domEvents.delete(name); } };
-  function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component({context:options.context||'personal'}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const committed=layoutEffects; layoutEffects=[]; committed.forEach(effect => effect.cleanup?.()); committed.forEach(effect => effect.create()); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
+  function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component(options.forwardPicker ? { owner: authUser, context: options.context || 'personal', activeId: options.activeId ?? null, conversations: [], paged: true, busy: false, onSelect: options.onSelect ?? (()=>{}) } : {context:options.context||'personal'}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const committed=layoutEffects; layoutEffects=[]; committed.forEach(effect => effect.cleanup?.()); committed.forEach(effect => effect.create()); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
   render();
   return { navigationValues:navValues, client, rows: () => rows, writes, reads, rpcs, dom, listeners, location,
     find: predicate => nodes(tree).find(predicate), all: predicate => nodes(tree).filter(predicate),
@@ -131,9 +176,12 @@ function scenario(initial = [row(1)], options = {}) {
     click(label) { const n = nodes(tree).find(node => (node.type==='button' || node.props?.role==='button') && (text(node).trim()===label || node.props?.['aria-label']===label || node.props?.title===label)); assert.ok(n,'missing button '+label); assert.ok(!n.props.disabled,'button disabled '+label); const result=n.props.onClick(); render(); return result; },
     open(name) { const n=nodes(tree).find(node => node.type==='button' && node.props?.['aria-label']==='Open conversation with Conversation '+name); assert.ok(n); const result=n.props.onClick(); render(); return result; },
     draft(value) { const n=nodes(tree).find(node => node.type==='textarea'); n.props.onChange({target:{value}}); render(); },
-    changeUser(value) { authUser = value; navOwner=value;navScope=value?`${++navRevision}:${value}`:null;navChanged=true;navValues.clear();authListener('SIGNED_IN', value ? { user: { id: value } } : null); render(); },
+    changeUser(value) { authUser = value; navOwner=value;navScope=value?`${++navRevision}:${value}`:null;navChanged=true;navValues.clear();navListeners.forEach(fn=>fn());authListener?.('SIGNED_IN', value ? { user: { id: value } } : null); render(); },
     changeContext(value) {options.context=value;dirty=true;render();},
     setRead(fn) { readOverride=fn; }, setWrite(fn) { writeOverride=fn; }, setRpcFailure(value) { rpcFailure=value; },
+    setInboxRead(fn) { inboxReadOverride=fn; },
+    search(value) { const input = nodes(tree).find(node => node.type === 'input' && node.props?.['aria-label'] === 'Search conversations'); input.props.onChange({ target: { value } }); render(); },
+    intersect() { for (const callback of [...intersections]) callback([{ isIntersecting: true }]); render(); },
     event(name, payload = {}) { for (const fn of browserEvents.get(name) || []) fn(payload); render(); },
     visible(value) { browserDocument.visibilityState = value ? 'visible' : 'hidden'; this.event('visibilitychange'); },
     focused(value) { options.focused = value; this.event('focus'); },
@@ -413,4 +461,161 @@ test('changing message business context on a mounted screen restores only that c
  app.changeContext('market');assert.ok(!app.text.includes('Message 1'));assert.equal(app.find(n=>n.type==='textarea'),undefined);await app.flush();
  assert.equal(app.navigationValues.get('messages:personal').draft,'Private personal draft');
  app.changeContext('personal');assert.ok(app.text.includes('Message 1'));assert.equal(app.find(n=>n.type==='textarea').props.value,'Private personal draft');await app.flush();app.unmount();
+});
+
+test('paged web inbox opens thirty rows and scrolls through the complete inbox without duplicate cards', async () => {
+  const conversations = inboxRows(95), app = scenario([], { conversations, paged: true });
+  await app.flush();
+  const cards = () => app.all(node => node.type === 'button' && node.props?.['aria-label']?.startsWith('Open conversation with'));
+  assert.equal(cards().length, 30);
+  const first = app.rpcs.filter(call => call.name === 'get_inbox_page_v2');
+  assert.equal(first.length, 1); assert.equal(first[0].args.p_limit, 30); assert.equal(first[0].args.p_include_deleted, true);
+  app.intersect(); await app.flush(); assert.equal(cards().length, 60);
+  app.intersect(); await app.flush(); assert.equal(cards().length, 90);
+  app.intersect(); await app.flush(); assert.equal(cards().length, 95);
+  assert.equal(new Set(cards().map(node => node.key)).size, 95);
+  app.unmount(); assert.equal(app.navigationValues.get('messages:personal').inboxPaging.cursor, null);
+});
+
+test('web search and Unread find authorized conversations beyond the first page', async () => {
+  const conversations = inboxRows(100); conversations[95].title = 'Literal %_ needle'; conversations[95].unread = 4;
+  const app = scenario([], { conversations, paged: true }); await app.flush();
+  app.search('%_ needle'); await new Promise(resolve => setTimeout(resolve, 270)); await app.flush();
+  assert.ok(app.text.includes('Literal %_ needle')); assert.ok(!app.text.includes('Conversation chat0'));
+  const search = app.rpcs.filter(call => call.name === 'get_inbox_page_v2').at(-1);
+  assert.equal(search.args.p_search, '%_ needle'); assert.equal(search.args.p_cursor, null);
+  app.search(''); await new Promise(resolve => setTimeout(resolve, 270)); await app.flush();
+  app.click('Unread'); await new Promise(resolve => setTimeout(resolve, 270)); await app.flush();
+  assert.ok(app.text.includes('Literal %_ needle'));
+  assert.equal(app.rpcs.filter(call => call.name === 'get_inbox_page_v2').at(-1).args.p_filter, 'unread');
+  app.unmount();
+});
+
+test('a direct link outside page one resolves by ID and opens its messages without downloading the whole inbox', async () => {
+  const conversations = inboxRows(500), app = scenario([row(1, { conversation_id: 'chat450', text: 'Direct conversation content' })],
+    { conversations, paged: true, search: '?c=chat450' });
+  await app.flush(); assert.ok(app.text.includes('Direct conversation content'));
+  const reads = app.rpcs.filter(call => call.name === 'get_inbox_page_v2');
+  assert.equal(reads.length, 2); assert.equal(reads[0].args.p_limit, 30);
+  assert.deepEqual(Array.from(reads[1].args.p_ids), ['chat450']); assert.equal(reads[1].args.p_limit, 50);
+  app.unmount();
+});
+
+test('browser navigation to an unloaded conversation uses authorized lookup and a later Back cannot reopen it', async () => {
+  const conversations = inboxRows(100), app = scenario([row(1, { conversation_id: 'chat90', text: 'Unloaded conversation' })], { conversations, paged: true });
+  await app.flush(); app.location.search = '?c=chat90'; app.event('popstate'); await app.flush();
+  assert.ok(app.text.includes('Unloaded conversation'));
+  const gate = deferred(); let delayed = false;
+  app.setInboxRead(args => { if (args.p_ids?.includes('chat91')) { delayed = true; return gate.promise; } });
+  app.location.search = '?c=chat91'; app.event('popstate'); await app.flush(); assert.equal(delayed, true);
+  app.location.search = ''; app.event('popstate');
+  gate.resolve({ data: { version: 2, items: [conversations[91]], has_more: false, next_cursor: null, summary: { total: 100, archived_personal: 0 } }, error: null });
+  await app.flush(); assert.equal(app.find(node => node.type === 'textarea'), undefined); app.unmount();
+});
+
+test('returning to a paged inbox revalidates loaded tails and retains a selected chat outside the first page', async () => {
+  const conversations = inboxRows(80), messages = [row(1, { conversation_id: 'chat70', text: 'Retained active chat' })];
+  const first = scenario(messages, { conversations, paged: true }); await first.flush();
+  first.intersect(); await first.flush(); first.intersect(); await first.flush();
+  await first.open('chat70'); await first.flush(); first.draft('Retained draft'); first.unmount();
+  conversations[65].denied = true;
+  const restored = scenario(messages, { conversations, paged: true, navigationValues: first.navigationValues });
+  assert.ok(restored.text.includes('Retained active chat')); await restored.flush();
+  assert.ok(restored.text.includes('Retained active chat')); assert.equal(restored.find(node => node.type === 'textarea').props.value, 'Retained draft');
+  assert.ok(!restored.all(node => node.type === 'button').some(node => node.props?.['aria-label'] === 'Open conversation with Conversation chat65'));
+  assert.ok(restored.rpcs.some(call => call.name === 'get_inbox_page_v2' && call.args.p_ids?.includes('chat65')));
+  restored.unmount();
+});
+
+test('a message for an unloaded chat makes one canonical ID read and no full inbox reload', async () => {
+  const conversations = inboxRows(100), app = scenario([], { conversations, paged: true }); await app.flush();
+  const start = app.rpcs.length;
+  const listener = app.listeners.find(item => item.filter.table === 'messages' && item.filter.event === '*');
+  listener.callback({ new: { id: 'new-message', conversation_id: 'chat90' } });
+  listener.callback({ new: { id: 'newer-message', conversation_id: 'chat90' } });
+  await new Promise(resolve => setTimeout(resolve, 220)); await app.flush();
+  const reads = app.rpcs.slice(start).filter(call => call.name === 'get_inbox_page_v2');
+  assert.equal(reads.length, 1); assert.deepEqual(Array.from(reads[0].args.p_ids), ['chat90']);
+  assert.ok(app.text.includes('Conversation chat90')); app.unmount();
+});
+
+test('a receipt cannot be rolled back by an older full inbox response', async () => {
+  const conversations = inboxRows(40); conversations[0].unread = 9;
+  const app = scenario([row(1, { conversation_id: 'chat0', sender_id: 'other', receiver_id: 'me' })], { conversations, paged: true }); await app.flush();
+  const gate = deferred(); let delayed = false;
+  app.setInboxRead(args => { if (!args.p_ids && !delayed) { delayed = true; return gate.promise; } });
+  app.event('focus'); await new Promise(resolve => setTimeout(resolve, 220)); await app.flush(); assert.equal(delayed, true);
+  await app.open('chat0'); await app.flush();
+  gate.resolve({ data: { version: 2, items: conversations.slice(0, 30), has_more: true,
+    next_cursor: { viewer: 'me', offset: 30 }, summary: { total: 40, archived_personal: 0 } }, error: null });
+  await app.flush(); app.unmount();
+  assert.equal(app.navigationValues.get('messages:personal').conversations.find(row => row.id === 'chat0').unread, 0);
+});
+
+test('a late paged response cannot publish private conversations across an account round trip', async () => {
+  const conversations = inboxRows(40), app = scenario([], { conversations, paged: true }); await app.flush();
+  const gate = deferred(); let delayed = false;
+  app.setInboxRead(args => { if (!args.p_ids && !delayed) { delayed = true; return gate.promise; } });
+  app.event('focus'); await new Promise(resolve => setTimeout(resolve, 220)); await app.flush();
+  app.changeUser('other-account'); app.changeUser('me'); await new Promise(resolve => setTimeout(resolve, 1)); await app.flush();
+  gate.resolve({ data: { version: 2, items: [{ ...conversations[0], title: 'STALE PRIVATE CONVERSATION' }], has_more: false,
+    next_cursor: null, summary: { total: 1, archived_personal: 0 } }, error: null });
+  await app.flush(); assert.ok(!app.text.includes('STALE PRIVATE CONVERSATION')); app.unmount();
+});
+
+test('forwarding paginates its complete independent destination list including community chats', async () => {
+  const conversations = inboxRows(75); conversations[70].is_group = true; conversations[70].group_type = 'community';
+  let selected;
+  const app = scenario([], { conversations, paged: true, forwardPicker: true, activeId: 'chat0', onSelect: row => { selected = row; } });
+  await app.flush(); assert.equal(app.all(node => node.type === 'button').length, 29);
+  app.intersect(); await app.flush(); app.intersect(); await app.flush();
+  assert.ok(app.text.includes('Conversation chat70')); app.click('Conversation chat70'); assert.equal(selected.id, 'chat70');
+  const reads = app.rpcs.filter(call => call.name === 'get_inbox_page_v2');
+  assert.ok(reads.every(call => call.args.p_exclude_community === false && call.args.p_search === '' && call.args.p_filter === 'all'));
+  app.unmount();
+});
+
+test('the Market badge reads the complete exact total without loading any conversation page', async () => {
+  const app = scenario([], { paged: true, marketBadge: true, marketUnread: 8700 }); await app.flush();
+  assert.ok(app.text.includes('9+')); assert.equal(app.rpcs.filter(call => call.name === 'get_inbox_unread_totals_v2').length, 1);
+  assert.equal(app.rpcs.filter(call => call.name === 'get_inbox_page_v2').length, 0);
+  assert.equal(app.reads.filter(call => ['messages','conversations','conversation_members'].includes(call.table)).length, 0);
+  const before = app.rpcs.length; app.visible(false); app.event('focus'); await app.flush(); assert.equal(app.rpcs.length, before);
+  app.visible(true); await app.flush(); assert.equal(app.rpcs.filter(call => call.name === 'get_inbox_unread_totals_v2').length, 2); app.unmount();
+});
+
+test('a delayed Market unread result cannot cross a rapid account round trip', async () => {
+  const app = scenario([], { paged: true, marketBadge: true, marketUnread: 2 }); await app.flush();
+  const gate = deferred(); let held = false;
+  app.setInboxRead(args => { if (args.totals && !held) { held = true; return gate.promise; } });
+  app.event('focus'); await app.flush(); assert.equal(held, true);
+  app.changeUser('other-account'); app.changeUser('me'); await app.flush();
+  gate.resolve({ data: { version: 2, personal: 0, market: 8, jobs: 0 }, error: null }); await app.flush();
+  assert.equal(app.text.trim(), '2'); app.unmount();
+});
+
+test('an old authorized direct lookup cannot reopen a conversation removed by a newer full refresh', async () => {
+  const conversations = inboxRows(100), app = scenario([row(1, { conversation_id: 'chat90', text: 'Revoked secret' })], { conversations, paged: true });
+  await app.flush(); const gate = deferred(); let held = false;
+  const old = { ...conversations[90] };
+  app.setInboxRead(args => { if (args.p_ids?.includes('chat90') && !held) { held = true; return gate.promise; } });
+  app.location.search = '?c=chat90'; app.event('popstate'); await app.flush(); assert.equal(held, true);
+  conversations[90].denied = true; app.event('focus'); await new Promise(resolve => setTimeout(resolve, 220)); await app.flush();
+  gate.resolve({ data: { version: 2, items: [old], has_more: false, next_cursor: null, summary: { total: 99, archived_personal: 0 } }, error: null });
+  await app.flush(); assert.ok(!app.text.includes('Revoked secret')); assert.equal(app.find(node => node.type === 'textarea'), undefined);
+  assert.ok(!app.all(node => node.type === 'button').some(node => node.props?.['aria-label'] === 'Open conversation with Conversation chat90')); app.unmount();
+});
+
+test('a queued web full refresh holds its real transport across timeout and hidden-visible recovery', async () => {
+  const conversations = inboxRows(60), app = scenario([], { conversations, paged: true, deadlineMs: 40 }); await app.flush();
+  const gate = deferred(); let held = false;
+  const before = app.rpcs.filter(call => call.name === 'get_inbox_page_v2').length;
+  app.setInboxRead(args => { if (!args.p_ids && !held) { held = true; return gate.promise; } });
+  app.event('focus'); await new Promise(resolve => setTimeout(resolve, 280)); await app.flush(); assert.equal(held, true);
+  app.visible(false); app.visible(true); await new Promise(resolve => setTimeout(resolve, 220)); await app.flush();
+  assert.equal(app.rpcs.filter(call => call.name === 'get_inbox_page_v2').length, before + 1);
+  gate.resolve({ data: null, error: { message: 'late abort' } }); await app.flush();
+  await new Promise(resolve => setTimeout(resolve, 220)); await app.flush();
+  assert.equal(app.rpcs.filter(call => call.name === 'get_inbox_page_v2').length, before + 2);
+  assert.ok(app.text.includes('Conversation chat0')); app.unmount();
 });

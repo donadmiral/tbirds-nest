@@ -6,6 +6,8 @@ import type { StoryMediaTransform, StoryRow } from "@/lib/stories";
 import { memoryAlbumStoryLayers } from '../../shared/memoryStoryPresentation';
 import { withTimeout } from './withTimeout';
 import { retainMemoryBookMedia } from './memoryReadiness';
+import { readMemoryBookFirst, readMemoryBookNext, memoryBookHasMore, readMemoryShelfFirst, readMemoryShelfNext, readNextMemoryBook,
+  type MemoryPagination, type MemoryShelfPagination } from '../../shared/pagedReaders';
 
 export type MemoryPage = {
   id: string; media_url: string | null; media_type: string;
@@ -18,6 +20,7 @@ export type MemoryPage = {
 };
 export type MemoryAlbum = {
   _mediaExpiresAt?: number;
+  _pagination?: MemoryPagination;
   cover_artwork?: import('../../shared/memoryBookCreative').MemoryCoverArtwork; film_settings?: import('../../shared/memoryBookCreative').MemoryFilmSettings; presentation_revision?: number;
   subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null; cover_pages?: import('../../shared/memoryBookDesign').MemoryCoverPage[];
   id: string; user_id?: string; is_default?: boolean; cover_design?: string; soundtrack?: import("../../shared/soundtrack").SoundtrackSelection | null;
@@ -39,17 +42,34 @@ export async function getMemoryAlbum(ownerId: string): Promise<MemoryAlbum | nul
 
 export type MemoryBookInfo = { cover_artwork?: import('../../shared/memoryBookCreative').MemoryCoverArtwork; film_settings?: import('../../shared/memoryBookCreative').MemoryFilmSettings; presentation_revision?: number; id: string; title: string; subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null; cover_pages?: import('../../shared/memoryBookDesign').MemoryCoverPage[]; cover_color: string; cover_design?: string; audience: string; count: number; is_default?: boolean; is_owner?: boolean; can_view?: boolean };
 
-export type MemoryShelf = { is_owner: boolean; books: MemoryBookInfo[] };
+export type MemoryShelf = { is_owner: boolean; books: MemoryBookInfo[]; _pagination?: MemoryShelfPagination };
 
-export async function getMemoryBooks(ownerId: string, signal?: AbortSignal): Promise<MemoryShelf> {
+export async function getMemoryBooks(ownerId: string, signal?: AbortSignal, options: { partial?: boolean; minimumBooks?: number } = {}): Promise<MemoryShelf> {
   const supabase = createClient();
-  const query = supabase.rpc("get_memory_albums", { p_owner: ownerId });
-  const { data, error } = await (signal ? query.abortSignal(signal) : query);
-  if (error) throw error;
-  if (!data) throw new Error("Memory books unavailable");
-  const env = data as MemoryShelf | MemoryBookInfo[];
-  if (Array.isArray(env)) return { is_owner: false, books: await hydrateMemoryAlbumMedia(env as MemoryBookInfo[], supabase) };
-  return { is_owner: !!env.is_owner, books: await hydrateMemoryAlbumMedia((env.books ?? []) as MemoryBookInfo[], supabase) };
+  const { data, error } = await supabase.auth.getSession(); const viewer = data.session?.user.id;
+  if (error || !viewer) throw error ?? new Error('Sign in to view memory books.');
+  const scope = { viewer, token: data.session?.access_token, signal };
+  let shelf = await readMemoryShelfFirst<MemoryBookInfo>(supabase, ownerId, scope);
+  while (shelf._pagination?.cursor && (!options.partial || shelf.books.length < (options.minimumBooks ?? 12)
+    || (!shelf.is_owner && !shelf.books.some(book => book.count > 0)))) shelf = await readMemoryShelfNext(supabase, shelf, scope);
+  return { ...shelf, books: await hydrateMemoryAlbumMedia(shelf.books, supabase) };
+}
+
+export async function getMemoryBooksNext(previous: MemoryShelf, signal?: AbortSignal): Promise<MemoryShelf> {
+  const supabase = createClient(); const { data, error } = await supabase.auth.getSession(); const viewer = data.session?.user.id;
+  if (error || !viewer) throw error ?? new Error('Sign in to view memory books.');
+  const next = await readMemoryShelfNext(supabase, previous, { viewer, token: data.session?.access_token, signal });
+  const added = await hydrateMemoryAlbumMedia(next.books.slice(previous.books.length), supabase);
+  if (signal?.aborted) throw new Error('The collection changed.');
+  return { ...next, books: [...previous.books, ...added] };
+}
+export async function getNextMemoryBook(ownerId: string, albumId: string, signal?: AbortSignal): Promise<MemoryBookInfo | null> {
+  const supabase = createClient(); const { data, error } = await supabase.auth.getSession(); const viewer = data.session?.user.id;
+  if (error || !viewer) throw error ?? new Error('Sign in to view memory books.');
+  const result = await readNextMemoryBook<MemoryBookInfo>(supabase, albumId, true, { viewer, token: data.session?.access_token, signal });
+  if (result.supported) return result.book;
+  const shelf = await getMemoryBooks(ownerId, signal), at = shelf.books.findIndex(book => book.id === albumId);
+  return at >= 0 ? shelf.books[at + 1] ?? null : null;
 }
 
 export async function saveBookPresentation(albumId:string,title:string,color:string,audience:string,design:string,subtitle:string,coverStoryId:string|null):Promise<boolean> {
@@ -57,15 +77,23 @@ export async function saveBookPresentation(albumId:string,title:string,color:str
   return !error;
 }
 
-export async function getMemoryBook(albumId: string, options: { signal?: AbortSignal; previous?: MemoryAlbum | null; previousScope?: string | null; scope?: string | null } = {}): Promise<MemoryAlbum | null> {
+export type MemoryReadOptions = { signal?: AbortSignal; previous?: MemoryAlbum | null; previousScope?: string | null;
+  scope?: string | null; viewer?: string | null; current?: () => boolean; partial?: boolean; minimumPages?: number };
+export async function getMemoryBook(albumId: string, options: MemoryReadOptions = {}): Promise<MemoryAlbum | null> {
   const supabase = createClient();
   const controller = new AbortController(), abort = () => controller.abort();
   options.signal?.addEventListener('abort', abort, { once: true });
   if (options.signal?.aborted) controller.abort();
   try {
     return await withTimeout((async () => {
-      const { data, error } = await supabase.rpc("get_memory_book", { p_album: albumId }).abortSignal(controller.signal);
-      if (error) throw error;
+      const { data: session, error } = await supabase.auth.getSession();
+      const viewer = session.session?.user.id;
+      if (error || !viewer || (options.viewer && viewer !== options.viewer)) throw error ?? new Error('The account changed.');
+      const scope = { viewer, token: session.session?.access_token, signal: controller.signal, current: options.current };
+      let data = await readMemoryBookFirst<MemoryAlbum>(supabase, albumId, scope);
+      while (data && memoryBookHasMore(data) && (!options.partial || data.pages.length < (options.minimumPages ?? 24))) {
+        data = await readMemoryBookNext(supabase, data, scope);
+      }
       if (controller.signal.aborted) throw new Error('Memory loading was cancelled.');
       if (!data) return null;
       const incoming = memoryAlbumStoryLayers(data as MemoryAlbum);
@@ -77,6 +105,18 @@ export async function getMemoryBook(albumId: string, options: { signal?: AbortSi
       return album;
     })(), 12_000);
   } finally { controller.abort(); options.signal?.removeEventListener('abort', abort); }
+}
+
+export async function getMemoryBookNext(previous: MemoryAlbum, options: MemoryReadOptions): Promise<MemoryAlbum> {
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.getSession(); const viewer = data.session?.user.id;
+  if (error || !viewer || (options.viewer && viewer !== options.viewer)) throw error ?? new Error('The account changed.');
+  return withTimeout(readMemoryBookNext(supabase, previous, { viewer, token: data.session?.access_token,
+    signal: options.signal, current: options.current }, async chunk => {
+      const [hydrated] = await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(chunk)], { auth: supabase.auth,
+        functions: { invoke: (name, request) => supabase.functions.invoke(name, { ...request, signal: options.signal }) } });
+      return hydrated;
+    }), 12_000);
 }
 
 export async function addMemoryPage(storyId: string, albumId?: string): Promise<boolean> {

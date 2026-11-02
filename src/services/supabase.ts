@@ -3,6 +3,7 @@ import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, processLock } from '@supabase/supabase-js';
 import { createAuthDeadlineFetch } from '../../shared/authFetch';
+import { reportNetworkActivity } from '../../shared/networkActivity';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -64,6 +65,9 @@ export const supabase = createClient(url, anonKey, {
       if (callerSignal) { try { callerSignal.addEventListener('abort', abortFromCaller, { once: true }); } catch {} }
       const merged = { ...init, signal: ctrl.signal };
       return fetch(input, merged).then((res) => {
+        // Even a denied/error HTTP response proves reachability. Navigation
+        // cancellation below must never be reported as a network outage.
+        reportNetworkActivity(true);
         // error lens folded in - 401 now VISIBLE, only 406 (no-row) excluded
         if (__DEV__ && !res.ok && res.status !== 406) {
           res.clone().text().then((body) => {
@@ -72,6 +76,9 @@ export const supabase = createClient(url, anonKey, {
           }).catch(() => {});
         }
         return res;
+      }).catch(error => {
+        if (!callerSignal?.aborted) reportNetworkActivity(false);
+        throw error;
       }).finally(() => {
         clearTimeout(timer);
         if (callerSignal) { try { callerSignal.removeEventListener('abort', abortFromCaller); } catch {} }

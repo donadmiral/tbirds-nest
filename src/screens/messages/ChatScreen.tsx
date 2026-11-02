@@ -67,6 +67,7 @@ import { deliverMessage, makeMessageId, type MessageIntent } from '../../../shar
 import { canForwardMessage } from '../../../shared/messageContent';
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from '../../../shared/messageHistory';
 import { acknowledgeConversationRead, canMarkConversationRead } from '../../../shared/messageReceipts';
+import { createTypingActivity, type TypingRow } from '../../../shared/typingActivity';
 import { parseStoryMessageReference } from '../../../shared/storyMessageReference';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) { UIManager.setLayoutAnimationEnabledExperimental(true); }
@@ -989,17 +990,33 @@ export default function ChatScreen() {
     }
   }, [conversationId, hasOlder, loading, loadReactions]);
 
-  const fetchTyping = useCallback(async () => {
+  useEffect(() => {
+    setOtherTyping(false); setTypingUserId(null);
+    if (!conversationId || !currentUserId || !focused) return;
+    let live = true;
     const scope = accountScopeRef.current;
-    if (!conversationId || !currentUserId) return;
-    try {
-      const { data } = await supabase.from('conversation_typing').select('*').eq('conversation_id', conversationId);
-      if (scope !== accountScopeRef.current || activeConversation.current !== conversationId || !mountedRef.current) return;
-      const freshTypers = (data || []).filter((r: any) => r.user_id !== currentUserId && r.is_typing && (Date.now() - new Date(r.updated_at).getTime() >= 0 && Date.now() - new Date(r.updated_at).getTime() < 7000));
-      setTypingUserId(freshTypers[0]?.user_id ?? null);
-      setOtherTyping(freshTypers.length > 0);
-    } catch {}
-  }, [conversationId, currentUserId]);
+    const current = () => live && scope === accountScopeRef.current && activeConversation.current === conversationId;
+    const typing = createTypingActivity({
+      active: AppState.currentState === 'active',
+      accept: row => row.conversation_id === conversationId && row.user_id !== currentUserId,
+      onChange: rows => {
+        if (!current()) return;
+        setTypingUserId(rows[0]?.user_id ?? null); setOtherTyping(rows.length > 0);
+      },
+      read: async signal => {
+        const { data, error } = await supabase.from('conversation_typing').select('*').eq('conversation_id', conversationId).abortSignal(signal);
+        if (error) throw error;
+        return current() ? (data ?? []) as TypingRow[] : [];
+      },
+    });
+    const channel = supabase.channel(`typing_${conversationId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_typing', filter: `conversation_id=eq.${conversationId}` },
+        payload => { if (current()) typing.change(payload); })
+      .subscribe(status => typing.status(status));
+    const appState = AppState.addEventListener('change', state => typing.setActive(state === 'active'));
+    typing.refresh();
+    return () => { live = false; typing.dispose(); appState.remove(); void supabase.removeChannel(channel); };
+  }, [conversationId, currentUserId, focused, accountScope]);
 
   const setTyping = useCallback(async (isTyping: boolean) => {
     if (!conversationId || !currentUserId) return;
@@ -1037,7 +1054,6 @@ export default function ChatScreen() {
       messagesRef.current = []; setMessages([]); historyCursor.current = null; setHasOlder(false); setLoadingOlder(false); olderPending.current = false;
     }
     fetchMessages();
-    fetchTyping();
     if (!conversationId) return () => { mountedRef.current = false; };
 
     const msgCh = supabase
@@ -1063,17 +1079,6 @@ export default function ChatScreen() {
       )
       .subscribe();
 
-    const typeCh = supabase
-      .channel(`typing_${conversationId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'conversation_typing', filter: `conversation_id=eq.${conversationId}` },
-        () => fetchTyping()
-      )
-      .subscribe();
-
-    const typePoll = setInterval(fetchTyping, 3000);
-
     const reactCh = supabase
       .channel(`reactions_${conversationId}`)
       .on(
@@ -1092,10 +1097,9 @@ export default function ChatScreen() {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       setTyping(false);
       supabase.removeChannel(msgCh);
-      clearInterval(typePoll); supabase.removeChannel(typeCh);
       supabase.removeChannel(reactCh);
     };
-  }, [conversationId, currentUserId, fetchMessages, fetchTyping, markRead, mergeMsg, refreshStatus, setTyping, loadReactions, accountScope]);
+  }, [conversationId, currentUserId, fetchMessages, markRead, mergeMsg, refreshStatus, setTyping, loadReactions, accountScope]);
 
   const handleTextChange = useCallback((text: string) => {
     setMessage(text);

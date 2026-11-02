@@ -38,8 +38,10 @@ function model(dau, scenario) {
   const imageBytes = dau * s.imagesViewedPerDau * s.averageImageBytes;
   const mediaBytes = videoBytes + imageBytes;
   const activeSeconds = dau * s.activeMinutesPerDau * 60;
-  // Source-derived intervals, conditional on mounted clients using the reviewed code.
-  // Native runtimes can remain mounted longer than active minutes, so this omits that extra traffic.
+  // Historical timer reference from the initial audit, before event-driven
+  // recovery replaced these idle loops. Retain it for comparison, never as a
+  // prediction of the new client's traffic. Entry/reconnect/failure work must
+  // be measured separately; removing a timer does not make that work zero.
   const polling = {
     nativeHealthRequests: dailyRate(activeSeconds * s.nativeShareOfActiveTime / 5),
     webCallRecoverySqlReads: dailyRate(activeSeconds * (1 - s.nativeShareOfActiveTime) * s.webIdleCallRecoveryFraction * 2 / 30),
@@ -74,7 +76,17 @@ function model(dau, scenario) {
       illustrativeOriginBytesPerDay: mediaBytes * (1 - s.illustrativeMediaByteCacheHitRatio),
       candidateProxyAuthorizationChecks: dailyRate(dau * s.mediaHttpRequestsPerDau * s.candidateProxyMediaRequestFraction * 2),
     },
-    sourcePolling: { ...polling, totalNetworkOperations: dailyRate(unnecessaryPolls) },
+    sourcePolling: {
+      kind: 'legacy-timer-reference-before-event-driven-recovery',
+      describesCurrentCandidate: false,
+      ...polling,
+      totalNetworkOperations: dailyRate(unnecessaryPolls),
+    },
+    candidateBackgroundRecovery: {
+      kind: 'event-driven-recovery-requires-measurement',
+      networkOperationsPerDay: null,
+      note: 'Healthy idle timers were removed. Entry, subscription handshakes, foreground, reconnect, active calls, queued writes and failed reads still generate work; no measured daily event rate is supplied here.',
+    },
     events: {
       postsCreated: dailyRate(posts),
       likes: dailyRate(dau * s.likesPerDau),
@@ -112,8 +124,8 @@ function calculate(config) {
     units: 'Decimal bytes, GB=1e9 and PB=1e15. Peak factors are planning assumptions, not measured percentiles.',
     caveats: [
       'DAU is shared across phone and web, not a separate allowance for each platform. Admin workload is additional.',
-      'Application requests exclude media transfer and the separately listed background polls. Do not sum them with observed totals without deduplication.',
-      'Polling is conditional on reviewed client code and modeled screen shares. The total combines health HTTP requests and PostgREST reads, not database QPS.',
+      'Application requests exclude media transfer and separately listed background activity. Do not sum them with observed totals without deduplication.',
+      'sourcePolling is a historical timer reference, not traffic from the current event-driven candidate. It combines health HTTP requests and PostgREST reads, not database QPS. Candidate entry/reconnect/failure work remains unmeasured and is not assumed to be zero.',
       'nativeShareOfActiveTime partitions active session-time, not distinct people. Web call recovery uses the explicit idle fraction and assumes scans finish within the interval. Overlap guards, busy calls and slow requests can reduce it.',
       'One active user is modeled as one active session. Extra devices, open tabs, retries, reconnect storms and inactive mounted runtimes add demand.',
       'Media cache ratio is an illustrative byte hit ratio, not a measured request hit ratio. It does not remove authorization or ticket work automatically.',
@@ -128,7 +140,7 @@ function calculate(config) {
 }
 
 function csv(report) {
-  const columns = ['scenario', 'dau', 'average_active', 'peak_active', 'peak_realtime_connections', 'application_requests_per_day', 'peak_application_rps', 'media_PB_per_day', 'media_PB_per_30_days', 'peak_delivery_Gbps', 'modeled_extra_poll_operations_per_day', 'peak_modeled_extra_poll_operations_per_second'];
+  const columns = ['scenario', 'dau', 'average_active', 'peak_active', 'peak_realtime_connections', 'application_requests_per_day', 'peak_application_rps', 'media_PB_per_day', 'media_PB_per_30_days', 'peak_delivery_Gbps', 'legacy_timer_reference_operations_per_day', 'legacy_timer_reference_peak_operations_per_second'];
   const rows = report.results.map(r => [r.scenario, r.dau, r.concurrency.averageActive, r.concurrency.peakActive, r.concurrency.peakRealtimeConnections, r.applicationRequests.perDay, r.applicationRequests.peakPerSecond, r.media.totalDecimalPetabytesPerDay, r.media.totalDecimalPetabytesPer30Days, r.media.peakDeliveredGigabitsPerSecond, r.sourcePolling.totalNetworkOperations.perDay, r.sourcePolling.totalNetworkOperations.peakPerSecond]);
   return [columns, ...rows].map(row => row.join(',')).join('\n') + '\n';
 }

@@ -20,23 +20,38 @@ function load(options = {}) {
   const firstRead = new Promise((resolve, reject) => {resolveRead=resolve;rejectRead=reject;});
   const storage = {getItem:()=>firstRead, setItem:async(key,value)=>{if(options.failWrites)throw new Error('storage unavailable');writes.push(value);disk=value;},removeItem:async()=>{disk=null;}};
   const client = {auth:{getSession:async()=>({data:{session:account ? {user:{id:account}}:null},error:null})}};
+  const listeners = new Set(); let probes = 0;
+  const appState = { currentState: 'active', addEventListener(_name, callback) { listeners.add(callback); return { remove() { listeners.delete(callback); } }; } };
+  const clock = { setTimeout: options.setTimeout ?? setTimeout, clearTimeout: options.clearTimeout ?? clearTimeout };
   const module = {exports:{}};
   const source = fs.readFileSync(path.join(root,'src/stores/netStore.ts'),'utf8')+'\nexport { flushOutbox as flushForTest };';
   const code = ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
+  const shared = new Map();
   function mockRequire(name) {
     if(name === '@react-native-async-storage/async-storage')return storage;
-    if(name === 'react-native')return {AppState:{addEventListener(){return{remove(){}};}}};
+    if(name === 'react-native')return {AppState:appState};
     if(name === '../services/supabase')return {supabase:client};
     if(name === '../../shared/messageDelivery')return {deliverMessage:async(_client,intent,reconcileFirst)=>{
       deliveries.push({intent,reconcileFirst,account});
       return options.deliver ? options.deliver(intent,deliveries.length) : {status:'confirmed',row:{...intent,created_at:new Date().toISOString()}};
     }};
+    if(name.startsWith('../../shared/')) {
+      if (!shared.has(name)) {
+        const dependency = { exports: {} };
+        const output = ts.transpileModule(fs.readFileSync(path.join(root,'shared',name.split('/').at(-1)+'.ts'),'utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+        vm.runInNewContext(output,{module:dependency,exports:dependency.exports,AbortController,...clock});
+        shared.set(name,dependency.exports);
+      }
+      return shared.get(name);
+    }
     return require(name);
   }
-  vm.runInNewContext(code,{module,exports:module.exports,require:mockRequire,process:{env:{}},console,AbortController,setTimeout,clearTimeout,setInterval:()=>0,fetch:async()=>({status:200})});
+  vm.runInNewContext(code,{module,exports:module.exports,require:mockRequire,process:{env:{}},console,AbortController,...clock,setInterval:()=>0,fetch:async()=>{probes++;return{status:200};}});
   return {store:module.exports.useNetStore,flush:module.exports.flushForTest,retry:module.exports.retryOutboxMessage,writes,deliveries,
     resolve:()=>resolveRead(saved),reject:()=>rejectRead(new Error('cannot read saved outbox')),
-    disk:()=>disk && JSON.parse(disk).state.outbox,account:value=>{account=value;}};
+    disk:()=>disk && JSON.parse(disk).state.outbox,account:value=>{account=value;}, init:module.exports.initNet,
+    state(value){appState.currentState=value;listeners.forEach(listener=>listener(value));},
+    outcome(value){mockRequire('../../shared/networkActivity').reportNetworkActivity(value);},probes:()=>probes};
 }
 test('enqueue and connectivity changes wait for hydration and preserve old plus new messages',async()=>{
   const h=load({saved:[queued(1)]});
@@ -83,4 +98,23 @@ test('checking a selected message does not get stuck behind an earlier pending i
   h.resolve();await pause();await h.retry(queued(2).key);await pause();
   assert.deepEqual(h.deliveries.map(x=>x.intent.id),[queued(2).id]);
   assert.deepEqual(Array.from(h.store.getState().outbox,x=>x.id),[queued(1).id]);
+});
+test('actual native outbox wiring starts no idle loop and resumes persisted work only in foreground',async()=>{
+  const timers=new Map();let id=0;
+  const h=load({setTimeout(fn,ms){timers.set(++id,{fn,ms});return id;},clearTimeout(key){timers.delete(key);}});
+  h.resolve();await pause();h.init();await pause();
+  assert.equal(h.probes(),1);assert.equal(timers.size,0,'healthy empty outbox must have no recurring timer');
+  await h.store.getState().enqueue(queued(1));await pause();assert.equal(timers.size,1);assert.equal(h.deliveries.length,0,'immediate sender gets first chance');
+  h.state('background');h.outcome(true);await pause();assert.equal(timers.size,0);assert.equal(h.deliveries.length,0);
+  h.state('active');await pause();await pause();assert.equal(h.probes(),2);
+  assert.equal(h.deliveries.length,1);assert.equal(h.deliveries[0].reconcileFirst,true);assert.equal(h.store.getState().outbox.length,0);assert.equal(timers.size,0);
+  h.state('background');
+});
+test('foreign saved outbox rows do not keep retrying and regain their owner on a real authenticated response',async()=>{
+  const timers=new Map();let id=0;
+  const h=load({saved:[queued(1,{owner_auth_id:another,sender_id:another})],setTimeout(fn,ms){timers.set(++id,{fn,ms});return id;},clearTimeout(key){timers.delete(key);}});
+  const tick=async()=>{const [key,timer]=[...timers.entries()][0];timers.delete(key);timer.fn();await pause();await pause();};
+  h.resolve();await pause();h.init();await pause();await pause();assert.equal(h.deliveries.length,0);assert.equal(timers.size,0);
+  h.account(another);h.outcome(true);await pause();await tick();assert.equal(h.deliveries.length,1);assert.equal(h.deliveries[0].account,another);assert.equal(timers.size,0);
+  h.state('background');
 });

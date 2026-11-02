@@ -43,7 +43,7 @@ test('native tab effect restores For You immediately and distinguishes a first v
    visibleFeedScope:'alice:forYou:all',posts:[{id:'first',user_id:'author'}],profilesMap:{author:{id:'author'}},likedPosts:{first:true},bookmarkedPosts:{},repostedPosts:{},
    feedModeRef:{current:'forYou'},discoverCatRef:{current:'all'},modeFirstRun:{current:false},feedScopeRef:{current:'alice:trending:all'},
    cursorRef:{current:{key:1,id:'first'}},hasMoreRef:{current:false},scrollOffsetRef:{current:200},discoverPageRef:{current:{asOf:'2026-10-29T00:00:00Z',offset:0}},
-   hiddenIdsRef:{current:new Set()},postsRef:{current:[]},restoredSnapshotRef:{current:false},pendingPostsRef:{current:[]},
+   hiddenIdsRef:{current:new Set()},postsRef:{current:[]},feedMediaScopeRef:{current:'alice:1'},restoredSnapshotRef:{current:false},pendingPostsRef:{current:[]},
    feedListRef:{current:{scrollToOffset:value=>scrolls.push(value)}},requestAnimationFrame:fn=>frames.push(fn),loadFeedRef:{current:(...args)=>calls.push(args)},Date};
  for(const [setter,key] of [['setPosts','posts'],['setProfilesMap','profilesMap'],['setLikedPosts','likedPosts'],['setBookmarkedPosts','bookmarkedPosts'],['setRepostedPosts','repostedPosts'],['setVisibleFeedScope','visibleFeedScope'],['setLoading','loading'],['setFeedError','feedError'],['setPendingPostCount','pending']])context[setter]=value=>{context[key]=value;state[key]=value;};
  vm.createContext(context);vm.runInContext('var changeTab = '+callback,context);context.changeTab();
@@ -70,7 +70,7 @@ test('native cached disk snapshot keeps its pending cursor refresh across tab ch
    visibleFeedScope:'alice:forYou:all',posts:[{id:'first',user_id:'author'}],profilesMap:{author:{id:'author'}},likedPosts:{first:true},bookmarkedPosts:{},repostedPosts:{},
    feedModeRef:{current:'forYou'},discoverCatRef:{current:'all'},modeFirstRun:{current:false},feedScopeRef:{current:'alice:trending:all'},
    cursorRef:{current:null},hasMoreRef:{current:false},scrollOffsetRef:{current:200},discoverPageRef:{current:{asOf:'2026-10-29T00:00:00Z',offset:0}},
-   hiddenIdsRef:{current:new Set()},postsRef:{current:[]},restoredSnapshotRef:{current:true},pendingPostsRef:{current:[]},
+   hiddenIdsRef:{current:new Set()},postsRef:{current:[]},feedMediaScopeRef:{current:'alice:1'},restoredSnapshotRef:{current:true},pendingPostsRef:{current:[]},
    feedListRef:{current:{scrollToOffset:()=>{}}},requestAnimationFrame:fn=>fn(),loadFeedRef:{current:(...args)=>calls.push(args)},Date};
  for(const [setter,key] of [['setPosts','posts'],['setProfilesMap','profilesMap'],['setLikedPosts','likedPosts'],['setBookmarkedPosts','bookmarkedPosts'],['setRepostedPosts','repostedPosts'],['setVisibleFeedScope','visibleFeedScope'],['setLoading','loading'],['setFeedError','feedError'],['setPendingPostCount','pending']])context[setter]=value=>{context[key]=value;state[key]=value;};
  vm.createContext(context);vm.runInContext('var changeTab = '+callback,context);context.changeTab();

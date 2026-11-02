@@ -13,9 +13,12 @@ const ticks = async () => { await Promise.resolve(); await Promise.resolve(); };
 function load(file, { width = 320, height = 568, thumbnail = async () => ({ uri: 'frame.jpg' }), transform } = {}) {
   let cursor = 0, timerId = 0;
   const state = [], effects = [], dependencies = [], cleanups = [], timers = new Map();
+  const readinessContext = require('react').createContext(null);
   const hooks = {
     useState(value) { const i = cursor++; if (!(i in state)) state[i] = typeof value === 'function' ? value() : value; return [state[i], next => { state[i] = typeof next === 'function' ? next(state[i]) : next; }]; },
     useRef(value) { const i = cursor++; return state[i] ??= { current: value }; },
+    useContext(context) { cursor++; return context._currentValue; },
+    useId() { const i = cursor++; return state[i] ??= 'fixture-media-' + i; },
     useMemo(fn) { cursor++; return fn(); }, useCallback(fn) { cursor++; return fn; },
     useEffect(fn, deps) { const i = cursor++; const prev = dependencies[i]; if (!prev || !deps || deps.some((v, j) => v !== prev[j])) { dependencies[i] = deps; effects.push(() => { cleanups[i]?.(); cleanups[i] = fn(); }); } },
   };
@@ -31,6 +34,7 @@ function load(file, { width = 320, height = 568, thumbnail = async () => ({ uri:
       if (name.endsWith('/storyPresentation')) { const shared={exports:{}}; vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/storyPresentation.ts'),'utf8')),shared); return shared.exports; }
       if (name === 'react') return hooks;
       if (name === 'react/jsx-runtime') return runtime;
+      if (name === './StoryPixelImage') return { __esModule: true, default: name, StoryPhotoReadinessContext: readinessContext };
       if (name === 'react-native') return native;
       if (name === '@expo/vector-icons') return { Feather: 'Feather' };
       if (name.endsWith('/useTheme')) return { themedSheet: fn => fn({ ink: { inverse: '#000', primary: '#FFF' } }) };

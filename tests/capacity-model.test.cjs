@@ -31,6 +31,10 @@ test('media units convert megabits to bytes and preserve CDN delivery despite or
 
 test('source-derived background polling is separate and honors platform and screen shares', () => {
   const r = model(5000000, base);
+  assert.equal(r.sourcePolling.describesCurrentCandidate, false);
+  assert.match(r.sourcePolling.kind, /legacy-timer-reference/);
+  assert.equal(r.candidateBackgroundRecovery.networkOperationsPerDay, null);
+  assert.match(r.candidateBackgroundRecovery.note, /Entry/);
   assert.equal(r.sourcePolling.nativeHealthRequests.perDay, 1440000000);
   close(r.sourcePolling.webCallRecoverySqlReads.perDay, 108000000);
   assert.equal(r.sourcePolling.chatTypingReads.perDay, 300000000);
@@ -53,6 +57,7 @@ test('growth targets scale demand, never turn a model into measured capacity', (
   close(twenty.applicationRequests.peakPerSecond, five.applicationRequests.peakPerSecond * 4);
   close(twenty.media.totalBytesPerDay, five.media.totalBytesPerDay * 4);
   assert.equal(csv(r).trim().split('\n').length, 10);
+  assert.match(csv(r).split('\n')[0], /legacy_timer_reference_operations_per_day/);
 });
 
 test('invalid assumptions cannot silently produce plausible capacity numbers', () => {

@@ -92,6 +92,29 @@ test('shared seeds do not add per-card startup queries and unrelated posts stay 
   assert.equal(h.store.snapshot('post').error, null);
 });
 
+test('one authorized live batch updates mounted copies without per-card queries and rejects older account data', async () => {
+  const h = harness(); h.mount(); h.mount(); await flush();
+  assert.equal(h.store.applyLive('post', 'alice', seed({ liked: true, likesCount: 25 }), Date.now()), true);
+  assert.equal(h.store.snapshot('post').likesCount, 25); assert.equal(h.reads.length, 0);
+  h.store.seed('post', seed({ likesCount: 1 })); assert.equal(h.store.snapshot('post').likesCount, 25);
+  assert.equal(h.store.applyLive('post', 'bob', seed({ likesCount: 100 }), Date.now() + 1), false);
+  assert.equal(h.store.snapshot('post').likesCount, 25);
+});
+
+test('a feed batch cannot roll back a pending or recently confirmed optimistic mutation', async () => {
+  const h = harness(), pending = defer(); h.mount(); await flush();
+  const started = Date.now(); h.setAction(() => pending.promise);
+  const mutation = h.store.set('post', 'like', true); await flush();
+  assert.equal(h.store.applyLive('post', 'alice', seed(), started), false);
+  assert.equal(h.store.snapshot('post').liked, true);
+  h.server('post').liked.add('alice'); h.server('post').likesCount = 9; pending.resolve(true); await mutation;
+  assert.equal(h.store.applyLive('post', 'alice', seed(), started), false);
+  assert.equal(h.store.snapshot('post').likesCount, 9);
+  const reads = h.reads.length;
+  assert.equal(h.store.applyLive('post', 'alice', seed({ liked: true, likesCount: 12 }), Date.now() + 1), true);
+  assert.equal(h.store.snapshot('post').likesCount, 12); assert.equal(h.reads.length, reads);
+});
+
 test('duplicate clicks while the initial session is pending produce one write', async () => {
   const h = harness(), session = defer();
   h.setSession(() => session.promise); h.mount();

@@ -4,9 +4,10 @@ const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const compile=s=>ts.transpileModule(s,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return{promise,resolve,reject};};
 function shelf(owner='owner',previous='owner',hydrate=async rows=>rows){
- const src=read('src/components/MemoryAlbumCard.tsx'),start=src.indexOf(' const refresh=useCallback'),end=src.indexOf(' useFocusEffect',start),request=deferred(),writes=[],errors=[],loading=[];
+ const src=read('src/components/MemoryAlbumCard.tsx'),start=src.indexOf(' const refresh=useCallback'),end=src.indexOf(' useEffect',start),request=deferred(),writes=[],errors=[],loading=[];
  const ownerScope={ownerId:owner,viewerId:'viewer'};
  const scope={ownerId:owner,viewerId:'viewer',scope:{current:ownerScope},loadedOwner:{current:previous},loadedScope:{current:owner===previous?ownerScope:null},pendingRead:{current:null},epoch:{current:0},useCallback:f=>f,setData:x=>writes.push(x),setError:x=>errors.push(x),setLoading:x=>loading.push(x),profileRead:x=>Promise.resolve(x),supabase:{rpc:()=>request.promise},hydrateMemoryAlbumMedia:hydrate,withoutPrivateMedia:rows=>rows.map(row=>({...row,cover_page:row.cover_page?{...row.cover_page,media_url:null}:undefined}))};
+ scope.rawShelf={current:null};scope.moreRequest={current:null};scope.getMemoryBooks=async()=>{const{data,error}=await request.promise;if(error)throw error;return data;};
  vm.runInNewContext(compile(src.slice(start,end)+'\nthis.refresh=refresh;'),scope);
  return{scope,request,writes,errors,loading};
 }
@@ -36,8 +37,8 @@ test('a renewed signed image source can display after the old source failed',()=
  const h=imageHarness({uri:'photo?old'});h.render().props.onError();assert.equal(h.render().type,'View');assert.equal(h.render({uri:'photo?new'}).props.uri,'photo?new');
 });
 test('screen navigation delegates to the reader that owns and locks the turn',()=>{
- const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const flipTo = useCallback'),end=src.indexOf('  const openPicker',start),directions=[];
- const scope={pageTurn:{current:{turn:value=>directions.push(value)}},useCallback:f=>f};
+ const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const flipTo=useCallback'),end=src.indexOf('  useEffect',start),directions=[];
+ const scope={pageTurn:{current:{turn:value=>directions.push(value)}},useCallback:f=>f,idxRef:{current:0},albumRef:{current:{pages:[{},{}]}},pendingTurn:{current:null},memoryBookHasMore:()=>false,loadMore:()=>Promise.resolve()};
  vm.runInNewContext(compile(src.slice(start,end)+'\nthis.flipTo=flipTo;'),scope);scope.flipTo(1);scope.flipTo(-1);assert.deepEqual(directions,[1,-1]);
  scope.pageTurn.current=null;assert.doesNotThrow(()=>scope.flipTo(1));
 });
@@ -51,6 +52,7 @@ function webShelf(){
  const src=read('web/components/MemoryAlbumBook.tsx'),start=src.indexOf(' useEffect(()=>'),end=src.indexOf('\n useEffect',start+1),request=deferred(),writes=[],owners=[],loading=[];
  const session={owner:'owner',scope:'1:owner',initialized:true,revision:1};
  const scope={queueMicrotask,AbortController,request:{current:null},session,navigationStore:{getSnapshot:()=>session,cache:{save(){}}},cacheScope:session.scope,cacheKey:'owner-books',memoryBookShelfRevision:()=>0,withTimeout:x=>x,epoch:{current:0},loadedProfile:{current:'owner'},profileId:'owner',attempt:1,setBooks:v=>writes.push(v),setIsOwner:v=>owners.push(v),setLoading:v=>loading.push(v),setLoaded(){},setError(){},getMemoryBooks:()=>request.promise,useEffect:f=>f()};
+ scope.moreRequest={current:null};scope.rawShelf={current:null};
  vm.runInNewContext(compile(src.slice(start,end)),scope);return{request,writes,owners,loading};
 }
 test('web shelf retains existing books during a same-profile refresh',async()=>{
@@ -59,7 +61,7 @@ test('web shelf retains existing books during a same-profile refresh',async()=>{
 
 function webImageHarness(){
  const state=[],runtime={jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};let cursor=0,retries=0;
- const react={useState(value){const i=cursor++;if(!(i in state))state[i]=value;return[state[i],next=>{state[i]=typeof next==='function'?next(state[i]):next;}];}};
+ const react={useState(value){const i=cursor++;if(!(i in state))state[i]=typeof value==='function'?value():value;return[state[i],next=>{state[i]=typeof next==='function'?next(state[i]):next;}];},useRef:value=>({current:value}),useEffect(){},useLayoutEffect(){}};
  const module={exports:{}};vm.runInNewContext(compile(read('web/components/memory/MemoryPageImage.tsx')),{module,exports:module.exports,require:n=>n==='react'?react:runtime});
  return{render(){cursor=0;return module.exports.MemoryPageImage({src:'original.jpg',poster:'poster.jpg',onRetry:()=>retries++});},get retries(){return retries;}};
 }
@@ -76,6 +78,7 @@ test('leaving a book during add does not add subsequent selected stories or upda
 test('closing a book cancels its pending page animation before it can change the page',()=>{
  const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const closeBook = useCallback'),end=src.indexOf('  const playBook',start),stops=[],opened=[],playing=[];
  const scope={bookGeneration:{current:3},pageTurn:{current:{cancel:()=>stops.push(true)}},setOpened:v=>opened.push(v),setGrid(){},setPlayMode(){},setPlaying:value=>playing.push(value),coverAnim:{},reduceMotion:false,Animated:{timing:()=>({start(){}})},Easing:{out:x=>x,cubic:x=>x},useCallback:f=>f};
+ scope.completeIntent={current:0};scope.pendingTurn={current:null};scope.setPreparingBook=()=>{};
  vm.runInNewContext(compile(src.slice(start,end)+'\nthis.closeBook=closeBook;'),scope);scope.closeBook();assert.equal(scope.bookGeneration.current,4);assert.deepEqual(stops,[true]);assert.deepEqual(opened,[false]);assert.deepEqual(playing,[false]);
 });
 

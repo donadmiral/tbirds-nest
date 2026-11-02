@@ -15,8 +15,9 @@ export type MemoryBookSummary={
 };
 export type MemoryBook=MemoryBookSummary & {
   is_owner:boolean;can_view:boolean;pages:MemoryBookPage[];soundtrack?:SoundtrackSelection|null;_mediaExpiresAt?:number|null;
+  _pagination?:import('./pagedReaders').MemoryPagination;
 };
-export type MemoryBookshelf={is_owner:boolean;books:MemoryBookSummary[]};
+export type MemoryBookshelf={is_owner:boolean;books:MemoryBookSummary[];_pagination?:import('./pagedReaders').MemoryShelfPagination};
 export type MemoryBookNavigation={
   goBack:()=>void;
   navigate:(name:string,params?:Record<string,unknown>)=>void;

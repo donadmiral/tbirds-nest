@@ -32,8 +32,9 @@ function queryExpression(file, kind, name, occurrence = 0) {
   const tree = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   const matches = [];
   function visit(node) {
-    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)
-      && node.expression.name.text === kind && node.arguments[0]
+    if (ts.isCallExpression(node)
+      && ((ts.isPropertyAccessExpression(node.expression) && node.expression.name.text === kind)
+        || (kind === 'rpc' && ts.isIdentifier(node.expression) && node.expression.text === 'request')) && node.arguments[0]
       && ts.isStringLiteral(node.arguments[0]) && node.arguments[0].text === name) {
       let expression = node;
       if (kind === 'from') {
@@ -56,7 +57,8 @@ function actual(spec, sdk) {
   const variables = { supabase: sdk, client: sdk, myId: OWNER, userId: OWNER, currentUserId: OWNER,
     targetId: PEER, sellerId: PEER, conversationId: CONVERSATION,
     snapshot: '2026-10-31T12:00:00.000Z', asOf: '2026-10-31T12:00:00.000Z', offset: 0,
-    PAGE_SIZE: 20, q: 'qa_jordan', postMode: 'top', tag: '#memories', ctx: spec.context,
+    PAGE_SIZE: 20, q: 'qa_jordan', postMode: 'top', tag: '#memories', ctx: spec.context, context: spec.context,
+    request: (name, args) => sdk.rpc(name, args),
     postId: '20000000-0000-4000-8000-000000000001',
     payload: loadTs('shared/clientDiagnostics.ts').sanitizeDiagnostic(new TypeError('Private details must be discarded'),
       { source: 'render', platform: 'android', fatal: true, appVersion: '1.0.0' }),
@@ -80,7 +82,7 @@ const specs = [
   ['search_listings_fts', 'feed-search-controls', 'src/screens/feed/SearchScreen.tsx'],
   ['log_search_event', 'feed-search-controls', 'src/screens/feed/SearchScreen.tsx'],
   ['get_posts_by_hashtag', 'feed-trendfeed', 'src/screens/feed/TrendFeedScreen.tsx'],
-  ['get_conversations_by_context', 'jobs-jobsinbox', 'src/screens/messages/ContextInboxScreen.tsx', 'rpc', 'jobs'],
+  ['get_conversations_by_context', 'jobs-jobsinbox', 'src/services/contextInbox.ts', 'rpc', 'jobs'],
   ['get_seller_rating', 'market-listingdetail', 'src/components/market/SellerTrust.tsx'],
   ['seller_review_page', 'market-listingdetail', 'shared/marketReviews.ts'],
   ['starred_messages', 'messages-chat', 'src/screens/messages/ChatScreen.tsx', 'from'],
@@ -161,7 +163,7 @@ for (const [name, id, file] of [
 
 test('market context, empty notifications and second review case retain exact case ownership', async () => {
   for (const [id, name, file, context] of [
-    ['market-marketinbox', 'get_conversations_by_context', 'src/screens/messages/ContextInboxScreen.tsx', 'market'],
+    ['market-marketinbox', 'get_conversations_by_context', 'src/services/contextInbox.ts', 'market'],
     ['notifications-empty-controls', 'get_notifications_page', 'src/screens/notifications/NotificationsScreen.tsx'],
     ['market-offer-cancel', 'seller_review_page', 'shared/marketReviews.ts'],
   ]) {

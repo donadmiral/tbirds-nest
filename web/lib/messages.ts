@@ -2,6 +2,8 @@
 import { signGroupAvatars } from "@/lib/chatMedia";
 import { createClient } from "@/lib/supabase/client";
 import { conversationUnreadCounts } from '../../shared/messageReceipts';
+import { readInboxPage, readInboxUnreadTotals, type InboxReadOptions, type ReaderScope } from '../../shared/pagedReaders';
+import { appendInboxWindow, readInboxIds, refreshInboxWindow, type InboxWindow } from '../../shared/inboxWindow';
 
 export type Conv = {
   id: string;
@@ -18,7 +20,68 @@ export type Conv = {
   group_type: string | null;
   group_ref_id: string | null;
   request_pending?: boolean;
+  is_pinned?: boolean;
+  is_archived?: boolean;
 };
+
+export function webInboxOptions(context: string, search = '', filter: 'chats' | 'groups' | 'unread' = 'chats'): InboxReadOptions {
+  return { context, order: 'activity', folder: 'all', groups: true, deleted: true,
+    search, searchMode: 'web', filter: filter === 'chats' ? 'all' : filter,
+    excludeCommunity: true, excludeRequests: true };
+}
+export function matchesWebInbox(row: Conv, options: InboxReadOptions): boolean {
+  if (row.context !== options.context || (options.excludeCommunity && row.is_group && row.group_type === 'community')
+    || (options.excludeRequests && row.request_pending) || (options.filter === 'groups' && !row.is_group)
+    || (options.filter === 'unread' && row.unread <= 0)) return false;
+  const search = (options.search ?? '').trim().toLowerCase();
+  return !search || (row.title + ' ' + (row.username ?? '')).toLowerCase().includes(search);
+}
+export const compareWebInbox = (a: Conv, b: Conv) =>
+  new Date(b.last_message_time ?? 0).getTime() - new Date(a.last_message_time ?? 0).getTime()
+    || b.id.localeCompare(a.id);
+
+function conversationPageReader(scope: ReaderScope) {
+  const client = createClient();
+  return async (options: InboxReadOptions) => {
+    const page = await readInboxPage<Conv>(client, scope, options);
+    if (!page) return null;
+    const groups = await signGroupAvatars(page.items.filter(row => row.is_group)
+      .map(row => ({ id: row.id, group_avatar_url: row.avatar })));
+    if (scope.signal?.aborted || scope.current?.() === false) throw Object.assign(new Error('The conversation reader changed.'), { name: 'AbortError' });
+    const avatars = new Map(groups.map(row => [row.id, row.group_avatar_url ?? null]));
+    return { ...page, items: page.items.map(row => avatars.has(row.id) ? { ...row, avatar: avatars.get(row.id)! } : row) };
+  };
+}
+
+export async function loadConversationWindow(scope: ReaderScope, options: InboxReadOptions,
+  previous: InboxWindow<Conv> | null = null, extraIds: string[] = []) {
+  const paged = await refreshInboxWindow(conversationPageReader(scope), options, previous,
+    row => matchesWebInbox(row, options), compareWebInbox, extraIds);
+  if (paged) return paged;
+  const items = await loadConversations(scope.viewer, options.context ?? 'personal', scope.signal, scope.token);
+  if (scope.current?.() === false || scope.signal?.aborted) throw new Error('The conversation reader changed.');
+  // Legacy backends still return the complete inbox. Keep that array for the
+  // existing local filters and the old deep-link/forwarding behavior.
+  return { items, paging: null, resolved: new Map(items.map(row => [row.id, row])),
+    checkedIds: [...new Set([...items.map(row => row.id), ...(previous?.items.map(row => row.id) ?? []), ...extraIds])] };
+}
+
+export function loadMoreConversations(scope: ReaderScope, options: InboxReadOptions, previous: InboxWindow<Conv>) {
+  return appendInboxWindow(conversationPageReader(scope), options, previous,
+    row => matchesWebInbox(row, options), compareWebInbox);
+}
+
+export async function lookupConversations(scope: ReaderScope, options: InboxReadOptions, ids: string[]) {
+  return readInboxIds(conversationPageReader(scope), options, ids);
+}
+
+export async function loadConversationUnreadTotal(scope: ReaderScope, context: 'personal' | 'market' | 'jobs') {
+  const totals = await readInboxUnreadTotals(createClient(), scope);
+  if (totals) return totals[context];
+  const rows = await loadConversations(scope.viewer, context, scope.signal, scope.token);
+  if (scope.current?.() === false || scope.signal?.aborted) throw new Error('The conversation reader changed.');
+  return rows.reduce((sum, row) => sum + row.unread, 0);
+}
 
 export type Msg = {
   id: string;

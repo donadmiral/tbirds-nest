@@ -80,7 +80,7 @@ test('the real call setup waits for membership and never requests media credenti
   const module = { exports: {} };
   const code = ts.transpileModule('export const setup = ' + setup, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   vm.runInNewContext(code, { module, exports: module.exports, console: { log() {} },
-    Platform: { OS: 'ios' }, Camera: { requestMicrophonePermissionsAsync: async () => ({ granted: true }) }, Alert: { alert() {} }, attemptRef: { current: 1 }, endCall() {}, myIdRef: { current: 'member' }, endingRef: { current: false },
+    Platform: { OS: 'ios' }, ensureMicrophonePermission: async () => ({ granted: true }), ensureCameraPermission: async () => ({ granted: true }), Alert: { alert() {} }, attemptRef: { current: 1 }, endCall() {}, myIdRef: { current: 'member' }, endingRef: { current: false },
     callIdRef: { current: null }, callObjRef: { current: null }, activeCallRef: { current: { isGroupCall: true } }, stateRef: { current: 'connecting' },
     callService: { joinGroupCallMembership: () => { events.push('join'); return admission; }, getDailyToken: () => { events.push('token'); } },
     setErrorMsg: message => events.push(message), transitionTo: state => events.push(state),

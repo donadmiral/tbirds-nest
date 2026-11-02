@@ -3,8 +3,9 @@ const deferred = () => { let resolve, reject; return { promise: new Promise((r, 
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 function harness(options = {}) {
   const handlers = new Map(), slots = [], storage = new Map(), intervals = new Map(), permissionLocks = [], removedFrames = [];
+  const realtime = new Set(), statuses = new Map();
   let frameHandlers = new Map();
-  const document = { documentElement: { dataset: {} } };
+  const document = { documentElement: { dataset: {} }, visibilityState: 'visible' };
   class CustomEvent { constructor(type,options={}) { this.type=type; this.detail=options.detail; } }
   let cursor = 0, dirty = true, effects = [], tree, authListener, starts = 0, ended = 0, frames = 0, destroyed = 0, stopped = 0, recovering = 0, timerId = 0;
   const wait = deferred(), roomWait = deferred(), mediaWait = options.mediaWait;
@@ -23,22 +24,23 @@ function harness(options = {}) {
     removeEventListener: (name, cb) => handlers.get(name)?.delete(cb),
     localStorage: { get length() { return storage.size; }, key: i => [...storage.keys()][i], getItem: k => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, v), removeItem: k => storage.delete(k) },
   };
+  document.addEventListener = browser.addEventListener; document.removeEventListener = browser.removeEventListener;
   const client = {
     auth: { getSession: async () => ({ data: { session: { user: { id: id(1) }, access_token: 'fixture-token' } } }), onAuthStateChange: cb => { authListener = cb; return { data: { subscription: { unsubscribe() {} } } }; } },
-    channel: () => { const c = { on: () => c, subscribe: cb => { if (cb) queueMicrotask(() => cb('SUBSCRIBED')); return c; } }; return c; }, removeChannel() {},
+    channel: () => { const entries = []; const c = { on: (_kind, filter, callback) => { const entry = { filter, callback }; entries.push(entry); realtime.add(entry); return c; }, subscribe: cb => { if (cb) queueMicrotask(() => cb('SUBSCRIBED')); return c; }, dispose: () => entries.forEach(entry => realtime.delete(entry)) }; return c; }, removeChannel: channel => channel.dispose(),
     from(table) { const q = { select: () => q, eq: () => q, update: () => q, maybeSingle: async () => ({ data: table === 'profiles' ? { full_name: 'Caller' } : session }), then: ok => Promise.resolve({ data: session }).then(ok) }; return q; },
   };
   const calls = {
     startOneToOneCall: async () => { starts++; return wait.promise; }, getDailyRoom: () => roomWait.promise,
     endCall: async () => { ended++; if (options.closeWait) await options.closeWait.promise; if (options.closeFails) throw new Error('offline'); }, leaveGroupCall: async () => { ended++; },
-    getPendingIncomingCalls: async () => { recovering++; return typeof options.incoming === 'function' ? options.incoming() : options.incoming ?? []; },
+    getPendingIncomingCalls: async () => { recovering++; const rows = await (typeof options.incoming === 'function' ? options.incoming() : options.incoming ?? []); return rows.map(row => statuses.has(row.id) ? { ...row, status: statuses.get(row.id) } : row).filter(row => calls.isCallInvitationOpen(row)); },
     isCallInvitationOpen: s => s.status === 'ringing' && Date.now() < Date.parse(s.created_at) + 90000,
-    setCallStatus: async () => {}, declineGroupCall: async () => {},
+    setCallStatus: async (sessionId, status) => { if (options.statusWait) await options.statusWait.promise; statuses.set(sessionId, status); }, declineGroupCall: async sessionId => { statuses.set(sessionId, 'declined'); },
   };
   function load(file, overrides = {}) {
     const module = { exports: {} };
     const output = ts.transpileModule(fs.readFileSync(path.join(__dirname, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
-    vm.runInNewContext(output, { module, exports: module.exports, window: browser, document, CustomEvent, Date, Error, Set, Promise, setTimeout, clearTimeout,
+    vm.runInNewContext(output, { module, exports: module.exports, window: browser, document, CustomEvent, Date, Error, Set, Promise, AbortController, setTimeout, clearTimeout,
       setInterval: (cb, ms) => { const n = ++timerId; intervals.set(n, {cb,ms}); return n; }, clearInterval: n => intervals.delete(n),
       navigator: { mediaDevices: { getUserMedia: () => { permissionLocks.push(callMedia.isCallMediaActive()); return options.mediaError ? Promise.reject(options.mediaError) : mediaWait ? mediaWait.promise : Promise.resolve({ getTracks: () => [{ stop: () => stopped++ }] }); } } }, process: { env: {} },
       require: name => name === 'react' ? hooks : name === 'react/jsx-runtime' ? { jsx: (t, p) => ({ type: t, props: p }), jsxs: (t, p) => ({ type: t, props: p }) }
@@ -48,7 +50,8 @@ function harness(options = {}) {
   }
   const recovery = load('../lib/callRecovery.ts');
   const callMedia = load('../lib/callMedia.ts');
-  const component = load('../components/WebCallLayer.tsx', { '@/lib/callRecovery': recovery, '@/lib/callMedia': callMedia });
+  const recoveryReader = load('../../shared/recoveryReader.ts');
+  const component = load('../components/WebCallLayer.tsx', { '@/lib/callRecovery': recovery, '@/lib/callMedia': callMedia, '../../shared/recoveryReader': recoveryReader });
   const walk = (n, fn) => { if (Array.isArray(n)) return n.forEach(v => walk(v, fn)); if (!n || typeof n !== 'object') return; fn(n); walk(n.props?.children, fn); };
   const render = () => { for (let n = 0; dirty && n < 20; n++) { dirty = false; cursor = 0; tree = component.WebCallLayer(); walk(tree, n => { if (n.props?.ref) n.props.ref.current = {}; }); const p = effects; effects = []; p.forEach(f => f()); } assert.equal(dirty, false); };
   const event = (name, detail) => { for (const cb of handlers.get(name) ?? []) cb({ detail }); render(); };
@@ -59,7 +62,9 @@ function harness(options = {}) {
     get text() { return JSON.stringify(tree); }, get pending() { return recovery.pendingCallCloses(id(1)).length; },
     start() { event('pc-start-call', { receiverId: id(2), isVideo: false }); }, cancel() { button('End call').props.onClick(); render(); },
     answer(){button('Answer').props.onClick();render();}, decline(){button('Decline').props.onClick();render();}, tick(ms){for(const timer of intervals.values())if(timer.ms===ms)void timer.cb();render();},
-    event, mediaEvent(name, detail) { frameHandlers.get(name)?.(detail); render(); }, hasButton: label => !!button(label),
+    event, visibility(value) { document.visibilityState = value; event('visibilitychange'); }, mediaEvent(name, detail) { frameHandlers.get(name)?.(detail); render(); }, hasButton: label => !!button(label),
+    incomingInsert(session) { for (const { filter, callback } of realtime) if (filter.event === 'INSERT' && filter.table === 'call_sessions' && filter.filter === 'receiver_id=eq.' + session.receiver_id) callback({ new: session }); render(); },
+    status(sessionId) { return statuses.get(sessionId); },
     changeUser() { authListener('SIGNED_IN', { user: { id: id(3) }, access_token: 'other-fixture-token' }); render(); },
     async flush() { for (let i = 0; i < 5; i++) { await new Promise(r => setImmediate(r)); render(); } }, unmount() { slots.forEach(s => s?.cleanup?.()); },
   };
@@ -93,8 +98,68 @@ test('failed hangup closes local media immediately and retries its server update
 test('initial and reconnect recovery finds missed invitations without a realtime insert', async () => {
   let incoming = []; const h = harness({ incoming: () => incoming }); await h.flush(); assert.equal(h.hasButton('Answer'), false); incoming = [{ ...h.session, initiator_id: id(2), receiver_id: id(1) }]; h.event('focus'); await h.flush(); assert.equal(h.hasButton('Answer'), true); assert.match(h.text, /Caller/); h.unmount();
 });
+test('ending a call recovers the invitation received while occupied without idle polling', async () => {
+  let incoming = []; const h = harness({ incoming: () => incoming });
+  try {
+    await h.flush(); const idleReads = h.recovering;
+    h.tick(30000); await h.flush(); assert.equal(h.recovering, idleReads);
+    h.start(); h.wait.resolve(h.session); h.roomWait.resolve({ roomUrl: 'https://call', token: 'fixture' }); await h.flush();
+    const next = { ...h.session, id: id(20), initiator_id: id(2), receiver_id: id(1) }; incoming = [next];
+    h.incomingInsert(next); await h.flush(); assert.equal(h.hasButton('Answer'), false);
+    const beforeEnd = h.recovering; h.cancel(); await h.flush();
+    assert.equal(h.hasButton('Answer'), true); assert.equal(h.recovering, beforeEnd + 1);
+    assert.equal(h.destroyed, 1); assert.equal(h.mediaLocked, true);
+  } finally { h.unmount(); }
+});
+test('declining an invitation reconciles the next one only after the decline settles', async () => {
+  let incoming = []; const statusWait = deferred(), h = harness({ incoming: () => incoming, statusWait });
+  try {
+    await h.flush(); const first = { ...h.session, initiator_id: id(2), receiver_id: id(1) };
+    const next = { ...first, id: id(20) }; incoming = [first, next];
+    h.incomingInsert(first); h.incomingInsert(next); await h.flush(); assert.equal(h.hasButton('Answer'), true);
+    const beforeDecline = h.recovering; h.decline(); await h.flush();
+    assert.equal(h.hasButton('Answer'), false); assert.equal(h.recovering, beforeDecline);
+    statusWait.resolve(); await h.flush();
+    assert.equal(h.hasButton('Answer'), true); assert.equal(h.recovering, beforeDecline + 1);
+    h.options.statusWait = null; h.decline(); await h.flush(); assert.equal(h.hasButton('Answer'), false);
+  } finally { statusWait.resolve(); h.unmount(); }
+});
+test('canceling a delayed answer skips its still-ringing row while recovering the next invitation', async () => {
+  let incoming = []; const statusWait = deferred(), h = harness({ incoming: () => incoming, statusWait });
+  try {
+    await h.flush(); const first = { ...h.session, initiator_id: id(2), receiver_id: id(1) };
+    const next = { ...first, id: id(20) }; incoming = [first]; h.incomingInsert(first); await h.flush();
+    h.answer(); await h.flush(); assert.equal(h.hasButton('Answer'), false);
+    incoming = [first, next]; h.incomingInsert(next); h.cancel(); await h.flush();
+    assert.equal(h.hasButton('Answer'), true); assert.equal(h.frames, 0);
+    h.options.statusWait = null; h.decline(); await h.flush();
+    assert.equal(h.status(next.id), 'declined'); assert.equal(h.status(first.id), undefined);
+    assert.equal(h.hasButton('Answer'), false);
+    statusWait.resolve(); await h.flush();
+    assert.equal(h.ended, 1); assert.equal(h.frames, 0); assert.equal(h.hasButton('Answer'), false);
+  } finally { statusWait.resolve(); h.unmount(); }
+});
+test('confirmed removal of an incoming invitation recovers a waiting invitation', async () => {
+  let incoming = []; const h = harness({ incoming: () => incoming });
+  try {
+    await h.flush(); const first = { ...h.session, initiator_id: id(2), receiver_id: id(1) };
+    const next = { ...first, id: id(20) }; incoming = [first, next];
+    h.incomingInsert(first); h.incomingInsert(next); await h.flush();
+    const beforeRemoval = h.recovering; h.session.status = 'ended'; incoming = [next];
+    h.tick(5000); await h.flush(); assert.equal(h.hasButton('Answer'), true); assert.equal(h.recovering, beforeRemoval + 1);
+  } finally { h.unmount(); }
+});
 test('incoming recovery resolving after account switch cannot display the old account invitation', async () => {
   const pending = deferred(); const h = harness({ incoming: () => pending.promise }); await h.flush(); h.changeUser(); h.options.incoming = []; pending.resolve([{ ...h.session, receiver_id: id(1) }]); await h.flush(); assert.equal(h.hasButton('Answer'), false); h.unmount();
+});
+
+test('hidden idle tabs pause incoming recovery and visible tabs reconcile before the next invitation', async () => {
+  let incoming = []; const h = harness({ incoming: () => incoming }); await h.flush();
+  const initial = h.recovering; h.visibility('hidden'); h.event('focus'); h.event('online'); await h.flush();
+  assert.equal(h.recovering, initial);
+  incoming = [{ ...h.session, initiator_id: id(2), receiver_id: id(1) }];
+  h.visibility('visible'); await h.flush(); assert.equal(h.hasButton('Answer'), true); assert.equal(h.recovering, initial + 1);
+  h.unmount();
 });
 
 test('outgoing permission prompts lock other media before device access and cancellation unlocks it', async () => {
@@ -128,7 +193,7 @@ test('an old frame cleanup cannot release a new call owner or remove its iframe'
 });
 test('expired invitations cannot be accepted after a delayed permission prompt', async () => {
   let incoming=[];const mediaWait=deferred(),h=harness({mediaWait,incoming:()=>incoming});await h.flush();const invite={...h.session,initiator_id:id(2),receiver_id:id(1)};incoming=[invite];h.event('focus');await h.flush();h.answer();
-  h.session.status='ended';h.tick(5000);await h.flush();assert.equal(h.hasButton('Answer'),false);assert.equal(h.mediaLocked,true);
+  h.session.status='ended';incoming=[];h.tick(5000);await h.flush();assert.equal(h.hasButton('Answer'),false);assert.equal(h.mediaLocked,true);
   mediaWait.resolve({getTracks:()=>[{stop(){}}]});await h.flush();assert.equal(h.frames,0);assert.equal(h.mediaLocked,false);h.unmount();
 });
 test('media ownership releases are idempotent and preserve the newer owner', async () => {

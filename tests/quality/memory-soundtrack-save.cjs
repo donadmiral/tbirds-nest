@@ -12,6 +12,7 @@ const choice = { soundId: '11111111-1111-4111-8111-111111111111', startSec: 2, d
 const other = { ...choice, soundId: '22222222-2222-4222-8222-222222222222', startSec: 8 };
 function moduleFrom(source, context = {}) { const exports = {}; vm.runInNewContext(compile(source), { exports, Error, AbortController, ...context }); return exports; }
 const soundtrack = moduleFrom(read('shared/soundtrack.ts'));
+const pagedReaders = moduleFrom(read('shared/pagedReaders.ts'));
 
 function setup(options = {}) {
   let cursor = 0, dirty = true, mounted = true, result, id = 0;
@@ -28,6 +29,7 @@ function setup(options = {}) {
       onAuthStateChange(fn) { listeners.add(fn); return { data: { subscription: { unsubscribe() { listeners.delete(fn); } } } }; },
     },
     rpc(name, args) {
+      if(name==='get_paged_reader_capabilities')return Promise.resolve({data:{version:1,books:false,inbox:false},error:null});
       const call = { name, args, header: null, signal: null }; calls.push(call);
       const query = { setHeader(key, value) { call.header = [key, value]; return query; }, abortSignal(signal) { call.signal = signal; return query; },
         then(resolve, reject) { return Promise.resolve().then(async () => {
@@ -39,7 +41,7 @@ function setup(options = {}) {
     },
   };
   const props = { client, owner: 'owner-a', book: 'book-a', route: 'route-a', canEdit: true, onConfirmed: (book, selection) => confirmed.push({ book, selection }), ...options.props };
-  const module = moduleFrom(read('shared/useMemorySoundtrackSave.ts'), { require(name) { assert.equal(name, './soundtrack'); return soundtrack; }, setTimeout(fn, milliseconds) { timers.set(++id, { fn, milliseconds }); return id; }, clearTimeout(key) { timers.delete(key); } });
+  const module = moduleFrom(read('shared/useMemorySoundtrackSave.ts'), { require(name) { if(name==='./pagedReaders')return pagedReaders;assert.equal(name, './soundtrack'); return soundtrack; }, setTimeout(fn, milliseconds) { timers.set(++id, { fn, milliseconds }); return id; }, clearTimeout(key) { timers.delete(key); } });
   const useSave = module.createMemorySoundtrackSaveHook(react);
   function render(force = false) {
     if (!mounted) return result;

@@ -2,6 +2,7 @@ import type { FeedRow } from './feed';
 import { createFeedSnapshotStore } from '../../shared/feedSnapshot';
 import { isMarketplacePost } from '../../shared/marketplaceRecommendations';
 import { createFeedTabCache } from '../../shared/feedTabCache';
+import type { FeedLiveRow, FeedLiveRequest } from '../../shared/feedLive';
 
 export type FeedMode = 'for_you' | 'latest' | 'trending';
 export type FeedSeed = { owner: string; rows: FeedRow[]; mutedWords: string[]; error: string | null };
@@ -48,11 +49,25 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
   restored?.tabs.forEach(([key, tab]) => tabs.save(key, tab));
   let revision = 0, pageRevision = 0, scrollRevision = restored ? 1 : 0, disposed = false, liveResolved = !!restored || !seed.error, refreshing = false;
   const hidden = new Set<string>(restored?.hidden), listeners = new Set<() => void>(), active = new Set<AbortController>();
+  const deniedAt = new Map<string, number>();
   const publish = (patch: Partial<HomeFeedState>) => { state = { ...state, ...patch }; listeners.forEach(fn => fn()); };
   const current = (token: number, owner: string | null, mode: FeedMode) => !disposed && revision === token && state.owner === owner && state.mode === mode;
   const cancel = () => { active.forEach(controller => controller.abort()); active.clear(); };
-  async function query(name: string, args: Record<string, unknown>): Promise<Result> {
+  function removeLive(ids: Set<string>) {
+    if (!ids.size || disposed) return;
+    const now = Date.now();
+    ids.forEach(id => deniedAt.set(id, now));
+    // These tombstones only fence older in-flight responses. They are not a
+    // permanent hide, so a later authorized response can restore a post.
+    if (deniedAt.size > 2000) for (const [id, at] of deniedAt) if (now - at > 30000) deniedAt.delete(id);
+    if (state.owner) void snapshots.clear(state.owner);
+    tabs.update(tab => ({ ...tab, rows: tab.rows.filter(row => !ids.has(row.post_id)) }));
+    publish({ rows: state.rows.filter(row => !ids.has(row.post_id)) });
+  }
+  async function query(name: string, args: Record<string, unknown>, signal?: AbortSignal): Promise<Result> {
     const controller = new AbortController(); active.add(controller);
+    const abort = () => controller.abort();
+    signal?.addEventListener('abort', abort, { once: true }); if (signal?.aborted) controller.abort();
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       let work = client.rpc(name, args);
@@ -60,15 +75,15 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       return await Promise.race([work, new Promise<never>((_, reject) => {
         timer = setTimeout(() => { controller.abort(); reject(new Error('Your connection is taking longer than usual. Please try again.')); }, 12_000);
       })]);
-    } finally { if (timer) clearTimeout(timer); active.delete(controller); }
+    } finally { if (timer) clearTimeout(timer); signal?.removeEventListener('abort', abort); active.delete(controller); }
   }
-  async function visibility(ids: string[], token: number, owner: string | null, mode: FeedMode) {
+  async function visibility(ids: string[], token: number, owner: string | null, mode: FeedMode, request?: FeedLiveRequest) {
     const allowed = new Map<string, boolean>(), deduped = [...new Set(ids)];
     for (let index = 0; index < deduped.length; index += 200) {
-      if (!current(token, owner, mode)) return null;
+      if (!current(token, owner, mode) || (request && !request.current())) return null;
       const batches = [deduped.slice(index, index + 100), deduped.slice(index + 100, index + 200)].filter(batch => batch.length);
-      const results = await Promise.all(batches.map(p_ids => query('get_feed_visibility', { p_ids })));
-      if (!current(token, owner, mode)) return null;
+      const results = await Promise.all(batches.map(p_ids => query('get_feed_visibility', { p_ids }, request?.signal)));
+      if (!current(token, owner, mode) || (request && !request.current())) return null;
       for (const result of results) {
         if (result.error) throw new Error('Post visibility could not be refreshed. Please try again.');
         for (const row of (result.data ?? []) as { post_id: string; snapshot_eligible: boolean }[]) allowed.set(row.post_id, row.snapshot_eligible === true);
@@ -76,8 +91,7 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
     }
     return allowed;
   }
-  async function persist(rows: FeedRow[], token: number, owner: string, mode: FeedMode, known?: Map<string, boolean>) {
-    const snapshotRevision = snapshots.revision();
+  async function persist(rows: FeedRow[], token: number, owner: string, mode: FeedMode, known?: Map<string, boolean>, snapshotRevision = snapshots.revision()) {
     try {
       const eligibility = known ?? await visibility(rows.slice(0, 20).map(row => row.post_id), token, owner, mode);
       if (!eligibility || !current(token, owner, mode)) return;
@@ -91,7 +105,7 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
     const requestScope = mediaContext?.scope() ?? null;
     const valid = () => current(token, owner, mode) && (!more || pageToken === pageRevision)
       && (!mediaContext || requestScope === mediaContext.scope());
-    const started = performance.now();
+    const started = performance.now(), requestedAt = Date.now(), snapshotRevision = snapshots.revision();
     publish({ loading: !more && !state.rows.length, loadingMore: more, error: null,
       ...(!more && !background && !modeChange ? { scrollRestore: null } : {}) });
     try {
@@ -100,7 +114,8 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       if (!valid()) return;
       if (result.error) throw new Error(result.error.message);
       const raw = (result.data ?? []) as FeedRow[];
-      const received = uniqueRows(filterMutedFeedRows(raw, words)).filter(row => !hidden.has(row.post_id));
+      const received = uniqueRows(filterMutedFeedRows(raw, words)).filter(row => !hidden.has(row.post_id)
+        && (deniedAt.get(row.post_id) ?? -1) < requestedAt);
       let existing = state.rows;
       let allowed: Map<string, boolean> | null = null;
       // Revalidate retained pages, rather than mistaking their absence from page one for deletion.
@@ -131,13 +146,24 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
         return { ...row, media: (row.media ?? []).filter(hasUrl) };
       });
       if (!valid()) return;
+      const latest = new Map(state.rows.map(row => [row.post_id, row]));
+      rows = rows.filter(row => !hidden.has(row.post_id) && (deniedAt.get(row.post_id) ?? -1) < requestedAt).map(row => {
+        const newer = latest.get(row.post_id);
+        if (!newer?._liveRequestedAt || newer._liveRequestedAt <= requestedAt) return row;
+        // Check after async hydration too: a slower page read must not undo a
+        // newer canonical live value or revive a post removed for lost access.
+        return { ...row, content: newer.content, body: newer.body, likes_count: newer.likes_count,
+          comments_count: newer.comments_count, reposts_count: newer.reposts_count, bookmarks_count: newer.bookmarks_count,
+          views_count: newer.views_count, viewer_liked: newer.viewer_liked, viewer_bookmarked: newer.viewer_bookmarked,
+          viewer_reposted: newer.viewer_reposted, _liveRequestedAt: newer._liveRequestedAt, _liveOwner: newer._liveOwner };
+      });
       mediaScope = requestScope;
       // Snapshot rows may be cached before the first network page establishes a cursor.
       const keepCursor = background && existing.length > 0 && cursor !== null;
       if (!keepCursor) cursor = raw.length ? raw[raw.length - 1] : null;
       liveResolved = true;
       publish({ rows, pending, loading: false, loadingMore: false, hasMore: keepCursor ? state.hasMore : raw.length >= PAGE_SIZE });
-      if (!more) void persist(raw, token, owner, mode, allowed ?? undefined);
+      if (!more) void persist(raw, token, owner, mode, allowed ?? undefined, snapshotRevision);
       measure({ operation: more ? 'page' : 'refresh', durationMs: performance.now() - started, outcome: 'ok', rows: rows.length });
     } catch {
       if (!valid()) return;
@@ -161,7 +187,7 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       }
       return;
     }
-    revision++; pageRevision++; cancel(); refreshing = false; snapshots.setAccount(owner); hidden.clear(); tabs.clear(); cursor = null; liveResolved = false;
+    revision++; pageRevision++; cancel(); refreshing = false; snapshots.setAccount(owner); hidden.clear(); deniedAt.clear(); tabs.clear(); cursor = null; liveResolved = false;
     if (owner !== state.owner) words = [];
     mediaScope = scope;
     publish({ owner, rows: [], pending: 0, hasMore: false, loading: !!owner, loadingMore: false, error: null, scrollRestore: null });
@@ -189,6 +215,44 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       await Promise.all([diskRestore, fresh]);
     },
     load: (more = false, background = false) => load(more, background),
+    async checkHead(request: FeedLiveRequest) {
+      const token = revision, owner = state.owner, mode = state.mode, requestedAt = Date.now();
+      if (!owner || disposed || !request.current()) return;
+      const result = await query('get_feed', { p_mode: mode, p_cursor_key: null, p_cursor_id: null, p_limit: PAGE_SIZE }, request.signal);
+      if (!current(token, owner, mode) || !request.current()) return;
+      if (result.error) throw new Error('New posts could not be checked.');
+      const shown = new Set(state.rows.map(row => row.post_id));
+      const incoming = uniqueRows(filterMutedFeedRows((result.data ?? []) as FeedRow[], words));
+      const pending = incoming.filter(row => !shown.has(row.post_id) && !hidden.has(row.post_id) && (deniedAt.get(row.post_id) ?? -1) < requestedAt).length;
+      if (pending !== state.pending) publish({ pending });
+    },
+    applyLive(owner: string, ids: string[], rows: FeedLiveRow[], requestedAt: number) {
+      if (disposed || state.owner !== owner) return;
+      const expected = new Set(ids), byId = new Map(rows.filter(row => expected.has(row.post_id)).map(row => [row.post_id, row]));
+      removeLive(new Set(ids.filter(id => !byId.has(id))));
+      let changed = false;
+      const next = state.rows.map(post => {
+        const row = byId.get(post.post_id);
+        if (!row || (post._liveRequestedAt ?? -1) > requestedAt) return post;
+        changed = true;
+        return { ...post, content: row.content, body: row.body, likes_count: row.likes_count, comments_count: row.comments_count,
+          reposts_count: row.reposts_count, bookmarks_count: row.bookmarks_count, views_count: row.views_count,
+          viewer_liked: row.viewer_liked, viewer_bookmarked: row.viewer_bookmarked, viewer_reposted: row.viewer_reposted,
+          _liveRequestedAt: requestedAt, _liveOwner: owner };
+      });
+      const filtered = filterMutedFeedRows(next, words);
+      if (filtered.length !== next.length) {
+        const visible = new Set(filtered.map(row => row.post_id)); removeLive(new Set(next.filter(row => !visible.has(row.post_id)).map(row => row.post_id)));
+      }
+      if (changed) publish({ rows: filtered });
+    },
+    async reconcileLiveAccess(authors: string[] | null, request?: FeedLiveRequest) {
+      const token = revision, owner = state.owner, mode = state.mode;
+      if (!owner || disposed) return;
+      const selected = state.rows.filter(row => !authors || authors.includes(row.author_id)).map(row => row.post_id);
+      const allowed = await visibility(selected, token, owner, mode, request);
+      if (allowed && current(token, owner, mode) && (!request || request.current())) removeLive(new Set(selected.filter(id => !allowed.has(id))));
+    },
     setMode(mode: FeedMode, currentScrollTop = 0) {
       if (disposed || mode === state.mode) return;
       // Save only an established result. A request interrupted by another tab
