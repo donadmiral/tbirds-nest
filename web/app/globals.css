@@ -71,7 +71,9 @@ body {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    /* A positive duration enables the default transition-property: all, even
+       on static media frames and margins. Reduced motion must stay immediate. */
+    transition-duration: 0s !important;
     scroll-behavior: auto !important;
   }
 }

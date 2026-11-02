@@ -7,6 +7,7 @@ import { useAccountResource } from "@/lib/useAccountResource";
 import { errorMessage } from "@/lib/errors";
 import { withTimeout } from "@/lib/withTimeout";
 import { ProductDialog } from "@/components/ProductDialog";
+import { StableAsyncBlock } from "@/components/StableAsyncBlock";
 import { profilePath } from "@/lib/profileLookup";
 import { PersonName } from "@/components/PersonName";
 import { useCallback, useRef, useState } from "react";
@@ -34,9 +35,10 @@ function PostPoll({postId}:{postId:string}) {
     catch(cause){setError(errorMessage(cause,"Your vote could not be saved. Please retry."));}
     finally{pending.current=false;setBusy(false);}
   }
-  if(resource.error)return <p role="alert" className="mt-3 text-sm text-danger">Poll unavailable. <button className="underline" onClick={resource.retry}>Retry</button></p>;
-  if(!opts.length)return null;
+  if(resource.error)return <StableAsyncBlock blockKey={'poll:'+postId} state="empty"><p role="alert" className="mt-3 text-sm text-danger">Poll unavailable. <button className="underline" onClick={resource.retry}>Retry</button></p></StableAsyncBlock>;
+  if(!opts.length)return <StableAsyncBlock blockKey={'poll:'+postId} state={resource.loading?'pending':'empty'} />;
   return (
+    <StableAsyncBlock blockKey={'poll:'+postId} state="ready">
     <div className="mt-3 flex flex-col gap-1.5" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
       {error?<p role="alert" className="text-sm text-danger">{error}</p>:null}
       {opts.map((o) => {
@@ -63,6 +65,7 @@ function PostPoll({postId}:{postId:string}) {
       </span>
       {votersOpen ? <PollVoters postId={postId} onClose={() => setVotersOpen(false)} /> : null}
     </div>
+    </StableAsyncBlock>
   );
 }
 

@@ -31,11 +31,21 @@ export function useSharedPostPreview(postId: string): SharedPostPreview | null |
         if (!data) { setSnapshot({ postId, value: null }); return; }
         const source = [{ ...data, post_id: postId }];
         const stripped = withoutPrivateMedia(source)[0];
+        // A freshly authorized legacy row may have only media_url/image_url.
+        // Stripping that private URL must not also remove its thumbnail slot.
+        // Preserve only type/count, with no original URL or private poster.
+        const mediaShape = (({ media, mediaCount }) => media
+          ? { media: { url: "", media_type: media.media_type, thumbnail_url: null }, mediaCount }
+          : null)(sharedPostPreview(data));
+        const previewMedia = (row: Parameters<typeof sharedPostPreview>[0]) => {
+          const safe = sharedPostPreview(row);
+          return safe.media || !mediaShape ? safe : mediaShape;
+        };
         // The source query already authorized this post. Its text and media
         // type can render now, with private URLs removed until granted.
         let preview: SharedPostPreview = {
           content: stripped.content, body: stripped.body, created_at: stripped.created_at,
-          author: null, ...sharedPostPreview(stripped),
+          author: null, ...previewMedia(stripped),
         };
         const publish = (patch: Partial<SharedPostPreview>) => {
           if (!isCurrent()) return;
@@ -58,7 +68,7 @@ export function useSharedPostPreview(postId: string): SharedPostPreview | null |
             const [granted] = await hydratePostMedia(source, supabase);
             if (granted) publish({
               content: granted.content, body: granted.body, created_at: granted.created_at,
-              ...sharedPostPreview(granted),
+              ...previewMedia(granted),
             });
           } catch { /* Keep the stripped source; never fall back to private originals. */ }
         };

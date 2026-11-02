@@ -11,13 +11,15 @@ const repo = path.resolve(__dirname, '../../..');
 const output = process.env.PLATINUM_SCROLL_OUTPUT || '/tmp/platinum-web-scroll-browser';
 const artifacts = process.env.PLATINUM_SCROLL_ARTIFACTS || '/tmp/platinum-web-scroll-evidence';
 const executablePath = process.env.PLATINUM_CHROMIUM || '/tmp/platinum-web-admin-chrome156/chrome-linux64/chrome';
-const sourceFiles = ['web/components/HomeFeed.tsx', 'web/components/MediaGallery.tsx', 'web/components/VideoPlayer.tsx', 'web/components/NavigationPopover.tsx', 'web/components/GlobalMediaLightbox.tsx', 'web/components/DiscoverViewer.tsx', 'web/components/ScrollMemory.tsx', 'web/lib/homeFeedController.ts', 'web/lib/homeFeedScroll.ts', 'web/tests/browser/social-fixture.tsx', 'web/tests/browser/scroll-fixture.tsx', 'web/tests/browser/scroll-run.cjs'];
+const sourceFiles = ['web/app/globals.css', 'web/components/HomeFeed.tsx', 'web/components/PostCard.tsx', 'web/components/PollCard.tsx', 'web/components/StableAsyncBlock.tsx', 'web/components/SharedPostThumbnail.tsx', 'web/components/MediaGallery.tsx', 'web/components/VideoPlayer.tsx', 'web/components/NavigationPopover.tsx', 'web/components/GlobalMediaLightbox.tsx', 'web/components/DiscoverViewer.tsx', 'web/components/ScrollMemory.tsx', 'web/lib/asyncBlockGeometry.ts', 'web/lib/useSharedPostPreview.ts', 'web/lib/contentMedia.ts', 'shared/contentMedia.ts', 'shared/sharedPostPreview.ts', 'web/lib/homeFeedController.ts', 'web/lib/homeFeedScroll.ts', 'web/tests/browser/social-fixture.tsx', 'web/tests/browser/scroll-fixture.tsx', 'web/tests/browser/scroll-run.cjs'];
 const sourceHashes = () => Promise.all(sourceFiles.map(async file => [file, createHash('sha256').update(await fs.readFile(path.join(repo, file))).digest('hex')])).then(Object.fromEntries);
 const checks = [], traces = [], errors = [], requests = [];
 const id = index => `20000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 const mediaId = index => `80000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 const coast = '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720"><rect width="1200" height="720" fill="#c9d6df"/><path d="M0 400 Q400 270 1200 430 V720 H0Z" fill="#366481"/><text x="50" y="100" font-family="Arial" font-size="35" fill="#21384e">LOCAL SYNTHETIC WHEEL VERIFICATION</text></svg>';
 const delayedImage = '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="400"><rect width="1600" height="400" fill="#c9b28e"/><text x="50" y="100" font-family="Arial" font-size="35" fill="#21384e">DELAYED NATURAL IMAGE DIMENSIONS · 4:1</text></svg>';
+const legacyOriginal = 'https://synthetic.invalid/storage/v1/object/public/post-media/legacy.jpg';
+const legacyGranted = 'https://synthetic.invalid/functions/v1/media-content/post-media/legacy.jpg?token=' + 'b'.repeat(64);
 const turns = (page, count) => page.evaluate(count => new Promise(resolve => {
   const tick = () => --count <= 0 ? resolve() : requestAnimationFrame(tick);
   requestAnimationFrame(tick);
@@ -117,7 +119,12 @@ async function main() {
   let failure;
   try {
     const context = await browser.newContext({ viewport: { width: 1586, height: 992 }, reducedMotion: 'no-preference' });
-    await context.route('**/*', route => route.request().url().startsWith(origin) ? route.continue() : route.abort());
+    await context.route('**/*', route => {
+      const url = route.request().url();
+      if (url === legacyGranted) { requests.push({ path: url, syntheticCapability: true }); return route.fulfill({ status: 200, contentType: 'image/svg+xml', body: coast }); }
+      if (url.startsWith(origin)) return route.continue();
+      requests.push({ path: url, blocked: true }); return route.abort();
+    });
     const page = await context.newPage(); page.setDefaultTimeout(12000); page.on('pageerror', error => errors.push(error.message));
     // Both delayed assets intentionally remain in flight at the first paint.
     await page.goto(origin + '/home', { waitUntil: 'domcontentloaded' });
@@ -212,6 +219,68 @@ async function main() {
       const after = await page.evaluate(() => ({ y: scrollY, count: document.querySelectorAll('[data-feed-content] [data-pid]').length }));
       navigationTrace.after = after; assert.deepEqual(after, before, 'background refresh moved the restored feed');
     });
+    await check('Late poll and quote responses preserve the viewport throughout warm navigation', async () => {
+      const fixture = await page.evaluate(() => ({ quote: window.__scrollFixture.quotedContent, poll: window.__scrollFixture.pollLabel }));
+      await page.getByText(fixture.quote, { exact: true }).waitFor();
+      await page.getByRole('button', { name: fixture.poll, exact: true }).waitFor(); await turns(page, 4);
+      const before = await page.evaluate(() => {
+        const anchor = [...document.querySelectorAll('[data-feed-content] [data-pid]')].find(card => card.getBoundingClientRect().top >= 0);
+        const frame = anchor.querySelector('.media-frame').getBoundingClientRect();
+        return { y: scrollY, anchor: anchor.getAttribute('data-pid'), anchorTop: anchor.getBoundingClientRect().top,
+          mediaTop: frame.top, mediaLeft: frame.left, documentHeight: document.documentElement.scrollHeight,
+          readStart: window.__scrollFixture.holdAsyncBlocks() };
+      });
+      await page.getByRole('link', { name: 'Messages', exact: true }).first().click(); await page.getByRole('heading', { name: 'Messages', exact: true }).waitFor();
+      await page.evaluate(before => {
+        const probe = { frames: [], phase: 'held', stopped: false };
+        const snapshot = () => {
+          const fixture = window.__scrollFixture;
+          const card = document.querySelector(`[data-pid="${before.anchor}"]`), media = card?.querySelector('.media-frame')?.getBoundingClientRect();
+          const quote = document.querySelector(`[data-async-block="quote:${fixture.quotedSourceId}"]`);
+          const poll = document.querySelector('[data-async-block="poll:20000000-0000-4000-8000-000000000005"]');
+          return { y: scrollY, count: document.querySelectorAll('[data-feed-content] [data-pid]').length,
+            anchorTop: card?.getBoundingClientRect().top ?? null, mediaTop: media?.top ?? null, mediaLeft: media?.left ?? null,
+            documentHeight: document.documentElement.scrollHeight, quoteState: quote?.getAttribute('data-async-state') ?? null,
+            pollState: poll?.getAttribute('data-async-state') ?? null, quoteHeight: quote?.getBoundingClientRect().height ?? null,
+            pollHeight: poll?.getBoundingClientRect().height ?? null,
+            quoteContentVisible: !![...document.querySelectorAll(`[href="/post/${fixture.quotedSourceId}"]`)].find(link => link.textContent.includes(fixture.quotedContent)),
+            pollContentVisible: !![...document.querySelectorAll('[data-pid="20000000-0000-4000-8000-000000000005"] button')].find(button => button.textContent === fixture.pollLabel) };
+        };
+        const sample = t => {
+          if (probe.stopped) return;
+          if (location.pathname === '/home' && document.querySelector('[data-feed-content]')) probe.frames.push({ t, phase: probe.phase, ...snapshot() });
+          probe.frame = requestAnimationFrame(sample);
+        };
+        probe.snapshot = snapshot; probe.frame = requestAnimationFrame(sample); window.__lateAsyncProbe = probe;
+      }, before);
+      await page.getByRole('link', { name: 'Home', exact: true }).first().click();
+      await page.waitForFunction(start => ['poll', 'quote'].every(kind => window.__scrollFixture.asyncReads.slice(start).some(read => read.kind === kind && read.held && !read.finished)), before.readStart);
+      await turns(page, 24); const held = await page.evaluate(() => window.__lateAsyncProbe.snapshot());
+      await page.evaluate(() => { window.__lateAsyncProbe.phase = 'poll released'; window.__scrollFixture.releaseAsyncBlock('poll'); });
+      await page.getByRole('button', { name: fixture.poll, exact: true }).waitFor(); await turns(page, 24);
+      const pollReleased = await page.evaluate(() => window.__lateAsyncProbe.snapshot());
+      await page.evaluate(() => { window.__lateAsyncProbe.phase = 'quote released'; window.__scrollFixture.releaseAsyncBlock('quote'); });
+      await page.getByText(fixture.quote, { exact: true }).waitFor(); await turns(page, 24);
+      const after = await page.evaluate(() => window.__lateAsyncProbe.snapshot());
+      const frames = await page.evaluate(() => { const probe = window.__lateAsyncProbe; probe.stopped = true; cancelAnimationFrame(probe.frame); return probe.frames; });
+      const reads = await page.evaluate(start => window.__scrollFixture.asyncReads.slice(start), before.readStart);
+      traces.push({ label: 'late poll and quote navigation', before, held, pollReleased, after, reads, frames });
+      assert.ok(frames.length >= 72, 'late-response check did not observe the held and resolved phases');
+      for (const frame of frames) {
+        assert.equal(frame.count, 36, 'late-response navigation replaced retained feed rows');
+        for (const property of ['y', 'anchorTop', 'mediaTop', 'mediaLeft', 'documentHeight']) {
+          assert.ok(frame[property] !== null && Math.abs(frame[property] - before[property]) <= 1,
+            `${frame.phase}: ${property} changed from ${before[property]} to ${frame[property]} while a quote or poll reloaded`);
+        }
+      }
+      assert.equal(held.quoteState, 'pending'); assert.equal(held.pollState, 'pending');
+      assert.ok(held.quoteHeight > 0 && held.pollHeight > 0, 'pending blocks did not reserve their measured space');
+      assert.equal(held.quoteContentVisible, false, 'pending quote exposed old source content');
+      assert.equal(held.pollContentVisible, false, 'pending poll exposed old authorized options');
+      assert.equal(pollReleased.pollContentVisible, true); assert.equal(pollReleased.quoteContentVisible, false);
+      assert.equal(after.pollContentVisible, true); assert.equal(after.quoteContentVisible, true);
+      assert.ok(reads.some(read => read.kind === 'poll' && read.held && read.finished) && reads.some(read => read.kind === 'quote' && read.held && read.finished), 'authorized async reads did not finish independently');
+    });
     await check('App-wide media viewer locks the background without moving the visible feed frame', async () => {
       const before = await page.evaluate(() => {
         const card = [...document.querySelectorAll('[data-pid]')].find(card => card.getBoundingClientRect().top >= 0);
@@ -236,6 +305,120 @@ async function main() {
       await page.emulateMedia({ reducedMotion: 'reduce' }); await page.mouse.move(770, 650);
       const trace = await wheel(page, 'reduced-motion wheel', 120, 5, 3); assert.equal(trace.htmlBehavior, 'auto');
     });
+    await check('Legacy quote media retains safe geometry while grants are pending or denied', async () => {
+      // Keep the source thumbnail near the viewport so Chromium also decodes the
+      // locally fulfilled capability. Its canonical private URL is never served.
+      await page.mouse.move(770, 650);
+      const target = await page.locator(`[data-pid="${id(7)}"]`).evaluate(card => card.getBoundingClientRect().top - 420);
+      await page.mouse.wheel(0, Math.round(target)); await turns(page, 24);
+      const fixture = await page.evaluate(() => ({ source: window.__scrollFixture.quotedSourceId, content: window.__scrollFixture.quotedContent }));
+      const quoteSelector = `[data-async-block="quote:${fixture.source}"]`;
+      await page.locator(quoteSelector + ' img').evaluate(image => image.decode());
+      const before = await page.evaluate(anchorId => {
+        const card = document.querySelector(`[data-pid="${anchorId}"]`), media = card.querySelector('.media-frame').getBoundingClientRect();
+        return { anchor: anchorId, y: scrollY, anchorTop: card.getBoundingClientRect().top, mediaTop: media.top, mediaLeft: media.left, documentHeight: document.documentElement.scrollHeight };
+      }, id(7));
+      await page.evaluate(before => {
+        const probe = { startedAt: performance.now(), frames: [], scrollCalls: [], scrollEvents: [], phase: 'initial', stopped: false };
+        const snapshot = () => {
+          const fixture = window.__scrollFixture, card = document.querySelector(`[data-pid="${before.anchor}"]`), media = card?.querySelector('.media-frame')?.getBoundingClientRect();
+          const quote = document.querySelector(`[data-async-block="quote:${fixture.quotedSourceId}"]`), thumbnail = quote?.querySelector('[role="img"]');
+          const thumbnailBox = thumbnail?.getBoundingClientRect();
+          const poll = document.querySelector('[data-async-block="poll:20000000-0000-4000-8000-000000000005"]');
+          return { y: scrollY, anchorTop: card?.getBoundingClientRect().top ?? null, mediaTop: media?.top ?? null, mediaLeft: media?.left ?? null,
+            documentHeight: document.documentElement.scrollHeight, quoteState: quote?.getAttribute('data-async-state') ?? null,
+            quoteHeight: quote?.getBoundingClientRect().height ?? null, thumbnailLabel: thumbnail?.getAttribute('aria-label') ?? null,
+            thumbnailWidth: thumbnailBox?.width ?? null, thumbnailHeight: thumbnailBox?.height ?? null,
+            imageSources: [...(quote?.querySelectorAll('img') ?? [])].map(image => image.getAttribute('src')),
+            rawPrivateUrlInDom: document.documentElement.outerHTML.includes(fixture.legacyOriginal),
+            sourceContentVisible: quote?.textContent.includes(fixture.quotedContent) ?? false,
+            documentClientWidth: document.documentElement.clientWidth, innerWidth,
+            bodyOverflow: document.body.style.overflow, bodyPaddingRight: document.body.style.paddingRight,
+            quoteTop: quote?.getBoundingClientRect().top ?? null, quoteLinkTop: quote?.querySelector('a')?.getBoundingClientRect().top ?? null,
+            pollHeight: poll?.getBoundingClientRect().height ?? null, pollState: poll?.getAttribute('data-async-state') ?? null,
+            pollDisplay: poll ? getComputedStyle(poll).display : null, pollInlineHeight: poll?.style.height ?? null,
+            pollTop: poll?.getBoundingClientRect().top ?? null,
+            pollChildMarginTop: poll?.firstElementChild ? getComputedStyle(poll.firstElementChild).marginTop : null,
+            pollChildHeight: poll?.firstElementChild?.getBoundingClientRect().height ?? null,
+            pollChildTop: poll?.firstElementChild?.getBoundingClientRect().top ?? null,
+            firstMediaFrames: [...document.querySelectorAll('[data-feed-content] [data-pid]')].slice(0, 8).map(card => {
+              const frame = card.querySelector('.media-frame')?.getBoundingClientRect();
+              return { id: card.getAttribute('data-pid'), width: frame?.width ?? null, height: frame?.height ?? null, top: frame?.top ?? null };
+            }) };
+        };
+        const sample = t => {
+          if (probe.stopped) return;
+          if (location.pathname === '/home' && document.querySelector('[data-feed-content]')) probe.frames.push({ t, phase: probe.phase, ...snapshot() });
+          probe.frame = requestAnimationFrame(sample);
+        };
+        const scrollTo = window.scrollTo;
+        probe.restoreScrollTo = () => { window.scrollTo = scrollTo; };
+        window.scrollTo = function (...args) {
+          const call = { phase: probe.phase, before: scrollY, args };
+          const result = scrollTo.apply(window, args); call.after = scrollY; probe.scrollCalls.push(call); return result;
+        };
+        probe.onScroll = () => { if (location.pathname === '/home') probe.scrollEvents.push({ phase: probe.phase, y: scrollY }); };
+        window.addEventListener('scroll', probe.onScroll, { passive: true });
+        probe.snapshot = snapshot; probe.frame = requestAnimationFrame(sample); window.__legacyGrantProbe = probe;
+      }, before);
+      const phases = [];
+      for (const denied of [false, true]) {
+        const start = await page.evaluate(denied => window.__scrollFixture.holdLegacyGrant(denied), denied);
+        await page.getByRole('link', { name: 'Messages', exact: true }).first().click(); await page.getByRole('heading', { name: 'Messages', exact: true }).waitFor();
+        await page.evaluate(denied => { window.__legacyGrantProbe.phase = denied ? 'denial pending' : 'grant pending'; }, denied);
+        await page.getByRole('link', { name: 'Home', exact: true }).first().click();
+        await page.waitForFunction(start => window.__scrollFixture.grantReads.slice(start).some(read => read.held && !read.finished), start);
+        await turns(page, 24); const pending = await page.evaluate(() => window.__legacyGrantProbe.snapshot());
+        await page.evaluate(denied => { window.__legacyGrantProbe.phase = denied ? 'grant denied' : 'grant delivered'; window.__scrollFixture.releaseLegacyGrant(); }, denied);
+        await page.waitForFunction(start => window.__scrollFixture.grantReads.slice(start).some(read => read.held && read.finished), start);
+        if (!denied) {
+          await page.waitForFunction(selector => document.querySelector(selector + ' img')?.getAttribute('src') === window.__scrollFixture.legacyGranted, quoteSelector);
+          await page.locator(quoteSelector + ' img').evaluate(image => image.decode());
+        }
+        await turns(page, 24); const resolved = await page.evaluate(() => window.__legacyGrantProbe.snapshot());
+        phases.push({ denied, pending, resolved, reads: await page.evaluate(start => window.__scrollFixture.grantReads.slice(start), start) });
+      }
+      const sampled = await page.evaluate(() => {
+        const probe = window.__legacyGrantProbe; probe.stopped = true; cancelAnimationFrame(probe.frame);
+        probe.restoreScrollTo(); window.removeEventListener('scroll', probe.onScroll);
+        return { frames: probe.frames, scrollCalls: probe.scrollCalls, scrollEvents: probe.scrollEvents };
+      });
+      const { frames } = sampled;
+      const trace = { label: 'legacy quote grant geometry', before, phases, ...sampled }; traces.push(trace);
+      assert.ok(frames.length >= 96, 'legacy grant check did not sample pending and resolved phases');
+      for (const frame of frames) {
+        assert.equal(frame.rawPrivateUrlInDom, false, 'canonical private media URL entered the DOM');
+        for (const property of ['y', 'anchorTop', 'mediaTop', 'mediaLeft', 'documentHeight']) {
+          assert.ok(frame[property] !== null && Math.abs(frame[property] - before[property]) <= 1,
+            `${frame.phase}: ${property} changed from ${before[property]} to ${frame[property]} during the legacy media grant`);
+        }
+      }
+      for (const phase of phases) {
+        assert.equal(phase.pending.quoteState, 'ready', 'source authorization was still pending instead of only the media grant');
+        assert.equal(phase.pending.sourceContentVisible, true);
+        assert.equal(phase.pending.thumbnailLabel, 'Photo from original post');
+        assert.equal(phase.pending.thumbnailWidth, 56); assert.equal(phase.pending.thumbnailHeight, 56);
+        assert.deepEqual(phase.pending.imageSources, [], 'pending grant showed old or raw media pixels');
+        assert.equal(phase.resolved.thumbnailLabel, 'Photo from original post');
+        assert.deepEqual(phase.resolved.imageSources, phase.denied ? [] : [legacyGranted]);
+        assert.ok(phase.reads.some(read => read.held && read.finished && read.authorizationPinned && read.denied === phase.denied));
+      }
+      assert.ok(!requests.some(request => request.path === legacyOriginal), 'browser requested a canonical private media URL');
+      // A new authorized source row without media must clear the type placeholder;
+      // a genuinely missing source must clear the entire block, not reuse old data.
+      const freshSources = [];
+      for (const mode of ['text', 'missing']) {
+        await page.evaluate(mode => window.__scrollFixture.setQuoteMode(mode), mode);
+        await page.getByRole('link', { name: 'Messages', exact: true }).first().click(); await page.getByRole('heading', { name: 'Messages', exact: true }).waitFor();
+        await page.getByRole('link', { name: 'Home', exact: true }).first().click();
+        await page.waitForFunction(({ selector, state }) => document.querySelector(selector)?.getAttribute('data-async-state') === state, { selector: quoteSelector, state: mode === 'text' ? 'ready' : 'empty' });
+        await turns(page, 12); const result = await page.evaluate(() => window.__legacyGrantProbe.snapshot()); freshSources.push({ mode, ...result });
+        assert.equal(result.thumbnailLabel, null); assert.deepEqual(result.imageSources, []); assert.equal(result.rawPrivateUrlInDom, false);
+        assert.equal(result.sourceContentVisible, mode === 'text');
+        if (mode === 'missing') assert.equal(result.quoteHeight, 0, 'missing source kept its old reserved block');
+      }
+      trace.freshSources = freshSources;
+    });
     assert.deepEqual(errors, [], 'browser runtime errors');
     await page.screenshot({ path: path.join(artifacts, 'long-feed-after-wheel.png') });
   } catch (error) { failure = error; }
@@ -245,7 +428,7 @@ async function main() {
     const changedInputs = sourceFiles.filter(file => hashes[file] !== finalHashes[file]);
     if (changedInputs.length && !failure) failure = new Error('Source files changed after browser fixture compilation: ' + changedInputs.join(', '));
     await fs.writeFile(path.join(artifacts, 'results.json'), JSON.stringify({
-      scope: 'Actual production HomeFeed, chrome, MediaGallery, VideoPlayer, composer and Messages. Synthetic Auth/data/router; local HTTP SVG and range-served H.264. Real Playwright mouse.wheel events. Frame intervals are local development-fixture main-thread responsiveness evidence, not production GPU/device benchmarks or physical mouse hardware.',
+      scope: 'Actual production HomeFeed, PostCard, PollCard, quote preview, chrome, MediaGallery, VideoPlayer, composer and Messages. Synthetic Auth/data/router; local HTTP SVG and range-served H.264. Real Playwright mouse.wheel events and per-frame visible-anchor measurements through held poll/quote responses. Frame intervals are local development-fixture main-thread responsiveness evidence, not production GPU/device benchmarks or physical mouse hardware.',
       executablePath, chromiumVersion: browser.version(), head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim(), hashes, changedInputs,
       checks, traces, errors, requests, failure: failure?.stack || null,
     }, null, 2));

@@ -8,6 +8,8 @@ This update addresses web feed movement, media layout and return navigation. The
 2. **Pagination keeps existing cards stable.** The controller preserves row and media-array identity when sanitizing URLs changes nothing. Home memoizes the existing card boundary. Equivalent arrays no longer reset the gallery's authorized metadata. New, expired, revoked, changed or differently scoped media still follows the existing authorization and renewal rules.
 3. **Returning Home has one scroll-restoration owner.** A valid same-session cached feed restores its own mode and position after child layout measurements, in a microtask before the next animation-frame observation. Generic route memory continues recording offsets and handling cold or other routes. User intent, stale callbacks, route changes and account changes still cancel pending restoration.
 4. **Menus and viewers avoid extra scroll work.** Navigation popovers combine captured scroll events into one positioning measurement per frame, skip their own internal scrolling and avoid unchanged position updates. Discover and the app-wide image viewer preserve the desktop scrollbar gap and restore focus without scrolling. Discover keyboard paging respects reduced motion.
+5. **Polls and quoted posts retain their measured space on a warm return.** A session-scoped, bounded cache stores layout numbers only, separately for each block and width. The previous footprint is reserved before paint while a fresh authorized read is pending. New or removed content takes its actual height when it resolves. Visiting a narrower detail page does not erase the wider Home measurement. Legacy image/video posts retain a type/count placeholder while a media grant is pending or denied, without retaining a private media URL or poster.
+6. **Reduced motion no longer introduces layout transitions.** The previous universal positive transition duration also enabled the default `transition-property: all` on static elements. Setting that duration to zero prevents gallery widths and a poll's top margin from briefly interpolating during a warm return. The existing animation policy is unchanged.
 
 No global wheel multiplier, JavaScript momentum loop, mandatory feed snapping or window virtualization was added. Existing bounded video preparation, source identity checks, data saver behavior and playback ownership remain in place.
 
@@ -17,9 +19,13 @@ The [archived media-code comparison](image-baseline.json) reproduced a delayed i
 
 An [intermediate navigation regression](navigation-baseline.json), with both real restoration components mounted, returned all 36 posts but moved the page from 12204 to 12588 pixels. This established the competing generic/Home restoration issue. A subsequent strict first-frame regression caught a temporary zero offset before the saved position. The final implementation fixes both cases without weakening those assertions.
 
+The [hosted intermediate check](hosted-baseline.json) then exposed a separate cause: poll options and a quoted-post preview temporarily disappeared on a return to Home. The page moved from 2442 to 2595 pixels as those blocks returned, despite stable media frames. The [synthetic comparison](async-block-baseline.json), explicitly substituting the pre-fix PostCard and PollCard modules, reproduced a 198-pixel change. The final tests hold those reads separately and track the visible card and media frame throughout resolution.
+
+A final legacy-media test under reduced motion caught a separate [12-pixel drift](reduced-motion-baseline.json). The application restored the correct offset, but the browser briefly interpolated media widths from 608 to 638 pixels and a poll margin from zero to 12 pixels, then adjusted its scroll anchor. A diagnostic build changed only the reduced-motion transition duration to zero and passed all 11 unchanged checks. The same correction is included in the final product source; no global anchoring override was added.
+
 ## Final browser results
 
-The new [wheel suite](wheel-results.json) passes **9/9 checks** using actual application components, actual `mouse.wheel` events, local image/video responses and synthetic services.
+The new [wheel suite](wheel-results.json) passes **11/11 checks** using actual application components, actual `mouse.wheel` events, local image/video responses and synthetic services. This report retains the source fingerprints, checks and condensed geometry ranges; the browser workflow uploads the complete per-frame receipt.
 
 | Scenario | Verified result |
 | --- | --- |
@@ -32,7 +38,10 @@ The new [wheel suite](wheel-results.json) passes **9/9 checks** using actual app
 | Small wheel deltas | Requested and observed 160 px |
 | Long feed after pagination | Requested and observed 3600 px |
 | Pagination from 20 to 36 posts | Existing card/player DOM retained, zero repeated metadata reads for retained posts, visible anchor unchanged |
-| Messages → Home with refresh held | 12204 px before navigation, while pending and after resolution |
+| Messages → Home with refresh held | 12416 px before navigation, while pending and after resolution |
+| Poll and quoted-post reads held separately | All 79 sampled frames retain the same visible card/media position, document height and 12416 px scroll offset |
+| Legacy image grant allowed, then denied, under reduced motion | All 118 sampled frames retain the same geometry and 4278 px scroll offset; the 56 × 56 px placeholder remains until authorized pixels load |
+| Original post changes or disappears | A fresh text-only source clears the media placeholder; a missing source clears the entire quoted block |
 | Composer and global viewer | Background wheel movement zero, closing restores the page position and styles |
 | Reduced motion | Requested and observed 600 px, native scroll behavior retained |
 
@@ -44,9 +53,9 @@ The existing [media readiness browser suite](media-readiness.json) passes **7/7 
 
 ## Regression and type checks
 
-- [Full web regression suite](integration.json): 65 test files passed, none failed. Web TypeScript passed.
-- [Final navigation follow-up](final-navigation.json): after the final microtask timing correction, all three affected navigation/controller test files passed and TypeScript passed again. The full-suite receipt identifies the preceding helper revision, and the follow-up binds the final helper and tests. Other full-suite inputs are unchanged.
-- All nine wheel cases and all 41 existing social cases ran against the final helper. Their receipts record source fingerprints and unchanged inputs.
+- [Full final web regression suite](integration.json): 67 test files passed, none failed. The separately bound [final TypeScript check](typescript.json) passed without diagnostics. All 660 recorded web/shared inputs were unchanged during the unit run, and the browser/type-check fingerprints remained unchanged through their runs.
+- New focused cases cover session invalidation, removed content, width-specific measurements, the 128-measurement bound, delayed or denied legacy-media grants and independent author/media completion.
+- The wheel receipt records final source fingerprints and unchanged inputs. The retained 41-case local social and seven-case media receipts cover the first scrolling commit; final-source coverage is supplied by the complete browser workflow recorded with the release.
 - The browser workflow now runs the new wheel suite and uploads its synthetic JSON and screenshot evidence with the existing groups. Existing assertions and gates remain enabled.
 
 Run the relevant checks from the repository root:

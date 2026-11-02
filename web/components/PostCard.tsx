@@ -4,6 +4,7 @@ import { hydratePostMedia } from "@/lib/contentMedia";
 import { withTimeout } from "@/lib/withTimeout";
 import { useSharedPostPreview } from "@/lib/useSharedPostPreview";
 import { SharedPostThumbnail } from "@/components/SharedPostThumbnail";
+import { StableAsyncBlock } from "@/components/StableAsyncBlock";
 import { sharedPostMediaLabel } from "../../shared/sharedPostPreview";
 import { productDestination } from "../../shared/productDestination";
 import { uniqueCollaborators, collaborationName } from "../../shared/collaborationPeople";
@@ -79,9 +80,9 @@ function useToggle(initialOn: boolean, initialCount: number, action: (id: string
 function QuoteCard({quotedId}:{quotedId:string}) {return <QuoteContent key={quotedId} quotedId={quotedId}/>;}
 function QuoteContent({ quotedId }: { quotedId: string }) {
   const q = useSharedPostPreview(quotedId);
-  if (!q) return null;
   return (
-    <Link href={"/post/" + quotedId} onClick={(e) => e.stopPropagation()} className="mt-3 flex gap-3 rounded-xl border border-ink/10 p-3 transition-colors duration-[140ms] hover:bg-surface">
+    <StableAsyncBlock blockKey={"quote:" + quotedId} state={q === undefined ? 'pending' : q ? 'ready' : 'empty'}>
+    {q ? <Link href={"/post/" + quotedId} onClick={(e) => e.stopPropagation()} className="mt-3 flex gap-3 rounded-xl border border-ink/10 p-3 transition-colors duration-[140ms] hover:bg-surface">
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5 text-[13px]">
           <span className="truncate font-semibold text-ink">{q.author?.full_name ?? "Member"}</span>
@@ -91,7 +92,8 @@ function QuoteContent({ quotedId }: { quotedId: string }) {
         <span className="mt-0.5 line-clamp-3 block text-[13px] text-ink/75">{q.content?.trim() || q.body?.trim() || (q.media ? sharedPostMediaLabel(q.media, q.mediaCount) : "Open post")}</span>
       </span>
       {q.media ? <SharedPostThumbnail postId={quotedId} media={q.media} mediaCount={q.mediaCount} /> : null}
-    </Link>
+    </Link> : null}
+    </StableAsyncBlock>
   );
 }
 
