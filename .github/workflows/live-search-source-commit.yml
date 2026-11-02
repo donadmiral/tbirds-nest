@@ -1,0 +1,36 @@
+name: Publish verified Live navigation source
+on:
+  push:
+    branches: ['codex/live-search-20261102']
+    paths: ['.github/workflows/live-search-source-commit.yml']
+permissions:
+  contents: write
+concurrency:
+  group: live-search-source-20261102
+  cancel-in-progress: false
+jobs:
+  publish-source:
+    if: github.repository == 'donadmiral/tbirds-nest' && github.ref == 'refs/heads/codex/live-search-20261102'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 2
+          ref: ${{ github.sha }}
+      - name: Verify and commit reviewed source only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = a0b60066558d012ba4d6b4701d0d696efa8bd219
+          curl --fail --silent --show-error --proto '=https' --max-time 45 --retry 2 'https://sb-rl2im2i6oeb7.vercel.run/release.patch' -o "$RUNNER_TEMP/live-search.patch"
+          echo "46af04fd064ade190e3f28da77894097a9db6ea3ca6ec39b9370808c6860b054  $RUNNER_TEMP/live-search.patch" | sha256sum --check --status
+          git apply --check "$RUNNER_TEMP/live-search.patch"
+          git apply --index "$RUNNER_TEMP/live-search.patch"
+          git rm .github/workflows/live-search-source-commit.yml
+          test "$(git write-tree)" = 1675766e710549d327b55a0b3a904367e13c410f
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Add visible Live navigation and account-scoped recent search history'
+          git push origin HEAD:refs/heads/codex/live-search-20261102
+          git rev-parse HEAD
