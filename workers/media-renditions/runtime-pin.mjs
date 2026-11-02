@@ -3,7 +3,7 @@ import {timingSafeEqual} from 'node:crypto';
 // Temporary preview-only operation. Remove its route after the one clean
 // nonexpiring snapshot is read back; this is not a general provisioning API.
 export const RUNTIME_PIN = Object.freeze({
- name:'pc-media-runtime-pin-20261102',
+ name:'pc-media-runtime-pin-hosted-20261102',
  sourceSnapshotId:'snap_a9eoAbB3s2ULdyrGtiqFFlnUA9HW',
  teamId:'team_yu7fUehO2z7E6QHF6Nvxp3tC',
  projectId:'prj_KRrC0YmQek14PrWGk9AZeP7hRNgE',
