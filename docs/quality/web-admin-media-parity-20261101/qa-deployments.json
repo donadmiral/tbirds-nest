@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-11-01T23:53:21Z",
+  "releaseScope": "QA Preview only",
+  "productCommit": "dd522586323fe8d460d47cb1720f6352bd12c55c",
+  "productTree": "5b690b343375e0d70e96d52022bf45cb825e0626",
+  "deployments": [
+    {
+      "application": "web",
+      "projectId": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+      "deploymentId": "dpl_gtbKfbLhH5ity86uD6fgDKGxYb24",
+      "deploymentUrl": "https://platinum-x6xzixjoe-intobank.vercel.app",
+      "qaAlias": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+      "state": "READY",
+      "aliasSourceReadbackVerified": true,
+      "previousQaDeploymentId": "dpl_DwgcJzvCQtM7HU3t8PytRVzcYTbj"
+    },
+    {
+      "application": "admin",
+      "projectId": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+      "deploymentId": "dpl_62Je6i8qhg7usjoYggdzXReEHyoL",
+      "deploymentUrl": "https://admin-esrlivf33-intobank.vercel.app",
+      "qaAlias": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+      "state": "READY",
+      "aliasSourceReadbackVerified": true,
+      "previousQaDeploymentId": "dpl_B35nWVWpByszxGgFuAvjMTVzE3HL"
+    }
+  ],
+  "productionDomainsChanged": false,
+  "productionEnvironmentValuesChanged": false,
+  "deploymentProtectionChanged": false,
+  "nativePhoneProductChanged": false,
+  "initialProductCommit": "d780b8b2b4e00d84b53279495c1b0808fa61d491",
+  "installerFollowupCommit": "c4ed86195ee19eface6d99104a7ed942ae3ec0e0",
+  "finalFollowupScope": "Admin paused-preview deadline fix, social test adapter repair and verified evidence. Web and native phone product source are identical to the initial product revision.",
+  "verificationCommit": "4ea4783b715ffb6744368edbcfee07348fa36587",
+  "verificationOnlyDifference": "web/tests/browser/commerce-run.cjs waits for the asynchronous Interview filter result before the unchanged exact count assertion. Product source is unchanged."
+}

@@ -1,0 +1,24 @@
+{
+  "base_product_source_sha": "dd522586323fe8d460d47cb1720f6352bd12c55c",
+  "published_fixture_source_sha": "4ea4783b715ffb6744368edbcfee07348fa36587",
+  "changed_files": [
+    "web/tests/browser/commerce-run.cjs"
+  ],
+  "runtime": "156.0.8078.80",
+  "receipt_checked_at": "2026-11-01T23:59:22.808Z",
+  "primary_checks_passed": 26,
+  "browser_errors": 0,
+  "source_sha256": {
+    "web/tests/browser/commerce-run.cjs": "06314c46dab50c2dcc414f7a4b59c10b4cacf3558c6adebaf5ed4e4721e7d26b",
+    "web/tests/browser/commerce-backend.ts": "86a0321feb18d947ea8d1fd3afb4d2a303d14e728a1bb08ee868142f2304cb47",
+    "web/tests/browser/commerce-fixture.tsx": "e9b64b3d4dba7ff62be0ec7cc68c50be30a8c003e794c46369415a574b1fc5d3",
+    "web/tests/browser/jobs-navigation.cjs": "f72e4fb08d9258a6f8416481819f8a3c33f8ff9732ff9c639567fa9dfdbf539a",
+    "web/app/jobs/applications/page.tsx": "f91763da967146b3303de9ef3891f05e67461e15957375ddc0eaa99b5a90fa6b"
+  },
+  "fixture_bundle_sha256": "2eb7c41659d04411d90d4e76e69a1d95900fd438588b5eee7bbd1f6728d9c469",
+  "receipt_sha256": "caecb711319c6f72d5194efb87dd29080eac52455891c789d962ac19d100d0c1",
+  "fixture_patch_sha256": "f277e0154815cb5a65c67f7f6795d27f6a1031b422230f4275a08c2030b07762",
+  "source_binding_captured": "After the one targeted repair run completed. Receipt is written only after all 26 checks and zero browser error assertions pass; source hashes match the published fixture commit. Direct process exit output was truncated at context turnover and is not claimed as a retained log.",
+  "change": "Wait for completed single-application summary and Interview card before existing exact count assertion; no fixed sleep, weakened assertion, or product change.",
+  "scope": "Actual Jobs/Market components with synthetic Auth/database and navigation adapters. No hosted authentication, real provider, payment, Storage, or physical-device acceptance."
+}

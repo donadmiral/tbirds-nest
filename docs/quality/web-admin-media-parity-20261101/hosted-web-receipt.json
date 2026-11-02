@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-11-01T23:29:45Z",
+  "environment": "QA Preview",
+  "deploymentId": "dpl_DwgcJzvCQtM7HU3t8PytRVzcYTbj",
+  "productCommit": "d780b8b2b4e00d84b53279495c1b0808fa61d491",
+  "origin": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+  "method": "Read-only interaction through the managed cloud Chrome browser with an existing signed-in QA account. Media properties were read from the rendered DOM; no signed URLs, credentials, message bodies, personal identifiers or screenshots are included in this receipt.",
+  "checks": [
+    {
+      "name": "feed-video-playback",
+      "result": "passed",
+      "observed": {
+        "readyState": 4,
+        "paused": false,
+        "currentTime": 0.215187,
+        "duration": 5.733333,
+        "mediaError": null
+      }
+    },
+    {
+      "name": "react-original-post-preview",
+      "result": "passed",
+      "observed": "The original post card contained its correct photo preview and text; its image was completely loaded with nonzero natural dimensions."
+    },
+    {
+      "name": "stories-open-next-back-close",
+      "result": "passed",
+      "observed": {
+        "navigation": "Viewer opened, advanced, moved backward and closed without an app crash. Background feed playback paused.",
+        "videoReadyState": 4,
+        "videoPaused": false,
+        "videoCurrentTime": 3.517371,
+        "videoDuration": 9.3,
+        "mediaError": null
+      }
+    },
+    {
+      "name": "memory-cover-and-reader",
+      "result": "passed",
+      "observed": {
+        "cover": "Static video-memory fallback, no decorative video spinner.",
+        "readerReadyState": 4,
+        "readerPaused": false,
+        "readerCurrentTime": 3.304769,
+        "readerDuration": 12,
+        "mediaError": null
+      }
+    },
+    {
+      "name": "continuous-memory-film",
+      "result": "passed",
+      "observed": {
+        "readyState": 4,
+        "paused": false,
+        "currentTime": 3.176855,
+        "duration": 12,
+        "mediaError": null,
+        "exit": "Returned to the reader successfully."
+      }
+    },
+    {
+      "name": "multi-page-memory-handoff",
+      "result": "passed",
+      "observed": {
+        "firstImageLoaded": true,
+        "firstImageNaturalWidth": 1080,
+        "firstImageNaturalHeight": 1920,
+        "nextVideoWhilePageTwoVisible": {
+          "readyState": 4,
+          "paused": true,
+          "currentTime": 0.5,
+          "duration": 4
+        },
+        "pageThreeVideo": {
+          "readyState": 4,
+          "paused": false,
+          "currentTime": 0.673232,
+          "duration": 4,
+          "mediaError": null
+        }
+      }
+    },
+    {
+      "name": "messages-navigation",
+      "result": "passed-with-fixture-limitation",
+      "observed": "Messages shell, destinations and search rendered. The QA account has no conversations, so hosted attachment/thread acceptance was not exercised."
+    },
+    {
+      "name": "discover-static-media-tiles",
+      "result": "passed",
+      "observed": {
+        "videoElementCount": 0,
+        "visibleTilesRendered": true,
+        "note": "Offscreen lazy image loading was not counted as a failure or as complete image readiness."
+      }
+    },
+    {
+      "name": "feed-later-video-and-return",
+      "result": "passed",
+      "observed": {
+        "laterVideo": {
+          "readyState": 4,
+          "paused": false,
+          "currentTime": 0.465239,
+          "duration": 9.3,
+          "mediaError": null
+        },
+        "originalVideoAfterReturn": {
+          "readyState": 4,
+          "paused": false,
+          "currentTime": 0.404188,
+          "mediaError": null
+        },
+        "offscreenPlayers": "Detached sources had no media errors and loaded again when revisited."
+      }
+    },
+    {
+      "name": "page-navigation",
+      "result": "passed",
+      "observed": "Home, profile, two memory books, messages, Discover and return to Home completed."
+    },
+    {
+      "name": "recent-browser-error-review",
+      "result": "passed",
+      "observed": {
+        "reviewedErrorEntries": 96,
+        "applicationErrorEntries": 0,
+        "excluded": "Browser extension metadata errors."
+      }
+    }
+  ],
+  "limitations": [
+    "These are sampled hosted QA observations, not a benchmark or proof of zero buffering on all connections.",
+    "Brief initial loading and page-transition states were observed and are not represented as eliminated.",
+    "No physical Safari, iOS or Android acceptance was performed in this web/admin pass.",
+    "No messages, posts, reactions, edits or moderation actions were submitted during these hosted checks.",
+    "Hosted admin verification is recorded separately from these web observations."
+  ],
+  "finalDeploymentRecheck": {
+    "observedAtUtc": "2026-11-01T23:53:21Z",
+    "deploymentId": "dpl_gtbKfbLhH5ity86uD6fgDKGxYb24",
+    "productCommit": "dd522586323fe8d460d47cb1720f6352bd12c55c",
+    "sourceComparison": "web/app, web/components and web/lib unchanged from initial observed product source",
+    "signedInFeed": "loaded",
+    "originalPostPreview": "present with loaded photo",
+    "video": {
+      "readyState": 4,
+      "currentTime": 5.733333,
+      "duration": 5.733333,
+      "paused": true,
+      "width": 720,
+      "mediaError": null,
+      "interpretation": "Video advanced through its complete duration after reload."
+    }
+  }
+}

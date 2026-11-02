@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-11-01T23:53:21Z",
+  "environment": "QA Preview",
+  "origin": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+  "method": "Read-only checks in the managed cloud Chrome browser following secure staff sign-in. Credentials, session data, private source URLs, staff identifiers, record identifiers and screenshots are excluded.",
+  "initialProductCommit": "d780b8b2b4e00d84b53279495c1b0808fa61d491",
+  "initialChecks": [
+    {
+      "name": "staff-sign-in",
+      "result": "passed",
+      "evidence": "Authenticated dashboard and staff-only content/story desks rendered."
+    },
+    {
+      "name": "static-list-previews",
+      "result": "passed",
+      "tileVideoElementCount": 0
+    },
+    {
+      "name": "selected-video-proxy-and-retry",
+      "result": "passed-after-retry",
+      "readyState": 4,
+      "currentTime": 0.254601,
+      "paused": false,
+      "mediaError": null
+    },
+    {
+      "name": "full-screen-position-retention",
+      "result": "passed",
+      "beforeExitCurrentTime": 2.799806,
+      "afterExitCurrentTime": 2.799806,
+      "readyState": 4,
+      "paused": true,
+      "mediaError": null
+    },
+    {
+      "name": "record-switch-to-photo",
+      "result": "passed",
+      "videoElementCount": 0,
+      "photoComplete": true,
+      "naturalWidth": 1206,
+      "naturalHeight": 2622
+    },
+    {
+      "name": "story-attachment-switch",
+      "result": "passed",
+      "videoElementCount": 0,
+      "photoComplete": true,
+      "naturalWidth": 884,
+      "naturalHeight": 1920
+    }
+  ],
+  "defectFound": {
+    "name": "paused-preview-first-frame-timeout",
+    "result": "fixed-in-followup",
+    "description": "A fully buffered, deliberately paused preview became unavailable when the mount-time 15-second first-frame deadline expired before staff pressed Play. Immediate retry and Play worked. This was reproduced in focused tests and corrected without changing authorization or the media proxy."
+  },
+  "finalAcceptance": {
+    "deploymentId": "dpl_62Je6i8qhg7usjoYggdzXReEHyoL",
+    "productCommit": "dd522586323fe8d460d47cb1720f6352bd12c55c",
+    "exactAliasSourceReadback": "passed",
+    "readyObservationAtUtc": "2026-11-01T23:52:26.002Z",
+    "idleMillisecondsBeforeClick": 35853,
+    "beforePlay": {
+      "readyState": 4,
+      "paused": true,
+      "currentTime": 0,
+      "duration": 5.733333,
+      "mediaError": null,
+      "playEnabled": true
+    },
+    "afterFirstPlayClick": {
+      "readyState": 4,
+      "paused": false,
+      "currentTime": 0.243991,
+      "duration": 5.733333,
+      "mediaError": null
+    },
+    "result": "passed"
+  },
+  "limitations": [
+    "No content, staff, moderation or security settings were changed in these browser checks.",
+    "The hosted dataset has fewer than one server page of posts; larger pagination is covered by controlled tests.",
+    "This receipt establishes sampled QA acceptance, not production latency or every browser/device."
+  ]
+}
