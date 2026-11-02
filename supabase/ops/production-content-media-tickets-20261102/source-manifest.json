@@ -1,0 +1,24 @@
+{
+  "migration": "supabase/migrations/20261102163428_production_content_media_tickets.sql",
+  "sha256": "59a12b5ec5aefae941cb18b3721c90547922154779b851e8db35d43b31c16a6e",
+  "source": "supabase/migrations/20261029231440_bounded_media_delivery.sql",
+  "source_sha256": "44c6f9d4cbcf858fdbc6a4c50a27bbc5f871347e8dfc45dc97825f52e9e82982",
+  "changes": [
+    "Fresh production canonical source/owner/order-independent ACL-set guards, explicit business-auth absence, managed Auth column checks and existing-contract preservation guard",
+    "Existing delivery schema explicitly refuses without modifications",
+    "Content-only ticket source kinds and buckets; no chat/music-audio issuance",
+    "Default-off private readiness gate for issuer/resolver",
+    "Captured indexable cutoff, bounded expiry cleanup 2000 rows, composite expiry index and user foreign-key index"
+  ],
+  "unchanged": [
+    "require_session complete function body",
+    "content_provenance complete function body",
+    "issuer and resolver input/output signatures and JSON keys",
+    "5-minute ticket lifetime and exact user/session/object ID/version/owner/audience checks"
+  ],
+  "hosted_apply": "Root coordinator only; readers install first",
+  "tests": "supabase/tests/media-content-tickets-db.test.cjs",
+  "test_sha256": "14a3be5533bbe29c7a3e4b910184efab4edf82ddca009b2f95fbc156eb00a40c",
+  "frozen_at": "2026-11-02T16:47:15.461318+00:00",
+  "guarded_full_qa_behavior": "Explicit CONTENT_TICKETS_EXISTING_DELIVERY_REQUIRES_FORWARD_RECONCILIATION refusal; no overwrite"
+}

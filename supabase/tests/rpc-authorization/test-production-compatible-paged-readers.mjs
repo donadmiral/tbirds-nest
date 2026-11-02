@@ -18,7 +18,7 @@ const migration=await source(migrationPath);
 const manifest=JSON.parse(await source('supabase/ops/production-compatible-readers-20261102/source-manifest.json'));
 const q=async(sql,args=[])=>(await db.query(sql,args)).rows;
 const value=async(sql,args=[])=>Object.values((await q(sql,args))[0]||{})[0];
-let baseline,installed,legacyBook,legacyShelf,legacyExpired;
+let baseline,installed,legacyBook,legacyShelf,legacyExpired,preflight,postflight;
 const preflightRejections=[];
 
 async function as(name,sql,args=[],{role='authenticated',session=sessions[name],claims={}}={}){
@@ -80,8 +80,10 @@ before(async()=>{
   preflightRejections.push(label);
  }
  baseline=await existingState();
+ preflight=await value(await source('supabase/ops/production-compatible-readers-20261102/preflight.sql'));
  await db.exec(migration);
  installed=await existingState();
+ postflight=await value(await source('supabase/ops/production-compatible-readers-20261102/postflight.sql'));
 });
 beforeEach(()=>db.exec('begin'));
 afterEach(()=>db.exec('rollback'));
@@ -101,6 +103,16 @@ test('the manifest seals the new migration and every reviewed source/adaptation'
   const name=unit.path.split('/').at(-1),start=`-- BEGIN REVIEWED READER SOURCE: ${name}\n`,end=`\n-- END REVIEWED READER SOURCE: ${name}`;
   assert.equal(migration.split(start)[1]?.split(end)[0],expected.trimEnd(),name);
  }
+});
+
+test('read-only operational preflight/postflight gates are executable and preserve the captured catalog fingerprints',()=>{
+ assert.equal(preflight.all_gates_passed,true,JSON.stringify(preflight.gates));
+ for(const gate of ['installed','canonical_readers_unchanged','public_contracts_valid','private_contracts_valid','default_off','full_packages_not_fabricated'])assert.equal(postflight[gate],true,gate);
+ for(const key of ['existing_functions_md5','existing_policies_md5','existing_columns_md5','buckets'])assert.deepEqual(postflight[key],preflight[key],key);
+ assert.equal(postflight.public_contracts.length,12);
+ assert.ok(postflight.private_contracts.every(p=>p.matches));
+ assert.ok(postflight.private_tables.every(t=>t.rls&&!t.api_access));
+ assert.equal(postflight.revision_triggers.length,3);assert.ok(postflight.revision_triggers.every(t=>t.enabled==='O'));
 });
 
 test('every pre-existing public/Auth function, policy, column, table ACL, request hook and bucket is unchanged',async()=>{

@@ -1,0 +1,10 @@
+select jsonb_build_object('checked_at',clock_timestamp(),
+ 'ticket_issuance_enabled',(select enabled from media_delivery.prerequisite_settings where singleton),
+ 'ticket_count',(select count(*) from media_delivery.tickets),
+ 'public_rpc_acl',(select jsonb_agg(jsonb_build_object('signature',p.oid::regprocedure::text,'owner',pg_get_userbyid(p.proowner),'security_definer',p.prosecdef,'config',p.proconfig,'public_execute',exists(select 1 from aclexplode(coalesce(p.proacl,acldefault('f',p.proowner)))a where a.grantee=0),'anon_execute',has_function_privilege('anon',p.oid,'execute'),'authenticated_execute',has_function_privilege('authenticated',p.oid,'execute'),'service_execute',has_function_privilege('service_role',p.oid,'execute')) order by p.proname) from pg_proc p where p.oid in('public.issue_content_media_delivery(jsonb,jsonb)'::regprocedure,'public.resolve_media_delivery(text,text,text)'::regprocedure)),
+ 'private_tables',(select jsonb_agg(jsonb_build_object('name',c.relname,'rls',c.relrowsecurity,'unexpected_grants',exists(select 1 from aclexplode(coalesce(c.relacl,acldefault('r',c.relowner)))a where a.grantee<>c.relowner)) order by c.relname) from pg_class c where c.relnamespace='media_delivery'::regnamespace and c.relkind='r'),
+ 'private_function_acl_violations',(select count(*) from pg_proc p join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner)))a on a.grantee<>p.proowner where p.pronamespace='media_delivery'::regnamespace),
+ 'source_buckets',(select jsonb_agg(jsonb_build_object('id',id,'public',public) order by id) from storage.buckets where id in('post-media','story-media','media','chat-media','chat-files')),
+ 'adaptive_gates',(select jsonb_build_object('admission',admission_enabled,'worker',worker_enabled,'delivery',delivery_enabled,'maintenance',maintenance_enabled) from media_renditions.settings where singleton),
+ 'unrelated_schemas_absent',to_regnamespace('account_erasure') is null and to_regnamespace('music_library') is null and to_regnamespace('business_auth') is null,
+ 'chat_issuer_absent',to_regprocedure('public.issue_chat_media_delivery(uuid[])') is null) as content_ticket_postflight;

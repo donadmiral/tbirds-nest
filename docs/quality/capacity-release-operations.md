@@ -4,6 +4,8 @@ This release implements bounded clients, indexed feed selection, distributed cou
 
 ## Install and release order
 
+For the existing production visual baseline, use the [production prerequisite branches](capacity-production-prerequisites-20261102.md). Its compatibility readers and content-ticket contracts replace a broad creative/music/account cutover. Do not replay the canonical QA reader files over a production compatibility installation.
+
 1. Reconcile the target's canonical authorization, queue and service-proof contracts. Apply the existing `20261102062128` through `20261102075616` capacity foundations in filename order, only where they are not already installed. Keep the exact target migration history in the private release record.
 2. Apply the capacity migrations beginning with `20261102090521` in filename order. Preserve their writer fences, lock/statement timeouts, ACLs and canonical-function guards. An atomic multi-file installation must remove only the outer transaction wrappers, then use one outer transaction. On a guard failure, roll back and resolve the actual contract difference.
 3. Deploy the compatible ordinary/VoIP handlers and the authenticated `process-notification-outbox` consumer. Verify the real queue can complete a synthetic authorized event. Do not activate durable dispatch while the consumer or its credential proof is unavailable.

@@ -52,7 +52,7 @@ jobs:
           done
           test "$ready" = true
           psql --dbname=postgres --command='select version(), inet_server_addr();'
-          for database in pc_scale_counters pc_scale_feed pc_scale_paging pc_scale_context pc_scale_business pc_scale_mentions pc_scale_media_jobs pc_scale_service_proof pc_scale_feed_rank pc_scale_distributed_counters pc_scale_notification_fanout pc_scale_admin_projection pc_scale_media_v2 pc_scale_observability pc_scale_book_window pc_scale_unique_reach pc_scale_push_badge pc_scale_notification_worker; do
+          for database in pc_scale_counters pc_scale_feed pc_scale_paging pc_scale_context pc_scale_business pc_scale_mentions pc_scale_media_jobs pc_scale_service_proof pc_scale_feed_rank pc_scale_distributed_counters pc_scale_notification_fanout pc_scale_admin_projection pc_scale_media_v2 pc_scale_observability pc_scale_book_window pc_scale_unique_reach pc_scale_push_badge pc_scale_notification_worker pc_scale_media_tickets; do
             createdb "$database"
           done
       - name: Verify real lock waits, retries, access boundaries and cleanup
@@ -75,6 +75,7 @@ jobs:
           PGDATABASE=pc_scale_unique_reach node supabase/tests/unique-view-share-db.test.cjs
           PGDATABASE=pc_scale_push_badge node supabase/tests/push-badge-db.test.cjs
           PGDATABASE=pc_scale_notification_worker node supabase/tests/notification-worker-db.test.cjs
+          PGDATABASE=pc_scale_media_tickets node supabase/tests/media-content-tickets-db.test.cjs
       - name: Remove the disposable database
         if: always()
         run: docker rm --force pc-capacity-postgres || true
