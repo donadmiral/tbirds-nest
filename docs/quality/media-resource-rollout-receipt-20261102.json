@@ -1,0 +1,282 @@
+{
+  "as_of": "2026-11-02T18:46:30Z",
+  "production": {
+    "deployment": "dpl_Pahpf6YiZrCGpz6MieDCkcGkg4wz",
+    "source": "a0da90cff3cbc9c92569dd7cadbd1750b4384116",
+    "url": "https://platinum-media-renditions.vercel.app",
+    "database": {
+      "media": {
+        "singleton": true,
+        "concurrency": 2,
+        "backoff_until": null,
+        "gateway_origin": "https://platinum-media-gateway.vercel.app",
+        "last_worker_at": null,
+        "worker_enabled": false,
+        "input_max_bytes": 536870912,
+        "delivery_enabled": false,
+        "emergency_revoke": false,
+        "output_max_bytes": 805306368,
+        "admission_enabled": false,
+        "maintenance_enabled": false,
+        "duration_max_seconds": 600
+      },
+      "monitor": {
+        "enabled": true,
+        "singleton": true,
+        "stale_seconds": 180,
+        "retention_days": 14
+      },
+      "sandbox": {
+        "vcpus": 2,
+        "enabled": false,
+        "memory_mb": 4096,
+        "max_concurrency": 1,
+        "timeout_seconds": 780,
+        "active_reservations": 0,
+        "daily_cpu_cap_seconds": 3120,
+        "daily_wall_cap_seconds": 1560,
+        "monthly_cpu_cap_seconds": 12480,
+        "monthly_wall_cap_seconds": 6240,
+        "daily_wall_reserved_seconds": 0,
+        "monthly_wall_reserved_seconds": 0
+      },
+      "dispatch": {
+        "origin": "https://platinum-media-renditions.vercel.app",
+        "enabled": false,
+        "credential_configured": true
+      },
+      "last_sample": "2026-11-02T18:45:00+00:00",
+      "observed_at": "2026-11-02T18:45:40.892036+00:00",
+      "active_alerts": [],
+      "provider_limits": [
+        {
+          "unit": "connections",
+          "provider": "realtime",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "frontend",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "bytes_per_second",
+          "provider": "media",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "push",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "calls",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "requests_per_second",
+          "provider": "auth",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": null,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        },
+        {
+          "unit": "connections",
+          "provider": "database",
+          "valid_until": null,
+          "confirmed_at": null,
+          "reserved_peak": null,
+          "observed_limit": 60,
+          "budget_approved_at": null,
+          "monthly_budget_usd": null,
+          "reservation_evidence": null,
+          "budget_approval_evidence": null
+        }
+      ]
+    }
+  },
+  "hosted_acceptance": {
+    "initial_encode": {
+      "deployment": "dpl_Dw1JqF3oCu3bpd9xjd3G1uFwn8V4",
+      "input_bytes": 44015,
+      "assets": 6,
+      "output_bytes": 279043,
+      "consumer_wall_ms": 10461,
+      "session": "sbx_N732Uo1lvYNRKsqn92jGSbDJeeOv",
+      "provider_status": "stopped",
+      "provider_wall_ms": 425632,
+      "completed_exit_code": 0
+    },
+    "completion_poll_correction": "Plain detached-command reads retained null after process exit; actual wait=true returned exit 0. The controller now polls completion with a 1500ms bound and preserves running reservations when that poll times out.",
+    "corrected_lifecycle": {
+      "deployment": "dpl_3agnKALAS88g6hRFghiUbYcxov3T",
+      "source": "a0da90cff3cbc9c92569dd7cadbd1750b4384116",
+      "session": "sbx_B0zcoeHMUkNXSY59vfJ2mVLoe2RF",
+      "snapshot": "snap_7kjpOZrtq4dtSn2wnQiH1Wpy6At3",
+      "provider_status": "stopped",
+      "provider_wall_ms": 30015,
+      "provider_active_cpu_ms": 2055,
+      "exit_code": 0,
+      "cleanup_derivative_objects_removed": 24,
+      "reap_response": {
+        "state": "idle",
+        "stopped": 1
+      }
+    }
+  },
+  "qa_cleanup": {
+    "runs": [
+      {
+        "id": "7ee217a9-1339-41ae-bdff-0c1cf22c13cc",
+        "name": "pc-media-7ee217a9133941aebdff0c1cf22c13cc",
+        "state": "finished",
+        "exit_code": 0,
+        "command_id": "cmd_39da88371b704e6da18a94dc5a2a",
+        "session_id": "sbx_N732Uo1lvYNRKsqn92jGSbDJeeOv",
+        "finished_at": "2026-11-02T18:37:21.993594+00:00"
+      },
+      {
+        "id": "9df62d93-86f9-428a-937c-da37b8edc809",
+        "name": "pc-media-9df62d9386f9428a937cda37b8edc809",
+        "state": "finished",
+        "exit_code": 0,
+        "command_id": "cmd_a3b462aab17c4ace807e5bea5e1d",
+        "session_id": "sbx_B0zcoeHMUkNXSY59vfJ2mVLoe2RF",
+        "finished_at": "2026-11-02T18:43:19.504229+00:00"
+      }
+    ],
+    "status": {
+      "states": {
+        "retry": 0,
+        "failed": 0,
+        "blocked": 0,
+        "pending": 0,
+        "cancelled": 3,
+        "processing": 0,
+        "retry_capped": false,
+        "failed_capped": false,
+        "blocked_capped": false,
+        "pending_capped": false,
+        "cancelled_capped": false,
+        "processing_capped": false
+      },
+      "profile": "hls-v2",
+      "sample_limit": 10000,
+      "expired_leases": 0,
+      "worker_enabled": false,
+      "cleanup_pending": 0,
+      "delivery_enabled": false,
+      "worker_last_seen_at": "2026-11-02T18:42:54.178039+00:00",
+      "faststart_v1_pending": 0,
+      "oldest_pending_seconds": 0
+    },
+    "sandbox": {
+      "vcpus": 2,
+      "enabled": true,
+      "memory_mb": 4096,
+      "max_concurrency": 1,
+      "timeout_seconds": 780,
+      "active_reservations": 0,
+      "daily_cpu_cap_seconds": 3120,
+      "daily_wall_cap_seconds": 1560,
+      "monthly_cpu_cap_seconds": 12480,
+      "monthly_wall_cap_seconds": 6240,
+      "daily_wall_reserved_seconds": 1560,
+      "monthly_wall_reserved_seconds": 1560
+    },
+    "originals": 0,
+    "adaptive_objects": 0
+  },
+  "qa_restored": {
+    "media": {
+      "singleton": true,
+      "concurrency": 2,
+      "backoff_until": null,
+      "gateway_origin": null,
+      "last_worker_at": "2026-11-02T18:42:54.178039+00:00",
+      "worker_enabled": false,
+      "input_max_bytes": 536870912,
+      "delivery_enabled": false,
+      "emergency_revoke": false,
+      "output_max_bytes": 805306368,
+      "admission_enabled": false,
+      "maintenance_enabled": true,
+      "duration_max_seconds": 600
+    },
+    "bucket": {
+      "public": false,
+      "file_size_limit": 104857600
+    },
+    "sandbox": {
+      "vcpus": 2,
+      "enabled": false,
+      "memory_mb": 4096,
+      "max_concurrency": 1,
+      "timeout_seconds": 780,
+      "active_reservations": 0,
+      "daily_cpu_cap_seconds": 3120,
+      "daily_wall_cap_seconds": 1560,
+      "monthly_cpu_cap_seconds": 12480,
+      "monthly_wall_cap_seconds": 6240,
+      "daily_wall_reserved_seconds": 1560,
+      "monthly_wall_reserved_seconds": 1560
+    },
+    "shared_story_present": true
+  },
+  "temporary_access": {
+    "latest_preview_share_revoked": true,
+    "earlier_two_share_revoke_response": "404 specified shareable link does not exist",
+    "earlier_two_share_http_probe": "302 to vercel.com sign-in; worker health unavailable",
+    "cleanup_endpoint": "qa-capacity-fixture-cleanup-20261102",
+    "cleanup_endpoint_final_version": 2,
+    "cleanup_endpoint_retired": true,
+    "cleanup_endpoint_verify_jwt": true,
+    "cleanup_endpoint_sha256": "60548fe66cd8a83eb8c284b40c9568839acbee7bb40fe05fee844731384f29b3"
+  },
+  "limitations": [
+    "Production processing, admission, delivery and Sandbox gates remain off.",
+    "A single near-512MiB fixture and bounded10RPS QA calibration do not establish fleet throughput or five-million-DAU capacity.",
+    "Provider reservations and approved monthly operating ceilings remain unconfirmed."
+  ]
+}

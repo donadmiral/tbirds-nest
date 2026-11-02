@@ -1,0 +1,134 @@
+{
+  "at": "2026-11-02T18:44:34.860Z",
+  "deployment": "dpl_Pahpf6YiZrCGpz6MieDCkcGkg4wz",
+  "source": "a0da90cff3cbc9c92569dd7cadbd1750b4384116",
+  "origin": "https://platinum-media-renditions.vercel.app",
+  "checks": [
+    {
+      "name": "production_health",
+      "status": 200,
+      "cache_control": "no-store",
+      "body": {
+        "ok": true,
+        "profile": "hls-v2",
+        "runtime": "sandbox"
+      }
+    },
+    {
+      "name": "metrics_require_auth",
+      "status": 401,
+      "cache_control": "no-store",
+      "body": {
+        "error": "unauthorized"
+      }
+    },
+    {
+      "name": "production_metrics",
+      "status": 200,
+      "cache_control": "no-store",
+      "body": {
+        "states": {
+          "retry": 0,
+          "failed": 0,
+          "blocked": 0,
+          "pending": 0,
+          "cancelled": 0,
+          "processing": 0,
+          "retry_capped": false,
+          "failed_capped": false,
+          "blocked_capped": false,
+          "pending_capped": false,
+          "cancelled_capped": false,
+          "processing_capped": false
+        },
+        "profile": "hls-v2",
+        "sample_limit": 10000,
+        "expired_leases": 0,
+        "worker_enabled": false,
+        "cleanup_pending": 0,
+        "delivery_enabled": false,
+        "worker_last_seen_at": null,
+        "faststart_v1_pending": 0,
+        "oldest_pending_seconds": 0,
+        "runtime": "sandbox",
+        "sandbox": {
+          "vcpus": 2,
+          "enabled": false,
+          "memory_mb": 4096,
+          "max_concurrency": 1,
+          "timeout_seconds": 780,
+          "active_reservations": 0,
+          "daily_cpu_cap_seconds": 3120,
+          "daily_wall_cap_seconds": 1560,
+          "monthly_cpu_cap_seconds": 12480,
+          "monthly_wall_cap_seconds": 6240,
+          "daily_wall_reserved_seconds": 0,
+          "monthly_wall_reserved_seconds": 0
+        },
+        "controller": {
+          "role": "dispatcher",
+          "scratch_available_bytes": 536870912,
+          "process_rss_bytes": 62230528
+        },
+        "worker_limits": {
+          "max_input_bytes": 536870912,
+          "scratch_budget_bytes": 2147483648,
+          "deadline_ms": 720000,
+          "encoder_threads": 2
+        },
+        "encoder_measurements": null
+      }
+    },
+    {
+      "name": "drain_requires_auth",
+      "status": 401,
+      "cache_control": "no-store",
+      "body": {
+        "error": "unauthorized"
+      }
+    },
+    {
+      "name": "production_idle_drain",
+      "status": 200,
+      "cache_control": "no-store",
+      "body": {
+        "state": "idle",
+        "stopped": 0
+      }
+    },
+    {
+      "name": "worker_sandbox_status_scope",
+      "status": 403,
+      "body": {
+        "error": "forbidden"
+      }
+    },
+    {
+      "name": "gateway_sandbox_status_scope",
+      "status": 403,
+      "body": {
+        "error": "forbidden"
+      }
+    },
+    {
+      "name": "dispatcher_sandbox_status_scope",
+      "status": 200,
+      "body": {
+        "data": {
+          "vcpus": 2,
+          "enabled": false,
+          "memory_mb": 4096,
+          "max_concurrency": 1,
+          "timeout_seconds": 780,
+          "active_reservations": 0,
+          "daily_cpu_cap_seconds": 3120,
+          "daily_wall_cap_seconds": 1560,
+          "monthly_cpu_cap_seconds": 12480,
+          "monthly_wall_cap_seconds": 6240,
+          "daily_wall_reserved_seconds": 0,
+          "monthly_wall_reserved_seconds": 0
+        }
+      }
+    }
+  ]
+}

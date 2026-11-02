@@ -164,7 +164,8 @@
       "memoryGb": 4,
       "maximumInputBytes": 536870912
     },
-    "encodeResourceNote": "512MiB is maximum admitted input, not the average upload size. Per-job time ranges are assumptions awaiting the new hosted worker measurements."
+    "encodeResourceNote": "512 MiB is maximum admitted input, not average upload size. A hosted 536,375,042-byte, 25.866667-second, 640x360 rawvideo fixture completed in 38.418 seconds. This single observed consumer time does not replace the unchanged fleet time assumptions or establish sustained capacity.",
+    "subscriptionReferenceNote": "The $45 modeled subscription reference is Supabase Pro plus one hypothetical Vercel Pro member. Actual current plans are Supabase Pro and Vercel Hobby; no paid upgrade has been purchased."
   },
   "sensitivity": {
     "low": {
@@ -242,28 +243,41 @@
       "plan": "Pro",
       "productionRef": "prlkikhckbifseosbukl",
       "region": "us-west-2",
-      "postgres": "17.6",
+      "postgres": "17.6.1.104",
       "observedMaxConnections": 60,
       "observedSharedBuffersMib": 224,
       "observedWorkMemKib": 2184,
       "observedDatabaseBytes": 81202323,
-      "observedAt": "2026-11-02T17:43:32.44447Z",
-      "receipt": "docs/quality/capacity-db-measurements-20261102/provider-baseline.json",
+      "observedAt": "2026-11-02T18:39:04.696722+00:00",
+      "receipt": "docs/quality/account-capacity-closure-20261102.json",
       "actualComputeSku": null,
       "actualPoolerClientLimit": null,
       "spendCap": null,
-      "approvedAdditionalMonthlyBudgetUsd": null
+      "approvedAdditionalMonthlyBudgetUsd": null,
+      "observedReservedConnections": 3,
+      "databaseBytesObservedAt": "2026-11-02T17:43:32.44447Z",
+      "earlierBaselineReceipt": "docs/quality/capacity-db-measurements-20261102/provider-baseline.json",
+      "ownerReportedComputeSku": "nano",
+      "computeSkuEvidence": "Owner-reported Nano; both provider project interfaces omit compute SKU, so it is not independently account-verified.",
+      "actualPoolSize": null,
+      "actualAuthRateLimits": null,
+      "actualRealtimeRateLimits": null,
+      "quotaCapabilityNote": "No compute/configuration/quota read operation is exposed by the current Supabase connector; pgrst.db_pool is null and no relevant custom quota GUC is visible."
     },
     "vercel": {
       "teamId": "team_yu7fUehO2z7E6QHF6Nvxp3tC",
       "slug": "intobank",
-      "confirmedPlanByThisReader": null,
-      "planEvidence": "Rolling-release billing returned unsupported plan, consistent with Hobby but not an explicit account plan field.",
+      "confirmedPlanByThisReader": "hobby",
+      "planEvidence": "get_git_deployment_context explicitly returned plan hobby for Intobank team_yu7fUehO2z7E6QHF6Nvxp3tC, including the linked web/admin/media projects.",
       "budgetUsd": null,
       "usageEndpoint": "404 costs_not_found",
       "usageEndpointIsZeroSpendProof": false,
       "currentDashboardAccess": "ordinary sign-in required",
-      "verifiedPrivateGatewayRegion": "iad1"
+      "verifiedPrivateGatewayRegion": "iad1",
+      "observedAt": "2026-11-02T18:39:04.696722+00:00",
+      "receipt": "docs/quality/account-capacity-closure-20261102.json",
+      "remainingSharedQuota": null,
+      "capacityReservations": null
     },
     "sandbox": {
       "observedAt": "2026-11-02T17:50:33Z",
@@ -273,7 +287,29 @@
       "visibleRamBytes": 4492595200,
       "scratchBytes": 68652367872,
       "immutableNodeImageSha256": "6927dfce823159a574dc3b87fa327cde48533c7498b92492c31179a5477c9fd6",
-      "source": "Vercel Sandbox provision/readback reported by release coordinator; this is one observed host, not a reserved fleet."
+      "source": "Vercel Sandbox provision/readback reported by release coordinator; this is one observed host, not a reserved fleet.",
+      "fullSizeAcceptance": {
+        "receipt": "docs/quality/media-sandbox-512-acceptance-20261102.json",
+        "testedAt": "2026-11-02T18:28:23Z",
+        "sourceBytes": 536375042,
+        "sourceDurationSeconds": 25.866667,
+        "sourceWidth": 640,
+        "sourceHeight": 360,
+        "sourceCodec": "rawvideo",
+        "paddingBytes": 0,
+        "consumerWallSeconds": 38.418,
+        "consumerActiveCpuSeconds": 9.875842,
+        "assets": 18,
+        "outputBytes": 5125405,
+        "scratchPeakIncrementBytes": 541913088,
+        "sampledHostMemoryPeakBytes": 433000448,
+        "nodePeakRssBytes": 118890496,
+        "providerSessionState": "stopped",
+        "providerWallSeconds": 145.57,
+        "providerActiveCpuSeconds": 20.264,
+        "doesNotReplaceFleetEncodeTimeAssumptions": true,
+        "notSustainedThroughputOrFleetReservation": true
+      }
     },
     "nullMeans": "Unknown, not zero. Public defaults are kept separate from owned-account settings."
   },
@@ -311,7 +347,7 @@
         "Do not upgrade, add a card, disable a spend cap, or purchase a resource reservation.",
         "Remaining allowance is shared and unconfirmed; dispatcher limits do not account for bootstrap/tests/other projects.",
         "Stop sessions after bounded work; do not claim an invoice of zero.",
-        "Hobby has no additional Sandbox usage charges, but the account plan is not exposed as a definitive field; existing QA charges are separate."
+        "Hobby is explicitly confirmed by the connected team metadata. Published Hobby Sandbox has no extra usage charges, but remaining shared allowance and existing QA charges are unconfirmed."
       ]
     },
     {
@@ -335,7 +371,7 @@
         "maxAuthMauAdded": 10
       },
       "prerequisites": [
-        "Confirm actual account plan/current spend and existing subscription before quoting the incremental price.",
+        "Confirm current spend and incremental pricing against the now-confirmed Vercel Hobby and Supabase Pro subscriptions before any paid measurement stage.",
         "Approve exact ceiling and service availability behavior; a team-wide pause affects web and admin.",
         "Confirm quota/billing meter before and after; stop well below allowance because provider enforcement can lag.",
         "No paid action is authorized by this proposal."

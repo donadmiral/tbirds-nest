@@ -2,13 +2,15 @@
 
 This records the controlled production rollout and acceptance checks on 2 November 2026. It does not establish a measured DAU capacity or a public mobile-store release.
 
+**Follow-up at 18:45 UTC:** the production worker now runs the verified 512 MiB Sandbox controller, hosted launch/cleanup/reaping passed, and iOS build 19 is expired under the user's TestFlight hold. See [the final resource rollout record](capacity-resource-rollout-20261102.md). The earlier acceptance observations below retain their original scope.
+
 ## Production releases
 
 | Surface | Release | Recorded state |
 | --- | --- | --- |
 | Web | `dpl_2bc54J3tDSajMe4wGWoF54ik2Jvn` | Promoted to `platinumcircles.app` and `www.platinumcircles.app`; public HTTP and browser login rendering passed |
 | Admin | `dpl_DncqiTY9TZBCddGg21KYjiov1tgJ` | Promoted to `admin.platinumcircles.app`; staff sign-in rendered, unauthenticated capacity request returned 401 with private/no-store caching |
-| iOS 1.1.0, build 19 | Build `59831393-6f85-4755-94cc-2668295e953f` | Build and upload submission finished; no public App Store release claimed |
+| iOS 1.1.0, build 19 | Build `59831393-6f85-4755-94cc-2668295e953f` | Uploaded before the later hold; exact App Store Connect build expired at 17:47:46 UTC, internal/external state EXPIRED; no further build or upload started |
 | Android 1.1.0, version code 8 | Build `83bc69b6-ba50-42f3-bca0-fc51624950a3` | Build processing; exact-build submission scheduled for the existing internal track |
 
 Both web deployments use commit `69097b41936a685f56d6e6302f9450b6c7cd6187`, target `production`, and production Supabase project `prlkikhckbifseosbukl`. Their production domains were verified after promotion. Normal automatic domain assignment is enabled again following the explicit promotions.
@@ -61,6 +63,6 @@ The pre-existing production `business-owner-access` endpoint is absent and remai
 
 ## Remaining capacity gates
 
-The deployed media-worker profile admits inputs up to 128 MiB. The prepared 512 MiB configuration still needs provisioned compute, memory, scratch space and an owned billing-enabled cloud project. It was not provisioned by this rollout.
+The original release used the 128 MiB media profile. The follow-up provisioned and measured a 2-vCPU/4-GB Sandbox with a durable FFmpeg runtime and deployed the 512 MiB controller to production. A real 536,375,042-byte video produced 18 assets in 38.418 seconds. The normal hosted dispatcher then passed launch, cleanup and automatic shutdown against that durable runtime. See [the acceptance receipt](media-sandbox-512-acceptance-20261102.json) and [final rollout record](capacity-resource-rollout-20261102.md). Optional processing and delivery gates remain off.
 
-The database connection setting was observed as 60 and recorded as an observed limit only. Provider reservations, approved operating budgets and measured database/network/realtime/media throughput remain unestablished. No measured five-million-DAU claim is supported by this rollout. The remaining activation and capacity stages are described in [release operations](capacity-release-operations.md) and the [production prerequisite mapping](capacity-production-prerequisites-20261102.md).
+The database connection setting was observed as 60 and recorded as an observed limit only. A bounded mixed QA run measured 600 requests at approximately 10 requests/second with zero errors; this is a calibration, not a supported-capacity ceiling. Provider reservations, approved operating budgets and sustained database/network/realtime/media fleet throughput remain unestablished. Vercel Hobby and Supabase Pro are confirmed account plans. No measured five-million-DAU claim is supported by this rollout. The remaining account and procurement gates are described in [the infrastructure budget](capacity-infrastructure-budget-20261102.md).

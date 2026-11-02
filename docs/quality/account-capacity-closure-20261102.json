@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "kind": "read-only-account-capacity-closure",
+  "checked_at": "2026-11-02T18:39:04.696722+00:00",
+  "vercel": {
+    "source_tool": "vercel_get_git_deployment_context",
+    "confirmed": {
+      "team_id": "team_yu7fUehO2z7E6QHF6Nvxp3tC",
+      "team_name": "Intobank",
+      "team_slug": "intobank",
+      "plan": "hobby",
+      "linked_projects": [
+        {
+          "id": "prj_KRrC0YmQek14PrWGk9AZeP7hRNgE",
+          "name": "platinum-media-renditions"
+        },
+        {
+          "id": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+          "name": "admin-web"
+        },
+        {
+          "id": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+          "name": "platinum-web"
+        },
+        {
+          "id": "prj_qkdOpM6WY7XSpxZFTklDPmNas0Nu",
+          "name": "platinum-media-gateway"
+        }
+      ]
+    },
+    "interpretation": "Current connected team metadata directly reports hobby; this supersedes earlier plan=null caused by the compact get_team response.",
+    "not_confirmed": [
+      "current billing usage and spend",
+      "custom resource quota entitlements",
+      "configured operating budget",
+      "capacity reservations"
+    ]
+  },
+  "supabase": {
+    "sources": [
+      "supabase_get_project",
+      "supabase_list_projects",
+      "supabase_get_organization",
+      "supabase_execute_sql"
+    ],
+    "confirmed": {
+      "organization_id": "lgzjbukuydzrczdeprzv",
+      "organization_name": "Pearl Group",
+      "organization_plan": "pro",
+      "organization_tier": "tier_pro",
+      "project_ref": "prlkikhckbifseosbukl",
+      "project_region": "us-west-2",
+      "project_status": "ACTIVE_HEALTHY",
+      "database_version": "17.6.1.104",
+      "database_engine": "17",
+      "database_release_channel": "ga",
+      "sql_settings": {
+        "work_mem": "2184kB",
+        "observed_at": "2026-11-02T18:39:04.696722+00:00",
+        "project_ref": "prlkikhckbifseosbukl",
+        "pgrst_db_pool": null,
+        "shared_buffers": "224MB",
+        "max_connections": 60,
+        "role_connection_limits": {
+          "anon": -1,
+          "service_role": -1,
+          "authenticated": -1,
+          "authenticator": -1
+        },
+        "exposed_pool_or_quota_gucs": [],
+        "superuser_reserved_connections": 3
+      }
+    },
+    "compute_sku": {
+      "provider_verified": null,
+      "user_reported": "nano",
+      "user_report_source": "Parent handoff reports that the owner supplied Nano; not independently returned by the connected provider interfaces.",
+      "reason_unconfirmed": "Both get_project and list_projects return identity, organization, region, status, DB version/engine/release channel and creation time, with no compute SKU. The current Supabase tool catalog contains no read operation for compute/add-ons/config/Auth limits/Realtime limits or billing configuration."
+    },
+    "unconfirmed_quotas": [
+      "pooler maximum client connections",
+      "configured pool size",
+      "custom Auth rate limits",
+      "custom Realtime connection/message/join limits",
+      "provider reservations or quota increases",
+      "spend-cap configuration"
+    ],
+    "interpretation": [
+      "max_connections60 is directly observed, not inferred from the reported Nano SKU.",
+      "Per-role connection limit -1 means no separate role limit; it does not override the database-wide maximum.",
+      "pgrst.db_pool=null and no exposed custom GUC mean this SQL interface did not reveal those limits; not zero or unlimited."
+    ]
+  },
+  "actions": {
+    "browser_used": false,
+    "credentials_requested_or_extracted": false,
+    "plans_or_budgets_changed": false,
+    "provider_requests_sent": false,
+    "load_test_run": false,
+    "source_files_changed": false
+  }
+}

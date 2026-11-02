@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-02T17:47:46.656Z",
+  "action": "expired_exact_build",
+  "appId": "6764038613",
+  "ascBuildId": "60927284-426c-48f2-bce5-3edbe24285cf",
+  "appVersion": "1.1.0",
+  "buildNumber": "19",
+  "expired": true,
+  "betaDetail": {
+    "autoNotifyEnabled": true,
+    "internalBuildState": "EXPIRED",
+    "externalBuildState": "EXPIRED"
+  },
+  "priorBuildCount": 14,
+  "priorBuildsUnchanged": true,
+  "groupsUnchanged": true,
+  "noNewUploadOrBuild": true,
+  "previousUploadFinishedBeforeHoldInstruction": true
+}
