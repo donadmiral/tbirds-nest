@@ -1,5 +1,5 @@
 {
-  "scope": "Selected geometry from the failing reduced-motion legacy-media browser case, plus the explicit one-declaration diagnostic. Full frame arrays are retained in local/browser workflow artifacts.",
+  "scope": "Selected geometry from the failing local reduced-motion legacy-media case and the explicit one-declaration local diagnostic. Full-receipt SHA256 values identify those local originals. CI separately verifies the final corrected source; its artifact does not contain these earlier diagnostic runs.",
   "failingReceiptSHA256": "4fff29abe961c0bf4afc8b3cca206fa0c3e90f47c4a5fca4dec942d2612f35e4",
   "sourceHashes": {
     "web/components/HomeFeed.tsx": "33c9bedb06787a635bdf016f3303c6904131195d688d1196d55e49977b82372a",

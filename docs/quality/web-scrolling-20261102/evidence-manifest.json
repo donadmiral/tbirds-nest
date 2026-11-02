@@ -1,19 +1,21 @@
 {
-  "createdAt": "2026-11-02T00:58:49.691296+00:00",
+  "createdAt": "2026-11-02T01:09:44.813438+00:00",
   "files": {
     "async-block-baseline.json": "334fb9169ab41e3ac267e9032c9aeeb8771ee0a7190bdf92db9d522cf4189316",
     "final-navigation.json": "0c7ae50ae78bd59368394832724576c3d8fbe6cd7699cd9f7abf04a2f928bc3f",
+    "hosted-acceptance.json": "9ea54c28f0b11075e7ff141ed07904afd691e37c13faa1e4c333dccf7a57e057",
     "hosted-baseline.json": "9344ac56c67af1b2cf0dad8b6a914d88801ceddcf1ecaa048c11b2728eb41b28",
     "image-baseline.json": "af85194d8f6d8289aa62a20bc3e4b1df7fcdaf90e3e633810bf0e2393dcc6609",
     "integration.json": "e0887e1edecfafbd89dac5f3512ec054b3170b1628b6b370b30dff414cef55e6",
     "media-readiness.json": "694afe152025e339ae4bfee48d536db4fedb55f8ca426a621ef470ac1a4812ef",
     "navigation-baseline.json": "083bca0f4e055af42e2f84b33732508a294981534b408014c8454b1c402e802a",
-    "reduced-motion-baseline.json": "c8910e9398eb9ed1f560866fb50fc55af68a773819c68481dc2ad8350e9dc2b0",
+    "reduced-motion-baseline.json": "0d562cf89f9f58b5ca0cb35d9d5eeb7cab2f28f5b01aa53865bf7cb7218b957f",
+    "release.json": "97e5d8b11a9814566e4ae52de153d42a02ede9d9fa36ce46fb4fc23200cc5b0b",
     "social-results.json": "a4d1dd0576311f7d12c30e2fc48b50337c2901c74016625e19a6c67d943b2dac",
     "social-source-after.json": "5c9451908c8000aa56ca8c4ddc804c3808248c4ca5dc8d7fe8f7959264bc345a",
     "social-source-before.json": "561615d76c3d6bdc51fb0fb9612b027b965f1f518f230ed2401b96f3204fcbfb",
     "typescript.json": "48f22dc24d3b3bb18c6eac6ca135314b0f4a800e2ff3872a7520f36abf4ac7d6",
     "warm-navigation-frames.json": "930ccf0634754afee7f97a24199e702b2e879eb8d7b549fd764b6f8720462e69",
-    "wheel-results.json": "7be6eeb3a0a3d951414ca656d44de2b2188567755b9336c49e16a7020e84a1ce"
+    "wheel-results.json": "220c22f56e3096900e44d7929f6d385fde4b0033ffef4e71a366acb4b2bfe480"
   }
 }

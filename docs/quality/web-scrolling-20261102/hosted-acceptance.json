@@ -1,0 +1,147 @@
+{
+  "recordedAt": "2026-11-02T01:04:12.871257+00:00",
+  "sourceCommit": "c369e378fc893364a9583821211941486ab036bd",
+  "deploymentId": "dpl_Bikrc21vWDieNKgukXHS5jFJQZaT",
+  "url": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/home",
+  "scope": "Signed-in, read-only hosted QA acceptance through the browser UI. Settled DOM measurements and one observed pending return; not a frame-by-frame hosted recording. No messages, votes, reactions or content edits.",
+  "nativeWheel": {
+    "viewport": 936,
+    "startY": 2817,
+    "actions": [
+      {
+        "direction": "down",
+        "pages": 0.5
+      },
+      {
+        "direction": "down",
+        "pages": 1
+      },
+      {
+        "direction": "up",
+        "pages": 0.25
+      }
+    ],
+    "expectedNetDistance": 1170,
+    "settledY": 3987,
+    "observedNetDistance": 1170,
+    "documentHeight": 8148,
+    "posts": 10,
+    "measurementNote": "Native input delivery is asynchronous; this result compares the initial and final settled positions, not the intermediate action responses."
+  },
+  "homeMessagesHome": {
+    "before": {
+      "y": 3987,
+      "viewport": 936,
+      "documentHeight": 8148,
+      "posts": 10,
+      "visibleFrames": [
+        {
+          "height": 714,
+          "left": 364,
+          "top": -231.265625,
+          "width": 571
+        },
+        {
+          "height": 736,
+          "left": 442.5,
+          "top": 679.53125,
+          "width": 414
+        }
+      ],
+      "asyncBlocks": [
+        {
+          "kind": "quote",
+          "state": "ready",
+          "height": 94
+        },
+        {
+          "kind": "poll",
+          "state": "ready",
+          "height": 118.5
+        }
+      ]
+    },
+    "initialReturn": {
+      "y": 3987,
+      "viewport": 936,
+      "documentHeight": 8148,
+      "posts": 10,
+      "visibleFrames": [
+        {
+          "height": 714,
+          "left": 364,
+          "top": -231.265625,
+          "width": 571
+        },
+        {
+          "height": 736,
+          "left": 442.5,
+          "top": 679.53125,
+          "width": 414
+        }
+      ],
+      "asyncBlocks": [
+        {
+          "kind": "quote",
+          "state": "pending",
+          "height": 94
+        },
+        {
+          "kind": "poll",
+          "state": "pending",
+          "height": 118.5
+        }
+      ]
+    },
+    "settledReturn": {
+      "y": 3987,
+      "viewport": 936,
+      "documentHeight": 8148,
+      "posts": 10,
+      "visibleFrames": [
+        {
+          "height": 714,
+          "left": 364,
+          "top": -231.265625,
+          "width": 571
+        },
+        {
+          "height": 736,
+          "left": 442.5,
+          "top": 679.53125,
+          "width": 414
+        }
+      ],
+      "asyncBlocks": [
+        {
+          "kind": "quote",
+          "state": "ready",
+          "height": 94
+        },
+        {
+          "kind": "poll",
+          "state": "ready",
+          "height": 118.5
+        }
+      ]
+    },
+    "scrollOffsetDeviation": 0,
+    "visibleFrameDeviation": 0,
+    "documentHeightDeviation": 0
+  },
+  "visibleVideo": {
+    "durationSeconds": 9.3,
+    "initialReturnReadyState": 3,
+    "settledReturnReadyState": 4,
+    "errorCode": null
+  },
+  "topOfFeedFollowup": {
+    "scrollY": 0,
+    "documentHeight": 8148,
+    "posts": 10,
+    "visibleVideoDurationSeconds": 5.733333,
+    "visibleVideoReadyState": 4,
+    "visibleVideoErrorCode": null,
+    "visiblePlaybackFailure": false
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "recordedAt": "2026-11-02T01:09:34.362Z",
+  "scope": "Web scrolling release to the existing QA preview. No production promotion, native app, admin product, backend or access-control change.",
+  "source": {
+    "repository": "donadmiral/tbirds-nest",
+    "branch": "codex/web-admin-media-parity-20261101",
+    "commit": "c369e378fc893364a9583821211941486ab036bd",
+    "tree": "76713b13f41e8088aca3db1e6158b74dd993fc8a",
+    "parent": "5c98a6c1ecd1c860b74f8e75736cc32b09a95798",
+    "publication": "Remote tree matched the staged local tree exactly before a guarded branch update."
+  },
+  "deployment": {
+    "projectId": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+    "projectName": "platinum-web",
+    "id": "dpl_Bikrc21vWDieNKgukXHS5jFJQZaT",
+    "immutableURL": "https://platinum-2tybxk62v-intobank.vercel.app",
+    "readyState": "READY",
+    "target": null,
+    "sourceCommit": "c369e378fc893364a9583821211941486ab036bd",
+    "qaURL": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/home",
+    "alias": "platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+    "verifiedAliasDeployment": "dpl_Bikrc21vWDieNKgukXHS5jFJQZaT",
+    "previousAliasDeployment": "dpl_DVJWrAGXb7T4WrAEUyBSh6c75r5B"
+  },
+  "verification": {
+    "unitTestFiles": 67,
+    "unitFailures": 0,
+    "typescript": "passed, no diagnostics",
+    "localWheelChecks": 11,
+    "localWheelFailures": 0,
+    "localWarmNavigationFrames": 79,
+    "localLegacyGrantFrames": 118,
+    "maximumObservedLocalGeometryDeviation": 0,
+    "hostedReceipt": "hosted-acceptance.json",
+    "hostedHomeReturnOffset": 3987,
+    "maximumObservedHostedGeometryDeviation": 0,
+    "localReceipts": [
+      "integration.json",
+      "typescript.json",
+      "wheel-results.json"
+    ]
+  },
+  "ci": {
+    "workflow": "Browser interaction and video gates",
+    "runId": 41370094774,
+    "runNumber": 45,
+    "attempt": 1,
+    "jobId": 125038518194,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41370094774",
+    "headSHA": "c369e378fc893364a9583821211941486ab036bd",
+    "status": "completed",
+    "conclusion": "success",
+    "updatedAt": "2026-11-02T01:07:52Z",
+    "groupsPassed": 17,
+    "primaryChecksPassed": 345,
+    "groups": [
+      {
+        "name": "Exercise actual admin components",
+        "conclusion": "success",
+        "primaryChecks": 39
+      },
+      {
+        "name": "Exercise admin thumbnails and uninterrupted full-screen media",
+        "conclusion": "success",
+        "primaryChecks": 6
+      },
+      {
+        "name": "Exercise public-web navigation, account changes and recovery",
+        "conclusion": "success",
+        "primaryChecks": 41
+      },
+      {
+        "name": "Exercise prepared feed media and shared-post source changes",
+        "conclusion": "success",
+        "primaryChecks": 7
+      },
+      {
+        "name": "Exercise native mouse scrolling, stable media layout and page append",
+        "conclusion": "success",
+        "primaryChecks": 11
+      },
+      {
+        "name": "Exercise story and memory handoff with real decoded video frames",
+        "conclusion": "success",
+        "primaryChecks": 8
+      },
+      {
+        "name": "Exercise member read failures, write recovery and actual upload controls",
+        "conclusion": "success",
+        "primaryChecks": 64
+      },
+      {
+        "name": "Exercise Support drafts, retries and atomic reply confirmation",
+        "conclusion": "success",
+        "primaryChecks": 32
+      },
+      {
+        "name": "Exercise complete admin counts, server pages and phone-width controls",
+        "conclusion": "success",
+        "primaryChecks": 12
+      },
+      {
+        "name": "Exercise admin custom actions and receipt-confirmed controls",
+        "conclusion": "success",
+        "primaryChecks": 21
+      },
+      {
+        "name": "Exercise real Next cold-route navigation and held server responses",
+        "conclusion": "success",
+        "primaryChecks": 4
+      },
+      {
+        "name": "Exercise jobs, application review, market offers and orders",
+        "conclusion": "success",
+        "primaryChecks": 26
+      },
+      {
+        "name": "Exercise Studio approval, campaign and creator journeys",
+        "conclusion": "success",
+        "primaryChecks": 25
+      },
+      {
+        "name": "Export and decode actual graded story video",
+        "conclusion": "success",
+        "primaryChecks": 12
+      },
+      {
+        "name": "Export and decode full memory movies and audio mixes",
+        "conclusion": "success",
+        "primaryChecks": 27
+      },
+      {
+        "name": "Exercise book design, persistence, conflicts and account changes",
+        "conclusion": "success",
+        "primaryChecks": 5
+      },
+      {
+        "name": "Verify private original uploads, microphone capture and retained music exports",
+        "conclusion": "success",
+        "primaryChecks": 5
+      }
+    ],
+    "additionalBookDesignMeasurements": {
+      "covers": 288,
+      "configurations": 48
+    },
+    "artifact": {
+      "id": 13108408549,
+      "name": "browser-quality-evidence",
+      "sizeBytes": 11641714,
+      "sha256": "sha256:742cc3d4289796dc1f3cc5f09ef6f1e64fb37c9db8249aa1591524a7231cde3b",
+      "expiresAt": "2026-11-09T01:07:48Z"
+    },
+    "receiptProvenance": "CI independently generated its full browser/frame receipts from the exact product commit. Their timestamps, samples and hashes differ from the condensed local receipt and its completeReceiptSHA256."
+  },
+  "closeout": "The QA alias remains pinned to this tested product deployment. A subsequent documentation-only commit records the hosted and CI acceptance without changing product code or moving the alias.",
+  "limits": "Browser fixtures use synthetic services with real production components/media elements. Hosted checks use signed-in read-only QA UI and settled DOM observations. These are not universal physical mouse, GPU, network latency or every-browser benchmarks."
+}

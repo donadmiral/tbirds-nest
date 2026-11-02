@@ -25,7 +25,7 @@ A final legacy-media test under reduced motion caught a separate [12-pixel drift
 
 ## Final browser results
 
-The new [wheel suite](wheel-results.json) passes **11/11 checks** using actual application components, actual `mouse.wheel` events, local image/video responses and synthetic services. This report retains the source fingerprints, checks and condensed geometry ranges; the browser workflow uploads the complete per-frame receipt.
+The new [wheel suite](wheel-results.json) passes **11/11 checks** using actual application components, actual `mouse.wheel` events, local image/video responses and synthetic services. This report retains the local source fingerprints, checks, condensed geometry ranges and hash of the complete local receipt. CI independently runs the same suite and uploads its own full frame receipt; its timestamps and receipt hash differ from the local run.
 
 | Scenario | Verified result |
 | --- | --- |
@@ -51,6 +51,10 @@ The existing [social browser suite](social-results.json) also passes **41/41 che
 
 The existing [media readiness browser suite](media-readiness.json) passes **7/7 cases**, retaining source/poster correctness, bounded preparation, data saver, visibility and session invalidation behavior.
 
+## Hosted acceptance
+
+The [signed-in QA check](hosted-acceptance.json) exercises the immutable final product build. Three native mouse-scroll actions move the feed by the expected net 1170 pixels, with all 10 posts and the 8148-pixel document retained. On Home → Messages → Home, the page remains at 3987 pixels and both visible media frames retain identical coordinates and dimensions. The first observed return has the poll and quote still pending, occupying their previous 118.5- and 94-pixel footprints; resolving them causes zero measured movement. These are hosted UI/DOM observations, separate from the exhaustive frame samples in the synthetic browser tests.
+
 ## Regression and type checks
 
 - [Full final web regression suite](integration.json): 67 test files passed, none failed. The separately bound [final TypeScript check](typescript.json) passed without diagnostics. All 660 recorded web/shared inputs were unchanged during the unit run, and the browser/type-check fingerprints remained unchanged through their runs.
@@ -72,4 +76,10 @@ Use the pinned official Chrome runtime through `PLATINUM_CHROMIUM`. The new runn
 
 Browser fixtures use real rendering and media elements with synthetic Auth, database responses and a local routing adapter. They verify geometry, input displacement, identity and restoration behavior. They do not establish physical mouse-driver behavior, production network latency, GPU performance on every device or identical behavior to another platform. Native scrolling retains the user's browser and operating-system wheel settings.
 
-The deployment commit, exact QA target and hosted acceptance are recorded separately after the immutable build is ready. The [evidence manifest](evidence-manifest.json) binds the local receipts retained here.
+## Release and final CI
+
+The [release record](release.json) binds product commit `c369e378fc893364a9583821211941486ab036bd` to READY deployment `dpl_Bikrc21vWDieNKgukXHS5jFJQZaT` and the existing [web QA preview](https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/home). The alias was read back after assignment and the deployed page was reloaded before hosted acceptance.
+
+[Workflow run 41370094774](https://github.com/donadmiral/tbirds-nest/actions/runs/41370094774) completed successfully on that exact product commit, on its first attempt. All **17 browser/media groups** passed, totaling **345 primary checks/cases**, including all **11 scrolling checks**. The book-design group additionally measured 288 covers in 48 configurations; those measurements are not added to the primary-case total. The release record includes the independently generated CI artifact's ID, digest, size and expiration.
+
+The QA alias stays pinned to the tested product build. The documentation closeout records these results without changing the product source. The [evidence manifest](evidence-manifest.json) binds the retained local receipts, hosted observations and release metadata.
