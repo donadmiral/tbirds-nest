@@ -12,12 +12,12 @@ concurrency:
 jobs:
   receipt:
     if: github.repository == 'donadmiral/tbirds-nest' && github.ref == 'refs/heads/codex/live-completion-20261102'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: cb26afa888bcd557011c4a38a19e39b25cf649d3
+          ref: 1994d287b1b514af99703fb0e1040ba7824e7816
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: 22, cache: npm}
@@ -31,18 +31,18 @@ jobs:
           node <<'NODE'
           const fs=require('node:fs'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process');
           assert.ok(process.env.EXPO_TOKEN,'Expo authorization missing');
-          const id='42af3e0b-4942-4622-912d-00c2b9ef34ab',expected='cb26afa888bcd557011c4a38a19e39b25cf649d3';
+          const id='76452d14-d0fb-407d-a79b-58b898c1caa9',expected='1994d287b1b514af99703fb0e1040ba7824e7816';
           const url=`https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/${id}`;
           const read=()=>JSON.parse(execFileSync('npx',['--yes','eas-cli@27.3.0','build:view',id,'--json'],{encoding:'utf8',stdio:['ignore','pipe','inherit'],timeout:180000,maxBuffer:8*1024*1024}));
           const summary=b=>({id:b.id,status:b.status,platform:b.platform,buildProfile:b.buildProfile,distribution:b.distribution,gitCommitHash:b.gitCommitHash,appBuildVersion:b.appBuildVersion,projectId:b.project?.id,artifactPresent:!!b.artifacts?.buildUrl,installPage:url});
+          const verify=b=>{assert.equal(b.id,id);assert.equal(b.gitCommitHash,expected,'Build must match the verified source');assert.equal(b.platform,'IOS');assert.equal(b.distribution,'INTERNAL');assert.equal(b.buildProfile,'preview');};
           (async()=>{
-            const until=Date.now()+20*60*1000;let build=read();console.log(JSON.stringify(summary(build)));
-            assert.equal(build.id,id);assert.equal(build.gitCommitHash,expected,'Build must match the verified source');assert.equal(build.platform,'IOS');assert.equal(build.distribution,'INTERNAL');assert.equal(build.buildProfile,'preview');
+            const until=Date.now()+20*60*1000;let build=read();console.log(JSON.stringify(summary(build)));verify(build);
             while(build.status!=='FINISHED'){
               assert.ok(['NEW','IN_QUEUE','IN_PROGRESS'].includes(build.status),`Build did not succeed: ${build.status}`);
-              assert.ok(Date.now()<until,'Build still pending');await new Promise(r=>setTimeout(r,20000));build=read();assert.equal(build.id,id);assert.equal(build.gitCommitHash,expected);
+              assert.ok(Date.now()<until,'Build still pending');await new Promise(r=>setTimeout(r,20000));build=read();verify(build);
             }
             assert.ok(build.artifacts?.buildUrl,'Finished build requires an artifact');const receipt=summary(build);console.log(JSON.stringify(receipt));
-            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`Ready to install: ${url}\n\n${JSON.stringify(receipt)}\n\nSource and artifact verified. Physical-device camera and broadcast testing are not certified by this job.\n`);
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`Ready to install: ${url}\n\n${JSON.stringify(receipt)}\n\nThis build repairs notification routing. It does not certify physical-device broadcasting, actual push delivery or large-scale capacity.\n`);
           })().catch(error=>{console.error(error.message);process.exitCode=1;});
           NODE
