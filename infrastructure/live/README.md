@@ -78,6 +78,14 @@ region. The connection form is prepared; user authorization is still pending.
 Installing or listing the public Toolkit catalog alone does not prove AWS
 resource access. See the [setup receipt](../../supabase/ops/live-release-20261103/evidence/aws-toolkit-setup.json).
 
+A subsequent [live connection check](../../supabase/ops/live-release-20261103/evidence/aws-toolkit-connection-check.json)
+confirmed that the user installed the plugin. Its app still shows `Connect`
+after a fresh page load. The connection flow redirects to AWS sign-in, where
+this cloud browser displays `Site Unavailable`. Complete the AWS connection
+from the verified plugin detail page in the user's regular browser, then verify
+authenticated resource access. Do not recreate the installed plugin or infer
+successful OAuth from installation alone.
+
 Before creating the delivery stack, inspect the authenticated project's policy
 state. AWS's published new-experience RCP denies authenticated external
 non-service principals, including `sts:*` and `s3:*` requests, when their

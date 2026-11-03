@@ -164,6 +164,12 @@ The [setup receipt](evidence/aws-toolkit-setup.json) and
 [prepared connection screenshot](evidence/aws-toolkit-connection-ready.jpg)
 record this state. No AWS resources were created during connection preparation.
 
+The later [connection check](evidence/aws-toolkit-connection-check.json)
+confirms plugin installation, but AWS authorization remains incomplete. The
+fresh plugin page shows `Connect`; the redirected AWS sign-in page was
+unavailable in this cloud browser. The exact verified plugin completion page
+and current screenshot are included in that receipt.
+
 Before deployment, inspect the project's organization policies. AWS's published
 new-experience resource control policy denies external vendor role assumption,
 which is expected to affect Daily's required cross-account role. This is a

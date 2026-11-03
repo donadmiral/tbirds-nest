@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-03T04:08:14Z",
+  "scope": "User-requested verification of AWS Agent Toolkit connection",
+  "completion_state": "plugin_installed_aws_authorization_incomplete",
+  "plugin_id": "plugin_asdk_app_6ae95cec8158819185513a41431e19f7",
+  "verified_completion_url": "https://chatgpt.com/plugins/plugin_asdk_app_6ae95cec8158819185513a41431e19f7",
+  "selected_resource_region": "us-east-2",
+  "live_observations": {
+    "plugin_listed_under_installed": true,
+    "initial_action": "Continue connecting app",
+    "connection_action_followed": true,
+    "redirected_origin": "https://us-east-1.signin.aws.amazon.com",
+    "redirected_page_title": "Site Unavailable",
+    "redirected_page_message": "Unable to access this site.",
+    "fresh_verification_page_loaded": true,
+    "fresh_verification_action": "Connect",
+    "aws_authenticated_identity_verified": false,
+    "aws_tools_exposed_in_current_session": false
+  },
+  "classification": "AWS sign-in page unavailable in the cloud browser. No bot challenge or actual AWS permission denial observed.",
+  "next_action": "Use Connect under Apps on the verified plugin page in the regular browser, finish AWS authorization, then verify STS GetCallerIdentity through the connected AWS tool.",
+  "installed_plugin_recreated": false,
+  "aws_resources_created": false,
+  "credentials_collected": false,
+  "identity_or_organization_policy_calls_made": false,
+  "proof": {
+    "path": "aws-toolkit-connection-status.jpg",
+    "bytes": 66630,
+    "sha256": "6d6d09fdbe6fa18b6a33b8d55a748259d4dae573c6f990e3662fd5f422089121"
+  },
+  "prior_receipt": "aws-toolkit-setup.json"
+}
