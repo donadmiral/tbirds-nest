@@ -28,12 +28,8 @@ jobs:
           cache: npm
       - name: Apply reviewed exact-preimage repairs
         run: |
-          node <<'NODE'
-          const fs=require('node:fs');const file='tools/repair-live-start-flow.cjs';
-          const value=fs.readFileSync(file,'utf8');
-          fs.writeFileSync(file,value.replace("p.tracks.audio.state==='playable'))||['ended'","p.tracks.audio.state==='playable')||['ended'"));
-          NODE
           node tools/repair-live-start-flow.cjs
+          node tools/repair-live-start-guards.cjs
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test actual native form logic and Live contracts
         run: node --test tests/live-ui-repair.test.cjs tests/live-setup.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs
@@ -60,6 +56,7 @@ jobs:
           node --test web/tests/live-runtime.cjs web/tests/live-connections.cjs web/tests/live-search-history.cjs web/tests/live-optional-flows.cjs
           node --test admin-web/tests/live-operations.cjs admin-web/tests/live-clips.cjs
       - name: Browser start, schedule, preview, broadcast-control and teardown journeys
+        timeout-minutes: 4
         run: |
           cd web
           npx playwright install --with-deps chromium
@@ -74,7 +71,11 @@ jobs:
           branch=codex/live-completion-20261102
           test "$(git ls-remote origin refs/heads/$branch | cut -f1)" = "$GITHUB_SHA"
           git diff --check
-          git add tools/repair-live-start-flow.cjs web/components/LiveSessionView.tsx web/components/LiveStudio.tsx src/screens/feed/LiveSessionScreen.tsx admin-web/components/LiveOperations.tsx tests/live-ui-repair.test.cjs
+          evidence=supabase/ops/live-release-20261103/evidence/live-start-browser
+          mkdir -p "$evidence"
+          cp /tmp/pc-live-start-evidence/receipt.json "$evidence/receipt.json"
+          cp /tmp/pc-live-start-evidence/live-now-studio.png "$evidence/live-now-studio.png"
+          git add web/components/LiveSessionView.tsx web/components/LiveStudio.tsx src/screens/feed/LiveSessionScreen.tsx admin-web/components/LiveOperations.tsx tests/live-ui-repair.test.cjs "$evidence/receipt.json" "$evidence/live-now-studio.png"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'fix(live): verify immediate preview, scheduling and persistent studio across clients'
