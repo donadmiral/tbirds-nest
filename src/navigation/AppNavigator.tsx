@@ -492,6 +492,10 @@ function useNotificationTapHandler() {
 async function handleNotificationTap(data: NotificationTapData, context: NotificationTapContext) {
   if (!context.current() || !navigationRef.current?.isReady()) return;
   switch (data.type) {
+    case 'live_stream':
+      if (data.live_session_id) navigationRef.current.navigate('LiveSession', { sessionId: data.live_session_id });
+      else navigationRef.current.navigate('Main', { screen: 'Feed', params: { screen: 'Notifications' } });
+      break;
     case 'incoming_call': await handleIncomingCallTap(data, context); break;
     case 'story_mention': case 'story_reaction': case 'story_reply':
       if (data.story_id) navigationRef.current.navigate('StoryViewer', { storyId: data.story_id });

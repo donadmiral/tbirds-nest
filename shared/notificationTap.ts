@@ -6,6 +6,7 @@ export type NotificationTapData = {
   story_id?: string;
   conversation_id?: string;
   call_id?: string;
+  live_session_id?: string;
 };
 
 type ResponseEnvelope = {
@@ -28,6 +29,10 @@ export function notificationTapData(value: unknown): NotificationTapData | null 
   const data: NotificationTapData = { type: raw.type };
   for (const key of ['recipient_id', 'post_id', 'comment_id', 'story_id', 'conversation_id'] as const) {
     if (notificationUuid(raw[key])) data[key] = raw[key];
+  }
+  if (raw.type === 'live_stream') {
+    const liveId = raw.live_session_id ?? raw.sessionId;
+    if (notificationUuid(liveId)) data.live_session_id = liveId;
   }
   const callId = raw.call_id ?? raw.callId;
   if (notificationUuid(callId)) data.call_id = callId;
