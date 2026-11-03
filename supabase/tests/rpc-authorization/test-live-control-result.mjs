@@ -14,7 +14,7 @@ test('real PostgreSQL broadcast completion regression and guarded migration', as
    create table live_streams.controls(id uuid primary key,session_id uuid,action text,payload jsonb,status text,lease_id uuid,lease_until timestamptz,result jsonb,updated_at timestamptz);
    create table live_streams.provider_sessions(session_id uuid primary key,active_scene jsonb,published_participants jsonb,error text);`);
   const original = await read('supabase/migrations/20261103000609_live_portable_control_plane.sql');
-  const match = original.match(/create or replace function live_streams\.finish_control\([\s\S]*?as\s+(\$[a-zA-Z0-9_]*\$)[\s\S]*?\1\s*;/i);
+  const match = original.match(/create(?:\s+or\s+replace)?\s+function\s+live_streams\.finish_control\([\s\S]*?as\s+(\$[a-zA-Z0-9_]*\$)[\s\S]*?\1\s*;/i);
   assert.ok(match, 'Must exercise the actual original database function, not a rewritten substitute');
   await db.exec(match[0]);
   await db.exec("select set_config('request.jwt.claim.role','service_role',false)");
