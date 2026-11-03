@@ -58,9 +58,46 @@ customer AWS account and inspect `aws sts get-caller-identity` before deploying.
 Use `platinum-live-production` as the proposed stack name. `us-west-2` is the
 proposed storage region, matching the existing Supabase production region;
 confirm that placement against the intended AWS account and audience before
-creating the stack. Pass the reviewed parameter file to CloudFormation with
+creating the stack. The user's subsequent project selection below supersedes
+the proposed region. Pass the reviewed parameter file to CloudFormation with
 `CAPABILITY_IAM`. Do not replace missing stack outputs with invented values or
 enable broadcast admission before provider acceptance.
+
+### User-created AWS project and connection
+
+The user subsequently created a project using **the new AWS experience** and
+specified **`us-east-2`**. Use that selected region for the CloudFormation stack
+and all regional resources. The earlier `us-west-2` proposal is superseded.
+CloudFormation lint passes for `us-east-2`. The project/account identity and
+Free/Paid plan have not yet been verified through authenticated AWS access.
+
+For this ChatGPT web session, the supported connection is AWS's remote OAuth
+MCP server at `https://aws-mcp.us-east-1.api.aws/mcp?oauth=initialize`. Its
+`us-east-1` endpoint identifies the MCP service, not the project's deployment
+region. The connection form is prepared; user authorization is still pending.
+Installing or listing the public Toolkit catalog alone does not prove AWS
+resource access. See the [setup receipt](../../supabase/ops/live-release-20261103/evidence/aws-toolkit-setup.json).
+
+Before creating the delivery stack, inspect the authenticated project's policy
+state. AWS's published new-experience RCP denies authenticated external
+non-service principals, including `sts:*` and `s3:*` requests, when their
+organization differs from the resource's organization. Daily's documented
+vendor principal falls under that default deny, so a matching IAM trust policy
+and external ID alone will not establish the required access.
+
+If those managed restrictions apply, the owner must approve advanced feature
+activation and the required narrow policy adjustment before Daily role
+acceptance. Activation is irreversible and changes billing/spend-limit controls.
+Do not activate it automatically, remove unrelated protections, or assume an
+upgrade to the Paid plan resolves the restriction. Check which policies remain
+after activation and validate actual Daily role assumption before admission.
+
+Sources:
+
+- https://docs.aws.amazon.com/agent-toolkit/latest/userguide/getting-started-aws-mcp-server.html
+- https://docs.aws.amazon.com/accounts/latest/reference/scps-and-rcps-for-projects.html
+- https://docs.aws.amazon.com/accounts/latest/reference/activate-advanced-features.html
+- https://docs.aws.amazon.com/accounts/latest/reference/remove-org-policies.html
 
 The bucket gets a generated name to avoid global S3 collisions. The Daily role
 sets `MaxSessionDuration: 43200`, matching Daily's twelve-hour requirement.

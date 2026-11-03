@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-03T04:02:12Z",
+  "scope": "AWS Agent Toolkit connection preparation for Platinum Circles Live",
+  "completion_state": "prepared_user_oauth_authorization_pending",
+  "source_baseline_commit": "890805a45ac6169e2db4c7f84d1083614a7ffb9f",
+  "user_selection": {
+    "experience": "The new AWS experience",
+    "resource_region": "us-east-2",
+    "supersedes_proposed_region": "us-west-2"
+  },
+  "connection": {
+    "host": "ChatGPT web",
+    "name": "AWS Agent Toolkit",
+    "transport": "official_remote_mcp",
+    "authentication": "OAuth",
+    "server_url": "https://aws-mcp.us-east-1.api.aws/mcp?oauth=initialize",
+    "service_endpoint_region": "us-east-1",
+    "resource_region": "us-east-2",
+    "form_prepared": true,
+    "permission_acknowledgement_checked": false,
+    "plugin_created": false,
+    "aws_authorization_completed": false,
+    "identity_verified": false,
+    "aws_account_id": null,
+    "project_name": null,
+    "billing_plan": null,
+    "resource_access_verified": false,
+    "reason_for_remote_connection": "AWS documents remote OAuth for ChatGPT and web clients. Configuring a local CLI MCP server would not connect this ChatGPT web session."
+  },
+  "local_prerequisites": {
+    "os": "Linux",
+    "aws_cli_version": "2.39.3",
+    "aws_cli_available_by_absolute_path": true,
+    "aws_cli_on_path": false,
+    "curl_version": "8.5.0",
+    "uv_version": "0.13.4",
+    "aws_config_present": false,
+    "aws_credentials_file_present": false,
+    "aws_environment_variable_names_present": false,
+    "local_codex_cli_on_path": false,
+    "aws_login_run": false,
+    "aws_sts_identity_check_run": false,
+    "agent_toolkit_installer_run": false,
+    "toolkit_catalog_installation_is_identity_proof": false,
+    "local_mcp_configuration_changed": false,
+    "skill_or_agent_rules_changed": false
+  },
+  "validation": {
+    "tool": "cfn-lint",
+    "version": "1.59.0",
+    "region": "us-east-2",
+    "template": "infrastructure/live/live-cloudformation.json",
+    "template_sha256": "3ec36c4908f6da683d97f253864f1199fa7d4de68d6f4ed5cf1e76114215e663",
+    "exit_code": 0,
+    "diagnostics": [],
+    "scope_limit": "Static template validation only. No AWS deployment or capacity test."
+  },
+  "daily_policy_compatibility": {
+    "state": "published_default_policy_reviewed_actual_project_policy_not_inspected",
+    "policy_sid": "DenyAnyoneOutsideMyOrgAndAWS",
+    "affected_actions": [
+      "sts:*",
+      "s3:*"
+    ],
+    "daily_vendor_principal_account": "291871421005",
+    "finding": "The published new-experience RCP denies authenticated external non-service principals when their organization differs from the resource organization. Daily role assumption is expected to be denied while that policy applies.",
+    "observed_access_denied": false,
+    "required_before_provider_acceptance": "Inspect the authenticated project policy state. If the published restriction applies, obtain owner approval for advanced feature activation and a narrow policy adjustment. Verify remaining policies and actual Daily access.",
+    "advanced_features_activated": false,
+    "organization_policies_modified": false,
+    "paid_plan_alone_assumed_to_resolve_policy": false
+  },
+  "actions_deferred": [
+    "Create the AWS plugin and complete OAuth authorization",
+    "Verify AWS project identity, plan and effective permissions",
+    "Deploy the reviewed delivery stack in us-east-2 after resolving applicable policy requirements",
+    "Configure and verify Daily role acceptance, delivery outputs, signing and webhook integration"
+  ],
+  "aws_resources_created": false,
+  "new_service_secrets_created": false,
+  "measured_capacity_verified": false,
+  "proof": {
+    "path": "aws-toolkit-connection-ready.jpg",
+    "bytes": 102244,
+    "sha256": "5c3be107ee3d6e1e6a6b3e125a9d7e9aec02a47e106a7dcd263bb044799a79f4",
+    "state": "Prepared form before consent or authorization"
+  },
+  "sources": [
+    "https://raw.githubusercontent.com/aws/agent-toolkit-for-aws/refs/heads/main/setup-instructions/setup.md",
+    "https://docs.aws.amazon.com/agent-toolkit/latest/userguide/getting-started-aws-mcp-server.html",
+    "https://docs.aws.amazon.com/accounts/latest/reference/scps-and-rcps-for-projects.html",
+    "https://docs.aws.amazon.com/accounts/latest/reference/activate-advanced-features.html",
+    "https://docs.aws.amazon.com/accounts/latest/reference/remove-org-policies.html"
+  ],
+  "broadcast_admission_enabled": false
+}

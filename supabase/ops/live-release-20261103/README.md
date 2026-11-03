@@ -150,6 +150,27 @@ created. Webhook registration can be completed independently of AWS after its
 HMAC is installed through the protected secret-writing workflow. The signed
 verification ping and provider `ACTIVE` state remain unverified.
 
+### AWS project connection follow-up
+
+The user has since created a project with the new AWS experience and selected
+`us-east-2`. This supersedes the earlier proposed `us-west-2` placement.
+CloudFormation lint also passes for `us-east-2`.
+
+The official AWS remote MCP connection is prepared in ChatGPT with OAuth.
+User approval and AWS authorization are pending, so the project identity,
+plan, permissions and resource access are not yet verified. The MCP service's
+`us-east-1` endpoint does not change the selected delivery region.
+The [setup receipt](evidence/aws-toolkit-setup.json) and
+[prepared connection screenshot](evidence/aws-toolkit-connection-ready.jpg)
+record this state. No AWS resources were created during connection preparation.
+
+Before deployment, inspect the project's organization policies. AWS's published
+new-experience resource control policy denies external vendor role assumption,
+which is expected to affect Daily's required cross-account role. This is a
+documented compatibility concern, not an observed failure in this project.
+See the [infrastructure instructions](../../../infrastructure/live/README.md)
+for the conditional activation and policy-review requirements.
+
 ## Current feature gates
 
 | Capability | Production state |
