@@ -1,0 +1,82 @@
+name: Complete Live UI and QA delivery
+on:
+  push:
+    branches: [codex/live-completion-20261102]
+    paths:
+      - tools/finalize-live-ui.cjs
+      - .github/workflows/live-ui-finalize.yml
+permissions:
+  contents: read
+concurrency:
+  group: complete-live-ui
+  cancel-in-progress: false
+jobs:
+  finalize:
+    if: github.repository == 'donadmiral/tbirds-nest' && github.ref == 'refs/heads/codex/live-completion-20261102'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.publish.outputs.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply only the reviewed presentation changes
+        run: node tools/finalize-live-ui.cjs
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify Live controls and media lifecycle
+        run: node --test tests/live-ui-repair.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs
+      - name: Full native TypeScript check
+        run: npx tsc --noEmit --incremental false
+      - name: Push verified source without overwriting concurrent work
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch=codex/live-completion-20261102
+          test "$(git ls-remote origin refs/heads/$branch | cut -f1)" = "$(git rev-parse HEAD)"
+          git diff --check
+          git add src/screens/feed/FeedScreen.tsx src/screens/feed/LiveStreamsScreen.tsx src/screens/feed/NewLiveScreen.tsx src/components/LiveStudio.tsx src/components/LiveUi.tsx tests/live-ui-repair.test.cjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(live): finish aligned navigation, compact discovery and preview entry'
+          gh auth setup-git
+          git push origin HEAD:refs/heads/$branch
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "Verified and pushed Live UI commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+  qa-build:
+    needs: finalize
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ needs.finalize.outputs.sha }}
+          persist-credentials: false
+      - name: Check existing Expo build authorization
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo '::error::QA_BUILD_AUTH_MISSING: the repository has no EXPO_TOKEN available to this job. Source changes have been pushed. No QA app has been published.'
+            exit 1
+          fi
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Request the iPhone QA build from the verified commit
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_APP_ENV: qa
+          EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+          CI: '1'
+        run: npx --yes eas-cli@16.20.0 build --platform ios --profile preview --non-interactive --no-wait
