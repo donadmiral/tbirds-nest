@@ -1,9 +1,9 @@
 name: Live start and scheduling acceptance
 on:
+  workflow_dispatch:
   push:
     branches: [codex/live-completion-20261102]
-    paths:
-      - .github/workflows/live-start-repair.yml
+    paths: [.github/workflows/live-start-repair.yml]
 permissions:
   contents: read
 concurrency:
@@ -20,22 +20,19 @@ jobs:
       sha: ${{ steps.publish.outputs.sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          persist-credentials: false
+        with: {persist-credentials: false}
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: 22
-          cache: npm
+        with: {node-version: 22, cache: npm}
       - name: Apply reviewed exact-preimage repairs
         run: |
           node tools/repair-live-start-flow.cjs
           node tools/repair-live-start-guards.cjs
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Test actual native form logic and Live contracts
+      - name: Native form and service regression tests
         run: node --test tests/live-ui-repair.test.cjs tests/live-setup.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs
       - name: Native TypeScript
         run: npx tsc --noEmit --incremental false
-      - name: Install web and admin locked dependencies
+      - name: Install locked web and admin dependencies
         run: |
           npm ci --prefix web --ignore-scripts --no-audit --no-fund &
           web_pid=$!
@@ -51,18 +48,18 @@ jobs:
           admin_pid=$!
           wait "$web_pid"
           wait "$admin_pid"
-      - name: Web and admin Live contracts
+      - name: Web and admin Live service contracts
         run: |
           node --test web/tests/live-runtime.cjs web/tests/live-connections.cjs web/tests/live-search-history.cjs web/tests/live-optional-flows.cjs
           node --test admin-web/tests/live-operations.cjs admin-web/tests/live-clips.cjs
-      - name: Browser start, schedule, preview, broadcast-control and teardown journeys
+      - name: Browser start, schedule, preview and media lifecycle journeys
         timeout-minutes: 4
         run: |
           cd web
           npx playwright install --with-deps chromium
           cd ..
           node web/tests/browser/live-start-run.cjs
-      - name: Publish only verified repairs
+      - name: Publish verified source and acceptance receipt
         id: publish
         env:
           GH_TOKEN: ${{ github.token }}
@@ -94,9 +91,7 @@ jobs:
           ref: ${{ needs.repair.outputs.sha }}
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: 22
-          cache: npm
+        with: {node-version: 22, cache: npm}
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Build verified internal iPhone QA app
         env:
