@@ -1,0 +1,48 @@
+{
+  "format": 1,
+  "runtime_release_commit": "2e265ef0915ed83cbf5ba79f22f3ea1f1a717d8d",
+  "scope": "CI dependency-install correction and focused local verification; no runtime source or provider configuration change.",
+  "original_failure": {
+    "run_id": 41557353330,
+    "job_id": 125659368957,
+    "job_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41557353330/job/125659368957",
+    "message": "ERR_MODULE_NOT_FOUND: Cannot find package '@vercel/sandbox' imported from workers/media-renditions/test/sandbox.test.mjs",
+    "cause": "The existing worker test imports its pinned SDK, but the phone CI job did not install the worker package dependencies."
+  },
+  "correction": {
+    "path": ".github/workflows/typecheck.yml",
+    "added_dependency_install": "npm ci --prefix workers/media-renditions",
+    "placement": "Existing cross-app dependency step, before phone regressions and the media/Live worker gate",
+    "added_cache_dependency_path": "workers/media-renditions/package-lock.json",
+    "existing_test_gates_preserved": true,
+    "runtime_source_changed": false,
+    "dependency_versions_changed": false
+  },
+  "locked_package": {
+    "name": "@vercel/sandbox",
+    "declared_version": "3.9.1",
+    "locked_version": "3.9.1",
+    "installed_version": "3.9.1",
+    "integrity": "sha512-8/3vqPknI2WrE1Zd4O3LbMFbrD9elCXqCe0JjqSJH+EqsEtBHGafwwxx1raq1kTWvpLLk4lh0bZW9dMy6L5efA=="
+  },
+  "verification": {
+    "install_command": "npm ci --prefix workers/media-renditions --no-fund --cache /tmp/platinum-live-npm-cache",
+    "install_exit_code": 0,
+    "test_command": "node workers/media-renditions/test/sandbox.test.mjs",
+    "node_version": "v24.22.1",
+    "ci_configured_node_major": 22,
+    "test_exit_code": 0,
+    "tests_passed": 23,
+    "tests_failed": 0,
+    "tests_skipped": 0,
+    "test_duration_ms": 1558.023846,
+    "provider_transport": "Synthetic test transport; the actual installed SDK is imported, with no provider credentials or hosted Sandbox creation.",
+    "workflow_yaml_parsed": true,
+    "install_precedes_media_gate": true,
+    "cache_includes_worker_lock": true,
+    "git_diff_check_exit_code": 0,
+    "broad_suite_rerun": false,
+    "github_ci_rerun_completed": false
+  },
+  "native_distribution_performed": false
+}

@@ -183,6 +183,7 @@ jobs:
             web/package-lock.json
             admin-web/package-lock.json
             supabase/tests/rpc-authorization/package-lock.json
+            workers/media-renditions/package-lock.json
       - run: npm ci
       - run: npx tsc --noEmit
       - name: Install dependencies for cross-app and database regressions
@@ -190,6 +191,7 @@ jobs:
           npm ci --prefix web
           npm ci --prefix admin-web
           npm ci --prefix supabase/tests/rpc-authorization
+          npm ci --prefix workers/media-renditions
       - name: Test phone, diagnostics, feed and call regressions
         run: node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs
       - name: Test adaptive media processing, Live rendering and worker leases

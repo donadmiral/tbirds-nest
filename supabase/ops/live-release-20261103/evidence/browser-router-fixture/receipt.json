@@ -1,0 +1,76 @@
+{
+  "checkedAt": "2026-11-03T01:19:26.905Z",
+  "runtime": "156.0.8078.80",
+  "scope": "Existing social fixture and unchanged warm-navigation frame assertions, followed by trusted browser Back/Forward in the same document. Synthetic local Auth/database; no hosted-provider or capacity acceptance.",
+  "warm": [
+    {
+      "destination": "/home",
+      "sampledFrames": 40,
+      "blankContentFrames": 0,
+      "expected": {
+        "posts": 16,
+        "top": 780
+      }
+    },
+    {
+      "destination": "/messages",
+      "sampledFrames": 77,
+      "blankContentFrames": 0,
+      "expected": {
+        "messages": 34,
+        "top": 247,
+        "draft": "A warm navigation draft stays with this account.",
+        "query": "Jordan",
+        "detailsOpen": false
+      }
+    }
+  ],
+  "history": {
+    "checks": [
+      "Link push navigation updates the fixture route without emitting popstate",
+      "Actual browser Back closes the conversation through its popstate handler",
+      "Actual browser Forward restores the selected conversation and authorized rows",
+      "Back and Forward update Home and Messages in the same document using trusted history events"
+    ],
+    "events": [
+      {
+        "trusted": true,
+        "path": "/messages"
+      },
+      {
+        "trusted": true,
+        "path": "/messages?c=conversation-fixture"
+      },
+      {
+        "trusted": true,
+        "path": "/messages"
+      },
+      {
+        "trusted": true,
+        "path": "/home"
+      },
+      {
+        "trusted": true,
+        "path": "/messages"
+      }
+    ],
+    "browserErrors": []
+  },
+  "original_ci_failure": {
+    "run_id": 41557353393,
+    "job_id": 125659369472,
+    "artifact_id": 13195870648,
+    "message_blank_frames": 73,
+    "cause": "The synthetic router emitted popstate on push/replace, causing the departing Messages component to clear its retained conversation."
+  },
+  "correction": {
+    "file": "web/tests/browser/ui-router-adapter.tsx",
+    "push_replace_event": "fixture-navigation",
+    "actual_back_forward_event": "popstate",
+    "runtime_source_changed": false,
+    "original_zero_blank_frame_assertions_changed": false
+  },
+  "command": "PLATINUM_CHROMIUM=/tmp/platinum-live-chrome/chrome-headless-shell-linux64/chrome-headless-shell node web/tests/browser/warm-navigation-run.cjs",
+  "exit_code": 0,
+  "broad_suite_rerun": false
+}

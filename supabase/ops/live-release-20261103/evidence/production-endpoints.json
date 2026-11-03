@@ -1,0 +1,74 @@
+{
+  "project": "prlkikhckbifseosbukl",
+  "checked_at": "2026-11-03T01:05:16.420Z",
+  "checks": [
+    {
+      "function": "live-stage",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "cache_control": "private, no-store, max-age=0"
+    },
+    {
+      "function": "live-control",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "cache_control": "private, no-store, max-age=0"
+    },
+    {
+      "function": "live-playback",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "cache_control": "private, no-store, max-age=0"
+    },
+    {
+      "function": "live-cover",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "cache_control": "private, no-store, max-age=0"
+    },
+    {
+      "function": "live-maintenance",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "cache_control": "private, no-store"
+    },
+    {
+      "function": "live-sign",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "cache_control": "private, no-store"
+    },
+    {
+      "function": "live-clip-media",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "cache_control": "private, no-store"
+    },
+    {
+      "function": "live-clip-worker",
+      "status": 401,
+      "error": "AUTH_REQUIRED",
+      "cache_control": "private, no-store"
+    },
+    {
+      "function": "live-provider-webhook",
+      "status": 401,
+      "error": "INVALID_SIGNATURE",
+      "cache_control": "private, no-store, max-age=0"
+    },
+    {
+      "function": "content-media-sign",
+      "status": 401,
+      "error": "Authentication required.",
+      "cache_control": "no-store"
+    },
+    {
+      "function": "media-content",
+      "status": 403,
+      "error": "This media is unavailable. Reload its post or conversation.",
+      "cache_control": "private, no-store, max-age=0"
+    }
+  ],
+  "passed": 11,
+  "scope": "Hosted startup, unauthenticated rejection and private caching only; no provider or load-test acceptance."
+}

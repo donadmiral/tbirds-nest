@@ -30,9 +30,11 @@ else {
     await query(fs.readFileSync(path.join(__dirname, '../migrations/20261102100704_notification_worker_schedule.sql'), 'utf8'));
   });
   after(async () => { await db?.close(); });
-  const seed = async (expires = "clock_timestamp()+interval '1 minute'") => {
-    await query(`truncate notification_fanout.worker_ticks;insert into notification_fanout.worker_ticks(digest,created_at,expires_at)
-      values(extensions.digest('${token}','sha256'),clock_timestamp()-interval '1 minute',${expires});`);
+  const seed = async (expires = "tick_at+interval '1 minute'") => {
+    await query(`truncate notification_fanout.worker_ticks;
+      with tick_time as materialized (select clock_timestamp() as tick_at)
+      insert into notification_fanout.worker_ticks(digest,created_at,expires_at)
+      select extensions.digest('${token}','sha256'),tick_at-interval '1 minute',${expires} from tick_time;`);
   };
   test('installation is disabled and all worker APIs and state exclude public callers', async () => {
     assert.equal(await query('select notification_fanout.enqueue_worker_tick() is null'), 't');
@@ -60,7 +62,7 @@ else {
     assert.equal(await query('select last_completed_at is not null from notification_fanout.worker_settings'), 't');
   });
   test('expired, malformed, unissued and disabled capabilities fail closed', async () => {
-    await seed("clock_timestamp()-interval '1 second'");
+    await seed("tick_at-interval '1 second'");
     assert.equal(await query(`select validate_notification_worker_tick_v1('${token}')`), 'f');
     assert.equal(await query(`select validate_notification_worker_tick_v1('pc_notify_not_hex')`), 'f');
     assert.equal(await query(`select validate_notification_worker_tick_v1('pc_notify_${'cd'.repeat(32)}')`), 'f');

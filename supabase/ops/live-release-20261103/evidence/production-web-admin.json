@@ -1,0 +1,87 @@
+{
+  "checked_at": "2026-11-03T01:13:06.004Z",
+  "runtime_source_commit": "2e265ef0915ed83cbf5ba79f22f3ea1f1a717d8d",
+  "runtime_tree": "5815da01e4f8ddfeb40c034dacbc6f5397686c66",
+  "team_id": "team_yu7fUehO2z7E6QHF6Nvxp3tC",
+  "deployments": [
+    {
+      "surface": "web",
+      "project_id": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+      "deployment_id": "dpl_Ds9RKyzPNXqnNSziBWFeC9DwPZcc",
+      "state": "READY",
+      "target": "production",
+      "url": "https://platinum-a7qblm7vx-intobank.vercel.app",
+      "verified_aliases": [
+        "platinumcircles.app",
+        "www.platinumcircles.app"
+      ]
+    },
+    {
+      "surface": "admin",
+      "project_id": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+      "deployment_id": "dpl_HtFDqKMNyCJ5KJan7hBMMzea6ZkK",
+      "state": "READY",
+      "target": "production",
+      "url": "https://admin-3tz5p4ofr-intobank.vercel.app",
+      "verified_aliases": [
+        "admin.platinumcircles.app"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "url": "https://platinumcircles.app/live",
+      "status": 200,
+      "visible_server_content": [
+        "Live streams",
+        "Clip library"
+      ],
+      "cache_control": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "verification": "Vercel protected fetch and independent public HTTP fetch"
+    },
+    {
+      "url": "https://platinumcircles.app/live/clips",
+      "status": 200,
+      "visible_server_content": [
+        "Clip library",
+        "Sign in"
+      ],
+      "cache_control": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "verification": "Vercel protected fetch and independent public HTTP fetch"
+    },
+    {
+      "url": "https://admin.platinumcircles.app/live",
+      "status": 200,
+      "visible_server_content": [
+        "Platinum Circles Operations",
+        "Sign in"
+      ],
+      "verification": "Vercel protected fetch; unauthenticated application view"
+    },
+    {
+      "url": "https://admin.platinumcircles.app/api/live",
+      "status": 401,
+      "content_type": "application/json",
+      "cache_control": "private, no-store",
+      "response": {
+        "error": "Sign in with an authorized staff account."
+      },
+      "verification": "Independent public HTTP fetch. Protected fetch tool misclassified the app 401 as share-link authentication failure; its result alone was not used as authorization proof."
+    }
+  ],
+  "boundaries": [
+    "No signed-in creator/staff session used in these HTTP checks.",
+    "No broadcast, renderer, provider OAuth or native distribution activation.",
+    "Production media gates remain disabled pending required infrastructure and acceptance."
+  ],
+  "public_client_configuration": {
+    "checked_at": "2026-11-03T01:16:20.933Z",
+    "scripts_checked": 17,
+    "supabase_hosts": [
+      "prlkikhckbifseosbukl.supabase.co"
+    ],
+    "production_host_present": true,
+    "qa_host_present": false,
+    "scope": "Public client bundle configuration only; no signed-in API operation."
+  }
+}

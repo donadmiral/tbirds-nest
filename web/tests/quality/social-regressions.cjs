@@ -13,6 +13,7 @@ function load(file) {
 const { createFollowStore } = load('lib/followState.ts');
 const { notificationHref, conversationHref } = load('lib/notificationRouting.ts');
 const profileLookup = load('lib/profileLookup.ts');
+const { createRecentSearchStore } = load('../shared/recentSearches.ts');
 const defer = () => { let resolve; const promise = new Promise(r => resolve = r); return { promise, resolve }; };
 const flush = () => new Promise(r => setImmediate(r));
 function harness() {
@@ -105,6 +106,11 @@ test('routing escapes path/query values and rejects non-string metadata', () => 
 
 function searchHarness() {
   const states=[], effects=[], timers=new Map(); let hook=0,timer=0; const scheduled=[];
+  // Each harness owns its history/storage; never share the browser hook singleton.
+  const recentStorage=new Map();
+  const recentSearches=createRecentSearchStore({getItem:key=>recentStorage.get(key)??null,setItem:(key,value)=>recentStorage.set(key,value),removeItem:key=>recentStorage.delete(key)});
+  void recentSearches.bind('search-viewer');
+  const recentHook={useRecentSearches:()=>({...recentSearches.getSnapshot(),record:recentSearches.record,remove:recentSearches.remove,clear:recentSearches.clear})};
   let auth;let url='linked search', answer=()=>({data:[],error:null}); const searches=[];
   const client={auth:{getSession:()=>new Promise(()=>{}),onAuthStateChange:fn=>{auth=fn;return{data:{subscription:{unsubscribe(){}}}};}},rpc(name,args){ if(name==='get_trending_topics'||name==='log_search_event')return Promise.resolve({data:[],error:null}); searches.push(args.p_q); return Promise.resolve(answer(name,args)); }};
   const react={Suspense:'Suspense',useRef(initial){const i=hook++;if(!(i in states))states[i]={current:initial};return states[i];},useState(initial){const i=hook++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return[states[i],value=>states[i]=typeof value==='function'?value(states[i]):value];},useCallback(fn,deps){const i=hook++;const prev=states[i];if(!prev||deps.some((value,k)=>!Object.is(value,prev.deps[k])))states[i]={fn,deps};return states[i].fn;},useEffect(fn,deps){const i=hook++;const prev=effects[i];if(!prev||deps.some((value,k)=>!Object.is(value,prev.deps[k]))){scheduled.push(()=>{prev?.cleanup?.();effects[i]={deps,cleanup:fn()};});}}};
@@ -112,12 +118,20 @@ function searchHarness() {
   const source=fs.readFileSync(path.join(__dirname,'../../app/search/page.tsx'),'utf8')+'\nexport { SearchResults, SearchFromUrl };';
   const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText;
   const jsx=(type,props,key)=>({type,props,key});
-  const imports=name=>name==='react'?react:name==='react/jsx-runtime'?{jsx,jsxs:jsx,Fragment:'Fragment'}:name==='next/navigation'?{useRouter:()=>({back(){},push(){}}),useSearchParams:()=>new URLSearchParams({q:url})}:name==='@/lib/supabase/client'?{createClient:()=>client}:name==='@/lib/profileLookup'?profileLookup:name==='@/lib/feed'?{timeAgo:()=>''}:name==='@/lib/contentMedia'?{hydratePostMedia:async value=>value}:name==='@/lib/withTimeout'?{withTimeout:value=>value}:name==='@/lib/media'?{displayImageUrl:x=>x}:new Proxy({__esModule:true,default:name},{get:(target,key)=>target[key]??String(key)});
+  const imports=name=>name==='react'?react:name==='react/jsx-runtime'?{jsx,jsxs:jsx,Fragment:'Fragment'}:name==='next/navigation'?{useRouter:()=>({back(){},push(){}}),useSearchParams:()=>new URLSearchParams({q:url})}:name==='@/lib/supabase/client'?{createClient:()=>client}:name==='@/lib/useRecentSearches'?recentHook:name==='@/lib/profileLookup'?profileLookup:name==='@/lib/feed'?{timeAgo:()=>''}:name==='@/lib/contentMedia'?{hydratePostMedia:async value=>value}:name==='@/lib/withTimeout'?{withTimeout:value=>value}:name==='@/lib/media'?{displayImageUrl:x=>x}:new Proxy({__esModule:true,default:name},{get:(target,key)=>target[key]??String(key)});
   vm.runInNewContext(js,{module,exports:module.exports,require:imports,URLSearchParams,window:{localStorage:{getItem:()=>null},addEventListener(){},removeEventListener(){}},document:{visibilityState:"visible",addEventListener(){},removeEventListener(){}},setInterval:()=>0,clearInterval(){},queueMicrotask,setTimeout(fn){const id=++timer;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);}});
   function render(query=''){hook=0;const tree=module.exports.SearchResults({initialQuery:query});while(scheduled.length)scheduled.shift()();return tree;}
   function nodes(tree,type){ if(!tree||typeof tree!=='object')return[]; if(Array.isArray(tree))return tree.flatMap(x=>nodes(x,type));return[...(tree.type===type?[tree]:[]),...nodes(tree.props?.children,type)]; }
-  return{render,nodes,searches,auth(uid){auth?.('SIGNED_IN',uid?{user:{id:uid}}:null);},setAnswer(fn){answer=fn;},fromUrl(){return module.exports.SearchFromUrl();},setQuery(value){const input=nodes(render(),'input')[0];input.props.onChange({target:{value}});return render();},async runTimers(){const pending=[...timers.values()];timers.clear();const running=pending.map(fn=>fn());await flush();return running;}};
+  return{render,nodes,searches,recentSearches,auth(uid){void recentSearches.bind(uid);auth?.('SIGNED_IN',uid?{user:{id:uid}}:null);},setAnswer(fn){answer=fn;},fromUrl(){return module.exports.SearchFromUrl();},setQuery(value){const input=nodes(render(),'input')[0];input.props.onChange({target:{value}});return render();},async runTimers(){const pending=[...timers.values()];timers.clear();const running=pending.map(fn=>fn());await flush();return running;}};
 }
+test('search harness histories are isolated and follow their own account changes',async()=>{
+ const first=searchHarness(),second=searchHarness();await Promise.all([first.recentSearches.settled(),second.recentSearches.settled()]);
+ first.render('Private first search');await first.recentSearches.settled();
+ assert.deepEqual(Array.from(first.recentSearches.getSnapshot().entries,item=>item.term),['Private first search']);
+ assert.equal(second.recentSearches.getSnapshot().entries.length,0);
+ first.auth('next-account');await first.recentSearches.settled();assert.equal(first.recentSearches.getSnapshot().entries.length,0);
+ assert.equal(second.recentSearches.getSnapshot().owner,'search-viewer');
+});
 test('search reads q from navigation links',()=>{const h=searchHarness();const tree=h.fromUrl();assert.equal(tree.props.initialQuery,'linked search');assert.equal(tree.key,'linked search');});
 test('a late old search cannot replace the newer query results',async()=>{
  const h=searchHarness(),old=defer();h.setAnswer((name,args)=>args.p_q==='older'?old.promise:{data:name==='search_people_page'?[{id:'new',full_name:'New result',username:'new'}]:[],error:null});
