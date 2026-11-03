@@ -1,0 +1,43 @@
+name: Apply reviewed Live mobile UI repair
+on:
+  push:
+    branches: [codex/live-completion-20261102]
+    paths:
+      - tools/apply-live-ui-repair.cjs
+      - .github/workflows/live-ui-repair.yml
+permissions:
+  contents: write
+concurrency:
+  group: live-mobile-ui-repair
+  cancel-in-progress: false
+jobs:
+  repair:
+    if: github.repository == 'donadmiral/tbirds-nest' && github.ref == 'refs/heads/codex/live-completion-20261102'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply four exact-preimage presentation patches
+        run: node tools/apply-live-ui-repair.cjs
+      - name: Install the locked dependencies without install scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify UI behavior and existing Live contracts
+        run: node --test tests/live-ui-repair.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs
+      - name: Check native TypeScript
+        run: npx tsc --noEmit --incremental false
+      - name: Save only the verified presentation changes
+        run: |
+          set -euo pipefail
+          branch=codex/live-completion-20261102
+          test "$(git ls-remote origin refs/heads/$branch | cut -f1)" = "$(git rev-parse HEAD)"
+          git diff --check
+          git add src/screens/feed/FeedScreen.tsx src/screens/feed/LiveStreamsScreen.tsx src/screens/feed/LiveSessionScreen.tsx src/components/LiveStudio.tsx
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(live): align tabs and expose camera preview with clear Go live control'
+          git push origin HEAD:refs/heads/$branch
+          echo "Verified UI commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
