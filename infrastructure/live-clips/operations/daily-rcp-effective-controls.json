@@ -1,0 +1,226 @@
+{
+  "management_account": "481552727043",
+  "project_account": "518317808503",
+  "root": "r-0jo2",
+  "policy_discovery": {
+    "attachments": {
+      "root_rcp": {
+        "Policies": [
+          {
+            "Id": "p-02ee9yrf9f",
+            "Arn": "arn:aws:organizations::481552727043:policy/o-u8vc1j1p9n/resource_control_policy/p-02ee9yrf9f",
+            "Name": "ManagedAccountResourceControlPolicy",
+            "Description": "ManagedAccountResourceControlPolicy",
+            "Type": "RESOURCE_CONTROL_POLICY",
+            "AwsManaged": false
+          },
+          {
+            "Id": "p-RCPFullAWSAccess",
+            "Arn": "arn:aws:organizations::aws:policy/resource_control_policy/p-RCPFullAWSAccess",
+            "Name": "RCPFullAWSAccess",
+            "Description": "Allows access to every resource",
+            "Type": "RESOURCE_CONTROL_POLICY",
+            "AwsManaged": true
+          }
+        ]
+      },
+      "root_scp": {
+        "Policies": [
+          {
+            "Id": "p-FullAWSAccess",
+            "Arn": "arn:aws:organizations::aws:policy/service_control_policy/p-FullAWSAccess",
+            "Name": "FullAWSAccess",
+            "Description": "Allows access to every operation",
+            "Type": "SERVICE_CONTROL_POLICY",
+            "AwsManaged": true
+          },
+          {
+            "Id": "p-jt402jbt",
+            "Arn": "arn:aws:organizations::481552727043:policy/o-u8vc1j1p9n/service_control_policy/p-jt402jbt",
+            "Name": "AdvancedModeRegionRestrictionSecurityControlPolicy",
+            "Description": "AdvancedModeRegionRestrictionSecurityControlPolicy",
+            "Type": "SERVICE_CONTROL_POLICY",
+            "AwsManaged": false
+          },
+          {
+            "Id": "p-p9tol2jr",
+            "Arn": "arn:aws:organizations::481552727043:policy/o-u8vc1j1p9n/service_control_policy/p-p9tol2jr",
+            "Name": "ManagedAccountSecurityControlPolicy",
+            "Description": "ManagedAccountSecurityControlPolicy",
+            "Type": "SERVICE_CONTROL_POLICY",
+            "AwsManaged": false
+          }
+        ]
+      }
+    },
+    "policies": {
+      "p-02ee9yrf9f": {
+        "Policy": {
+          "PolicySummary": {
+            "Id": "p-02ee9yrf9f",
+            "Arn": "arn:aws:organizations::481552727043:policy/o-u8vc1j1p9n/resource_control_policy/p-02ee9yrf9f",
+            "Name": "ManagedAccountResourceControlPolicy",
+            "Description": "ManagedAccountResourceControlPolicy",
+            "Type": "RESOURCE_CONTROL_POLICY",
+            "AwsManaged": false
+          },
+          "Content": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"DenyAnyoneOutsideMyOrgAndAWS\",\"Effect\":\"Deny\",\"Principal\":\"*\",\"Action\":[\"aoss:*\",\"appconfig:*\",\"appstream:*\",\"autoscaling:*\",\"codebuild:*\",\"codecommit:*\",\"cognito-identity:*\",\"cognito-idp:*\",\"comprehend:*\",\"comprehendmedical:*\",\"dax:*\",\"dynamodb:*\",\"ecr:*\",\"health:*\",\"kinesisvideo:*\",\"kms:*\",\"logs:*\",\"s3:*\",\"secretsmanager:*\",\"sqs:*\",\"sts:*\",\"support:*\",\"textract:*\",\"transcribe:*\",\"translate:*\"],\"Resource\":\"*\",\"Condition\":{\"StringNotEqualsIfExists\":{\"aws:PrincipalOrgID\":\"${aws:ResourceOrgID}\"},\"Null\":{\"aws:PrincipalARN\":\"false\"},\"BoolIfExists\":{\"aws:PrincipalIsAWSService\":\"false\"}}},{\"Sid\":\"DenyAWSWhenItsNotMyOrgsSourceAccount\",\"Effect\":\"Deny\",\"Principal\":\"*\",\"Action\":[\"aoss:*\",\"appconfig:*\",\"appstream:*\",\"autoscaling:*\",\"codebuild:*\",\"codecommit:*\",\"cognito-identity:*\",\"cognito-idp:*\",\"comprehend:*\",\"comprehendmedical:*\",\"dax:*\",\"dynamodb:*\",\"ecr:*\",\"health:*\",\"kinesisvideo:*\",\"kms:*\",\"logs:*\",\"s3:*\",\"secretsmanager:*\",\"sqs:*\",\"sts:*\",\"support:*\",\"textract:*\",\"transcribe:*\",\"translate:*\"],\"Resource\":\"*\",\"Condition\":{\"Null\":{\"aws:SourceAccount\":\"false\"},\"StringNotEquals\":{\"aws:SourceOrgID\":\"${aws:ResourceOrgID}\"}}}]}"
+        }
+      },
+      "p-FullAWSAccess": {
+        "Policy": {
+          "PolicySummary": {
+            "Id": "p-FullAWSAccess",
+            "Arn": "arn:aws:organizations::aws:policy/service_control_policy/p-FullAWSAccess",
+            "Name": "FullAWSAccess",
+            "Description": "Allows access to every operation",
+            "Type": "SERVICE_CONTROL_POLICY",
+            "AwsManaged": true
+          },
+          "Content": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": \"*\",\n      \"Resource\": \"*\"\n    }\n  ]\n}"
+        }
+      },
+      "p-RCPFullAWSAccess": {
+        "Policy": {
+          "PolicySummary": {
+            "Id": "p-RCPFullAWSAccess",
+            "Arn": "arn:aws:organizations::aws:policy/resource_control_policy/p-RCPFullAWSAccess",
+            "Name": "RCPFullAWSAccess",
+            "Description": "Allows access to every resource",
+            "Type": "RESOURCE_CONTROL_POLICY",
+            "AwsManaged": true
+          },
+          "Content": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"*\",\"Resource\":\"*\"}]}"
+        }
+      },
+      "p-jt402jbt": {
+        "Policy": {
+          "PolicySummary": {
+            "Id": "p-jt402jbt",
+            "Arn": "arn:aws:organizations::481552727043:policy/o-u8vc1j1p9n/service_control_policy/p-jt402jbt",
+            "Name": "AdvancedModeRegionRestrictionSecurityControlPolicy",
+            "Description": "AdvancedModeRegionRestrictionSecurityControlPolicy",
+            "Type": "SERVICE_CONTROL_POLICY",
+            "AwsManaged": false
+          },
+          "Content": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"UsEast1Partitional\",\"Effect\":\"Deny\",\"NotAction\":[\"a4b:*\",\"access-analyzer:*\",\"account-access:*\",\"account:*\",\"acm:*\",\"artifact:*\",\"aws-marketplace-management:*\",\"aws-marketplace:*\",\"aws-portal:*\",\"bedrock-mantle:CallWithBearerToken\",\"bedrock-mantle:CreateInference\",\"bedrock-mantle:GetInference\",\"bedrock-mantle:GetModel\",\"bedrock-mantle:ListModels\",\"bedrock:ApplyGuardrail\",\"bedrock:CountTokens\",\"bedrock:GetFoundationModel\",\"bedrock:GetFoundationModelAvailability\",\"bedrock:GetInferenceProfile\",\"bedrock:InvokeModel\",\"bedrock:InvokeModelWithResponseStream\",\"bedrock:ListFoundationModels\",\"bedrock:ListInferenceProfiles\",\"billing:*\",\"billingconductor:*\",\"budgets:*\",\"builderid:*\",\"ce:*\",\"chatbot:*\",\"chime:*\",\"cloudfront-keyvaluestore:*\",\"cloudfront:*\",\"cloudshell:*\",\"cloudtrail:LookupEvents\",\"cloudwatch:BatchGet*\",\"cloudwatch:Describe*\",\"cloudwatch:GenerateQuery\",\"cloudwatch:Get*\",\"cloudwatch:List*\",\"compute-optimizer:*\",\"config:*\",\"consoleapp:*\",\"consolidatedbilling:*\",\"cost-optimization-hub:*\",\"cur:*\",\"datapipeline:GetAccountLimits\",\"devicefarm:*\",\"directconnect:*\",\"ec2:DescribeRegions\",\"ec2:DescribeTransitGateways\",\"ec2:DescribeVpnGateways\",\"ecr-public:*\",\"finops-agent:*\",\"fms:*\",\"freetier:*\",\"globalaccelerator:*\",\"health:*\",\"iam:*\",\"identitystore-auth:*\",\"identitystore:*\",\"importexport:*\",\"invoicing:*\",\"iq:*\",\"kms:*\",\"license-manager:ListReceivedLicenses\",\"lightsail:AttachCertificateToDistribution\",\"lightsail:CreateCertificate\",\"lightsail:CreateContactMethod\",\"lightsail:CreateDistribution\",\"lightsail:CreateDomain\",\"lightsail:CreateDomainEntry\",\"lightsail:DeleteAlarm\",\"lightsail:DeleteCertificate\",\"lightsail:DeleteContactMethod\",\"lightsail:DeleteDistribution\",\"lightsail:DeleteDomain\",\"lightsail:DeleteDomainEntry\",\"lightsail:DetachCertificateFromDistribution\",\"lightsail:Get*\",\"lightsail:IsVpcPeered\",\"lightsail:PutAlarm\",\"lightsail:ResetDistributionCache\",\"lightsail:SendContactMethodVerification\",\"lightsail:SetIpAddressType\",\"lightsail:TagResource\",\"lightsail:TestAlarm\",\"lightsail:UntagResource\",\"lightsail:UpdateDistribution\",\"lightsail:UpdateDistributionBundle\",\"lightsail:UpdateDomainEntry\",\"logs:*\",\"managedblockchain-query:*\",\"managedblockchain:*\",\"mapcredits:*\",\"mobileanalytics:*\",\"notifications-contacts:*\",\"notifications:*\",\"organizations:*\",\"payments:*\",\"pricing:*\",\"q:*\",\"quicksight:DescribeAccountSubscription\",\"resource-explorer-2:*\",\"route53-recovery-cluster:*\",\"route53:*\",\"route53domains:*\",\"route53globalresolver:*\",\"s3:CreateMultiRegionAccessPoint\",\"s3:DeleteMultiRegionAccessPoint\",\"s3:DescribeMultiRegionAccessPointOperation\",\"s3:GetAccountPublicAccessBlock\",\"s3:GetBucketLocation\",\"s3:GetBucketPolicyStatus\",\"s3:GetBucketPublicAccessBlock\",\"s3:GetMultiRegionAccessPoint\",\"s3:GetMultiRegionAccessPointPolicy\",\"s3:GetMultiRegionAccessPointPolicyStatus\",\"s3:GetStorageLensConfiguration\",\"s3:GetStorageLensDashboard\",\"s3:ListAllMyBuckets\",\"s3:ListMultiRegionAccessPoints\",\"s3:ListStorageLensConfigurations\",\"s3:PutAccountPublicAccessBlock\",\"s3:PutMultiRegionAccessPointPolicy\",\"savingsplans:*\",\"servicequotas:*\",\"shield:*\",\"signin:*\",\"sso-directory:*\",\"sso-oauth:*\",\"sso:*\",\"sts:*\",\"support:*\",\"supportapp:*\",\"supportplans:*\",\"sustainability:*\",\"tag:GetResources\",\"tax:*\",\"trustedadvisor:*\",\"ts:*\",\"uxc:*\",\"vendor-insights:ListEntitledSecurityProfiles\",\"waf-regional:*\",\"waf:*\",\"wafv2:*\"],\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"aws:RequestedRegion\":\"us-east-1\"}}},{\"Sid\":\"UsWest2Partitional\",\"Effect\":\"Deny\",\"NotAction\":[\"activate:*\",\"bedrock-mantle:CallWithBearerToken\",\"bedrock-mantle:CreateInference\",\"bedrock-mantle:GetInference\",\"bedrock-mantle:GetModel\",\"bedrock-mantle:ListModels\",\"bedrock:ApplyGuardrail\",\"bedrock:CountTokens\",\"bedrock:GetFoundationModel\",\"bedrock:GetFoundationModelAvailability\",\"bedrock:GetInferenceProfile\",\"bedrock:InvokeModel\",\"bedrock:InvokeModelWithResponseStream\",\"bedrock:ListFoundationModels\",\"bedrock:ListInferenceProfiles\",\"cloudshell:*\",\"cloudtrail:LookupEvents\",\"health:*\",\"identitystore-auth:*\",\"identitystore:*\",\"kms:Decrypt\",\"kms:DescribeKey\",\"kms:ListAliases\",\"networkmanager-chat:*\",\"networkmanager:*\",\"route53-recovery-cluster:*\",\"route53-recovery-control-config:*\",\"route53-recovery-readiness:*\",\"servicequotas:*\",\"sso-directory:*\",\"sso-oauth:*\",\"sso:*\",\"support:*\",\"trustedadvisor:*\",\"uxc:*\"],\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"aws:RequestedRegion\":\"us-west-2\"}}},{\"Sid\":\"RegionFloor\",\"Effect\":\"Deny\",\"NotAction\":[\"bedrock-mantle:CallWithBearerToken\",\"bedrock-mantle:CreateInference\",\"bedrock-mantle:GetInference\",\"bedrock-mantle:GetModel\",\"bedrock-mantle:ListModels\",\"bedrock:ApplyGuardrail\",\"bedrock:CountTokens\",\"bedrock:GetFoundationModel\",\"bedrock:GetFoundationModelAvailability\",\"bedrock:GetInferenceProfile\",\"bedrock:InvokeModel\",\"bedrock:InvokeModelWithResponseStream\",\"bedrock:ListFoundationModels\",\"bedrock:ListInferenceProfiles\"],\"Resource\":\"*\",\"Condition\":{\"StringNotEquals\":{\"aws:RequestedRegion\":[\"unspecified\",\"us-east-1\",\"us-east-2\",\"us-west-2\"]}}}]}"
+        }
+      },
+      "p-p9tol2jr": {
+        "Policy": {
+          "PolicySummary": {
+            "Id": "p-p9tol2jr",
+            "Arn": "arn:aws:organizations::481552727043:policy/o-u8vc1j1p9n/service_control_policy/p-p9tol2jr",
+            "Name": "ManagedAccountSecurityControlPolicy",
+            "Description": "ManagedAccountSecurityControlPolicy",
+            "Type": "SERVICE_CONTROL_POLICY",
+            "AwsManaged": false
+          },
+          "Content": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"BlockOrgEscape\",\"Effect\":\"Deny\",\"Action\":[\"account:CloseAccount\",\"organizations:AcceptHandshake\",\"organizations:LeaveOrganization\",\"sso:CreateInstance\"],\"Resource\":\"*\"},{\"Sid\":\"ProtectManagedRoles\",\"Effect\":\"Deny\",\"Action\":[\"iam:AttachRolePolicy\",\"iam:CreateRole\",\"iam:DeleteRole\",\"iam:DeleteRolePermissionsBoundary\",\"iam:DeleteRolePolicy\",\"iam:DetachRolePolicy\",\"iam:PutRolePermissionsBoundary\",\"iam:PutRolePolicy\",\"iam:TagRole\",\"iam:UntagRole\",\"iam:UpdateAssumeRolePolicy\",\"iam:UpdateRole\"],\"Resource\":\"arn:*:iam::*:role/managed/*\",\"Condition\":{\"StringNotLike\":{\"aws:PrincipalArn\":\"arn:*:iam::*:role/managed/AWSManagedAccountManagementAccessRole\"}}}]}"
+        }
+      }
+    }
+  },
+  "writer_controls": {
+    "role": {
+      "Role": {
+        "Path": "/",
+        "RoleName": "platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+        "RoleId": "AROAXRLRGDN3YQUQNSQKE",
+        "Arn": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+        "CreateDate": "2026-11-03T04:14:41+00:00",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "arn:aws:iam::291871421005:root"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": "platinumcircles"
+                }
+              }
+            }
+          ]
+        },
+        "Description": "",
+        "MaxSessionDuration": 43200,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveDelivery"
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CloudFormation"
+          },
+          {
+            "Key": "TemplateSHA256",
+            "Value": "3ec36c4908f6da683d97f253864f1199fa7d4de68d6f4ed5cf1e76114215e663"
+          }
+        ],
+        "RoleLastUsed": {}
+      }
+    },
+    "inline": {
+      "PolicyNames": [
+        "PlatinumLiveOnly"
+      ]
+    },
+    "attached": {
+      "AttachedPolicies": []
+    },
+    "bucket_policy": {
+      "Policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"CdnReadOnly\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudfront.amazonaws.com\"},\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3/live/*\",\"Condition\":{\"StringEquals\":{\"AWS:SourceArn\":\"arn:aws:cloudfront::518317808503:distribution/E15BWQDKI39QKD\"}}},{\"Sid\":\"RequireTls\",\"Effect\":\"Deny\",\"Principal\":\"*\",\"Action\":\"s3:*\",\"Resource\":[\"arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3\",\"arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3/*\"],\"Condition\":{\"Bool\":{\"aws:SecureTransport\":\"false\"}}}]}"
+    },
+    "inline_documents": {
+      "PlatinumLiveOnly": {
+        "RoleName": "platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+        "PolicyName": "PlatinumLiveOnly",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+                "s3:ListBucketVersions",
+                "s3:ListBucketMultipartUploads"
+              ],
+              "Resource": "arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3",
+              "Effect": "Allow"
+            },
+            {
+              "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:DeleteObject",
+                "s3:AbortMultipartUpload",
+                "s3:ListMultipartUploadParts"
+              ],
+              "Resource": "arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3/live/*",
+              "Effect": "Allow"
+            },
+            {
+              "Action": "s3:PutObject",
+              "Resource": "arn:aws:s3:::platinum-live-production-livebucket-6v2z2lrobdn3/daily-co-test-upload.txt",
+              "Effect": "Allow"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

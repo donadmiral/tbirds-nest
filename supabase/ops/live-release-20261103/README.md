@@ -2,32 +2,40 @@
 
 ## Release status
 
-**Latest access checkpoint, 2026-11-03 UTC:** AWS advanced-feature activation
-is complete and the AWS connector is authenticated. STS verified **project
-account `518317808503`**, role `AccountFullAccessRole`. `DescribeOrganization`
-succeeded for organization `o-u8vc1j1p9n`, confirming Management Account
-`481552727043` and feature set `ALL`. However, `ListPoliciesForTarget` for
-project account `518317808503`, filter `RESOURCE_CONTROL_POLICY`, returned
-`AccessDeniedException`. Organization policy contents remain unread and
-unchanged; the current project session does not provide the required inspection
-access.
+**Daily storage fixed, 2026-11-03 16:28:10.943038 UTC:** the management-account
+connection enabled inspection of the actual organization policies. Root RCP
+`p-02ee9yrf9f` was confirmed customer-managed (`AwsManaged=false`). Its reviewed
+exception now permits only Daily account `291871421005` to assume the exact
+Live writer role with ExternalId `platinumcircles`; unrelated controls, role
+trust, S3 permissions and attachments remain unchanged.
 
-**Reconnect the AWS app and select Management Account `481552727043`, rather
-than project account `518317808503`.** Verify that resulting identity before
-policy inspection. The earlier reauthentication failure and its
-[Site Unavailable screenshot](evidence/aws-toolkit-reauthentication-required.jpg)
-are historical evidence, superseded by the successful project-account
-connection. They do not describe the current connector state.
+AWS policy validation returned **0 errors** and the same single existing
+SourceAccount warning as the baseline. Applied-policy readback matches the
+reviewed candidate after normalizing only AWS's singleton `Action` string/list
+serialization and object-key order. Daily operation
+`dc520325-ac10-4423-b09e-f8f58d35a9f4` (request `11513`) then **SUCCEEDED** with
+`STORAGE_VERIFIED`, matching configuration and confirmed temporary-room cleanup.
+An empty S3 test-key baseline became **two new 102-byte versions** at
+16:28:11 UTC, providing actual provider write evidence. See the
+[policy, probe and rollback receipt](../../../infrastructure/live-clips/operations/daily-rcp-verification.json).
 
-The post-activation Daily storage probe
-`b3ec6b27-ec02-4b15-9a17-4036794f6577` (request `11490`) still failed at
-**16:08:53.024926 UTC** with HTTP 400, `STORAGE_VERIFICATION_FAILED`, classified
-`role_assumption_denied`; temporary-room cleanup was confirmed. Activation has
-not established Daily access or identified the denying policy. Production
-renderer admission remains enabled and broadcast admission disabled. All **28
-fixture cleanup targets are now done**, with **0 remaining targets and 0
-retained output objects**; this supersedes the earlier pending-cleanup state.
-See the [post-activation access receipt](evidence/live-daily-post-activation-access.json).
+**Enabled for owner testing at 16:31:04.126452 UTC:** production creation,
+stage/broadcast admission, HLS delivery, private delivery and recording are now
+enabled. The guarded update changed exactly one settings row after successful
+Daily verification and maintenance request **11517**, which returned HTTP 200,
+`ok=true` and all **nine provider-configuration checks true**. Existing limits
+remain **10 active broadcasts**, **12 stage members** and **two active clip
+jobs**. No real camera/HLS broadcast or scale acceptance has been performed.
+
+Cron jobs **19/20/21** for maintenance, worker and interaction flush are
+configured active, but no `job_run_details` execution was observed and the
+previous last automatic issue was at 04:56 UTC. The successful explicit
+maintenance check does not prove automatic maintenance execution.
+The [earlier access receipt](evidence/live-daily-post-activation-access.json),
+failed Daily probes and [OAuth redirect screenshot](evidence/aws-toolkit-reauthentication-required.jpg)
+remain historical evidence and no longer describe current access. Production
+renderer admission remains enabled. All **28 renderer-fixture cleanup targets
+are done**, with **0 remaining targets and 0 retained fixture output objects**.
 
 **Renderer operational checkpoint, 2026-11-03 08:37:41.752 UTC:** the real
 production worker completed the isolated two-second clip through the broker,
@@ -47,9 +55,9 @@ and [operations status](../../../infrastructure/live-clips/operations/quick-depl
 The [07:37–07:47 quick attempt](evidence/live-quick-fix-attempt.json) and
 [Daily role review](evidence/live-daily-quick-role-review.json) remain historical
 receipts. Their failed-image and unprovisioned-renderer states are superseded
-by the later evidence above. Advanced activation and project-account
-authentication are complete; a management-account connection and actual policy
-inspection remain outstanding. No successful Daily broadcast is claimed.
+by the later evidence above. Advanced activation, management-account access,
+actual policy inspection and the narrow Daily storage correction are complete.
+Full broadcast acceptance remains separate.
 
 The existing web/admin fundamentals are available for the owner to test.
 The optional database foundation and six additional Edge endpoints are deployed
@@ -62,14 +70,14 @@ separate integrations being configured.
 
 The original Live web and admin applications, the six-unit database release, and
 eleven original Live/media Edge functions have been deployed to production. Live creation
-and chat are enabled. Broadcasting, HLS audience delivery and recording remain
-disabled pending Daily provider and complete broadcast acceptance. Clip
+and chat are enabled. Broadcasting, HLS audience delivery, private delivery and
+recording are enabled for owner testing; complete broadcast acceptance remains
+outstanding. Clip
 encoding passed the bounded production acceptance described above. The AWS
 delivery stack and approved signing keys are installed;
 hosted secret checks passed **10/10**, and synthetic signer-to-CDN delivery
-passed **15/15** on 2026-11-03 UTC. The Daily webhook is `ACTIVE`, but actual
-Daily storage verification failed with `role_assumption_denied`. Broadcast
-admission remains disabled.
+passed **15/15** on 2026-11-03 UTC. The Daily webhook is `ACTIVE`, and actual
+Daily storage verification now succeeds as recorded above.
 
 This release implements the directory, player and studio; clip editing and
 private media publication; device export and social sharing paths; creator and
@@ -453,11 +461,11 @@ policy correction is claimed. Five-million-user capacity remains unmeasured.
 |---|---|
 | Live creation | Enabled |
 | Live chat | Enabled |
-| Maintenance | Enabled; successful tick recorded above |
-| Stage/broadcast admission | Disabled |
-| HLS audience delivery | Disabled |
-| Recording | Disabled |
-| Private broadcasts | Disabled |
+| Maintenance | Configured active; explicit request 11517 passed; automatic execution unverified |
+| Stage/broadcast admission | Enabled for owner testing; existing maximum 10 active broadcasts and 12 stage members |
+| HLS audience delivery | Enabled for owner testing |
+| Recording | Enabled for owner testing |
+| Private broadcasts | Enabled for owner testing |
 | Reminders | Disabled |
 | Clip encoding admission | Enabled; real production fixture rendered and stored successfully |
 | Configured renderer concurrency | Two active jobs across the fleet |
@@ -536,9 +544,10 @@ credential, bucket, region, Daily role ARN, CDN origin, matching CDN key/ID and
 webhook HMAC. The initial missing-setting reports are superseded by the hosted
 receipts above. AWS storage/CDN and the synthetic authenticated delivery path
 are accepted for the isolated fixture, and the Daily webhook is `ACTIVE`.
-Actual Daily storage access is blocked by the provider's role-assumption denial;
-the complete provider broadcast remains unaccepted. The next review and its
-authorization boundary are recorded above.
+Actual Daily storage access is verified after the reviewed, narrowly scoped
+RCP correction. Broadcast, delivery, private delivery and recording are enabled
+for owner testing. A complete provider broadcast remains unaccepted, and the
+configured cron jobs still require observed automatic-execution evidence.
 
 The renderer image, real production queue processing and private asset writes
 are accepted; its service and launcher stacks are deployed and the one-minute
