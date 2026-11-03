@@ -1,0 +1,67 @@
+{
+  "date": "2026-11-03",
+  "source_before_repair": "d637d532722fe59904ac578cb485cf0b8522ff7c",
+  "status": "partial_repair_not_production_acceptance",
+  "incident": {
+    "environment": "qa",
+    "client": "PlatinumQA/18",
+    "start_attempt_utc": "2026-11-03T22:15:10Z",
+    "observed": "live-stage returned 200; live_finish_control returned 400; live-control returned 503; no corresponding signed streaming.started event was recorded",
+    "reproduced_database_error": {"code": "42702", "message": "column reference result is ambiguous", "statement": "update live_streams.controls set status='failed',result=result"},
+    "control_result_fix": "Rename only the local PL/pgSQL result variable to v_result. Retain existing permissions, leases, state transitions and provider-confirmation requirements.",
+    "provider_root_cause": "Not yet established. The acknowledgement bug does not prove that the preceding Daily request succeeded."
+  },
+  "applied_migrations": [
+    {"environment": "qa", "version": "20261103224955", "name": "live_control_result_unambiguous"},
+    {"environment": "production", "version": "20261103225142", "name": "live_control_result_unambiguous"}
+  ],
+  "hosted_qa_transactional_tests": {
+    "passed": 14,
+    "checks": [
+      "immediate draft creation",
+      "duplicate create is idempotent",
+      "future schedule remains offline",
+      "rejected provider acknowledgement persisted",
+      "accepted acknowledgement persisted without claiming live",
+      "wrong control lease rejected",
+      "confirmed provider event transitions to live",
+      "duplicate webhook suppressed",
+      "follower notification created",
+      "opt-out and blocked followers excluded",
+      "notification retries do not duplicate",
+      "followers-only access enforced",
+      "viewer chat send and duplicate suppression",
+      "confirmed end without false replay"
+    ],
+    "scope": "Actual hosted SQL routines with synthetic actors, claims and provider events inside one rolled-back transaction. This is not physical-device, actual-provider, websocket transport, push-delivery or load acceptance.",
+    "committed_test_data": false
+  },
+  "production_runtime": {
+    "reminders_enabled_before": false,
+    "reminders_enabled_after": true,
+    "activation_guard": "No starting/live/reconnecting/ending broadcasts existed at activation.",
+    "retroactive_notifications_sent": 0,
+    "pending_notification_jobs_after": 0,
+    "scheduler_repair": "Re-register the existing three named jobs with their unchanged schedules and commands through cron.schedule. No duplicate or faster job was created.",
+    "automatic_worker_issued_at": "2026-11-03T23:04:00.202554Z",
+    "automatic_worker_completed_at": "2026-11-03T23:04:02.494853Z",
+    "automatic_interaction_flush": "Succeeded at five-second intervals after re-registration.",
+    "public_live_finish_control_execute": {"anon": false, "authenticated": false, "service_role": true}
+  },
+  "unchanged_limits": {"broadcasts": 10, "stage_members": 12, "chat_messages_per_second": 20, "production_clip_jobs": 2, "qa_clip_jobs": 1},
+  "capacity_evidence_ref": null,
+  "known_open_gates": [
+    "Daily start/stop rejection and stale ending-session reconciliation",
+    "Real host-to-viewer video and audio acceptance",
+    "Real chat and viewer-count delivery, reconnect and moderation acceptance",
+    "Push delivery to a follower device and notification deep-link acceptance",
+    "Live/replay source-to-render-to-publication clip journey",
+    "Optional direct-platform OAuth publishing and automatic transcription",
+    "Physical iOS/Android screen sharing and Picture in Picture",
+    "All approved visual concepts implemented and tested across web/native/admin",
+    "Provider quota, concurrent-viewer, notification fanout, viral-chat and sustained-load acceptance"
+  ],
+  "diagnostic_cleanup": "The temporary live-readiness-inspection endpoint was disabled immediately after its proposed invocation was blocked. Version 2 requires JWT verification and always returns 410. No provider diagnostic ran through it.",
+  "new_mobile_build": false,
+  "five_million_capacity_certified": false
+}
