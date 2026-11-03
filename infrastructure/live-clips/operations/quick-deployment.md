@@ -1,6 +1,59 @@
-# Quick renderer and idle-scheduler deployment
+# Renderer and scheduler operations
 
-Prepared for the operator's **2026-11-03 07:37–07:47 UTC** window. This sequence uses the reviewed frozen image and infrastructure. No benchmark, capacity test, ASR, social publishing or admission expansion belongs in this window. The files in this directory are requests for operator execution; creating them performs no AWS operation.
+## Current production status — 2026-11-03 UTC
+
+The accepted image is `sha256:c72e83dda292433e6857ad9ff5346b06ff921552f6243c43b9ba1360492b9b3c`.
+Build `e6d84528-7c98-4d78-9bbe-e28204efcd55` passed all **34 actual-container
+tests** and separate offline HLS encode/decode acceptance. ECR's package scan
+completed with no findings at **08:16:31 UTC**. The [image receipt](renderer-image-acceptance.json)
+retains exact source, signature, binary, codec and residual-review evidence.
+
+The service and full launcher stacks below are both `UPDATE_COMPLETE`.
+Service desired count is **0** and task definition revision **1** pins this
+image. The one-minute schedule is **ENABLED**, with production clip admission
+on and at most two active jobs. Finite task `7a27f1b718d74e5fbb3664f6f7622936`
+completed the actual queued clip `23aba5da-f9a9-4818-919b-2af0fb35d312` through
+the production broker, database lease and private Storage. The clip is `ready`,
+the job is `done` (revision 2 / attempt 2), and its four current-lease assets are
+stored with no error. The worker reported **6,625 ms** and **86,367 bytes**.
+
+| Stored output | Verified result |
+| --- | --- |
+| Horizontal video | 2,000 ms; 1280×720; 38,776 bytes |
+| Vertical video | 2,000 ms; 720×1280; 40,000 bytes |
+| Selected thumbnail | 7,521 bytes |
+| Reviewed captions | VTT; 70 bytes |
+| Publications | 0 |
+
+The [runtime receipt](../../../supabase/ops/live-release-20261103/evidence/live-renderer-runtime-acceptance.json)
+records the hosted evidence. The accepted task is **STOPPED**, exit code **0**,
+at **08:39:00.858 UTC**. The scheduler automatically settled the shared ledger to
+idle and retained **1,440 charged seconds / two launches**. The service is
+`ACTIVE` with desired/running/pending counts **0**, no active clip job remains,
+and the one-minute schedule stays enabled for bounded due work.
+
+Fixture identity and session cleanup is complete. All **five exact S3 source
+versions** were erased, and the source prefix was confirmed empty of versions.
+The **four successful private output objects remain** until the required
+**2-hour-10-minute signed-upload capability window** expires. The automated
+cleanup queue has **28 targets**: four names for each of six failed leases and
+the successful seventh lease, due **10:34:35–10:50:29 UTC**. These targets do not
+prove that 28 objects exist. Output deletion is deliberately pending the expiry
+window; leave the scheduler able to process due cleanup and do not reset its
+charged budget.
+
+The successful retry follows two narrow Storage signing-preflight migrations,
+`20261103082746_live_clip_signed_upload_preflight.sql` and
+`20261103083628_live_clip_signing_probe_transport_metadata.sql`. They permit
+only the exact service-only signing probe with its known transport metadata;
+the real upload still requires current authority, canonical asset path and full
+provenance. Backend acceptance passed after those corrections.
+
+The original 07:37–07:47 attempt ended before image acceptance. The owner has
+since resumed this work, so that window is historical. The creation-request
+files below remain parameter templates; inspect and update the existing named
+stacks rather than replaying their original `CREATE` requests. No ASR, social
+publishing, native release, new web rollout or capacity acceptance is implied.
 
 ## Fixed production inputs
 
@@ -24,7 +77,7 @@ These identifiers come from the operator-verified `production-network.json` and 
 
 First inspect existing stack state. The supplied requests use `ChangeSetType=CREATE`; if the named stack already exists, review an UPDATE of that stack rather than creating a duplicate or guessing a new name.
 
-Require the exact final CodeBuild image to pass its mandatory nonroot inventory, offline encode/decode and worker checks, followed by the agreed image/security review. The frozen source manifest is `256608f864374a0978f8884bcd597e537c532b30843836b45530e18b476527fb`. A successful source upload or an ECR tag alone is not image acceptance.
+Require the exact final CodeBuild image to pass its mandatory nonroot inventory, offline encode/decode and worker checks, followed by the agreed image/security review. The accepted source manifest is `e2c2218c1eb8c6e5e86ed3c7e4cc6b6e5c1813ad01e0feb77683b17003300e76`. A successful source upload or an ECR tag alone is not image acceptance.
 
 In `renderer-service-create.pending.json`, replace only `ImageDigest=REPLACE_WITH_ACCEPTED_IMAGE_DIGEST` with the actual accepted `sha256:` digest. Keep `DesiredCount=0`. The request contains the exact reviewed template and verified nonsecret parameters. Use `CloudFormation.CreateChangeSet`, inspect its resource changes, execute that change set, and wait for completion. Never execute a file containing `REPLACE_WITH_`.
 
@@ -54,13 +107,15 @@ For the one-off worker health check, fill `renderer-idle-run-task.pending.json` 
 
 Require one returned task ARN and no launch failure. Observe that exact task's image digest and redacted logs: at least one `live_clip_worker` heartbeat and a `drain` result of `idle`, with no `unavailable` or `fatal`. A task that starts after its remaining deadline falls below 25 seconds exits before broker work and does **not** prove worker health. Confirm normal stop/exit code 0; otherwise stop that exact task before the time budget ends and record the observed result. This explicit acceptance task is outside the scheduled daily ledger and must not be left running.
 
-## 4. Enable only the idle scheduler
+## 4. Enable the budgeted scheduler and verify its result
 
-After the exact worker task is stopped, the dedicated queue check is idle, and the disabled Lambda succeeded, review `renderer-launcher-enable.json`. It uses the deployed template and previous parameters, changes `ScheduleEnabled=true`, and keeps `AsrEnabled=false`. No clip admission is enabled by this update.
+After the dedicated queue authentication and disabled-Lambda checks pass, review `renderer-launcher-enable.json`. Reconcile any existing worker task or active reservation first. This update uses the deployed template and previous parameters, changes `ScheduleEnabled=true`, and keeps `AsrEnabled=false`. It does not itself change clip admission.
 
-Observe a scheduled invocation or invoke once manually after the update. Require `state=idle`, a scheduler heartbeat, no ECS task launch, no active reservation and no increase to the day's `used_seconds` or `launches`. Leave the service at zero. The scheduler has one reserved Lambda execution, one shared ledger slot and a fixed 7,200 equivalent-second UTC-day admission budget; it cannot create an always-on service.
+Observe a scheduled invocation or invoke once manually after the update. For an idle queue, require `state=idle`, a scheduler heartbeat, no ECS task launch, no active reservation and no increase to the day's `used_seconds` or `launches`. For the authorized queued fixture, record the exact reservation and launched task, then verify database-ready state and real private outputs before claiming completion. An invocation returning `launched` alone is not render acceptance. Reconcile task exit and record fixture cleanup separately.
 
-If the window expires, preserve the completed stack state and exact receipts. Leave any unverified schedule disabled, stop any known acceptance task, and report the precise remaining gate. Do not extend the test window or reset a ledger to manufacture a pass. Missing notification-topic configuration means alarms are visible in CloudWatch only.
+Leave the service at zero. The scheduler uses the account's unreserved Lambda pool, one conditional shared ledger slot and a fixed 7,200 equivalent-second UTC-day admission budget; it cannot create an always-on service. The observed Ohio regional concurrency limit is 10, so the template deliberately omits a reserved-concurrency allocation; the 45-second timeout and one-minute schedule remain unchanged.
+
+If acceptance is interrupted, preserve completed stack state and exact receipts, reconcile any known task, and report the precise remaining gate. Do not reset a ledger to manufacture a pass. Missing notification-topic configuration means alarms are visible in CloudWatch only.
 
 ## Evidence and API references
 

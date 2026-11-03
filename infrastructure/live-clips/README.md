@@ -2,6 +2,47 @@
 
 This package deploys an outbound-only ECS Fargate renderer in **us-east-2**. The service stays at **zero tasks**; a budgeted launcher starts one finite **2-vCPU/4-GiB** task only when due work exists. The renderer has no HTTP listener, inbound security-group rules, load balancer, NAT gateway or AWS task-role credentials. The database independently limits active clip jobs to two. Creating this infrastructure does not enable clip or broadcast admission. The [launcher runbook](launcher-runbook.md) covers the shared renderer/transcription runtime budget and deployment sequence.
 
+## Current production status — 2026-11-03 UTC
+
+The accepted renderer image is `sha256:c72e83dda292433e6857ad9ff5346b06ff921552f6243c43b9ba1360492b9b3c`.
+Actual CodeBuild checks passed **34/34**, followed by separate HLS encode/decode
+acceptance; ECR's package scan completed with no findings. The actual binaries
+now carry a non-executable 8 MiB worker-stack request, resolving the observed
+musl/MPEG-TS crash without adding codecs or network protocols. See the
+[image receipt](operations/renderer-image-acceptance.json) for the evidence and
+separate source-built FFmpeg residual review.
+
+Both `platinum-live-clips-service-production` and
+`platinum-live-task-launcher-production` are `UPDATE_COMPLETE`. Service desired
+count is **0**, and the one-minute schedule is **ENABLED**. Clip admission is
+enabled with at most two active jobs. The finite production worker completed
+the real broker/lease/private-Storage flow for an isolated two-second fixture:
+`ready`, four stored assets, **86,367 bytes**, **6,625 ms**, no error and zero
+publications. This establishes the tested production rendering path. See the
+[runtime acceptance](../../supabase/ops/live-release-20261103/evidence/live-renderer-runtime-acceptance.json)
+and [operations page](operations/quick-deployment.md). The accepted task stopped
+with exit code **0** at **08:39:00.858 UTC**, and the scheduler automatically
+settled to idle with **1,440 charged seconds / two launches** preserved. The
+service is `ACTIVE` with desired/running/pending counts **0** and no active clip
+job.
+
+Fixture identity/session cleanup and removal of all five exact S3 source
+versions are complete; the source prefix has no remaining versions. The four
+private outputs are retained until the required 2-hour-10-minute capability
+window expires. The automated queue contains **28 cleanup targets** across
+seven lease prefixes, due **10:34:35–10:50:29 UTC**; this does not imply that
+every target object exists. Their deletion is pending the expiry window, with
+the scheduler enabled to process due cleanup.
+
+Two additive Storage provenance migrations resolved its signed-upload
+preflight failure: `20261103082746_live_clip_signed_upload_preflight.sql` and
+`20261103083628_live_clip_signing_probe_transport_metadata.sql`. The exception
+is confined to the exact service-only signing probe and its known transport
+metadata; actual upload provenance and current lease/source/owner checks remain.
+This status does not establish Daily broadcasting, optional transcription or
+social publishing, native-device acceptance, a new web release or measured
+five-million-user capacity.
+
 ## Verified inputs and service eligibility
 
 [production-network.json](production-network.json) contains the default VPC and two public subnets verified by the operator, their effective Internet Gateway route, and the selected region. [production-bootstrap.json](production-bootstrap.json) contains the actual `CREATE_COMPLETE` bootstrap outputs. These files contain identifiers only.
@@ -30,7 +71,7 @@ The renderer uses **`LIVE_CLIP_WORKER_SECRET`**. The exact generated Secrets Man
 python3 infrastructure/live-clips/package-source.py
 ```
 
-The packager includes 25 explicit code/test files and a per-file SHA-256 manifest, excluding credentials, dependencies and repository history. It returns archive and manifest hashes. Upload the archive only to the bootstrap `SourceBucket` output at `source/renderer-source.zip`, retaining its S3 `VersionId`.
+The packager includes 26 explicit code/test files and a per-file SHA-256 manifest, excluding credentials, dependencies and repository history. It returns archive and manifest hashes. Upload the archive only to the bootstrap `SourceBucket` output at `source/renderer-source.zip`, retaining its S3 `VersionId`.
 
 Call CodeBuild `StartBuild` with the bootstrap `BuildProjectName`, `sourceVersion` equal to that exact version, and the nonsecret `EXPECTED_MANIFEST_SHA256` environment override. The source verifier rejects altered files, additional files, symlinks and a mismatched manifest. No build is automatically triggered by an upload.
 
@@ -46,7 +87,7 @@ Generate [service-cloudformation.json](service-cloudformation.json):
 node infrastructure/live-clips/service-template.mjs
 ```
 
-Use `prepare-service.mjs --image-digest <verified-sha256-digest> --desired-count 0 --output <parameters-file>` to combine the exact image with the verified network and bootstrap identifiers. Submit the generated parameters and service template through a reviewed CloudFormation change set with `CAPABILITY_IAM`, using stack name `platinum-live-clips-production`.
+Use `prepare-service.mjs --image-digest <verified-sha256-digest> --desired-count 0 --output <parameters-file>` to combine the exact image with the verified network and bootstrap identifiers. Submit the generated parameters and service template through a reviewed CloudFormation change set with `CAPABILITY_IAM`, using the existing stack `platinum-live-clips-service-production`. Inspect its current state and use a reviewed update; do not create a duplicate service stack.
 
 The service template permits only zero desired tasks. Its task command requires an absolute deadline. The [separate launcher](launcher-runbook.md) starts finite tasks using the exact task-definition revision, reserves runtime before launch and shares one active slot with optional transcription. An idle queue runs no ECS compute. Do not change fleet admission based on the registered-user target.
 
@@ -84,7 +125,7 @@ For concrete timing on the target two-vCPU task, use [benchmark-task.mjs](benchm
 
 The existing ten-minute input maximum is **not** evidence that both formats finish within the four-minute deadline on this task. Benchmark results must inform duration, CPU or lease/deadline decisions before admitting that workload. The timing test excludes real source download and signed output upload, which need additional headroom and acceptance.
 
-Finally, use an isolated authorized test session and actual retained source to exercise the real broker, database lease, private output Storage, asset signing and publication. Verify stale-lease rejection, revoked rights, retry and cleanup with the production configuration. A renderer-only synthetic fixture does not resolve the separate Daily role-assumption failure or certify a broadcast. Keep `live_clip_configure` disabled until its recorded acceptance supports enabling it; do not change global admission merely because ECS is running.
+The production fixture above passed the real broker, database lease and private output Storage flow. It created no publication. Asset delivery, publishing destinations, stale-lease rejection, revoked rights and cleanup retain their own recorded acceptance requirements. A synthetic clip does not resolve the separate Daily role-assumption failure or certify a broadcast. Clip admission remains bounded at two active jobs with the launcher's separate runtime budget; do not expand capacity from this short-fixture result.
 
 ## Initial cost scope
 

@@ -7,11 +7,13 @@ import { pathToFileURL } from 'node:url';
 import { command, probe } from '../media-renditions/transcode.mjs';
 import { createClipWorker } from './worker.mjs';
 import { checkRuntimeFiles } from './encoder-policy.mjs';
+import { withSyntheticEncoderDiagnostics } from './test/synthetic-diagnostics.mjs';
 
 export async function runLocalAcceptance({ tempRoot = os.tmpdir() } = {}) {
   const directory = await mkdtemp(path.join(tempRoot, 'pc-renderer-acceptance-')), started = Date.now();
   const abort = AbortSignal.timeout(90000), verified = [];
-  try {
+  try { return await withSyntheticEncoderDiagnostics(directory, async stage => {
+    stage('acceptance_fixture_generation');
     await command(process.env.FFMPEG_PATH || 'ffmpeg', ['-hide_banner', '-loglevel', 'error', '-nostdin', '-y',
       '-f', 'lavfi', '-i', 'color=c=0x15263e:s=320x180:r=30',
       '-f', 'lavfi', '-i', 'sine=frequency=880:sample_rate=48000', '-t', '3',
@@ -36,6 +38,7 @@ export async function runLocalAcceptance({ tempRoot = os.tmpdir() } = {}) {
       source: async () => base,
       check: async value => value.id === job.id && value.lease_id === job.lease_id,
       upload: async (_, asset, file, signal) => {
+        stage(asset.name.endsWith('.mp4') ? 'acceptance_validate_video' : 'acceptance_validate_auxiliary');
         const bytes = await readFile(file);
         if (asset.bytes !== bytes.length || asset.sha256 !== createHash('sha256').update(bytes).digest('hex')) throw Error('acceptance_hash_mismatch');
         if (asset.name.endsWith('.mp4')) {
@@ -61,6 +64,7 @@ export async function runLocalAcceptance({ tempRoot = os.tmpdir() } = {}) {
       if (!bytes) throw Error('acceptance_unknown_asset');
       return new Response(bytes);
     } });
+    stage('acceptance_render_clip');
     const result = await worker.drain(abort);
     if (result.state !== 'ready' || !completed || worker.active) throw Error('acceptance_render_failed');
     if ((await readdir(directory)).some(name => name.startsWith('pc-live-clip-'))) throw Error('acceptance_cleanup_failed');
@@ -69,6 +73,7 @@ export async function runLocalAcceptance({ tempRoot = os.tmpdir() } = {}) {
       duration_ms: 2000, formats: ['horizontal', 'vertical'], decoded_video_and_audio: true,
       watermark_and_reviewed_captions_rendered: true, scratch_cleanup_verified: true,
       assets: verified, elapsed_ms: Date.now() - started };
+  });
   } finally { await rm(directory, { recursive: true, force: true }); }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

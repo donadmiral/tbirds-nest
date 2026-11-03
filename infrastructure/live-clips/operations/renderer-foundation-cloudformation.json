@@ -1,0 +1,286 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Platinum Live renderer foundation. No ECS task or service until the accepted image update.",
+  "Parameters": {
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id",
+      "Description": "Verified existing VPC in us-east-2."
+    },
+    "PublicSubnetIds": {
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "Description": "Two verified AZs with effective 0.0.0.0/0 Internet Gateway routes."
+    },
+    "ImageRepositoryUri": {
+      "Type": "String",
+      "AllowedPattern": "[0-9]{12}\\.dkr\\.ecr\\.us-east-2\\.amazonaws\\.com/[a-z0-9._/-]+"
+    },
+    "ImageRepositoryArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:ecr:us-east-2:[0-9]{12}:repository/[a-z0-9._/-]+"
+    },
+    "BrokerSecretArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:secretsmanager:us-east-2:[0-9]{12}:secret:[A-Za-z0-9/_+=.@-]+",
+      "Description": "Dedicated bootstrap secret ARN. Its exact value must already match Supabase LIVE_CLIP_WORKER_SECRET."
+    },
+    "BrokerKeyArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:kms:us-east-2:[0-9]{12}:key/[a-f0-9-]{36}"
+    },
+    "SupabaseProjectRef": {
+      "Type": "String",
+      "Default": "prlkikhckbifseosbukl",
+      "AllowedPattern": "[a-z0-9]{20}"
+    },
+    "HlsCdnOrigin": {
+      "Type": "String",
+      "Default": "https://d34dlehokbfej7.cloudfront.net",
+      "AllowedPattern": "https://[a-z0-9-]+(?:\\.[a-z0-9-]+)+"
+    },
+    "DesiredCount": {
+      "Type": "Number",
+      "Default": 0,
+      "AllowedValues": [
+        0
+      ],
+      "Description": "Always zero under the initial project budget. Finite tasks are started only by the reviewed launcher or an explicit acceptance run."
+    },
+    "AlarmTopicArn": {
+      "Type": "String",
+      "Default": "",
+      "AllowedPattern": "(?:|arn:aws:sns:us-east-2:[0-9]{12}:[A-Za-z0-9_-]+)",
+      "Description": "Optional existing monitored SNS topic. Empty means alarms are visible in CloudWatch but send no notifications."
+    }
+  },
+  "Conditions": {
+    "HasAlarmTopic": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AlarmTopicArn"
+            },
+            ""
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "Cluster": {
+      "Type": "AWS::ECS::Cluster",
+      "Properties": {
+        "ClusterSettings": [
+          {
+            "Name": "containerInsights",
+            "Value": "disabled"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "WorkerSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Outbound HTTPS only for Live clip broker, signed media and task startup; no inbound rules.",
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "SecurityGroupIngress": [],
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Supabase broker/storage, authenticated CDN, ECR, Secrets Manager and CloudWatch."
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "WorkerLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/platinum/live-clips/${AWS::StackName}/worker"
+        },
+        "RetentionInDays": 14,
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    },
+    "TaskExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ecs-tasks.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                  }
+                },
+                "ArnLike": {
+                  "aws:SourceArn": {
+                    "Fn::Sub": "arn:${AWS::Partition}:ecs:${AWS::Region}:${AWS::AccountId}:*"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "StartOnlyThisRenderer",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "ecr:GetAuthorizationToken",
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:GetDownloadUrlForLayer",
+                    "ecr:BatchGetImage"
+                  ],
+                  "Resource": {
+                    "Ref": "ImageRepositoryArn"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "WorkerLogs",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "secretsmanager:GetSecretValue",
+                    "secretsmanager:DescribeSecret"
+                  ],
+                  "Resource": {
+                    "Ref": "BrokerSecretArn"
+                  },
+                  "Condition": {
+                    "Bool": {
+                      "aws:SecureTransport": "true"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt",
+                    "kms:DescribeKey"
+                  ],
+                  "Resource": {
+                    "Ref": "BrokerKeyArn"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "kms:ViaService": {
+                        "Fn::Sub": "secretsmanager.${AWS::Region}.${AWS::URLSuffix}"
+                      },
+                      "kms:EncryptionContext:SecretARN": {
+                        "Ref": "BrokerSecretArn"
+                      }
+                    },
+                    "Bool": {
+                      "aws:SecureTransport": "true"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveClipRenderer"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "ClusterArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Cluster",
+          "Arn"
+        ]
+      }
+    },
+    "WorkerLogGroup": {
+      "Value": {
+        "Ref": "WorkerLogs"
+      }
+    },
+    "SecurityGroupId": {
+      "Value": {
+        "Ref": "WorkerSecurityGroup"
+      }
+    },
+    "TaskExecutionRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "TaskExecutionRole",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

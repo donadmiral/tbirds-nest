@@ -8,6 +8,30 @@ const ROOT = '/usr/local/share/pc-live-clips';
 export const RUNTIME_METADATA = Object.freeze(['base-image.json', 'config.h', 'config_components.h',
   'ffmpeg-buildconf.txt', 'ffmpeg-source.sha256', 'inventory.json']);
 
+// FFmpeg 9 MPEG-TS parsing needs more than musl's default 128 KiB worker
+// stack. Verify the actual linked ELF request, not only configure's text.
+export function validateThreadStack(binary) {
+  const fail = () => { throw Error('encoder_thread_stack_invalid'); };
+  if (!Buffer.isBuffer(binary) || binary.length < 64
+    || !binary.subarray(0, 6).equals(Buffer.from([0x7f, 0x45, 0x4c, 0x46, 2, 1]))
+    || binary.readUInt16LE(18) !== 62) fail();
+  const offset = Number(binary.readBigUInt64LE(32));
+  const size = binary.readUInt16LE(54), count = binary.readUInt16LE(56);
+  if (!Number.isSafeInteger(offset) || offset < 64 || size !== 56 || count < 1 || count > 128
+    || offset + size * count > binary.length) fail();
+  let matches = 0;
+  for (let i = 0; i < count; i++) {
+    const position = offset + i * size;
+    if (binary.readUInt32LE(position) !== 0x6474e551) continue;
+    matches++;
+    // Read/write, never executable, and exactly the reviewed 8 MiB default.
+    if (binary.readUInt32LE(position + 4) !== 6
+      || binary.readBigUInt64LE(position + 40) !== 8388608n) fail();
+  }
+  if (matches !== 1) fail();
+  return { bytes: 8388608, executable: false };
+}
+
 /** The real image gate runs this as UID 1000 on its read-only filesystem. */
 export function checkRuntimeFiles({ uid = process.getuid?.(), stat = lstatSync, read = readFileSync } = {}) {
   if (uid !== 1000) throw Error('encoder_runtime_identity_invalid');
@@ -84,14 +108,20 @@ export function inspectEncoder() {
   if (!/^[a-f0-9]{64}$/.test(source)) throw Error('encoder_source_digest_invalid');
   const base = JSON.parse(readFileSync(ROOT + '/base-image.json', 'utf8'));
   if (!/^node@sha256:[a-f0-9]{64}$/.test(base.image) || base.node_version !== '24.22.2') throw Error('encoder_base_invalid');
-  const binaries = Object.fromEntries(['ffmpeg', 'ffprobe'].map(name => [name, createHash('sha256').update(readFileSync('/usr/local/bin/' + name)).digest('hex')]));
+  const threadStacks = {};
+  const binaries = Object.fromEntries(['ffmpeg', 'ffprobe'].map(name => {
+    const binary = readFileSync('/usr/local/bin/' + name);
+    threadStacks[name] = validateThreadStack(binary);
+    return [name, createHash('sha256').update(binary).digest('hex')];
+  }));
   return { schema_version: 1, ok: true, ffmpeg_version: '9.0.2', ffmpeg_source: 'https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz',
     ffmpeg_source_sha256: source, source_signature_verified_at_build: true,
     release_signing_key: 'FCF986EA15E6E293A5644F10B4322F04D67658D8',
     source_component: { type: 'application', name: 'ffmpeg', version: '9.0.2', purl: 'pkg:generic/ffmpeg@9.0.2',
       cpe: 'cpe:2.3:a:ffmpeg:ffmpeg:9.0.2:*:*:*:*:*:*:*' },
     base, node_version: process.versions.node, alpine_version: readFileSync('/etc/alpine-release', 'utf8').trim(),
-    component_counts: counts, required_compile_dependencies: COMPILE_DEPENDENCIES, protocols: actualProtocols, binaries, packages,
+    component_counts: counts, required_compile_dependencies: COMPILE_DEPENDENCIES, protocols: actualProtocols, binaries,
+    thread_stacks: threadStacks, packages,
     remaining_review: ['CVE-2025-52290: reachable H.264/AAC probing DoS; upstream fixed-version status undetermined'],
     vulnerability_free_claim: false };
 }

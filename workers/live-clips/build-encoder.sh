@@ -43,7 +43,7 @@ cd source
   --enable-indev=lavfi \
   --enable-filter=scale,pad,setsar,format,subtitles,drawtext,aresample,aformat,anull,anullsrc,null,trim,atrim,setpts,asetpts,fps,color,sine,testsrc2,buffer,buffersink,abuffer,abuffersink \
   --extra-cflags='-O2 -fstack-protector-strong -fPIC -D_FORTIFY_SOURCE=2' \
-  --extra-ldflags='-Wl,-z,relro,-z,now -pie'
+  --extra-ldflags='-Wl,-z,relro,-z,now -Wl,-z,stack-size=8388608 -pie'
 make -j4
 make install
 mkdir -p /opt/renderer/share

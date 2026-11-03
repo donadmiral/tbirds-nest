@@ -743,7 +743,6 @@
         ],
         "MemorySize": 256,
         "Timeout": 45,
-        "ReservedConcurrentExecutions": 1,
         "Role": {
           "Fn::GetAtt": [
             "LauncherRole",

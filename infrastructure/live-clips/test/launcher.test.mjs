@@ -35,7 +35,8 @@ test('launcher is disabled by default and has one slot, no broker secret, fixed 
   const template = rendererLauncherTemplate(), resources = template.Resources;
   assert.equal(template.Parameters.ScheduleEnabled.Default, 'false');
   assert.equal(template.Parameters.AsrEnabled.Default, 'false');
-  assert.equal(resources.Launcher.Properties.ReservedConcurrentExecutions, 1);
+  assert.equal(Object.hasOwn(resources.Launcher.Properties, 'ReservedConcurrentExecutions'), false);
+  assert.equal(resources.Launcher.Properties.Timeout, 45);
   assert.equal(resources.Tick.Properties.ScheduleExpression, 'rate(1 minute)');
   assert.equal(resources.Launcher.Properties.Environment.Variables.LIVE_CLIP_WORKER_SECRET, undefined);
   const policies = JSON.stringify(resources.LauncherRole.Properties.Policies);
@@ -45,6 +46,8 @@ test('launcher is disabled by default and has one slot, no broker secret, fixed 
   assert.ok(policies.includes('iam:PassedToService'));
   assert.ok(policies.includes('ecs:cluster'));
   assert.ok(resources.Launcher.Properties.Code.ZipFile.includes('DAY_BUDGET = 7200'));
+  assert.ok(resources.Launcher.Properties.Code.ZipFile.includes('transact_write_items'));
+  assert.ok(resources.Launcher.Properties.Code.ZipFile.includes('attribute_not_exists(#state) OR #state = :idle'));
   assert.equal(resources.Ledger.Properties.TimeToLiveSpecification.AttributeName, 'expires_at');
   assert.equal(resources.AllowTick.Properties.SourceAccount.Ref, 'AWS::AccountId');
 });

@@ -102,7 +102,10 @@ export function rendererLauncherTemplate() {
       } },
       Launcher: { Type: 'AWS::Lambda::Function', Properties: {
         Runtime: 'python3.13', Handler: 'index.handler', Architectures: ['arm64'], MemorySize: 256, Timeout: 45,
-        ReservedConcurrentExecutions: 1, Role: attr('LauncherRole', 'Arn'), Code: { ZipFile: source },
+        // New accounts can have only 10 regional executions, below Lambda's
+        // 100-unreserved minimum for a reservation. The conditional DynamoDB
+        // transaction is the task/budget admission authority across invocations.
+        Role: attr('LauncherRole', 'Arn'), Code: { ZipFile: source },
         LoggingConfig: { LogGroup: ref('LauncherLogs'), LogFormat: 'Text' },
         Environment: { Variables: {
           AWS_ACCOUNT_ID: ref('AWS::AccountId'), SUPABASE_PROJECT_REF: ref('SupabaseProjectRef'), DEPLOYMENT: ref('AWS::StackName'),

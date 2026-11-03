@@ -1,0 +1,116 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Platinum Live scheduler credential and ledger foundation. No Lambda or schedule until the accepted runtime update.",
+  "Parameters": {
+    "QueueKeyArn": {
+      "Type": "String",
+      "AllowedPattern": "(?:arn:aws:kms:us-east-2:[0-9]{12}:key/[a-f0-9-]{36})"
+    }
+  },
+  "Resources": {
+    "QueueSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "Description": "Queue metadata only. Install the matching value as LIVE_CLIP_QUEUE_SECRET; it cannot claim, sign or finish clip jobs.",
+        "KmsKeyId": {
+          "Ref": "QueueKeyArn"
+        },
+        "GenerateSecretString": {
+          "PasswordLength": 64,
+          "ExcludePunctuation": true,
+          "IncludeSpace": false
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTaskLauncher"
+          }
+        ]
+      }
+    },
+    "Ledger": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "TimeToLiveSpecification": {
+          "AttributeName": "expires_at",
+          "Enabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTaskLauncher"
+          }
+        ]
+      }
+    },
+    "LauncherLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/platinum/live-clips/${AWS::StackName}/launcher"
+        },
+        "RetentionInDays": 14,
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTaskLauncher"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "QueueSecretArn": {
+      "Value": {
+        "Ref": "QueueSecret"
+      }
+    },
+    "LedgerTable": {
+      "Value": {
+        "Ref": "Ledger"
+      }
+    },
+    "LauncherLogGroup": {
+      "Value": {
+        "Ref": "LauncherLogs"
+      }
+    }
+  }
+}

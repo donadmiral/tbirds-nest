@@ -40,6 +40,12 @@ before(async()=>{
  await loadDeployedMediaBaseline(db);await db.exec('alter table auth.users add column if not exists is_anonymous boolean default false;');
  await db.exec(await source('supabase/migrations/20261103000609_live_portable_control_plane.sql'));
  try{await db.exec(await source('supabase/migrations/20261103002857_live_clips_and_distribution.sql'));}catch(error){throw new Error(JSON.stringify({message:error.message,position:error.position,internalPosition:error.internalPosition,where:error.where,internalQuery:error.internalQuery}));}
+ // The managed Storage operation helper is installed by Storage, not by app
+ // migrations. Model its documented exact normalization in this local fixture.
+ await db.exec(`create function storage.allow_only_operation(operation text) returns boolean language sql stable as $$
+ select coalesce(nullif(regexp_replace(current_setting('storage.operation',true),'^storage[.]',''),'')=nullif(regexp_replace(operation,'^storage[.]',''),''),false)$$;`);
+ await db.exec(await source('supabase/migrations/20261103082746_live_clip_signed_upload_preflight.sql'));
+ await db.exec(await source('supabase/migrations/20261103083628_live_clip_signing_probe_transport_metadata.sql'));
  for(const[name,id]of Object.entries(actors)){
  await db.query('insert into auth.users(id,email) values($1,$2)',[id,`clip-${name}@example.test`]);
  await db.query("insert into public.profiles(id,username,email,full_name,profile_visibility,account_type) values($1,$2,$3,$2,'public','personal') on conflict(id) do update set username=excluded.username,profile_visibility='public',account_type='personal'",[id,`clip_${name}`,`clip-${name}@example.test`]);
@@ -47,6 +53,68 @@ before(async()=>{
  await db.exec("update live_streams.clip_runtime set enabled=true,project_origin='https://abcdefghijklmnopqrst.supabase.co'");
 });
 after(()=>db.close());beforeEach(()=>db.exec('begin'));afterEach(()=>db.exec('rollback'));
+async function storageProbe(job,{role='service_role',operation='storage.object.sign_upload_url',version='1',metadata=null,userMetadata=null,name=job.output_prefix+'horizontal.mp4'}={}){
+ await db.exec('savepoint storage_probe');
+ try{
+  await db.query("select set_config('request.jwt.claim.role',$1,true),set_config('storage.operation',$2,true)",[role,operation]);
+  return await value("insert into storage.objects(bucket_id,name,version,metadata,user_metadata) values('live-clips',$1,$2,$3,$4) returning owner_id",[name,version,metadata===null?null:JSON.stringify(metadata),userMetadata===null?null:JSON.stringify(userMetadata)]);
+ }finally{await db.exec('rollback to savepoint storage_probe;release savepoint storage_probe');}
+}
+test('signed upload preflight binds the active owner and rolls back without a finished object',async()=>{
+ const id=await createSession();await createClip(id);const job=await claim();
+ assert.equal(await storageProbe(job),actors.host);
+ assert.equal(await storageProbe(job,{operation:'object.sign_upload_url'}),actors.host);
+ assert.equal(await value("select count(*) from storage.objects where bucket_id='live-clips'"),0);
+ assert.equal(await value('select state from live_streams.clips where id=$1',[job.clip_id]),'processing');
+ const completed=await finish(job);assert.equal(completed.result.state,'ready');
+ await assert.rejects(storageProbe(job),/CLIP_LEASE_LOST/);
+});
+test('signing probe accepts only the observed empty-request transport metadata and remains rollback-only',async()=>{
+ const id=await createSession();await createClip(id);const job=await claim();
+ assert.equal(await storageProbe(job,{metadata:{mimetype:'application/json',contentLength:2}}),actors.host);
+ assert.equal(await value("select count(*) from storage.objects where bucket_id='live-clips'"),0);
+ for(const metadata of [{mimetype:'application/json',contentLength:3},{mimetype:'application/json',contentLength:'2'},
+  {mimetype:'video/mp4',contentLength:2},{mimetype:'application/json',contentLength:2,size:2},{mimetype:'application/json'},[],2]){
+  await assert.rejects(storageProbe(job,{metadata}),/INVALID_CLIP_OBJECT/);
+ }
+ await assert.rejects(storageProbe(job,{operation:'object.upload_signed',metadata:{mimetype:'application/json',contentLength:2}}),/INVALID_CLIP_OBJECT/);
+});
+test('signed upload preflight rejects absent operation, ordinary users, wrong versions and nonempty metadata',async()=>{
+ const id=await createSession();await createClip(id);const job=await claim();
+ for(const options of [{operation:''},{operation:'object.upload_signed'},{operation:'object.sign_upload_url_extra'},
+  {role:'authenticated'},{role:'anon'},{version:randomUUID()},{metadata:{size:1}},{userMetadata:{sha256:'a'.repeat(64)}}]){
+  await assert.rejects(storageProbe(job,options),/INVALID_CLIP_OBJECT/);
+ }
+ assert.equal(await value("select count(*) from storage.objects where bucket_id='live-clips'"),0);
+});
+test('signed upload preflight cannot change owner, session, lease or requested asset formats',async()=>{
+ const id=await createSession();await createClip(id,'host',{...spec(),formats:['horizontal'],subtitles:[]});const job=await claim();
+ for(const name of [job.output_prefix.replace(job.owner_id,actors.stranger)+'horizontal.mp4',
+  job.output_prefix.replace(job.session_id,randomUUID())+'horizontal.mp4',job.output_prefix.replace(job.lease_id,randomUUID())+'horizontal.mp4']){
+  await assert.rejects(storageProbe(job,{name}),/CLIP_LEASE_LOST/);
+ }
+ for(const asset of ['vertical.mp4','captions.vtt','other.mp4'])await assert.rejects(storageProbe(job,{name:job.output_prefix+asset}),/INVALID_CLIP_OBJECT/);
+});
+test('signed upload preflight rechecks revoked auth, paused runtime and lease expiry',async()=>{
+ const id=await createSession();await createClip(id);const job=await claim();
+ for(const mutation of ["update live_streams.clip_runtime set enabled=false",`delete from auth.sessions where id='${sessions.host}'`,
+  `update live_streams.clip_jobs set lease_until=now()-interval '1 second' where id='${job.id}'`,
+  `update live_streams.sessions set recording_enabled=false where id='${id}'`]){
+  await db.exec('savepoint revoked');try{await db.exec(mutation);await assert.rejects(storageProbe(job),/CLIP_LEASE_LOST/);}finally{await db.exec('rollback to savepoint revoked;release savepoint revoked');}
+ }
+});
+test('actual signed upload and object updates still require complete current-lease provenance',async()=>{
+ const id=await createSession();await createClip(id);const job=await claim();
+ await db.query("select set_config('request.jwt.claim.role','service_role',true),set_config('storage.operation','object.upload_signed',true)");
+ await assert.rejects(storageProbe(job,{operation:'object.upload_signed',version:randomUUID(),metadata:{size:1024,mimetype:'video/mp4'}}),/INVALID_CLIP_OBJECT/);
+ const metadata={live_clip_id:job.clip_id,live_clip_job_id:job.id,live_clip_lease_id:job.lease_id,sha256:'a'.repeat(64)};
+ await db.query("insert into storage.objects(bucket_id,name,version,metadata,user_metadata) values('live-clips',$1,$2,$3,$4)",[job.output_prefix+'horizontal.mp4',randomUUID(),JSON.stringify({size:1024,mimetype:'video/mp4'}),JSON.stringify(metadata)]);
+ assert.equal(await value("select owner_id from storage.objects where bucket_id='live-clips' and name=$1",[job.output_prefix+'horizontal.mp4']),actors.host);
+ await db.exec('savepoint bad_update');try{
+  await db.query("select set_config('storage.operation','object.sign_upload_url',true)");
+  await assert.rejects(db.query("update storage.objects set version='1',metadata='{}',user_metadata='{}' where bucket_id='live-clips' and name=$1",[job.output_prefix+'horizontal.mp4']),/INVALID_CLIP_OBJECT/);
+ }finally{await db.exec('rollback to savepoint bad_update;release savepoint bad_update');}
+});
 test('clip tables and worker functions are private, anonymous callers cannot read clips',async()=>{
  assert.equal(await value("select public from storage.buckets where id='live-clips'"),false);
  await assert.rejects(as('anon',null,'select public.live_clip_library()'),/permission denied/);

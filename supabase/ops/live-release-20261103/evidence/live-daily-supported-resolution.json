@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T07:51:23.145Z",
+  "scope": "Official supported resolution path for Daily cross-account role access; no cloud mutation or repeated local-role audit.",
+  "current_evidence": {
+    "account_plan": "PAID_ACTIVE",
+    "advanced_activation": "Parent reports management-account email verification has not been completed.",
+    "local_daily_role": "Verified against current Daily requirements in live-daily-quick-role-review.json.",
+    "latest_provider_result": "role_assumption_denied",
+    "effective_rcp_content_obtained": false,
+    "causal_policy_proven": false
+  },
+  "supported_resolution": {
+    "prerequisites": [
+      "The Paid-plan prerequisite is already satisfied.",
+      "Owner completes management-account email verification in AWS Settings."
+    ],
+    "activation_steps": [
+      "Settings → Projects → Actions → Explore advanced features",
+      "Choose the team name and management-account email",
+      "Complete email verification inside AWS",
+      "Review and complete activation → Activate"
+    ],
+    "effects": [
+      "Activation is irreversible.",
+      "Previously managed RCPs and SCPs become editable through management-account administration.",
+      "Project spend limits are removed; paused projects reactivate.",
+      "No promise that the external-principal deny is automatically removed."
+    ],
+    "policy_steps": [
+      "Settings → Projects → Manage this organization → Manage policies",
+      "Use the management-account Organizations session, not the existing project role.",
+      "Read the exact applicable RCP, policy ID, ancestry and content hash.",
+      "If the observed deny matches the reviewed design, prepare its exact narrow Daily role exception against those actual bytes.",
+      "Retain unrelated restrictions and the existing Daily role trust/object scope."
+    ],
+    "reviewed_conditional_design": "infrastructure/live/daily-role-access-review.json",
+    "exception_scope": {
+      "action": "sts:AssumeRole",
+      "resource": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+      "daily_account": "291871421005",
+      "external_id": "platinumcircles"
+    },
+    "preserve": "The AWS-managed organization-escape and managed-role protections are documented to remain after activation; they are not part of the Daily exception.",
+    "verification": "After an authorized exact policy correction, root runs the existing one-use verify_storage operator, requires cleanup-confirmed success, and checks a newly written exact test-object version before declaring storage acceptance."
+  },
+  "classification_review": {
+    "file": "supabase/functions/live-provider-configure/handler.ts",
+    "result": "No concrete misclassification found. A generic invalid-request-error/HTTP400 alone cannot yield role_assumption_denied; the classifier also requires bounded provider-detail text identifying role assumption and failure/denial.",
+    "uncertainty": "Sanitized classification identifies a failed provider step, not the exact AWS policy.",
+    "source_or_config_changes_required": false
+  },
+  "references": [
+    {
+      "url": "https://docs.aws.amazon.com/accounts/latest/reference/activate-advanced-features.html",
+      "supports": "Activation prerequisites, owner email verification, administrative control, irreversible activation and spend-limit removal."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/accounts/latest/reference/remove-org-policies.html",
+      "supports": "Explicit supported RCP editing path after activation."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/accounts/latest/reference/scps-and-rcps-for-projects.html",
+      "supports": "Published external-principal deny and separate persistent baseline protections."
+    },
+    {
+      "url": "https://docs.daily.co/docs/guides/features/recording/custom-s3-storage",
+      "supports": "Daily trust requirements and root-level test upload verification."
+    }
+  ],
+  "guardrails": {
+    "secrets_or_verification_codes_in_chat": false,
+    "identity_source_change_required": false,
+    "organization_escape_required": false,
+    "role_permission_widening_required": false,
+    "cloud_mutations_by_this_agent": false,
+    "new_asr_oauth_native_work": false
+  },
+  "next_actor": "Root owns browser handoff, any policy read or mutation after activation, and provider acceptance."
+}

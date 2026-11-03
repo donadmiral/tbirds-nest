@@ -20,6 +20,7 @@ FILES = [
     "workers/live-clips/test/source.test.mjs", "workers/live-clips/test/render.test.mjs",
     "workers/live-clips/test/server.test.mjs", "workers/live-clips/test/pull.test.mjs",
     "workers/live-clips/test/encoder-policy.test.mjs",
+    "workers/live-clips/test/synthetic-diagnostics.mjs",
     "workers/media-renditions/config.mjs", "workers/media-renditions/transcode.mjs",
     "infrastructure/live-clips/verify-source.mjs", "infrastructure/live-clips/image-receipt.mjs",
     "infrastructure/live-clips/resolve-base.mjs",

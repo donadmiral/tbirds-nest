@@ -1,6 +1,6 @@
 # Budgeted Live task launcher
 
-This package starts a finite Fargate task only when a trusted queue signal reports due work. The renderer service remains at **desired count zero**. The Lambda has one reserved execution slot and DynamoDB serializes one shared active task across the renderer and optional transcription worker. This is initial operating capacity, not a five-million-user capacity result.
+This package starts a finite Fargate task only when a trusted queue signal reports due work. The renderer service remains at **desired count zero**. DynamoDB conditionally reserves one shared active task and its daily budget across concurrent Lambda invocations. Lambda uses the account's unreserved pool: the observed Ohio account limit is 10, which cannot support a reserved-concurrency allocation while preserving AWS's required unreserved pool. The invocation remains limited to 45 seconds with a one-minute schedule. This is initial operating capacity, not a five-million-user capacity result.
 
 ## Fixed limits
 

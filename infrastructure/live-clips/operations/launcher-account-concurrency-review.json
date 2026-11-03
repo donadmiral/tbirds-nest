@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T07:56:40.737622+00:00",
+  "account": "518317808503",
+  "region": "us-east-2",
+  "observation_source": "Parent agent authenticated Lambda GetAccountSettings; reported during this task",
+  "observed_account_limit": {
+    "ConcurrentExecutions": 10,
+    "UnreservedConcurrentExecutions": 10
+  },
+  "observed_account_usage": {
+    "FunctionCount": 0
+  },
+  "change": "Omit ReservedConcurrentExecutions; keep atomic DynamoDB single task and daily budget reservation,45-second Lambda timeout,one-minute schedule,disabled default.",
+  "cloud_mutations_performed_by_this_agent": false,
+  "launcher_template_sha256": "7da07b9265586f0f553647026e8896f9b3c40cf1da524772533469b04e19964f",
+  "launcher_create_request_sha256": "82a5833dfd127ac1b53e9734cd3f90a7554005a3675ec25a863ce8831773cc0f"
+}

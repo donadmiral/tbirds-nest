@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-11-03",
+  "scope": "Evidence-based compatibility for the actual Storage signing request metadata",
+  "supersedes_as_current_probe_shape": "live-clip-signed-upload-preflight-fix.json",
+  "prior_migration_remains_immutable": "20261103082746_live_clip_signed_upload_preflight.sql",
+  "production_observation": {
+    "source": "Parent agent narrowly scoped PostgreSQL diagnostic on the synthetic fixture only",
+    "observed_at": "2026-11-03T08:35:45Z",
+    "service_role_and_exact_signing_operation": true,
+    "version_is_one": true,
+    "user_metadata_is_sql_null": true,
+    "metadata": { "mimetype": "application/json", "contentLength": 2 },
+    "metadata_has_no_additional_keys": true,
+    "previous_empty_metadata_assumption_was_incorrect": true
+  },
+  "primary_source": {
+    "url": "https://github.com/supabase/storage/blob/master/src/http/routes/object/getSignedUploadURL.ts",
+    "retrieved_via": "Official GitHub repository read tool",
+    "finding": "The signing route passes the request content-type and numeric content-length headers as metadata.mimetype and metadata.contentLength into signUploadObjectUrl. The SDK signs with the two-byte JSON body '{}'. The uploader's permission probe therefore includes this transport metadata before any video bytes exist.",
+    "rollback_guarantee_source": "https://github.com/supabase/storage/blob/master/src/storage/database/pg.ts",
+    "rollback_finding": "Database.testPermission intentionally rolls back its transaction after the permission check; actual uploads use a distinct operation."
+  },
+  "migration": {
+    "path": "supabase/migrations/20261103083628_live_clip_signing_probe_transport_metadata.sql",
+    "sha256": "8255d1465eafc4029a9954d813aec705c4103eb1b2d3543b43553fe09a678148",
+    "created_with": "Supabase CLI migration new live_clip_signing_probe_transport_metadata",
+    "reported_applied_by_parent": ["QA", "production"],
+    "temporary_diagnostic_details_removed": true
+  },
+  "exact_change": "Inside the existing service_role + exact signing-operation + INSERT + version1 branch, allow absent/empty metadata or the exact observed two-key JSON object. Empty user_metadata and every current-lease/source/owner/session/asset check remain. Normal uploads and UPDATE still require full provenance and hash.",
+  "unchanged": [
+    "No new or broader Storage grants or RLS policies",
+    "No new table or pending-upload bypass",
+    "No Edge or worker image change",
+    "No runtime gate or retry-attempt reset in this migration",
+    "No diagnostic values, credentials or signed URLs in the function",
+    "No missing-provenance exception for the actual upload operation"
+  ],
+  "verification": {
+    "command": "node --test supabase/tests/rpc-authorization/test-live-clips.mjs",
+    "passed": 18,
+    "failed": 0,
+    "new_probe_cases_total": 6,
+    "existing_cases": 12,
+    "test_file_sha256": "813a0204c717382b3a25455e15c17186ece77021e2c30b54c642b24f025c1b7b",
+    "additional_case": "Observed transport metadata succeeds in a rolled-back probe; extra fields, wrong MIME, different length, string length, arrays/scalars and use during actual upload fail.",
+    "scoped_diff_check": "passed",
+    "hosted_mutations_by_this_agent": false,
+    "actual_renderer_completion": "Pending parent worker receipt at preparation time; not inferred from local tests or migration application."
+  }
+}

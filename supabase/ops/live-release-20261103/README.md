@@ -2,22 +2,42 @@
 
 ## Release status
 
-Latest bounded follow-up: the owner authorized a ten-minute attempt at Daily access and the renderer/scheduler. The role review found no verified narrow mismatch. The corrected image passed actual nonroot metadata checks but failed the real HLS render test (31/32 worker tests passed), so it was not published. No ECS service or scheduler was created, and admission remains disabled. Work stopped within the requested window. See [quick attempt](evidence/live-quick-fix-attempt.json) and [Daily role review](evidence/live-daily-quick-role-review.json).
+**Renderer operational checkpoint, 2026-11-03 08:37:41.752 UTC:** the real
+production worker completed the isolated two-second clip through the broker,
+database lease and private Storage path. The clip is `ready`, its job is `done`
+with no error, and all four current-lease assets are stored: both video
+orientations, the selected thumbnail and reviewed captions. Total output is
+**86,367 bytes**; the worker reported **6,625 ms**. No publication was created.
+The service and launcher stacks are `UPDATE_COMPLETE`, the one-minute schedule
+is **ENABLED**, and clip admission permits at most **two active jobs**. The
+accepted task stopped with exit code **0** at **08:39:00.858 UTC**, and the
+scheduler automatically settled its ledger to idle. The service is `ACTIVE`
+with desired/running/pending counts **0**; finite tasks start on demand.
+See the [production runtime acceptance](evidence/live-renderer-runtime-acceptance.json),
+[image acceptance](../../../infrastructure/live-clips/operations/renderer-image-acceptance.json)
+and [operations status](../../../infrastructure/live-clips/operations/quick-deployment.md).
 
-**Owner handoff checkpoint, 2026-11-03 UTC:** work has stopped at the owner's
-request. The existing web/admin fundamentals are available for the owner to test.
+The [07:37–07:47 quick attempt](evidence/live-quick-fix-attempt.json) and
+[Daily role review](evidence/live-daily-quick-role-review.json) remain historical
+receipts. Their failed-image and unprovisioned-renderer states are superseded
+by the later evidence above. Daily owner email verification and policy access
+remain unresolved; no successful Daily broadcast is claimed.
+
+The existing web/admin fundamentals are available for the owner to test.
 The optional database foundation and six additional Edge endpoints are deployed
 in QA and production, with their provider admissions closed. The optional web
 screens have passed local production compilation but have not been recorded as
-released on the canonical domain. All corrected worker images await acceptance;
-no ECS worker service or scheduler is provisioned. A bulk save of six additional
-Supabase secrets was attempted but is **unverified** and is not claimed installed.
+released on the canonical domain. This renderer follow-up does not establish
+automatic transcription, OAuth publishing, native-device acceptance or a new
+web rollout. The earlier six-secret bulk-save attempt is not proof of those
+separate integrations being configured.
 
 The original Live web and admin applications, the six-unit database release, and
 eleven original Live/media Edge functions have been deployed to production. Live creation
-and chat are enabled. Broadcasting, HLS delivery, recording and clip encoding
-remain disabled pending Daily provider, complete broadcast and renderer
-acceptance. The AWS delivery stack and approved signing keys are installed;
+and chat are enabled. Broadcasting, HLS audience delivery and recording remain
+disabled pending Daily provider and complete broadcast acceptance. Clip
+encoding passed the bounded production acceptance described above. The AWS
+delivery stack and approved signing keys are installed;
 hosted secret checks passed **10/10**, and synthetic signer-to-CDN delivery
 passed **15/15** on 2026-11-03 UTC. The Daily webhook is `ACTIVE`, but actual
 Daily storage verification failed with `role_assumption_denied`. Broadcast
@@ -179,13 +199,53 @@ The [social review](evidence/live-social-release-review.json) and
 contract tests from provider acceptance. Real apps, approvals, creator grants,
 approved images and actual service acceptance are still required.
 
-### Pending worker images, services and secret confirmation
+### Renderer deployment and separate optional-worker gates
 
-All corrected renderer, transcription and social images remain **pending
-acceptance at this handoff**. No ECS worker service or scheduler has been
-provisioned. The deployed Edge brokers and queue-peek endpoint are not running
-container executors. The attempted six-secret bulk save has not been verified;
-do not infer success from the form submission or the negative endpoint checks.
+Renderer build `e6d84528-7c98-4d78-9bbe-e28204efcd55` succeeded at **08:13:33 UTC**.
+Its immutable image is `sha256:c72e83dda292433e6857ad9ff5346b06ff921552f6243c43b9ba1360492b9b3c`.
+The [actual image receipt](../../../infrastructure/live-clips/operations/renderer-image-acceptance.json)
+records 34 passing tests, both output orientations, decoded audio/video,
+captions, watermark, cover, cleanup and nonroot execution. Both encoder binaries
+have a verified non-executable 8 MiB thread stack; the codec and protocol
+allowlists are unchanged. ECR completed its package scan at **08:16:31 UTC**
+with no findings. The separately recorded source-built FFmpeg residual review
+still applies.
+
+The production service and launcher infrastructure are operational for the
+tested rendering path. At **08:37:41.752 UTC**, task
+`7a27f1b718d74e5fbb3664f6f7622936` completed clip
+`23aba5da-f9a9-4818-919b-2af0fb35d312`: job revision 2, attempt 2, `done`, no
+error, and four stored assets from its current lease. The two-second horizontal
+output is 1280×720 / 38,776 bytes; vertical is 720×1280 / 40,000 bytes; the
+thumbnail is 7,521 bytes and VTT is 70 bytes. There were zero publications.
+The [runtime receipt](evidence/live-renderer-runtime-acceptance.json) records
+the exact task, image, job and backend evidence. The accepted task stopped with
+exit code **0** at **08:39:00.858 UTC**. The scheduler automatically returned the
+shared ledger to idle, retaining **1,440 charged seconds across two launches**;
+no active clip job remains.
+
+Fixture identity and session cleanup is complete. All five exact S3 source
+object versions were removed, and the source prefix has no versions remaining.
+The four successful private output objects remain until the required **2-hour,
+10-minute signed-upload capability window** expires. Automated cleanup has
+**28 pending rows** covering six failed lease prefixes and the successful
+seventh prefix, four names each, due **10:34:35–10:50:29 UTC**. These rows are
+cleanup targets, not a claim that 28 objects exist. Output-byte deletion remains
+pending that scheduled window; the enabled scheduler can drain due cleanup.
+
+Two additive migrations resolved the real Storage signing preflight failure:
+`20261103082746_live_clip_signed_upload_preflight.sql` and
+`20261103083628_live_clip_signing_probe_transport_metadata.sql`. They distinguish
+the exact service-only `object.sign_upload_url` probe from the real upload,
+including its observed transport metadata. Current lease, source, owner, path
+and format checks remain, and actual uploads still require full provenance.
+The production broker-to-Storage acceptance then passed.
+
+The one-minute schedule is enabled, the service stays at zero, and finite tasks
+run only when the bounded launcher admits due work. The separate transcription
+and social executors retain their own activation and provider-acceptance gates.
+The earlier attempted six-secret bulk save does not establish their configuration;
+do not infer success from a form submission or negative endpoint checks.
 
 The [initial renderer image](evidence/live-renderer-initial-build.json) did build
 and pass its original encoding checks, but its [scan](evidence/live-renderer-initial-image-scan.json)
@@ -200,8 +260,8 @@ root-owned mode0444 and requires that result in actual-container acceptance;
 local tests are not a successful AWS rerun. See the [image preparation
 receipt](evidence/live-social-image-preparation.json), [transcription permission
 correction](evidence/live-transcription-public-metadata-permissions.json), and
-the worker-specific build runbooks. Final infrastructure/deployment receipts
-must identify the exact image digest and supersede these pending states.
+the worker-specific build runbooks. The renderer receipt above supersedes its
+earlier pending state; other worker acceptance requires separate evidence.
 
 ### Delivery infrastructure follow-up
 
@@ -371,19 +431,21 @@ policy correction is claimed. Five-million-user capacity remains unmeasured.
 | Recording | Disabled |
 | Private broadcasts | Disabled |
 | Reminders | Disabled |
-| Clip encoding admission | Disabled |
-| Configured renderer concurrency when enabled | Two active jobs across the fleet |
+| Clip encoding admission | Enabled; real production fixture rendered and stored successfully |
+| Configured renderer concurrency | Two active jobs across the fleet |
 | Optional OAuth connection admission | Disabled for all five platforms |
 | Direct social publishing admission | Disabled for all five platforms |
 | Automatic transcription admission | Disabled |
 | Social/transcription jobs and provider reservations | Zero at the 07:15 hosted postflight |
-| ECS workers and scheduler | Not provisioned at handoff |
+| Renderer service | ACTIVE with accepted image; desired/running/pending counts 0 |
+| Renderer launcher | Operational and idle; one-minute schedule enabled, finite on-demand tasks |
 | Paid gifts | Disabled and deferred |
 
 The encoder gate is separate from the deployed `live-clip-worker` Edge broker.
-Publishing and signing code being present does not mean that an external encoder
-container or its scheduler has been deployed. Existing authorized asset access
-is independent of the new-render admission gate.
+The production runtime receipt establishes the actual worker, lease and private
+asset-writing flow for an isolated synthetic clip. It does not establish a
+Daily broadcast or publish that clip to a feed or external platform. Existing
+authorized asset access is independent of the new-render admission gate.
 
 ## Database order and release boundaries
 
@@ -450,8 +512,10 @@ Actual Daily storage access is blocked by the provider's role-assumption denial;
 the complete provider broadcast remains unaccepted. The next review and its
 authorization boundary are recorded above.
 
-The external renderer, transcription/publishing executors and scheduler have not
-been deployed or accepted. The
+The renderer image, real production queue processing and private asset writes
+are accepted; its service and launcher stacks are deployed and the one-minute
+schedule is enabled. Separate transcription/publishing executors retain their
+own deployment and provider gates. The
 [renderer runbook](../../../workers/live-clips/README.md) specifies its scoped
 broker credential, runtime limits and activation RPC. Native binary and device
 acceptance, full broadcast flows and measured capacity remain held. Secret

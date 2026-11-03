@@ -1,0 +1,248 @@
+{
+  "foundation": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "platinum-live-clips-service-production": {
+        "stack_id": "arn:aws:cloudformation:us-east-2:518317808503:stack/platinum-live-clips-service-production/e3594ec0-d75c-11f1-af1d-06ffc12acbd7",
+        "status": "CREATE_COMPLETE",
+        "outputs": [
+          {
+            "OutputKey": "ClusterArn",
+            "OutputValue": "arn:aws:ecs:us-east-2:518317808503:cluster/platinum-live-clips-service-production-Cluster-ibHv5bxxWlb5"
+          },
+          {
+            "OutputKey": "TaskExecutionRoleArn",
+            "OutputValue": "arn:aws:iam::518317808503:role/platinum-live-clips-service-produ-TaskExecutionRole-UcoNcIOC4EqH"
+          },
+          {
+            "OutputKey": "SecurityGroupId",
+            "OutputValue": "sg-0506dbef023dfbf20"
+          },
+          {
+            "OutputKey": "WorkerLogGroup",
+            "OutputValue": "/platinum/live-clips/platinum-live-clips-service-production/worker"
+          }
+        ]
+      },
+      "platinum-live-task-launcher-production": {
+        "stack_id": "arn:aws:cloudformation:us-east-2:518317808503:stack/platinum-live-task-launcher-production/e3b10bb0-d75c-11f1-956d-02dbc035fa8d",
+        "status": "CREATE_COMPLETE",
+        "outputs": [
+          {
+            "OutputKey": "LedgerTable",
+            "OutputValue": "platinum-live-task-launcher-production-Ledger-17MMCUHQK8XRG"
+          },
+          {
+            "OutputKey": "LauncherLogGroup",
+            "OutputValue": "/platinum/live-clips/platinum-live-task-launcher-production/launcher"
+          },
+          {
+            "OutputKey": "QueueSecretArn",
+            "OutputValue": "arn:aws:secretsmanager:us-east-2:518317808503:secret:QueueSecret-e0Xbji8DdEgp-7u1XNd"
+          }
+        ]
+      }
+    },
+    "api_calls": [
+      {
+        "service": "cloudformation",
+        "operation": "DescribeStacks",
+        "status": "success",
+        "n_items": {
+          "Stacks": 1
+        }
+      },
+      {
+        "service": "cloudformation",
+        "operation": "DescribeStacks",
+        "status": "success",
+        "n_items": {
+          "Stacks": 1
+        }
+      }
+    ]
+  },
+  "foundation_changes": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "platinum-live-clips-service-production": {
+        "status": "CREATE_COMPLETE",
+        "execution": "AVAILABLE",
+        "changes": [
+          {
+            "action": "Add",
+            "logicalId": "Cluster",
+            "type": "AWS::ECS::Cluster"
+          },
+          {
+            "action": "Add",
+            "logicalId": "TaskExecutionRole",
+            "type": "AWS::IAM::Role"
+          },
+          {
+            "action": "Add",
+            "logicalId": "WorkerLogs",
+            "type": "AWS::Logs::LogGroup"
+          },
+          {
+            "action": "Add",
+            "logicalId": "WorkerSecurityGroup",
+            "type": "AWS::EC2::SecurityGroup"
+          }
+        ]
+      },
+      "platinum-live-task-launcher-production": {
+        "status": "CREATE_COMPLETE",
+        "execution": "AVAILABLE",
+        "changes": [
+          {
+            "action": "Add",
+            "logicalId": "LauncherLogs",
+            "type": "AWS::Logs::LogGroup"
+          },
+          {
+            "action": "Add",
+            "logicalId": "Ledger",
+            "type": "AWS::DynamoDB::Table"
+          },
+          {
+            "action": "Add",
+            "logicalId": "QueueSecret",
+            "type": "AWS::SecretsManager::Secret"
+          }
+        ]
+      }
+    },
+    "api_calls": [
+      {
+        "service": "cloudformation",
+        "operation": "DescribeChangeSet",
+        "status": "success",
+        "n_items": {
+          "Parameters": 10,
+          "NotificationARNs": 0,
+          "Capabilities": 1,
+          "Changes": 4
+        }
+      },
+      {
+        "service": "cloudformation",
+        "operation": "DescribeChangeSet",
+        "status": "success",
+        "n_items": {
+          "Parameters": 1,
+          "NotificationARNs": 0,
+          "Capabilities": 0,
+          "Changes": 3
+        }
+      }
+    ]
+  },
+  "lambda_account_limits": {
+    "limits": {
+      "TotalCodeSize": 322122547200,
+      "CodeSizeUnzipped": 262144000,
+      "CodeSizeZipped": 52428800,
+      "ConcurrentExecutions": 10,
+      "UnreservedConcurrentExecutions": 10
+    },
+    "usage": {
+      "TotalCodeSize": 0,
+      "FunctionCount": 0
+    }
+  },
+  "queue": {
+    "queue_sha256": "df6bf4743d7c623f10aa17a5e4229a565e7d0cb1003306868307a355f59dddb8",
+    "checks": [
+      {
+        "check": "missing",
+        "status": 401,
+        "expected": 401,
+        "no_store": true,
+        "passed": true
+      },
+      {
+        "check": "worker_rejected",
+        "status": 401,
+        "expected": 401,
+        "no_store": true,
+        "passed": true
+      },
+      {
+        "check": "queue_valid",
+        "status": 200,
+        "expected": 200,
+        "no_store": true,
+        "signal": {
+          "enabled": false,
+          "due": false,
+          "active": 0
+        },
+        "passed": true
+      }
+    ],
+    "ok": true,
+    "secret_name": "LIVE_CLIP_QUEUE_SECRET",
+    "aws": {
+      "arn": "arn:aws:secretsmanager:us-east-2:518317808503:secret:QueueSecret-e0Xbji8DdEgp-7u1XNd",
+      "version": "a734ff05-fe03-f715-f1be-c99723f48ac1"
+    },
+    "dashboard_digest_matches": true,
+    "screenshot": "live-queue-credential-installed.png"
+  },
+  "fixture": {
+    "actor_id": "ef6e93db-8a70-4cbe-9920-9d003d93e4fe",
+    "session_id": "2ecc0090-0d72-497a-8547-86d29f540e78",
+    "duration_ms": 3000,
+    "instance_id": "a5cc6442-8544-40d1-ae08-048c1aef49a0",
+    "source_prefix": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/",
+    "auth_session_id": "c5e3d2d7-82a7-4dac-8f7a-a277cdcd5d2d",
+    "provider_started": false,
+    "public_publication": false,
+    "source_objects": [
+      {
+        "key": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/master.m3u8",
+        "sha256": "8208f34c7210aa4bb92dfc38362040b8be4bb5cd06656f6e37dd0dd8730d4098",
+        "bytes": 120,
+        "status": 200,
+        "version": "wI0Ccmz6XuzDhnPAOwfIwYBe25OXqwvK"
+      },
+      {
+        "key": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/media.m3u8",
+        "sha256": "9964aeb08a8b0602ab6f3a9c0bcc6b69d464331697e7ba4a6f793d8fdcf024bd",
+        "bytes": 237,
+        "status": 200,
+        "version": "JjwsR8pNYXMh00MZDZn4cMVjc085aLeM"
+      },
+      {
+        "key": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/segment000.ts",
+        "sha256": "167d4a621fe2e9bd3ee72e2a268a5a712726f4bdb49e456cb5f48ab9ce38f0d7",
+        "bytes": 12596,
+        "status": 200,
+        "version": "1OJN6V4dSpQ5nbp6KSUn5NPL6Bq4Voeq"
+      },
+      {
+        "key": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/segment001.ts",
+        "sha256": "b17c4ebb64a77f4c3496d287d81f5132c52b2280e04af1dee681e973d3794b2b",
+        "bytes": 11844,
+        "status": 200,
+        "version": "p6EIoGEYhj0PsAb4mZwmPzVTsV9MmGwy"
+      },
+      {
+        "key": "live/2ecc0090-0d72-497a-8547-86d29f540e78/a5cc6442-8544-40d1-ae08-048c1aef49a0/segment002.ts",
+        "sha256": "d92b3ac97e9d8fa1e8efa68ade28d772626298775b9682322f15a2671821c3b3",
+        "bytes": 11844,
+        "status": 200,
+        "version": "_j9b5GXeSfMNW_AzpUIfHnYOHDiUyNLW"
+      }
+    ],
+    "clip_enqueued": false
+  },
+  "runtime": {
+    "task_definition_registered": false,
+    "worker_activated": false,
+    "scheduler_activated": false
+  }
+}

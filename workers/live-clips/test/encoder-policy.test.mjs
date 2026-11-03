@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { COMPONENTS, COMPILE_DEPENDENCIES, RUNTIME_METADATA, checkRuntimeFiles, validateComponents } from '../encoder-policy.mjs';
+import { COMPONENTS, COMPILE_DEPENDENCIES, RUNTIME_METADATA, checkRuntimeFiles, validateComponents, validateThreadStack } from '../encoder-policy.mjs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -11,6 +11,27 @@ const packages = ['musl-1.2.6-r0', 'libass-0.17.4-r1', 'x264-libs-0.164-r0', 'fo
 const config = '#define CONFIG_NETWORK 0\n#define CONFIG_FRAME_THREAD_ENCODER 1\n';
 const header = Object.entries(COMPONENTS)
   .flatMap(([kind, names]) => names.map(name => '#define CONFIG_' + name + '_' + kind + ' 1')).join('\n') + '\n';
+
+test('actual ELF stack gate requires the non-executable 8 MiB musl worker stack', async () => {
+  const build = await readFile(new URL('../build-encoder.sh', import.meta.url), 'utf8');
+  assert.match(build, /--extra-ldflags='-Wl,-z,relro,-z,now -Wl,-z,stack-size=8388608 -pie'/);
+  const binary = Buffer.alloc(120);
+  Buffer.from([0x7f, 0x45, 0x4c, 0x46, 2, 1]).copy(binary);
+  binary.writeUInt16LE(62, 18); binary.writeBigUInt64LE(64n, 32);
+  binary.writeUInt16LE(56, 54); binary.writeUInt16LE(1, 56);
+  binary.writeUInt32LE(0x6474e551, 64); binary.writeUInt32LE(6, 68);
+  binary.writeBigUInt64LE(8388608n, 104);
+  assert.deepEqual(validateThreadStack(binary), { bytes: 8388608, executable: false });
+  for (const size of [0n, 131072n, 4194304n]) {
+    const invalid = Buffer.from(binary); invalid.writeBigUInt64LE(size, 104);
+    assert.throws(() => validateThreadStack(invalid), /thread_stack_invalid/);
+  }
+  const executable = Buffer.from(binary); executable.writeUInt32LE(7, 68);
+  assert.throws(() => validateThreadStack(executable), /thread_stack_invalid/);
+  assert.throws(() => validateThreadStack(binary.subarray(0, 100)), /thread_stack_invalid/);
+  const absent = Buffer.from(binary); absent.writeUInt32LE(1, 64);
+  assert.throws(() => validateThreadStack(absent), /thread_stack_invalid/);
+});
 
 test('actual image gate requires UID 1000, readable public metadata and the explicit read-only base COPY', async () => {
   const dockerfile = await readFile(new URL('../Dockerfile', import.meta.url), 'utf8');

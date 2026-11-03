@@ -13,8 +13,16 @@ phases:
     commands:
       - docker build --pull --platform linux/amd64 --build-arg "RENDERER_NODE_IMAGE=$RENDERER_NODE_IMAGE" -f workers/live-clips/Dockerfile -t "$RENDERER_REPOSITORY_URI:$RENDERER_IMAGE_TAG" .
       - docker run --rm --network none --cpus=2 --memory=4g --pids-limit=256 --read-only --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$RENDERER_IMAGE_TAG" node workers/live-clips/encoder-policy.mjs
-      - docker run --rm --network none --cpus=2 --memory=4g --pids-limit=256 --read-only --tmpfs /tmp:rw,nosuid,nodev,size=2g --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$RENDERER_IMAGE_TAG" node --test workers/live-clips/test/*.test.mjs
-      - docker run --rm --network none --cpus=2 --memory=4g --pids-limit=256 --read-only --tmpfs /scratch:rw,nosuid,nodev,size=2g,uid=1000,gid=1000 --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$RENDERER_IMAGE_TAG" node workers/live-clips/acceptance.mjs
+      - |
+        set +e
+        docker run --rm --network none --cpus=2 --memory=4g --pids-limit=256 --read-only --tmpfs /tmp:rw,nosuid,nodev,size=2g --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$RENDERER_IMAGE_TAG" node --test workers/live-clips/test/*.test.mjs
+        renderer_test_status=$?
+        docker run --rm --network none --cpus=2 --memory=4g --pids-limit=256 --read-only --tmpfs /scratch:rw,nosuid,nodev,size=2g,uid=1000,gid=1000 --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$RENDERER_IMAGE_TAG" node workers/live-clips/acceptance.mjs
+        renderer_acceptance_status=$?
+        set -e
+        if [ "$renderer_test_status" -ne 0 ] || [ "$renderer_acceptance_status" -ne 0 ]; then
+          exit 1
+        fi
   post_build:
     commands:
       - node infrastructure/live-clips/image-receipt.mjs
