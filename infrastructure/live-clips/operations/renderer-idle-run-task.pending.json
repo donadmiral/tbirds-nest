@@ -1,0 +1,36 @@
+{
+  "cluster": "REPLACE_WITH_SERVICE_OUTPUT_ClusterArn",
+  "taskDefinition": "REPLACE_WITH_SERVICE_OUTPUT_TaskDefinitionArn",
+  "count": 1,
+  "clientToken": "REPLACE_WITH_ONE_PERSISTED_RANDOM_CLIENT_TOKEN",
+  "startedBy": "pc-live-idle-20261103",
+  "launchType": "FARGATE",
+  "platformVersion": "1.4.0",
+  "enableExecuteCommand": false,
+  "enableECSManagedTags": false,
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "assignPublicIp": "ENABLED",
+      "subnets": [
+        "subnet-02cc531f1e50efb77",
+        "subnet-0beca645a4b3f54dd"
+      ],
+      "securityGroups": [
+        "REPLACE_WITH_SERVICE_OUTPUT_SecurityGroupId"
+      ]
+    }
+  },
+  "overrides": {
+    "containerOverrides": [
+      {
+        "name": "renderer",
+        "environment": [
+          {
+            "name": "LIVE_CLIP_TASK_DEADLINE_MS",
+            "value": "REPLACE_WITH_DISPATCH_EPOCH_MS_PLUS_180000"
+          }
+        ]
+      }
+    ]
+  }
+}

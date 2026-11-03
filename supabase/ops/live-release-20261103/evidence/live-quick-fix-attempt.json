@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-11-03T07:37:21Z",
+  "finished_at": "2026-11-03 07:45:33 UTC",
+  "requested_limit_minutes": 10,
+  "scope": [
+    "Daily storage role",
+    "clip renderer and scheduler"
+  ],
+  "source_commit": "1b4f61f85ddc151621fca96377f0524a66a97ee9",
+  "daily": {
+    "receipt": "live-daily-quick-role-review.json",
+    "verified_narrow_configuration_fix_found": false,
+    "provider_admission_enabled": false,
+    "latest_provider_result": "role_assumption_denied",
+    "effective_denial_cause": "unproven"
+  },
+  "renderer": {
+    "build_id": "Builder-UhwmorEgFfEf:ec688494-0a8d-4722-9682-088bd98bc336",
+    "source_version": "KUst1rYr7RNNTthRHqjI61vW6TUPY4pY",
+    "manifest_sha256": "256608f864374a0978f8884bcd597e537c532b30843836b45530e18b476527fb",
+    "archive_sha256": "624dbae24d69207e7c070dcd89572d9fe08c29290a54b0e9ae89b189384b9268",
+    "status": "FAILED",
+    "finished_at": "2026-11-03T07:42:47.757Z",
+    "docker_build_passed": true,
+    "actual_nonroot_metadata_check": {
+      "runtime_uid": 1000,
+      "readable": true,
+      "public_base_mode": "0444"
+    },
+    "worker_tests": {
+      "passed": 31,
+      "failed": 1,
+      "failed_test": "real HLS range becomes precise faststart vertical/horizontal exports, captions and a chosen cover",
+      "error": "decode_failed",
+      "stage": "Unknown. The command wrapper suppresses child stderr."
+    },
+    "standalone_acceptance_reached": false,
+    "image_published": false,
+    "service_provisioned": false,
+    "scheduler_provisioned": false,
+    "clip_admission_enabled": false
+  },
+  "status_evidence": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "status": "FAILED",
+      "phase": "COMPLETED",
+      "events": [
+        {
+          "timestamp": 1793691767603,
+          "message": "[Container] 2026/11/03 07:42:47.451307 Expanding base directory path:  .\n",
+          "ingestionTime": 1793691767620
+        },
+        {
+          "timestamp": 1793691767603,
+          "message": "[Container] 2026/11/03 07:42:47.452635 Assembling file list\n",
+          "ingestionTime": 1793691767620
+        },
+        {
+          "timestamp": 1793691767603,
+          "message": "[Container] 2026/11/03 07:42:47.452644 Expanding .\n",
+          "ingestionTime": 1793691767620
+        },
+        {
+          "timestamp": 1793691767603,
+          "message": "[Container] 2026/11/03 07:42:47.453900 Expanding file paths for base directory .\n",
+          "ingestionTime": 1793691767620
+        },
+        {
+          "timestamp": 1793691767603,
+          "message": "[Container] 2026/11/03 07:42:47.453907 Assembling file list\n",
+          "ingestionTime": 1793691767620
+        },
+        {
+          "timestamp": 1793691767603,
+          "message": "[Container] 2026/11/03 07:42:47.453909 Expanding **/*\n",
+          "ingestionTime": 1793691767620
+        },
+        {
+          "timestamp": 1793691767603,
+          "message": "[Container] 2026/11/03 07:42:47.455309 No matching auto-discover report paths found\n",
+          "ingestionTime": 1793691767620
+        },
+        {
+          "timestamp": 1793691767603,
+          "message": "[Container] 2026/11/03 07:42:47.455324 Report auto-discover file discovery took 0.004062 seconds\n",
+          "ingestionTime": 1793691767620
+        },
+        {
+          "timestamp": 1793691767603,
+          "message": "[Container] 2026/11/03 07:42:47.455334 Phase complete: UPLOAD_ARTIFACTS State: SUCCEEDED\n",
+          "ingestionTime": 1793691767620
+        },
+        {
+          "timestamp": 1793691767603,
+          "message": "[Container] 2026/11/03 07:42:47.455338 Phase context status code:  Message: \n",
+          "ingestionTime": 1793691767620
+        }
+      ]
+    },
+    "warning": "Pagination warning: logs:GetLogEvents was called with a limit, so only one page was fetched and the server did not auto-paginate. GetLogEvents returns nextForwardToken / nextBackwardToken on every page, including the last; the stream is complete only when a call returns the same token you sent. Remove the limit so the server auto-paginates, or loop on the token until it repeats.",
+    "api_calls": [
+      {
+        "service": "codebuild",
+        "operation": "BatchGetBuilds",
+        "status": "success",
+        "n_items": {
+          "builds": 1,
+          "buildsNotFound": 0
+        }
+      },
+      {
+        "service": "logs",
+        "operation": "GetLogEvents",
+        "status": "success",
+        "n_items": {
+          "events": 10
+        }
+      }
+    ]
+  },
+  "actions": [
+    "Uploaded exact frozen renderer package with protected-value scan already passed",
+    "Started one bounded CodeBuild attempt",
+    "Inspected existing Daily role and bucket configuration without changing permissions",
+    "Prepared existing reviewed service and scheduler requests, not executed"
+  ],
+  "remaining": [
+    "Identify the denied Daily role assumption through an authorized account/provider review",
+    "Identify and fix the failed encoder stage, rebuild successfully, then provision service and scheduler"
+  ],
+  "no_automatic_continuation": true
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "region": "us-east-2",
+  "account": "518317808503",
+  "hosted_operations_performed": false,
+  "contains_secret_values": false,
+  "service_template_sha256": "3b1e6c65294c05c2dcceeea50faee861a7acfb7d041df982b1b706d81f8ab81d",
+  "launcher_template_sha256": "c58570aee2ed46b4404109ee6dc919da1eb1446a8c5576db660ed5cd6a056619",
+  "placeholders_must_be_replaced": true,
+  "initial_service_desired_count": 0,
+  "schedule_enabled": false,
+  "asr_enabled": false,
+  "request_files": [
+    "renderer-service-create.pending.json",
+    "renderer-launcher-create.pending.json",
+    "renderer-idle-run-task.pending.json",
+    "renderer-launcher-enable.json"
+  ],
+  "request_sha256": {
+    "renderer-service-create.pending.json": "50955fac5f7b96395350e779d0c5195f35cc7ef67309574e14d933afed6f0eb6",
+    "renderer-launcher-create.pending.json": "3e0c8ec75bed48e421c48a272fe371441235a75de525781f08554f6e9ca114b5",
+    "renderer-idle-run-task.pending.json": "7f9900cd1e894f483d4a367b498d46207045c1e148b71d024d68723038cdec28",
+    "renderer-launcher-enable.json": "473cf34b695b0204b000b81a8ffce5b8489e5de94addc5499707338d59c0fe6e"
+  }
+}

@@ -2,6 +2,8 @@
 
 ## Release status
 
+Latest bounded follow-up: the owner authorized a ten-minute attempt at Daily access and the renderer/scheduler. The role review found no verified narrow mismatch. The corrected image passed actual nonroot metadata checks but failed the real HLS render test (31/32 worker tests passed), so it was not published. No ECS service or scheduler was created, and admission remains disabled. Work stopped within the requested window. See [quick attempt](evidence/live-quick-fix-attempt.json) and [Daily role review](evidence/live-daily-quick-role-review.json).
+
 **Owner handoff checkpoint, 2026-11-03 UTC:** work has stopped at the owner's
 request. The existing web/admin fundamentals are available for the owner to test.
 The optional database foundation and six additional Edge endpoints are deployed

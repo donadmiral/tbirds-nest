@@ -1,0 +1,83 @@
+{
+  "StackName": "platinum-live-task-launcher-production",
+  "ChangeSetName": "live-launcher-idle-enable-20261103",
+  "ChangeSetType": "UPDATE",
+  "Capabilities": [
+    "CAPABILITY_IAM"
+  ],
+  "UsePreviousTemplate": true,
+  "Parameters": [
+    {
+      "ParameterKey": "RendererClusterArn",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "RendererTaskDefinitionArn",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "RendererExecutionRoleArn",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "RendererSecurityGroupId",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "RendererSubnetIds",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "QueueKeyArn",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "SupabaseProjectRef",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "ScheduleEnabled",
+      "ParameterValue": "true"
+    },
+    {
+      "ParameterKey": "AsrEnabled",
+      "ParameterValue": "false"
+    },
+    {
+      "ParameterKey": "AsrClusterArn",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AsrTaskDefinitionArn",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AsrExecutionRoleArn",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AsrTaskRoleArn",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AsrSecurityGroupId",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AsrSubnetIds",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AsrQueueSecretArn",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AsrQueueKeyArn",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AlarmTopicArn",
+      "UsePreviousValue": true
+    }
+  ]
+}
