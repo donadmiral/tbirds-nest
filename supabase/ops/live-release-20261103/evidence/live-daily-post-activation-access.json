@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-11-03",
+  "scope": "post_activation_access_checkpoint",
+  "evidence_source": "Root operator's verified browser, AWS connector and production Supabase observations; no additional calls or tests performed for this record.",
+  "advanced_activation": {
+    "completed": true,
+    "observed_at_utc_approximate": "2026-11-03T16:04:00Z",
+    "evidence": "AWS Settings success banner visually verified",
+    "management_account_id": "481552727043",
+    "organization_id": "o-u8vc1j1p9n"
+  },
+  "aws_access": {
+    "connector_status": "UNAUTHORIZED",
+    "connector_message": "This app connection requires reauthentication. Reconnect the app and try again.",
+    "plugin_id": "plugin_asdk_app_6ae95cec8158819185513a41431e19f7",
+    "reconnect_resumed": true,
+    "reauthentication_completed": false,
+    "browser_result": "Site Unavailable / Unable to access this site after AWS OAuth redirect",
+    "screenshot": "aws-toolkit-reauthentication-required.jpg",
+    "screenshot_scope": "OAuth redirect failure page, not the plugin connection prompt",
+    "organization_policy_contents_read": false,
+    "organization_policy_changed": false,
+    "next_handoff": "Complete AWS connector reauthentication; if an account selector is shown, choose Management Account 481552727043. Inspect actual policy contents before proposing a correction."
+  },
+  "daily_storage_verification": {
+    "operation_id": "b3ec6b27-ec02-4b15-9a17-4036794f6577",
+    "request_id": 11490,
+    "completed_at": "2026-11-03T16:08:53.024926Z",
+    "ok": false,
+    "error": "STORAGE_VERIFICATION_FAILED",
+    "classification": "role_assumption_denied",
+    "provider_http_status": 400,
+    "temporary_room_cleanup_confirmed": true,
+    "denying_policy_identified": false
+  },
+  "production_state": {
+    "observed_at_utc_approximate": "2026-11-03T16:10:00Z",
+    "renderer_enabled": true,
+    "broadcast_enabled": false,
+    "fixture_cleanup_targets_done": 28,
+    "fixture_cleanup_targets_remaining": 0,
+    "fixture_output_objects_remaining": 0
+  },
+  "limits": {
+    "activation_does_not_prove_daily_access": true,
+    "successful_daily_broadcast_claimed": false,
+    "five_million_user_capacity_claimed": false
+  }
+}

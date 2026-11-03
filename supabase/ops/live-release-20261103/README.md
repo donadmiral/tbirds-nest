@@ -2,6 +2,26 @@
 
 ## Release status
 
+**Latest access checkpoint, 2026-11-03 16:10 UTC:** the owner completed AWS
+advanced-feature activation; the AWS Settings success banner was verified for
+Management Account `481552727043`, organization `o-u8vc1j1p9n`, at approximately
+16:04 UTC. The AWS connector now requires reauthentication. Reconnect was
+resumed, but the AWS OAuth redirect returned **Site Unavailable**, so access is
+not restored and organization policy contents remain unread and unchanged.
+If the reconnect account selector appears, choose **Management Account
+481552727043**. The [screenshot](evidence/aws-toolkit-reauthentication-required.jpg)
+shows the redirect failure page, not a completed connection.
+
+The post-activation Daily storage probe
+`b3ec6b27-ec02-4b15-9a17-4036794f6577` (request `11490`) still failed at
+**16:08:53.024926 UTC** with HTTP 400, `STORAGE_VERIFICATION_FAILED`, classified
+`role_assumption_denied`; temporary-room cleanup was confirmed. Activation has
+not established Daily access or identified the denying policy. Production
+renderer admission remains enabled and broadcast admission disabled. All **28
+fixture cleanup targets are now done**, with **0 remaining targets and 0
+retained output objects**; this supersedes the earlier pending-cleanup state.
+See the [post-activation access receipt](evidence/live-daily-post-activation-access.json).
+
 **Renderer operational checkpoint, 2026-11-03 08:37:41.752 UTC:** the real
 production worker completed the isolated two-second clip through the broker,
 database lease and private Storage path. The clip is `ready`, its job is `done`
