@@ -12,10 +12,12 @@ import { useLivePlayback } from '../contexts/LivePlaybackContext';
 import { useAuthStore } from '../stores/authStore';
 import { registerLiveStageRelease, releaseLiveStageMedia } from '../services/liveMediaSession';
 import { settleCallOperation } from '../services/nativeCallRecovery';
+import { useLiveStudioEvents } from '../hooks/useLiveStudioEvents';
 
 export function LiveStudio({ sessionId, canControl, streamState, onChanged, autoPreview = false }: { sessionId: string; autoPreview?: boolean; canControl: boolean; streamState: string; onChanged(): void }) {
   const { t } = useTheme(), { callState } = useCallContext(), playback = useLivePlayback();
   const owner = useAuthStore(s => s.profile?.id ?? null);
+  useLiveStudioEvents(sessionId, owner, onChanged);
   const [participants, setParticipants] = useState<DailyParticipant[]>([]), [joined, setJoined] = useState(false);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [sharing, setSharing] = useState(false), [canShare, setCanShare] = useState(false);
   const [preset, setPreset] = useState('host'), [selected, setSelected] = useState<string[]>([]);
@@ -33,6 +35,7 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
   }, []);
   useEffect(() => () => { void stop(); }, [owner, sessionId, stop]);
   useEffect(() => { if (callState !== 'idle' && callState !== 'failed') void stop(); }, [callState, stop]);
+  useEffect(() => { if (streamState === 'ended' || streamState === 'cancelled') void stop(); }, [streamState, stop]);
   const preview = async () => {
     if (mutation.current) return;
     mutation.current = true; setBusy(true); setError('');
@@ -104,8 +107,8 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
   const endBroadcast = () => Alert.alert('End this live?', 'Viewers will stop receiving live video.', [{ text: 'Keep streaming', style: 'cancel' }, { text: 'End live', style: 'destructive', onPress: () => void sendControl('stop') }]);
   const mediaButton = (label: string, icon: React.ComponentProps<typeof Feather>['name'], action: () => void) => <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} disabled={busy} onPress={action} style={[s.mediaButton, { backgroundColor: t.surface.sunken, opacity: busy ? 0.5 : 1 }]}><Feather name={icon} size={21} color={t.ink.primary}/><Text style={{color:t.ink.secondary,fontSize:11,textAlign:'center'}}>{label}</Text></TouchableOpacity>;
   return <View style={{ gap: 14 }}>
-    <View style={{flexDirection:'row',alignItems:'center',gap:8}}><LiveIcon color={t.ink.primary}/><Text accessibilityRole="header" style={{ color: t.ink.primary, fontWeight: '700', fontSize: 20 }}>{live ? 'Your live' : 'Camera preview'}</Text><Text style={{marginLeft:'auto',color:live?'#C43146':t.ink.secondary,fontSize:12,fontWeight:'600'}}>{streamState==='starting'?'Starting…':streamState==='reconnecting'?'Reconnecting…':streamState==='live'?'LIVE':'Not live'}</Text></View>
-    {joined ? <View style={s.preview}><RemoteCallMedia participants={participants} /></View> : <View style={[s.preview, s.empty, { backgroundColor: t.surface.sunken }]}><LiveIcon size={42} color={t.ink.muted}/><Text style={{ color: t.ink.secondary, textAlign:'center' }}>Preview your camera and microphone</Text>{button(busy ? 'Connecting…' : 'Preview camera', () => void preview(), busy || (callState !== 'idle' && callState !== 'failed'))}</View>}
+    <View style={{flexDirection:'row',alignItems:'center',gap:8}}><LiveIcon color={t.ink.primary}/><Text accessibilityRole="header" style={{ color: t.ink.primary, fontWeight: '700', fontSize: 20 }}>{live ? 'Your live' : 'Camera preview'}</Text><Text style={{marginLeft:'auto',color:live?'#C43146':t.ink.secondary,fontSize:12,fontWeight:'600'}}>{streamState==='starting'?'Starting…':streamState==='reconnecting'?'Reconnecting…':streamState==='live'?'LIVE':streamState==='ending'?'Ending…':streamState==='ended'?'Ended':streamState==='cancelled'?'Cancelled':'Not live'}</Text></View>
+    {joined ? <View style={s.preview}><RemoteCallMedia participants={participants} /></View> : <View style={[s.preview, s.empty, { backgroundColor: t.surface.sunken }]}><LiveIcon size={42} color={t.ink.muted}/><Text style={{ color: t.ink.secondary, textAlign:'center' }}>{['ended','cancelled'].includes(streamState)?'This live has ended.':'Preview your camera and microphone'}</Text>{!['ended','cancelled'].includes(streamState)?button(busy ? 'Connecting…' : 'Preview camera', () => void preview(), busy || (callState !== 'idle' && callState !== 'failed')):null}</View>}
     {joined ? <View style={s.mediaRow}>
       {mediaButton(local?.audio ? 'Mute' : 'Unmute',local?.audio?'mic':'mic-off',()=>void media('audio'))}
       {mediaButton(local?.video ? 'Camera off' : 'Camera on',local?.video?'video':'video-off',()=>void media('video'))}

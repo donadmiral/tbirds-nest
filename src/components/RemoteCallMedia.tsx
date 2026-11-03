@@ -13,6 +13,12 @@ export function playableCallTrack(participant: DailyParticipant, kind: TrackKind
   return legacy || null;
 }
 
+// The preview includes the local camera, but must never play its own microphone
+// or captured screen audio back into the local speakers.
+export function audibleCallTrack(participant: DailyParticipant, kind: 'audio' | 'screenAudio'): MediaStreamTrack | null {
+  return participant.local ? null : playableCallTrack(participant, kind);
+}
+
 export function hasRemoteScreenShare(participants: DailyParticipant[]): boolean {
   return participants.some(participant => !!playableCallTrack(participant, 'screenVideo'));
 }
@@ -33,7 +39,7 @@ export function RemoteCallMedia({ participants }: { participants: DailyParticipa
       <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={s.audio}>
         {participants.map(participant => (
           <DailyMediaView key={participant.session_id} videoTrack={null}
-            audioTrack={playableCallTrack(participant, 'audio')} style={s.audio} />
+            audioTrack={audibleCallTrack(participant, 'audio')} style={s.audio} />
         ))}
       </View>
       {shares.length > 0 && (
@@ -56,7 +62,7 @@ export function RemoteCallMedia({ participants }: { participants: DailyParticipa
       )}
       {screen ? (
         <DailyMediaView key={`screen:${screen.session_id}`} videoTrack={playableCallTrack(screen, 'screenVideo')}
-          audioTrack={playableCallTrack(screen, 'screenAudio')} mirror={false} zOrder={0}
+          audioTrack={audibleCallTrack(screen, 'screenAudio')} mirror={false} zOrder={0}
           objectFit="contain" style={s.screen} />
       ) : (
         <>
