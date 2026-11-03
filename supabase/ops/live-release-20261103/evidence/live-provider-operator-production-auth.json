@@ -1,0 +1,25 @@
+{
+  "project_ref": "prlkikhckbifseosbukl",
+  "checked_at": "2026-11-03T05:12:31.877596+00:00",
+  "ok": true,
+  "checks": [
+    {
+      "name": "missing_token",
+      "status": 401,
+      "ok": true,
+      "no_store": true
+    },
+    {
+      "name": "unissued_token",
+      "status": 401,
+      "ok": true,
+      "no_store": true
+    },
+    {
+      "name": "wrong_method",
+      "status": 405,
+      "ok": true,
+      "no_store": true
+    }
+  ]
+}

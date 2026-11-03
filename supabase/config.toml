@@ -511,6 +511,13 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/live-maintenance/index.ts"
 
+# The owner-only SQL enqueue issues a dedicated single-use operation token.
+# The handler atomically claims that token before any provider request.
+[functions.live-provider-configure]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-provider-configure/index.ts"
+
 [functions.live-sign]
 enabled = true
 verify_jwt = false

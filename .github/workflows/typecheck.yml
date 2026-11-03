@@ -111,6 +111,7 @@ jobs:
             supabase/functions/live-cover/index.ts \
             supabase/functions/live-provider-webhook/index.ts \
             supabase/functions/live-maintenance/index.ts \
+            supabase/functions/live-provider-configure/index.ts \
             supabase/functions/live-sign/index.ts \
             supabase/functions/live-clip-media/index.ts \
             supabase/functions/live-clip-worker/index.ts

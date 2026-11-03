@@ -1,0 +1,57 @@
+{
+  "status": "success",
+  "stdout": "",
+  "return_value": {
+    "bucket": "platinum-live-production-livebucket-6v2z2lrobdn3",
+    "prefix": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/",
+    "deleted": [
+      {
+        "Key": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/segment000.ts",
+        "VersionId": "x5ZB5AkZg3_q2SJOIbcGBFZ6Jt06InQm"
+      },
+      {
+        "Key": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/master.m3u8",
+        "VersionId": "_M_ng6IW_M8p1yL5TVkkdjXQYhjj6pwD"
+      },
+      {
+        "Key": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/media.m3u8",
+        "VersionId": "ALyKQarUEIlWPJ4J6HwQf27zTpVj25tZ"
+      },
+      {
+        "Key": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/segment002.ts",
+        "VersionId": "ndniWSkCk0loSdLDBje4D9ebB03RI3sj"
+      },
+      {
+        "Key": "live/bea38e73-71f1-411d-ae0a-2a91974cea01/43168782-6130-4e5f-b56f-d66c341e9152/segment001.ts",
+        "VersionId": "qGtsUHtbonPdFtKsri11YMVG21tWgNUw"
+      }
+    ],
+    "remaining_versions": 0,
+    "remaining_delete_markers": 0,
+    "verified_erased": true
+  },
+  "api_calls": [
+    {
+      "service": "s3",
+      "operation": "ListObjectVersions",
+      "status": "success",
+      "n_items": {
+        "Versions": 5
+      }
+    },
+    {
+      "service": "s3",
+      "operation": "DeleteObjects",
+      "status": "success",
+      "n_items": {
+        "Deleted": 5
+      }
+    },
+    {
+      "service": "s3",
+      "operation": "ListObjectVersions",
+      "status": "success"
+    }
+  ],
+  "checked_at": "2026-11-03T05:07:33.884627+00:00"
+}

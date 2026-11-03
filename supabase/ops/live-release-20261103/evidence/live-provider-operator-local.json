@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T05:17:12.882Z",
+  "scope": "Local verification of the dedicated Live provider operator; existing results only, no test rerun or hosted action for this receipt.",
+  "working_directory": "/workspace/scratch/4c1d55b8bab6/tbirds-nest",
+  "runtime": {
+    "node": "v24.22.1",
+    "typescript": "5.9.3"
+  },
+  "files": [
+    {
+      "path": "supabase/functions/live-provider-configure/handler.ts",
+      "sha256": "a560d28624d1cfe19919baef1471041f54605f08ac24754505662132abcfd60c"
+    },
+    {
+      "path": "supabase/functions/live-provider-configure/index.ts",
+      "sha256": "fbb8e53be641926d4400634ee0cc94266c914f366909b3656331d5b05a0b49a3"
+    },
+    {
+      "path": "supabase/functions/live-provider-configure/storage.ts",
+      "sha256": "acfedd1fcb44c6780d209830838fd2f643d865cdbd6697601873fc8c41ed8262"
+    },
+    {
+      "path": "supabase/migrations/20261103050013_live_provider_registration_operator.sql",
+      "sha256": "93aa81fecbc205b563499322b409e79548367daf9341179b90e99eb8c00249d6"
+    },
+    {
+      "path": "supabase/tests/live-provider-configure.test.cjs",
+      "sha256": "38c1046ae9c82a6e6a8924cf9bb734a9b5cf000ee0bd6bab5a80893e23a108f6"
+    },
+    {
+      "path": "supabase/tests/live-provider-storage.test.cjs",
+      "sha256": "3e83b99cbc0f23ec3e9ec81fd0cfe7ab8a5b3923604be01e655139ed5dbfc308"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-live-provider-operations.mjs",
+      "sha256": "8aff90b72121aae5ae67cc7cc18ab3d3b9f4d6a108d1d45788e0bd997728cd7e"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/run-all.mjs",
+      "sha256": "9f0aa996da11b893474b0ba1b7df5b3949f6f69f34d16ff2233b64573a37dba6"
+    },
+    {
+      "path": "supabase/config.toml",
+      "sha256": "427ce91d81d5967d3b45476d7fa4bf30aaae1338e9e1320965736ae2f97676ad"
+    },
+    {
+      "path": ".github/workflows/typecheck.yml",
+      "sha256": "abf0ed5cb7ee8a7c5fa1a2a97930fd8490cf0117f343c6b2c6bb09da8c63613e"
+    }
+  ],
+  "verification": [
+    {
+      "name": "edge_and_storage",
+      "command": "node --test supabase/tests/live-provider-configure.test.cjs supabase/tests/live-provider-storage.test.cjs",
+      "exit_code": 0,
+      "tests": 28,
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 548.265746,
+      "includes": [
+        "Actual handler and actual verifyStorage integration, including successful verification and unconfirmed cleanup.",
+        "Dedicated-token authorization, foreign/expired claims, replay, and exactly one mutation from competing uses.",
+        "Exact webhook create/readback, existing registration, duplicate/conflicting configuration, and no broad update/delete.",
+        "Bounded responses, redirects, aborted body reads, independent completion, and finite sanitized provider reason categories.",
+        "Fixed private expiring storage room, exact bucket/role/HLS settings, no join/token/recording/broadcast start, and owned-room cleanup."
+      ]
+    },
+    {
+      "name": "database_authorization",
+      "command": "node --test supabase/tests/rpc-authorization/test-live-provider-operations.mjs",
+      "exit_code": 0,
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "duration_ms": 4780.870957,
+      "engine": "PGlite with pgcrypto; actual migration SQL, synthetic role/worker-origin fixture, and a transaction-local pg_net capture stub.",
+      "includes": [
+        "Owner-only enqueue; anon, authenticated and service_role cannot mint, read or insert operation tokens.",
+        "Fixed dispatch URL/body/timeout, reason/session-user audit metadata, SHA-256 digest storage and two-minute expiry.",
+        "Service-role-only claims, exact origin binding, forged/expired/nearly-expired/replayed token rejection.",
+        "Competing claim and completion submissions produce one winner each; completion cannot precede claim or repeat.",
+        "Completion receipt field/value allowlists and action-specific storage cleanup confirmation."
+      ],
+      "limitation": "PGlite serializes backend submissions. No external multi-connection PostgreSQL race was run locally."
+    },
+    {
+      "name": "strict_typescript",
+      "command": "npx --offline tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions --lib ES2022,DOM supabase/functions/live-provider-configure/handler.ts supabase/functions/live-provider-configure/storage.ts",
+      "exit_code": 0,
+      "checked_files": [
+        "supabase/functions/live-provider-configure/handler.ts",
+        "supabase/functions/live-provider-configure/storage.ts"
+      ],
+      "limitation": "This check does not resolve the Deno entrypoint npm: import or Deno globals."
+    },
+    {
+      "name": "whitespace",
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "name": "offline_deno_availability",
+      "command": "npx --offline deno --version",
+      "exit_code": 1,
+      "status": "unavailable",
+      "code": "ENOTCACHED",
+      "detail": "No Deno executable on PATH and the deno package was absent from the offline npm cache. Deno typechecking was not run; no package was installed.",
+      "not_a_test_failure": true
+    }
+  ],
+  "independent_review": {
+    "agent": "/root/live_web",
+    "result": "No authorization or SQL blocker found. Recommended actual handler/storage seam coverage and preserving configuration_matches on cleanup failure; both were included before final passing tests."
+  },
+  "boundaries": {
+    "new_test_runs_for_receipt": false,
+    "hosted_calls_by_receipt_author": false,
+    "credentials_read_or_recorded": false,
+    "provider_responses_recorded": false,
+    "runtime_code_changed_for_receipt": false,
+    "committed_by_receipt_author": false
+  }
+}

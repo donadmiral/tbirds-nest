@@ -53,14 +53,18 @@ been saved in Supabase and verified by the running maintenance function. See the
 [configuration receipt](../../supabase/ops/live-release-20261103/evidence/live-delivery-infrastructure.json).
 
 AWS account access was subsequently verified through the connected Toolkit.
-The `platinum-live-production` stack is now `CREATE_COMPLETE` in `us-east-2`,
+The `platinum-live-production` stack is now `UPDATE_COMPLETE` in `us-east-2`,
 account `518317808503`, with CloudFront distribution `E15BWQDKI39QKD` reporting
 `Deployed`. The exact outputs and API checks are in the
-[AWS deployment receipt](../../supabase/ops/live-release-20261103/evidence/aws-live-deployment.json).
+[AWS deployment receipt](../../supabase/ops/live-release-20261103/evidence/aws-live-deployment.json)
+and subsequent [signing installation receipt](../../supabase/ops/live-release-20261103/evidence/live-signing-installation.json).
 Production Supabase has the real bucket, region, role ARN and CDN origin;
 maintenance request `10710` confirmed all four at runtime with HTTP 200.
-Signing-key installation and Daily acceptance are still pending. Keep broadcast
-admission disabled until the remaining provider and delivery checks pass.
+The approved keys are installed, and hosted secret and synthetic CDN acceptance
+passed **10/10** and **15/15** respectively. The Daily webhook is registered and
+`ACTIVE`. Daily's storage verification failed with `role_assumption_denied`;
+the temporary verification room was cleaned up. Broadcast and encoder admission
+remain disabled pending provider access and their respective acceptance.
 
 ### User-created AWS project and connection
 
@@ -78,25 +82,35 @@ The [initial setup receipt](../../supabase/ops/live-release-20261103/evidence/aw
 and [intermediate connection check](../../supabase/ops/live-release-20261103/evidence/aws-toolkit-connection-check.json)
 remain historical records, superseded by the deployment receipt above.
 
-Before Daily acceptance, resolve the project's applicable policy state.
-Authenticated organization policy/parent inspection returned `AccessDenied`;
-this does not establish that restrictions are absent. AWS's published
-new-experience RCP denies authenticated external
-non-service principals, including `sts:*` and `s3:*` requests, when their
-organization differs from the resource's organization. Daily's documented
-vendor principal falls under that default deny, so a matching IAM trust policy
-and external ID alone will not establish the required access.
-
-If those managed restrictions apply, the owner must approve advanced feature
-activation and the required narrow policy adjustment before Daily role
-acceptance. Activation is irreversible and changes billing/spend-limit controls.
-Do not activate it automatically, remove unrelated protections, or assume an
-upgrade to the Paid plan resolves the restriction. Check which policies remain
-after activation and validate actual Daily role assumption before admission.
-The deployed Daily role is
+Authenticated organization policy/parent inspection returned `AccessDenied`,
+so the applicable attached and inherited policies remain uninspected. Daily's
+observed role-assumption denial is consistent with AWS's published new-experience
+RCP restricting external non-service principals, including `sts:*` and `s3:*`
+requests across organizations. This is a possible cause, not a confirmed
+diagnosis of this account. A matching role trust and external ID do not override
+an applicable organization-level deny. The deployed role is
 `arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI`.
-An exact-role exception can be reviewed if the published deny applies; no
-organization policy or advanced-feature setting has been changed.
+
+The next task is an owner-authorized, read-only review of this project's attached
+and inherited SCPs/RCPs, the actual denying statement and policy mutability.
+AWS explicitly documents its published new-experience managed RCP as
+**not modifiable**. If that immutable policy is the applicable blocker, **stop**
+and seek a supported resolution from the responsible AWS/account owner. Do not
+attempt a policy edit, detachment or advanced-feature activation as a workaround.
+The actual policy remains unknown; neither an upgrade nor activation is promised
+to make it editable or fix Daily access.
+
+The [Daily role access review](daily-role-access-review.json) is **review-only,
+not ready to apply**, and authorizes no policy or account action. Only if the
+owner identifies an editable customer-managed deny may a concrete minimal diff
+be prepared for separate review, preserving this exact role, Daily account
+`291871421005`, external ID `platinumcircles` and unrelated protections.
+
+Automatic approval review blocked opening AWS Settings because the approved
+key-installation work did not authorize an account-management or billing flow.
+No upgrade, advanced-feature activation or organization policy change occurred.
+After an authorized, reviewed correction, rerun Daily's isolated storage
+verification before attempting a real HLS broadcast or changing admission.
 
 Sources:
 
@@ -135,49 +149,62 @@ Daily domain-wide recording settings.
 
 ## Signing configuration and rotation
 
-### Current pending installation
+### Installed production state — 2026-11-03 UTC
 
 The connected AWS MCP server's KeyValueStore data client fails with a missing
-`botocore[crt]` dependency. Its metadata-only Describe call was approved after
-verification against the official response schema, but the remote client still
-could not perform the SigV4A operation. The CloudFront control API works.
+`botocore[crt]` dependency. The supported private S3 import path completed through
+the CloudFront control API after the user explicitly approved all three keys.
+Production Supabase now has `LIVE_CDN_SIGNING_KEY`, `LIVE_CDN_KEY_ID`,
+`LIVE_PLAYBACK_SIGNER_SECRET` and `LIVE_DAILY_WEBHOOK_SECRET`. The matching CDN
+key is installed in `platinum-live-production-signing-v1`, ARN
+`arn:aws:cloudfront::518317808503:key-value-store/5dfd608b-fcc5-4881-b4b4-69962fe289b0`.
 
-Two reviewed templates prepare the supported private S3 import alternative:
+The reviewed two-phase templates were both executed:
 
-- [signing-bootstrap-stage.json](signing-bootstrap-stage.json) adds only the
-  distinct `SigningKeysImported` resource, named
-  `platinum-live-production-signing-v1`. It preserves the existing function
-  association and every existing stack resource.
-- [signing-bootstrap-activate.json](signing-bootstrap-activate.json) keeps both
-  stores and the identical import source, then changes the viewer function's
-  association and `SigningStoreArn`. Use it only after the imported store's
-  control-plane status is `READY`.
+- [signing-bootstrap-stage.json](signing-bootstrap-stage.json) added only
+  `SigningKeysImported`, preserving the previous association and stack resources.
+- [signing-bootstrap-activate.json](signing-bootstrap-activate.json) associated
+  the imported store after `READY`. The viewer function is published at `LIVE`,
+  the distribution is `Deployed`, and the stack is `UPDATE_COMPLETE`.
 
-The stage change set `live-signing-import-stage-20261103-v2` is prepared and
-available. AWS reports exactly one `Add`, for `SigningKeysImported`. It has not
-been executed. Stack tags are preserved. Both templates pass local lint for
-`us-east-2` and AWS `ValidateTemplate`; ten focused generator tests pass.
+The [installation receipt](../../supabase/ops/live-release-20261103/evidence/live-signing-installation.json)
+records approval, executed change sets, final association and complete temporary
+seed erasure. The seed was outside `live/*`; its exact object version was deleted
+after a real signer-issued request retrieved the expected private manifest.
+Re-listing found **zero versions and zero delete markers**. No secret value is
+stored in a template, parameter, tag or release receipt.
 
-The seed belongs under `_bootstrap/` in the private Live bucket, outside both
-Daily's and CloudFront's `live/*` read scope. Its JSON uses `data` entries with
-`key` and `value`. No secret value is embedded in a template, parameter, tag or
-release receipt. Keep the seed unchanged until import reaches `READY`, then
-verify the actual function before removing all versions of the exact temporary
-seed object. Retain the old empty store until acceptance finishes.
+Hosted [secret acceptance](../../supabase/ops/live-release-20261103/evidence/live-secret-acceptance.json)
+passed **10/10** at 04:55 UTC, covering valid and invalid webhook HMAC requests
+and signer authorization, expiry and scope. This validates the installed receiver
+secret. Daily registration subsequently completed as recorded below.
+[CDN acceptance](../../supabase/ops/live-release-20261103/evidence/live-cdn-acceptance.json)
+passed **15/15** at 05:06 UTC: all five fixture hashes, HEAD, 206 Range, 204
+authenticated OPTIONS, shared-cache hits and all expected 403 denials.
+The [fixture cleanup receipt](../../supabase/ops/live-release-20261103/evidence/live-cdn-fixture-cleanup.json)
+confirms all five versions erased, with no versions or delete markers remaining.
 
-Automatic approval review rejected the first attempted seed upload before any
-HTTP request because explicit permission for transferring new Live credentials
-was missing. The seed is not uploaded, the imported store is not created, and
-none of the three new secrets has been installed. The production Supabase form
-contains only the pending names and public key ID, not the secret values.
+The earlier 2026-11-03 approval-blocked state and prepared-form screenshot are
+historical and superseded by these receipts. The first CDN acceptance attempt
+omitted the browser Origin header; its preserved failed receipt is superseded
+by the corrected browser-equivalent request and passing run.
 
-One approval should cover the CDN key's temporary private S3 import into
-CloudFront and its matching Supabase value, the separate Supabase signer
-credential, and the base64 webhook key in Supabase and Daily. The keys authorize
-playback and authenticate provider events. Do not retry the rejected upload,
-enter these secrets in a browser, or register the webhook until that approval.
+### Preserve the activated baseline
 
-For future generation, use an explicit output path with
+Use [signing-bootstrap-activate.json](signing-bootstrap-activate.json) as the
+production update baseline. Both stores remain in the stack, and the original
+`SigningKeys` store is empty. **The default generated template associates that
+empty original store and must not be applied to this activated stack.** Preserve
+`SigningKeysImported`, its association and the active `SigningStoreArn` output
+when making unrelated updates.
+
+The activated template retains the historical `ImportSource` declaration, but
+that seed object no longer exists. Unchanged resources do not need to re-import
+it. Recreating or replacing the imported store requires a new approved private
+seed and a reviewed import/activation plan; the erased source cannot recover a
+replacement store. Never change the source or force replacement casually.
+
+For a reviewed future import, use an explicit output path with
 `--signing-import-phase stage|activate --signing-import-key _bootstrap/<name>.json`.
 Use the exact same seed key in both phases. Imported-mode stack names must be
 at most 53 characters because the store appends `-signing-v1`.
@@ -219,7 +246,19 @@ credential or URL capability belongs in logs, screenshots or release artifacts.
 
 ## Webhook prerequisites and registration
 
-Generate at least 32 random bytes for the webhook HMAC and encode them as base64.
+Production webhook `8bec1b00-0155-4534-b70f-c856d01ab218` is registered and
+`ACTIVE` for verified domain `platinumcircles`, UUID
+`bfe7e3aa-0369-4bd6-9db1-d882df729ddf`. The provider re-read confirmed all five
+streaming events below, `exponential` retry, the expected target and
+`hmac_matches: true`. Owner operation
+`9a653fc1-d31c-4c1a-9b90-1d1c5100a066`, request `10766`, completed successfully
+at 05:12:49 UTC on 2026-11-03. See the [registration
+receipt](../../supabase/ops/live-release-20261103/evidence/live-daily-webhook-registration.json).
+This establishes registration and configuration; real broadcast-event processing
+still requires the provider acceptance below.
+
+For a new deployment, generate at least 32 random bytes for the webhook HMAC
+and encode them as base64.
 Install that value as `LIVE_DAILY_WEBHOOK_SECRET` before registration. Then call
 Daily's `POST https://api.daily.co/v1/webhooks` with the existing domain API key
 and this shape, supplying the placeholders privately:
@@ -275,6 +314,30 @@ workflow. This template does not silently delete active current recordings.
 
 ## Operational acceptance
 
+### Daily storage verification — blocked
+
+Owner operation `918a5b10-c3cd-4241-99ac-eaae62776330`, request `10769`, reached
+Daily, which returned HTTP **400**, `invalid-request-error`, classified as
+`role_assumption_denied`. The isolated temporary room has
+`cleanup_confirmed: true`. The [storage acceptance
+receipt](../../supabase/ops/live-release-20261103/evidence/live-daily-storage-acceptance.json)
+records the failure and follow-up AWS inspection.
+
+The role re-read confirms Daily account `291871421005`, external ID
+`platinumcircles`, `MaxSessionDuration: 43200`, and no permissions boundary.
+The S3 verification object was absent before and after the attempt. Bounded
+CloudTrail lookups in `us-east-1` and `us-east-2` found no relevant `AssumeRole`
+event; this absence does not identify the cause. No Daily HLS configuration or
+complete broadcast has passed acceptance. Complete the policy/access review
+above, then repeat the provider check; matching IAM fields alone are insufficient.
+
+### Remaining delivery and broadcast checks
+
+The deployed synthetic signer-to-CDN path passed as recorded above. The reusable
+[acceptance instructions](../../supabase/ops/live-release-20261103/CDN_ACCEPTANCE.md)
+separate that result from real provider output and capacity acceptance. The
+temporary fixture has been removed; a new run needs a new isolated fixture.
+
 After deployment, run CloudFront `TestFunction` against the associated store;
 inspect runtime errors and compute utilization. Confirm both cache behaviors,
 OAC and the distribution-specific bucket policy. A local linter cannot establish
@@ -319,10 +382,9 @@ None of those local fixtures establish a real Daily broadcast or deployed AWS
 capacity.
 
 ```sh
-node infrastructure/live/template.mjs
 node infrastructure/live/test/template.test.mjs
 node supabase/tests/live-signing.test.cjs
-cfn-lint infrastructure/live/live-cloudformation.json -r us-east-1
+cfn-lint infrastructure/live/signing-bootstrap-activate.json -r us-east-2
 ```
 
 The audit used `cfn-lint` 1.59.0. Validate the actual target region when deploying

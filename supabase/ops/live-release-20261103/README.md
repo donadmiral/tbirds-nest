@@ -5,8 +5,12 @@
 The Live web and admin applications, the six-unit database release, and all
 eleven Live/media Edge functions have been deployed to production. Live creation
 and chat are enabled. Broadcasting, HLS delivery, recording and clip encoding
-remain disabled until the provider, AWS delivery infrastructure, signing
-configuration and renderer have passed operational acceptance.
+remain disabled pending Daily provider, complete broadcast and renderer
+acceptance. The AWS delivery stack and approved signing keys are installed;
+hosted secret checks passed **10/10**, and synthetic signer-to-CDN delivery
+passed **15/15** on 2026-11-03 UTC. The Daily webhook is `ACTIVE`, but actual
+Daily storage verification failed with `role_assumption_denied`. Broadcast
+admission remains disabled.
 
 This release implements the directory, player and studio; clip editing and
 private media publication; device export and social sharing paths; creator and
@@ -14,10 +18,10 @@ staff controls; and polls, Q and A, chapters and analytics interfaces. Deployed
 code and available UI controls do not establish a successful live broadcast,
 external social publication, device acceptance or measured capacity.
 
-The rollout record below is the release operator's verified state on
-**2026-11-03**, with production endpoint checks completed at
+The initial production endpoint checks completed on **2026-11-03** at
 **01:05:16.420 UTC**. The production endpoint receipt is stored alongside this
-document. The [production web/admin receipt](evidence/production-web-admin.json)
+document; subsequent infrastructure acceptance is recorded below. The
+[production web/admin receipt](evidence/production-web-admin.json)
 separately verifies the custom-domain deployment aliases, HTTP 200 responses from
 the Live directory and clip library, and the admin API's HTTP 401 JSON response
 with private/no-store caching. These results are not inferred from Vercel's
@@ -140,15 +144,10 @@ the domain-name external ID, the narrowly scoped upload verification object,
 CloudFront function association and authenticated browser preflight. The signer
 now rejects uppercase UUID paths that the edge verifier would reject.
 Four infrastructure-contract tests, seven signer/edge tests and seventeen
-provider/maintenance tests passed. CloudFormation lint passed for `us-east-1`
-and the proposed `us-west-2` deployment region. These are local verification
-results, not a completed AWS deployment or successful protected playback.
-
-No authenticated AWS deployment identity was available, and the cloud browser
-could not open the AWS console. No AWS resources or service secrets were
-created. Webhook registration can be completed independently of AWS after its
-HMAC is installed through the protected secret-writing workflow. The signed
-verification ping and provider `ACTIVE` state remain unverified.
+provider/maintenance tests passed. CloudFormation lint passed for `us-east-1`,
+the initially proposed `us-west-2`, and the selected `us-east-2`. These local
+checks preceded the hosted deployment and acceptance below; they are not the
+evidence for successful production delivery.
 
 ### AWS project connection follow-up
 
@@ -156,66 +155,110 @@ The user has since created a project with the new AWS experience and selected
 `us-east-2`. This supersedes the earlier proposed `us-west-2` placement.
 CloudFormation lint also passes for `us-east-2`.
 
-The official AWS remote MCP connection is prepared in ChatGPT with OAuth.
-User approval and AWS authorization are pending, so the project identity,
-plan, permissions and resource access are not yet verified. The MCP service's
-`us-east-1` endpoint does not change the selected delivery region.
-The [setup receipt](evidence/aws-toolkit-setup.json) and
-[prepared connection screenshot](evidence/aws-toolkit-connection-ready.jpg)
-record this state. No AWS resources were created during connection preparation.
+The official remote AWS MCP connection is authenticated. Its `us-east-1`
+service endpoint does not change the selected delivery region. The 2026-11-03
+[setup receipt](evidence/aws-toolkit-setup.json), [prepared connection
+screenshot](evidence/aws-toolkit-connection-ready.jpg), [intermediate connection
+check](evidence/aws-toolkit-connection-check.json) and earlier approval-blocked
+key form remain historical records. Their pending-access and pending-key states
+are superseded by the deployment and signing receipts below.
 
-The later [connection check](evidence/aws-toolkit-connection-check.json)
-confirms plugin installation, but AWS authorization remains incomplete. The
-fresh plugin page shows `Connect`; the redirected AWS sign-in page was
-unavailable in this cloud browser. The exact verified plugin completion page
-and current screenshot are included in that receipt.
-
-Before deployment, inspect the project's organization policies. AWS's published
-new-experience resource control policy denies external vendor role assumption,
-which is expected to affect Daily's required cross-account role. This is a
-documented compatibility concern, not an observed failure in this project.
-See the [infrastructure instructions](../../../infrastructure/live/README.md)
-for the conditional activation and policy-review requirements.
-
-## Current feature gates
-
-### AWS delivery stack deployed, keys pending approval
+### AWS stack, installed keys and hosted delivery acceptance
 
 The [AWS deployment receipt](evidence/aws-live-deployment.json) supersedes the
 earlier AWS connection snapshots. Authenticated STS verified account
-`518317808503`. Stack `platinum-live-production` reached `CREATE_COMPLETE` in
+`518317808503`. Stack `platinum-live-production` is now `UPDATE_COMPLETE` in
 `us-east-2`, and distribution `E15BWQDKI39QKD` reports `Deployed`.
 
 Direct AWS reads verified private S3 access, encryption, bucket ownership,
 versioning, distribution-scoped origin access, Daily's constrained object
 permissions, cache policies and viewer-function associations. Actual unsigned
 GET and OPTIONS requests returned HTTP 403 with CloudFront's
-`FunctionGeneratedResponse` marker. These checks do not prove signed playback
-or Daily role acceptance.
+`FunctionGeneratedResponse` marker. Signed delivery was subsequently verified
+with the isolated fixture described below; Daily role acceptance is separate.
 
 The real bucket, region, Daily role ARN and CDN origin were saved in production
 Supabase. Maintenance request `10710` returned HTTP 200 and confirmed all four
 settings present in the running function. The earlier Daily domain UUID and
 signer URL are also present.
 
-AWS's connected KeyValueStore data client lacks its required CRT dependency.
-The supported private S3 import alternative is prepared with separate stage and
-activate templates. The available stage change set adds only the imported store
-and has not been executed. Ten focused tests, both template lint checks and
-both AWS template validations pass.
+The user explicitly approved all three keys. The [signing installation
+receipt](evidence/live-signing-installation.json) records production Supabase
+installation of `LIVE_CDN_SIGNING_KEY`, `LIVE_CDN_KEY_ID`,
+`LIVE_PLAYBACK_SIGNER_SECRET` and `LIVE_DAILY_WEBHOOK_SECRET`. The connected AWS
+KeyValueStore data client lacks its CRT dependency, so the approved private S3
+import completed through the control API. Both stage and activation change sets
+were executed. Store `5dfd608b-fcc5-4881-b4b4-69962fe289b0` is associated with
+the viewer function at `LIVE`; the old empty store remains in the stack.
 
-Automatic approval review blocked the first secret upload because explicit
-permission to transmit new Live service credentials was missing. No seed was
-uploaded and no new key was installed. The
-[prepared Supabase form](evidence/aws-live-key-approval.jpg) shows the pending
-key names without their values. CDN signing, signer authentication and Daily
-webhook registration await that approval, followed by functional acceptance.
+| Hosted evidence, 2026-11-03 UTC | Result and scope |
+|---|---|
+| [Secret acceptance](evidence/live-secret-acceptance.json), 04:55 | **10/10**: valid and rejected webhook HMAC requests; signer bearer, exact capability, expiry, session and traversal checks. The webhook test is operator-generated, not proof of Daily registration. |
+| [CDN acceptance](evidence/live-cdn-acceptance.json), 05:06 | **15/15**: exact hashes for all five HLS fixture files, relative child delivery, HEAD, 206 Range, 204 authenticated OPTIONS, shared-cache hits and expected 403 denials for invalid capabilities, wrong scope, writes and direct unauthenticated S3. |
+| [Seed cleanup](evidence/live-signing-installation.json) | Exact temporary seed version erased after the first successful signer-to-CDN manifest request; re-list found zero versions and zero delete markers. |
+| [Fixture cleanup](evidence/live-cdn-fixture-cleanup.json), 05:07 | All five fixture versions erased; re-list found zero versions and zero delete markers. |
+| [Daily webhook registration](evidence/live-daily-webhook-registration.json), 05:12 | Registered `ACTIVE`; verified domain, all five streaming events, exponential retry, target match and HMAC match. |
+| [Daily storage acceptance](evidence/live-daily-storage-acceptance.json) | Failed: provider HTTP 400, `invalid-request-error`, classified `role_assumption_denied`. Temporary room cleanup confirmed. |
 
-The AWS Free plan was active and reported USD 100 credits during preflight.
-Organization policy inspection was denied, so Daily's external role access
-remains unverified. No paid upgrade, advanced-feature activation, organization
-policy change or admission expansion was performed. Five-million-user capacity
-remains unmeasured.
+The [first CDN attempt](evidence/live-cdn-acceptance-before-browser-origin.json)
+failed because its request omitted browser Origin. The helper now sends the
+browser header on CDN requests, and the corrected hosted run passed all checks.
+The failed receipt remains historical; no failing check was removed or weakened.
+
+Future stack updates must preserve the activated
+[template](../../../infrastructure/live/signing-bootstrap-activate.json),
+`SigningKeysImported` and its association. Applying the default template would
+switch the function to the original empty store. The activated template's
+`ImportSource` records an erased historical seed; replacing or recreating that
+store requires a new approved private seed and reviewed activation plan. See the
+[infrastructure runbook](../../../infrastructure/live/README.md) and
+[CDN acceptance instructions](CDN_ACCEPTANCE.md).
+
+### Daily provider outcome and next review
+
+Webhook `8bec1b00-0155-4534-b70f-c856d01ab218` is `ACTIVE` for the verified
+`platinumcircles` domain and UUID `bfe7e3aa-0369-4bd6-9db1-d882df729ddf`.
+The provider re-read confirmed `streaming.started`, `streaming.updated`,
+`streaming.ended`, `streaming.error` and `streaming.warning`, `exponential`
+retry, the expected target and `hmac_matches: true`. Owner operation
+`9a653fc1-d31c-4c1a-9b90-1d1c5100a066`, request `10766`, completed successfully.
+The registration receipt contains only sanitized results.
+
+Storage operation `918a5b10-c3cd-4241-99ac-eaae62776330`, request `10769`,
+failed at Daily with HTTP **400**, `invalid-request-error`, classified
+`role_assumption_denied`. Its temporary room has `cleanup_confirmed: true`.
+The AWS role re-read matches Daily account `291871421005`, external ID
+`platinumcircles` and a 43,200-second session duration, with no permissions
+boundary. The S3 verification object was absent before and after the attempt.
+Bounded CloudTrail lookups in `us-east-1` and `us-east-2` found no relevant
+`AssumeRole` event; that absence does not establish the cause. Daily HLS
+configuration and a complete broadcast have not passed acceptance.
+
+The next task is an owner-authorized, read-only inspection of the AWS project's
+attached and inherited SCPs/RCPs, the actual denying statement and policy
+mutability. Earlier inspection returned `AccessDenied`, so the actual policy
+remains unknown. AWS explicitly documents its published new-experience managed
+RCP as **not modifiable**. If that immutable policy is the applicable blocker,
+**stop** and seek a supported resolution from the responsible AWS/account owner;
+do not edit or detach it, or activate advanced features as a workaround.
+
+The [Daily role access review](../../../infrastructure/live/daily-role-access-review.json)
+is **review-only, not ready to apply**, and authorizes no policy or account
+action. Only an identified editable customer-managed deny can proceed to a
+concrete, separately reviewed minimal diff. Preserve the exact Daily role,
+vendor account, external-ID restriction and unrelated protections; rerun
+isolated Daily storage verification only after an authorized correction.
+
+Automatic approval review blocked opening AWS Settings: approval to install
+the keys did not authorize an account-management or billing flow. No upgrade,
+advanced-feature activation, organization policy change or admission expansion
+was performed. The AWS Free plan reported USD 100 credits during preflight;
+the observed failure does **not** prove that a paid upgrade is required or
+sufficient. No upgrade or activation is promised to make the policy editable or
+resolve Daily access. Those account/billing actions remain outside the review.
+Five-million-user capacity remains unmeasured.
+
+## Current feature gates
 
 | Capability | Production state |
 |---|---|
@@ -292,30 +335,20 @@ distribution was performed; distribution remains held.
 
 ## Activation blockers and acceptance
 
-Production has `DAILY_API_KEY`, the verified `LIVE_DAILY_DOMAIN_ID`, and
-`LIVE_PLAYBACK_SIGNER_URL`. The latest running-function inspection reported
-these six values absent:
+Production has the Daily API key and verified domain UUID, signer URL and
+credential, bucket, region, Daily role ARN, CDN origin, matching CDN key/ID and
+webhook HMAC. The initial missing-setting reports are superseded by the hosted
+receipts above. AWS storage/CDN and the synthetic authenticated delivery path
+are accepted for the isolated fixture, and the Daily webhook is `ACTIVE`.
+Actual Daily storage access is blocked by the provider's role-assumption denial;
+the complete provider broadcast remains unaccepted. The next review and its
+authorization boundary are recorded above.
 
-- `LIVE_HLS_BUCKET`
-- `LIVE_HLS_REGION`
-- `LIVE_HLS_CDN_ORIGIN`
-- `LIVE_HLS_ASSUME_ROLE_ARN`
-- `LIVE_DAILY_WEBHOOK_SECRET`
-- `LIVE_PLAYBACK_SIGNER_SECRET`
-
-The AWS delivery stack, operational CDN signing configuration, and renderer
-service have not been deployed or connected. The `live-sign` Edge code is
-`ACTIVE`, but its presence does not supply the missing signer credentials,
-CloudFront key store or CDN delivery configuration. `LIVE_CDN_SIGNING_KEY` and
-`LIVE_CDN_KEY_ID` also remain unconfigured; the current maintenance presence map
-does not report those two names. The Daily webhook receiver is deployed, but
-the HMAC secret and provider registration have not been installed or verified.
-The [infrastructure
-runbook](../../../infrastructure/live/README.md) specifies the AWS resources,
-signing key and provider setup. The [renderer
-runbook](../../../workers/live-clips/README.md) specifies the scoped broker
-credential, scheduler, runtime limits and activation RPC. Secret values and URL
-bearer capabilities must not be added to these release artifacts.
+The external renderer and scheduler have not been deployed or accepted. The
+[renderer runbook](../../../workers/live-clips/README.md) specifies its scoped
+broker credential, runtime limits and activation RPC. Native binary and device
+acceptance, full broadcast flows and measured capacity remain held. Secret
+values and URL bearer capabilities must not be added to these release artifacts.
 
 After those services are configured, acceptance must establish:
 

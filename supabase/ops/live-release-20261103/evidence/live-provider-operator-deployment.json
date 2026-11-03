@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "scope": "Owner-issued Daily webhook registration and isolated storage verification",
+  "source_hashes": {
+    "supabase/functions/live-provider-configure/index.ts": "fbb8e53be641926d4400634ee0cc94266c914f366909b3656331d5b05a0b49a3",
+    "supabase/functions/live-provider-configure/handler.ts": "a560d28624d1cfe19919baef1471041f54605f08ac24754505662132abcfd60c",
+    "supabase/functions/live-provider-configure/storage.ts": "acfedd1fcb44c6780d209830838fd2f643d865cdbd6697601873fc8c41ed8262",
+    "supabase/functions/_shared/serviceRoleFetch.ts": "ace9ffd7da959617a6840f863a04c6b6a8cc79237f33b4dadc52d0af092e09a2",
+    "supabase/functions/_shared/boundedFetch.ts": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147"
+  },
+  "migration": {
+    "path": "supabase/migrations/20261103050013_live_provider_registration_operator.sql",
+    "sha256": "93aa81fecbc205b563499322b409e79548367daf9341179b90e99eb8c00249d6"
+  },
+  "qa": {
+    "project": "uaulhuelcfkjwojtymmw",
+    "migration": {
+      "success": true
+    },
+    "privileges": [
+      {
+        "role_name": "anon",
+        "can_enqueue": false,
+        "can_claim": false,
+        "can_finish": false,
+        "can_read_operations": false,
+        "can_insert_operations": false
+      },
+      {
+        "role_name": "authenticated",
+        "can_enqueue": false,
+        "can_claim": false,
+        "can_finish": false,
+        "can_read_operations": false,
+        "can_insert_operations": false
+      },
+      {
+        "role_name": "service_role",
+        "can_enqueue": false,
+        "can_claim": true,
+        "can_finish": true,
+        "can_read_operations": false,
+        "can_insert_operations": false
+      }
+    ],
+    "deployment": {
+      "id": "a78bff41-56e4-4540-8f5a-041db34c5db1",
+      "slug": "live-provider-configure",
+      "name": "live-provider-configure",
+      "status": "ACTIVE",
+      "version": 1,
+      "created_at": 1793682673687,
+      "updated_at": 1793682673687,
+      "verify_jwt": false,
+      "import_map": false,
+      "entrypoint_path": "file:///tmp/user_fn_uaulhuelcfkjwojtymmw_a78bff41-56e4-4540-8f5a-041db34c5db1_1/source/supabase/functions/live-provider-configure/index.ts",
+      "ezbr_sha256": "4379070890d90e041c8472b76598c3e9dcafeb1d4a878a801e17ef7d1d532777"
+    }
+  },
+  "production": {
+    "project": "prlkikhckbifseosbukl",
+    "migration": {
+      "success": true
+    },
+    "privileges": [
+      {
+        "role_name": "anon",
+        "can_enqueue": false,
+        "can_claim": false,
+        "can_finish": false,
+        "can_read_operations": false,
+        "can_insert_operations": false
+      },
+      {
+        "role_name": "authenticated",
+        "can_enqueue": false,
+        "can_claim": false,
+        "can_finish": false,
+        "can_read_operations": false,
+        "can_insert_operations": false
+      },
+      {
+        "role_name": "service_role",
+        "can_enqueue": false,
+        "can_claim": true,
+        "can_finish": true,
+        "can_read_operations": false,
+        "can_insert_operations": false
+      }
+    ],
+    "deployment": {
+      "id": "d90f2487-714a-4832-a01b-e338ebd40f63",
+      "slug": "live-provider-configure",
+      "name": "live-provider-configure",
+      "status": "ACTIVE",
+      "version": 1,
+      "created_at": 1793682732443,
+      "updated_at": 1793682732443,
+      "verify_jwt": false,
+      "import_map": false,
+      "entrypoint_path": "file:///tmp/user_fn_prlkikhckbifseosbukl_d90f2487-714a-4832-a01b-e338ebd40f63_1/source/supabase/functions/live-provider-configure/index.ts",
+      "ezbr_sha256": "4379070890d90e041c8472b76598c3e9dcafeb1d4a878a801e17ef7d1d532777"
+    }
+  },
+  "provider_operations": {
+    "register_webhook": "completed, ACTIVE, request10766",
+    "verify_storage": "failed role assumption, room cleanup confirmed, request10769"
+  },
+  "checked_at": "2026-11-03T05:12:38.227310+00:00"
+}

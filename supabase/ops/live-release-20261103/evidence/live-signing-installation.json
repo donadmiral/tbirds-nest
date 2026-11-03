@@ -1,0 +1,504 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-03T05:04:42.311975+00:00",
+  "account": "518317808503",
+  "region": "us-east-2",
+  "authorization": "User approved installing the three prepared keys in AWS, Supabase, and Daily.",
+  "seed_metadata": {
+    "ContentLength": 117,
+    "ContentType": "application/json",
+    "ServerSideEncryption": "AES256",
+    "VersionId": "FLtLTZmrIbiAHVblXcPPUbhZ9JzlOKON",
+    "ETag": "\"523c1a06481320dfab19616a7d4a9203\"",
+    "LastModified": "2026-11-03T04:52:55+00:00"
+  },
+  "stage": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "executed": true,
+      "change_set_id": "arn:aws:cloudformation:us-east-2:518317808503:changeSet/live-signing-import-stage-20261103-v2/001fb948-aca5-400d-bd1b-3a6caf304967"
+    },
+    "api_calls": [
+      {
+        "service": "cloudformation",
+        "operation": "DescribeChangeSet",
+        "status": "success",
+        "n_items": {
+          "Parameters": 2,
+          "NotificationARNs": 0,
+          "Capabilities": 1,
+          "Tags": 5,
+          "Changes": 1
+        }
+      },
+      {
+        "service": "cloudformation",
+        "operation": "ExecuteChangeSet",
+        "status": "success"
+      }
+    ]
+  },
+  "activation_review": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "ChangeSetId": "arn:aws:cloudformation:us-east-2:518317808503:changeSet/live-signing-import-activate-20261103/fb8d9555-2131-4e29-bd90-d2e375fd36ac",
+      "Status": "CREATE_COMPLETE",
+      "ExecutionStatus": "AVAILABLE",
+      "Changes": [
+        {
+          "Type": "Resource",
+          "ResourceChange": {
+            "Action": "Modify",
+            "LogicalResourceId": "LiveCdn",
+            "PhysicalResourceId": "E15BWQDKI39QKD",
+            "ResourceType": "AWS::CloudFront::Distribution",
+            "Replacement": "False",
+            "Scope": [
+              "Properties"
+            ],
+            "Details": [
+              {
+                "Target": {
+                  "Attribute": "Properties",
+                  "Name": "DistributionConfig",
+                  "RequiresRecreation": "Never"
+                },
+                "Evaluation": "Dynamic",
+                "ChangeSource": "ResourceAttribute",
+                "CausingEntity": "ViewerAuthorization.FunctionMetadata.FunctionARN"
+              }
+            ]
+          }
+        },
+        {
+          "Type": "Resource",
+          "ResourceChange": {
+            "Action": "Modify",
+            "LogicalResourceId": "ViewerAuthorization",
+            "PhysicalResourceId": "arn:aws:cloudfront::518317808503:function/platinum-live-production-authorize",
+            "ResourceType": "AWS::CloudFront::Function",
+            "Replacement": "False",
+            "Scope": [
+              "Properties"
+            ],
+            "Details": [
+              {
+                "Target": {
+                  "Attribute": "Properties",
+                  "Name": "FunctionConfig",
+                  "RequiresRecreation": "Never"
+                },
+                "Evaluation": "Static",
+                "ChangeSource": "DirectModification"
+              }
+            ]
+          }
+        }
+      ],
+      "Tags": [
+        {
+          "Key": "Project",
+          "Value": "PlatinumCircles"
+        },
+        {
+          "Key": "ManagedBy",
+          "Value": "CloudFormation"
+        },
+        {
+          "Key": "TemplateSHA256",
+          "Value": "3ec36c4908f6da683d97f253864f1199fa7d4de68d6f4ed5cf1e76114215e663"
+        },
+        {
+          "Key": "Environment",
+          "Value": "production"
+        },
+        {
+          "Key": "Purpose",
+          "Value": "LiveDelivery"
+        }
+      ],
+      "Parameters": [
+        {
+          "ParameterKey": "DailyExternalId",
+          "ParameterValue": "platinumcircles"
+        },
+        {
+          "ParameterKey": "DailyAccountId",
+          "ParameterValue": "291871421005"
+        }
+      ]
+    },
+    "api_calls": [
+      {
+        "service": "cloudformation",
+        "operation": "DescribeChangeSet",
+        "status": "success",
+        "n_items": {
+          "Parameters": 2,
+          "NotificationARNs": 0,
+          "Capabilities": 1,
+          "Tags": 5,
+          "Changes": 2
+        }
+      }
+    ]
+  },
+  "activation": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "executed": true,
+      "change_set_id": "arn:aws:cloudformation:us-east-2:518317808503:changeSet/live-signing-import-activate-20261103/fb8d9555-2131-4e29-bd90-d2e375fd36ac",
+      "signing_store_arn": "arn:aws:cloudfront::518317808503:key-value-store/5dfd608b-fcc5-4881-b4b4-69962fe289b0"
+    },
+    "api_calls": [
+      {
+        "service": "cloudformation",
+        "operation": "DescribeChangeSet",
+        "status": "success",
+        "n_items": {
+          "Parameters": 2,
+          "NotificationARNs": 0,
+          "Capabilities": 1,
+          "Tags": 5,
+          "Changes": 2
+        }
+      },
+      {
+        "service": "cloudfront",
+        "operation": "DescribeKeyValueStore",
+        "status": "success"
+      },
+      {
+        "service": "cloudformation",
+        "operation": "ExecuteChangeSet",
+        "status": "success"
+      }
+    ]
+  },
+  "activation_complete": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "stack": {
+        "StackId": "arn:aws:cloudformation:us-east-2:518317808503:stack/platinum-live-production/f3b7e1c0-d73c-11f1-8dc8-02a0485692f5",
+        "StackStatus": "UPDATE_COMPLETE",
+        "Outputs": [
+          {
+            "OutputKey": "CdnOrigin",
+            "OutputValue": "https://d34dlehokbfej7.cloudfront.net"
+          },
+          {
+            "OutputKey": "SigningStoreArn",
+            "OutputValue": "arn:aws:cloudfront::518317808503:key-value-store/5dfd608b-fcc5-4881-b4b4-69962fe289b0"
+          },
+          {
+            "OutputKey": "ViewerFunctionName",
+            "OutputValue": "platinum-live-production-authorize"
+          },
+          {
+            "OutputKey": "DailyRoleArn",
+            "OutputValue": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI"
+          },
+          {
+            "OutputKey": "Bucket",
+            "OutputValue": "platinum-live-production-livebucket-6v2z2lrobdn3"
+          },
+          {
+            "OutputKey": "Region",
+            "OutputValue": "us-east-2"
+          },
+          {
+            "OutputKey": "DistributionId",
+            "OutputValue": "E15BWQDKI39QKD"
+          },
+          {
+            "OutputKey": "ViewerFunctionArn",
+            "OutputValue": "arn:aws:cloudfront::518317808503:function/platinum-live-production-authorize"
+          }
+        ],
+        "LastUpdatedTime": "2026-11-03T04:56:41.068000+00:00"
+      },
+      "seed_versions": {
+        "IsTruncated": false,
+        "Versions": [
+          {
+            "Key": "_bootstrap/6cc0af56e669412599f2dd5cba549cbd.json",
+            "VersionId": "FLtLTZmrIbiAHVblXcPPUbhZ9JzlOKON",
+            "IsLatest": true,
+            "LastModified": "2026-11-03T04:52:55+00:00",
+            "Size": 117,
+            "ETag": "\"523c1a06481320dfab19616a7d4a9203\""
+          }
+        ],
+        "DeleteMarkers": []
+      }
+    },
+    "api_calls": [
+      {
+        "service": "cloudformation",
+        "operation": "DescribeStacks",
+        "status": "success",
+        "n_items": {
+          "Stacks": 1
+        }
+      },
+      {
+        "service": "s3",
+        "operation": "ListObjectVersions",
+        "status": "success",
+        "n_items": {
+          "Versions": 1
+        }
+      }
+    ]
+  },
+  "live_function": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "stack": {
+        "StackId": "arn:aws:cloudformation:us-east-2:518317808503:stack/platinum-live-production/f3b7e1c0-d73c-11f1-8dc8-02a0485692f5",
+        "StackStatus": "UPDATE_COMPLETE_CLEANUP_IN_PROGRESS",
+        "Outputs": [
+          {
+            "OutputKey": "CdnOrigin",
+            "OutputValue": "https://d34dlehokbfej7.cloudfront.net"
+          },
+          {
+            "OutputKey": "SigningStoreArn",
+            "OutputValue": "arn:aws:cloudfront::518317808503:key-value-store/5dfd608b-fcc5-4881-b4b4-69962fe289b0"
+          },
+          {
+            "OutputKey": "ViewerFunctionName",
+            "OutputValue": "platinum-live-production-authorize"
+          },
+          {
+            "OutputKey": "DailyRoleArn",
+            "OutputValue": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI"
+          },
+          {
+            "OutputKey": "Bucket",
+            "OutputValue": "platinum-live-production-livebucket-6v2z2lrobdn3"
+          },
+          {
+            "OutputKey": "Region",
+            "OutputValue": "us-east-2"
+          },
+          {
+            "OutputKey": "DistributionId",
+            "OutputValue": "E15BWQDKI39QKD"
+          },
+          {
+            "OutputKey": "ViewerFunctionArn",
+            "OutputValue": "arn:aws:cloudfront::518317808503:function/platinum-live-production-authorize"
+          }
+        ]
+      },
+      "function": {
+        "ETag": "E3UN6WX5RRO2AG",
+        "FunctionSummary": {
+          "Name": "platinum-live-production-authorize",
+          "Status": "DEPLOYED",
+          "FunctionConfig": {
+            "Comment": "Authorize every HLS object before shared-cache lookup.",
+            "Runtime": "cloudfront-js-2.0",
+            "KeyValueStoreAssociations": {
+              "Quantity": 1,
+              "Items": [
+                {
+                  "KeyValueStoreARN": "arn:aws:cloudfront::518317808503:key-value-store/5dfd608b-fcc5-4881-b4b4-69962fe289b0"
+                }
+              ]
+            }
+          },
+          "FunctionMetadata": {
+            "FunctionARN": "arn:aws:cloudfront::518317808503:function/platinum-live-production-authorize",
+            "Stage": "LIVE",
+            "CreatedTime": "2026-11-03T04:15:43.228000+00:00",
+            "LastModifiedTime": "2026-11-03T04:56:48.501000+00:00"
+          }
+        }
+      },
+      "distribution": {
+        "Id": "E15BWQDKI39QKD",
+        "Status": "Deployed",
+        "DomainName": "d34dlehokbfej7.cloudfront.net",
+        "ETag": "ETVPDKIKX0DER",
+        "DefaultCacheBehavior": {
+          "TargetOriginId": "PrivateLiveStorage",
+          "TrustedSigners": {
+            "Enabled": false,
+            "Quantity": 0
+          },
+          "TrustedKeyGroups": {
+            "Enabled": false,
+            "Quantity": 0
+          },
+          "ViewerProtocolPolicy": "https-only",
+          "AllowedMethods": {
+            "Quantity": 3,
+            "Items": [
+              "HEAD",
+              "GET",
+              "OPTIONS"
+            ],
+            "CachedMethods": {
+              "Quantity": 2,
+              "Items": [
+                "HEAD",
+                "GET"
+              ]
+            }
+          },
+          "SmoothStreaming": false,
+          "Compress": true,
+          "LambdaFunctionAssociations": {
+            "Quantity": 0
+          },
+          "FunctionAssociations": {
+            "Quantity": 1,
+            "Items": [
+              {
+                "FunctionARN": "arn:aws:cloudfront::518317808503:function/platinum-live-production-authorize",
+                "EventType": "viewer-request"
+              }
+            ]
+          },
+          "FieldLevelEncryptionId": "",
+          "CachePolicyId": "0215eff8-4f4e-4914-a9fc-58b9bf15cb9b",
+          "ResponseHeadersPolicyId": "8cde5ea4-1678-4380-9fc1-b9a9425eae33",
+          "GrpcConfig": {
+            "Enabled": false
+          }
+        },
+        "CacheBehaviors": {
+          "Quantity": 1,
+          "Items": [
+            {
+              "PathPattern": "*.m3u8",
+              "TargetOriginId": "PrivateLiveStorage",
+              "TrustedSigners": {
+                "Enabled": false,
+                "Quantity": 0
+              },
+              "TrustedKeyGroups": {
+                "Enabled": false,
+                "Quantity": 0
+              },
+              "ViewerProtocolPolicy": "https-only",
+              "AllowedMethods": {
+                "Quantity": 3,
+                "Items": [
+                  "HEAD",
+                  "GET",
+                  "OPTIONS"
+                ],
+                "CachedMethods": {
+                  "Quantity": 2,
+                  "Items": [
+                    "HEAD",
+                    "GET"
+                  ]
+                }
+              },
+              "SmoothStreaming": false,
+              "Compress": true,
+              "LambdaFunctionAssociations": {
+                "Quantity": 0
+              },
+              "FunctionAssociations": {
+                "Quantity": 1,
+                "Items": [
+                  {
+                    "FunctionARN": "arn:aws:cloudfront::518317808503:function/platinum-live-production-authorize",
+                    "EventType": "viewer-request"
+                  }
+                ]
+              },
+              "FieldLevelEncryptionId": "",
+              "CachePolicyId": "36cab88d-1c87-40ba-a792-d90ef404e416",
+              "ResponseHeadersPolicyId": "8cde5ea4-1678-4380-9fc1-b9a9425eae33",
+              "GrpcConfig": {
+                "Enabled": false
+              }
+            }
+          ]
+        }
+      }
+    },
+    "api_calls": [
+      {
+        "service": "cloudformation",
+        "operation": "DescribeStacks",
+        "status": "success",
+        "n_items": {
+          "Stacks": 1
+        }
+      },
+      {
+        "service": "cloudfront",
+        "operation": "DescribeFunction",
+        "status": "success"
+      },
+      {
+        "service": "cloudfront",
+        "operation": "GetDistribution",
+        "status": "success"
+      }
+    ]
+  },
+  "production_secret_installation": {
+    "at": "2026-11-03T04:53:29Z",
+    "project_ref": "prlkikhckbifseosbukl",
+    "digests": {
+      "LIVE_CDN_SIGNING_KEY": "f027c7df271a3992ab316651cfb70d14710dd9d4e8136b422a1bd79c371e162e",
+      "LIVE_PLAYBACK_SIGNER_SECRET": "e0989a419a91acc5a211ebdc3af1c5bdaade43ac77d19a0a3dc688569b50fc45",
+      "LIVE_DAILY_WEBHOOK_SECRET": "247e880e05cb57b080c1dc721d4cc9ff6d819154fed64c88be7de92f41ac99c5",
+      "LIVE_CDN_KEY_ID": "c36bc1dee50a4bf12769b1571e39e1476d5d965cefa2f487447f27a77aeff987"
+    }
+  },
+  "status": "Signing active. Hosted secret checks10/10 and CDN delivery checks15/15 passed. Temporary import seed and fixture object versions fully erased. Daily webhook registered ACTIVE; Daily role access remains blocked, recorded separately.",
+  "temporary_seed_cleanup": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "bucket": "platinum-live-production-livebucket-6v2z2lrobdn3",
+      "key": "_bootstrap/6cc0af56e669412599f2dd5cba549cbd.json",
+      "deleted_version_id": "FLtLTZmrIbiAHVblXcPPUbhZ9JzlOKON",
+      "remaining_versions": 0,
+      "remaining_delete_markers": 0,
+      "verified_erased": true,
+      "acceptance_basis": "The real signer-issued capability retrieved the expected private manifest through the activated CloudFront function."
+    },
+    "api_calls": [
+      {
+        "service": "s3",
+        "operation": "ListObjectVersions",
+        "status": "success",
+        "n_items": {
+          "Versions": 1
+        }
+      },
+      {
+        "service": "s3",
+        "operation": "DeleteObject",
+        "status": "success"
+      },
+      {
+        "service": "s3",
+        "operation": "ListObjectVersions",
+        "status": "success"
+      }
+    ]
+  },
+  "acceptance_receipts": [
+    "live-secret-acceptance.json",
+    "live-cdn-acceptance.json",
+    "live-cdn-fixture-cleanup.json",
+    "live-daily-webhook-registration.json",
+    "live-daily-storage-acceptance.json"
+  ]
+}

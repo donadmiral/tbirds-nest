@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "project_ref": "prlkikhckbifseosbukl",
+  "webhook_url": "https://prlkikhckbifseosbukl.supabase.co/functions/v1/live-provider-webhook",
+  "dispatch": [
+    {
+      "operation": {
+        "request_id": 10766,
+        "operation_id": "9a653fc1-d31c-4c1a-9b90-1d1c5100a066"
+      }
+    }
+  ],
+  "verification": [
+    {
+      "evidence": {
+        "http": {
+          "id": 10766,
+          "ok": true,
+          "error": null,
+          "action": "register_webhook",
+          "result": {
+            "code": "WEBHOOK_REGISTERED",
+            "resource_id": "8bec1b00-0155-4534-b70f-c856d01ab218",
+            "mutation_attempted": true,
+            "configuration_matches": true
+          },
+          "provider": {
+            "state": "ACTIVE",
+            "domain_id": "bfe7e3aa-0369-4bd6-9db1-d882df729ddf",
+            "retry_type": "exponential",
+            "webhook_id": "8bec1b00-0155-4534-b70f-c856d01ab218",
+            "domain_name": "platinumcircles",
+            "event_types": [
+              "streaming.started",
+              "streaming.updated",
+              "streaming.ended",
+              "streaming.error",
+              "streaming.warning"
+            ],
+            "hmac_matches": true,
+            "target_matches": true
+          },
+          "timed_out": false,
+          "status_code": 200,
+          "operation_id": "9a653fc1-d31c-4c1a-9b90-1d1c5100a066"
+        },
+        "audit": {
+          "id": "9a653fc1-d31c-4c1a-9b90-1d1c5100a066",
+          "action": "register_webhook",
+          "reason": "Approved Live webhook registration and verification",
+          "result": {
+            "code": "WEBHOOK_REGISTERED",
+            "resource_id": "8bec1b00-0155-4534-b70f-c856d01ab218",
+            "mutation_attempted": true,
+            "configuration_matches": true
+          },
+          "succeeded": true,
+          "claimed_at": "2026-11-03T05:12:48.361715+00:00",
+          "created_at": "2026-11-03T05:12:47.349762+00:00",
+          "expires_at": "2026-11-03T05:14:47.349762+00:00",
+          "request_id": 10766,
+          "finished_at": "2026-11-03T05:12:49.840042+00:00",
+          "requested_by": "postgres",
+          "project_origin": "https://prlkikhckbifseosbukl.supabase.co"
+        }
+      }
+    }
+  ],
+  "checked_at": "2026-11-03T05:13:21.611572+00:00",
+  "provider_authentication": "Existing Daily API key remains in the Edge environment; the operator authenticates to Daily server-side.",
+  "secret_values_in_receipt": false
+}

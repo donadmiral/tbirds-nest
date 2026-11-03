@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "project_ref": "prlkikhckbifseosbukl",
+  "dispatch": [
+    {
+      "operation": {
+        "request_id": 10769,
+        "operation_id": "918a5b10-c3cd-4241-99ac-eaae62776330"
+      }
+    }
+  ],
+  "verification": [
+    {
+      "evidence": {
+        "http": {
+          "id": 10769,
+          "ok": false,
+          "error": null,
+          "action": "verify_storage",
+          "result": {
+            "code": "STORAGE_VERIFICATION_FAILED",
+            "resource_id": "918a5b10-c3cd-4241-99ac-eaae62776330",
+            "provider_error": "invalid-request-error",
+            "provider_reason": "role_assumption_denied",
+            "provider_status": 400,
+            "cleanup_confirmed": true,
+            "mutation_attempted": true,
+            "configuration_matches": false
+          },
+          "provider": null,
+          "timed_out": false,
+          "status_code": 503,
+          "operation_id": "918a5b10-c3cd-4241-99ac-eaae62776330"
+        },
+        "audit": {
+          "id": "918a5b10-c3cd-4241-99ac-eaae62776330",
+          "action": "verify_storage",
+          "reason": "Approved Daily storage role and HLS configuration acceptance",
+          "result": {
+            "code": "STORAGE_VERIFICATION_FAILED",
+            "resource_id": "918a5b10-c3cd-4241-99ac-eaae62776330",
+            "provider_error": "invalid-request-error",
+            "provider_reason": "role_assumption_denied",
+            "provider_status": 400,
+            "cleanup_confirmed": true,
+            "mutation_attempted": true,
+            "configuration_matches": false
+          },
+          "succeeded": false,
+          "claimed_at": "2026-11-03T05:14:03.145713+00:00",
+          "created_at": "2026-11-03T05:14:02.69184+00:00",
+          "expires_at": "2026-11-03T05:16:02.69184+00:00",
+          "request_id": 10769,
+          "finished_at": "2026-11-03T05:14:03.619759+00:00",
+          "requested_by": "postgres",
+          "project_origin": "https://prlkikhckbifseosbukl.supabase.co"
+        }
+      }
+    }
+  ],
+  "aws_probe_before": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "key": "daily-co-test-upload.txt",
+      "truncated": false,
+      "versions": [],
+      "delete_markers": []
+    },
+    "api_calls": [
+      {
+        "service": "s3",
+        "operation": "ListObjectVersions",
+        "status": "success"
+      }
+    ]
+  },
+  "aws_postflight": {
+    "status": "success",
+    "stdout": "",
+    "return_value": {
+      "role": {
+        "RoleName": "platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+        "Arn": "arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "arn:aws:iam::291871421005:root"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": "platinumcircles"
+                }
+              }
+            }
+          ]
+        },
+        "MaxSessionDuration": 43200,
+        "RoleLastUsed": {}
+      },
+      "cloudtrail_us_east_1": {
+        "events": [],
+        "next_token_present": false
+      },
+      "cloudtrail_us_east_2": {
+        "events": [],
+        "next_token_present": false
+      },
+      "s3_probe_after": {
+        "truncated": false,
+        "versions": [],
+        "delete_markers": []
+      }
+    },
+    "api_calls": [
+      {
+        "service": "iam",
+        "operation": "GetRole",
+        "status": "success"
+      },
+      {
+        "service": "cloudtrail",
+        "operation": "LookupEvents",
+        "status": "success",
+        "n_items": {
+          "Events": 0
+        }
+      },
+      {
+        "service": "cloudtrail",
+        "operation": "LookupEvents",
+        "status": "success",
+        "n_items": {
+          "Events": 0
+        }
+      },
+      {
+        "service": "s3",
+        "operation": "ListObjectVersions",
+        "status": "success"
+      }
+    ]
+  },
+  "organization_policy_access": {
+    "api_calls": [
+      {
+        "service": "organizations",
+        "operation": "DescribeOrganization",
+        "status": "success"
+      },
+      {
+        "service": "organizations",
+        "operation": "ListParents",
+        "status": "error",
+        "error": "AccessDeniedException: An error occurred (AccessDeniedException) when calling the ListParents operation: You don't have permissions to access this resource."
+      },
+      {
+        "service": "organizations",
+        "operation": "ListPoliciesForTarget",
+        "status": "error",
+        "error": "AccessDeniedException: An error occurred (AccessDeniedException) when calling the ListPoliciesForTarget operation: You don't have permissions to access this resource."
+      },
+      {
+        "service": "organizations",
+        "operation": "ListPoliciesForTarget",
+        "status": "error",
+        "error": "AccessDeniedException: An error occurred (AccessDeniedException) when calling the ListPoliciesForTarget operation: You don't have permissions to access this resource."
+      }
+    ],
+    "formatter_error": "NameError: name 'ClientError' is not defined",
+    "attached_policy_contents_obtained": false
+  },
+  "interpretation": {
+    "observed": "Daily rejected the storage setup while attempting to assume the configured AWS role.",
+    "cause": "The exact attached or inherited deny remains unverified. Published new-experience resource restrictions are consistent with this result.",
+    "broadcast_started": false,
+    "temporary_room_cleanup_confirmed": true,
+    "hls_configuration_verified": false
+  },
+  "approval_boundary": {
+    "action": "Open https://settings.aws.com for owner-level account/policy review",
+    "outcome": "Rejected by automatic approval review before browser navigation",
+    "reason": "The key-installation approval did not authorize the account-management, potential billing or advanced-feature activation flow.",
+    "account_or_organization_changes_performed": false
+  },
+  "next_step": "Owner-authorized inspection of actual effective policies and mutability, then a reviewed exact-role correction if supported, followed by isolated storage acceptance.",
+  "checked_at": "2026-11-03T05:18:22.593711+00:00"
+}
