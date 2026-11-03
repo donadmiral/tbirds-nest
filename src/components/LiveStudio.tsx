@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { LiveIcon } from './LiveUi';
 import Daily, { type DailyCall, type DailyParticipant } from '@daily-co/react-native-daily-js';
 import { useTheme } from '../theme/useTheme';
 import { ensureCameraPermission, ensureMicrophonePermission } from '../services/devicePermissions';
@@ -11,12 +13,13 @@ import { useAuthStore } from '../stores/authStore';
 import { registerLiveStageRelease, releaseLiveStageMedia } from '../services/liveMediaSession';
 import { settleCallOperation } from '../services/nativeCallRecovery';
 
-export function LiveStudio({ sessionId, canControl, streamState, onChanged }: { sessionId: string; canControl: boolean; streamState: string; onChanged(): void }) {
+export function LiveStudio({ sessionId, canControl, streamState, onChanged, autoPreview = false }: { sessionId: string; autoPreview?: boolean; canControl: boolean; streamState: string; onChanged(): void }) {
   const { t } = useTheme(), { callState } = useCallContext(), playback = useLivePlayback();
   const owner = useAuthStore(s => s.profile?.id ?? null);
   const [participants, setParticipants] = useState<DailyParticipant[]>([]), [joined, setJoined] = useState(false);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [sharing, setSharing] = useState(false), [canShare, setCanShare] = useState(false);
   const [preset, setPreset] = useState('host'), [selected, setSelected] = useState<string[]>([]);
+  const [toolsOpen, setToolsOpen] = useState(false), autoPreviewUsed = useRef(false);
   const call = useRef<DailyCall | null>(null), generation = useRef(0), mutation = useRef(false), request = useRef<{ signature: string; id: string } | null>(null);
   const stopping=useRef<Promise<void>|null>(null),unregister=useRef<(()=>void)|null>(null);
   const stop = useCallback(():Promise<void> => {
@@ -67,9 +70,13 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged }: { 
       try { await Promise.race([instance.join({ url: grant.roomUrl, token: grant.token }), new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error('The studio connection timed out. Reconnect to retry.')), 25000); })]); }
       finally { if (timeout) clearTimeout(timeout); }
       if (version !== generation.current) { try { await instance.leave(); await instance.destroy(); } catch {} }
+      else { await instance.setLocalVideo(true); await instance.setLocalAudio(true); update(); }
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'The studio could not connect.'); await stop(); }
     finally { mutation.current = false; setBusy(false); }
   };
+  useEffect(() => {
+    if (autoPreview && !autoPreviewUsed.current) { autoPreviewUsed.current = true; void preview(); }
+  }, [autoPreview]);
   const sendControl = async (action: 'start' | 'stop' | 'scene') => {
     if (mutation.current) return;
     mutation.current = true; setBusy(true); setError('');
@@ -93,25 +100,34 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged }: { 
   const button = (title: string, action: () => void, disabled = busy) => <TouchableOpacity key={title} accessibilityRole="button" disabled={disabled} onPress={action} style={[s.button, { backgroundColor: t.surface.sunken, opacity: disabled ? 0.5 : 1 }]}><Text style={{ color: t.ink.primary, fontWeight: '600', fontSize: 13 }}>{title}</Text></TouchableOpacity>;
   const live = ['live', 'starting', 'reconnecting'].includes(streamState);
   const local = participants.find(p => p.local);
-  return <View style={{ gap: 12 }}>
-    <Text style={{ color: t.ink.primary, fontWeight: '800', fontSize: 20 }}>Production studio</Text>
-    <Text style={{ color: t.ink.secondary, lineHeight: 20 }}>Your preview stays backstage until the host selects it for the broadcast. Choose cameras or a shared screen before going live.</Text>
-    {joined ? <View style={s.preview}><RemoteCallMedia participants={participants} /></View> : <View style={[s.preview, s.empty, { backgroundColor: t.surface.sunken }]}><Text style={{ color: t.ink.secondary }}>Camera and microphone are off</Text>{button(busy ? 'Connecting…' : 'Enter backstage', () => void preview(), busy || (callState !== 'idle' && callState !== 'failed'))}</View>}
-    {joined ? <View style={s.controls}>
-      {button(local?.audio ? 'Mute microphone' : 'Enable microphone', () => void media('audio'))}
-      {button(local?.video ? 'Turn camera off' : 'Turn camera on', () => void media('video'))}
-      {button('Switch camera', () => void media('flip'))}
-      {canShare ? button(sharing ? 'Stop sharing' : 'Share screen or game', () => void media('share')) : <Text style={{ color: t.ink.secondary, fontSize: 12 }}>Screen capture is unavailable on this device build. Cameras and incoming screen shares remain available.</Text>}
-      {button('Leave backstage', () => void stop())}
+  const blocked = busy || !selected.length || (!local?.audio && !local?.video && !sharing) || ['starting','ending','ended','cancelled'].includes(streamState);
+  const endBroadcast = () => Alert.alert('End this live?', 'Viewers will stop receiving live video.', [{ text: 'Keep streaming', style: 'cancel' }, { text: 'End live', style: 'destructive', onPress: () => void sendControl('stop') }]);
+  const mediaButton = (label: string, icon: React.ComponentProps<typeof Feather>['name'], action: () => void) => <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} disabled={busy} onPress={action} style={[s.mediaButton, { backgroundColor: t.surface.sunken, opacity: busy ? 0.5 : 1 }]}><Feather name={icon} size={21} color={t.ink.primary}/><Text style={{color:t.ink.secondary,fontSize:11,textAlign:'center'}}>{label}</Text></TouchableOpacity>;
+  return <View style={{ gap: 14 }}>
+    <View style={{flexDirection:'row',alignItems:'center',gap:8}}><LiveIcon color={t.ink.primary}/><Text accessibilityRole="header" style={{ color: t.ink.primary, fontWeight: '700', fontSize: 20 }}>{live ? 'Your live' : 'Camera preview'}</Text><Text style={{marginLeft:'auto',color:live?'#C43146':t.ink.secondary,fontSize:12,fontWeight:'600'}}>{streamState==='starting'?'Starting…':streamState==='reconnecting'?'Reconnecting…':streamState==='live'?'LIVE':'Not live'}</Text></View>
+    {joined ? <View style={s.preview}><RemoteCallMedia participants={participants} /></View> : <View style={[s.preview, s.empty, { backgroundColor: t.surface.sunken }]}><LiveIcon size={42} color={t.ink.muted}/><Text style={{ color: t.ink.secondary, textAlign:'center' }}>Preview your camera and microphone</Text>{button(busy ? 'Connecting…' : 'Preview camera', () => void preview(), busy || (callState !== 'idle' && callState !== 'failed'))}</View>}
+    {joined ? <View style={s.mediaRow}>
+      {mediaButton(local?.audio ? 'Mute' : 'Unmute',local?.audio?'mic':'mic-off',()=>void media('audio'))}
+      {mediaButton(local?.video ? 'Camera off' : 'Camera on',local?.video?'video':'video-off',()=>void media('video'))}
+      {mediaButton('Flip','refresh-cw',()=>void media('flip'))}
+      {mediaButton('Leave','log-out',()=>void stop())}
     </View> : null}
     {canControl && joined ? <>
-      <Text style={{ color: t.ink.primary, fontWeight: '700' }}>Broadcast layout</Text>
-      <ScrollView horizontal contentContainerStyle={{ gap: 8 }}>{['host','grid','interview','game','screen'].map(value => <TouchableOpacity key={value} accessibilityRole="button" accessibilityState={{ selected: preset === value }} onPress={() => setPreset(value)} style={[s.button, { borderWidth: 1, borderColor: preset === value ? t.ink.primary : t.surface.sunken }]}><Text style={{ color: t.ink.primary, textTransform: 'capitalize' }}>{value}</Text></TouchableOpacity>)}</ScrollView>
-      <Text style={{ color: t.ink.secondary, fontSize: 13 }}>{preset === 'grid' ? 'Select each source to put on air.' : 'Select the featured source.'}</Text>
-      <View style={s.controls}>{participants.map(p => <TouchableOpacity key={p.session_id} accessibilityRole="button" accessibilityState={{ selected: selected.includes(p.user_id || '') }} onPress={() => { if (!p.user_id) return; setSelected(current => preset === 'grid' ? current.includes(p.user_id!) ? current.filter(id => id !== p.user_id) : [...current, p.user_id!].slice(0,12) : [p.user_id!]); }} style={[s.button, { backgroundColor: selected.includes(p.user_id || '') ? t.ink.primary : t.surface.sunken }]}><Text style={{ color: selected.includes(p.user_id || '') ? t.surface.raised : t.ink.primary }}>{p.local ? 'Your camera' : p.user_name || 'Guest camera'}</Text></TouchableOpacity>)}</View>
-      <View style={s.controls}>{button(live ? 'Apply layout' : 'Go live', () => void sendControl(live ? 'scene' : 'start'), busy || !selected.length)}{live ? button('End broadcast', () => Alert.alert('End this broadcast?', 'Viewers will stop receiving live video. Replay availability follows your recording settings.', [{ text: 'Keep streaming', style: 'cancel' }, { text: 'End broadcast', style: 'destructive', onPress: () => void sendControl('stop') }])) : null}</View>
+      <TouchableOpacity testID="live-start-button" accessibilityRole="button" accessibilityLabel={live?'End live':'Go live'} disabled={live ? busy || streamState==='starting' : blocked} onPress={live ? endBroadcast : ()=>void sendControl('start')} style={[s.primary,{backgroundColor:live?'#B92536':t.ink.primary,opacity:(live?busy||streamState==='starting':blocked)?0.5:1}]}><LiveIcon color={t.surface.raised}/><Text style={{color:t.surface.raised,fontSize:17,fontWeight:'700'}}>{streamState==='starting'?'Starting…':streamState==='ending'?'Ending…':busy?'Please wait…':live?'End live':'Go live'}</Text></TouchableOpacity>
+      {!live?<Text style={{color:t.ink.secondary,textAlign:'center',fontSize:12}}>Your preview is not being broadcast. Tap Go live when you are ready.</Text>:null}
     </> : null}
     {error ? <Text accessibilityRole="alert" style={{ color: t.ink.primary, lineHeight: 20 }}>{error}</Text> : null}
+    {joined ? <TouchableOpacity accessibilityRole="button" accessibilityState={{expanded:toolsOpen}} onPress={()=>setToolsOpen(!toolsOpen)} style={s.tools}><Feather name="sliders" size={18} color={t.ink.primary}/><Text style={{color:t.ink.primary,flex:1}}>Stream tools</Text><Feather name={toolsOpen?'chevron-up':'chevron-down'} size={18} color={t.ink.secondary}/></TouchableOpacity>:null}
+    {joined && toolsOpen ? <View style={{gap:12}}>
+      {canShare ? button(sharing ? 'Stop sharing' : 'Share screen or game', () => void media('share')) : <Text style={{ color: t.ink.secondary, fontSize: 12 }}>Screen sharing is unavailable on this device build.</Text>}
+      {canControl ? <>
+        <Text style={{ color: t.ink.primary, fontWeight: '700' }}>Layout</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>{['host','grid','interview','game','screen'].map(value => <TouchableOpacity key={value} accessibilityRole="button" accessibilityState={{ selected: preset === value }} onPress={() => setPreset(value)} style={[s.button, { borderWidth: 1, borderColor: preset === value ? t.ink.primary : t.surface.sunken }]}><Text style={{ color: t.ink.primary, textTransform: 'capitalize' }}>{value}</Text></TouchableOpacity>)}</ScrollView>
+        <Text style={{ color: t.ink.secondary, fontSize: 13 }}>{preset === 'grid' ? 'Select the cameras to put on air.' : 'Choose your featured camera.'}</Text>
+        <View style={s.controls}>{participants.map(p => <TouchableOpacity key={p.session_id} accessibilityRole="button" accessibilityState={{ selected: selected.includes(p.user_id || '') }} onPress={() => { if (!p.user_id) return; setSelected(current => preset === 'grid' ? current.includes(p.user_id!) ? current.filter(id => id !== p.user_id) : [...current, p.user_id!].slice(0,12) : [p.user_id!]); }} style={[s.button, { backgroundColor: selected.includes(p.user_id || '') ? t.ink.primary : t.surface.sunken }]}><Text style={{ color: selected.includes(p.user_id || '') ? t.surface.raised : t.ink.primary }}>{p.local ? 'Your camera' : p.user_name || 'Guest camera'}</Text></TouchableOpacity>)}</View>
+        {live?button('Apply layout',()=>void sendControl('scene'),busy||!selected.length):null}
+      </>:null}
+    </View> : null}
   </View>;
 }
-const s = StyleSheet.create({ preview: { height: 245, borderRadius: 16, overflow: 'hidden' }, empty: { alignItems: 'center', justifyContent: 'center', gap: 14 }, controls: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' }, button: { minHeight: 44, minWidth: 44, paddingHorizontal: 14, borderRadius: 20, alignItems: 'center', justifyContent: 'center' } });
+const s = StyleSheet.create({ preview: { height: 300, borderRadius: 18, overflow: 'hidden', backgroundColor:'#000' }, empty: { alignItems: 'center', justifyContent: 'center', gap: 14, padding:20 }, controls: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' }, button: { minHeight: 44, minWidth: 44, paddingHorizontal: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }, mediaRow:{flexDirection:'row',gap:8},mediaButton:{flex:1,minHeight:62,alignItems:'center',justifyContent:'center',gap:5,borderRadius:12,paddingVertical:8},primary:{minHeight:54,borderRadius:14,alignItems:'center',justifyContent:'center',flexDirection:'row',gap:10,padding:14},tools:{minHeight:48,flexDirection:'row',alignItems:'center',gap:10} });

@@ -58,6 +58,7 @@ import { useSafeAreaInsets, SafeAreaView } from '../../components/SafeArea';
 
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { LiveIcon } from '../../components/LiveUi';
 import PostMediaEditSheet, { type PostMediaEdit } from '../../components/PostMediaEditSheet';
 import PostDraftPreview from '../../components/PostDraftPreview';
 import * as VideoThumbnails from 'expo-video-thumbnails';
@@ -2709,8 +2710,9 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   </TouchableOpacity>
                 );
               })}
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Live streams" onPress={() => navigation.navigate('LiveStreams')} style={{ minWidth: 62, minHeight: 44, flexDirection:'row', gap:4, alignItems: 'center', justifyContent: 'center' }}>
-                <Feather name="radio" size={17} color={t.ink.primary} /><Text style={{fontSize:14,fontWeight:'600',color:t.ink.primary}}>Live</Text>
+              <TouchableOpacity testID="feed-live-tab" accessibilityRole="button" accessibilityLabel="Live streams" onPress={() => navigation.navigate('LiveStreams')} style={{ minWidth: 62, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><LiveIcon size={17} color={t.ink.primary} /><Text style={{ fontSize: 15, fontWeight: '500', color: t.ink.secondary, letterSpacing: -0.2 }}>Live</Text></View>
+                <View style={{ height: 3, width: 20, borderRadius: 2, marginTop: 5, backgroundColor: 'transparent' }} />
               </TouchableOpacity>
             </View>
           </View>
