@@ -11,18 +11,42 @@
     "organization_id": "o-u8vc1j1p9n"
   },
   "aws_access": {
-    "connector_status": "UNAUTHORIZED",
-    "connector_message": "This app connection requires reauthentication. Reconnect the app and try again.",
+    "connector_status": "AUTHENTICATED_PROJECT_ACCOUNT",
     "plugin_id": "plugin_asdk_app_6ae95cec8158819185513a41431e19f7",
-    "reconnect_resumed": true,
-    "reauthentication_completed": false,
-    "browser_result": "Site Unavailable / Unable to access this site after AWS OAuth redirect",
-    "screenshot": "aws-toolkit-reauthentication-required.jpg",
-    "screenshot_scope": "OAuth redirect failure page, not the plugin connection prompt",
+    "reauthentication_completed": true,
+    "sts_verified_account_id": "518317808503",
+    "sts_verified_role_name": "AccountFullAccessRole",
+    "organization_read": {
+      "operation": "DescribeOrganization",
+      "status": "SUCCESS",
+      "organization_id": "o-u8vc1j1p9n",
+      "management_account_id": "481552727043",
+      "feature_set": "ALL"
+    },
+    "policy_read_attempt": {
+      "operation": "ListPoliciesForTarget",
+      "target_id": "518317808503",
+      "filter": "RESOURCE_CONTROL_POLICY",
+      "status": "AccessDeniedException"
+    },
     "organization_policy_contents_read": false,
     "organization_policy_changed": false,
-    "next_handoff": "Complete AWS connector reauthentication; if an account selector is shown, choose Management Account 481552727043. Inspect actual policy contents before proposing a correction."
+    "management_session_required": true,
+    "next_handoff": "Reconnect the AWS app and select Management Account 481552727043, not project account 518317808503. Verify the resulting identity before inspecting actual policy contents or proposing a correction."
   },
+  "access_history": [
+    {
+      "checkpoint_commit": "4939ce5fadde000ab8eb50482fbb5e2e4f3d9620",
+      "connector_status": "UNAUTHORIZED",
+      "connector_message": "This app connection requires reauthentication. Reconnect the app and try again.",
+      "reconnect_resumed": true,
+      "reauthentication_completed": false,
+      "browser_result": "Site Unavailable / Unable to access this site after AWS OAuth redirect",
+      "screenshot": "aws-toolkit-reauthentication-required.jpg",
+      "screenshot_scope": "Historical OAuth redirect failure page, not the plugin connection prompt or current authenticated state",
+      "superseded_by": "Successful project-account authentication; management-account policy access remains outstanding"
+    }
+  ],
   "daily_storage_verification": {
     "operation_id": "b3ec6b27-ec02-4b15-9a17-4036794f6577",
     "request_id": 11490,

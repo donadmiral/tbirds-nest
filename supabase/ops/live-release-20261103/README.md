@@ -2,15 +2,22 @@
 
 ## Release status
 
-**Latest access checkpoint, 2026-11-03 16:10 UTC:** the owner completed AWS
-advanced-feature activation; the AWS Settings success banner was verified for
-Management Account `481552727043`, organization `o-u8vc1j1p9n`, at approximately
-16:04 UTC. The AWS connector now requires reauthentication. Reconnect was
-resumed, but the AWS OAuth redirect returned **Site Unavailable**, so access is
-not restored and organization policy contents remain unread and unchanged.
-If the reconnect account selector appears, choose **Management Account
-481552727043**. The [screenshot](evidence/aws-toolkit-reauthentication-required.jpg)
-shows the redirect failure page, not a completed connection.
+**Latest access checkpoint, 2026-11-03 UTC:** AWS advanced-feature activation
+is complete and the AWS connector is authenticated. STS verified **project
+account `518317808503`**, role `AccountFullAccessRole`. `DescribeOrganization`
+succeeded for organization `o-u8vc1j1p9n`, confirming Management Account
+`481552727043` and feature set `ALL`. However, `ListPoliciesForTarget` for
+project account `518317808503`, filter `RESOURCE_CONTROL_POLICY`, returned
+`AccessDeniedException`. Organization policy contents remain unread and
+unchanged; the current project session does not provide the required inspection
+access.
+
+**Reconnect the AWS app and select Management Account `481552727043`, rather
+than project account `518317808503`.** Verify that resulting identity before
+policy inspection. The earlier reauthentication failure and its
+[Site Unavailable screenshot](evidence/aws-toolkit-reauthentication-required.jpg)
+are historical evidence, superseded by the successful project-account
+connection. They do not describe the current connector state.
 
 The post-activation Daily storage probe
 `b3ec6b27-ec02-4b15-9a17-4036794f6577` (request `11490`) still failed at
@@ -40,8 +47,9 @@ and [operations status](../../../infrastructure/live-clips/operations/quick-depl
 The [07:37–07:47 quick attempt](evidence/live-quick-fix-attempt.json) and
 [Daily role review](evidence/live-daily-quick-role-review.json) remain historical
 receipts. Their failed-image and unprovisioned-renderer states are superseded
-by the later evidence above. Daily owner email verification and policy access
-remain unresolved; no successful Daily broadcast is claimed.
+by the later evidence above. Advanced activation and project-account
+authentication are complete; a management-account connection and actual policy
+inspection remain outstanding. No successful Daily broadcast is claimed.
 
 The existing web/admin fundamentals are available for the owner to test.
 The optional database foundation and six additional Edge endpoints are deployed
