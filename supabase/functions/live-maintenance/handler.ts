@@ -9,6 +9,7 @@ export type Dependencies = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TOKEN = /^pc_live_[a-f0-9]{64}$/;
 const COVER = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.jpg$/;
+const DOMAIN_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const uuid = (v: unknown): v is string => typeof v === 'string' && UUID.test(v);
 const reply = (status: number, value: unknown) => new Response(JSON.stringify(value), {
@@ -38,6 +39,27 @@ async function pairs<T>(items: T[], action: (item: T) => Promise<void>) {
     const settled = await Promise.allSettled(items.slice(i, i + 2).map(action));
     const failed = settled.find((r): r is PromiseRejectedResult => r.status === 'rejected');
     if (failed) throw failed.reason;
+  }
+}
+async function inspectProvider(deps: Dependencies, signal: AbortSignal) {
+  try {
+    if (!deps.dailyKey) throw new Error('PROVIDER_NOT_CONFIGURED');
+    const response = await deps.fetch('https://api.daily.co/v1/', {
+      method: 'GET', redirect: 'error', signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]),
+      headers: { Authorization: `Bearer ${deps.dailyKey}` },
+    });
+    if (!response.ok || response.redirected) {
+      await response.body?.cancel();
+      throw new Error('PROVIDER_REQUEST_FAILED');
+    }
+    const body = await providerBody(response);
+    if (typeof body.domain_name !== 'string' || !DOMAIN_LABEL.test(body.domain_name) || !uuid(body.domain_id)) {
+      throw new Error('PROVIDER_INVALID_RESPONSE');
+    }
+    return { ok: true, domain_name: body.domain_name, domain_id: body.domain_id.toLowerCase() };
+  } catch {
+    // Provider payloads and errors can contain credentials or private settings.
+    return { ok: false, error: 'PROVIDER_INSPECTION_UNAVAILABLE' };
   }
 }
 
@@ -118,9 +140,13 @@ export function createMaintenanceHandler(deps: Dependencies) {
       });
       const succeeded = providerFailed === 0 && coversFailed === 0;
       if (await finish(succeeded) !== true) throw new Error('COMPLETION_NOT_CONFIRMED');
+      // Explicit one-use diagnostics run only after successful maintenance is acknowledged.
+      // Their result never changes cleanup or tick-completion semantics.
+      const inspection = succeeded && request.headers.get('X-Platinum-Live-Inspect-Provider') === '1'
+        ? { provider_inspection: await inspectProvider(deps, signal) } : {};
       return reply(succeeded ? 200 : 503, { ok: succeeded, worker_auth: 'single_use_tick_v1', ...database,
         provider_jobs_completed: providerCompleted, provider_jobs_failed: providerFailed, covers_erased: coversErased, covers_failed: coversFailed,
-        provider_configuration: deps.configuration });
+        provider_configuration: deps.configuration, ...inspection });
     } catch {
       if (validated) { try { await finish(false); } catch { /* Expiry recovers interrupted runs. */ } }
       return reply(503, { error: 'LIVE_MAINTENANCE_UNAVAILABLE' });

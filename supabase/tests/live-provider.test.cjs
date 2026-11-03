@@ -111,3 +111,146 @@ test('no anonymous user reaches service context or provider network', async () =
   const h = harness({ unauthorized: true });
   assert.equal((await h.run()).status, 401); assert.equal(h.calls.length, 0); assert.equal(h.requests.length, 0);
 });
+
+const { createMaintenanceHandler } = load('live-maintenance/handler.ts');
+const tick = 'pc_live_' + 'a'.repeat(64);
+const inspectionHeader = 'X-Platinum-Live-Inspect-Provider';
+const domain = { domain_name: 'platinum-live', domain_id: 'abcdef01-abcd-4abc-8abc-abcdef012345' };
+function maintenance(options = {}) {
+  const calls = [], requests = [], events = [];
+  const cover = { id: id(40), lease_id: id(41), object_path: `${host}/${session}/${id(42)}.jpg`, user_id: host };
+  const handler = createMaintenanceHandler({
+    dailyKey: options.missingKey ? '' : config.dailyKey,
+    configuration: { DAILY_API_KEY: !options.missingKey },
+    rpc: async (name, args) => {
+      calls.push({ name, args }); events.push(name);
+      if (name === 'validate_live_worker_tick_v1') return { data: options.authorized !== false, error: null };
+      if (name === 'live_maintenance') return { data: { swept: 3 }, error: options.databaseError ? { message: 'private database error' } : null };
+      if (name === 'live_claim_outbox') return { data: { items: [] }, error: null };
+      if (name === 'live_claim_cover_cleanup') return { data: { items: options.cover ? [cover] : [] }, error: null };
+      if (name === 'live_check_cover_cleanup') return { data: { absent: false, object_path: cover.object_path }, error: null };
+      if (name === 'live_finish_cover_cleanup') return { data: { ok: true }, error: null };
+      if (name === 'finish_live_worker_tick_v1') return { data: options.finishConfirmed !== false, error: null };
+      throw Error(name);
+    },
+    removeCover: async () => { events.push('removeCover'); return { error: options.coverError ? { message: 'private storage error' } : null }; },
+    fetch: async (url, init) => {
+      requests.push({ url, init }); events.push('inspectProvider');
+      return options.fetch ? options.fetch(url, init) : Response.json({ ...domain, ...options.domain,
+        config: { private_hook: 'https://private.synthetic.invalid/hook' }, api_key: config.dailyKey, extra: 'private provider data' });
+    },
+  });
+  return { calls, requests, events, async run({ authorization = 'Bearer ' + tick, inspect = '1' } = {}) {
+    const headers = { Authorization: authorization };
+    if (inspect !== null) headers[inspectionHeader] = inspect;
+    const response = await handler(new Request('https://synthetic.invalid/live-maintenance', { method: 'POST', headers }));
+    return { status: response.status, data: await response.json() };
+  } };
+}
+test('provider inspection never bypasses one-use tick authentication', async () => {
+  for (const authorization of ['', 'Bearer app.jwt.signature', 'Bearer synthetic-service-key', tick]) {
+    const h = maintenance(), result = await h.run({ authorization });
+    assert.equal(result.status, 401); assert.equal(h.calls.length, 0); assert.equal(h.requests.length, 0);
+  }
+  const rejected = maintenance({ authorized: false });
+  assert.equal((await rejected.run()).status, 401);
+  assert.deepEqual(rejected.calls.map(call => call.name), ['validate_live_worker_tick_v1']);
+  assert.equal(rejected.requests.length, 0);
+});
+test('ordinary maintenance and non-opt-in header values never inspect the Daily domain', async () => {
+  for (const inspect of [null, '', '0', 'true', '1, 1']) {
+    const h = maintenance(), result = await h.run({ inspect });
+    assert.equal(result.status, 200); assert.equal(result.data.ok, true);
+    assert.equal(result.data.provider_inspection, undefined); assert.equal(h.requests.length, 0);
+    assert.equal(h.calls.at(-1).name, 'finish_live_worker_tick_v1');
+    assert.equal(h.calls.at(-1).args.p_succeeded, true);
+  }
+});
+test('explicit inspection returns only validated domain identifiers after cleanup is acknowledged', async () => {
+  const h = maintenance({ cover: true, domain: { domain_id: domain.domain_id.toUpperCase() } }), result = await h.run();
+  assert.equal(result.status, 200); assert.equal(result.data.ok, true); assert.equal(result.data.covers_erased, 1);
+  assert.deepEqual(result.data.provider_inspection, { ok: true, ...domain });
+  assert.equal(h.requests.length, 1); assert.equal(h.requests[0].url, 'https://api.daily.co/v1/');
+  assert.equal(h.requests[0].init.method, 'GET'); assert.equal(h.requests[0].init.redirect, 'error');
+  assert.equal(h.requests[0].init.headers.Authorization, 'Bearer ' + config.dailyKey);
+  assert.ok(h.requests[0].init.signal instanceof AbortSignal);
+  assert.equal(h.events.at(-1), 'inspectProvider'); assert.equal(h.events.at(-2), 'finish_live_worker_tick_v1');
+  assert.ok(h.events.indexOf('removeCover') < h.events.indexOf('finish_live_worker_tick_v1'));
+  assert.equal(h.calls.filter(call => call.name === 'finish_live_worker_tick_v1').length, 1);
+  assert.equal(JSON.stringify(result.data).includes(config.dailyKey), false);
+  assert.equal(JSON.stringify(result.data).includes('private'), false);
+});
+test('inspection does not run when maintenance or its completion acknowledgement fails', async () => {
+  for (const options of [{ databaseError: true }, { cover: true, coverError: true }, { finishConfirmed: false }]) {
+    const h = maintenance(options), result = await h.run();
+    assert.equal(result.status, 503); assert.equal(h.requests.length, 0); assert.equal(result.data.provider_inspection, undefined);
+    assert.equal(h.calls.at(-1).name, 'finish_live_worker_tick_v1');
+    assert.equal(h.calls.at(-1).args.p_succeeded, false);
+  }
+});
+test('inspection errors are sanitized and cannot undo completed cleanup or finish the tick again', async () => {
+  const cases = [
+    { missingKey: true },
+    { fetch: async () => { throw Error('network failure with ' + config.dailyKey); } },
+    { fetch: async () => { throw TypeError('redirect to https://private.synthetic.invalid/' + config.dailyKey); } },
+    { fetch: async () => new Response(JSON.stringify({ error: config.dailyKey }), { status: 401 }) },
+    { fetch: async () => new Response(null, { status: 302, headers: { Location: 'https://private.synthetic.invalid/' } }) },
+    { fetch: async () => new Response('{"private":' + config.dailyKey) },
+    { fetch: async () => Response.json([domain]) },
+    { fetch: async () => Response.json(null) },
+  ];
+  for (const options of cases) {
+    const h = maintenance({ cover: true, ...options }), result = await h.run();
+    assert.equal(result.status, 200); assert.equal(result.data.ok, true); assert.equal(result.data.covers_erased, 1);
+    assert.deepEqual(result.data.provider_inspection, { ok: false, error: 'PROVIDER_INSPECTION_UNAVAILABLE' });
+    assert.equal(h.calls.filter(call => call.name === 'finish_live_worker_tick_v1').length, 1);
+    assert.equal(h.calls.at(-1).args.p_succeeded, true);
+    assert.equal(JSON.stringify(result.data).includes(config.dailyKey), false);
+    if (options.missingKey) assert.equal(h.requests.length, 0);
+  }
+});
+test('domain inspection accepts DNS labels up to 63 characters and rejects malformed identifiers', async () => {
+  for (const domain_name of ['a', 'a'.repeat(63), 'valid-domain-123']) {
+    const result = await maintenance({ domain: { domain_name } }).run();
+    assert.equal(result.data.provider_inspection.ok, true); assert.equal(result.data.provider_inspection.domain_name, domain_name);
+  }
+  const invalid = [
+    ...['', 'a'.repeat(64), '-bad', 'bad-', 'bad.name', 'bad_name', 'bad/name', 'é', 'bad\n'].map(domain_name => ({ domain_name })),
+    { domain_name: null }, { domain_id: 'not-a-uuid' }, { domain_id: 42 }, { domain_id: domain.domain_id + '\n' },
+  ];
+  for (const fields of invalid) {
+    const result = await maintenance({ domain: fields }).run();
+    assert.deepEqual(result.data.provider_inspection, { ok: false, error: 'PROVIDER_INSPECTION_UNAVAILABLE' }, JSON.stringify(fields));
+  }
+});
+test('inspection cancels provider errors without reading raw error bodies', async () => {
+  let cancelled = false;
+  const response = new Response(new ReadableStream({ cancel() { cancelled = true; } }), { status: 403 });
+  const result = await maintenance({ fetch: async () => response }).run();
+  assert.equal(cancelled, true); assert.equal(result.status, 200); assert.equal(result.data.provider_inspection.ok, false);
+});
+test('inspection enforces the 32 KB limit on streamed bytes and cancels oversized replies', async () => {
+  const serialized = JSON.stringify({ ...domain, padding: '' });
+  const atLimit = JSON.stringify({ ...domain, padding: 'x'.repeat(32768 - Buffer.byteLength(serialized)) });
+  assert.equal(Buffer.byteLength(atLimit), 32768);
+  assert.deepEqual((await maintenance({ fetch: async () => new Response(atLimit) }).run()).data.provider_inspection, { ok: true, ...domain });
+  let cancelled = false;
+  const response = new Response(new ReadableStream({
+    start(controller) { controller.enqueue(new TextEncoder().encode('é'.repeat(16385))); },
+    cancel() { cancelled = true; },
+  }));
+  const result = await maintenance({ fetch: async () => response }).run();
+  assert.equal(cancelled, true); assert.equal(result.status, 200);
+  assert.deepEqual(result.data.provider_inspection, { ok: false, error: 'PROVIDER_INSPECTION_UNAVAILABLE' });
+});
+test('inspection times out an unresponsive provider without changing maintenance success', { timeout: 8000 }, async () => {
+  let aborted = false;
+  const h = maintenance({ fetch: async (_url, init) => new Promise((resolve, reject) => {
+    const deadline = setTimeout(() => reject(Error('inspection did not enforce its deadline')), 7000);
+    init.signal.addEventListener('abort', () => { aborted = true; clearTimeout(deadline); reject(Error('provider timed out ' + config.dailyKey)); }, { once: true });
+  }) });
+  const result = await h.run();
+  assert.equal(aborted, true); assert.equal(result.status, 200); assert.equal(result.data.ok, true);
+  assert.deepEqual(result.data.provider_inspection, { ok: false, error: 'PROVIDER_INSPECTION_UNAVAILABLE' });
+  assert.equal(h.calls.filter(call => call.name === 'finish_live_worker_tick_v1').length, 1);
+});

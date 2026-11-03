@@ -8,14 +8,14 @@ export async function liveInfrastructureTemplate() {
     ParametersInCacheKeyAndForwardedToOrigin: { EnableAcceptEncodingBrotli: true, EnableAcceptEncodingGzip: true,
       CookiesConfig: { CookieBehavior: 'none' }, HeadersConfig: { HeaderBehavior: 'none' }, QueryStringsConfig: { QueryStringBehavior: 'none' } },
   } } });
-  const behavior = cache => ({ TargetOriginId: 'PrivateLiveStorage', ViewerProtocolPolicy: 'https-only', AllowedMethods: ['GET', 'HEAD'],
+  const behavior = cache => ({ TargetOriginId: 'PrivateLiveStorage', ViewerProtocolPolicy: 'https-only', AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
     CachedMethods: ['GET', 'HEAD'], Compress: true, CachePolicyId: ref(cache), ResponseHeadersPolicyId: ref('PlaybackHeaders'),
-    FunctionAssociations: [{ EventType: 'viewer-request', FunctionARN: attr('ViewerAuthorization', 'FunctionARN') }] });
+    FunctionAssociations: [{ EventType: 'viewer-request', FunctionARN: attr('ViewerAuthorization', 'FunctionMetadata.FunctionARN') }] });
   return {
     AWSTemplateFormatVersion: '2010-09-09', Description: 'Private Platinum Live HLS storage and authenticated shared CDN delivery.',
     Parameters: {
-      DailyAccountId: { Type: 'String', AllowedPattern: '\\d{12}', Description: 'Daily AWS account from the verified provider setup guide.' },
-      DailyExternalId: { Type: 'String', MinLength: 1, Description: 'Daily domain external ID specified by the provider.' },
+      DailyAccountId: { Type: 'String', Default: '291871421005', AllowedPattern: '\\d{12}', Description: 'Daily AWS account, verified against its custom S3 guide before deployment.' },
+      DailyExternalId: { Type: 'String', MinLength: 1, MaxLength: 63, AllowedPattern: '[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?', Description: 'Exact Daily domain name (the subdomain before .daily.co), not the domain UUID.' },
     },
     Resources: {
       LiveBucket: { Type: 'AWS::S3::Bucket', DeletionPolicy: 'Retain', UpdateReplacePolicy: 'Retain', Properties: {
@@ -26,12 +26,14 @@ export async function liveInfrastructureTemplate() {
           AbortIncompleteMultipartUpload: { DaysAfterInitiation: 1 }, NoncurrentVersionExpiration: { NoncurrentDays: 7 } }] },
       } },
       DailyWriter: { Type: 'AWS::IAM::Role', Properties: {
+        MaxSessionDuration: 43200,
         AssumeRolePolicyDocument: { Version: '2012-10-17', Statement: [{ Effect: 'Allow', Action: 'sts:AssumeRole',
           Principal: { AWS: sub('arn:aws:iam::${DailyAccountId}:root') }, Condition: { StringEquals: { 'sts:ExternalId': ref('DailyExternalId') } } }] },
         Policies: [{ PolicyName: 'PlatinumLiveOnly', PolicyDocument: { Version: '2012-10-17', Statement: [
           { Effect: 'Allow', Action: ['s3:GetBucketLocation', 's3:ListBucket', 's3:ListBucketVersions', 's3:ListBucketMultipartUploads'], Resource: attr('LiveBucket', 'Arn') },
           { Effect: 'Allow', Action: ['s3:PutObject', 's3:GetObject', 's3:GetObjectVersion', 's3:DeleteObject', 's3:AbortMultipartUpload', 's3:ListMultipartUploadParts'],
-            Resource: [sub('${LiveBucket.Arn}/live/*'), sub('${LiveBucket.Arn}/daily-co-test-upload.txt')] },
+            Resource: sub('${LiveBucket.Arn}/live/*') },
+          { Effect: 'Allow', Action: 's3:PutObject', Resource: sub('${LiveBucket.Arn}/daily-co-test-upload.txt') },
         ] } }],
       } },
       SigningKeys: { Type: 'AWS::CloudFront::KeyValueStore', Properties: { Name: sub('${AWS::StackName}-signing'), Comment: 'Private playback signing keys, no user data.' } },
@@ -62,7 +64,9 @@ export async function liveInfrastructureTemplate() {
       ] } } },
     },
     Outputs: { Bucket: { Value: ref('LiveBucket') }, Region: { Value: ref('AWS::Region') }, DailyRoleArn: { Value: attr('DailyWriter', 'Arn') },
-      CdnOrigin: { Value: sub('https://${LiveCdn.DomainName}') }, SigningStoreArn: { Value: attr('SigningKeys', 'Arn') } },
+      CdnOrigin: { Value: sub('https://${LiveCdn.DomainName}') }, SigningStoreArn: { Value: attr('SigningKeys', 'Arn') },
+      DistributionId: { Value: ref('LiveCdn') }, ViewerFunctionName: { Value: sub('${AWS::StackName}-authorize') },
+      ViewerFunctionArn: { Value: attr('ViewerAuthorization', 'FunctionMetadata.FunctionARN') } },
   };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

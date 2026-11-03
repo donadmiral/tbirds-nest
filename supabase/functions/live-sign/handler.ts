@@ -1,5 +1,7 @@
 type Config = { secret: string; signingKey: string; keyId: string; cdnOrigin: string };
-const uuid = (v: unknown): v is string => typeof v === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(v);
+// Object keys are case-sensitive. Reject noncanonical UUIDs instead of signing
+// a path that the lowercase-only CloudFront capability verifier will refuse.
+const uuid = (v: unknown): v is string => typeof v === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(v);
 const json = (status: number, data: unknown) => new Response(JSON.stringify(data), { status,
   headers: { 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store', 'CDN-Cache-Control': 'no-store' } });
 export async function signLivePath(path: string, expires: number, config: Config): Promise<string> {

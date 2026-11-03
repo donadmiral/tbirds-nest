@@ -114,6 +114,42 @@ Daily webhook events, a single-use maintenance tick, or a scoped server/worker
 credential. Gateway JWT verification remains off for these handlers as designed;
 anonymous requests do not gain access to the protected operations.
 
+### Delivery infrastructure follow-up
+
+The [delivery configuration receipt](evidence/live-delivery-infrastructure.json)
+records the subsequent infrastructure work on 2026-11-03 UTC. The existing
+production Daily credential returned domain name `platinumcircles` and domain
+UUID `bfe7e3aa-0369-4bd6-9db1-d882df729ddf` through a fixed read-only server
+inspection. The credential itself was not exposed.
+
+Production now has the verified `LIVE_DAILY_DOMAIN_ID` and
+`LIVE_PLAYBACK_SIGNER_URL`. Maintenance request **10559** returned HTTP **200**
+with both settings present. [The settings screenshot](evidence/live-delivery-settings.jpg)
+records the production project and saved setting names without secret values.
+
+The signer correction was deployed as QA version **2** and production version
+**3**. The maintenance inspection was deployed as QA version **4** and production
+version **3**. Their exact source and bundle hashes are in the receipt. These
+function deployments supersede the corresponding versions in the initial
+backend receipt; the web/admin runtime commit above is unchanged. The inspection
+requires a valid single-use tick, completed maintenance and an exact opt-in
+header. Scheduled ticks do not request Daily domain metadata.
+
+The reviewed CloudFormation package corrects Daily's twelve-hour role session,
+the domain-name external ID, the narrowly scoped upload verification object,
+CloudFront function association and authenticated browser preflight. The signer
+now rejects uppercase UUID paths that the edge verifier would reject.
+Four infrastructure-contract tests, seven signer/edge tests and seventeen
+provider/maintenance tests passed. CloudFormation lint passed for `us-east-1`
+and the proposed `us-west-2` deployment region. These are local verification
+results, not a completed AWS deployment or successful protected playback.
+
+No authenticated AWS deployment identity was available, and the cloud browser
+could not open the AWS console. No AWS resources or service secrets were
+created. Webhook registration can be completed independently of AWS after its
+HMAC is installed through the protected secret-writing workflow. The signed
+verification ping and provider `ACTIVE` state remain unverified.
+
 ## Current feature gates
 
 | Capability | Production state |
@@ -191,22 +227,25 @@ distribution was performed; distribution remains held.
 
 ## Activation blockers and acceptance
 
-Production has `DAILY_API_KEY`. The provider configuration inspection reported
-these eight values absent:
+Production has `DAILY_API_KEY`, the verified `LIVE_DAILY_DOMAIN_ID`, and
+`LIVE_PLAYBACK_SIGNER_URL`. The latest running-function inspection reported
+these six values absent:
 
 - `LIVE_HLS_BUCKET`
 - `LIVE_HLS_REGION`
 - `LIVE_HLS_CDN_ORIGIN`
-- `LIVE_DAILY_DOMAIN_ID`
 - `LIVE_HLS_ASSUME_ROLE_ARN`
-- `LIVE_PLAYBACK_SIGNER_URL`
 - `LIVE_DAILY_WEBHOOK_SECRET`
 - `LIVE_PLAYBACK_SIGNER_SECRET`
 
 The AWS delivery stack, operational CDN signing configuration, and renderer
 service have not been deployed or connected. The `live-sign` Edge code is
 `ACTIVE`, but its presence does not supply the missing signer credentials,
-CloudFront key store or CDN delivery configuration. The [infrastructure
+CloudFront key store or CDN delivery configuration. `LIVE_CDN_SIGNING_KEY` and
+`LIVE_CDN_KEY_ID` also remain unconfigured; the current maintenance presence map
+does not report those two names. The Daily webhook receiver is deployed, but
+the HMAC secret and provider registration have not been installed or verified.
+The [infrastructure
 runbook](../../../infrastructure/live/README.md) specifies the AWS resources,
 signing key and provider setup. The [renderer
 runbook](../../../workers/live-clips/README.md) specifies the scoped broker
