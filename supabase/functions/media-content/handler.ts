@@ -117,7 +117,7 @@ export function createMediaContentHandler(deps: Dependencies) {
     };
     try {
       const url = new URL(request.url);
-      const match = url.pathname.match(/\/(?:functions\/v1\/)?media-content\/(post-media|story-media|media|chat-media|chat-files|music-audio)\/(.+)$/);
+      const match = url.pathname.match(/\/(?:functions\/v1\/)?media-content\/(post-media|story-media|media|chat-media|chat-files|music-audio|live-clips)\/(.+)$/);
       const token = url.searchParams.get('token') || '';
       if (!match || !/^[0-9a-f]{64}$/.test(token)) return error(403);
       const bucket = match[1], path = decodeURIComponent(match[2]);
@@ -175,7 +175,7 @@ export function createMediaContentHandler(deps: Dependencies) {
           || current.etag !== variant.etag || upstream.headers.get('ETag')?.trim().replace(/^"|"$/g, '') !== variant.etag) { stop('complete'); return error(410); }
       }
       const mime = upstream.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() || '';
-      if (!/^(?:image\/(?:jpeg|png|webp|gif|heic|heif|avif)|video\/(?:mp4|quicktime|webm)|audio\/[a-z0-9.+-]+|application\/(?:pdf|octet-stream))$/.test(mime)) { stop('complete'); return error(415); }
+      if (!(bucket === 'live-clips' && mime === 'text/vtt' && path.endsWith('/captions.vtt')) && !/^(?:image\/(?:jpeg|png|webp|gif|heic|heif|avif)|video\/(?:mp4|quicktime|webm)|audio\/[a-z0-9.+-]+|application\/(?:pdf|octet-stream))$/.test(mime)) { stop('complete'); return error(415); }
       // fetch may transparently decompress a response while retaining its
       // compressed Content-Length/Range. Those headers cannot describe the
       // decoded bytes; require identity for byte-accurate media/range delivery.

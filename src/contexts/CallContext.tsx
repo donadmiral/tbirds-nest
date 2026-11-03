@@ -39,6 +39,7 @@ import { nativeCallService } from '../services/nativeCallService';
 import { supabase } from '../services/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { flushNativeCallCloses, queueNativeCallClose, settleCallOperation } from '../services/nativeCallRecovery';
+import { releaseLiveStageMedia } from '../services/liveMediaSession';
 
 // ── State Machine Types ─────────────────────────────────────────────────────
 
@@ -546,6 +547,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       if (!isCurrent()) return;
 
       // 6. Create Daily call object
+      await settleCallOperation(releaseLiveStageMedia(), 7000);
+      if (!isCurrent()) return;
       const call = Daily.createCallObject({
         audioSource: true,
         videoSource: params.isVideo,

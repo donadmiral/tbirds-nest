@@ -1,0 +1,11 @@
+{
+  "scope": "Local disposable database, actual encoder, scoped worker and Edge handler verification. Not a provider/capacity receipt.",
+  "database": {"control_plane": 6, "clips": 12, "interactivity": 9, "clip_content_delivery": 4, "atomic_release": 3},
+  "edge": {"provider": 8, "signing_and_cloudfront": 3, "clip_auth_and_broker": 14},
+  "worker": {"source_and_subtitles": 4, "real_ffmpeg_render_decode": 1, "lease_and_cleanup_lifecycle": 8, "backend_and_signed_uploads": 5, "http_and_startup": 4},
+  "test_totals": {"passed": 81, "failed": 0, "skipped": 0},
+  "deno": {"version": "2.1.4", "entrypoints": 11, "exit_code": 0, "tls_verification": true},
+  "docker_image_built": false,
+  "provider_broadcast_observed": false,
+  "measured_five_million_user_capacity": false
+}

@@ -11,7 +11,7 @@ import { LIVE_TOPICS, NO_LIVE_CAPABILITIES, isLiveSetupMissing, liveStateLabel, 
   type LiveCapabilities, type LiveCursor, type LiveFilter, type LiveSession, type LiveView } from '../../shared/liveDirectory';
 
 type State = { key: string; items: LiveSession[]; cursor: LiveCursor | null; capabilities: LiveCapabilities; loading: boolean; error: string | null; setup: boolean };
-const relations: [LiveFilter,string][] = [['for_you','For you'],['following','Following'],['followers','Followers'],['mine','My streams']];
+const relations: [LiveFilter,string][] = [['for_you','Recommended'],['following','Following'],['followers','Followers'],['celebrities','Celebrities'],['mine','My streams']];
 const views: [LiveView,string][] = [['live','Live now'],['scheduled','Upcoming'],['replay','Replays']];
 function Thumbnail({ session }: { session: LiveSession }) {
   const [failed, setFailed] = useState<string | null>(null);
@@ -83,7 +83,7 @@ export function LiveDirectoryView() {
     </nav>
     <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div><div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted"><LiveIcon size={17} />Platinum Live</div><h1 className="text-3xl font-semibold tracking-tight text-ink">Live streams</h1><p className="mt-2 max-w-xl text-sm text-muted">Creators, conversations and events. Find your people, live.</p></div>
-      <Link href="/live/new" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-[var(--canvas)]"><Video size={18} />Create a stream</Link>
+      <div className="flex flex-wrap gap-2"><Link href="/live/clips" className="inline-flex min-h-11 items-center rounded-full border border-ink/15 px-5 text-sm font-semibold text-ink">Clip library</Link><Link href="/live/new" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-[var(--canvas)]"><Video size={18} />Create a stream</Link></div>
     </header>
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
       <div className="flex max-w-full gap-1 overflow-x-auto" aria-label="People and relationships">{relations.map(([id,label]) => <button type="button" key={id} className={chip(filter === id)} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}</div>

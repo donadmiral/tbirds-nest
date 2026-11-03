@@ -1,0 +1,99 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "database": {
+    "reviewed_release": "20261103004440_live_completion_reviewed_release_20261103",
+    "foreign_key_indexes": "applied",
+    "rollback_permission_tests": 14
+  },
+  "edge_functions": [
+    {
+      "name": "live-stage",
+      "id": "10826fad-cb24-496d-a923-90ae202739f6",
+      "version": 3,
+      "status": "ACTIVE",
+      "bundle_sha256": "23cb9ea190de02e34e16e37635bd1f4cfe0430a558ffc3976796644221a8b616"
+    },
+    {
+      "name": "live-control",
+      "id": "ce8a5b44-ce6d-4941-a9b7-868792ab5009",
+      "version": 3,
+      "status": "ACTIVE",
+      "bundle_sha256": "a2e285df3942707293a67e03cac50658d366d3083ce5078c613730e1359910ea"
+    },
+    {
+      "name": "live-playback",
+      "id": "f200fbd3-c6dd-49f7-9f5d-831f1ac0f094",
+      "version": 3,
+      "status": "ACTIVE",
+      "bundle_sha256": "31d2a2f47940a64ecb797cbeb62eac7187aab5d9771fce0a7eead7dba3e5642b"
+    },
+    {
+      "name": "live-provider-webhook",
+      "id": "0c62ceff-8281-4b7b-a52b-a48de345305a",
+      "version": 3,
+      "status": "ACTIVE",
+      "bundle_sha256": "507cf2cf8aa15056acf32918cd457d8eb92719828b3830954bdc2546ff96fdd6"
+    },
+    {
+      "name": "live-cover",
+      "id": "785e521a-a144-40fe-8e6c-2062079f89ad",
+      "version": 2,
+      "status": "ACTIVE",
+      "bundle_sha256": "84ea1962426f14b987cd8ffdc980fb23f7b793066eaf91972aef4f797bcde3e7"
+    },
+    {
+      "name": "live-maintenance",
+      "id": "2e541fe5-2032-4d8c-af06-eada7c600824",
+      "version": 3,
+      "status": "ACTIVE",
+      "bundle_sha256": "421deb2a25ba8a9cc46cabf2053c91d1c8c00c4c4b437fe88de14a1439fa83f1"
+    },
+    {
+      "name": "live-sign",
+      "id": "1fe4c5bd-812b-4a31-9c04-1fcd58db6782",
+      "version": 1,
+      "status": "ACTIVE",
+      "bundle_sha256": "14ee83305df515608c234dfd098597a70112db5febe1dd1bb7f78fa70cb8a44c"
+    },
+    {
+      "name": "live-clip-media",
+      "id": "8f9fea03-0dc1-45d6-ac2c-a07d7e0560da",
+      "version": 1,
+      "status": "ACTIVE",
+      "bundle_sha256": "39a14f07cd5a4354f2945b8ac4649b1dd9554899f797e9131627080b5e58acfb"
+    },
+    {
+      "name": "live-clip-worker",
+      "id": "1d12f678-8b31-4dda-a647-3ae66ef4f41b",
+      "version": 1,
+      "status": "ACTIVE",
+      "bundle_sha256": "9a159179b526a837ad321ad3db518d6e63f0763b778a59af172276a011d176d3"
+    },
+    {
+      "name": "content-media-sign",
+      "id": "2eab199b-43db-40a0-a8fe-1c1198fbaf69",
+      "version": 4,
+      "status": "ACTIVE",
+      "bundle_sha256": "90d8a017e6ae11b401fd0b80590ecf42328fab3dc4b1a620126c729ea9b0bb42"
+    },
+    {
+      "name": "media-content",
+      "id": "cdf1869b-97d9-42f1-b83f-a959e5f780d4",
+      "version": 6,
+      "status": "ACTIVE",
+      "bundle_sha256": "aa8ab277d44ed65356fb73e9ef3a0efb5d7f57220df3d08f37997c97c6b1519e"
+    }
+  ],
+  "advisors": {
+    "live_security_errors": 0,
+    "live_security_warnings": 0,
+    "missing_foreign_key_indexes_after_fix": 0,
+    "intentional_notes": [
+      "Private RPC-owned tables have RLS enabled with no direct-access policies.",
+      "New indexes report unused until exercised."
+    ]
+  },
+  "provider_activated": false,
+  "encoder_activated": false,
+  "measured_capacity": false
+}

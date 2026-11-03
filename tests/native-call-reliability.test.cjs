@@ -60,6 +60,7 @@ function provider(options = {}) {
       auth: { getSession: async () => ({ data: { session: { user: { id: 'actor' } } } }) } } },
     '../stores/authStore': { useAuthStore: () => ({ profile: { id: 'actor' } }) },
     '../services/nativeCallRecovery': { settleCallOperation: async promise => promise, queueNativeCallClose: async (...args) => queued.push(args), flushNativeCallCloses: async () => {} },
+    '../services/liveMediaSession': { releaseLiveStageMedia: options.releaseStage ?? (async () => {}) },
   }, {
     setTimeout: (fn, ms) => { const id = ++timerId; timers.set(id, { fn, ms }); return id; }, clearTimeout: id => timers.delete(id),
     setInterval: (fn, ms) => { const id = ++timerId; timers.set(id, { fn, ms, interval: true }); return id; }, clearInterval: id => timers.delete(id),
@@ -80,6 +81,13 @@ test('native permissions are confirmed before creating or accepting a call on An
     assert.equal(accepted, 0); assert.equal(h.calls.filter(row => row[0] === 'create').length, 0);
     assert.match(h.alerts[0][1], /microphone/); assert.equal(h.states[0], 'idle');
   }
+});
+
+test('a call waits for Live backstage teardown and cannot revive after cancellation during that wait',async()=>{
+  let release;const h=provider({releaseStage:()=>new Promise(resolve=>{release=resolve;})});
+  await h.start();assert.equal(h.calls.some(row=>row[0]==='create'),false);assert.equal(typeof release,'function');
+  h.context.endCall();await tick();release();await tick();
+  assert.equal(h.calls.some(row=>row[0]==='create'),false);assert.equal(h.states[0],'idle');
 });
 
 test('a cancelled outgoing request closes its late-created session without reviving media', async () => {

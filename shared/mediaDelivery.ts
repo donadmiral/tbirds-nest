@@ -1,4 +1,4 @@
-const BUCKETS = ['post-media', 'story-media', 'media', 'chat-media', 'chat-files'];
+const BUCKETS = ['post-media', 'story-media', 'media', 'chat-media', 'chat-files', 'live-clips'];
 export function mediaDeliveryUrl(base: string, bucket: string, path: string, token: string): string {
   return `${new URL(base).origin}/functions/v1/media-content/${encodeURIComponent(bucket)}/${path.split('/').map(encodeURIComponent).join('/')}?token=${encodeURIComponent(token)}`;
 }
@@ -17,6 +17,6 @@ export function isMediaDeliveryCapability(value: string, base: string): boolean 
   return !!mediaDeliveryObject(value, base) && /^[0-9a-f]{64}$/.test(new URL(value).searchParams.get('token') || '');
 }
 export function privateImageCachePolicy(value?: string | null): 'none' | 'memory-disk' {
-  return value && /\/(?:storage\/v1\/(?:object|render\/image)\/(?:sign|authenticated)\/(?:post-media|story-media|media|chat-media|chat-files)|functions\/v1\/media-content)\/|\/functions\/v1\/limited-media-file(?:[/?]|$)/.test(value)
+  return value && /\/(?:storage\/v1\/(?:object|render\/image)\/(?:sign|authenticated)\/(?:post-media|story-media|media|chat-media|chat-files|live-clips)|functions\/v1\/media-content)\/|\/functions\/v1\/limited-media-file(?:[/?]|$)/.test(value)
     ? 'none' : 'memory-disk';
 }

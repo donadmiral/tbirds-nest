@@ -40,6 +40,9 @@ export const linking: LinkingOptions<any> = {
       SetupProfile: 'setup-profile',
       // Authenticated root
       StoryViewer: 'story/:storyId',
+      LiveSession: 'live/:sessionId',
+      NewLive: 'live/new',
+      LiveClips: 'live/:sessionId/clips',
       Main: {
         screens: {
           Feed: {

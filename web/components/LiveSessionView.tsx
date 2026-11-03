@@ -1,36 +1,48 @@
 'use client';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Bell, CalendarDays, Clapperboard, Radio, RefreshCw, Share2, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { getNavigationStore } from '@/lib/navigationCache';
-import { withTimeout } from '@/lib/withTimeout';
+import { getLiveDetail, liveCommand, liveError, record, type LiveDetail } from '@/lib/liveApi';
+import { isLiveUuid, liveStateLabel, parseLiveSession } from '../../shared/liveDirectory';
 import { LiveIcon } from './LiveIcon';
-import { isLiveUuid, liveStateLabel, parseLiveSession, type LiveSession } from '../../shared/liveDirectory';
-export function LiveSessionView({ id }: { id: string }) {
-  const [client] = useState(createClient),[navigation] = useState(getNavigationStore);
+import { LivePlayerSlot, useLivePlayback } from './LivePlaybackProvider';
+import { LiveChat } from './LiveChat';
+import { LiveStudio } from './LiveStudio';
+import { LiveInteractions, LiveAnalyticsPanel } from './LiveInteractions';
+import { parseLiveInteractions, type LiveInteractionsSnapshot } from '@/lib/liveInteractions';
+export function LiveSessionView({id}:{id:string}) {
+  const [client]=useState(createClient),[navigation]=useState(getNavigationStore);
   const identity=useSyncExternalStore(navigation.subscribe,navigation.getSnapshot,navigation.getServerSnapshot);
-  const [state,setState]=useState<{scope:string|null;session:LiveSession|null;error:string|null}>({scope:null,session:null,error:null});
-  const [retry,setRetry]=useState(0);
-  useEffect(()=>{
-    let alive=true;
-    setState({scope:identity.scope,session:null,error:null});
-    if(!isLiveUuid(id)){setState({scope:identity.scope,session:null,error:'This stream link is not valid.'});return;}
-    if(!identity.owner)return;
-    void withTimeout(client.rpc('live_session',{p_session_id:id})).then(({data,error})=>{
-      const session=!error?parseLiveSession(data?.session):null;
-      if(alive)setState({scope:identity.scope,session,error:session?null:'This stream is unavailable or you do not have access.'});
-    }).catch(()=>{if(alive)setState({scope:identity.scope,session:null,error:'This stream could not load. Please try again.'});});
-    return()=>{alive=false;};
-  },[client,id,identity.owner,identity.scope,retry]);
-  const session=state.scope===identity.scope?state.session:null;
-  return <div className="mx-auto max-w-4xl pb-24"><Link href="/live" className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm text-muted"><ArrowLeft size={18}/>Back to Live</Link>
-    {!identity.owner?<p className="text-sm text-muted"><Link href="/login" className="underline">Sign in</Link> to view this stream.</p>:state.error?<div role="alert" className="rounded-xl border border-ink/10 p-6 text-sm text-ink">{state.error}<button type="button" onClick={()=>setRetry(v=>v+1)} className="ml-3 min-h-11 underline">Retry</button></div>:!session?<p role="status" className="py-12 text-center text-muted">Loading stream…</p>:<>
-      <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-muted"><LiveIcon size={17}/>{liveStateLabel(session)}<span className="capitalize">· {session.topic}</span></div>
-      <h1 className="text-2xl font-semibold text-ink">{session.title}</h1><p className="mt-2 text-sm text-muted">{session.host.full_name||session.host.username||'Creator'}</p>
-      <div className="mt-5 grid aspect-video place-items-center rounded-2xl bg-surface p-6 text-center"><div><LiveIcon size={44} className="mx-auto mb-4 text-muted"/><p className="font-semibold text-ink">{session.state==='scheduled'?'This stream has not started':session.state==='draft'||session.state==='backstage'?'Stream draft saved':'Live playback is not connected yet'}</p><p className="mt-2 text-sm text-muted">{session.state==='scheduled'?'Return when the host goes live.':'The video service must be connected before broadcasting or viewing.'}</p></div></div>
-      {session.scheduled_at?<p className="mt-4 flex items-center gap-2 text-sm text-muted"><CalendarDays size={16}/>{new Date(session.scheduled_at).toLocaleString()}</p>:null}
-      {session.description?<p className="mt-5 whitespace-pre-wrap text-sm text-ink">{session.description}</p>:null}
+  const [detail,setDetail]=useState<LiveDetail|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(false),[tab,setTab]=useState<'watch'|'studio'|'analytics'>('watch'),[actionBusy,setActionBusy]=useState(false),[notice,setNotice]=useState('');
+  const [interactionSnapshot,setInteractionSnapshot]=useState<LiveInteractionsSnapshot|null>(null),[interactionCounts,setInteractionCounts]=useState<unknown>(null);
+  const onInteraction=useCallback((payload:unknown)=>{const parsed=parseLiveInteractions(payload);if(parsed)setInteractionSnapshot(parsed);},[]);
+  const onInteractionCounts=useCallback((payload:unknown)=>{if(record(payload))setInteractionCounts(payload);},[]);
+  const epoch=useRef(0),lock=useRef(false),mounted=useRef(true),playback=useLivePlayback();
+  const closePlayback=playback.close,activePlayback=useRef(playback.session?.id);activePlayback.current=playback.session?.id;
+  const refresh=useCallback(async()=>{
+    if(!identity.owner||!isLiveUuid(id)||lock.current)return;
+    lock.current=true;setLoading(true);const version=epoch.current;
+    try{const value=await getLiveDetail(client,id);if(version===epoch.current&&mounted.current){setDetail(value);setError('');}}
+    catch(e){if(version===epoch.current&&mounted.current){setDetail(null);setError(liveError(e));if(activePlayback.current===id)closePlayback();}}finally{if(version===epoch.current&&mounted.current){lock.current=false;setLoading(false);}}
+  },[client,id,identity.owner,closePlayback]);
+  useEffect(()=>{mounted.current=true;epoch.current++;lock.current=false;setDetail(null);setError('');setTab('watch');setInteractionSnapshot(null);setInteractionCounts(null);if(!isLiveUuid(id)){setError('This stream link is not valid.');return;}void refresh();return()=>{mounted.current=false;epoch.current++;lock.current=false;};},[id,identity.scope,refresh]);
+  const onPatch=useCallback((payload:unknown)=>{if(!record(payload))return;setDetail(previous=>{if(!previous)return previous;let next=previous;if(record(payload.session)&&payload.session.id===id){const full=parseLiveSession(payload.session);const state=String(payload.session.state||'');if(full)next={...next,session:full};else if(['draft','scheduled','backstage','starting','live','reconnecting','ending','ended','cancelled'].includes(state))next={...next,session:{...next.session,state}};}if(typeof payload.chat_topic==='string'&&new RegExp('^live:'+id+':[0-9a-f-]{36}$','i').test(payload.chat_topic))next={...next,chat_topic:payload.chat_topic};return next;});},[id]);
+  const run=async(action:string,payload:Record<string,unknown>={})=>{setActionBusy(true);setNotice('');try{await liveCommand(client,id,action,payload);await refresh();}catch(e){setNotice(liveError(e));}finally{setActionBusy(false);}};
+  const session=detail?.session,studio=detail&&['host','producer','camera','guest'].includes(detail.role),moderator=detail&&['host','producer','moderator'].includes(detail.role);
+  return <div className="mx-auto max-w-7xl pb-24" data-live-session>
+    <div className="mb-4 flex items-center justify-between gap-3"><Link href="/live" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted"><ArrowLeft size={17}/>Back to Live</Link><div className="flex items-center gap-2"><Link href="/live/clips" className="inline-flex min-h-11 items-center gap-2 px-3 text-sm text-ink"><Clapperboard size={16}/>Clip library</Link><button type="button" aria-label="Refresh stream" disabled={loading} onClick={()=>void refresh()} className="grid min-h-11 min-w-11 place-items-center rounded-full hover:bg-surface"><RefreshCw size={17} className={loading?'animate-spin text-muted':'text-muted'}/></button></div></div>
+    {!identity.owner?<p className="rounded-xl border border-ink/10 p-6 text-sm text-muted"><Link href={'/login?next='+encodeURIComponent('/live/'+id)} className="underline">Sign in</Link> to view this stream.</p>:error?<div role="alert" className="rounded-xl border border-ink/10 p-6 text-sm text-ink">{error}<button type="button" onClick={()=>void refresh()} className="ml-3 min-h-11 underline">Retry</button></div>:!session||!detail?<p role="status" className="py-16 text-center text-muted">Loading stream…</p>:<>
+      <header className="mb-5"><div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted"><span className={'inline-flex items-center gap-2 rounded-md px-2 py-1 '+(session.state==='live'?'bg-red-600 text-white':'bg-surface text-ink')}><LiveIcon size={16}/>{liveStateLabel(session)}</span><span className="capitalize">{session.topic}</span>{session.viewer_count!==null?<span className="inline-flex items-center gap-1"><Users size={13}/>{session.viewer_count.toLocaleString()} watching</span>:null}</div><h1 className="text-2xl font-semibold text-ink sm:text-3xl">{session.title}</h1><div className="mt-3 flex flex-wrap items-center justify-between gap-3"><Link href={session.host.username?'/'+session.host.username:'/live'} className="text-sm font-medium text-ink">{session.host.full_name||session.host.username||'Creator'}{session.host.is_verified?<span className="ml-1" aria-label="Verified identity">✓</span>:null}</Link><button type="button" onClick={async()=>{const url=window.location.origin+'/live/'+id;try{if(navigator.share)await navigator.share({title:session.title,url});else{await navigator.clipboard.writeText(url);setNotice('Stream link copied.');}}catch(e){if(!(e instanceof DOMException&&e.name==='AbortError'))setNotice('Could not share this link.');}}} className="inline-flex min-h-10 items-center gap-2 rounded-full border border-ink/15 px-4 text-sm text-ink"><Share2 size={15}/>Share stream</button></div></header>
+      {notice?<p role="status" className="mb-4 rounded-xl bg-surface p-3 text-sm text-ink">{notice}</p>:null}
+      {detail.invitation?.status==='invited'?<div className="mb-5 rounded-xl border border-ink/15 bg-surface p-4 text-sm text-ink">You have been invited as {detail.invitation.role==='guest'?'a co-host':detail.invitation.role}.<button type="button" disabled={actionBusy} onClick={()=>void run('accept_invite')} className="ml-4 min-h-11 rounded-full bg-ink px-5 text-[var(--canvas)]">Accept invitation</button></div>:null}
+      <div className="mb-4 flex flex-wrap gap-2 border-b border-ink/10">{studio?<><button type="button" onClick={()=>setTab('watch')} className={'min-h-11 px-4 text-sm '+(tab==='watch'?'border-b-2 border-ink font-semibold text-ink':'text-muted')}>Watch</button><button type="button" onClick={()=>{if(playback.session?.id===id)playback.close();setTab('studio');}} className={'min-h-11 px-4 text-sm '+(tab==='studio'?'border-b-2 border-ink font-semibold text-ink':'text-muted')}><Radio size={15} className="mr-2 inline"/>Studio</button></>:null}{['host','producer'].includes(detail.role)?<><button type="button" onClick={()=>setTab('analytics')} className={'min-h-11 px-4 text-sm '+(tab==='analytics'?'border-b-2 border-ink font-semibold text-ink':'text-muted')}>Analytics</button></>:null}{moderator?<Link href={'/live/'+id+'/settings'} className="inline-flex min-h-11 items-center px-4 text-sm text-muted">Clip settings</Link>:null}<Link href={'/live/'+id+'/clips'} className="inline-flex min-h-11 items-center gap-2 px-4 text-sm text-muted"><Clapperboard size={15}/>Create clip</Link></div>
+      <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]"><div className="min-w-0 space-y-5">{tab==='analytics'&&['host','producer'].includes(detail.role)?<LiveAnalyticsPanel client={client} sessionId={id}/>:tab==='studio'&&studio?<LiveStudio client={client} detail={detail} onRefresh={refresh}/>:['live','reconnecting'].includes(session.state)||session.state==='ended'&&session.replay_available?<LivePlayerSlot session={session}/>:<section className="grid min-h-64 place-items-center rounded-2xl bg-surface p-8 text-center"><div><LiveIcon size={42} className="mx-auto mb-4 text-muted"/><h2 className="text-lg font-semibold text-ink">{session.state==='scheduled'?'This stream is coming up':session.state==='ended'?'This stream has ended':session.state==='starting'?'Starting the broadcast':session.state==='ending'?'The broadcast is ending':'The host is preparing this stream'}</h2>{session.scheduled_at?<p className="mt-3 flex items-center justify-center gap-2 text-sm text-muted"><CalendarDays size={16}/>{new Date(session.scheduled_at).toLocaleString()}</p>:null}{session.state==='scheduled'&&detail.capabilities.reminders===true?<button type="button" disabled={actionBusy} onClick={()=>void run('reminder',{enabled:!detail.reminded})} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm text-[var(--canvas)]"><Bell size={16}/>{detail.reminded?'Reminder set':'Remind me'}</button>:null}{studio?<button type="button" onClick={()=>setTab('studio')} className="mt-4 block min-h-11 w-full text-sm font-semibold text-ink underline">Open studio</button>:null}</div></section>}
+      {session.description?<p className="whitespace-pre-wrap rounded-xl bg-surface p-5 text-sm leading-relaxed text-ink">{session.description}</p>:null}
+      <LiveInteractions key={id+identity.scope} client={client} detail={detail} broadcast={interactionSnapshot} counts={interactionCounts}/>
+      {moderator?<div className="flex flex-wrap items-center gap-3 rounded-xl border border-ink/10 p-4"><span className="text-xs font-semibold text-ink">Chat controls</span><select aria-label="Who can chat" defaultValue={session.chat_mode} onChange={e=>void run('chat_settings',{chat_mode:e.target.value})} className="min-h-11 rounded-lg bg-surface px-3 text-sm text-ink"><option value="open">Everyone</option><option value="followers">Followers</option><option value="closed">Chat closed</option></select><select aria-label="Slow mode" defaultValue={String(session.slow_mode_seconds)} onChange={e=>void run('chat_settings',{slow_mode_seconds:Number(e.target.value)})} className="min-h-11 rounded-lg bg-surface px-3 text-sm text-ink"><option value="0">Normal chat</option><option value="5">5 second slow mode</option><option value="15">15 second slow mode</option><option value="30">30 second slow mode</option></select></div>:null}
+      </div><LiveChat key={id+identity.scope} client={client} detail={detail} ownerId={identity.owner!} onRefresh={refresh} onPatch={onPatch} onInteraction={onInteraction} onInteractionCounts={onInteractionCounts}/></div>
     </>}
   </div>;
 }

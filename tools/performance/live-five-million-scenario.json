@@ -1,0 +1,11 @@
+{
+  "registeredUsers": 5000000,
+  "concurrentViewers": 50000,
+  "concurrentBroadcasts": 500,
+  "averageVideoMbps": 1.8,
+  "headroom": 2,
+  "chatMessagesPerSecond": 1000,
+  "averageChatSubscribers": 100,
+  "clipJobsPerMinute": 60,
+  "clipRenderP95Seconds": 30
+}

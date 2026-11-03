@@ -2,7 +2,7 @@ name: Browser interaction and video gates
 
 on:
   push:
-    branches: ['codex/completion-20261101', 'codex/web-admin-media-parity-20261101']
+    branches: ['codex/completion-20261101', 'codex/web-admin-media-parity-20261101', 'codex/live-completion-20261102']
     paths:
       - 'admin-web/**'
       - 'web/**'
@@ -54,6 +54,7 @@ jobs:
       PC_PAGING_BROWSER_ARTIFACTS: /tmp/platinum-browser-evidence/memory-paging
       PC_HISTORY_EVIDENCE: /tmp/platinum-browser-evidence/session-history
       PC_THREAD_HISTORY_EVIDENCE: /tmp/platinum-browser-evidence/thread-history
+      LIVE_BROWSER_EVIDENCE: /tmp/platinum-browser-evidence/live
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         id: checkout
@@ -101,6 +102,9 @@ jobs:
       - name: Exercise prepared feed media and shared-post source changes
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/media-readiness-run.cjs
+      - name: Exercise Live playback, interactions, clipping and sharing
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node web/tests/browser/live-run.cjs
       - name: Exercise native mouse scrolling, stable media layout and page append
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/scroll-run.cjs
@@ -198,5 +202,7 @@ jobs:
             /tmp/platinum-browser-evidence/session-history/*.png
             /tmp/platinum-browser-evidence/thread-history/*.json
             /tmp/platinum-browser-evidence/thread-history/*.png
+            /tmp/platinum-browser-evidence/live/*.json
+            /tmp/platinum-browser-evidence/live/*.png
           if-no-files-found: ignore
           retention-days: 7

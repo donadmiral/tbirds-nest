@@ -12,6 +12,7 @@ import { supabase, SUPABASE_URL } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { uploadMedia } from '../../services/mediaService';
 import { channelMediaObject } from '../../../shared/channelMedia';
+import { contentObject, hydrateContentMedia, isContentCapability } from '../../../shared/contentMedia';
 import { orderTimeout } from '../../../shared/orderRequest';
 import ChannelSettingsSheet from '../../components/ChannelSettingsSheet';
 
@@ -103,14 +104,16 @@ export default function ChannelScreen() {
   }, [channelId, uid]);
   useEffect(() => { if (!loading) void markRead(); }, [messages, loading, focused, isMember, settingsOpen, pollOpen, thread, markRead]);
   const signMedia = useCallback(async (rows:any[], run:number) => {
-    const signed = await Promise.all(rows.filter(row=>row.media_url).map(async row=>{
+    const clips=rows.filter(row=>typeof row.media_url==='string'&&contentObject(row.media_url,SUPABASE_URL)?.bucket==='live-clips');
+    const clipIds=new Set(clips.map(row=>row.id));
+    const [signed,clipSigned] = await Promise.all([Promise.all(rows.filter(row=>row.media_url&&!clipIds.has(row.id)).map(async row=>{
       const object=channelMediaObject(row.media_url,SUPABASE_URL);
       if(!object)return [row.id,''] as const;
       try {const result=await deadline(supabase.storage.from(object.bucket).createSignedUrl(object.path,300));return [row.id,result.error?'':result.data?.signedUrl||''] as const;}
       catch{return [row.id,''] as const;}
-    }));
-    if(run===scope.current)setMediaUrls(old=>({...old,...Object.fromEntries(signed)}));
-  },[]);
+    })),deadline(hydrateContentMedia(supabase,SUPABASE_URL,clips,'channel_message')).then(hydrated=>hydrated.map(row=>[row.id,typeof row.media_url==='string'&&isContentCapability(row.media_url,SUPABASE_URL)?row.media_url:''] as const)).catch(()=>clips.map(row=>[row.id,''] as const))]);
+    if(valid(run))setMediaUrls(old=>({...old,...Object.fromEntries([...signed,...clipSigned])}));
+  },[uid,channelId]);
   const canPost = myRole === 'owner' || myRole === 'collaborator';
 
   const load = useCallback(async (next = false) => {

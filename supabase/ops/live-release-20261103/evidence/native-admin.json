@@ -1,0 +1,95 @@
+{
+  "format": 1,
+  "release": "live-release-20261103",
+  "result": "passed_with_device_acceptance_outstanding",
+  "scope": "Local native and admin source verification. This receipt does not certify hosted providers, native binary acceptance, distribution, or capacity.",
+  "typescript": [
+    {
+      "working_directory": ".",
+      "command": "node node_modules/typescript/bin/tsc --noEmit --pretty false",
+      "exit_code": 0
+    },
+    {
+      "working_directory": "admin-web",
+      "command": "node node_modules/typescript/bin/tsc --noEmit --pretty false",
+      "exit_code": 0
+    }
+  ],
+  "tests": [
+    { "path": "tests/live-native-contracts.test.cjs", "passed": 6, "failed": 0, "skipped": 0 },
+    { "path": "tests/live-native-clips.test.cjs", "passed": 3, "failed": 0, "skipped": 0 },
+    { "path": "admin-web/tests/live-operations.cjs", "passed": 6, "failed": 0, "skipped": 0 },
+    { "path": "admin-web/tests/live-clips.cjs", "passed": 6, "failed": 0, "skipped": 0 },
+    { "path": "supabase/tests/rpc-authorization/test-live-interactivity.mjs", "passed": 9, "failed": 0, "skipped": 0 },
+    { "path": "tests/call-transitions.test.cjs", "passed": 3, "failed": 0, "skipped": 0 },
+    { "path": "tests/native-call-reliability.test.cjs", "passed": 24, "failed": 0, "skipped": 0 },
+    { "path": "tests/call-media.test.cjs", "passed": 8, "failed": 0, "skipped": 0 },
+    { "path": "admin-web/tests/navigation-workflows.cjs", "passed": 8, "failed": 0, "skipped": 0 },
+    { "path": "admin-web/tests/music-operations.cjs", "passed": 6, "failed": 0, "skipped": 0 }
+  ],
+  "test_totals": { "passed": 79, "failed": 0, "skipped": 0 },
+  "admin_production_build": {
+    "working_directory": "admin-web",
+    "command": "npm run build -- --webpack",
+    "environment": {
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "NEXT_PUBLIC_SUPABASE_URL": "https://synthetic-compile.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "synthetic-compile-only",
+      "SUPABASE_SERVICE_ROLE_KEY": "synthetic-compile-only"
+    },
+    "environment_purpose": "Explicit synthetic build-only values. No real account, provider, or database credentials were used.",
+    "framework": "Next.js 16.4.3",
+    "bundler": "webpack",
+    "exit_code": 0,
+    "compiled_seconds": 12.2,
+    "typescript_seconds": 7.8,
+    "static_generation_completed": 12,
+    "static_generation_total": 12,
+    "live_routes": ["/live", "/api/live", "/api/live/clips"],
+    "runner_note": "The restricted run could not fetch existing Google Fonts. The Turbopack retry encountered a subprocess port-binding restriction. The unchanged app completed its webpack production build with permitted network access.",
+    "non_blocking_warnings": [
+      "Existing multiple-lockfile workspace root inference",
+      "Existing unset metadataBase defaulted to localhost during this synthetic build",
+      "Inherited npm http-proxy configuration warning"
+    ],
+    "deployment_performed": false
+  },
+  "expo_configuration": {
+    "command": "EXPO_NO_TELEMETRY=1 node node_modules/expo/bin/cli config --type introspect --json",
+    "production": {
+      "exit_code": 0,
+      "screen_share_app_group": "group.app.platinumcircles.mobile"
+    },
+    "qa": {
+      "additional_environment": {
+        "EXPO_PUBLIC_APP_ENV": "qa",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://uaulhuelcfkjwojtymmw.supabase.co"
+      },
+      "exit_code": 0,
+      "screen_share_app_group": "group.app.platinumcircles.mobile.qa",
+      "screen_capture_extension_bundle_identifier": "app.platinumcircles.mobile.qa.ScreenCaptureExtension"
+    },
+    "configured_capabilities": [
+      "Daily camera, microphone and screen sharing",
+      "expo-video background playback and Picture in Picture"
+    ],
+    "native_binary_build_performed": false
+  },
+  "diff_check": { "command": "git diff --check", "exit_code": 0 },
+  "acceptance_limits": {
+    "physical_ios_acceptance": "outstanding",
+    "physical_android_acceptance": "outstanding",
+    "device_checks_remaining": [
+      "Camera and microphone capture and permission recovery",
+      "iOS ReplayKit broadcast extension and app group operation",
+      "Android screen and game capture",
+      "Background playback and Picture in Picture",
+      "Call and Live media handoff on physical devices"
+    ],
+    "native_distribution": "held; no TestFlight, App Store, Play Store, or device distribution performed",
+    "direct_external_posting": "Unconnected destinations use explicit device export/share and export_required history; no direct-post success is claimed.",
+    "automatic_transcription": "Not claimed; manual subtitle editing and review are implemented.",
+    "paid_gifts": "deferred",
+    "five_million_user_capacity_measured": false
+  }
+}

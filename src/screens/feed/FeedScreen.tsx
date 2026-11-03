@@ -2709,8 +2709,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   </TouchableOpacity>
                 );
               })}
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Live streams" onPress={() => navigation.navigate('LiveStreams')} style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
-                <Feather name="radio" size={23} color={t.ink.primary} />
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Live streams" onPress={() => navigation.navigate('LiveStreams')} style={{ minWidth: 62, minHeight: 44, flexDirection:'row', gap:4, alignItems: 'center', justifyContent: 'center' }}>
+                <Feather name="radio" size={17} color={t.ink.primary} /><Text style={{fontSize:14,fontWeight:'600',color:t.ink.primary}}>Live</Text>
               </TouchableOpacity>
             </View>
           </View>

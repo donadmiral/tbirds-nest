@@ -10,7 +10,7 @@ name: Type and quality gates
 
 on:
   push:
-    branches: [master, codex/completion-20261101, codex/web-admin-media-parity-20261101]
+    branches: [master, codex/completion-20261101, codex/web-admin-media-parity-20261101, codex/live-completion-20261102]
   pull_request:
   workflow_dispatch:
 
@@ -93,8 +93,27 @@ jobs:
           deno-version: 2.1.4
       - name: Verify Edge runtime version
         run: deno --version
-      - name: Check authenticated push handlers and their pinned dependencies
-        run: deno check --no-lock --node-modules-dir=none supabase/functions/send-push-notification/index.ts supabase/functions/send-push-notification/compatibility-index.ts supabase/functions/send-voip-push/index.ts supabase/functions/send-voip-push/compatibility-index.ts supabase/functions/daily-get-token/compatibility-index.ts supabase/functions/process-notification-outbox/index.ts supabase/functions/media-content/index.ts supabase/functions/media-broker/index.ts
+      - name: Check authenticated push, media and Live handlers and their pinned dependencies
+        run: |
+          deno check --no-lock --node-modules-dir=none \
+            supabase/functions/send-push-notification/index.ts \
+            supabase/functions/send-push-notification/compatibility-index.ts \
+            supabase/functions/send-voip-push/index.ts \
+            supabase/functions/send-voip-push/compatibility-index.ts \
+            supabase/functions/daily-get-token/compatibility-index.ts \
+            supabase/functions/process-notification-outbox/index.ts \
+            supabase/functions/media-content/index.ts \
+            supabase/functions/content-media-sign/index.ts \
+            supabase/functions/media-broker/index.ts \
+            supabase/functions/live-playback/index.ts \
+            supabase/functions/live-stage/index.ts \
+            supabase/functions/live-control/index.ts \
+            supabase/functions/live-cover/index.ts \
+            supabase/functions/live-provider-webhook/index.ts \
+            supabase/functions/live-maintenance/index.ts \
+            supabase/functions/live-sign/index.ts \
+            supabase/functions/live-clip-media/index.ts \
+            supabase/functions/live-clip-worker/index.ts
       - name: Test actual pinned-IP HTTPS and cancellation
         env:
           PLATINUM_LINK_TLS_FIXTURE: ${{ runner.temp }}/platinum-link-tls
@@ -173,17 +192,20 @@ jobs:
           npm ci --prefix supabase/tests/rpc-authorization
       - name: Test phone, diagnostics, feed and call regressions
         run: node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs
-      - name: Test adaptive media processing and delivery
+      - name: Test adaptive media processing, Live rendering and worker leases
         run: |
           if ! command -v ffmpeg >/dev/null; then
             sudo apt-get update
             sudo apt-get install --yes ffmpeg
           fi
           node --test workers/media-renditions/test/*.test.mjs
-      - name: Test payment recovery and database boundaries
+          node --test --test-concurrency=2 workers/live-clips/test/*.test.mjs
+      - name: Test payment recovery, Live Edge authorization and database boundaries
         env:
           PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.cjs
           TRINITI_PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.js
+        # This existing glob includes live-provider.test.cjs, live-signing.test.cjs
+        # and live-clips-edge.test.cjs without running those suites twice.
         run: node --experimental-strip-types --test --test-concurrency=2 supabase/tests/*.test.*
       - name: Test RPC authorization
         run: npm test --prefix supabase/tests/rpc-authorization

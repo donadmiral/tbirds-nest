@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "Live directory filters and responsive layouts at 320,390,768,1440",
+    "Real HLS video element survives navigation and minimizes to floating player",
+    "Floating player expands back into original stream without replacing video",
+    "500 incoming chat broadcasts retain exactly150 messages",
+    "Poll voting preserves personal choice and merges broadcast counts without a SQL read",
+    "Q and A submissions and server-timed chapter markers confirm saved state",
+    "Analytics distinguishes measured counters from unavailable measurements",
+    "Creator clip permissions save through the authoritative settings command",
+    "Clip range presets and duplicate-safe retry preserve exact 60s selection",
+    "Ready clip publication confirms backend result and dialog traps focus",
+    "A signed MP4 plays on the authorized clip page and file export records export-required history",
+    "Platform settings show real disconnected state and export history without claiming social publication",
+    "Signout destroys persistent playback and private clip library"
+  ],
+  "errors": [],
+  "failure": null,
+  "scope": "Actual web components with synthetic authorized API responses and local HLS footage. Does not validate hosted providers or capacity."
+}

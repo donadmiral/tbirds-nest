@@ -480,3 +480,48 @@ verify_jwt = false
 # Separate hashed worker/gateway capabilities, replay fences and fixed media operations.
 [functions.media-broker]
 verify_jwt = false
+
+[functions.live-stage]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-stage/index.ts"
+
+[functions.live-control]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-control/index.ts"
+
+[functions.live-playback]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-playback/index.ts"
+
+[functions.live-provider-webhook]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-provider-webhook/index.ts"
+
+[functions.live-cover]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-cover/index.ts"
+
+[functions.live-maintenance]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-maintenance/index.ts"
+
+[functions.live-sign]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-sign/index.ts"
+
+[functions.live-clip-media]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-clip-media/index.ts"
+
+[functions.live-clip-worker]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/live-clip-worker/index.ts"
