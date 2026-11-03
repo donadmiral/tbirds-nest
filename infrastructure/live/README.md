@@ -52,42 +52,36 @@ customer's target AWS account. The domain UUID and production signer URL have
 been saved in Supabase and verified by the running maintenance function. See the
 [configuration receipt](../../supabase/ops/live-release-20261103/evidence/live-delivery-infrastructure.json).
 
-AWS account access was unavailable during this setup. No stack, bucket, IAM
-role, distribution or signing-key store was created. Authenticate the intended
-customer AWS account and inspect `aws sts get-caller-identity` before deploying.
-Use `platinum-live-production` as the proposed stack name. `us-west-2` is the
-proposed storage region, matching the existing Supabase production region;
-confirm that placement against the intended AWS account and audience before
-creating the stack. The user's subsequent project selection below supersedes
-the proposed region. Pass the reviewed parameter file to CloudFormation with
-`CAPABILITY_IAM`. Do not replace missing stack outputs with invented values or
-enable broadcast admission before provider acceptance.
+AWS account access was subsequently verified through the connected Toolkit.
+The `platinum-live-production` stack is now `CREATE_COMPLETE` in `us-east-2`,
+account `518317808503`, with CloudFront distribution `E15BWQDKI39QKD` reporting
+`Deployed`. The exact outputs and API checks are in the
+[AWS deployment receipt](../../supabase/ops/live-release-20261103/evidence/aws-live-deployment.json).
+Production Supabase has the real bucket, region, role ARN and CDN origin;
+maintenance request `10710` confirmed all four at runtime with HTTP 200.
+Signing-key installation and Daily acceptance are still pending. Keep broadcast
+admission disabled until the remaining provider and delivery checks pass.
 
 ### User-created AWS project and connection
 
-The user subsequently created a project using **the new AWS experience** and
-specified **`us-east-2`**. Use that selected region for the CloudFormation stack
-and all regional resources. The earlier `us-west-2` proposal is superseded.
-CloudFormation lint passes for `us-east-2`. The project/account identity and
-Free/Paid plan have not yet been verified through authenticated AWS access.
+The user created a project using **the new AWS experience** and selected
+**`us-east-2`**. The deployed bucket's actual location matches that region.
+The earlier `us-west-2` proposal is superseded. Authenticated STS identified
+account `518317808503`; Free Tier reported an active `FREE` plan with USD 100
+in remaining credits during preflight. No plan upgrade was performed.
 
 For this ChatGPT web session, the supported connection is AWS's remote OAuth
 MCP server at `https://aws-mcp.us-east-1.api.aws/mcp?oauth=initialize`. Its
 `us-east-1` endpoint identifies the MCP service, not the project's deployment
-region. The connection form is prepared; user authorization is still pending.
-Installing or listing the public Toolkit catalog alone does not prove AWS
-resource access. See the [setup receipt](../../supabase/ops/live-release-20261103/evidence/aws-toolkit-setup.json).
+region. OAuth is now connected and authenticated AWS API access is verified.
+The [initial setup receipt](../../supabase/ops/live-release-20261103/evidence/aws-toolkit-setup.json)
+and [intermediate connection check](../../supabase/ops/live-release-20261103/evidence/aws-toolkit-connection-check.json)
+remain historical records, superseded by the deployment receipt above.
 
-A subsequent [live connection check](../../supabase/ops/live-release-20261103/evidence/aws-toolkit-connection-check.json)
-confirmed that the user installed the plugin. Its app still shows `Connect`
-after a fresh page load. The connection flow redirects to AWS sign-in, where
-this cloud browser displays `Site Unavailable`. Complete the AWS connection
-from the verified plugin detail page in the user's regular browser, then verify
-authenticated resource access. Do not recreate the installed plugin or infer
-successful OAuth from installation alone.
-
-Before creating the delivery stack, inspect the authenticated project's policy
-state. AWS's published new-experience RCP denies authenticated external
+Before Daily acceptance, resolve the project's applicable policy state.
+Authenticated organization policy/parent inspection returned `AccessDenied`;
+this does not establish that restrictions are absent. AWS's published
+new-experience RCP denies authenticated external
 non-service principals, including `sts:*` and `s3:*` requests, when their
 organization differs from the resource's organization. Daily's documented
 vendor principal falls under that default deny, so a matching IAM trust policy
@@ -99,6 +93,10 @@ acceptance. Activation is irreversible and changes billing/spend-limit controls.
 Do not activate it automatically, remove unrelated protections, or assume an
 upgrade to the Paid plan resolves the restriction. Check which policies remain
 after activation and validate actual Daily role assumption before admission.
+The deployed Daily role is
+`arn:aws:iam::518317808503:role/platinum-live-production-DailyWriter-3ZGHqfqMNzKI`.
+An exact-role exception can be reviewed if the published deny applies; no
+organization policy or advanced-feature setting has been changed.
 
 Sources:
 
@@ -136,6 +134,55 @@ Installing this room-level destination does not require replacing unrelated
 Daily domain-wide recording settings.
 
 ## Signing configuration and rotation
+
+### Current pending installation
+
+The connected AWS MCP server's KeyValueStore data client fails with a missing
+`botocore[crt]` dependency. Its metadata-only Describe call was approved after
+verification against the official response schema, but the remote client still
+could not perform the SigV4A operation. The CloudFront control API works.
+
+Two reviewed templates prepare the supported private S3 import alternative:
+
+- [signing-bootstrap-stage.json](signing-bootstrap-stage.json) adds only the
+  distinct `SigningKeysImported` resource, named
+  `platinum-live-production-signing-v1`. It preserves the existing function
+  association and every existing stack resource.
+- [signing-bootstrap-activate.json](signing-bootstrap-activate.json) keeps both
+  stores and the identical import source, then changes the viewer function's
+  association and `SigningStoreArn`. Use it only after the imported store's
+  control-plane status is `READY`.
+
+The stage change set `live-signing-import-stage-20261103-v2` is prepared and
+available. AWS reports exactly one `Add`, for `SigningKeysImported`. It has not
+been executed. Stack tags are preserved. Both templates pass local lint for
+`us-east-2` and AWS `ValidateTemplate`; ten focused generator tests pass.
+
+The seed belongs under `_bootstrap/` in the private Live bucket, outside both
+Daily's and CloudFront's `live/*` read scope. Its JSON uses `data` entries with
+`key` and `value`. No secret value is embedded in a template, parameter, tag or
+release receipt. Keep the seed unchanged until import reaches `READY`, then
+verify the actual function before removing all versions of the exact temporary
+seed object. Retain the old empty store until acceptance finishes.
+
+Automatic approval review rejected the first attempted seed upload before any
+HTTP request because explicit permission for transferring new Live credentials
+was missing. The seed is not uploaded, the imported store is not created, and
+none of the three new secrets has been installed. The production Supabase form
+contains only the pending names and public key ID, not the secret values.
+
+One approval should cover the CDN key's temporary private S3 import into
+CloudFront and its matching Supabase value, the separate Supabase signer
+credential, and the base64 webhook key in Supabase and Daily. The keys authorize
+playback and authenticate provider events. Do not retry the rejected upload,
+enter these secrets in a browser, or register the webhook until that approval.
+
+For future generation, use an explicit output path with
+`--signing-import-phase stage|activate --signing-import-key _bootstrap/<name>.json`.
+Use the exact same seed key in both phases. Imported-mode stack names must be
+at most 53 characters because the store appends `-signing-v1`.
+
+### Key contracts
 
 Generate independent random secrets using the protected operator workflow. Use
 at least 32 random bytes for the CDN signing secret, represented as text such as

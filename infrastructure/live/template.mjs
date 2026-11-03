@@ -1,7 +1,26 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { parseArgs } from 'node:util';
 const ref = name => ({ Ref: name }), attr = (name, property) => ({ 'Fn::GetAtt': [name, property] }), sub = value => ({ 'Fn::Sub': value });
-export async function liveInfrastructureTemplate() {
+function signingImport(options) {
+  if (!options || typeof options !== 'object' || Array.isArray(options)
+    || Object.keys(options).some(key => key !== 'signingStoreBootstrap')) throw new Error('Invalid infrastructure template options');
+  const value = options.signingStoreBootstrap;
+  if (value === undefined) return null;
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+    || Object.keys(value).some(key => !['phase', 'seedObjectKey'].includes(key))
+    || !['stage', 'activate'].includes(value.phase)
+    || typeof value.seedObjectKey !== 'string' || !/^_bootstrap\/[A-Za-z0-9][A-Za-z0-9_-]{0,127}\.json$/.test(value.seedObjectKey)) {
+    throw new Error('Signing-store bootstrap requires phase stage|activate and a private _bootstrap/<name>.json seed object key');
+  }
+  return value;
+}
+// The caller uploads the seed privately first. Stage adds a distinct store;
+// activate is selected only after its control-plane Status is READY. Reuse the
+// exact same seed key in both phases: CloudFront cannot update ImportSource.
+// Neither phase reads the seed or embeds signing values in the template.
+export async function liveInfrastructureTemplate(options = {}) {
+  const bootstrap = signingImport(options);
   const FunctionCode = await readFile(new URL('./viewer-request.js', import.meta.url), 'utf8');
   const policy = (suffix, ttl, maximum) => ({ Type: 'AWS::CloudFront::CachePolicy', Properties: { CachePolicyConfig: {
     Name: sub('${AWS::StackName}-' + suffix), DefaultTTL: ttl, MaxTTL: maximum, MinTTL: 0,
@@ -11,7 +30,7 @@ export async function liveInfrastructureTemplate() {
   const behavior = cache => ({ TargetOriginId: 'PrivateLiveStorage', ViewerProtocolPolicy: 'https-only', AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
     CachedMethods: ['GET', 'HEAD'], Compress: true, CachePolicyId: ref(cache), ResponseHeadersPolicyId: ref('PlaybackHeaders'),
     FunctionAssociations: [{ EventType: 'viewer-request', FunctionARN: attr('ViewerAuthorization', 'FunctionMetadata.FunctionARN') }] });
-  return {
+  const template = {
     AWSTemplateFormatVersion: '2010-09-09', Description: 'Private Platinum Live HLS storage and authenticated shared CDN delivery.',
     Parameters: {
       DailyAccountId: { Type: 'String', Default: '291871421005', AllowedPattern: '\\d{12}', Description: 'Daily AWS account, verified against its custom S3 guide before deployment.' },
@@ -68,8 +87,28 @@ export async function liveInfrastructureTemplate() {
       DistributionId: { Value: ref('LiveCdn') }, ViewerFunctionName: { Value: sub('${AWS::StackName}-authorize') },
       ViewerFunctionArn: { Value: attr('ViewerAuthorization', 'FunctionMetadata.FunctionARN') } },
   };
+  if (bootstrap) {
+    template.Resources.SigningKeysImported = { Type: 'AWS::CloudFront::KeyValueStore', Properties: {
+      Name: sub('${AWS::StackName}-signing-v1'), Comment: 'Private playback signing keys imported from the private bootstrap seed.',
+      ImportSource: { SourceArn: sub('${LiveBucket.Arn}/' + bootstrap.seedObjectKey), SourceType: 'S3' },
+    } };
+    if (bootstrap.phase === 'activate') {
+      template.Resources.ViewerAuthorization.Properties.FunctionConfig.KeyValueStoreAssociations = [
+        { KeyValueStoreARN: attr('SigningKeysImported', 'Arn') },
+      ];
+      template.Outputs.SigningStoreArn.Value = attr('SigningKeysImported', 'Arn');
+    }
+  }
+  return template;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const destination = process.argv[2] || fileURLToPath(new URL('./live-cloudformation.json', import.meta.url));
-  await writeFile(destination, JSON.stringify(await liveInfrastructureTemplate(), null, 2) + '\n', { mode: 0o600 });
+  const { values, positionals } = parseArgs({ options: {
+    'signing-import-phase': { type: 'string' }, 'signing-import-key': { type: 'string' },
+  }, allowPositionals: true });
+  if (positionals.length > 1) throw new Error('Provide only one output template path');
+  const importing = values['signing-import-phase'] !== undefined || values['signing-import-key'] !== undefined;
+  if (importing && positionals.length !== 1) throw new Error('Signing-store bootstrap requires an explicit output template path');
+  const options = importing ? { signingStoreBootstrap: { phase: values['signing-import-phase'], seedObjectKey: values['signing-import-key'] } } : {};
+  const destination = positionals[0] || fileURLToPath(new URL('./live-cloudformation.json', import.meta.url));
+  await writeFile(destination, JSON.stringify(await liveInfrastructureTemplate(options), null, 2) + '\n', { mode: 0o600 });
 }

@@ -1,0 +1,522 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Private Platinum Live HLS storage and authenticated shared CDN delivery.",
+  "Parameters": {
+    "DailyAccountId": {
+      "Type": "String",
+      "Default": "291871421005",
+      "AllowedPattern": "\\d{12}",
+      "Description": "Daily AWS account, verified against its custom S3 guide before deployment."
+    },
+    "DailyExternalId": {
+      "Type": "String",
+      "MinLength": 1,
+      "MaxLength": 63,
+      "AllowedPattern": "[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?",
+      "Description": "Exact Daily domain name (the subdomain before .daily.co), not the domain UUID."
+    }
+  },
+  "Resources": {
+    "LiveBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        },
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "AbandonedUploadsAndSupersededManifests",
+              "Status": "Enabled",
+              "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 1
+              },
+              "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 7
+              }
+            }
+          ]
+        }
+      }
+    },
+    "DailyWriter": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "MaxSessionDuration": 43200,
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "sts:AssumeRole",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:aws:iam::${DailyAccountId}:root"
+                }
+              },
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": {
+                    "Ref": "DailyExternalId"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "PlatinumLiveOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetBucketLocation",
+                    "s3:ListBucket",
+                    "s3:ListBucketVersions",
+                    "s3:ListBucketMultipartUploads"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "LiveBucket",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:DeleteObject",
+                    "s3:AbortMultipartUpload",
+                    "s3:ListMultipartUploadParts"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${LiveBucket.Arn}/live/*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:PutObject",
+                  "Resource": {
+                    "Fn::Sub": "${LiveBucket.Arn}/daily-co-test-upload.txt"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "SigningKeys": {
+      "Type": "AWS::CloudFront::KeyValueStore",
+      "Properties": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-signing"
+        },
+        "Comment": "Private playback signing keys, no user data."
+      }
+    },
+    "ViewerAuthorization": {
+      "Type": "AWS::CloudFront::Function",
+      "Properties": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-authorize"
+        },
+        "AutoPublish": true,
+        "FunctionCode": "// CloudFront Functions, JavaScript runtime 2.0. Associate the dedicated KVS.\n// Keys: signing:<keyId> -> secret shared ONLY with live-sign.\nimport cf from 'cloudfront';\nconst crypto = require('crypto');\nconst keys = cf.kvs();\nconst denied = () => ({ statusCode: 403, statusDescription: 'Forbidden', headers: {\n  'cache-control': { value: 'private, no-store' }, 'content-type': { value: 'text/plain' },\n  'access-control-allow-origin': { value: '*' }, 'referrer-policy': { value: 'no-referrer' },\n}, body: 'Unavailable' });\nfunction equal(a, b) { if (a.length !== b.length) return false; let diff = 0; for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i); return diff === 0; }\nasync function handler(event) {\n  const request = event.request;\n  if (request.method !== 'GET' && request.method !== 'HEAD' && request.method !== 'OPTIONS') return denied();\n  const match = request.uri.match(/^\\/_live\\/([a-z0-9_-]{1,16})\\.(\\d{10})\\.([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})\\.([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})\\.([a-f0-9]{64})\\/(live\\/[a-zA-Z0-9_.\\/-]{1,320})$/);\n  if (!match) return denied();\n  const expires = Number(match[2]), now = Math.floor(Date.now() / 1000), object = match[6];\n  if (expires <= now || expires > now + 120 || object.indexOf('live/' + match[3] + '/' + match[4] + '/') !== 0\n    || object.indexOf('..') !== -1 || object.indexOf('//') !== -1 || !/\\.(m3u8|ts|m4s|mp4|vtt)$/.test(object)) return denied();\n  try {\n    const secret = await keys.get('signing:' + match[1]); if (!secret || secret.length < 32) return denied();\n    const signed = 'pc-live-v1.' + match[1] + '.' + match[2] + '.' + match[3] + '.' + match[4];\n    const expected = crypto.createHmac('sha256', secret).update(signed).digest('hex');\n    if (!equal(expected, match[5])) return denied();\n  } catch (_) { return denied(); }\n  // Preflights are answered here only after the same capability check. They\n  // never reach S3, and cannot authorize a write or a credentialed request.\n  if (request.method === 'OPTIONS') {\n    const method = request.headers['access-control-request-method'];\n    const requested = request.headers['access-control-request-headers'];\n    if (!method || (method.value !== 'GET' && method.value !== 'HEAD')) return denied();\n    const names = requested ? requested.value.toLowerCase().split(',') : [];\n    for (let i = 0; i < names.length; i++) {\n      const name = names[i].trim();\n      if (name !== 'range' && name !== 'origin' && name !== 'accept') return denied();\n    }\n    return { statusCode: 204, statusDescription: 'No Content', headers: {\n      'access-control-allow-origin': { value: '*' },\n      'access-control-allow-methods': { value: 'GET, HEAD, OPTIONS' },\n      'access-control-allow-headers': { value: 'Range, Origin, Accept' },\n      'access-control-max-age': { value: '60' },\n      'cache-control': { value: 'private, no-store' },\n      'referrer-policy': { value: 'no-referrer' },\n    } };\n  }\n  // Authentication runs BEFORE cache lookup. Stripping the capability only\n  // after validation lets viewers share immutable CDN cache objects safely.\n  request.uri = '/' + object;\n  request.querystring = {};\n  delete request.headers.authorization;\n  delete request.headers.cookie;\n  return request;\n}\n",
+        "FunctionConfig": {
+          "Runtime": "cloudfront-js-2.0",
+          "Comment": "Authorize every HLS object before shared-cache lookup.",
+          "KeyValueStoreAssociations": [
+            {
+              "KeyValueStoreARN": {
+                "Fn::GetAtt": [
+                  "SigningKeysImported",
+                  "Arn"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "OriginAccess": {
+      "Type": "AWS::CloudFront::OriginAccessControl",
+      "Properties": {
+        "OriginAccessControlConfig": {
+          "Name": {
+            "Fn::Sub": "${AWS::StackName}-storage"
+          },
+          "OriginAccessControlOriginType": "s3",
+          "SigningBehavior": "always",
+          "SigningProtocol": "sigv4"
+        }
+      }
+    },
+    "SegmentCache": {
+      "Type": "AWS::CloudFront::CachePolicy",
+      "Properties": {
+        "CachePolicyConfig": {
+          "Name": {
+            "Fn::Sub": "${AWS::StackName}-segments"
+          },
+          "DefaultTTL": 3600,
+          "MaxTTL": 86400,
+          "MinTTL": 0,
+          "ParametersInCacheKeyAndForwardedToOrigin": {
+            "EnableAcceptEncodingBrotli": true,
+            "EnableAcceptEncodingGzip": true,
+            "CookiesConfig": {
+              "CookieBehavior": "none"
+            },
+            "HeadersConfig": {
+              "HeaderBehavior": "none"
+            },
+            "QueryStringsConfig": {
+              "QueryStringBehavior": "none"
+            }
+          }
+        }
+      }
+    },
+    "ManifestCache": {
+      "Type": "AWS::CloudFront::CachePolicy",
+      "Properties": {
+        "CachePolicyConfig": {
+          "Name": {
+            "Fn::Sub": "${AWS::StackName}-manifests"
+          },
+          "DefaultTTL": 1,
+          "MaxTTL": 2,
+          "MinTTL": 0,
+          "ParametersInCacheKeyAndForwardedToOrigin": {
+            "EnableAcceptEncodingBrotli": true,
+            "EnableAcceptEncodingGzip": true,
+            "CookiesConfig": {
+              "CookieBehavior": "none"
+            },
+            "HeadersConfig": {
+              "HeaderBehavior": "none"
+            },
+            "QueryStringsConfig": {
+              "QueryStringBehavior": "none"
+            }
+          }
+        }
+      }
+    },
+    "PlaybackHeaders": {
+      "Type": "AWS::CloudFront::ResponseHeadersPolicy",
+      "Properties": {
+        "ResponseHeadersPolicyConfig": {
+          "Name": {
+            "Fn::Sub": "${AWS::StackName}-playback"
+          },
+          "CorsConfig": {
+            "AccessControlAllowCredentials": false,
+            "AccessControlAllowHeaders": {
+              "Items": [
+                "Range",
+                "Origin",
+                "Accept"
+              ]
+            },
+            "AccessControlAllowMethods": {
+              "Items": [
+                "GET",
+                "HEAD",
+                "OPTIONS"
+              ]
+            },
+            "AccessControlAllowOrigins": {
+              "Items": [
+                "*"
+              ]
+            },
+            "AccessControlExposeHeaders": {
+              "Items": [
+                "Content-Length",
+                "Content-Range",
+                "Accept-Ranges"
+              ]
+            },
+            "OriginOverride": true
+          },
+          "SecurityHeadersConfig": {
+            "ContentTypeOptions": {
+              "Override": true
+            },
+            "ReferrerPolicy": {
+              "ReferrerPolicy": "no-referrer",
+              "Override": true
+            }
+          },
+          "CustomHeadersConfig": {
+            "Items": [
+              {
+                "Header": "Cache-Control",
+                "Value": "private, max-age=1",
+                "Override": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "LiveCdn": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Enabled": true,
+          "HttpVersion": "http2and3",
+          "IPV6Enabled": true,
+          "Comment": "Platinum Live. All objects require short-lived path capabilities.",
+          "PriceClass": "PriceClass_All",
+          "Origins": [
+            {
+              "Id": "PrivateLiveStorage",
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "LiveBucket",
+                  "RegionalDomainName"
+                ]
+              },
+              "OriginAccessControlId": {
+                "Ref": "OriginAccess"
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": ""
+              }
+            }
+          ],
+          "DefaultCacheBehavior": {
+            "TargetOriginId": "PrivateLiveStorage",
+            "ViewerProtocolPolicy": "https-only",
+            "AllowedMethods": [
+              "GET",
+              "HEAD",
+              "OPTIONS"
+            ],
+            "CachedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "Compress": true,
+            "CachePolicyId": {
+              "Ref": "SegmentCache"
+            },
+            "ResponseHeadersPolicyId": {
+              "Ref": "PlaybackHeaders"
+            },
+            "FunctionAssociations": [
+              {
+                "EventType": "viewer-request",
+                "FunctionARN": {
+                  "Fn::GetAtt": [
+                    "ViewerAuthorization",
+                    "FunctionMetadata.FunctionARN"
+                  ]
+                }
+              }
+            ]
+          },
+          "CacheBehaviors": [
+            {
+              "PathPattern": "*.m3u8",
+              "TargetOriginId": "PrivateLiveStorage",
+              "ViewerProtocolPolicy": "https-only",
+              "AllowedMethods": [
+                "GET",
+                "HEAD",
+                "OPTIONS"
+              ],
+              "CachedMethods": [
+                "GET",
+                "HEAD"
+              ],
+              "Compress": true,
+              "CachePolicyId": {
+                "Ref": "ManifestCache"
+              },
+              "ResponseHeadersPolicyId": {
+                "Ref": "PlaybackHeaders"
+              },
+              "FunctionAssociations": [
+                {
+                  "EventType": "viewer-request",
+                  "FunctionARN": {
+                    "Fn::GetAtt": [
+                      "ViewerAuthorization",
+                      "FunctionMetadata.FunctionARN"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "CustomErrorResponses": [
+            {
+              "ErrorCode": 403,
+              "ErrorCachingMinTTL": 1
+            },
+            {
+              "ErrorCode": 404,
+              "ErrorCachingMinTTL": 1
+            }
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true
+          }
+        }
+      }
+    },
+    "LiveBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "LiveBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "CdnReadOnly",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudfront.amazonaws.com"
+              },
+              "Action": "s3:GetObject",
+              "Resource": {
+                "Fn::Sub": "${LiveBucket.Arn}/live/*"
+              },
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceArn": {
+                    "Fn::Sub": "arn:aws:cloudfront::${AWS::AccountId}:distribution/${LiveCdn}"
+                  }
+                }
+              }
+            },
+            {
+              "Sid": "RequireTls",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "LiveBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": "${LiveBucket.Arn}/*"
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "SigningKeysImported": {
+      "Type": "AWS::CloudFront::KeyValueStore",
+      "Properties": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-signing-v1"
+        },
+        "Comment": "Private playback signing keys imported from the private bootstrap seed.",
+        "ImportSource": {
+          "SourceArn": {
+            "Fn::Sub": "${LiveBucket.Arn}/_bootstrap/6cc0af56e669412599f2dd5cba549cbd.json"
+          },
+          "SourceType": "S3"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "Bucket": {
+      "Value": {
+        "Ref": "LiveBucket"
+      }
+    },
+    "Region": {
+      "Value": {
+        "Ref": "AWS::Region"
+      }
+    },
+    "DailyRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "DailyWriter",
+          "Arn"
+        ]
+      }
+    },
+    "CdnOrigin": {
+      "Value": {
+        "Fn::Sub": "https://${LiveCdn.DomainName}"
+      }
+    },
+    "SigningStoreArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "SigningKeysImported",
+          "Arn"
+        ]
+      }
+    },
+    "DistributionId": {
+      "Value": {
+        "Ref": "LiveCdn"
+      }
+    },
+    "ViewerFunctionName": {
+      "Value": {
+        "Fn::Sub": "${AWS::StackName}-authorize"
+      }
+    },
+    "ViewerFunctionArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ViewerAuthorization",
+          "FunctionMetadata.FunctionARN"
+        ]
+      }
+    }
+  }
+}

@@ -179,6 +179,44 @@ for the conditional activation and policy-review requirements.
 
 ## Current feature gates
 
+### AWS delivery stack deployed, keys pending approval
+
+The [AWS deployment receipt](evidence/aws-live-deployment.json) supersedes the
+earlier AWS connection snapshots. Authenticated STS verified account
+`518317808503`. Stack `platinum-live-production` reached `CREATE_COMPLETE` in
+`us-east-2`, and distribution `E15BWQDKI39QKD` reports `Deployed`.
+
+Direct AWS reads verified private S3 access, encryption, bucket ownership,
+versioning, distribution-scoped origin access, Daily's constrained object
+permissions, cache policies and viewer-function associations. Actual unsigned
+GET and OPTIONS requests returned HTTP 403 with CloudFront's
+`FunctionGeneratedResponse` marker. These checks do not prove signed playback
+or Daily role acceptance.
+
+The real bucket, region, Daily role ARN and CDN origin were saved in production
+Supabase. Maintenance request `10710` returned HTTP 200 and confirmed all four
+settings present in the running function. The earlier Daily domain UUID and
+signer URL are also present.
+
+AWS's connected KeyValueStore data client lacks its required CRT dependency.
+The supported private S3 import alternative is prepared with separate stage and
+activate templates. The available stage change set adds only the imported store
+and has not been executed. Ten focused tests, both template lint checks and
+both AWS template validations pass.
+
+Automatic approval review blocked the first secret upload because explicit
+permission to transmit new Live service credentials was missing. No seed was
+uploaded and no new key was installed. The
+[prepared Supabase form](evidence/aws-live-key-approval.jpg) shows the pending
+key names without their values. CDN signing, signer authentication and Daily
+webhook registration await that approval, followed by functional acceptance.
+
+The AWS Free plan was active and reported USD 100 credits during preflight.
+Organization policy inspection was denied, so Daily's external role access
+remains unverified. No paid upgrade, advanced-feature activation, organization
+policy change or admission expansion was performed. Five-million-user capacity
+remains unmeasured.
+
 | Capability | Production state |
 |---|---|
 | Live creation | Enabled |
