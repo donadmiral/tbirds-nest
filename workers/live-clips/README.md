@@ -6,8 +6,10 @@ captions and a chosen thumbnail, then decodes and probes the outputs.
 
 ## Execution and access
 
-`POST /drain` performs bounded publication/cleanup maintenance and awaits one
-leased render job. Each process admits one render at a time. Database admission
+The production entrypoint `pull.mjs` performs bounded publication/cleanup
+maintenance and awaits one leased render job, with no HTTP listener. Idle polls
+run every 60 seconds; errors use bounded backoff. Each process admits one render
+at a time. Database admission
 bounds the whole fleet; the initial configured limit is two active jobs. A lost
 lease, revoked creator session, changed copyright decision or removed clipping
 permission prevents completion. Temporary video is removed after the job; a
@@ -38,7 +40,7 @@ does not silently crop an interview or screen presentation.
 |---|---|---|
 | Worker | `SUPABASE_URL` | Exact project origin |
 | Worker and Edge broker | `LIVE_CLIP_WORKER_SECRET` | Separate random broker credential, at least 32 characters |
-| Worker | `LIVE_CLIP_CRON_SECRET` | Separate credential for the scheduler's `/drain` requests |
+| Legacy HTTP mode only | `LIVE_CLIP_CRON_SECRET` | Separate credential for optional `/drain` requests; not used by the production pull service |
 | Worker and Edge broker | `LIVE_HLS_CDN_ORIGIN` | Authorized HLS CDN origin |
 | Edge broker | `LIVE_PLAYBACK_SIGNER_URL` | Server-to-server `live-sign` endpoint |
 | Edge broker | `LIVE_PLAYBACK_SIGNER_SECRET` | Credential accepted by that signer |
@@ -49,15 +51,22 @@ runtime. Never copy it into the encoder container. Do not commit actual secrets.
 Build from the repository root:
 
 ```sh
-docker build -f workers/live-clips/Dockerfile -t platinum-live-clips .
+RENDERER_NODE_IMAGE=$(node infrastructure/live-clips/resolve-base.mjs)
+docker build --build-arg "RENDERER_NODE_IMAGE=$RENDERER_NODE_IMAGE" -f workers/live-clips/Dockerfile -t platinum-live-clips .
 ```
 
-Deploy a pinned image digest on a job/container platform with FFmpeg, at least
-two vCPUs, sufficient memory and at least 1.1 GiB writable scratch space. The
-process handles SIGTERM and waits for cancellation/cleanup. An HTTP scheduler
-must retain the request for the full job, retry boundedly and use fleet limits.
-The container definition is supplied; it has not been deployed or measured on
-a production worker platform in this change.
+The [AWS deployment package](../../infrastructure/live-clips/README.md) supplies
+the image builder, one-task initial Fargate service, private pull scheduler,
+local health check, redacted metrics/alarms and exact-image acceptance workflow.
+Production uses a pinned image digest, two vCPUs, 4 GiB RAM and a writable
+`/scratch` volume beneath a read-only root. The process handles SIGTERM and
+waits for cancellation/cleanup. Hosted deployment and timing results belong in
+the release receipts; source files alone do not establish readiness.
+
+The existing `server.mjs` remains an explicitly selected compatibility mode
+(`npm run serve`). Its authenticated `POST /drain` awaits one job; an external
+HTTP scheduler must retain that request for the entire job. The production
+Docker entrypoint and ECS task use the private pull scheduler instead.
 
 After a real provider/source/upload/publication acceptance run, the operator
 may call service-only `live_clip_configure(project_origin,true,2)`. Runtime

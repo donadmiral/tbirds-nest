@@ -1,0 +1,20 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+  pre_build:
+    commands:
+      - node infrastructure/live-clips/verify-source.mjs
+      - export RENDERER_NODE_IMAGE=$(node infrastructure/live-clips/resolve-base.mjs)
+      - export RENDERER_IMAGE_TAG="source-$(printf '%s' "$EXPECTED_MANIFEST_SHA256" | cut -c1-32)"
+      - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "${RENDERER_REPOSITORY_URI%/*}"
+  build:
+    commands:
+      - docker build --pull --platform linux/amd64 --build-arg "RENDERER_NODE_IMAGE=$RENDERER_NODE_IMAGE" -f workers/live-clips/Dockerfile -t "$RENDERER_REPOSITORY_URI:$RENDERER_IMAGE_TAG" .
+      - docker run --rm --network none --cpus=2 --memory=4g --pids-limit=256 --read-only --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$RENDERER_IMAGE_TAG" node workers/live-clips/encoder-policy.mjs
+      - docker run --rm --network none --cpus=2 --memory=4g --pids-limit=256 --read-only --tmpfs /tmp:rw,nosuid,nodev,size=2g --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$RENDERER_IMAGE_TAG" node --test workers/live-clips/test/*.test.mjs
+      - docker run --rm --network none --cpus=2 --memory=4g --pids-limit=256 --read-only --tmpfs /scratch:rw,nosuid,nodev,size=2g,uid=1000,gid=1000 --cap-drop ALL --security-opt no-new-privileges "$RENDERER_REPOSITORY_URI:$RENDERER_IMAGE_TAG" node workers/live-clips/acceptance.mjs
+  post_build:
+    commands:
+      - node infrastructure/live-clips/image-receipt.mjs

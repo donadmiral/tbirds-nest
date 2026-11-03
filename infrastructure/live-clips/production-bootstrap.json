@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "account": "518317808503",
+  "region": "us-east-2",
+  "stack_name": "platinum-live-clips-build-production",
+  "stack_status_verified_by_root": "CREATE_COMPLETE",
+  "source_bucket": "platinum-live-clips-build-production-sourcebucket-kscv7c5xp3me",
+  "source_key": "source/renderer-source.zip",
+  "build_project": "Builder-UhwmorEgFfEf",
+  "repository_uri": "518317808503.dkr.ecr.us-east-2.amazonaws.com/platinum-live-clips-build-production-images-fgzusuampzyi",
+  "repository_arn": "arn:aws:ecr:us-east-2:518317808503:repository/platinum-live-clips-build-production-images-fgzusuampzyi",
+  "broker_secret_arn": "arn:aws:secretsmanager:us-east-2:518317808503:secret:platinum-live-clips-build-production/broker-4Qsmcx",
+  "broker_key_arn": "arn:aws:kms:us-east-2:518317808503:key/c0502962-cac0-4244-b722-31dfa2fa8fed",
+  "source": "Actual stack outputs supplied by the root operator on 2026-11-03. This file contains identifiers only, never a credential value."
+}

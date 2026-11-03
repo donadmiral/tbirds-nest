@@ -1,0 +1,783 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Task-only outbound Live captions executor. No service, schedule or task starts. A reviewed budgeted launcher supplies an absolute deadline; broker admission defaults off.",
+  "Parameters": {
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id"
+    },
+    "PublicSubnetIds": {
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "Description": "Existing verified us-east-2 Internet Gateway subnets; no new NAT or load balancer."
+    },
+    "AudioBucketName": {
+      "Type": "String",
+      "AllowedPattern": "[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]",
+      "Description": "Dedicated private bucket from storage-cloudformation.json."
+    },
+    "DataAccessRoleArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]+"
+    },
+    "ImageRepositoryUri": {
+      "Type": "String",
+      "AllowedPattern": "[0-9]{12}\\.dkr\\.ecr\\.us-east-2\\.amazonaws\\.com/[a-z0-9._/-]+"
+    },
+    "ImageRepositoryArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:ecr:us-east-2:[0-9]{12}:repository/[a-z0-9._/-]+"
+    },
+    "ImageDigest": {
+      "Type": "String",
+      "AllowedPattern": "sha256:[a-f0-9]{64}"
+    },
+    "BrokerSecretArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:secretsmanager:us-east-2:[0-9]{12}:secret:[A-Za-z0-9/_+=.@-]+",
+      "Description": "Dedicated secret whose value matches Supabase LIVE_TRANSCRIPTION_WORKER_SECRET."
+    },
+    "BrokerKeyArn": {
+      "Type": "String",
+      "Default": "",
+      "AllowedPattern": "(?:|arn:aws:kms:us-east-2:[0-9]{12}:key/[a-f0-9-]{36})",
+      "Description": "Only if the broker secret uses a customer-managed KMS key."
+    },
+    "SupabaseProjectRef": {
+      "Type": "String",
+      "Default": "prlkikhckbifseosbukl",
+      "AllowedValues": [
+        "prlkikhckbifseosbukl",
+        "uaulhuelcfkjwojtymmw"
+      ]
+    },
+    "ExecutionEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "false",
+        "true"
+      ],
+      "Description": "Explicit operator opt-in after tests and permission/cost review. Database admission remains separately off."
+    },
+    "AlarmTopicArn": {
+      "Type": "String",
+      "Default": "",
+      "AllowedPattern": "(?:|arn:aws:sns:us-east-2:[0-9]{12}:[A-Za-z0-9_-]+)"
+    }
+  },
+  "Conditions": {
+    "HasAlarmTopic": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AlarmTopicArn"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "HasSecretKey": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "BrokerKeyArn"
+            },
+            ""
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "Cluster": {
+      "Type": "AWS::ECS::Cluster",
+      "Properties": {
+        "ClusterSettings": [
+          {
+            "Name": "containerInsights",
+            "Value": "disabled"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ]
+      }
+    },
+    "WorkerSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Caption worker HTTPS egress only; no listener or inbound access.",
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "SecurityGroupIngress": [],
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Fixed Supabase/AWS endpoints and task startup services."
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ]
+      }
+    },
+    "WorkerLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/platinum/live-transcription/${AWS::StackName}/worker"
+        },
+        "RetentionInDays": 14,
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ]
+      }
+    },
+    "TaskExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ecs-tasks.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                  }
+                },
+                "ArnLike": {
+                  "aws:SourceArn": {
+                    "Fn::Sub": "arn:${AWS::Partition}:ecs:${AWS::Region}:${AWS::AccountId}:*"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ],
+        "Policies": [
+          {
+            "PolicyName": "StartOnlyThisCaptionWorker",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "ecr:GetAuthorizationToken",
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:GetDownloadUrlForLayer",
+                    "ecr:BatchGetImage"
+                  ],
+                  "Resource": {
+                    "Ref": "ImageRepositoryArn"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "WorkerLogs",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "secretsmanager:GetSecretValue",
+                  "Resource": {
+                    "Ref": "BrokerSecretArn"
+                  }
+                },
+                {
+                  "Fn::If": [
+                    "HasSecretKey",
+                    {
+                      "Effect": "Allow",
+                      "Action": "kms:Decrypt",
+                      "Resource": {
+                        "Ref": "BrokerKeyArn"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "kms:ViaService": {
+                            "Fn::Sub": "secretsmanager.${AWS::Region}.${AWS::URLSuffix}"
+                          },
+                          "kms:EncryptionContext:SecretARN": {
+                            "Ref": "BrokerSecretArn"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Ref": "AWS::NoValue"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "TaskRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ecs-tasks.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                  }
+                },
+                "ArnLike": {
+                  "aws:SourceArn": {
+                    "Fn::Sub": "arn:${AWS::Partition}:ecs:${AWS::Region}:${AWS::AccountId}:*"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ],
+        "Policies": [
+          {
+            "PolicyName": "OnlyReservedLiveCaptionJobs",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "transcribe:StartTranscriptionJob",
+                    "transcribe:GetTranscriptionJob"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:transcribe:us-east-2:${AWS::AccountId}:transcription-job/pc-live-caption-*"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": "us-east-2"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "transcribe:TagResource",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:transcribe:us-east-2:${AWS::AccountId}:transcription-job/pc-live-caption-*"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestTag/Service": "PlatinumLiveCaptions",
+                      "aws:RequestedRegion": "us-east-2"
+                    },
+                    "ForAllValues:StringEquals": {
+                      "aws:TagKeys": [
+                        "Service",
+                        "ConfigurationHash"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "iam:PassRole",
+                  "Resource": {
+                    "Ref": "DataAccessRoleArn"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "iam:PassedToService": "transcribe.amazonaws.com"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetBucketLocation",
+                    "s3:ListBucket"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:s3:::${AudioBucketName}"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:DeleteObject"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:s3:::${AudioBucketName}/transcription/*/source.flac"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:s3:::${AudioBucketName}/transcription/*/result.json"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Task": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "RequiresCompatibilities": [
+          "FARGATE"
+        ],
+        "NetworkMode": "awsvpc",
+        "Cpu": "1024",
+        "Memory": "2048",
+        "RuntimePlatform": {
+          "CpuArchitecture": "X86_64",
+          "OperatingSystemFamily": "LINUX"
+        },
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "TaskExecutionRole",
+            "Arn"
+          ]
+        },
+        "TaskRoleArn": {
+          "Fn::GetAtt": [
+            "TaskRole",
+            "Arn"
+          ]
+        },
+        "Volumes": [
+          {
+            "Name": "scratch"
+          }
+        ],
+        "ContainerDefinitions": [
+          {
+            "Name": "transcription",
+            "Essential": true,
+            "Image": {
+              "Fn::Sub": "${ImageRepositoryUri}@${ImageDigest}"
+            },
+            "User": "1000:1000",
+            "ReadonlyRootFilesystem": true,
+            "StopTimeout": 30,
+            "Command": [
+              "node",
+              "workers/live-transcription/pull.mjs"
+            ],
+            "LinuxParameters": {
+              "InitProcessEnabled": true,
+              "Capabilities": {
+                "Drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "MountPoints": [
+              {
+                "SourceVolume": "scratch",
+                "ContainerPath": "/scratch",
+                "ReadOnly": false
+              }
+            ],
+            "Ulimits": [
+              {
+                "Name": "nofile",
+                "SoftLimit": 1024,
+                "HardLimit": 1024
+              }
+            ],
+            "Environment": [
+              {
+                "Name": "NODE_ENV",
+                "Value": "production"
+              },
+              {
+                "Name": "NODE_OPTIONS",
+                "Value": "--max-old-space-size=256"
+              },
+              {
+                "Name": "TMPDIR",
+                "Value": "/scratch"
+              },
+              {
+                "Name": "AWS_REGION",
+                "Value": "us-east-2"
+              },
+              {
+                "Name": "AWS_ACCOUNT_ID",
+                "Value": {
+                  "Ref": "AWS::AccountId"
+                }
+              },
+              {
+                "Name": "AWS_EC2_METADATA_DISABLED",
+                "Value": "true"
+              },
+              {
+                "Name": "LIVE_TRANSCRIPTION_BUCKET",
+                "Value": {
+                  "Ref": "AudioBucketName"
+                }
+              },
+              {
+                "Name": "LIVE_TRANSCRIPTION_DATA_ROLE_ARN",
+                "Value": {
+                  "Ref": "DataAccessRoleArn"
+                }
+              },
+              {
+                "Name": "LIVE_TRANSCRIPTION_EXECUTION_ENABLED",
+                "Value": {
+                  "Ref": "ExecutionEnabled"
+                }
+              },
+              {
+                "Name": "LIVE_TRANSCRIPTION_IDLE_MS",
+                "Value": "60000"
+              },
+              {
+                "Name": "TRANSCRIPTION_DEPLOYMENT",
+                "Value": {
+                  "Ref": "AWS::StackName"
+                }
+              },
+              {
+                "Name": "SUPABASE_URL",
+                "Value": {
+                  "Fn::Sub": "https://${SupabaseProjectRef}.supabase.co"
+                }
+              }
+            ],
+            "Secrets": [
+              {
+                "Name": "LIVE_TRANSCRIPTION_WORKER_SECRET",
+                "ValueFrom": {
+                  "Ref": "BrokerSecretArn"
+                }
+              }
+            ],
+            "HealthCheck": {
+              "Command": [
+                "CMD",
+                "node",
+                "workers/live-transcription/health.mjs"
+              ],
+              "Interval": 30,
+              "Timeout": 5,
+              "Retries": 3,
+              "StartPeriod": 30
+            },
+            "LogConfiguration": {
+              "LogDriver": "awslogs",
+              "Options": {
+                "awslogs-group": {
+                  "Ref": "WorkerLogs"
+                },
+                "awslogs-region": {
+                  "Ref": "AWS::Region"
+                },
+                "awslogs-stream-prefix": "transcription",
+                "mode": "non-blocking",
+                "max-buffer-size": "1m"
+              }
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ]
+      }
+    },
+    "FailedJob": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Live captions Failed. Review sanitized executor events and durable provider reservations. Never increase admission automatically.",
+        "Namespace": "PlatinumCircles/LiveTranscription",
+        "MetricName": "Failed",
+        "Dimensions": [
+          {
+            "Name": "deployment",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        ],
+        "Statistic": "Sum",
+        "Period": 300,
+        "EvaluationPeriods": 1,
+        "DatapointsToAlarm": 1,
+        "Threshold": 1,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "ActionsEnabled": true,
+        "AlarmActions": {
+          "Fn::If": [
+            "HasAlarmTopic",
+            [
+              {
+                "Ref": "AlarmTopicArn"
+              }
+            ],
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ]
+      }
+    },
+    "BrokerOrAwsUnavailable": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Live captions Unavailable. Review sanitized executor events and durable provider reservations. Never increase admission automatically.",
+        "Namespace": "PlatinumCircles/LiveTranscription",
+        "MetricName": "Unavailable",
+        "Dimensions": [
+          {
+            "Name": "deployment",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        ],
+        "Statistic": "Sum",
+        "Period": 300,
+        "EvaluationPeriods": 1,
+        "DatapointsToAlarm": 1,
+        "Threshold": 3,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "ActionsEnabled": true,
+        "AlarmActions": {
+          "Fn::If": [
+            "HasAlarmTopic",
+            [
+              {
+                "Ref": "AlarmTopicArn"
+              }
+            ],
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ]
+      }
+    },
+    "ScratchCleanupPending": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Live captions CleanupPending. Review sanitized executor events and durable provider reservations. Never increase admission automatically.",
+        "Namespace": "PlatinumCircles/LiveTranscription",
+        "MetricName": "CleanupPending",
+        "Dimensions": [
+          {
+            "Name": "deployment",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        ],
+        "Statistic": "Sum",
+        "Period": 300,
+        "EvaluationPeriods": 1,
+        "DatapointsToAlarm": 1,
+        "Threshold": 1,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "ActionsEnabled": true,
+        "AlarmActions": {
+          "Fn::If": [
+            "HasAlarmTopic",
+            [
+              {
+                "Ref": "AlarmTopicArn"
+              }
+            ],
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "PlatinumCircles"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "LiveTranscription"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "ClusterArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Cluster",
+          "Arn"
+        ]
+      }
+    },
+    "TaskDefinitionArn": {
+      "Value": {
+        "Ref": "Task"
+      }
+    },
+    "TaskRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "TaskRole",
+          "Arn"
+        ]
+      }
+    },
+    "TaskExecutionRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "TaskExecutionRole",
+          "Arn"
+        ]
+      }
+    },
+    "SecurityGroupId": {
+      "Value": {
+        "Ref": "WorkerSecurityGroup"
+      }
+    },
+    "SubnetIds": {
+      "Value": {
+        "Fn::Join": [
+          ",",
+          {
+            "Ref": "PublicSubnetIds"
+          }
+        ]
+      }
+    },
+    "ContainerName": {
+      "Value": "transcription"
+    },
+    "QueuePeekUrl": {
+      "Value": {
+        "Fn::Sub": "https://${SupabaseProjectRef}.supabase.co/functions/v1/live-transcription-worker"
+      }
+    },
+    "TaskBudget": {
+      "Value": "1 vCPU / 2 GiB; 240-second lifetime, 25-second abort grace; reserve 360 task-seconds before RunTask."
+    },
+    "WorkerLogGroup": {
+      "Value": {
+        "Ref": "WorkerLogs"
+      }
+    },
+    "PinnedImage": {
+      "Value": {
+        "Fn::Sub": "${ImageRepositoryUri}@${ImageDigest}"
+      }
+    },
+    "Admission": {
+      "Value": "Database transcription admission is unchanged; its independent default remains disabled."
+    }
+  }
+}

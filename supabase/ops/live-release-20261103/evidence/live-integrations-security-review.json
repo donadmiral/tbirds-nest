@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-11-03T06:11:36.026300+00:00",
+  "reviewer": "live_mobile_admin independent of implementation owner live_web",
+  "source_commit": "57a0553421df911dfa977f593b4e606c00c0bba8",
+  "result": "two_concrete_findings_corrected_and_regression_verified_no_additional_blocker_in_reviewed_scope",
+  "scope": [
+    "Ordinary-user versus service RPC and table grants",
+    "Verified user/Auth-session ownership of connection operations",
+    "OAuth state, PKCE, creator isolation and one-use exchange",
+    "Token encryption, associated-data binding and credential invisibility",
+    "Disconnect and refresh concurrency/revocation",
+    "Transcription source rights, private grants, job lease and revocation checks",
+    "Explicit caption review without implicit publication",
+    "Browser callback owner/state matching, query removal and late-response isolation"
+  ],
+  "findings": [
+    {
+      "id": "integration-gate-null",
+      "severity": "medium",
+      "description": "An absent transcription runtime row returned SQL NULL, causing IF NOT checks to fall through at request admission and worker claim.",
+      "correction": "Both gate checks now use NOT COALESCE((SELECT enabled ...), false).",
+      "regression_test": "missing transcription configuration fails closed for admission and worker claims",
+      "status": "fixed_and_independently_tested"
+    },
+    {
+      "id": "transcription-status-revocation",
+      "severity": "medium",
+      "description": "After a transcript draft completed, disabling source clipping denied live_clip_get but transcription status still returned its draft text.",
+      "reproduced_before_fix": {
+        "method": "Isolated local PGlite case using the real deployed-schema fixture and new migration",
+        "tests": 1,
+        "result": "Source clip RPC denied while status returned existing draft; no hosted calls"
+      },
+      "correction": "The transcription command read/modify boundary now requires live_streams.clip_can_read(c.id, uid), matching current source-read rights.",
+      "regression_test": "draft reads inherit clip-read revocation when source clipping is disabled",
+      "status": "fixed_and_independently_tested"
+    }
+  ],
+  "independent_regression_run": {
+    "command": "node --test --test-name-pattern 'absent|missing|draft reads' supabase/tests/rpc-authorization/test-live-optional-integrations.mjs",
+    "exit_code": 0,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "duration_ms": 6040.390144,
+    "database": "local PGlite; actual SQL functions and grants"
+  },
+  "security_observations": [
+    "Connection handler derives actor and session from verified user authentication plus live_integration_context; body actor/session identifiers are rejected.",
+    "Credential tables have RLS and no ordinary-role grants; service-only RPC checks active publisher session on every operation; ordinary metadata contains no ciphertext or tokens.",
+    "OAuth state is a random secret stored as SHA-256, bound to actor/session/provider, expiring after ten minutes and atomically claimed once.",
+    "AES-GCM additional data binds encrypted token envelopes to actor, connection/state id and platform; no provider bodies are returned in errors.",
+    "Provider calls use fixed endpoints with redirects rejected and bounded bodies; account selection uses only provider-returned eligible accounts.",
+    "Disconnect clears local credentials and outstanding states; a stale refresh/completion cannot restore the disconnected connection. Provider-side revocation remains explicitly separate.",
+    "Transcription worker RPC checks current session, source rights, revision/path, moderation and copyright before claim/check/finish; private media grants are rechecked after signing.",
+    "Worker completion stores a timed caption draft; applying subtitles requires current authorized explicit review and the existing validated clip-edit transaction.",
+    "Browser callback binds sessionStorage state and owner, strips query before exchange, reuses one exchange promise under Strict Mode, validates provider navigation, and rejects late results after account change."
+  ],
+  "limits": {
+    "hosted_calls": false,
+    "credentials_accessed": false,
+    "code_deployed": false,
+    "runtime_gates_enabled": false,
+    "real_oauth_provider_acceptance": false,
+    "aws_transcribe_execution": false,
+    "direct_social_publisher_implemented_or_accepted": false,
+    "actual_cdn_or_device_acceptance": false
+  },
+  "pending_external_requirements": [
+    "Genuine provider app registrations, reviewed scopes and production redirect configuration",
+    "Owner-supplied token vault and worker secrets through approved server-secret setup",
+    "Separate actual provider consent/refresh/revoke acceptance",
+    "AWS account permission for Transcribe and an implemented/accepted server worker",
+    "Separate direct-publishing adapter and user confirmation acceptance before claiming publication"
+  ],
+  "file_sha256": {
+    "supabase/functions/live-integrations-core/security.ts": "cd790d8e325875ae47aa20e1d002fb53c647b765e5c29e73aa28a7921db202cc",
+    "supabase/functions/live-integrations-core/providers.ts": "2a5f9c0dd3df5ac987d825d1b49b92edcac909c1b145dd8e5ff25fc4d29099d7",
+    "supabase/functions/live-integrations-core/connect.ts": "8f885a3e85666e8ee48246837b8cb737dda4b53303f9f8bf236c2b4a05172839",
+    "supabase/functions/live-integrations-core/transcription.ts": "6706d6669281a7847c4677dc12e71b743d057e879f55c45a9d6cfdb61319ac5a",
+    "supabase/functions/live-connect/index.ts": "cb9fc6820caf6fb61741e7356bcd2c0aad6fbe18299f2a5bdc268720ad833d92",
+    "supabase/functions/live-transcription-worker/handler.ts": "2daa2a4e89c375158588edccaeb75b730aa06de8e4e351210df8e9006429ab41",
+    "supabase/functions/live-transcription-worker/index.ts": "93dd869826d0262a5eeb316188f5d694d1ca2d2bc66e91ba8c249e13dd3552dc",
+    "supabase/migrations/20261103055547_live_optional_integrations.sql": "74d158c55e4f15cc028533645b6e9077095fddeab448c2f97413d43c5ddcdcac",
+    "web/lib/liveConnections.ts": "19dec1059ebc928535a22dd254086d4807da4d1571683531ee35708e381b720f",
+    "web/components/LiveConnections.tsx": "8bb4bcf37460720da1a252fc06c8efa152c2ddbae17b7364e65660f533b6eb0a",
+    "web/app/live/connections/page.tsx": "e4df0822c04be8de8e3ae1dc24b956e7837051f5bd0b5d81bf8a093265fc2ea7",
+    "web/app/live/connections/callback/page.tsx": "328442058f7aed4dfff46d2ed27203fa8c0e08a5ccafb9c44fd08f2da141ffb3",
+    "supabase/tests/live-integrations.test.cjs": "b54dc99c78e1e19b291763e7318b0fe213efe13c6a34a5582fdf0c142df12d44",
+    "supabase/tests/rpc-authorization/test-live-optional-integrations.mjs": "70d5a8833b24a921e1212743bb536685692e84b07585c48d59c15796722de680",
+    "web/tests/live-connections.cjs": "2e00924f23227742788abce062abf5cde12f763df6da8ac85386f8f60d78236b"
+  }
+}

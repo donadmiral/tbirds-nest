@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-03 07:15:28 UTC",
+  "account_plan": "PAID_ACTIVE",
+  "operation": [
+    {
+      "id": "4e5e9445-975b-42e6-937f-a10b167a978e",
+      "action": "verify_storage",
+      "succeeded": false,
+      "result": {
+        "code": "STORAGE_VERIFICATION_FAILED",
+        "resource_id": "4e5e9445-975b-42e6-937f-a10b167a978e",
+        "provider_error": "invalid-request-error",
+        "provider_reason": "role_assumption_denied",
+        "provider_status": 400,
+        "cleanup_confirmed": true,
+        "mutation_attempted": true,
+        "configuration_matches": false
+      },
+      "claimed_at": "2026-11-03 06:59:36.625395+00",
+      "finished_at": "2026-11-03 06:59:37.087666+00",
+      "request_id": 10885
+    }
+  ],
+  "conclusion": "Daily still rejects the role assumption after the Paid upgrade; exact effective policy cause remains unverified.",
+  "broadcast_started": false,
+  "temporary_room_cleanup_confirmed": true
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-03T06:05:20.939Z",
+  "project_ref": "prlkikhckbifseosbukl",
+  "scope": "production_broker_authentication_and_idle_scheduler_contract",
+  "secret_sha256": "8aa8d32b5fca978a9939ae3af435db3975376c45301d7ff96360b6f3b90e983f",
+  "secret_value_recorded": false,
+  "real_render_verified": false,
+  "provider_broadcast_verified": false,
+  "passed": 5,
+  "total": 5,
+  "ok": true,
+  "probes": [
+    {
+      "name": "missing_broker_credential",
+      "status": 401,
+      "ok": true,
+      "no_store": true,
+      "elapsed_ms": 4382
+    },
+    {
+      "name": "incorrect_broker_credential",
+      "status": 401,
+      "ok": true,
+      "no_store": true,
+      "elapsed_ms": 63
+    },
+    {
+      "name": "wrong_method",
+      "status": 405,
+      "ok": true,
+      "no_store": true,
+      "elapsed_ms": 58
+    },
+    {
+      "name": "valid_broker_claim_with_admission_off",
+      "status": 200,
+      "ok": true,
+      "no_store": true,
+      "elapsed_ms": 676
+    },
+    {
+      "name": "valid_broker_maintenance",
+      "status": 200,
+      "ok": true,
+      "no_store": true,
+      "elapsed_ms": 567
+    }
+  ]
+}

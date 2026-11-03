@@ -70,6 +70,10 @@ for (const {script, env = {}} of [
   {script: './test-live-clip-delivery.mjs'},
   {script: './test-live-release.mjs'},
   {script: './test-live-provider-operations.mjs'},
+  {script: './test-live-optional-integrations.mjs'},
+  {script: './test-live-social-publishing.mjs'},
+  {script: './test-live-transcription-reservations.mjs'},
+  {script: './test-live-clip-queue.mjs'},
   {script: '../../../tests/quality/chat-call-authorization.cjs'},
   {script: '../../../tests/quality/call-membership-recovery.cjs'},
 ]) {

@@ -13,6 +13,7 @@ import { ensureMediaLibraryPermission } from '../services/devicePermissions';
 import { liveObject, liveRequestId, liveRows, liveRpc, liveText, type LiveObject } from '../services/liveService';
 import { supabase } from '../services/supabase';
 import { profileRead } from '../utils/profileRead';
+import { openLiveWebPage, type LiveWebPage } from '../services/liveWebHandoff';
 
 function ClipPreview({clip,format}:{clip:LiveClip;format:string}) {
   const {t}=useTheme(),playback=useLivePlayback();
@@ -55,8 +56,15 @@ export function LiveClipActions({clip,onChanged,onClose}:{clip:LiveClip;onChange
   };
   const permissions=liveObject(detail?.permissions)?detail.permissions:{},rawClip=liveObject(detail?.clip)?detail.clip:{};
   const link=`https://platinumcircles.app/live/clips/${clip.id}`,ready=['ready','published'].includes(clip.state)&&permissions.can_publish===true,shareLink=permissions.can_share_link===true;
+  const openWeb=async(page:LiveWebPage)=>{
+    if(lock.current||permissions.can_manage!==true)return;lock.current=true;setBusy(true);setError('');setPreview(false);
+    try{await openLiveWebPage(page,page==='connections'?undefined:clip.id);if(alive.current)setNotice('Continue in your browser. You may need to sign in again.');}
+    catch(reason){if(alive.current)setError(reason instanceof Error?reason.message:'Your browser could not open.');}
+    finally{lock.current=false;if(alive.current)setBusy(false);}
+  };
   return <View style={{gap:16}}><Text style={{color:t.ink.primary,fontWeight:'700',fontSize:21}}>{clip.title}</Text><Text style={{color:t.ink.secondary}}>{clip.state.replace(/_/g,' ')} · {Math.round((clip.end_ms-clip.start_ms)/1000)} seconds</Text>{clip.caption?<Text style={{color:t.ink.primary}}>{clip.caption}</Text>:null}
     {error?<Text accessibilityRole="alert" style={{color:t.ink.primary}}>{error}</Text>:null}{notice?<Text accessibilityLiveRegion="polite" style={{color:t.ink.secondary}}>{notice}</Text>:null}
+    {permissions.can_manage===true?<View style={{gap:10}}><Text style={{color:t.ink.primary,fontSize:17,fontWeight:'700'}}>Connected publishing</Text><Text style={{color:t.ink.secondary,lineHeight:20}}>Open your browser to connect accounts, review captions or choose a platform and confirm each post. You may need to sign in again.</Text><View style={{flexDirection:'row',gap:8,flexWrap:'wrap'}}>{button('Publish on web',()=>void openWeb('publish'))}{button('Connected accounts',()=>void openWeb('connections'))}{button('Review captions on web',()=>void openWeb('captions'))}</View></View>:null}
     {ready?<>
       <View style={{flexDirection:'row',gap:8,flexWrap:'wrap'}}>{clip.formats.map(value=>button(value==='vertical'?'Vertical · 9:16':'Horizontal · 16:9',()=>{setFormat(value);setPreview(false);},busy,format===value))}{button(preview?'Close preview':'Preview video',()=>setPreview(v=>!v))}</View>
       {preview?<ClipPreview key={format} clip={clip} format={format}/>:null}

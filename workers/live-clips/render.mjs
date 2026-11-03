@@ -54,7 +54,8 @@ export async function renderClip(source, output, spec, { signal, threads = 2, ma
       if (spec.watermark) filter += ',drawtext=textfile=brand.txt:expansion=none:fontcolor=white:fontsize=18:box=1:boxcolor=black@0.45:boxborderw=6:x=w-tw-18:y=h-th-18';
       const filename = `${format}.mp4`;
       await command(process.env.FFMPEG_PATH || 'ffmpeg', ['-hide_banner', '-loglevel', 'error', '-nostdin', '-y',
-        '-protocol_whitelist', 'file,crypto', '-allowed_extensions', 'ALL', '-threads', String(threads), '-i', source.filename,
+        '-protocol_whitelist', 'file', '-format_whitelist', 'hls,mpegts,mov',
+        '-allowed_extensions', 'm3u8,ts,m4s,mp4', '-threads', String(threads), '-i', source.filename,
         '-ss', String(source.seekSeconds), '-t', String(duration), '-map', '0:v:0', '-map', '0:a:0?',
         '-sn', '-dn', '-map_metadata', '-1', '-vf', filter, '-r', '30', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22',
         '-pix_fmt', 'yuv420p', '-maxrate', '2400k', '-bufsize', '4800k', '-threads', String(threads),

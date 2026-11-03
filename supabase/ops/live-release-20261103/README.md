@@ -2,8 +2,17 @@
 
 ## Release status
 
-The Live web and admin applications, the six-unit database release, and all
-eleven Live/media Edge functions have been deployed to production. Live creation
+**Owner handoff checkpoint, 2026-11-03 UTC:** work has stopped at the owner's
+request. The existing web/admin fundamentals are available for the owner to test.
+The optional database foundation and six additional Edge endpoints are deployed
+in QA and production, with their provider admissions closed. The optional web
+screens have passed local production compilation but have not been recorded as
+released on the canonical domain. All corrected worker images await acceptance;
+no ECS worker service or scheduler is provisioned. A bulk save of six additional
+Supabase secrets was attempted but is **unverified** and is not claimed installed.
+
+The original Live web and admin applications, the six-unit database release, and
+eleven original Live/media Edge functions have been deployed to production. Live creation
 and chat are enabled. Broadcasting, HLS delivery, recording and clip encoding
 remain disabled pending Daily provider, complete broadcast and renderer
 acceptance. The AWS delivery stack and approved signing keys are installed;
@@ -44,6 +53,12 @@ or subsequent test corrections may be committed later without changing that
 deployment identity. The release SQL hash matches both the local `release.sql`
 and the [source manifest](source-manifest.json).
 
+These identities describe the original web/admin release and its last verified
+production aliases. The later optional SQL/Edge deployment has separate evidence
+below. Local compilation, prepared image archives and source commits do not
+update a production frontend identity; append a new deployment receipt after an
+actual release.
+
 | Target | Deployment ID | State and routing |
 |---|---|---|
 | Production web | `dpl_Ds9RKyzPNXqnNSziBWFeC9DwPZcc` | `READY`; [platinumcircles.app](https://platinumcircles.app) and [www.platinumcircles.app](https://www.platinumcircles.app) |
@@ -66,7 +81,7 @@ hostname and no QA hostname; no authenticated database call was implied.
 
 ## Hosted verification
 
-### Database and worker checks
+### Original database and worker checks
 
 QA received all six migration units. Its original four-unit reviewed release was
 `20261103004440_live_completion_reviewed_release_20261103`; the twelve foreign
@@ -94,9 +109,9 @@ Maintenance is enabled. Tick **10487** completed at **01:04:42 UTC** with HTTP
 ran; it does not prove that Daily broadcast provisioning, HLS delivery or the
 separate clip-renderer service is operational.
 
-### Edge functions and endpoint checks
+### Original Edge functions and endpoint checks
 
-All eleven functions are `ACTIVE` in both QA and production:
+The original eleven functions are `ACTIVE` in both QA and production:
 
 `live-stage`, `live-control`, `live-playback`, `live-provider-webhook`,
 `live-cover`, `live-maintenance`, `live-sign`, `live-clip-media`,
@@ -117,6 +132,74 @@ authentication in their handlers through verified user/session RPCs, signed
 Daily webhook events, a single-use maintenance tick, or a scoped server/worker
 credential. Gateway JWT verification remains off for these handlers as designed;
 anonymous requests do not gain access to the protected operations.
+
+### Optional foundation deployed in QA and production
+
+The [optional hosted release receipt](evidence/live-optional-hosted-release.json),
+recorded at **07:15:28 UTC**, establishes the later additive deployment. It is
+separate from the original six-unit release and original eleven-endpoint checks.
+
+| Reviewed source migration | QA applied version | Production applied version |
+|---|---|---|
+| `20261103055547_live_optional_integrations.sql` | `20261103064853` | `20261103065842` |
+| `20261103061323_live_direct_social_publishing.sql` | `20261103070617` | `20261103071049` |
+| `20261103064534_live_clip_queue_peek.sql` | `20261103070048` | `20261103070153` |
+
+The receipt records the exact source hashes. Each environment passed eight
+foundation SQL checks, eight direct-publishing SQL checks and four queue ACL
+checks. These read-only or rolled-back checks did not retain synthetic users,
+clips, jobs or posts. Postflight found zero social jobs, transcription jobs and
+provider reservations; the clip queue was disabled and idle. All six integration
+rows had both `enabled=false` and `publishing_enabled=false`. The second migration
+also adds the previously missing `social_connections(platform)` foreign-key index.
+
+Six additional functions are `ACTIVE`, version **1**, in both environments:
+`live-connect`, `live-social`, `live-social-worker`, `live-social-pull`,
+`live-transcription-worker` and `live-clip-scaler`. Their matching bundle hashes
+are in the hosted receipt. They authenticate through verified user/session
+checks, dedicated worker/queue bearers or a restricted clip capability.
+
+The [QA endpoint receipt](evidence/live-optional-qa-endpoint-acceptance.json),
+**07:09:40 UTC**, and [production endpoint
+receipt](evidence/live-optional-production-endpoint-acceptance.json),
+**07:11:25 UTC**, each passed **13/13** negative authentication/cache checks.
+Missing or invalid credentials returned 401; unavailable pull media returned
+403; a write to the pull endpoint returned 405. Private/no-store responses and
+absence of redirects were checked. These results establish handler startup and
+rejection behavior, not valid worker-secret installation, successful OAuth,
+transcription, media transfer or an external post.
+
+The optional code implements scoped OAuth, encrypted token lifecycle, durable
+explicit-consent publication jobs, conservative retry/reconciliation, provider
+adapters, private TikTok URL-pull delivery and reviewed transcription drafts.
+The [social review](evidence/live-social-release-review.json) and
+[independent review](reviews/live-social-independent.json) distinguish local
+contract tests from provider acceptance. Real apps, approvals, creator grants,
+approved images and actual service acceptance are still required.
+
+### Pending worker images, services and secret confirmation
+
+All corrected renderer, transcription and social images remain **pending
+acceptance at this handoff**. No ECS worker service or scheduler has been
+provisioned. The deployed Edge brokers and queue-peek endpoint are not running
+container executors. The attempted six-secret bulk save has not been verified;
+do not infer success from the form submission or the negative endpoint checks.
+
+The [initial renderer image](evidence/live-renderer-initial-build.json) did build
+and pass its original encoding checks, but its [scan](evidence/live-renderer-initial-image-scan.json)
+reported two CRITICAL and 42 HIGH findings. It was held, and it is not an accepted
+production image. The replacement packages use narrower runtimes and require
+new actual-container, component-inventory and scan evidence.
+
+The first social image build also remains a historical failed attempt: Docker
+completed, but the first UID1000 runtime-policy read failed. Its public base
+metadata had been copied as root-owned mode0600. The corrected source uses
+root-owned mode0444 and requires that result in actual-container acceptance;
+local tests are not a successful AWS rerun. See the [image preparation
+receipt](evidence/live-social-image-preparation.json), [transcription permission
+correction](evidence/live-transcription-public-metadata-permissions.json), and
+the worker-specific build runbooks. Final infrastructure/deployment receipts
+must identify the exact image digest and supersede these pending states.
 
 ### Delivery infrastructure follow-up
 
@@ -249,14 +332,30 @@ concrete, separately reviewed minimal diff. Preserve the exact Daily role,
 vendor account, external-ID restriction and unrelated protections; rerun
 isolated Daily storage verification only after an authorized correction.
 
-Automatic approval review blocked opening AWS Settings: approval to install
+An earlier automatic approval review blocked opening AWS Settings: approval to install
 the keys did not authorize an account-management or billing flow. No upgrade,
 advanced-feature activation, organization policy change or admission expansion
-was performed. The AWS Free plan reported USD 100 credits during preflight;
+was performed by that attempt. The AWS Free plan reported USD 100 credits during preflight;
 the observed failure does **not** prove that a paid upgrade is required or
 sufficient. No upgrade or activation is promised to make the policy editable or
-resolve Daily access. Those account/billing actions remain outside the review.
-Five-million-user capacity remains unmeasured.
+resolve Daily access. These statements describe the historical attempt, not the
+current account plan.
+
+The owner subsequently changed the account. The [updated account
+receipt](evidence/aws-owner-plan-updated.json), **06:19:40 UTC**, verified
+`PAID`/`ACTIVE`; a read-only Transcribe job listing succeeded. It supersedes the
+earlier Free-plan Transcribe denial. Advanced-feature activation was not completed.
+The [Daily recheck after that change](evidence/live-daily-after-paid-acceptance.json)
+still returned HTTP400 `role_assumption_denied` at **06:59:37 UTC**, with temporary
+room cleanup confirmed. Paid-plan status did not establish Daily access.
+
+Two separate synthetic `StartTranscriptionJob` attempts were rejected during S3
+output-access validation. The [provider access
+review](evidence/live-transcription-provider-access-review.json) records their
+request IDs and limits: the exact downstream principal, action, object key and
+denying policy remain unproven. This is a current acceptance blocker distinct
+from the superseded Free-plan listing denial. No successful transcript or broad
+policy correction is claimed. Five-million-user capacity remains unmeasured.
 
 ## Current feature gates
 
@@ -272,6 +371,11 @@ Five-million-user capacity remains unmeasured.
 | Reminders | Disabled |
 | Clip encoding admission | Disabled |
 | Configured renderer concurrency when enabled | Two active jobs across the fleet |
+| Optional OAuth connection admission | Disabled for all five platforms |
+| Direct social publishing admission | Disabled for all five platforms |
+| Automatic transcription admission | Disabled |
+| Social/transcription jobs and provider reservations | Zero at the 07:15 hosted postflight |
+| ECS workers and scheduler | Not provisioned at handoff |
 | Paid gifts | Disabled and deferred |
 
 The encoder gate is separate from the deployed `live-clip-worker` Edge broker.
@@ -344,7 +448,8 @@ Actual Daily storage access is blocked by the provider's role-assumption denial;
 the complete provider broadcast remains unaccepted. The next review and its
 authorization boundary are recorded above.
 
-The external renderer and scheduler have not been deployed or accepted. The
+The external renderer, transcription/publishing executors and scheduler have not
+been deployed or accepted. The
 [renderer runbook](../../../workers/live-clips/README.md) specifies its scoped
 broker credential, runtime limits and activation RPC. Native binary and device
 acceptance, full broadcast flows and measured capacity remain held. Secret
@@ -368,12 +473,70 @@ checks pass. Enabling the database gate does not provision missing services.
 Retain operational queue, retry, retention and budget monitoring when admission
 is enabled.
 
-External platform OAuth accounts and direct automated posting are not connected.
-The implemented flows use link intents or clean device video export and record
-`export_required` where applicable. A file export or share-sheet handoff does
-not confirm a post on X, Facebook, Instagram, YouTube Shorts or TikTok. Automatic
-speech transcription is also not connected; manual subtitle editing, WebVTT
-import and review are implemented. Paid gifts remain deferred.
+External platform accounts are not connected. Direct OAuth publishing is now
+implemented in the optional queue/broker/executor and web consent flows, with
+all admissions off; it has not passed real-provider acceptance. Each platform
+still requires its actual developer application, approved scopes/reviews and
+creator authorization. TikTok additionally requires verified URL ownership and
+acceptance of the bounded first-party URL-pull transfer. The [social
+runbook](../../../workers/live-social/README.md) lists the exact setup requirements.
+Existing link intents and device exports continue to record `export_required`;
+neither a file export nor a share-sheet handoff confirms an external post.
+
+The optional transcription queue, bounded executor and explicit caption-review
+path are implemented, but image/service and actual Transcribe acceptance remain
+pending. Manual subtitle editing and WebVTT import remain available independently.
+The [native handoff receipt](evidence/live-native-web-handoff.json) records twelve
+passing local tests for fixed-origin browser links, with no session data in URLs.
+It does not establish native OAuth forms, physical-device handoff, a new binary
+or distribution. TestFlight and device distribution remain held. Paid gifts
+remain deferred.
+
+## Canonical web release smoke procedure
+
+The [Vercel readiness receipt](evidence/vercel-web-release-readiness.json) records
+team `team_yu7fUehO2z7E6QHF6Nvxp3tC`, project
+`prj_mvKhFO3aq4OeCefPa3yaH8ub583u`, repository `donadmiral/tbirds-nest` (ID
+`1314826575`), the intended `web` root and shared-source setting. Both required
+production environment names are present: `NEXT_PUBLIC_SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`; their values were not printed or saved. Local
+production compilation passed, but the optional frontend release is still
+pending at this checkpoint.
+
+The installed deployment tool does not expose a skip-domain-assignment option.
+Do not invent that parameter or obtain a credential workaround. A later approved
+production deployment may assign domains automatically on `READY`; record the
+reviewed commit and returned deployment ID before checking the canonical site.
+The production middleware redirects `.vercel.app` URLs to the canonical domain,
+so a redirected HTTP200 alone does not prove a candidate is serving.
+
+After an actual release, use a signed-out real browser with no API mocks,
+synthetic authentication or user writes. Verify the canonical alias maps to the
+exact reviewed deployment/SHA, then check only the following:
+
+| Canonical route | Expected observation |
+|---|---|
+| `/live` | HTTP200, visible Live directory and category controls; Live text/icon beside Trending; no fatal JavaScript error. |
+| `/live/clips` | HTTP200 with the truthful signed-out clip-library state. |
+| `/live/connections` | HTTP200 with sign-in/connection state; no provider navigation or OAuth exchange on load. |
+| `/live/connections/callback` with no query parameters | A recoverable missing-code/state response; no provider exchange. |
+| `/live/clips/10000000-0000-4000-8000-000000000001/publish` and `/captions` | HTTP200 and sign-in required; no queued post or transcription. The UUID is a route fixture, not an asserted existing clip. |
+| `/api/live/social-pull/10000000-0000-4000-8000-000000000001/clip.mp4?token=invalid` | HTTP403 generic unavailable response, private/no-store caching, no redirect and no media bytes. |
+
+If `/home` redirects to login while signed out, record that expected result.
+Record the Supabase hostname only if a real directory request occurs; it should
+be `prlkikhckbifseosbukl.supabase.co`. If no request occurs, report it as unobserved.
+Never record authorization headers, API keys, OAuth query parameters or media
+capabilities. Save a compact receipt of alias/SHA, statuses, visible states and
+fatal-error count; no publishing, connection or transcription action is part of
+this smoke check. These are instructions for a later release, not checks
+performed at this handoff.
+
+If the canonical smoke fails after that release, the immediate web rollback
+target is `dpl_Ds9RKyzPNXqnNSziBWFeC9DwPZcc`, SHA
+`2e265ef0915ed83cbf5ba79f22f3ea1f1a717d8d`. The pre-Live rollback identities below
+are older historical references and are not the first rollback choice for the
+optional frontend release.
 
 ## Capacity target
 

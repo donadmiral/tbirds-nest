@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T07:05:54.997672+00:00",
+  "purpose": "Local implementation acceptance for the gated Live transcription executor; no AWS service acceptance inferred.",
+  "git_base": "57a0553421df911dfa977f593b4e606c00c0bba8",
+  "hosted_actions_performed_by_this_agent": false,
+  "credentials_read_by_this_agent": false,
+  "results": [
+    {
+      "command": "node --test workers/live-transcription/test/protocol.test.mjs workers/live-transcription/test/worker.test.mjs",
+      "passed": 17,
+      "failed": 0,
+      "coverage": [
+        "fixed origin/configuration/deadline",
+        "deterministic job and private media grants",
+        "fresh and ambiguous reservation flow",
+        "NOT_SUBMITTED before first Start only",
+        "rights revocation and cleanup reconciliation"
+      ]
+    },
+    {
+      "command": "node --test workers/live-transcription/test/aws.test.mjs",
+      "passed": 7,
+      "failed": 0,
+      "coverage": [
+        "actual pinned SDK command classes with fake transport",
+        "S3 owner/key/encryption/conditional PUT",
+        "same-job reconciliation",
+        "private fixed result key",
+        "bounded sanitized errors"
+      ]
+    },
+    {
+      "command": "node --test workers/live-transcription/test/runtime.test.mjs infrastructure/live-transcription/test/task.test.mjs",
+      "passed": 10,
+      "failed": 0,
+      "coverage": [
+        "actual local ffmpeg MP4-to-mono-16k-FLAC",
+        "missing audio and spoofed playlist denied",
+        "subprocess environment and deadline",
+        "idle exit and bounded serial retries",
+        "sanitized telemetry",
+        "expired absolute task exit",
+        "health checks",
+        "task-only default-off infrastructure and IAM scope"
+      ]
+    },
+    {
+      "command": "node --test infrastructure/live-transcription/test/storage.test.mjs",
+      "passed": 2,
+      "failed": 0,
+      "coverage": [
+        "private AES256 scratch lifecycle",
+        "exact role trust and source/result scope",
+        "HeadBucket requires bucket-level ListBucket without prefix condition"
+      ]
+    },
+    {
+      "command": "node --test supabase/tests/rpc-authorization/test-live-transcription-reservations.mjs",
+      "passed": 12,
+      "failed": 0,
+      "runtime": "PGlite actual PostgreSQL execution",
+      "coverage": [
+        "service-only access and private tables",
+        "durable provider reservations across defer/revocation/deletion",
+        "two active jobs",
+        "12 daily starts",
+        "900000ms daily reserved audio with rounding and tolerance",
+        "idempotency and lease fencing",
+        "missing config denies",
+        "read-only aggregate queue peek",
+        "cleanup while admission disabled",
+        "expired/revoked unreserved queue cleanup"
+      ]
+    },
+    {
+      "command": "node --test supabase/tests/live-transcription-reservation-handler.test.cjs",
+      "passed": 6,
+      "failed": 0,
+      "coverage": [
+        "worker authorization",
+        "rights check before submit",
+        "fixed cleanup scope",
+        "separate queue secret cannot claim/sign",
+        "aggregate whitelist",
+        "missing/reused queue credential denies"
+      ]
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler --allowImportingTsExtensions --lib ES2022,DOM --types node supabase/functions/live-transcription-worker/handler.ts",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test workers/live-transcription/test/encoder-policy.test.mjs workers/live-transcription/test/runtime.test.mjs infrastructure/live-transcription/test/build.test.mjs",
+      "passed": 12,
+      "failed": 0,
+      "coverage": [
+        "minimal component policy rejects unexpected codecs/network",
+        "real bundled H264/AAC audio extraction with discarded video",
+        "pinned Node base resolver",
+        "source signature/hash build recipe",
+        "existing runtime bounds after input discard correction"
+      ]
+    },
+    {
+      "command": "node --test infrastructure/live-transcription/test/source-publication.test.mjs workers/live-transcription/test/encoder-policy.test.mjs",
+      "passed": 4,
+      "failed": 0,
+      "coverage": [
+        "manifest tampering/extra files denied",
+        "failed build cannot push",
+        "distinct ASR manifest-bound immutable tag",
+        "source component whitelist",
+        "bundled audio extraction"
+      ]
+    },
+    {
+      "command": "sh -n workers/live-transcription/build-encoder.sh",
+      "exit_code": 0
+    },
+    {
+      "command": "Python yaml.safe_load(infrastructure/live-transcription/buildspec.yml)",
+      "exit_code": 0,
+      "commands_parsed": 10
+    },
+    {
+      "command": "EXPECTED_MANIFEST_SHA256=ccd550c296b2c2eca8a2d00f567b9784e3b1567c78eac10a9af2e4a507d76956 node infrastructure/live-transcription/verify-source.mjs",
+      "working_directory": "/workspace/scratch/4c1d55b8bab6/platinum-transcription-source-9l6ufoe1/verified",
+      "exit_code": 0,
+      "file_count": 24
+    }
+  ],
+  "local_totals": {
+    "executor_tests": 34,
+    "infrastructure_tests": 8,
+    "database_tests": 12,
+    "edge_tests": 6,
+    "failed": 0
+  },
+  "limits": {
+    "provider_active": 2,
+    "daily_starts": 12,
+    "daily_reserved_audio_ms": 900000,
+    "audio_budget_formula": "ceil(duration_ms/1000)*1000 + 1000; admission margin, not invoice estimate",
+    "task_cpu": 1024,
+    "task_memory_mib": 2048,
+    "task_runtime_ms": 240000,
+    "abort_grace_ms": 25000,
+    "launcher_reserved_task_seconds": 360,
+    "default_database_admission": false,
+    "default_task_execution": false,
+    "creates_service_or_schedule": false,
+    "launcher_reserved_two_vcpu_equivalent_seconds": 180
+  },
+  "production_status": {
+    "source": "parent agent report; this agent did not perform hosted requests",
+    "aws_account_read_access": true,
+    "private_canary_upload": true,
+    "actual_start_attempts": 2,
+    "actual_start_success": false,
+    "actual_job_created": false,
+    "blocker": "S3 write-access BadRequestException persisted after reviewed HeadBucket/ListBucket policy correction",
+    "provider_gates_must_remain_off": true
+  },
+  "not_accepted": [
+    "actual AWS transcription completion",
+    "ordinary creator-to-provider-to-reviewed-caption E2E",
+    "hosted container build/run",
+    "five-million-user capacity",
+    "physical iOS/Android camera/screen-sharing/PiP"
+  ],
+  "files": {
+    "infrastructure/live-transcription/README.md": "f89f0236c3477c63a7b279bef2470f9ee3ce055dc80b5d5d44e87dfc85af1a3b",
+    "infrastructure/live-transcription/buildspec.yml": "992b8ca149efdbb4ae5f7b6626a16cec679fac6ae9faa81de79a3968aed9e42c",
+    "infrastructure/live-transcription/image-receipt.mjs": "73ba5a65a8e2132f9618ad1b11bb0304e20b37b1886895fba85f56dbb86f30fb",
+    "infrastructure/live-transcription/package-source.py": "24888ccba887fde665487c7a18ac854754a420315ac10be6600893cd19bea12d",
+    "infrastructure/live-transcription/resolve-base.mjs": "37094da02ff15c03705fb74e2e9fa7b84f799651cce0aa45c68f4aba5eefe5c9",
+    "infrastructure/live-transcription/storage-cloudformation.json": "99bc8e5335ea9c2190dcbfed63cb027e816bf7447ff53a970249a563aa5dc909",
+    "infrastructure/live-transcription/storage-template.mjs": "4e9ca48a682c20e8218bff15cbec9e142dcd7ef462d3bc810f93dc1e48a5eb46",
+    "infrastructure/live-transcription/task-cloudformation.json": "8e684f87eca454fa4b9d0d16861038c51d1629ce1a69bb24d4333e044fbab8bf",
+    "infrastructure/live-transcription/task-template.mjs": "5cba036cc57ca6cc510830b1f0403e68b65ec0debc6642d0dec79c9307facb7d",
+    "infrastructure/live-transcription/test/build.test.mjs": "20ff8ef628129f5ef12263c217f46e80de30979ab8bdb56de6887d1d40f0c271",
+    "infrastructure/live-transcription/test/source-publication.test.mjs": "4b5e8a8932b2d102fc4836f0ad2cfafca21198907216aad6df93fba83195c413",
+    "infrastructure/live-transcription/test/storage.test.mjs": "3f2a393a48e1e4f853c17f70c48a0186cccad4ad3f1ebf5b7bffe13104c4145c",
+    "infrastructure/live-transcription/test/task.test.mjs": "5bd25c4bfd3195abca2460cb7bb7e7b3fbc993043aa29b99e5ad6a32e89caf56",
+    "infrastructure/live-transcription/verify-source.mjs": "29c6f5ecb1cb883143d0fa41c8da11a1433c5f23b2f5f7aae4af73c44d78b2a4",
+    "supabase/functions/live-integrations-core/transcription.ts": "0f658069ac4a088f8e4a87b86bd1b8bc926c50dffb957cae0d25d9a4f07936f2",
+    "supabase/functions/live-transcription-worker/handler.ts": "020bd0bd3461bfa340d0ef06374968b6dab2a4d6c4a35d6fd3a91c690ccce0e3",
+    "supabase/functions/live-transcription-worker/index.ts": "2928fb6d829cf5119ac80dc07c32d638c61efa6b67bbda90f9e7c4cca2663af3",
+    "supabase/migrations/20261103055547_live_optional_integrations.sql": "a613f5d9d4d2963e9b796af587b4b3db7600a67510ac62a091f932113d7efbb5",
+    "supabase/tests/live-transcription-reservation-handler.test.cjs": "deb79cb8b4eeadc1a836aa5b43a94f90b902a840d8069ddd62a6c042f60cbe46",
+    "supabase/tests/rpc-authorization/test-live-transcription-reservations.mjs": "236c8979684f792a7312c646b9295ee69e7b3bf64aea5eab3b6bc3f0d446795f",
+    "workers/live-transcription/Dockerfile": "a761bad8c9b7ed5ffcbc5a3ead8280bdacecdc409beeabf5196436ebeb5d936a",
+    "workers/live-transcription/README.md": "f5c4287c16b2be71a6cad215eee79777508af94fc41b46537770c62be1dcd154",
+    "workers/live-transcription/acceptance.mjs": "909ba677b9fc5ae574ec5db3595d9c9f0916599a4476b60eea18c4cc3aa83c19",
+    "workers/live-transcription/audio.mjs": "dcd62809e568858359e635af976ceaead141ca7f2e7c42d74b91606983c0fba1",
+    "workers/live-transcription/aws.mjs": "2e9a9fb8838737d4f9df24a665780f3cf372d97d7c4a5569bf36eaa4112a16c3",
+    "workers/live-transcription/backend.mjs": "c0c8aa752ca17a93cb7c718cb40153c839aa80b2d55f27e57c62f5956754be17",
+    "workers/live-transcription/build-encoder.sh": "ec6e1d73cbc74c0025041d9410ed7ab7b24e7642bdeea83437f636d8023fd2b5",
+    "workers/live-transcription/config.mjs": "5498905e0e7566beee5781d46bffdf532e75218fbbaa57ac9e65827f95597dfc",
+    "workers/live-transcription/encoder-policy.mjs": "48a95f56185c34342d60460ed60f43ec241770321c5fac0eed13322ff4a3643f",
+    "workers/live-transcription/fixture.mjs": "2096f7314b59ee5de9377f6e1f781c8c5e80bead32d93b5fa734a68a1f31d184",
+    "workers/live-transcription/health.mjs": "ac4c627f94d0eec2a23df4b787532519f5e725d960e9b44caaba35b16f1ae754",
+    "workers/live-transcription/package-lock.json": "e65e7dd11003835b54c943f8da40919ecc916b45735fdc1d1cf2f85c489283a8",
+    "workers/live-transcription/package.json": "a1a7d10d5c9ca76d323d52e2d799bd194b6470f04fbc0cc39752f6447afc87b4",
+    "workers/live-transcription/protocol.mjs": "52701cf67ff9b16c68e8fe0b8b68f7e3c67af4bbb7eb7f760f8e03c5d288a18e",
+    "workers/live-transcription/pull.mjs": "9646ef801ed55fc034673ec1a842088b39e89ef7cbb50dd862520b2a64185e99",
+    "workers/live-transcription/test/assets/synthetic-h264-aac.mp4": "6921fe4c44361a62d42049b8d4eafdfedf9836a24db1dbb5c2921f9ef73bd293",
+    "workers/live-transcription/test/aws.test.mjs": "86b993ed72a3516942619bfb9035a544d1c3a552cb27e12ff441c99ea5613efe",
+    "workers/live-transcription/test/encoder-policy.test.mjs": "f6bfd5c2cd09eef72ea967b49e397260b3330db72ff21c2a71c12db228204b85",
+    "workers/live-transcription/test/fixtures.mjs": "c77830e32b4a6cf248daa630134f8eb89c8ac7643cc0b4e8c564d27b990a72af",
+    "workers/live-transcription/test/protocol.test.mjs": "36750c7ce847e3f7be257d1a8d13e938dd400fdfdc84bb9373d1d83ae5bf51a2",
+    "workers/live-transcription/test/runtime.test.mjs": "056bc6661abb36e16dfdce690dd1421d3803b7a3e349f45e0833fa8e70ab61cc",
+    "workers/live-transcription/test/worker.test.mjs": "334d8c7111065c233fea2ed202bcfe75dc8d00f59acf8080626f6a351d31af11",
+    "workers/live-transcription/worker.mjs": "be2dbd811feb4c0a77629d7405a9a01424fdc094e4a947b2a7527105f1c4fac0"
+  },
+  "independent_review": {
+    "reviewer": "/root/deployment_audit",
+    "runtime_authorization_findings": 0,
+    "required_deployment_gate": "Broad Bookworm FFmpeg recipe replaced by a signature/hash-verified minimal audio build and immutable Node base. Actual image build/scan/source-component review remains required; local tests do not establish image acceptance.",
+    "launcher_review": "Fixed failed-start classification and increased ASR reservation to360s to cover scheduler tick plus ECS stop grace."
+  },
+  "minimal_encoder": {
+    "ffmpeg_version": "9.0.2",
+    "base_node_version": "24.22.2",
+    "base_tag": "node:24.22.2-alpine3.24",
+    "base_digest_required": true,
+    "network_disabled": true,
+    "video_codecs_disabled": true,
+    "video_input_discarded": true,
+    "compiled_inventory_gate": true,
+    "hosted_image_build_performed": false,
+    "hosted_image_scan_performed": false,
+    "upstream_local_archive_fetch": "HTTP503; no local signed-release compile was performed",
+    "primary_configure_review": "Official FFmpeg/FFmpeg n9.0.2 configure over HTTPS: required built-in graph filters explicitly accounted for.",
+    "vulnerability_free_claim": false
+  },
+  "build_bundle": {
+    "schema_version": 1,
+    "archive_path": "/workspace/scratch/4c1d55b8bab6/platinum-transcription-source-9l6ufoe1/transcription-source.zip",
+    "bytes": 72959,
+    "archive_sha256": "6a1f91ba4ca28f6678a267708beefe873319fd40bfd1ad616ee5df2edc48766a",
+    "manifest_sha256": "ccd550c296b2c2eca8a2d00f567b9784e3b1567c78eac10a9af2e4a507d76956",
+    "file_count": 24,
+    "repository_head": "57a0553421df911dfa977f593b4e606c00c0bba8",
+    "contains_credentials": false
+  },
+  "build_contract": {
+    "project": "Builder-UhwmorEgFfEf",
+    "source_key": "source/renderer-source.zip",
+    "source_version_must_be_pinned": true,
+    "upload_only_after_previous_renderer_source_download": true,
+    "buildspec_override": "infrastructure/live-transcription/buildspec.yml",
+    "image_tag": "asr-source-ccd550c296b2c2eca8a2d00f567b9784",
+    "container_unit_tests": 26,
+    "reuses_existing_ecr_and_builder": true,
+    "creates_aws_resources": false,
+    "contains_provider_or_user_credentials": false
+  }
+}

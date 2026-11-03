@@ -1,0 +1,21 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+  pre_build:
+    commands:
+      - node infrastructure/live-transcription/verify-source.mjs
+      - export ASR_NODE_IMAGE=$(node infrastructure/live-transcription/resolve-base.mjs)
+      - export ASR_REPOSITORY_URI="$RENDERER_REPOSITORY_URI"
+      - export ASR_IMAGE_TAG="asr-source-$(printf '%s' "$EXPECTED_MANIFEST_SHA256" | cut -c1-32)"
+      - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "${ASR_REPOSITORY_URI%/*}"
+  build:
+    commands:
+      - docker build --pull --platform linux/amd64 --build-arg "ASR_NODE_IMAGE=$ASR_NODE_IMAGE" -f workers/live-transcription/Dockerfile -t "$ASR_REPOSITORY_URI:$ASR_IMAGE_TAG" .
+      - docker run --rm --network none --cpus=1 --memory=2g --read-only --cap-drop ALL --security-opt no-new-privileges "$ASR_REPOSITORY_URI:$ASR_IMAGE_TAG" node workers/live-transcription/encoder-policy.mjs > asr-image-inventory.json
+      - docker run --rm --network none --cpus=1 --memory=2g --pids-limit=128 --read-only --tmpfs /tmp:rw,nosuid,nodev,size=512m,mode=1777 --tmpfs /scratch:rw,nosuid,nodev,size=512m,uid=1000,gid=1000 --cap-drop ALL --security-opt no-new-privileges "$ASR_REPOSITORY_URI:$ASR_IMAGE_TAG" node --test workers/live-transcription/test/protocol.test.mjs workers/live-transcription/test/worker.test.mjs workers/live-transcription/test/aws.test.mjs workers/live-transcription/test/encoder-policy.test.mjs
+      - docker run --rm --network none --cpus=1 --memory=2g --pids-limit=128 --read-only --tmpfs /scratch:rw,nosuid,nodev,size=512m,uid=1000,gid=1000 --cap-drop ALL --security-opt no-new-privileges "$ASR_REPOSITORY_URI:$ASR_IMAGE_TAG" node workers/live-transcription/acceptance.mjs > asr-audio-acceptance.json
+  post_build:
+    commands:
+      - node infrastructure/live-transcription/image-receipt.mjs

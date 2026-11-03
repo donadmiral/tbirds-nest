@@ -1,0 +1,351 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-03T06:05:57.008Z",
+  "scope": "renderer_build_bootstrap_and_production_broker_installation",
+  "bootstrap_stack": {
+    "StackId": "arn:aws:cloudformation:us-east-2:518317808503:stack/platinum-live-clips-build-production/d3934880-d74b-11f1-87ea-0a043b4ce69b",
+    "StackName": "platinum-live-clips-build-production",
+    "ChangeSetId": "arn:aws:cloudformation:us-east-2:518317808503:changeSet/live-clips-bootstrap-20261103/b60e1b1f-42e4-4a30-b7a6-a96858df61b0",
+    "Description": "Platinum Live clip renderer: isolated image build and encrypted broker-secret bootstrap.",
+    "CreationTime": "2026-11-03T06:00:09.796000+00:00",
+    "LastUpdatedTime": "2026-11-03T06:01:36.674000+00:00",
+    "RollbackConfiguration": {},
+    "StackStatus": "CREATE_COMPLETE",
+    "DisableRollback": false,
+    "DeploymentConfig": {
+      "Mode": "STANDARD",
+      "DisableRollback": false
+    },
+    "NotificationARNs": [],
+    "Capabilities": [
+      "CAPABILITY_IAM"
+    ],
+    "Outputs": [
+      {
+        "OutputKey": "SourceBucket",
+        "OutputValue": "platinum-live-clips-build-production-sourcebucket-kscv7c5xp3me"
+      },
+      {
+        "OutputKey": "BuildProjectName",
+        "OutputValue": "Builder-UhwmorEgFfEf"
+      },
+      {
+        "OutputKey": "BrokerKeyArn",
+        "OutputValue": "arn:aws:kms:us-east-2:518317808503:key/c0502962-cac0-4244-b722-31dfa2fa8fed"
+      },
+      {
+        "OutputKey": "BuildLogGroup",
+        "OutputValue": "/platinum/live-clips/platinum-live-clips-build-production/build"
+      },
+      {
+        "OutputKey": "BrokerSecretArn",
+        "OutputValue": "arn:aws:secretsmanager:us-east-2:518317808503:secret:platinum-live-clips-build-production/broker-4Qsmcx"
+      },
+      {
+        "OutputKey": "RepositoryArn",
+        "OutputValue": "arn:aws:ecr:us-east-2:518317808503:repository/platinum-live-clips-build-production-images-fgzusuampzyi"
+      },
+      {
+        "OutputKey": "SourceObjectKey",
+        "OutputValue": "source/renderer-source.zip"
+      },
+      {
+        "OutputKey": "RepositoryUri",
+        "OutputValue": "518317808503.dkr.ecr.us-east-2.amazonaws.com/platinum-live-clips-build-production-images-fgzusuampzyi"
+      }
+    ],
+    "Tags": [
+      {
+        "Key": "Environment",
+        "Value": "production"
+      },
+      {
+        "Key": "Purpose",
+        "Value": "LiveClipRenderer"
+      },
+      {
+        "Key": "Application",
+        "Value": "PlatinumCircles"
+      }
+    ],
+    "EnableTerminationProtection": false,
+    "DriftInformation": {
+      "StackDriftStatus": "NOT_CHECKED"
+    },
+    "LastOperations": [
+      {
+        "OperationType": "CREATE_STACK",
+        "OperationId": "c05b4ef1-390b-4c62-9479-3f708ee2cd62"
+      }
+    ]
+  },
+  "network": {
+    "subnets": {
+      "Subnets": [
+        {
+          "AvailabilityZoneId": "use2-az3",
+          "MapCustomerOwnedIpOnLaunch": false,
+          "OwnerId": "518317808503",
+          "AssignIpv6AddressOnCreation": false,
+          "Ipv6CidrBlockAssociationSet": [],
+          "SubnetArn": "arn:aws:ec2:us-east-2:518317808503:subnet/subnet-01d1d8e8773edead7",
+          "EnableDns64": false,
+          "Ipv6Native": false,
+          "PrivateDnsNameOptionsOnLaunch": {
+            "HostnameType": "ip-name",
+            "EnableResourceNameDnsARecord": false,
+            "EnableResourceNameDnsAAAARecord": false
+          },
+          "BlockPublicAccessStates": {
+            "InternetGatewayBlockMode": "off"
+          },
+          "SubnetId": "subnet-01d1d8e8773edead7",
+          "State": "available",
+          "VpcId": "vpc-070155457255a935e",
+          "CidrBlock": "172.31.32.0/20",
+          "AvailableIpAddressCount": 4091,
+          "AvailabilityZone": "us-east-2c",
+          "DefaultForAz": true,
+          "MapPublicIpOnLaunch": true
+        },
+        {
+          "AvailabilityZoneId": "use2-az1",
+          "MapCustomerOwnedIpOnLaunch": false,
+          "OwnerId": "518317808503",
+          "AssignIpv6AddressOnCreation": false,
+          "Ipv6CidrBlockAssociationSet": [],
+          "SubnetArn": "arn:aws:ec2:us-east-2:518317808503:subnet/subnet-02cc531f1e50efb77",
+          "EnableDns64": false,
+          "Ipv6Native": false,
+          "PrivateDnsNameOptionsOnLaunch": {
+            "HostnameType": "ip-name",
+            "EnableResourceNameDnsARecord": false,
+            "EnableResourceNameDnsAAAARecord": false
+          },
+          "BlockPublicAccessStates": {
+            "InternetGatewayBlockMode": "off"
+          },
+          "SubnetId": "subnet-02cc531f1e50efb77",
+          "State": "available",
+          "VpcId": "vpc-070155457255a935e",
+          "CidrBlock": "172.31.0.0/20",
+          "AvailableIpAddressCount": 4091,
+          "AvailabilityZone": "us-east-2a",
+          "DefaultForAz": true,
+          "MapPublicIpOnLaunch": true
+        },
+        {
+          "AvailabilityZoneId": "use2-az2",
+          "MapCustomerOwnedIpOnLaunch": false,
+          "OwnerId": "518317808503",
+          "AssignIpv6AddressOnCreation": false,
+          "Ipv6CidrBlockAssociationSet": [],
+          "SubnetArn": "arn:aws:ec2:us-east-2:518317808503:subnet/subnet-0beca645a4b3f54dd",
+          "EnableDns64": false,
+          "Ipv6Native": false,
+          "PrivateDnsNameOptionsOnLaunch": {
+            "HostnameType": "ip-name",
+            "EnableResourceNameDnsARecord": false,
+            "EnableResourceNameDnsAAAARecord": false
+          },
+          "BlockPublicAccessStates": {
+            "InternetGatewayBlockMode": "off"
+          },
+          "SubnetId": "subnet-0beca645a4b3f54dd",
+          "State": "available",
+          "VpcId": "vpc-070155457255a935e",
+          "CidrBlock": "172.31.16.0/20",
+          "AvailableIpAddressCount": 4091,
+          "AvailabilityZone": "us-east-2b",
+          "DefaultForAz": true,
+          "MapPublicIpOnLaunch": true
+        }
+      ]
+    },
+    "routes": {
+      "RouteTables": [
+        {
+          "Associations": [
+            {
+              "Main": true,
+              "RouteTableAssociationId": "rtbassoc-0bd3193bc480646fc",
+              "RouteTableId": "rtb-01e8aa4c24ff91229",
+              "AssociationState": {
+                "State": "associated"
+              }
+            }
+          ],
+          "PropagatingVgws": [],
+          "RouteTableId": "rtb-01e8aa4c24ff91229",
+          "Routes": [
+            {
+              "DestinationCidrBlock": "172.31.0.0/16",
+              "GatewayId": "local",
+              "Origin": "CreateRouteTable",
+              "State": "active"
+            },
+            {
+              "DestinationCidrBlock": "0.0.0.0/0",
+              "GatewayId": "igw-0d8eb3a332c6effea",
+              "Origin": "CreateRoute",
+              "State": "active"
+            }
+          ],
+          "Tags": [],
+          "VpcId": "vpc-070155457255a935e",
+          "OwnerId": "518317808503"
+        }
+      ]
+    },
+    "gateways": {
+      "InternetGateways": [
+        {
+          "Attachments": [
+            {
+              "State": "available",
+              "VpcId": "vpc-070155457255a935e"
+            }
+          ],
+          "InternetGatewayId": "igw-0d8eb3a332c6effea",
+          "OwnerId": "518317808503",
+          "Tags": []
+        }
+      ]
+    }
+  },
+  "reviewed_changes": [
+    {
+      "Type": "Resource",
+      "ResourceChange": {
+        "Action": "Add",
+        "LogicalResourceId": "BrokerKey",
+        "ResourceType": "AWS::KMS::Key",
+        "Scope": [],
+        "Details": []
+      }
+    },
+    {
+      "Type": "Resource",
+      "ResourceChange": {
+        "Action": "Add",
+        "LogicalResourceId": "BrokerSecret",
+        "ResourceType": "AWS::SecretsManager::Secret",
+        "Scope": [],
+        "Details": []
+      }
+    },
+    {
+      "Type": "Resource",
+      "ResourceChange": {
+        "Action": "Add",
+        "LogicalResourceId": "BuildLogs",
+        "ResourceType": "AWS::Logs::LogGroup",
+        "Scope": [],
+        "Details": []
+      }
+    },
+    {
+      "Type": "Resource",
+      "ResourceChange": {
+        "Action": "Add",
+        "LogicalResourceId": "BuildRole",
+        "ResourceType": "AWS::IAM::Role",
+        "Scope": [],
+        "Details": []
+      }
+    },
+    {
+      "Type": "Resource",
+      "ResourceChange": {
+        "Action": "Add",
+        "LogicalResourceId": "Builder",
+        "ResourceType": "AWS::CodeBuild::Project",
+        "Scope": [],
+        "Details": []
+      }
+    },
+    {
+      "Type": "Resource",
+      "ResourceChange": {
+        "Action": "Add",
+        "LogicalResourceId": "Images",
+        "ResourceType": "AWS::ECR::Repository",
+        "Scope": [],
+        "Details": []
+      }
+    },
+    {
+      "Type": "Resource",
+      "ResourceChange": {
+        "Action": "Add",
+        "LogicalResourceId": "SourceBucketPolicy",
+        "ResourceType": "AWS::S3::BucketPolicy",
+        "Scope": [],
+        "Details": []
+      }
+    },
+    {
+      "Type": "Resource",
+      "ResourceChange": {
+        "Action": "Add",
+        "LogicalResourceId": "SourceBucket",
+        "ResourceType": "AWS::S3::Bucket",
+        "Scope": [],
+        "Details": []
+      }
+    }
+  ],
+  "bootstrap_api_calls": [
+    {
+      "service": "cloudformation",
+      "operation": "DescribeStacks",
+      "status": "success",
+      "n_items": {
+        "Stacks": 1
+      }
+    },
+    {
+      "service": "cloudformation",
+      "operation": "DescribeStackEvents",
+      "status": "success",
+      "n_items": {
+        "StackEvents": 29
+      }
+    }
+  ],
+  "broker_secret": {
+    "arn": "arn:aws:secretsmanager:us-east-2:518317808503:secret:platinum-live-clips-build-production/broker-4Qsmcx",
+    "version_id": "3e5d5610-5b13-5eb8-6151-28312e4905ae",
+    "version_stages": [
+      "AWSCURRENT"
+    ],
+    "api_calls": [
+      {
+        "service": "secretsmanager",
+        "operation": "GetSecretValue",
+        "status": "success",
+        "n_items": {
+          "VersionStages": 1
+        }
+      }
+    ],
+    "sha256": "8aa8d32b5fca978a9939ae3af435db3975376c45301d7ff96360b6f3b90e983f",
+    "installed_in_supabase_project": "prlkikhckbifseosbukl",
+    "supabase_name": "LIVE_CLIP_WORKER_SECRET",
+    "installed_at": "2026-11-03T06:04:16Z",
+    "value_recorded": false
+  },
+  "transcribe_access": {
+    "error": "An error occurred (AccessDeniedException) when calling the ListTranscriptionJobs operation: User: arn:aws:sts::518317808503:assumed-role/AccountFullAccessRole/34b804b8-30f1-70ef-8a78-cda420fd9262 is not authorized to perform: transcribe:ListTranscriptionJobs with an explicit deny in a service control policy: arn:aws:organizations::481552727043:policy/o-u8vc1j1p9n/service_control_policy/p-yvvmsmjp",
+    "api_calls": [
+      {
+        "service": "transcribe",
+        "operation": "ListTranscriptionJobs",
+        "status": "error",
+        "error": "ClientError: An error occurred (AccessDeniedException) when calling the ListTranscriptionJobs operation: User: arn:aws:sts::518317808503:assumed-role/AccountFullAccessRole/34b804b8-30f1-70ef-8a78-cda420fd9262 is not authorized to perform: transcribe:ListTranscriptionJobs with an explicit deny in a service control policy: arn:aws:organizations::481552727043:policy/o-u8vc1j1p9n/service_control_policy/p-yvvmsmjp"
+      }
+    ]
+  },
+  "runtime_service_provisioned": false,
+  "note": "Build stack and broker installation only. Running service and real render evidence are recorded separately."
+}

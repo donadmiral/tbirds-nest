@@ -114,7 +114,13 @@ jobs:
             supabase/functions/live-provider-configure/index.ts \
             supabase/functions/live-sign/index.ts \
             supabase/functions/live-clip-media/index.ts \
-            supabase/functions/live-clip-worker/index.ts
+            supabase/functions/live-clip-worker/index.ts \
+            supabase/functions/live-clip-scaler/index.ts \
+            supabase/functions/live-connect/index.ts \
+            supabase/functions/live-social/index.ts \
+            supabase/functions/live-social-worker/index.ts \
+            supabase/functions/live-social-pull/index.ts \
+            supabase/functions/live-transcription-worker/index.ts
       - name: Test actual pinned-IP HTTPS and cancellation
         env:
           PLATINUM_LINK_TLS_FIXTURE: ${{ runner.temp }}/platinum-link-tls
@@ -195,20 +201,60 @@ jobs:
           npm ci --prefix workers/media-renditions
       - name: Test phone, diagnostics, feed and call regressions
         run: node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs
-      - name: Test adaptive media processing, Live rendering and worker leases
+      - name: Test adaptive media processing
         run: |
           if ! command -v ffmpeg >/dev/null; then
             sudo apt-get update
             sudo apt-get install --yes ffmpeg
           fi
           node --test workers/media-renditions/test/*.test.mjs
-          node --test --test-concurrency=2 workers/live-clips/test/*.test.mjs
       - name: Test payment recovery, Live Edge authorization and database boundaries
         env:
           PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.cjs
           TRINITI_PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.js
-        # This existing glob includes live-provider.test.cjs, live-signing.test.cjs
-        # and live-clips-edge.test.cjs without running those suites twice.
+        # The glob covers Live core, clip/queue, OAuth/social/pull and transcription
+        # authorization suites; do not duplicate them in the worker job.
         run: node --experimental-strip-types --test --test-concurrency=2 supabase/tests/*.test.*
       - name: Test RPC authorization
         run: npm test --prefix supabase/tests/rpc-authorization
+
+  live-workers:
+    name: Live workers, finite launcher and infrastructure
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.22.2
+          cache: npm
+          cache-dependency-path: workers/live-transcription/package-lock.json
+      - name: Install fixed worker dependencies and synthetic-media tools
+        run: |
+          npm ci --prefix workers/live-transcription --ignore-scripts --no-audit --no-fund
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install --yes ffmpeg
+          fi
+          python3 -m venv /tmp/platinum-live-cfnlint
+          /tmp/platinum-live-cfnlint/bin/pip install cfn-lint==1.59.0
+      - name: Test bounded render, publishing and transcription workers
+        run: |
+          node --test --test-concurrency=2 workers/live-clips/test/*.test.mjs
+          npm test --prefix workers/live-social
+          npm test --prefix workers/live-transcription
+      - name: Test shared runtime admission and deployment boundaries
+        run: |
+          python3 infrastructure/live-clips/test/launcher_test.py
+          node --test infrastructure/live-clips/test/*.test.mjs infrastructure/live-social/test/*.test.mjs infrastructure/live-transcription/test/*.test.mjs infrastructure/live-integrations/test/*.test.mjs
+      - name: Validate reviewed templates in the selected AWS region
+        run: |
+          /tmp/platinum-live-cfnlint/bin/cfn-lint \
+            infrastructure/live-clips/*-cloudformation.json \
+            infrastructure/live-social/*-cloudformation.json \
+            infrastructure/live-transcription/*-cloudformation.json \
+            infrastructure/live-integrations/*-cloudformation.json -r us-east-2
+        # Fixture encodes/template checks are not production image scans,
+        # hosted-provider acceptance, deployment, or a capacity certification.

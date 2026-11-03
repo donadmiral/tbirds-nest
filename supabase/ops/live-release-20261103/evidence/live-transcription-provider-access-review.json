@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T07:17:25.224Z",
+  "scope": "Read-only diagnosis of the two rejected synthetic StartTranscriptionJob requests; no AWS writes, retries, trust/policy edits or secret access.",
+  "outcome": "S3 output access validation failed. The exact denied downstream action, principal, object key and policy are unproven; this review does not attribute the failure to an SCP/RCP or a documented request-shape defect.",
+  "account_id": "518317808503",
+  "region": "us-east-2",
+  "synthetic_request": {
+    "job_name": "pc-live-caption-dd3aa128e0cf44e293639df2a085c75e",
+    "language": "en-US",
+    "media_format": "flac",
+    "sample_rate_hz": 16000,
+    "bucket": "platinum-live-transcription-storage-pr-audiobucket-b2mm19hutnyq",
+    "input_key": "transcription/dd3aa128-e0cf-44e2-9363-9df2a085c75e/source.flac",
+    "output_key": "transcription/dd3aa128-e0cf-44e2-9363-9df2a085c75e/result.json",
+    "allow_deferred_execution": false,
+    "data_access_role_arn": "arn:aws:iam::518317808503:role/platinum-live-transcription-stor-TranscribeDataRole-qoKxuZNwUicc"
+  },
+  "failures": [
+    {
+      "time": "2026-11-03T06:35:40Z",
+      "event_id": "3c427278-0e9e-4290-a72a-1db014744899",
+      "request_id": "9784f364-dbc7-48fa-b68e-cc75250e6fe9",
+      "error_code": "BadRequestException",
+      "error_message": "The specified S3 bucket can't be accessed. Make sure you have write permission on the bucket and try your request again."
+    },
+    {
+      "time": "2026-11-03T06:26:53Z",
+      "event_id": "31ff72dd-d7fd-4d07-ba37-77e2e73c03f3",
+      "request_id": "d81df6c7-8f6d-4118-944b-0fc6cfef0c74",
+      "error_code": "BadRequestException",
+      "error_message": "The specified S3 bucket can't be accessed. Make sure you have write permission on the bucket and try your request again."
+    }
+  ],
+  "reviewed_configuration": {
+    "caller": {
+      "role_name": "AccountFullAccessRole",
+      "role_arn": "arn:aws:iam::518317808503:role/managed/AccountFullAccessRole",
+      "invoked_by": "aws-mcp.amazonaws.com",
+      "attached_managed_policy": "arn:aws:iam::aws:policy/AdministratorAccess",
+      "managed_policy_version": "v1",
+      "inline_policies": [],
+      "identity_permission_statement": {
+        "Effect": "Allow",
+        "Action": "*",
+        "Resource": "*"
+      },
+      "limitation": "Attached identity policy inspection does not prove effective downstream session, service or organization context."
+    },
+    "data_role": {
+      "arn": "arn:aws:iam::518317808503:role/platinum-live-transcription-stor-TranscribeDataRole-qoKxuZNwUicc",
+      "permissions_boundary": null,
+      "trust_policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "transcribe.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+              "StringEquals": {
+                "aws:SourceAccount": "518317808503"
+              },
+              "ArnLike": {
+                "aws:SourceArn": "arn:aws:transcribe:us-east-2:518317808503:transcription-job/pc-live-caption-*"
+              }
+            }
+          }
+        ]
+      },
+      "inline_policies": [
+        {
+          "name": "ReadCaptionAudioWriteCaptionJson",
+          "document": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Action": "s3:GetBucketLocation",
+                "Resource": "arn:aws:s3:::platinum-live-transcription-storage-pr-audiobucket-b2mm19hutnyq",
+                "Effect": "Allow"
+              },
+              {
+                "Action": "s3:ListBucket",
+                "Resource": "arn:aws:s3:::platinum-live-transcription-storage-pr-audiobucket-b2mm19hutnyq",
+                "Effect": "Allow"
+              },
+              {
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::platinum-live-transcription-storage-pr-audiobucket-b2mm19hutnyq/transcription/*/source.flac",
+                "Effect": "Allow"
+              },
+              {
+                "Action": "s3:PutObject",
+                "Resource": "arn:aws:s3:::platinum-live-transcription-storage-pr-audiobucket-b2mm19hutnyq/transcription/*/result.json",
+                "Effect": "Allow"
+              }
+            ]
+          }
+        }
+      ],
+      "attached_managed_policies": []
+    },
+    "bucket": {
+      "region": "us-east-2",
+      "default_encryption": "AES256",
+      "object_ownership": "BucketOwnerEnforced",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "RejectInsecureTransport",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": "s3:*",
+            "Resource": [
+              "arn:aws:s3:::platinum-live-transcription-storage-pr-audiobucket-b2mm19hutnyq",
+              "arn:aws:s3:::platinum-live-transcription-storage-pr-audiobucket-b2mm19hutnyq/*"
+            ],
+            "Condition": {
+              "Bool": {
+                "aws:SecureTransport": "false"
+              }
+            }
+          }
+        ]
+      },
+      "kms_key_involved": false
+    },
+    "synthetic_input": {
+      "bytes": 179489,
+      "content_type": "audio/flac",
+      "encryption": "AES256",
+      "last_modified": "2026-11-03T06:26:09+00:00"
+    }
+  },
+  "observation_limits": {
+    "assume_role_lookup": {
+      "start_time": "2026-11-03T06:00:00Z",
+      "regions": [
+        {
+          "region": "us-east-2",
+          "events_scanned": 20,
+          "matching_data_role_events": 0,
+          "next_token_present": false
+        },
+        {
+          "region": "us-east-1",
+          "events_scanned": 2,
+          "matching_data_role_events": 0,
+          "next_token_present": false
+        }
+      ],
+      "interpretation": "No matching data-role AssumeRole event was observed. Absence is not proof the role was ignored or the trust was accepted."
+    },
+    "bucket_access_logging_enabled": false,
+    "visible_trails_in_region": 0,
+    "visible_event_data_stores_in_region": 0,
+    "downstream_s3_denied_request_observed": false,
+    "effective_scp_rcp_reviewed": false,
+    "iam_simulation_note": "Parent supplied context-correct allowed results. Earlier simulations lacking requested-region/account/TLS context are not accepted as evidence of an organization deny."
+  },
+  "documented_checks": [
+    {
+      "finding": "AllowDeferredExecution=false together with DataAccessRoleArn is a documented request shape.",
+      "reference": "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_JobExecutionSettings.html"
+    },
+    {
+      "finding": "A folder/result.json OutputKey is a documented exact output filename. No reviewed primary source established that this request requires an extra output probe object.",
+      "reference": "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_StartTranscriptionJob.html"
+    },
+    {
+      "finding": "Amazon Transcribe supports forward access sessions, so downstream authorization can involve caller permissions; the field description alone does not establish which principal made this denied S3 validation request.",
+      "reference": "https://docs.aws.amazon.com/transcribe/latest/dg/security_iam_service-with-iam.html"
+    },
+    {
+      "finding": "FAS downstream services evaluate the calling identity and context. This review did not establish an MCP-specific restriction.",
+      "reference": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_forward_access_sessions.html"
+    },
+    {
+      "finding": "Transcribe guidance recommends SourceAccount and SourceArn, including full resource ARN restriction where known. No observed trust-denial event justifies broadening the current job-prefix trust.",
+      "reference": "https://docs.aws.amazon.com/transcribe/latest/dg/security-iam-confused-deputy.html"
+    },
+    {
+      "finding": "S3 warns about network context redaction on service calls. That warning does not prove this bucket's simple Bool SecureTransport=false deny caused this failure.",
+      "reference": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/amazon-s3-policy-keys.html"
+    },
+    {
+      "finding": "The IAM Bool condition example explicitly shows that missing aws:SecureTransport does not match Bool false; redaction alone is insufficient causal evidence.",
+      "reference": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition_operators.html"
+    },
+    {
+      "finding": "OAuth access remains subject to existing IAM, session and organization governance; the connected toolkit does not grant extra permissions.",
+      "reference": "https://docs.aws.amazon.com/agent-toolkit/latest/userguide/oauth-authentication.html"
+    }
+  ],
+  "next_evidence_required": "Use the recorded AWS request IDs with provider-side diagnostics to identify the exact failed downstream S3 action/principal/key and effective policy context before any policy, trust or output-scope change.",
+  "gates": {
+    "actual_transcribe_job_acceptance": false,
+    "production_caption_admission_must_remain_disabled": true
+  },
+  "cleanup": "Root owns subsequent job-existence verification and deletion of the exact disposable input. This read-only review performs neither action.",
+  "excludes": [
+    "credential values",
+    "signed URLs",
+    "caller session identifiers",
+    "personal data",
+    "source IP addresses",
+    "raw unfiltered CloudTrail events"
+  ],
+  "aws_api_methods_executed_read_only": [
+    "GetCallerIdentity",
+    "GetRole",
+    "ListRolePolicies",
+    "ListAttachedRolePolicies",
+    "GetRolePolicy",
+    "GetPolicy",
+    "GetPolicyVersion",
+    "GetBucketPolicy",
+    "GetBucketEncryption",
+    "GetBucketOwnershipControls",
+    "HeadObject",
+    "GetBucketLocation",
+    "LookupEvents",
+    "GetBucketLogging",
+    "DescribeTrails",
+    "ListEventDataStores"
+  ]
+}

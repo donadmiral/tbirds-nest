@@ -29,14 +29,8 @@
     "observed_by_operator": "The actual Daily storage verification reported role_assumption_denied. The IAM trust was inspected separately and matched the intended Daily account and ExternalId.",
     "not_observed": "The contents, identifier, attachment ancestry and mutability of the effective RCP have not been read. The operator's current ListParents call and both ListPoliciesForTarget calls returned AccessDeniedException. A later result-formatting error does not change those observed API denials; this plan does not repeat the calls.",
     "hypothesis": "The published AWS new-experience external-principal deny is a plausible cause, not a confirmed diagnosis.",
-    "current_authorization_boundary": "An automatic approval review rejected opening AWS Settings because the recorded approval covered key work, not account management or billing. This file performs no account or policy action.",
+    "current_authorization_boundary": "The user subsequently authorized owner-level Settings review and service completion. The review was performed, and AWS now reports PAID/ACTIVE after an owner account change. Advanced activation remains unsubmitted by the agent and requires owner root-email verification; actual organization policy content and mutability are still unverified.",
     "no_claim_of_resolution": "A correct local trust policy and this proposed exception cannot establish that another applicable policy will permit STS or S3."
-  },
-  "next_permission_request": {
-    "action": "Open AWS Settings for owner-level read-only review of the current account mode and available organization policy controls.",
-    "reason": "The authorized API identity cannot inspect the effective organization-policy ancestry, and automatic approval review previously rejected opening Settings under the narrower key-work authorization.",
-    "permitted_result": "Inspect and report the relevant current settings or owner handoff required; capture only nonsecret evidence needed to identify the policy control.",
-    "separate_authorization_required": "Any account upgrade, advanced-feature activation, billing change, policy mutation, detachment, disablement or other write remains outside this request."
   },
   "owner_review_gates": [
     "Read the effective RCP attachments at the account, every parent OU and organization root through an authorized owner or administrator; record exact policy IDs, content hashes and attachment scope.",
@@ -275,5 +269,23 @@
       "url": "https://docs.daily.co/docs/guides/features/recording/custom-s3-storage",
       "supports": "Daily account291871421005, domain-name ExternalId, documented S3 test object."
     }
-  ]
+  ],
+  "earlier_permission_request": {
+    "action": "Open AWS Settings for owner-level read-only review of the current account mode and available organization policy controls.",
+    "reason": "The authorized API identity cannot inspect the effective organization-policy ancestry, and automatic approval review previously rejected opening Settings under the narrower key-work authorization.",
+    "permitted_result": "Inspect and report the relevant current settings or owner handoff required; capture only nonsecret evidence needed to identify the policy control.",
+    "separate_authorization_required": "Any account upgrade, advanced-feature activation, billing change, policy mutation, detachment, disablement or other write remains outside this request."
+  },
+  "latest_owner_review": {
+    "receipts": [
+      "../../supabase/ops/live-release-20261103/evidence/aws-owner-policy-review.json",
+      "../../supabase/ops/live-release-20261103/evidence/aws-owner-plan-updated.json"
+    ],
+    "current_plan": "PAID",
+    "advanced_activation_completed": false,
+    "root_email_verification_pending": true,
+    "actual_policy_read": false,
+    "policy_mutation_performed": false,
+    "next_step": "Owner completes the concrete irreversible activation review and root-email verification if chosen. Then inspect effective policy content, scope and supported mutability before preparing any actual Daily exception. A plan upgrade is not evidence of provider acceptance."
+  }
 }

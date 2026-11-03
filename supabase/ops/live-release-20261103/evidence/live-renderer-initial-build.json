@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "build": {
+    "id": "Builder-UhwmorEgFfEf:68243b35-5947-43eb-9cc8-a3c00709ad6c",
+    "buildStatus": "SUCCEEDED",
+    "currentPhase": "COMPLETED",
+    "phases": [
+      {
+        "phaseType": "SUBMITTED",
+        "phaseStatus": "SUCCEEDED",
+        "startTime": "2026-11-03T06:09:05.323000+00:00",
+        "endTime": "2026-11-03T06:09:05.411000+00:00",
+        "durationInSeconds": 0
+      },
+      {
+        "phaseType": "QUEUED",
+        "phaseStatus": "SUCCEEDED",
+        "startTime": "2026-11-03T06:09:05.411000+00:00",
+        "endTime": "2026-11-03T06:09:05.956000+00:00",
+        "durationInSeconds": 0
+      },
+      {
+        "phaseType": "PROVISIONING",
+        "phaseStatus": "SUCCEEDED",
+        "startTime": "2026-11-03T06:09:05.956000+00:00",
+        "endTime": "2026-11-03T06:09:14.016000+00:00",
+        "durationInSeconds": 8,
+        "contexts": [
+          {
+            "statusCode": "",
+            "message": ""
+          }
+        ]
+      },
+      {
+        "phaseType": "DOWNLOAD_SOURCE",
+        "phaseStatus": "SUCCEEDED",
+        "startTime": "2026-11-03T06:09:14.016000+00:00",
+        "endTime": "2026-11-03T06:10:14.720000+00:00",
+        "durationInSeconds": 60,
+        "contexts": [
+          {
+            "statusCode": "",
+            "message": ""
+          }
+        ]
+      },
+      {
+        "phaseType": "INSTALL",
+        "phaseStatus": "SUCCEEDED",
+        "startTime": "2026-11-03T06:10:14.720000+00:00",
+        "endTime": "2026-11-03T06:10:14.814000+00:00",
+        "durationInSeconds": 0,
+        "contexts": [
+          {
+            "statusCode": "",
+            "message": ""
+          }
+        ]
+      },
+      {
+        "phaseType": "PRE_BUILD",
+        "phaseStatus": "SUCCEEDED",
+        "startTime": "2026-11-03T06:10:14.814000+00:00",
+        "endTime": "2026-11-03T06:10:33.177000+00:00",
+        "durationInSeconds": 18,
+        "contexts": [
+          {
+            "statusCode": "",
+            "message": ""
+          }
+        ]
+      },
+      {
+        "phaseType": "BUILD",
+        "phaseStatus": "SUCCEEDED",
+        "startTime": "2026-11-03T06:10:33.177000+00:00",
+        "endTime": "2026-11-03T06:11:08.441000+00:00",
+        "durationInSeconds": 35,
+        "contexts": [
+          {
+            "statusCode": "",
+            "message": ""
+          }
+        ]
+      },
+      {
+        "phaseType": "POST_BUILD",
+        "phaseStatus": "SUCCEEDED",
+        "startTime": "2026-11-03T06:11:08.441000+00:00",
+        "endTime": "2026-11-03T06:11:28.064000+00:00",
+        "durationInSeconds": 19,
+        "contexts": [
+          {
+            "statusCode": "",
+            "message": ""
+          }
+        ]
+      },
+      {
+        "phaseType": "UPLOAD_ARTIFACTS",
+        "phaseStatus": "SUCCEEDED",
+        "startTime": "2026-11-03T06:11:28.064000+00:00",
+        "endTime": "2026-11-03T06:11:28.111000+00:00",
+        "durationInSeconds": 0,
+        "contexts": [
+          {
+            "statusCode": "",
+            "message": ""
+          }
+        ]
+      },
+      {
+        "phaseType": "FINALIZING",
+        "phaseStatus": "SUCCEEDED",
+        "startTime": "2026-11-03T06:11:28.111000+00:00",
+        "endTime": "2026-11-03T06:11:28.416000+00:00",
+        "durationInSeconds": 0,
+        "contexts": [
+          {
+            "statusCode": "",
+            "message": ""
+          }
+        ]
+      },
+      {
+        "phaseType": "COMPLETED",
+        "startTime": "2026-11-03T06:11:28.416000+00:00"
+      }
+    ],
+    "logs": {
+      "groupName": "/platinum/live-clips/platinum-live-clips-build-production/build",
+      "streamName": "image/68243b35-5947-43eb-9cc8-a3c00709ad6c",
+      "deepLink": "https://console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Fplatinum$252Flive-clips$252Fplatinum-live-clips-build-production$252Fbuild/log-events/image$252F68243b35-5947-43eb-9cc8-a3c00709ad6c",
+      "cloudWatchLogsArn": "arn:aws:logs:us-east-2:518317808503:log-group:/platinum/live-clips/platinum-live-clips-build-production/build:log-stream:image/68243b35-5947-43eb-9cc8-a3c00709ad6c",
+      "cloudWatchLogs": {
+        "status": "ENABLED",
+        "groupName": "/platinum/live-clips/platinum-live-clips-build-production/build",
+        "streamName": "image"
+      },
+      "s3Logs": {
+        "status": "DISABLED",
+        "encryptionDisabled": false
+      }
+    },
+    "startTime": "2026-11-03T06:09:05.323000+00:00",
+    "endTime": "2026-11-03T06:11:28.416000+00:00"
+  },
+  "archive_sha256": "0a75ead841ee444e58701880220a45a456d215542640b333238477d072f1a812",
+  "manifest_sha256": "53d56eb47818b15112ac7faec3439f0a5d52d7b0d617ef30aea6296442fad96a",
+  "source_version": "GwPixTxoLKsjpBMhpnbOAQEkFQRUa3JA",
+  "container_tests": {
+    "passed": 26,
+    "failed": 0
+  },
+  "encoder_acceptance": {
+    "schema_version": 1,
+    "ok": true,
+    "scope": "offline_actual_encoder",
+    "broker_mocked": true,
+    "hosted_publication_verified": false,
+    "provider_broadcast_verified": false,
+    "measured_capacity_verified": false,
+    "duration_ms": 2000,
+    "formats": [
+      "horizontal",
+      "vertical"
+    ],
+    "decoded_video_and_audio": true,
+    "watermark_and_reviewed_captions_rendered": true,
+    "scratch_cleanup_verified": true,
+    "assets": [
+      {
+        "name": "horizontal.mp4",
+        "bytes": 47467,
+        "sha256": "19286e982ded75adfae7340b6087a935fd3ef8615f2db2a7da52c4ce28141547"
+      },
+      {
+        "name": "vertical.mp4",
+        "bytes": 49644,
+        "sha256": "4f1e3b8f15ea6008a237884a2e072178a94e8c56ad6af96b85a7d80c0d30e136"
+      },
+      {
+        "name": "thumbnail.jpg",
+        "bytes": 7607,
+        "sha256": "8a35b3f1998625f3e23c411c1f7ef0e00c507e906e3d15498ef2c310ba8374dd"
+      },
+      {
+        "name": "captions.vtt",
+        "bytes": 68,
+        "sha256": "d4bb1429ffc96fd711c5165774060efcc6cb91b58ee67e4e4fbce629a265dda4"
+      }
+    ],
+    "elapsed_ms": 1274
+  },
+  "image_publication": {
+    "schema_version": 1,
+    "event": "renderer_image_published",
+    "manifest_sha256": "53d56eb47818b15112ac7faec3439f0a5d52d7b0d617ef30aea6296442fad96a",
+    "image_digest": "sha256:9a171ec1421d60a878bdc8f8a32ee41c6d62af61405cf40a14ad7aae805297a4",
+    "image_uri": "518317808503.dkr.ecr.us-east-2.amazonaws.com/platinum-live-clips-build-production-images-fgzusuampzyi@sha256:9a171ec1421d60a878bdc8f8a32ee41c6d62af61405cf40a14ad7aae805297a4",
+    "image_tag": "source-53d56eb47818b15112ac7faec3439f0a",
+    "build_tests_passed": true,
+    "deployed": false,
+    "runtime_admission_changed": false
+  },
+  "image": {
+    "registryId": "518317808503",
+    "repositoryName": "platinum-live-clips-build-production-images-fgzusuampzyi",
+    "imageDigest": "sha256:9a171ec1421d60a878bdc8f8a32ee41c6d62af61405cf40a14ad7aae805297a4",
+    "imageTags": [
+      "source-53d56eb47818b15112ac7faec3439f0a"
+    ],
+    "imageSizeInBytes": 257323743,
+    "imagePushedAt": "2026-11-03T06:11:27.218000+00:00",
+    "imageManifestMediaType": "application/vnd.docker.distribution.manifest.v2+json",
+    "artifactMediaType": "application/vnd.docker.container.image.v1+json",
+    "imageStatus": "ACTIVE"
+  },
+  "scan_status": {
+    "status": "COMPLETE",
+    "description": "The scan was completed successfully."
+  },
+  "scan_counts": {
+    "HIGH": 42,
+    "MEDIUM": 27,
+    "LOW": 2,
+    "CRITICAL": 2
+  },
+  "production_activation": "held_for_dependency_review_and_remediation",
+  "service_provisioned": false
+}

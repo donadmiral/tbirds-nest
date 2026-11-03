@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T07:09:38.770192+00:00",
+  "reviewer": "independent deployment/backend agent",
+  "evidence_kind": "read-only source review and local executable tests",
+  "status": "No unresolved blocking defect found in the reviewed core; all hosted provider activation gates remain separate.",
+  "implementation_receipt": "supabase/ops/live-release-20261103/evidence/live-social-release-review.json",
+  "implementation_receipt_sha256": "7e76a1bc73ca9bb52529023ab0e72c8ae353f8bcd0eea745c620f3afa314d559",
+  "scope": "Direct social SQL, OAuth vault and current-rights broker, Node publisher, first-party TikTok pull capability and canonical web rewrite. Image packaging/deployment and UI visual acceptance are outside this core receipt.",
+  "resolved_findings": [
+    "Every provider request rechecks current lease, source rights and connection identity.",
+    "Overall execution deadline, propagated shutdown, independent bounded completion and outage backoff are enforced.",
+    "Encrypted OAuth tokens bind selected account identity; current DB identity is compared before a grant and after refresh.",
+    "YouTube initialization requires exactly one matching authenticated channel; available receipt channel identity is verified.",
+    "Provider/upload/public URLs and worker project origin reject non-default ports.",
+    "Server-hosted TikTok media uses PULL_FROM_URL with an explicitly configured verified first-party origin.",
+    "Pull route is anchored to the exact function path; unknown prefixes, extra/duplicate query parameters and writes are rejected.",
+    "The opaque pull capability is persisted encrypted, hash-bound to the job, bounded to 70 minutes, 32 HTTP requests, 8 requests/minute and 128 MiB; current source/account checks apply before first byte.",
+    "Ambiguous publication remains confirmation_required; cancellation after dispatch requires explicit provider review."
+  ],
+  "positive_boundaries": [
+    "Private RLS tables and service-only credential/worker APIs; public users receive no vault ciphertext or provider tokens.",
+    "Pull delivery grants one current vertical clip, version-checks around Storage headers, follows no redirect, does not cache and cancels upstream on abort.",
+    "Durable checkpoints precede irreversible requests; provider-success receipts remain truthful when authorization is revoked after dispatch.",
+    "TikTok clean-export, current creator options and explicit privacy/music/interaction consent are enforced; no automatic watermark removal bypasses creator policy."
+  ],
+  "independently_executed": [
+    {
+      "command": "node --test supabase/tests/live-social.test.cjs supabase/tests/live-social-pull.test.cjs supabase/tests/live-integrations.test.cjs",
+      "passed": 45,
+      "failed": 0
+    },
+    {
+      "command": "node --test workers/live-social/test/*.test.mjs",
+      "passed": 20,
+      "failed": 0
+    },
+    {
+      "command": "node --test supabase/tests/rpc-authorization/test-live-social-publishing.mjs",
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "command": "node --test --test-name-pattern='malformed capabilities|worker configuration' supabase/tests/live-social-pull.test.cjs workers/live-social/test/publishing.test.mjs",
+      "passed": 2,
+      "failed": 0,
+      "purpose": "Final canonical-route/config-port changes"
+    },
+    {
+      "command": "node --test --test-name-pattern='direct queue' supabase/tests/rpc-authorization/test-live-social-publishing.mjs",
+      "passed": 1,
+      "failed": 0,
+      "purpose": "Final direct-queue catalogue/FK index snapshot"
+    },
+    {
+      "check": "Deno 2.1.4 check of new Live connect/social/worker/pull/transcription/clip-scaler entrypoints",
+      "result": "passed"
+    },
+    {
+      "check": "cfn-lint 1.59.0 of current clips/social/transcription templates in us-east-2",
+      "result": "passed"
+    }
+  ],
+  "local_node": "24.22.1",
+  "ci_worker_node": "24.22.2",
+  "activation_gates": [
+    "Actual provider developer apps, approved scopes, callback configuration, app verification/audit and creator OAuth consent.",
+    "Server vault and dedicated worker bearer installed through the owner-approved secret process.",
+    "Reviewed worker image digest, scan, broker acceptance and service deployment; task template defaults to zero.",
+    "TikTok app domain verification plus realistic hosted proxy transfer acceptance within 128 MiB and 110 seconds.",
+    "Explicit provider-specific publishing admission and separately approved real post acceptance; no live provider validation is claimed.",
+    "Optional transcription admission and executor activation are managed separately by its owner."
+  ],
+  "qualifications": [
+    "No real OAuth account, provider token, external post or app audit was exercised by this reviewer.",
+    "The 128 MiB/110-second provider proxy limit needs actual hosted TikTok download acceptance after domain verification.",
+    "Unknown X/Instagram final acknowledgements cannot be recreated automatically; YouTube resume reconciliation remains deliberately conservative.",
+    "Published remote content is subject to the remote platform; local revocation cannot undo an already accepted external action.",
+    "No five-million-user concurrency, throughput or capacity certification is claimed.",
+    "Subsequent social image packaging is reviewed and tested separately; this receipt does not approve an unbuilt image."
+  ],
+  "hosted_actions": 0,
+  "secrets_accessed": false,
+  "source_sha256": {
+    "supabase/migrations/20261103061323_live_direct_social_publishing.sql": "3711ab0de23317ad45eedade1db1917c6aaecaea908cbfb94b064aef23863b73",
+    "supabase/functions/live-integrations-core/security.ts": "cd790d8e325875ae47aa20e1d002fb53c647b765e5c29e73aa28a7921db202cc",
+    "supabase/functions/live-integrations-core/providers.ts": "bd8257b02b01afc0bfaef6b7a9ec4a10c7c94f1d77d3d14a4878ffd4255be46f",
+    "supabase/functions/live-integrations-core/connect.ts": "80f5e191ddc234a92e57e6fb71bb9545e609fa33be8a96c2aaa674aa8fa3dcdb",
+    "supabase/functions/live-integrations-core/social.ts": "b065ea40e2f197c2668aafb163f44b811fe5da6632857d7ca739f9d2707b99bb",
+    "supabase/functions/live-integrations-core/runtime.ts": "81260ee0c8fa25d72a5e6fdfc5ef14366c335ef6a119e84739475fb7bc33f72d",
+    "supabase/functions/live-connect/index.ts": "cb9fc6820caf6fb61741e7356bcd2c0aad6fbe18299f2a5bdc268720ad833d92",
+    "supabase/functions/live-social/index.ts": "70646414d60fcd3deebb206de61a5e5af60f32d726652caa9b19568a00ddcc78",
+    "supabase/functions/live-social-worker/index.ts": "828165d4c33bedee8f594fe01ca4903c27fdf85402afef69a838a3ac7cb0c3fe",
+    "supabase/functions/live-social-pull/handler.ts": "72ef77f97a52e66aa3d6dd6fb8b06953c4fd3dd36586840e07519f26ed327660",
+    "supabase/functions/live-social-pull/index.ts": "e21f97cb64af1002cca2484623d3444fbddbee20a71feca799009cba5a82a330",
+    "supabase/functions/media-content/handler.ts": "f85fc14d804d540b85ade1b04add753e7b48558042f85e4b94129a5569d52d12",
+    "workers/live-social/adapters.mjs": "ed8536ec68ab5419895417fab9140ec6abc2a65a2b86c957289e6440ddffe871",
+    "workers/live-social/pull.mjs": "dcfc669b585ed6841b17f7762c965f8375d31f098542fb35aab366c610557b60",
+    "web/next.config.ts": "382d4c391158ae4b29310846cd40b0e8c9a34bbfc9b124071f92602201418edd",
+    "web/proxy.ts": "b8f1996b55c264f7f8aa9de369640049193c201450d314c8d8fa864b6cab62ac",
+    "supabase/tests/live-integrations.test.cjs": "b54dc99c78e1e19b291763e7318b0fe213efe13c6a34a5582fdf0c142df12d44",
+    "supabase/tests/live-social.test.cjs": "edcb86b1947ce07eb61aa1df7bb77adcc0ddea6fc63790f59feaff3ef702bd1b",
+    "supabase/tests/live-social-pull.test.cjs": "2cd129c96964b6b6d0848c7a9f0fc5250020a08e9040b3bcd6e316e5637dd336",
+    "supabase/tests/rpc-authorization/test-live-social-publishing.mjs": "4ccd424469e72a239869d020d2324132f62c63c5d572c766b94364b5816efaab",
+    "workers/live-social/test/publishing.test.mjs": "58027272eb11c63686a4863db87f9a2a70c405f20b14bbb134b3d616605aaacb"
+  },
+  "primary_references": [
+    "https://developers.tiktok.com/docs/en/content-sharing-guidelines",
+    "https://developers.google.com/youtube/data/reference/rest/v3/videos/insert",
+    "https://developers.google.com/youtube/data/reference/rest/v3/channels/list",
+    "https://docs.x.com/x-api/media/append-media-upload",
+    "https://docs.x.com/x-api/media/get-media-upload-status"
+  ],
+  "packaging_appendix": {
+    "recorded_at": "2026-11-03T07:29:08.140123+00:00",
+    "evidence_kind": "Read-only image packaging review, local invariant tests and exact source archive verification",
+    "status": "No unresolved blocking packaging defect found; actual image build, scan and hosted acceptance remain unapproved by this receipt.",
+    "implementation_receipt_sha256": "82748f8221527a9b9526ea7957089ea2730d74fc7b73c68f5401be2ee66301c2",
+    "core_source_files_unchanged": 21,
+    "archive_manifest_sha256": "6ea5eda62608811fb97db7b2dbe7e08bdcd9e24e8791bec08c0b27ff7b1eb39a",
+    "archive_sha256": "ab24b8487539b86444b25adc1a5737cad2ebe752de7a000ed0cf26318e6979eb",
+    "archive_source_file_count": 13,
+    "archive_matches_current_reviewed_source": true,
+    "reviewed_boundaries": [
+      "The exact source manifest is checked before dependency resolution or Docker build; additions, traversal, symlinks and changed bytes fail closed.",
+      "The official Node 24.22.2 Alpine tag is resolved to a verified Linux AMD64 digest and that immutable image is supplied to Docker.",
+      "Runtime contains no application dependencies, media encoder, compiler or package-manager code; it runs as UID 1000.",
+      "All container tests run without network, with CPU/memory/PID limits, dropped capabilities and a read-only root; scratch is private and removed after the actual worker control-flow fixture.",
+      "Provider responses in container acceptance are explicitly synthetic; neither a real provider call nor an external post is claimed.",
+      "Publication requires successful build status and validated container acceptance; a distinct immutable social-source tag and ECR digest bind the result.",
+      "ECR review binds the exact digest and requires a completed scan with no critical/high findings; it does not claim the image is vulnerability-free.",
+      "The existing builder requires explicit buildspecOverride and the exact versioned source/renderer-source.zip object. Build credentials are separate from all runtime/provider secrets.",
+      "Public base metadata is copied explicitly with mode 0444. Actual-container acceptance requires root ownership and mode 0444 after its UID 1000 runtime read; image publication verifies those receipt fields. Private media and secret permissions are unchanged."
+    ],
+    "independently_executed": {
+      "command": "node --test workers/live-social/test/runtime-policy.test.mjs infrastructure/live-social/test/build.test.mjs",
+      "passed": 11,
+      "failed": 0
+    },
+    "source_sha256": {
+      "workers/live-social/Dockerfile": "0afbbc74ac5a2127980ca89942589f9e2952a9023cad6200c0d8fd53fd931297",
+      "workers/live-social/runtime-policy.mjs": "48593592f391d2290f1ebe3ad46c1b4309e0f0667ca7f7d824e4abdd7dcc7214",
+      "workers/live-social/acceptance.mjs": "9d7899f0308004d3657f15a2f6c3a9fd8b1de16861b51c6d9941663787f74313",
+      "workers/live-social/test/runtime-policy.test.mjs": "af5148d1ee5d3eae88c186aad755f201ce1c8f63c8652af992e04eaf7ae40d9f",
+      "infrastructure/live-social/buildspec.yml": "c18868e75aa1e318a43cbdae072f79c2f647d8a1276357235599211c8c8cadb9",
+      "infrastructure/live-social/resolve-base.mjs": "25ce41fa6d23a7a5aa750211ca2376065172a66ae87e3381b9aa8bac0280fa30",
+      "infrastructure/live-social/verify-source.mjs": "b673146ce348c8d22583b9716aafdd2aa7ca60b67fb8fc5d870fa7b0698fe0d8",
+      "infrastructure/live-social/image-receipt.mjs": "0e5da877b778e2dfbb6c85ed69d1c8163b34f3fab78d01a7d64f4c7f654dc6b1",
+      "infrastructure/live-social/scan-receipt.mjs": "2663c3e997999cda93677dea7fe1d10c293f78291e76ff645d2d906debe2d77a",
+      "infrastructure/live-social/package-source.py": "4d5c24e099ed4f5d145b504ce6beefc30d1b64537c03883b0231464f8b59b140",
+      "infrastructure/live-social/test/build.test.mjs": "4c1d10beaf84bfe88bd0a45f7eb923284a15d245963f88cd39001a916a440a34"
+    },
+    "actual_container_executed_by_reviewer": false,
+    "actual_image_scan_observed_by_reviewer": false,
+    "hosted_provider_accepted": false,
+    "hosted_actions": 0,
+    "secrets_accessed": false,
+    "superseded_packaging_snapshot": {
+      "archive_manifest_sha256": "8de1704702e42889f34390098a03b9bfc732e6628bea7aa2dbdefa8084ccc0b9",
+      "implementation_receipt_sha256": "d8c3a8f1a691d4cf3333b675dd7f8e0dea76ccc622d44bdf7577d59cff772ac1",
+      "reason": "Actual owner-run image gate found root-owned 0600 public base metadata unreadable by UID 1000. This concrete defect is corrected in the current packaging; rebuilt image acceptance remains required."
+    },
+    "permission_regression_scope": "Local tests verify the COPY invariant, acceptance receipt and finite diagnostics. This executor cannot switch to UID 1000, so no local nonroot execution is claimed. The unchanged mandatory CodeBuild nonroot container gate must pass the rebuilt image."
+  }
+}
