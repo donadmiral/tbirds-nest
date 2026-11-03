@@ -1,0 +1,9 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const moduleValue={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync('shared/liveSetup.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:moduleValue,exports:moduleValue.exports,Date,Intl,Number,Error});
+const {defaultLiveSchedule,liveScheduledAt}=moduleValue.exports;
+const now=new Date(2026,10,3,12,0).getTime();
+test('immediate mode ignores stale and invalid scheduling fields',()=>{assert.equal(liveScheduledAt('now','bad','bad',now),null);});
+test('defaults are future local calendar fields and parse without free-form date strings',()=>{const value=defaultLiveSchedule(now);assert.match(value.date,/^\d{4}-\d{2}-\d{2}$/);assert.match(value.time,/^\d{2}:\d{2}$/);assert.ok(Date.parse(liveScheduledAt('later',value.date,value.time,now))>now);});
+test('invalid calendar dates, overflows and non-24-hour times fail',()=>{for(const [date,time] of [['2026-02-30','12:00'],['2026-13-01','12:00'],['2026-11-04','24:01'],['2026-11-04','11:60'],['2026-11-04','2pm'],['','']])assert.throws(()=>liveScheduledAt('later',date,time,now));});
+test('past and more-than-a-year scheduling fail with usable feedback',()=>{assert.throws(()=>liveScheduledAt('later','2026-11-02','12:00',now),/future/);assert.throws(()=>liveScheduledAt('later','2029-11-02','12:00',now),/366/);});
+test('local calendar conversion preserves the intended hour and minute',()=>{const result=new Date(liveScheduledAt('later','2026-11-04','18:45',now));assert.equal(result.getHours(),18);assert.equal(result.getMinutes(),45);assert.equal(result.getDate(),4);});
