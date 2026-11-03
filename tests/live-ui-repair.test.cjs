@@ -11,7 +11,7 @@ function load(file, imports) {
   const module = { exports: {} };
   const output = ts.transpileModule(read(file), { fileName: file, compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React, esModuleInterop: true }, reportDiagnostics: true });
   assert.equal((output.diagnostics || []).filter(d => d.category === ts.DiagnosticCategory.Error).length, 0, file);
-  vm.runInNewContext(output.outputText, { module, exports: module.exports, console, URL, Date, Promise, setTimeout, clearTimeout,
+  vm.runInNewContext(output.outputText, { module, exports: module.exports, console, URL, Date, Promise, Error, setTimeout, clearTimeout,
     require(name) { if (name in imports) return imports[name]; throw new Error(`Unexpected import ${name} in ${file}`); } });
   return module.exports;
 }
@@ -32,6 +32,7 @@ const by = (tree, key, value) => nodes(tree).find(node => node.props?.[key] === 
 const words = value => Array.isArray(value) ? value.map(words).join('') : typeof value === 'string' ? value : value?.props ? words(value.props.children) : '';
 const rn = new Proxy({ StyleSheet: { create: x => x, hairlineWidth: 1 }, Platform: { OS: 'ios' }, Keyboard: { addListener: () => ({ remove() {} }), dismiss() {} }, Alert: { alert() {} } }, { get: (obj, key) => key in obj ? obj[key] : key });
 const directory = load('shared/liveDirectory.ts', {});
+const setup = load('shared/liveSetup.ts', {});
 function common(h) { return { react: h.react, 'react-native': rn, '@expo/vector-icons': { Feather: 'Feather' } }; }
 function quickStart(options = {}) {
   const h = hooks(), calls = [], routes = [], caps = options.caps || { create: true, broadcast: true, recording: true };
@@ -42,6 +43,7 @@ function quickStart(options = {}) {
     '../../theme/useTheme': { useTheme: () => ({ t: theme }) },
     '../../stores/authStore': { useAuthStore: fn => fn({ profile: { id: 'owner' } }) },
     '../../../shared/liveDirectory': directory,
+    '../../../shared/liveSetup': setup,
     '../../services/liveService': { liveObject: v => !!v && typeof v === 'object', liveRpc: async () => ({ capabilities: caps }), liveRequestId: () => `request-${++serial}`,
       liveCommand: async (...args) => { calls.push(args); if (reject) throw new Error('Temporarily unavailable'); return { session_id: '11111111-1111-4111-8111-111111111111' }; } },
   }).default;
@@ -89,18 +91,20 @@ test('a failed create retains its idempotency key and does not navigate', async 
   assert.equal(app.calls.length, 2); assert.equal(app.calls[0][3], app.calls[1][3]); assert.equal(app.routes.length, 1);
 });
 test('scheduling never opens the camera automatically', async () => {
-  const app = quickStart(); app.render(); await app.h.settle(); let tree = app.render();
-  const more = nodes(tree).find(n => n.props?.accessibilityRole === 'button' && words(n) === 'More options'); more.props.onPress();
-  tree = app.render(); by(tree, 'accessibilityLabel', 'Scheduled date and time, optional').props.onChangeText('2099-01-01T12:00:00Z');
-  by(app.render(), 'testID', 'live-preview-button').props.onPress(); await app.h.settle();
-  assert.equal(app.routes[0][1].previewCamera, false); assert.equal(app.routes[0][1].openStudio, false);
+  const app=quickStart();app.render();await app.h.settle();
+  by(app.render(),'accessibilityLabel','Schedule for later').props.onPress();
+  by(app.render(),'testID','live-preview-button').props.onPress();await app.h.settle();
+  assert.equal(app.calls.length,1);assert.ok(Date.parse(app.calls[0][2].scheduled_at)>Date.now());
+  assert.equal(app.routes[0][1].previewCamera,false);assert.equal(app.routes[0][1].openStudio,false);
 });
+
 test('invalid dates cannot create a stream', async () => {
-  const app = quickStart(); app.render(); await app.h.settle(); let tree = app.render();
-  nodes(tree).find(n => n.props?.accessibilityRole === 'button' && words(n) === 'More options').props.onPress();
-  tree = app.render(); by(tree, 'accessibilityLabel', 'Scheduled date and time, optional').props.onChangeText('invalid');
-  by(app.render(), 'testID', 'live-preview-button').props.onPress(); await app.h.settle(); assert.equal(app.calls.length, 0);
+  const app=quickStart({schedule:true});app.render();await app.h.settle();
+  by(app.render(),'accessibilityLabel','Scheduled date').props.onChangeText('invalid');
+  by(app.render(),'testID','live-preview-button').props.onPress();await app.h.settle();assert.equal(app.calls.length,0);
+  assert.match(words(app.render()),/Choose a date/);
 });
+
 test('feed uses the same shared component for all five tabs', () => {
   assert.match(read('src/screens/feed/FeedScreen.tsx'), /<FeedNavigationTabs selected=\{feedMode\}/);
   const source=read('src/components/live/FeedNavigationTabs.tsx');
@@ -133,10 +137,11 @@ test('all edited native files parse as TypeScript JSX', () => {
 
 test('Schedule entry never opens an unscheduled camera preview',async()=>{
   const app=quickStart({schedule:true});app.render();await app.h.settle();const tree=app.render();
-  assert.ok(by(tree,'accessibilityLabel','Scheduled date and time, optional'));
+  assert.ok(by(tree,'accessibilityLabel','Scheduled date'));assert.ok(by(tree,'accessibilityLabel','Scheduled time'));
   assert.equal(by(tree,'testID','live-preview-button').props.accessibilityLabel,'Schedule stream');
-  by(tree,'testID','live-preview-button').props.onPress();await app.h.settle();assert.equal(app.calls.length,0);
+  by(tree,'testID','live-preview-button').props.onPress();await app.h.settle();assert.equal(app.calls.length,1);assert.equal(app.routes[0][1].previewCamera,false);
 });
+
 test('Live tools exposes clips without crowding the directory',()=>{
   const h=hooks(),ui=load('src/components/LiveUi.tsx',{...common(h),'./SafeArea':{SafeAreaView:'SafeAreaView'},'../theme/useTheme':{useTheme:()=>({t:theme})},'../../shared/liveDirectory':directory});
   let clips=0,schedules=0;const props={filter:'for_you',view:'live',topic:'all',query:'',onFilter(){},onView(){},onTopic(){},onQuery(){},onBack(){},onCreate(){},onClips(){clips++;},onSchedule(){schedules++;}};
@@ -148,4 +153,23 @@ test('preview retains signed studio events and never unmutes automatically',()=>
   const source=read('src/components/LiveStudio.tsx');assert.match(source,/useLiveStudioEvents\(sessionId, owner, onChanged\)/);
   const preview=source.slice(source.indexOf('const preview ='),source.indexOf('const sendControl'));
   assert.doesNotMatch(preview,/setLocalAudio\(true\)/);assert.doesNotMatch(preview,/liveControl\(/);
+});
+
+test('switching from Schedule to Live now discards the scheduled timestamp',async()=>{
+ const app=quickStart({schedule:true});app.render();await app.h.settle();by(app.render(),'accessibilityLabel','Live now').props.onPress();
+ assert.equal(by(app.render(),'accessibilityLabel','Scheduled date'),undefined);by(app.render(),'testID','live-preview-button').props.onPress();await app.h.settle();
+ assert.equal(app.calls[0][2].scheduled_at,undefined);assert.equal(app.routes[0][1].previewCamera,true);
+});
+test('scheduling is usable when only immediate broadcasting is disabled',async()=>{
+ const app=quickStart({schedule:true,caps:{create:true,broadcast:false,recording:false}});app.render();await app.h.settle();
+ assert.equal(by(app.render(),'testID','live-preview-button').props.disabled,false);by(app.render(),'testID','live-preview-button').props.onPress();await app.h.settle();
+ assert.equal(app.calls.length,1);assert.equal(app.calls[0][2].recording_enabled,false);assert.equal(app.routes[0][1].openStudio,false);
+});
+test('web studio stays mounted across watch tabs and immediate setup selects studio',()=>{
+ const source=read('web/components/LiveSessionView.tsx');assert.match(source,/entry.get\('studio'\)/);assert.match(source,/<div hidden=\{tab!=='studio'\}><LiveStudio/);
+ assert.match(read('web/app/live/new/page.tsx'),/studio=1&preview=1/);
+ const studio=read('web/components/LiveStudio.tsx');assert.match(studio,/autoPreviewUsed/);assert.match(studio,/setLocalVideo\(true\)/);assert.doesNotMatch(studio,/setLocalAudio\(true\)/);
+});
+test('operations desk exposes disabled backend capability gates',()=>{
+ const source=read('admin-web/components/LiveOperations.tsx');assert.match(source,/Live service readiness/);assert.match(source,/readiness.broadcast===false/);
 });
