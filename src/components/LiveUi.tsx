@@ -42,27 +42,28 @@ export function LiveChoice({ label, value, choices, onChange, disabled = false }
   </>;
 }
 
-export function LiveDirectoryHeader({ filter, view, topic, query, onFilter, onView, onTopic, onQuery, onBack, onCreate, onClips }: {
+export function LiveDirectoryHeader({ filter, view, topic, query, onFilter, onView, onTopic, onQuery, onBack, onCreate, onClips, onSchedule }: {
   filter: LiveFilter; view: LiveView; topic: string; query: string;
   onFilter(value: LiveFilter): void; onView(value: LiveView): void; onTopic(value: string): void; onQuery(value: string): void;
-  onBack(): void; onCreate(): void; onClips(): void;
+  onBack(): void; onCreate(): void; onClips(): void; onSchedule?(): void;
 }) {
   const { t } = useTheme();
-  const [filtersOpen, setFiltersOpen] = useState(false), [searchOpen, setSearchOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false), [searchOpen, setSearchOpen] = useState(false), [toolsOpen, setToolsOpen] = useState(false);
   const activeFilters = (filter !== 'for_you' ? 1 : 0) + (topic !== 'all' ? 1 : 0);
   const summary = [DISCOVERY.find(([id]) => id === filter)?.[1], topic === 'all' ? null : LIVE_TOPICS.find(([id]) => id === topic)?.[1]].filter(Boolean).join(' · ');
   return <View style={{ gap: 12 }}>
     <View style={styles.header}>
       <Pressable accessibilityRole="button" accessibilityLabel="Back to feed" onPress={onBack} style={styles.iconButton}><Feather name="chevron-left" size={24} color={t.ink.primary} /></Pressable>
       <View style={[styles.inline, { flex: 1 }]}><LiveIcon color={t.ink.primary} /><Text accessibilityRole="header" style={{ color: t.ink.primary, fontSize: 22, fontWeight: '700' }}>Live</Text></View>
-      <Pressable accessibilityRole="button" accessibilityLabel="Your clip library" onPress={onClips} style={styles.iconButton}><Feather name="film" size={21} color={t.ink.primary} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Your Live tools" accessibilityState={{ expanded: toolsOpen }} onPress={() => setToolsOpen(true)} style={styles.iconButton}><Feather name="more-horizontal" size={23} color={t.ink.primary} /></Pressable>
     </View>
-    <Pressable accessibilityRole="button" accessibilityLabel="Go live" accessibilityHint="Set up a camera preview. You choose when to start broadcasting." onPress={onCreate}
-      style={[styles.create, { backgroundColor: t.ink.primary }]}>
-      <LiveIcon size={24} color={t.surface.raised} />
-      <View style={{ flex: 1, gap: 3 }}><Text style={{ color: t.surface.raised, fontWeight: '700', fontSize: 17 }}>Go live</Text><Text style={{ color: t.surface.raised, fontSize: 12 }}>Preview your camera before you start</Text></View>
-      <Feather name="chevron-right" size={21} color={t.surface.raised} />
+    <View style={styles.actions}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Start live" accessibilityHint="Set up a camera preview. You choose when to start broadcasting." onPress={onCreate}
+      style={[styles.create, { backgroundColor: t.ink.primary, flex: 1 }]}>
+      <LiveIcon size={19} color={t.surface.raised} /><Text style={{ color: t.surface.raised, fontWeight: '700', fontSize: 15 }}>Start live</Text>
     </Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel="Schedule a live stream" onPress={onSchedule || onCreate} style={styles.schedule}><Feather name="calendar" size={18} color={t.ink.primary}/><Text style={{color:t.ink.primary,fontSize:14,fontWeight:'600'}}>Schedule</Text></Pressable>
+    </View>
     <View accessibilityRole="tablist" style={[styles.tabs, { borderBottomColor: t.surface.sunken }]}>
       {VIEWS.map(([id, label]) => <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: view === id }} onPress={() => onView(id)}
         style={[styles.tab, { borderBottomColor: view === id ? t.ink.primary : 'transparent' }]}>
@@ -90,13 +91,25 @@ export function LiveDirectoryHeader({ filter, view, topic, query, onFilter, onVi
         </View>
       </SafeAreaView>
     </Modal>
+    <Modal visible={toolsOpen} transparent animationType="slide" onRequestClose={() => setToolsOpen(false)}>
+      <View style={{flex:1,justifyContent:'flex-end',backgroundColor:'#0008'}}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Close Live tools" onPress={() => setToolsOpen(false)} style={StyleSheet.absoluteFill}/>
+        <SafeAreaView edges={['bottom','left','right']} accessibilityViewIsModal style={{backgroundColor:t.surface.raised,borderTopLeftRadius:24,borderTopRightRadius:24,paddingHorizontal:20,paddingTop:12}}>
+          <View style={styles.header}><Text accessibilityRole="header" style={{flex:1,color:t.ink.primary,fontSize:20,fontWeight:'700'}}>Your Live tools</Text><Pressable accessibilityRole="button" accessibilityLabel="Close tools" onPress={() => setToolsOpen(false)} style={styles.iconButton}><Feather name="x" size={22} color={t.ink.primary}/></Pressable></View>
+          <Pressable accessibilityRole="button" accessibilityLabel="My clips" onPress={() => {setToolsOpen(false);onClips();}} style={styles.choice}><Text style={{color:t.ink.primary,fontSize:16}}>My clips</Text><Feather name="film" size={20} color={t.ink.primary}/></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="My streams" onPress={() => {setToolsOpen(false);onFilter('mine');onView('live');}} style={styles.choice}><Text style={{color:t.ink.primary,fontSize:16}}>My streams</Text><Feather name="video" size={20} color={t.ink.primary}/></Pressable>
+        </SafeAreaView>
+      </View>
+    </Modal>
   </View>;
 }
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', minHeight: 56, gap: 6 },
   inline: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   iconButton: { width: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  create: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 62, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 12 },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  schedule: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 10 },
+  create: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 48, borderRadius: 13, paddingHorizontal: 16, paddingVertical: 10 },
   tabs: { flexDirection: 'row', borderBottomWidth: 1 },
   tab: { flex: 1, minHeight: 48, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 2, paddingHorizontal: 4 },
   toolbar: { flexDirection: 'row', alignItems: 'center', gap: 8 },

@@ -73,7 +73,7 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
       try { await Promise.race([instance.join({ url: grant.roomUrl, token: grant.token }), new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error('The studio connection timed out. Reconnect to retry.')), 25000); })]); }
       finally { if (timeout) clearTimeout(timeout); }
       if (version !== generation.current) { try { await instance.leave(); await instance.destroy(); } catch {} }
-      else { await instance.setLocalVideo(true); await instance.setLocalAudio(true); update(); }
+      else { await instance.setLocalVideo(true); update(); }
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'The studio could not connect.'); await stop(); }
     finally { mutation.current = false; setBusy(false); }
   };
@@ -117,7 +117,7 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
     </View> : null}
     {canControl && joined ? <>
       <TouchableOpacity testID="live-start-button" accessibilityRole="button" accessibilityLabel={live?'End live':'Go live'} disabled={live ? busy || streamState==='starting' : blocked} onPress={live ? endBroadcast : ()=>void sendControl('start')} style={[s.primary,{backgroundColor:live?'#B92536':t.ink.primary,opacity:(live?busy||streamState==='starting':blocked)?0.5:1}]}><LiveIcon color={t.surface.raised}/><Text style={{color:t.surface.raised,fontSize:17,fontWeight:'700'}}>{streamState==='starting'?'Starting…':streamState==='ending'?'Ending…':busy?'Please wait…':live?'End live':'Go live'}</Text></TouchableOpacity>
-      {!live?<Text style={{color:t.ink.secondary,textAlign:'center',fontSize:12}}>Your preview is not being broadcast. Tap Go live when you are ready.</Text>:null}
+      {!live?<Text style={{color:t.ink.secondary,textAlign:'center',fontSize:12}}>Your preview is not being broadcast. Your microphone starts muted. Unmute when ready, then tap Go live.</Text>:null}
     </> : null}
     {error ? <Text accessibilityRole="alert" style={{ color: t.ink.primary, lineHeight: 20 }}>{error}</Text> : null}
     {joined ? <TouchableOpacity accessibilityRole="button" accessibilityState={{expanded:toolsOpen}} onPress={()=>setToolsOpen(!toolsOpen)} style={s.tools}><Feather name="sliders" size={18} color={t.ink.primary}/><Text style={{color:t.ink.primary,flex:1}}>Stream tools</Text><Feather name={toolsOpen?'chevron-up':'chevron-down'} size={18} color={t.ink.secondary}/></TouchableOpacity>:null}

@@ -45,7 +45,7 @@ function quickStart(options = {}) {
     '../../services/liveService': { liveObject: v => !!v && typeof v === 'object', liveRpc: async () => ({ capabilities: caps }), liveRequestId: () => `request-${++serial}`,
       liveCommand: async (...args) => { calls.push(args); if (reject) throw new Error('Temporarily unavailable'); return { session_id: '11111111-1111-4111-8111-111111111111' }; } },
   }).default;
-  const props = { navigation: { goBack() {}, replace: (...args) => routes.push(args) } };
+  const props = { route: {params: {schedule: options.schedule===true}}, navigation: { goBack() {}, replace: (...args) => routes.push(args) } };
   return { h, calls, routes, render: () => h.render(component, props), allow: () => { reject = false; } };
 }
 test('Live uses a camera icon rather than the Channels radio symbol', () => {
@@ -61,7 +61,7 @@ test('directory has three simple tabs and keeps topics behind closed filters', (
   assert.equal(nodes(tree).filter(n => n.props?.accessibilityRole === 'tab').length, 3);
   assert.equal(nodes(tree).find(n => n.type === 'Modal').props.visible, false);
   assert.equal(nodes(tree).some(n => n.type === 'TextInput'), false);
-  by(tree, 'accessibilityLabel', 'Go live').props.onPress(); assert.equal(started, 1);
+  by(tree, 'accessibilityLabel', 'Start live').props.onPress(); assert.equal(started, 1);
   by(tree, 'accessibilityLabel', 'Filters').props.onPress();
   tree = h.render(ui.LiveDirectoryHeader, props);
   assert.equal(nodes(tree).find(n => n.type === 'Modal').props.visible, true);
@@ -101,15 +101,21 @@ test('invalid dates cannot create a stream', async () => {
   tree = app.render(); by(tree, 'accessibilityLabel', 'Scheduled date and time, optional').props.onChangeText('invalid');
   by(app.render(), 'testID', 'live-preview-button').props.onPress(); await app.h.settle(); assert.equal(app.calls.length, 0);
 });
-test('feed Live tab reserves the same underline space and font size as the other tabs', () => {
-  const source = read('src/screens/feed/FeedScreen.tsx');
-  const tab = source.slice(source.indexOf('testID="feed-live-tab"'), source.indexOf('</TouchableOpacity>', source.indexOf('testID="feed-live-tab"')));
-  assert.match(tab, /fontSize: 15/); assert.match(tab, /height: 3/); assert.match(tab, /marginTop: 5/); assert.match(tab, /LiveIcon/); assert.doesNotMatch(tab, /name="radio"/);
+test('feed uses the same shared component for all five tabs', () => {
+  assert.match(read('src/screens/feed/FeedScreen.tsx'), /<FeedNavigationTabs selected=\{feedMode\}/);
+  const source=read('src/components/live/FeedNavigationTabs.tsx');
+  assert.match(source, /fontSize: 15/);assert.match(source,/height: 3/);assert.match(source,/marginTop: 5/);
+  const h=hooks();const ui=load('src/components/live/FeedNavigationTabs.tsx',{...common(h),'../../theme/useTheme':{useTheme:()=>({t:theme})},'./LiveIcon':{LiveIcon:'LiveIcon'}});
+  let selected='';const tree=h.render(ui.FeedNavigationTabs,{selected:'latest',onSelect:v=>{selected=v;},onLive:()=>{selected='live';}});
+  const tabs=nodes(tree).filter(n=>n.props?.accessibilityRole==='tab');assert.equal(tabs.length,5);
+  for(const tab of tabs)assert.strictEqual(tab.props.style,tabs[0].props.style);
+  by(tree,'testID','feed-tab-live').props.onPress();assert.equal(selected,'live');
+  by(tree,'testID','feed-tab-discover').props.onPress();assert.equal(selected,'discover');
 });
 test('Go live is above optional studio tools and never called by the preview effect', () => {
   const source = read('src/components/LiveStudio.tsx');
   assert.ok(source.indexOf('testID="live-start-button"') < source.indexOf('Stream tools'));
-  assert.match(source, /else \{ await instance.setLocalVideo\(true\); await instance.setLocalAudio\(true\); update\(\); \}/);
+  assert.match(source, /else \{ await instance.setLocalVideo\(true\); update\(\); \}/);
   const effect = source.slice(source.indexOf('if (autoPreview &&'), source.indexOf('const sendControl'));
   assert.match(effect, /void preview\(\)/); assert.doesNotMatch(effect, /sendControl|liveControl/);
 });
@@ -123,4 +129,23 @@ test('all edited native files parse as TypeScript JSX', () => {
     const parsed = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
     assert.deepEqual(parsed.parseDiagnostics.map(d => ts.flattenDiagnosticMessageText(d.messageText, '\n')), [], file);
   }
+});
+
+test('Schedule entry never opens an unscheduled camera preview',async()=>{
+  const app=quickStart({schedule:true});app.render();await app.h.settle();const tree=app.render();
+  assert.ok(by(tree,'accessibilityLabel','Scheduled date and time, optional'));
+  assert.equal(by(tree,'testID','live-preview-button').props.accessibilityLabel,'Schedule stream');
+  by(tree,'testID','live-preview-button').props.onPress();await app.h.settle();assert.equal(app.calls.length,0);
+});
+test('Live tools exposes clips without crowding the directory',()=>{
+  const h=hooks(),ui=load('src/components/LiveUi.tsx',{...common(h),'./SafeArea':{SafeAreaView:'SafeAreaView'},'../theme/useTheme':{useTheme:()=>({t:theme})},'../../shared/liveDirectory':directory});
+  let clips=0,schedules=0;const props={filter:'for_you',view:'live',topic:'all',query:'',onFilter(){},onView(){},onTopic(){},onQuery(){},onBack(){},onCreate(){},onClips(){clips++;},onSchedule(){schedules++;}};
+  let tree=h.render(ui.LiveDirectoryHeader,props);by(tree,'accessibilityLabel','Schedule a live stream').props.onPress();assert.equal(schedules,1);
+  by(tree,'accessibilityLabel','Your Live tools').props.onPress();tree=h.render(ui.LiveDirectoryHeader,props);
+  assert.equal(nodes(tree).filter(n=>n.type==='Modal')[1].props.visible,true);by(tree,'accessibilityLabel','My clips').props.onPress();assert.equal(clips,1);
+});
+test('preview retains signed studio events and never unmutes automatically',()=>{
+  const source=read('src/components/LiveStudio.tsx');assert.match(source,/useLiveStudioEvents\(sessionId, owner, onChanged\)/);
+  const preview=source.slice(source.indexOf('const preview ='),source.indexOf('const sendControl'));
+  assert.doesNotMatch(preview,/setLocalAudio\(true\)/);assert.doesNotMatch(preview,/liveControl\(/);
 });

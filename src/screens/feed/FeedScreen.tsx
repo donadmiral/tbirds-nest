@@ -1,3 +1,4 @@
+import { FeedNavigationTabs } from '../../components/live/FeedNavigationTabs';
 import type { ReactExport } from '../../../shared/reactVideoComposition';
 import { acknowledgePendingReactCapture, peekPendingReactCapture, subscribePendingReactCapture } from '../../utils/reactCaptureBridge';
 import { reactDraftAttribution, reactCaptureAppendStatus, reactCapturePendingMessage } from '../../../shared/reactDraftHandoff';
@@ -2699,21 +2700,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             </View>
 
             <View style={s.tabRow}>
-              {(['forYou', 'latest', 'discover', 'trending'] as const).map(m => {
-                const on = feedMode === m;
-                const label = m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : m === 'discover' ? 'Discover' : 'Trending';
-                const accent = m === 'discover' ? t.status.innovation : t.ink.primary;
-                return (
-                  <TouchableOpacity key={m} style={{ alignItems: 'center', paddingVertical: 8, paddingHorizontal: 2, flex: 1, minWidth: 0 }} onPress={() => setFeedMode(m)} activeOpacity={0.7}>
-                    <Text style={{ fontSize: 15, fontWeight: on ? '800' : '500', color: on ? t.ink.primary : t.ink.secondary, letterSpacing: -0.2 }}>{label}</Text>
-                    <View style={{ height: 3, width: 20, borderRadius: 2, marginTop: 5, backgroundColor: on ? accent : 'transparent' }} />
-                  </TouchableOpacity>
-                );
-              })}
-              <TouchableOpacity testID="feed-live-tab" accessibilityRole="button" accessibilityLabel="Live streams" onPress={() => navigation.navigate('LiveStreams')} style={{ minWidth: 62, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><LiveIcon size={17} color={t.ink.primary} /><Text style={{ fontSize: 15, fontWeight: '500', color: t.ink.secondary, letterSpacing: -0.2 }}>Live</Text></View>
-                <View style={{ height: 3, width: 20, borderRadius: 2, marginTop: 5, backgroundColor: 'transparent' }} />
-              </TouchableOpacity>
+              <FeedNavigationTabs selected={feedMode} onSelect={setFeedMode} onLive={() => navigation.navigate('LiveStreams')} />
             </View>
           </View>
 

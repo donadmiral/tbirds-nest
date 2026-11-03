@@ -8,14 +8,15 @@ import { useAuthStore } from '../../stores/authStore';
 import { LIVE_TOPICS, isLiveUuid } from '../../../shared/liveDirectory';
 import { liveCommand, liveObject, liveRequestId, liveRpc } from '../../services/liveService';
 
-type Props = { navigation: { goBack(): void; replace(name: string, params: object): void } };
-export default function NewLiveScreen({ navigation }: Props) {
+type Props = { route?: {params?: {schedule?: boolean}}; navigation: { goBack(): void; replace(name: string, params: object): void } };
+export default function NewLiveScreen({ navigation, route }: Props) {
   const { t } = useTheme(), owner = useAuthStore(s => s.profile?.id ?? null);
   const [title, setTitle] = useState(''), [description, setDescription] = useState(''), [topic, setTopic] = useState('irl');
   const [audience, setAudience] = useState('public'), [schedule, setSchedule] = useState(''), [recording, setRecording] = useState(false);
   const [available, setAvailable] = useState(false), [broadcastable, setBroadcastable] = useState(false), [recordable, setRecordable] = useState(false);
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState('');
-  const [more, setMore] = useState(false), [keyboard, setKeyboard] = useState(false), [revision, setRevision] = useState(0);
+  const [scheduleMode, setScheduleMode] = useState(route?.params?.schedule===true);
+  const [more, setMore] = useState(route?.params?.schedule===true), [keyboard, setKeyboard] = useState(false), [revision, setRevision] = useState(0);
   const request = useRef<{ payload: string; id: string } | null>(null), lock = useRef(false), generation = useRef(0);
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () => setKeyboard(true));
@@ -33,12 +34,12 @@ export default function NewLiveScreen({ navigation }: Props) {
       .finally(() => { if (version === generation.current) setLoading(false); });
     return () => { generation.current++; };
   }, [owner, revision]);
-  const scheduled = !!schedule.trim();
+  const scheduled = scheduleMode || !!schedule.trim();
   const previewAllowed = available && (broadcastable || scheduled);
   const save = async () => {
     if (lock.current || !previewAllowed || !owner) return;
     setError(''); Keyboard.dismiss();
-    const time = schedule.trim() ? Date.parse(schedule) : null;
+    const time = scheduled ? Date.parse(schedule) : null;
     if (time !== null && (!Number.isFinite(time) || time <= Date.now())) { setError('Enter a future date and time with a time zone.'); setMore(true); return; }
     // A title is optional in the UI, but the backend always receives a valid title.
     const payload = { title: title.trim() || 'Live stream', description, topic, audience, recording_enabled: recordable && recording,
@@ -72,6 +73,7 @@ export default function NewLiveScreen({ navigation }: Props) {
         {more ? <View style={{ gap: 16 }}>
           <LiveChoice label="Topic" value={topic} choices={LIVE_TOPICS.filter(([id]) => id !== 'all')} onChange={setTopic} disabled={busy} />
           <TextInput accessibilityLabel="Stream description, optional" value={description} onChangeText={setDescription} editable={!busy} multiline maxLength={2000} placeholder="Description (optional)" placeholderTextColor={t.ink.muted} style={[s.input, { color: t.ink.primary, backgroundColor: t.surface.sunken, minHeight: 88, textAlignVertical: 'top' }]} />
+          <View style={s.options}><Text style={{flex:1,color:t.ink.primary}}>Schedule for later</Text><Switch accessibilityLabel="Schedule for later" value={scheduled} disabled={busy} onValueChange={value=>{setScheduleMode(value);if(!value)setSchedule('');}}/></View>
           <View style={{ gap: 7 }}><Text style={{ color: t.ink.primary, fontWeight: '600' }}>Schedule for later</Text><Text style={{ color: t.ink.secondary, fontSize: 12 }}>Leave empty to preview now. Include your time zone when scheduling.</Text><TextInput accessibilityLabel="Scheduled date and time, optional" value={schedule} onChangeText={setSchedule} editable={!busy} maxLength={100} placeholder="YYYY-MM-DD HH:mm -07:00" placeholderTextColor={t.ink.muted} autoCapitalize="none" returnKeyType="done" onSubmitEditing={Keyboard.dismiss} style={[s.input, { color: t.ink.primary, backgroundColor: t.surface.sunken }]} /></View>
           <View style={s.options}><View style={{ flex: 1, gap: 4 }}><Text style={{ color: t.ink.primary, fontWeight: '600' }}>Save replay and enable clips</Text><Text style={{ color: t.ink.secondary, fontSize: 12 }}>{recordable ? 'Keep this broadcast for replays and highlights.' : 'Recording is not enabled in this environment.'}</Text></View><Switch accessibilityLabel="Record stream" disabled={!recordable || busy} value={recordable && recording} onValueChange={setRecording} /></View>
         </View> : null}
