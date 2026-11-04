@@ -1,0 +1,83 @@
+name: Recover iPhone UI using the retained signed app
+on:
+  push:
+    branches: ['codex/live-ios-prompt-recovery-20261104']
+    paths:
+      - '.github/workflows/native-ios-prompt-recovery.yml'
+      - 'scripts/quality/native-ui-ios-full-app-recovery.py'
+      - 'tests/quality/native-ios-full-app-recovery.py'
+      - 'tests/native/flows/navigation.yaml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: retained-ios-prompt-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  CI: 'true'
+  EXPO_NO_TELEMETRY: '1'
+  EXPO_PUBLIC_APP_ENV: qa
+  EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+  MAESTRO_CLI_NO_ANALYTICS: 'true'
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: '180000'
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  PLATINUM_NATIVE_IOS_TARGET: arm64-ios26.2
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  retained-ios:
+    name: Full iPhone UI, original signed bundle
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact compiled application source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 54cc04abb953a4580f817741fa81d7d54759aecf
+          fetch-depth: 2
+          path: application
+          persist-credentials: false
+      - name: Check out isolated recovery instructions
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: consumer
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - name: Download exact test-only signed bundle evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: '13359603305'
+          run-id: 41901710700
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: retained
+      - name: Verify original source, signed bundle and bounded flow override
+        working-directory: application
+        run: python3 ../consumer/scripts/quality/native-ui-ios-full-app-recovery.py prepare --retained ../retained --consumer ../consumer
+      - name: Prepare matching Simulator tools
+        timeout-minutes: 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "JAVA_HOME=$JAVA_HOME_17_arm64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_arm64/bin" >> "$GITHUB_PATH"
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
+      - name: Install original checksum-pinned Maestro
+        working-directory: application
+        run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run original full UI, Live, feed and decoded memory gates
+        working-directory: application
+        run: bash native-ui-logs/run-retained-ios.sh
+      - name: Preserve original identity and fresh recovery observations
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ios-retained-full-app-recovery
+          path: |
+            application/native-ui-logs/
+            !application/native-ui-logs/signed-bundle/
+          if-no-files-found: warn
+          retention-days: 7

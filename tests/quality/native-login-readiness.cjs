@@ -146,7 +146,7 @@ test('iOS handles only the observed password-saving sheet immediately after actu
       commands: [{ runFlow: {
         when: { visible: passwordPromptTitle },
         commands: [
-          { tapOn: '^Not Now$' },
+          { repeat: { times: 3, while: { visible: passwordPromptTitle }, commands: [{ tapOn: '^Not Now$' }] } },
           { extendedWaitUntil: { notVisible: passwordPromptTitle, timeout: 5000 } },
         ],
       } }],
@@ -159,8 +159,9 @@ test('iOS handles only the observed password-saving sheet immediately after actu
   for (const wrong of ['Save Password', 'Save Passkey?', 'Save', 'Not Now', 'Open in Platinum QA?', '']) {
     assert.equal(visible(branch.when.visible, [{ accessibilityText: wrong }]), false);
   }
-  assert.equal(visible(branch.commands[0].tapOn, [{ accessibilityText: 'Not Now' }]), true);
-  for (const wrong of ['Save', 'Not Now please', '']) assert.equal(visible(branch.commands[0].tapOn,
+  const retry = branch.commands[0].repeat;
+  assert.equal(visible(retry.commands[0].tapOn, [{ accessibilityText: 'Not Now' }]), true);
+  for (const wrong of ['Save', 'Not Now please', '']) assert.equal(visible(retry.commands[0].tapOn,
     [{ accessibilityText: wrong }]), false);
   const disappearance = branch.commands[1].extendedWaitUntil;
   assert.equal(firstReady(disappearance, [{ at: 0, nodes: [{ accessibilityText: 'Save Password?' }] },
@@ -168,6 +169,24 @@ test('iOS handles only the observed password-saving sheet immediately after actu
   assert.equal(firstReady(disappearance, [{ at: 0, nodes: [{ accessibilityText: 'Save Password?' }] },
     { at: 400, nodes: [] }]), 400);
   assert.equal(JSON.stringify(passwordPrompt).includes('optional'), false);
+});
+
+test('interrupted system-dialog touches get at most three fresh dismissals and still fail if the prompt remains', () => {
+  const commands = passwordPrompt.runFlow.commands[0].runFlow.commands;
+  const retry = commands[0].repeat;
+  for (const dismissAfter of [1, 2, 3, Infinity]) {
+    let taps = 0, present = true;
+    while (taps < retry.times && visible(retry.while.visible,
+      present ? [{ accessibilityText: 'Save Password?' }] : [])) {
+      assert.equal(retry.commands.length, 1);
+      assert.equal(retry.commands[0].tapOn, '^Not Now$');
+      taps++; present = taps < dismissAfter;
+    }
+    assert.equal(taps, Math.min(dismissAfter, 3));
+    const observed = present ? [{ accessibilityText: 'Save Password?' }] : [];
+    assert.equal(firstReady(commands[1].extendedWaitUntil, [{ at: 0, nodes: observed },
+      { at: 5000, nodes: observed }]), present ? null : 0);
+  }
 });
 
 test('removing only the password-sheet guard restores every original flow byte and deadline', () => {

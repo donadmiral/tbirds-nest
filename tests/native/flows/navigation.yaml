@@ -91,7 +91,14 @@ name: Full native app navigation
           when:
             visible: '^Save Password\?$'
           commands:
-            - tapOn: '^Not Now$'
+            # The retained iOS run lost the first system-dialog touch. Retry
+            # only this observed dismissal, with a strict three-tap maximum.
+            - repeat:
+                times: 3
+                while:
+                  visible: '^Save Password\?$'
+                commands:
+                  - tapOn: '^Not Now$'
             - extendedWaitUntil:
                 notVisible: '^Save Password\?$'
                 timeout: 5000
