@@ -168,6 +168,26 @@ function maintenance(options = {}) {
     return { status: response.status, data: await response.json() };
   } };
 }
+test('a leased eject bans its provider identity and accepts an empty ejectedIds acknowledgement', async () => {
+  const job = { id: id(70), lease_id: id(71), session_id: session,
+    action: 'eject', room_name: context.room_name, provider_identity: hostIdentity };
+  const h = maintenance({ jobs: [job], fetch: async () => Response.json({ ejectedIds: [] }) });
+  const result = await h.run({ inspect: null });
+  assert.equal(result.status, 200);
+  assert.equal(result.data.provider_jobs_completed, 1);
+  assert.equal(result.data.provider_jobs_failed, 0);
+  assert.equal(h.requests.length, 1);
+  assert.equal(h.requests[0].url, `https://api.daily.co/v1/rooms/${job.room_name}/eject`);
+  assert.equal(h.requests[0].init.method, 'POST');
+  assert.deepEqual(JSON.parse(h.requests[0].init.body), { user_ids: [hostIdentity], ban: true });
+  const receipts = h.calls.filter(call => call.name === 'live_finish_outbox');
+  assert.equal(receipts.length, 1);
+  assert.deepEqual(plain(receipts[0].args), { p_id: job.id, p_lease: job.lease_id, p_ok: true, p_error: null });
+  assert.equal(h.calls.some(call => /provider_event|failed_start_recovery/.test(call.name)), false);
+  assert.equal(h.calls.at(-1).name, 'finish_live_worker_tick_v1');
+  assert.equal(h.calls.at(-1).args.p_succeeded, true);
+  assert.equal(JSON.stringify(result.data).includes(config.dailyKey), false);
+});
 test('leased stop jobs accept current and legacy Daily acknowledgements without marking media ended', async () => {
   const job = { id: id(50), lease_id: id(51), action: 'stop', room_name: context.room_name, instance_id: instance };
   for (const body of [{ status: 'sent' }, { sent: true }, { sent: 'true' }, { status: 'sent', sent: true }]) {
