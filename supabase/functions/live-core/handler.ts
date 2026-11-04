@@ -8,6 +8,14 @@ const headers = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Head
   'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store, max-age=0', 'CDN-Cache-Control': 'no-store' };
 const json = (status: number, value: unknown) => new Response(JSON.stringify(value), { status, headers });
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+// Daily acknowledges command delivery as status:'sent'. Older responses used sent.
+// Neither form confirms media delivery. Only verified provider events set LIVE.
+export function dailyCommandAccepted(value: unknown): boolean {
+  if (!object(value) || value.error) return false;
+  if (value.status !== undefined && value.status !== 'sent') return false;
+  if (value.sent !== undefined && value.sent !== true && value.sent !== 'true') return false;
+  return value.status === 'sent' || value.sent === true || value.sent === 'true';
+}
 async function boundedText(body: ReadableStream<Uint8Array> | null, max: number): Promise<string> {
   if (!body) return '';
   const reader=body.getReader();const chunks:Uint8Array[]=[];let size=0;
@@ -193,7 +201,7 @@ export function createLiveHandler(mode:Mode,deps:LiveDependencies){
     // call. This checks the operation without minting viewer/stage credentials.
     await rpc(caller,'live_prepare_control',{p_session_id:sessionId,p_action:body.action,p_request_id:body.requestId,p_scene:body.scene??null,p_reason:body.reason??null});
     const response=await provider(deps,`/rooms/${context.room_name}/live-streaming/${context.action==='scene'?'update':context.action}`,{method:'POST',body:JSON.stringify(payload)},signal);
-    if(response.sent!==true&&response.sent!=='true')throw new Error('PROVIDER_OPERATION_UNCONFIRMED');
+    if(!dailyCommandAccepted(response))throw new Error('PROVIDER_OPERATION_UNCONFIRMED');
     const finished=await rpc(deps.service,'live_finish_control',{p_operation_id:prepared.operation_id,p_lease_id:context.lease_id,p_accepted:true,p_error:null,p_published:published});
     // 'starting'/'ending' are deliberate. Only the signed provider event may
     // confirm the media has actually started or stopped.
