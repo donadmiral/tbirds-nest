@@ -38,7 +38,9 @@ export function LiveStudio({client,detail,onRefresh,autoPreview=false}:{client:L
       await instance.setLocalVideo(true);if(!alive.current||version!==epoch.current){await instance.destroy();return;}setJoined(true);sync();try{const available=await instance.enumerateDevices();if(alive.current&&version===epoch.current)setDevices(available.devices);}catch{/* Default devices remain usable. */}onRefresh();
     }catch(e){if(alive.current&&version===epoch.current){setError(liveError(e));const old=call.current;call.current=null;void old?.destroy().catch(()=>undefined);}}finally{joinLock.current=false;if(alive.current&&version===epoch.current)setBusy(false);}
   };
-  useEffect(()=>{if(['ended','cancelled','ending'].includes(detail.session.state))void leave();},[detail.session.state]);
+  // "ending" is only a pending command. Keep the room connected until the
+  // signed provider event confirms termination, matching the native studio.
+  useEffect(()=>{if(['ended','cancelled'].includes(detail.session.state))void leave();},[detail.session.state]);
   useEffect(()=>{if(autoPreview&&!autoPreviewUsed.current&&detail.capabilities.multi_camera===true&&!['ended','cancelled','ending'].includes(detail.session.state)){autoPreviewUsed.current=true;void join();}},[autoPreview,detail.capabilities.multi_camera,detail.session.state]);
   const control=async(action:'start'|'stop'|'scene')=>{
     if(controlLock.current||busy||['ended','cancelled','ending'].includes(detail.session.state)||(action==='start'&&(!joined||detail.capabilities.broadcast!==true||!participants.some(p=>p.tracks.video.state==='playable'||p.tracks.screenVideo.state==='playable'||p.tracks.audio.state==='playable'))))return;controlLock.current=true;setBusy(true);setError('');setNotice('');const version=epoch.current;
