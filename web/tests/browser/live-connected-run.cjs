@@ -98,7 +98,9 @@ async function main(){
    const choice=viewerPoll.getByRole('button',{name:new RegExp('^'+escapePattern(firstOption))});
    const voted=await uiCommand(viewer,'Viewer','live_interaction_command','poll_vote',()=>choice.click());
    assert.equal(voted.args.p_payload?.poll_id===opened.data.poll.id&&voted.args.p_payload?.option_id===firstChoice.id,true,'Vote did not target the displayed option');
-   await viewerPanel.getByText('Your vote is saved.',{exact:true}).waitFor();assert.equal(await choice.getAttribute('aria-pressed'),'true');
+   await viewerPanel.getByText('Your vote is saved.',{exact:true}).waitFor();
+   // The acknowledgement notice precedes the interaction reload that marks the saved option.
+   await viewerPoll.getByRole('button',{name:new RegExp('^'+escapePattern(firstOption)),pressed:true}).waitFor();assert.equal(await choice.getAttribute('aria-pressed'),'true');
    await hostPoll.getByText('1 votes',{exact:true}).waitFor({timeout:95000});await hostPoll.getByRole('button',{name:new RegExp('^'+escapePattern(firstOption)+'.*100% · 1$')}).waitFor();
    checks.push('Follower vote was saved once and the host received the actual one-vote count');
    await uiCommand(host,'Host','live_interaction_command','poll_close',()=>hostPoll.getByRole('button',{name:'Close poll',exact:true}).click());
@@ -162,7 +164,7 @@ async function main(){
    const previousTime=hostTracks.find(tile=>!tile.local).currentTime;
    const advancing=await until('Guest remote frames advancing',()=>stageSnapshot(host),tiles=>tiles.some(tile=>!tile.local&&playingStageVideo(tile)&&tile.currentTime>previousTime+0.5),30000);
    stage.push({actor:'Outsider',observation:'local-camera',tiles:guestTracks},{actor:'Host',observation:'remote-guest-decoded',tiles:advancing});checks.push('Existing outsider accepted the public-stream guest invitation and published a synthetic camera through real Daily to the host');
-   await hostStudio.getByRole('button',{name:'Camera grid',exact:true}).click();const sources=hostStudio.getByRole('checkbox');assert.equal(await sources.count(),2,'Expected only the host and invited guest cameras');await sources.nth(0).check();await sources.nth(1).check();
+   await hostStudio.getByRole('button',{name:'Camera grid',exact:true}).click();const sources=hostStudio.getByRole('checkbox');await sources.nth(1).waitFor();assert.equal(await sources.count(),2,'Expected only the host and invited guest cameras');await sources.nth(0).check();await sources.nth(1).check();
    const [sceneResponse]=await Promise.all([host.waitForResponse(r=>new URL(r.url()).origin===origin&&new URL(r.url()).pathname==='/functions/v1/live-control'&&r.request().postDataJSON()?.action==='scene'),hostStudio.getByRole('button',{name:'Apply scene',exact:true}).click()]);
    const sceneBody=sceneResponse.request().postDataJSON(),sceneResult=await sceneResponse.json(),selected=sceneBody?.scene?.participant_ids;
    controls.push({actor:'Host',endpoint:'live-control',action:'scene',status:sceneResponse.status(),ok:sceneResult?.ok===true,preset:sceneBody?.scene?.preset==='grid'?'grid':'unexpected',selectedCameras:Array.isArray(selected)?selected.length:0});

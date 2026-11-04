@@ -74,13 +74,10 @@ dpkg-query -W xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0 > native
 Xvfb -displayfd 3 -screen 0 1024x768x24 -nolisten tcp \
   3> "$work_dir/xvfb-display" > native-ui-logs/xvfb.log 2>&1 &
 xvfb_pid=$!
-for ((attempt=0; attempt<50; attempt++)); do
-  if [[ -s "$work_dir/xvfb-display" ]]; then break; fi
-  kill -0 "$xvfb_pid"
-  sleep 0.1
-done
-read -r native_ui_display_number < "$work_dir/xvfb-display"
-[[ "$native_ui_display_number" =~ ^[0-9]+$ ]]
+# One launch has a 30-second host-setup budget. Require its complete numeric
+# display line and live process, retaining the exact readiness outcome first.
+native_ui_display_number="$(python3 scripts/quality/native-ui-xvfb-readiness.py \
+  --pid "$xvfb_pid" --display-file "$work_dir/xvfb-display")"
 native_ui_display=":$native_ui_display_number"
 DISPLAY="$native_ui_display" LIBGL_ALWAYS_SOFTWARE=true GALLIUM_DRIVER=llvmpipe LC_ALL=C \
   timeout 10 glxinfo -B > native-ui-logs/host-graphics.log 2>&1

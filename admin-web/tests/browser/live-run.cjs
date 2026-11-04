@@ -206,7 +206,8 @@ async function main() {
     await dismiss('End broadcast'); assert.equal(streams[0].state, 'live');
     await execute({ label: 'End broadcast', action: 'stop', reason: 'End the reviewed stream for the current incident.', confirm: true });
     await page.getByRole('status').filter({ hasText: 'Stop requested. Confirm the broadcast reaches ended state.' }).waitFor();
-    await page.getByText('Ending', { exact: true }).waitFor(); assert.equal(streams[0].state, 'ending');
+    const reviewedStream = page.getByRole('heading', { name: streams[0].title, exact: true }).locator('..');
+    await reviewedStream.getByText('Ending', { exact: true }).waitFor(); assert.equal(streams[0].state, 'ending');
     await reason.fill('The existing stop remains pending.');
     assert.equal(await page.getByRole('button', { name: 'End broadcast', exact: true }).isDisabled(), true);
     checks.push('Emergency stop requires confirmation and reason, retains cancellation, and shows ending without claiming provider completion');

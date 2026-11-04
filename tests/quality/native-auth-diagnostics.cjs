@@ -238,7 +238,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     'scripts/quality/native-ui-memory-failure-overlay.cjs',
     'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-input-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-ios-input-trace.py', 'scripts/quality/verify-native-ui.cjs',
     'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh', 'scripts/quality/test-android-app-ui.sh',
-    'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml', '.github/workflows/live-native-input-diagnostics.yml'];
+    'scripts/quality/native-ui-xvfb-readiness.py', 'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml', '.github/workflows/live-native-input-diagnostics.yml'];
   const dependencyFiles = {
     '@supabase/supabase-js': ['package.json', 'dist/index.cjs', 'dist/index.mjs'],
     '@supabase/auth-js': ['package.json', 'src/lib/locks.ts', 'dist/main/index.js', 'dist/module/index.js', 'dist/main/lib/locks.js', 'dist/module/lib/locks.js'],
@@ -268,7 +268,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     assert.match(result.stdout, /failure-only synthetic-file identity observer/);
     for (const file of ['src/services/memoryMovieFiles.ts', 'tests/native/memory-failure-identity.cjs',
       'tests/native/memory-export-adapter.ts', 'tests/native/memory-capture-observer.cjs', 'tests/native/expo-fetch-fixture.cjs',
-      'scripts/quality/native-ui-memory-failure-overlay.cjs']) assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
+      'scripts/quality/native-ui-memory-failure-overlay.cjs', 'scripts/quality/native-ui-xvfb-readiness.py']) assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
     for (const [name, selected] of Object.entries(dependencyFiles)) {
       const dependency = manifest.dependencyProvenance[name], installed = JSON.parse(fs.readFileSync(path.join(root, 'node_modules', name, 'package.json')));
       assert.equal(dependency.installedVersion, installed.version); assert.equal(dependency.matchesLockedVersion, true);

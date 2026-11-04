@@ -24,10 +24,10 @@ permissions:
   contents: read
 
 concurrency:
-  # The timing-enabled harness can run alongside the in-flight original iOS baseline.
-  # Keep this group stable: later source edits replace obsolete runs within v2.
+  # Preserve the active full-app run and its failure evidence. The stable group
+  # allows one active run and keeps only the latest pending candidate.
   group: native-app-ui-v2-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   CI: 'true'
