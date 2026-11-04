@@ -133,6 +133,13 @@ function maintenance(options = {}) {
       if (name === 'live_maintenance') return { data: { swept: 3 }, error: options.databaseError ? { message: 'private database error' } : null };
       if (name === 'live_claim_outbox') return { data: { items: options.jobs || [] }, error: null };
       if (name === 'live_finish_outbox') return { data: { ok: true }, error: null };
+      if (name === 'live_finish_terminal_eject') {
+        const job = (options.jobs || []).find(item => item.id === args.p_id);
+        return options.terminalEjectAllowed ? { data: { ok: true, outcome: 'no_current_call_after_token_window',
+          session_id: job.session_id, instance_id: job.instance_id, room_name: job.room_name,
+          provider_identity: job.provider_identity, state: 'cancelled', ...options.terminalEjectReceipt }, error: null }
+          : { data: null, error: { message: 'TERMINAL_EJECT_TOKEN_WINDOW' } };
+      }
       if (name === 'live_failed_start_recovery_context') {
         const job = (options.jobs || []).find(item => item.id === args.p_id);
         return { data: options.allowRecovery ? { eligible: true, session_id: job.session_id, room_name: job.room_name, instance_id: job.instance_id,
@@ -187,6 +194,51 @@ test('a leased eject bans its provider identity and accepts an empty ejectedIds 
   assert.equal(h.calls.at(-1).name, 'finish_live_worker_tick_v1');
   assert.equal(h.calls.at(-1).args.p_succeeded, true);
   assert.equal(JSON.stringify(result.data).includes(config.dailyKey), false);
+});
+test('an exact no-current-call eject completes only through the terminal token-window database receipt', async () => {
+  const job = { id: id(70), lease_id: id(71), session_id: session, instance_id: instance,
+    action: 'eject', room_name: context.room_name, provider_identity: hostIdentity };
+  const body = { error: 'not-found', info: `room ${job.room_name} does not seem to be hosting a call currently` };
+  const h = maintenance({ jobs: [job], terminalEjectAllowed: true, fetch: async () => Response.json(body, { status: 404 }) });
+  const result = await h.run({ inspect: null });
+  assert.equal(result.status, 200); assert.equal(result.data.provider_jobs_completed, 1); assert.equal(result.data.provider_jobs_failed, 0);
+  assert.equal(h.requests.length, 1); assert.equal(h.requests[0].init.method, 'POST');
+  assert.deepEqual(JSON.parse(h.requests[0].init.body), { user_ids: [hostIdentity], ban: true });
+  const receipt = h.calls.find(call => call.name === 'live_finish_terminal_eject');
+  const { p_observed_at, ...args } = receipt.args;
+  assert.ok(Number.isFinite(Date.parse(p_observed_at)));
+  assert.deepEqual(plain(args), { p_id: job.id, p_lease: job.lease_id, p_session: session,
+    p_instance: instance, p_room: job.room_name, p_identity: hostIdentity });
+  assert.equal(h.calls.some(call => call.name === 'live_finish_outbox' || /provider_event|failed_start_recovery/.test(call.name)), false);
+  assert.equal(h.calls.at(-1).args.p_succeeded, true);
+});
+test('a no-current-call response cannot bypass a token-window denial or a mismatched terminal receipt', async () => {
+  const job = { id: id(70), lease_id: id(71), session_id: session, instance_id: instance,
+    action: 'eject', room_name: context.room_name, provider_identity: hostIdentity };
+  for (const options of [{}, ...[{ state: 'live' }, { session_id: id(90) }, { provider_identity: guestIdentity },
+    { instance_id: id(90) }, { room_name: 'pc-live-' + 'f'.repeat(32) }, { ok: false }].map(terminalEjectReceipt => ({ terminalEjectAllowed: true, terminalEjectReceipt }))]) {
+    const h = maintenance({ jobs: [job], ...options, fetch: async () => Response.json({ error: 'not-found',
+      info: `room ${job.room_name} does not seem to be hosting a call currently` }, { status: 404 }) });
+    const result = await h.run({ inspect: null });
+    assert.equal(result.status, 503); assert.equal(result.data.provider_jobs_completed, 0); assert.equal(result.data.provider_jobs_failed, 1);
+    assert.equal(h.requests.length, 1); assert.equal(h.calls.filter(call => call.name === 'live_finish_terminal_eject').length, 1);
+    assert.equal(h.calls.find(call => call.name === 'live_finish_outbox').args.p_ok, false);
+    assert.equal(h.calls.at(-1).args.p_succeeded, false);
+  }
+});
+test('arbitrary, wrong-room and successful-but-unrecognized eject responses never enter terminal completion', async () => {
+  const job = { id: id(70), lease_id: id(71), session_id: session, instance_id: instance,
+    action: 'eject', room_name: context.room_name, provider_identity: hostIdentity };
+  for (const [status, body] of [[404, { error: 'not-found' }],
+    [404, { error: 'not-found', info: 'room pc-live-' + 'f'.repeat(32) + ' does not seem to be hosting a call currently' }],
+    [404, { error: 'different', info: `room ${job.room_name} does not seem to be hosting a call currently` }],
+    [200, { error: 'not-found', info: `room ${job.room_name} does not seem to be hosting a call currently` }]]) {
+    const h = maintenance({ jobs: [job], terminalEjectAllowed: true, fetch: async () => Response.json(body, { status }) });
+    assert.equal((await h.run({ inspect: null })).status, 503);
+    assert.equal(h.calls.some(call => call.name === 'live_finish_terminal_eject'), false);
+    assert.equal(h.calls.find(call => call.name === 'live_finish_outbox').args.p_ok, false);
+    assert.equal(h.requests.length, 1);
+  }
 });
 test('leased stop jobs accept current and legacy Daily acknowledgements without marking media ended', async () => {
   const job = { id: id(50), lease_id: id(51), action: 'stop', room_name: context.room_name, instance_id: instance };

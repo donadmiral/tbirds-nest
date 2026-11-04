@@ -100,7 +100,7 @@ export function createMaintenanceHandler(deps: Dependencies) {
       const jobs = await jobsRpc('live_claim_outbox');
       await pairs(jobs, async job => {
         if (!uuid(job.id) || !uuid(job.lease_id)) throw new Error('INVALID_JOB');
-        let ok = false, recovered = false, error: string | null = null;
+        let ok = false, recovered = false, terminalEject = false, error: string | null = null;
         try {
           if (typeof job.room_name !== 'string' || !/^pc-live-[0-9a-f]{32}$/.test(job.room_name)) throw new Error('INVALID_JOB');
           if (!deps.dailyKey) throw new Error('PROVIDER_NOT_CONFIGURED');
@@ -151,13 +151,27 @@ export function createMaintenanceHandler(deps: Dependencies) {
               p_instance: job.instance_id, p_room: job.room_name, p_confirmed_at: new Date().toISOString() });
             if (receipt.ok !== true || receipt.state !== 'cancelled' || receipt.session_id !== job.session_id) throw new Error('RECOVERY_NOT_CONFIRMED');
             recovered = true; providerRecovered++;
+          } else if (response.status === 404 && job.action === 'eject' && body.error === 'not-found'
+            && body.info === `room ${job.room_name} does not seem to be hosting a call currently`) {
+            if (!uuid(job.session_id) || !uuid(job.instance_id) || !uuid(job.provider_identity)) throw new Error('INVALID_JOB');
+            // Absence alone cannot acknowledge an eject. The database checks the
+            // current lease, terminal session, every revoked grant and the full
+            // token/issuance window before atomically completing this exact job.
+            const receipt = await objectRpc('live_finish_terminal_eject', { p_id: job.id, p_lease: job.lease_id,
+              p_session: job.session_id, p_instance: job.instance_id, p_room: job.room_name,
+              p_identity: job.provider_identity, p_observed_at: new Date().toISOString() });
+            if (receipt.ok !== true || receipt.outcome !== 'no_current_call_after_token_window'
+              || receipt.session_id !== job.session_id || receipt.instance_id !== job.instance_id
+              || receipt.room_name !== job.room_name || receipt.provider_identity !== job.provider_identity
+              || !['cancelled', 'ended'].includes(String(receipt.state))) throw new Error('TERMINAL_EJECT_NOT_CONFIRMED');
+            terminalEject = true;
           } else if (!response.ok || (job.action === 'stop' ? !dailyCommandAccepted(body) : !Array.isArray(body.ejectedIds))) {
             throw new Error('PROVIDER_UNCONFIRMED');
           }
           ok = true; providerCompleted++;
         } catch { error = 'provider_operation_unconfirmed'; providerFailed++; }
         // Recovery atomically completes the stop lease with its cancellation receipt.
-        if (!recovered) await objectRpc('live_finish_outbox', { p_id: job.id, p_lease: job.lease_id, p_ok: ok, p_error: error });
+        if (!recovered && !terminalEject) await objectRpc('live_finish_outbox', { p_id: job.id, p_lease: job.lease_id, p_ok: ok, p_error: error });
       });
       const covers = await jobsRpc('live_claim_cover_cleanup');
       await pairs(covers, async job => {
