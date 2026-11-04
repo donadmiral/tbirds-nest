@@ -6,6 +6,16 @@ name: First feed video survives scroll refresh and tab return
       id: native-feed-video
     direction: DOWN
     centerElement: true
+# iOS accessibility bounds extend behind the fixed header. Move the whole
+# first card into the visible feed before checking real native playback.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: 50%, 35%
+          end: 50%, 67%
+          duration: 500
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000
@@ -28,6 +38,16 @@ name: First feed video survives scroll refresh and tab return
       id: native-feed-video
     direction: DOWN
     centerElement: true
+# iOS accessibility bounds extend behind the fixed header. Move the whole
+# first card into the visible feed before checking real native playback.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: 50%, 35%
+          end: 50%, 67%
+          duration: 500
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000
@@ -48,6 +68,16 @@ name: First feed video survives scroll refresh and tab return
       id: native-feed-video
     direction: DOWN
     centerElement: true
+# iOS accessibility bounds extend behind the fixed header. Move the whole
+# first card into the visible feed before checking real native playback.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: 50%, 35%
+          end: 50%, 67%
+          duration: 500
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000

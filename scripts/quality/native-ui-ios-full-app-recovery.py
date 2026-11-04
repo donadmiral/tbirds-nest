@@ -23,6 +23,8 @@ RUNNER_SHA = '4f52d8cd572d2c38362348902a418d4802f6347bc85905e138e297979bb2613a'
 FLOW_SHA = 'cf4e4ad6c845769d435174bfec2451d33577d9decd95e8c81d99e120f1daa095'
 PACKAGE = 'app.platinumcircles.mobile.qa'
 FLOW = 'tests/native/flows/navigation.yaml'
+FLOW_HASHES = {FLOW: FLOW_SHA, 'tests/native/flows/feed-video.yaml':
+    '59358ec626e911eeecbf8dfb9e8e3b831cfafba7b2482f3da9e0a8333a8b01fa'}
 
 
 def module(root, name):
@@ -148,7 +150,8 @@ def generate_runner(original, app, helper):
 
 def prepare(root, retained, consumer, output):
     archive, source, manifest = validate(root, retained)
-    checked(safe(consumer, FLOW), FLOW_SHA)
+    for name, expected in FLOW_HASHES.items():
+        checked(safe(consumer, name), expected)
     if output.exists():
         raise ValueError('Fresh output required, no prior UI evidence may be reused')
     output.mkdir()
@@ -163,8 +166,9 @@ def prepare(root, retained, consumer, output):
     (output / 'run-retained-ios.sh').write_text(runner)
     # Only the external Maestro instruction changes. The already-compiled app,
     # original source receipt and every assertion/decoder remain unchanged.
-    shutil.copyfile(root / FLOW, output / 'original-navigation.yaml')
-    shutil.copyfile(consumer / FLOW, root / FLOW)
+    for name in FLOW_HASHES:
+        shutil.copyfile(root / name, output / ('original-' + Path(name).name))
+        shutil.copyfile(consumer / name, root / name)
     receipt = {'schemaVersion': 1, 'kind': 'retained-full-app-ios-recovery',
         'releaseSource': RELEASE, 'applicationSourceCommit': SOURCE, 'applicationSourceTree': TREE,
         'releaseTreeEqualsApplicationTree': True, 'producerRunId': RUN, 'producerArtifactId': ARTIFACT,
@@ -173,8 +177,9 @@ def prepare(root, retained, consumer, output):
         'sourceReceiptSha256': RECEIPT_SHA, 'binaryManifestSha256': MANIFEST_SHA,
         'validatedSourceFiles': len(source['hashes']), 'validatedOverlays': len(source['overlays']),
         'originalSourceReceiptUnchanged': True, 'originalApplicationRuntimeUnchanged': True,
-        'flowOverride': {'file': FLOW, 'before': source['hashes'][FLOW], 'after': FLOW_SHA,
-                         'scope': 'Bounded iOS system password prompt dismissal only'},
+        'flowOverrides': [{'file': name, 'before': source['hashes'][name], 'after': expected}
+                          for name, expected in FLOW_HASHES.items()],
+        'flowOverrideScope': 'Bounded system password prompt dismissal and three iOS-only positioning gestures. All original assertions remain unchanged.',
         'fullOriginalFlowAndVerifierTailUnchanged': True,
         'sourceReceiptWorkflowRunMeaning': 'Original compiled bundle producer. This recovery run is consumerRunId.',
         'rebuild': False, 'rebundle': False, 'resign': False, 'testOnly': True,
