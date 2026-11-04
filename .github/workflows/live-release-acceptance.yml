@@ -3,29 +3,15 @@ on:
   workflow_dispatch:
   push:
     branches: [codex/live-completion-20261102]
-    paths: [.github/workflows/live-release-acceptance.yml]
+    paths:
+      - .github/workflows/live-release-acceptance.yml
+      - web/tests/browser/live-connected-*
 permissions:
   contents: read
 concurrency:
   group: live-release-acceptance
   cancel-in-progress: false
 jobs:
-  source:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with: {persist-credentials: false}
-      - name: Snapshot tracked implementation for release investigation
-        run: |
-          mkdir -p /tmp/live-source
-          git archive --format=tar.gz --output=/tmp/live-source/source.tar.gz HEAD src shared web admin-web supabase/functions supabase/migrations supabase/tests tests tools scripts modules plugins vendor package.json package-lock.json app.json app.config.js eas.json tsconfig.json .github/workflows
-          git rev-parse HEAD > /tmp/live-source/commit.txt
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: live-source-review
-          path: /tmp/live-source/
-          retention-days: 1
   browser-baseline:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -35,24 +21,48 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
       - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
-      - name: Install Chromium runtime
+      - name: Install browser and media runtime
         run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
           node web/node_modules/playwright/cli.js install --with-deps chromium
           bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/live-browser"
-      - name: Test actual Live components with controlled services
-        env:
-          LIVE_BROWSER_EVIDENCE: /tmp/live-browser-evidence
-          LIVE_START_EVIDENCE: /tmp/live-start-evidence
+      - name: Exercise existing Live components with controlled services
         run: |
-          node web/tests/browser/live-start-run.cjs
-          node web/tests/browser/live-run.cjs
-      - name: Retain browser evidence without session credentials
+          LIVE_BROWSER_EVIDENCE=/tmp/live-start-evidence node web/tests/browser/live-start-run.cjs
+          LIVE_BROWSER_EVIDENCE=/tmp/live-playback-evidence node web/tests/browser/live-run.cjs
+      - name: Retain browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: live-browser-baseline
           path: |
-            /tmp/live-browser-evidence/
             /tmp/live-start-evidence/
+            /tmp/live-playback-evidence/
+          if-no-files-found: ignore
+          retention-days: 3
+  connected-host-viewer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
+      - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
+      - run: node web/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Real QA host, follower, outsider and streaming provider acceptance
+        env:
+          LIVE_CONNECTED_EVIDENCE: /tmp/live-connected-evidence
+        run: node web/tests/browser/live-connected-run.cjs
+      - name: Retain screenshots and redacted receipts only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: live-connected-acceptance
+          path: /tmp/live-connected-evidence/
           if-no-files-found: ignore
           retention-days: 3
