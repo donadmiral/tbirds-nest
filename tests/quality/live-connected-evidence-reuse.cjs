@@ -130,7 +130,7 @@ test('original receipt bytes and source identity survive reuse without reseriali
   assert.equal(read.receiptSha256,sha(Buffer.from(original)));
 });
 test('artifact storage never receives the GitHub token and downloads stay bounded',async()=>{const m=await modulePromise,calls=[];const fetcher=async(url,options)=>{calls.push({url,options});return calls.length===1?new Response(null,{status:302,headers:{location:'https://storage.example.invalid/artifact?signature=fixture'}}):new Response('zip');};const bytes=await m.fetchArchive(fetcher,'https://api.github.com/repos/donadmiral/tbirds-nest',{Authorization:'Bearer synthetic'},30);assert.equal(bytes.toString(),'zip');assert.equal(calls[0].options.headers.Authorization,'Bearer synthetic');assert.equal(calls[1].options.headers,undefined);assert.equal(calls[1].options.redirect,'error');await assert.rejects(m.boundedBody(new Response('12345'),4));await assert.rejects(m.fetchArchive(async()=>new Response(null,{status:302,headers:{location:'http://unsafe.invalid/a'}}),'https://api.github.com',{},30));});
-test('workflow retains every gate and reads six commits before authorizing any provider activity',async()=>{const m=await modulePromise,workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/live-release-acceptance.yml'),'utf8');const block=workflow.slice(workflow.indexOf('  connected-host-viewer:'),workflow.indexOf('  release-checks:'));assert.match(block,/actions: read/);assert.match(block,/fetch-depth: 6/);assert.equal((block.match(/if: steps.connected_evidence.outputs.reused != 'true'/g)||[]).length,3);assert.ok(block.indexOf('node tools/reuse-live-connected-evidence.mjs')<block.indexOf('npm ci --prefix web'));assert.doesNotMatch(block,/continue-on-error/);assert.match(workflow,/needs: \[release-checks, browser-baseline, connected-host-viewer, web-production-build\]/);assert.equal(sha(Buffer.from(workflow)),m.AUTOFILL_CORRECTION.files.find(file=>file.path==='.github/workflows/live-release-acceptance.yml').sha256,'The workflow is hash-bound, with all fresh gates and native regressions preserved');});
+test('workflow retains every gate and reads seven commits before authorizing any provider activity',async()=>{const m=await modulePromise,workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/live-release-acceptance.yml'),'utf8');const block=workflow.slice(workflow.indexOf('  connected-host-viewer:'),workflow.indexOf('  release-checks:'));assert.match(block,/actions: read/);assert.match(block,/fetch-depth: 7/);assert.equal((block.match(/if: steps.connected_evidence.outputs.reused != 'true'/g)||[]).length,3);assert.ok(block.indexOf('node tools/reuse-live-connected-evidence.mjs')<block.indexOf('npm ci --prefix web'));assert.doesNotMatch(block,/continue-on-error/);assert.match(workflow,/needs: \[release-checks, browser-baseline, connected-host-viewer, web-production-build\]/);assert.equal(sha(Buffer.from(workflow)),m.AUTOFILL_BUDGET_CORRECTION.files.find(file=>file.path==='.github/workflows/live-release-acceptance.yml').sha256,'The workflow is hash-bound, with all fresh gates and native regressions preserved');});
 function feedRepository(t,m){
  const r=nativeRepository(t,m), parent=r.head, parentTree=r.git(['rev-parse',parent+'^{tree}']);
  const files=m.FEED_CORRECTION.files.map(file=>{const bytes='reviewed feed '+file.path+'\n';r.write(file.path,bytes);return {...file,sha256:sha(Buffer.from(bytes))};});
@@ -241,7 +241,9 @@ test('the exact AutoFill child preserves original service evidence and all separ
 test('all eight AutoFill setup and workflow hashes match the reviewed files and reject replacement bytes',async t=>{
  const m=await modulePromise;
  for(const file of m.AUTOFILL_CORRECTION.files){
-  assert.equal(file.mode,'100644');assert.equal(sha(fs.readFileSync(path.join(__dirname,'../..',file.path))),file.sha256);
+  assert.equal(file.mode,'100644');
+  const current=m.AUTOFILL_BUDGET_CORRECTION.files.find(replacement=>replacement.path===file.path)||file;
+  assert.equal(sha(fs.readFileSync(path.join(__dirname,'../..',file.path))),current.sha256,'Current bytes use the separately reviewed budget pin where the historical setup file changed');
   const r=autofillRepository(t,m);r.write(file.path,'unreviewed AutoFill replacement\n');const head=r.amend();
   assert.throws(()=>m.sourceEquivalent(r.git,head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule),/Reviewed AutoFill correction bytes changed/);
  }
@@ -307,5 +309,98 @@ test('an AutoFill-child mismatch fails before evidence network access or any pro
  await assert.rejects(m.reuseConnected({git,fetcher:async()=>{fetches++;throw Error('No fetch expected');},
   env:{GITHUB_REPOSITORY:m.PINNED.repository,GITHUB_SHA:r.head,GITHUB_TOKEN:'synthetic',LIVE_CONNECTED_EVIDENCE:evidence},
  }),/Reviewed AutoFill correction bytes changed/);
+ assert.equal(fetches,0);assert.equal(fs.existsSync(evidence),false);
+});
+
+function budgetRepository(t,m){
+ const r=autofillRepository(t,m),parent=r.head,parentTree=r.git(['rev-parse',parent+'^{tree}']);
+ const files=m.AUTOFILL_BUDGET_CORRECTION.files.map(file=>{const bytes='reviewed single-origin budget '+file.path+'\n';r.write(file.path,bytes);return {...file,sha256:sha(Buffer.from(bytes))};});
+ for(const file of m.VERIFIER_FILES)r.write(file,'reviewed AutoFill budget verifier\n');
+ const head=r.commit();return {...r,head,budgetRule:{parent,parentTree,acceptedTree:r.autofillRule.acceptedTree,files}};
+}
+test('the exact budget child preserves original service evidence and requires fresh native setup acceptance',async t=>{
+ const m=await modulePromise,r=budgetRepository(t,m);
+ const scope=m.sourceApplicability(r.git,r.head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule);
+ assert.equal(scope.kind,'native-ios-autofill-budget-correction');assert.equal(scope.comparisonParent,r.budgetRule.parent);
+ assert.equal(scope.comparisonParentTree,r.budgetRule.parentTree);assert.equal(scope.connectedRuntimeEquivalent,true);
+ assert.equal(scope.nativeRuntimeEquivalent,false);assert.equal(scope.nativeFeedRequiresSeparateValidation,true);
+ assert.equal(scope.nativeKeyboardRequiresSeparateValidation,true);assert.equal(scope.nativeIosAutofillRequiresSeparateValidation,true);
+ assert.equal(Object.hasOwn(scope,'runtimeEquivalent'),false);assert.equal(Object.hasOwn(scope,'source'),false);
+ assert.deepEqual(scope.verifiedFiles,r.budgetRule.files);assert.equal(scope.verifiedFiles.length,3);
+ assert.deepEqual(scope.permittedChanges,[...r.budgetRule.files.map(file=>file.path),...m.VERIFIER_FILES].sort());
+ assert.equal(scope.permittedChanges.length,5);
+ assert.equal(m.sourceEquivalent(r.git,r.head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),true);
+});
+test('all three budget and workflow files match frozen bytes and reject substitutions',async t=>{
+ const m=await modulePromise;
+ for(const file of m.AUTOFILL_BUDGET_CORRECTION.files){
+  assert.equal(file.mode,'100644');assert.equal(sha(fs.readFileSync(path.join(__dirname,'../..',file.path))),file.sha256);
+  const r=budgetRepository(t,m);r.write(file.path,'unreviewed budget replacement\n');const head=r.amend();
+  assert.throws(()=>m.sourceEquivalent(r.git,head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),/Reviewed AutoFill budget correction bytes changed/);
+ }
+});
+test('budget reuse rejects connected and browser preparation drift even in a broadened proposed list',async t=>{
+ const m=await modulePromise;
+ for(const file of ['web/runtime.ts','supabase/functions/live-core/provider.ts','scripts/quality/install-browser-test-runtime.sh']){
+  const r=budgetRepository(t,m),bytes='unreviewed connected change\n';r.write(file,bytes);const head=r.amend();
+  assert.throws(()=>m.sourceEquivalent(r.git,head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),/unreviewed or missing change/);
+  const broad={...r.budgetRule,files:[...r.budgetRule.files,{path:file,mode:'100644',sha256:sha(Buffer.from(bytes))}]};
+  const rejection=file.startsWith('supabase/')?/exception cannot add, delete, rename or change file type/:/Connected runtime or browser preparation changed/;
+  assert.throws(()=>m.sourceEquivalent(r.git,head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,broad),rejection);
+ }
+});
+test('budget reuse rejects missing, extra, deleted, renamed and nonregular changes',async t=>{
+ const m=await modulePromise;
+ for(const kind of ['missing','additional','deleted','renamed','symlink','executable']){
+  const r=budgetRepository(t,m),file=m.AUTOFILL_BUDGET_CORRECTION.files[0].path;
+  if(kind==='missing')r.write(file,r.git(['show',r.budgetRule.parent+':'+file]));
+  if(kind==='deleted')fs.unlinkSync(r.fullPath(file));
+  if(kind==='additional')r.write('scripts/quality/unreviewed.py','extra setup change');
+  if(kind==='renamed')fs.renameSync(r.fullPath(file),r.fullPath(file)+'.moved');
+  if(kind==='symlink'){fs.unlinkSync(r.fullPath(file));fs.symlinkSync('runtime.txt',r.fullPath(file));}
+  if(kind==='executable')fs.chmodSync(r.fullPath(m.VERIFIER_FILES[0]),0o755);
+  const head=r.amend();assert.throws(()=>m.sourceEquivalent(r.git,head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),/unreviewed or missing change|change file type|Reviewed file mode changed/);
+ }
+});
+test('budget reuse binds all six prior sources and the single-parent chain back to original evidence',async t=>{
+ const m=await modulePromise,r=budgetRepository(t,m);
+ const rules=[r.budgetRule,r.autofillRule,r.keyboardRule,r.feedRule,r.rule];
+ for(const rule of rules){
+  const wrongTree=args=>args[0]==='rev-parse'&&args[1]===rule.parent+'^{tree}'?'f'.repeat(40):r.git(args);
+  assert.throws(()=>m.sourceEquivalent(wrongTree,r.head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),/ancestry tree changed/);
+  for(const parents of ['e'.repeat(40),r.git(['show','-s','--format=%P',rule.parent])+' '+'e'.repeat(40)]){
+   const wrongParent=args=>args[0]==='show'&&args.at(-1)===rule.parent?parents:r.git(args);
+   assert.throws(()=>m.sourceEquivalent(wrongParent,r.head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),/parent ancestry changed/);
+  }
+ }
+ assert.throws(()=>m.sourceEquivalent(r.git,r.head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,{...r.budgetRule,acceptedTree:'f'.repeat(40)}),/Original connected source tree changed/);
+ for(const parents of [[r.budgetRule.parent,'e'.repeat(40)],['e'.repeat(40),r.budgetRule.parent]]){
+  assert.throws(()=>m.sourceEquivalent(args=>args[0]==='show'&&args.at(-1)==='HEAD'?parents.join(' '):r.git(args),r.head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),/single-parent correction/);
+ }
+});
+test('budget reuse rejects dirty or staged bytes, wrong checkout and a later descendant',async t=>{
+ const m=await modulePromise,r=budgetRepository(t,m);
+ assert.throws(()=>m.sourceEquivalent(r.git,'f'.repeat(40),r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),/Checkout differs/);
+ r.write(m.AUTOFILL_BUDGET_CORRECTION.files[0].path,'dirty budget bytes');
+ assert.throws(()=>m.sourceEquivalent(r.git,r.head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),/Tracked checkout/);
+ r.git(['add','.']);assert.throws(()=>m.sourceEquivalent(r.git,r.head,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),/Tracked checkout/);
+ const later=r.commit();assert.equal(m.sourceEquivalent(r.git,later,r.accepted,r.rule,r.feedRule,r.keyboardRule,r.autofillRule,r.budgetRule),false);
+});
+test('a budget-child mismatch rejects before any evidence request or provider fallback',async t=>{
+ const m=await modulePromise,r=budgetRepository(t,m);let fetches=0;
+ const pairs=[[m.AUTOFILL_BUDGET_CORRECTION,r.budgetRule,m.AUTOFILL_CORRECTION.parent],[m.AUTOFILL_CORRECTION,r.autofillRule,m.KEYBOARD_CORRECTION.parent],[m.KEYBOARD_CORRECTION,r.keyboardRule,m.FEED_CORRECTION.parent],[m.FEED_CORRECTION,r.feedRule,m.NATIVE_CORRECTION.parent],[m.NATIVE_CORRECTION,r.rule,m.PINNED.source]];
+ const git=args=>{
+  if(args[0]==='show'&&args.at(-1)==='HEAD')return m.AUTOFILL_BUDGET_CORRECTION.parent;
+  for(const [actual,,parent] of pairs){
+   if(args[0]==='show'&&args.at(-1)===actual.parent)return parent;
+   if(args[0]==='rev-parse'&&args[1]===actual.parent+'^{tree}')return actual.parentTree;
+  }
+  if(args[0]==='rev-parse'&&args[1]===m.PINNED.source+'^{tree}')return m.AUTOFILL_BUDGET_CORRECTION.acceptedTree;
+  return r.git(args.map(arg=>arg===m.PINNED.source?r.accepted:pairs.find(([actual])=>arg===actual.parent)?.[1].parent||arg));
+ };
+ const evidence=r.fullPath('evidence-not-created');
+ await assert.rejects(m.reuseConnected({git,fetcher:async()=>{fetches++;throw Error('No fetch expected');},
+  env:{GITHUB_REPOSITORY:m.PINNED.repository,GITHUB_SHA:r.head,GITHUB_TOKEN:'synthetic',LIVE_CONNECTED_EVIDENCE:evidence},
+ }),/Reviewed AutoFill budget correction bytes changed/);
  assert.equal(fetches,0);assert.equal(fs.existsSync(evidence),false);
 });

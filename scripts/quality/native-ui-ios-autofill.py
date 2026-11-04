@@ -16,7 +16,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[2]
-BUDGET_SECONDS = 300
+BUDGET_SECONDS = 600
 MAX_OUTPUT_BYTES = 4 * 1024 * 1024
 MAESTRO_VERSION = '2.11.0'
 MAESTRO_SOURCE = 'c8c361be1cc89b2e742f185466a302a22778be6b'

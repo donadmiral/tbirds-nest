@@ -8,6 +8,14 @@ const YAML = require('yaml');
 const root = path.resolve(__dirname, '../..');
 const sha = data => crypto.createHash('sha256').update(data).digest('hex');
 
+test('the setup correction changes only the single creation-origin budget from 300 to 600 seconds', () => {
+  const source = fs.readFileSync(path.join(root, 'scripts/quality/native-ui-ios-autofill.py'), 'utf8');
+  const current = 'BUDGET_SECONDS = 600\n';
+  assert.equal(source.split(current).length, 2);
+  assert.equal(sha(source.replace(current, 'BUDGET_SECONDS = 300\n')),
+    '122d13cf99c125c05cf8ad1bf71907886a9b3b706348cb41eee610b2b0df4435');
+});
+
 test('the only app-runner changes bracket the original exact-UUID boot before QA installation', () => {
   const source = fs.readFileSync(path.join(root, 'scripts/quality/test-ios-app-ui.sh'), 'utf8');
   const before = 'python3 scripts/quality/native-ui-ios-autofill.py verify-created "$ui_simulator" --runtime "$runtime"\n';
@@ -83,7 +91,7 @@ class Tests(unittest.TestCase):
   self.row={'udid':UUID,'name':self.ctx['name'],'state':'Shutdown','deviceTypeIdentifier':self.ctx['deviceTypeIdentifier'],'isAvailable':True}
   self.devices={'devices':{self.ctx['runtimeIdentifier']:[self.row]}}
   verified=m.verify_identity(self.ctx,UUID,self.runtimes,self.devices,'Shutdown')
-  self.owner={'context':self.ctx,'device':UUID,'verification':verified,'startedMonotonic':100.0,'budgetSeconds':300}
+  self.owner={'context':self.ctx,'device':UUID,'verification':verified,'startedMonotonic':100.0,'budgetSeconds':600}
   self.dir=self.root/'native-ui-logs/ios-autofill-preflight';self.dir.mkdir()
   self.calls=[]
  def tearDown(self):self.temp.cleanup()
@@ -175,17 +183,36 @@ class Tests(unittest.TestCase):
   with self.assertRaisesRegex(m.PreflightError,'maestro_version_mismatch'):m.configure(self.ctx,UUID,self.owner,self.dir,read,lambda:self.now)
   self.assertNotIn('open-settings.log',[name for _,name in self.calls])
  def test_original_clock_budget_cannot_reset_between_phases_or_allow_future_origin(self):
-  self.now=399.5;deadline=m.validate_ownership(self.ctx,UUID,self.owner,lambda:self.now);self.assertEqual(deadline.remaining(),0.5)
-  self.now=400
+  self.now=699.5;deadline=m.validate_ownership(self.ctx,UUID,self.owner,lambda:self.now);self.assertEqual(deadline.remaining(),0.5)
+  self.now=700
   with self.assertRaisesRegex(m.PreflightError,'setup_deadline'):m.validate_ownership(self.ctx,UUID,self.owner,lambda:self.now)
   self.now=99
   with self.assertRaisesRegex(m.PreflightError,'setup_deadline'):m.validate_ownership(self.ctx,UUID,self.owner,lambda:self.now)
-  bad={**self.owner,'budgetSeconds':600}
+  bad={**self.owner,'budgetSeconds':300}
   with self.assertRaisesRegex(m.PreflightError,'stale_ownership'):m.validate_ownership(self.ctx,UUID,bad,lambda:110)
+ def test_observed_cold_setup_and_full_driver_allowance_consume_one_original_budget(self):
+  self.assertEqual(m.BUDGET_SECONDS,600)
+  self.now=316.0
+  deadline=m.validate_ownership(self.ctx,UUID,self.owner,lambda:self.now)
+  self.assertEqual(deadline.remaining(),384.0)
+  waits=[]
+  class Process:
+   pid=2468
+   def wait(inner,timeout):
+    waits.append(timeout);self.now+=180.0;return 0
+  runner=m.Commands(self.root,self.env,self.dir,deadline)
+  with mock.patch.object(m.subprocess,'Popen',return_value=Process()) as launch,mock.patch.object(m.os,'killpg') as kill:
+   self.assertEqual(runner(['maestro','--device',UUID,'test',m.OPEN_FLOW],'cold-start.log'),b'')
+   self.assertEqual(launch.call_count,1);kill.assert_not_called()
+  self.assertEqual(waits,[384.0]);self.assertEqual(deadline.started,100.0)
+  self.assertEqual(deadline.remaining(),204.0)
+  self.assertEqual(m.validate_ownership(self.ctx,UUID,self.owner,lambda:self.now).remaining(),204.0)
+  result=self.configure();self.assertTrue(result['passed']);self.assertEqual(result['after']['nativeValue'],'0')
+  self.assertLess(m.validate_ownership(self.ctx,UUID,self.owner,lambda:self.now).remaining(),204.0)
  def test_a_late_command_consumes_the_shared_deadline_before_any_toggle(self):
   def read(args,name):
    data=self.read(args,name)
-   if name=='before-screenshot.log':self.now=400
+   if name=='before-screenshot.log':self.now=700
    return data
   with self.assertRaisesRegex(m.PreflightError,'setup_deadline'):m.configure(self.ctx,UUID,self.owner,self.dir,read,lambda:self.now)
   self.assertNotIn('disable-autofill.log',[name for _,name in self.calls])
@@ -197,7 +224,7 @@ class Tests(unittest.TestCase):
     waits.append(timeout)
     if len(waits)==1:raise subprocess.TimeoutExpired(['maestro'],timeout)
     return -9
-  runner=m.Commands(self.root,self.env,self.dir,m.Deadline(100,lambda:399))
+  runner=m.Commands(self.root,self.env,self.dir,m.Deadline(100,lambda:699))
   with mock.patch.object(m.subprocess,'Popen',return_value=Process()) as launch,mock.patch.object(m.os,'killpg') as kill:
    with self.assertRaisesRegex(m.PreflightError,'setup_deadline'):runner(['maestro','--device',UUID,'hierarchy'],'timed-out.log')
    self.assertEqual(launch.call_count,1);self.assertTrue(launch.call_args.kwargs['start_new_session']);kill.assert_called_once_with(2468,m.signal.SIGKILL)

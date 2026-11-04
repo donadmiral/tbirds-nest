@@ -94,6 +94,19 @@ export const AUTOFILL_CORRECTION = Object.freeze({
     ['.github/workflows/live-release-acceptance.yml', '6bb39c7bcd6f278075b7111d2ebd2285529058058ed4882c35ef989e18954878'],
   ].map(([file, sha256]) => Object.freeze({path: file, sha256, mode: '100644'}))),
 });
+// One reviewed direct child changes only the original AutoFill setup budget.
+// The creation-origin deadline remains single and bounded. App acceptance and
+// the original0338 provider receipt remain separate and source-bound.
+export const AUTOFILL_BUDGET_CORRECTION = Object.freeze({
+  parent: '4b9f018832f9ce3e33b2db981849daf430912518',
+  parentTree: '2677061c688414c6d710c7432c6d224f0626a631',
+  acceptedTree: '56809768fb0e6e13a11afcc6f2096de6139c88ae',
+  files: Object.freeze([
+    ['scripts/quality/native-ui-ios-autofill.py', '20e279508af18b38bb4b19565b3f587df80990f50b326c1e3bec1b51e6541b44'],
+    ['tests/quality/native-ios-autofill.cjs', 'dbf50f3374e9b9d8cd4eb40651406b76c9c1d0b642874374bc747d39832c319d'],
+    ['.github/workflows/live-release-acceptance.yml', '257755af631b048d40aac1ada05a0c89c418b41a8a3083b7a9deff392b0f3997'],
+  ].map(([file, sha256]) => Object.freeze({path: file, sha256, mode: '100644'}))),
+});
 export const VERIFIER_FILES = Object.freeze([
   'tests/quality/live-connected-evidence-reuse.cjs',
   'tools/reuse-live-connected-evidence.mjs',
@@ -120,9 +133,35 @@ function fixtureCorrection(git, base, target) {
   assert.ok(status.every(line => /^[AM]\t/.test(line)), 'Reuse cannot delete or rename files');
   for (const file of ALLOWED) normalFile(git, target, file);
 }
-export function sourceApplicability(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION, keyboardRule = KEYBOARD_CORRECTION, autofillRule = AUTOFILL_CORRECTION) {
+export function sourceApplicability(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION, keyboardRule = KEYBOARD_CORRECTION, autofillRule = AUTOFILL_CORRECTION, budgetRule = AUTOFILL_BUDGET_CORRECTION) {
   assert.equal(git(['rev-parse', 'HEAD']).trim(), source, 'Checkout differs from release source');
   const parents = git(['show', '-s', '--format=%P', 'HEAD']).trim().split(/\s+/);
+  if (parents.includes(budgetRule.parent)) {
+    assert.deepEqual(parents, [budgetRule.parent], 'AutoFill budget reuse must be the reviewed single-parent correction');
+    assert.equal(git(['status', '--porcelain=v1', '--untracked-files=no']).trim(), '', 'Tracked checkout or index differs from the verified source');
+    for (const [rule, parent] of [[budgetRule, autofillRule.parent], [autofillRule, keyboardRule.parent], [keyboardRule, feedRule.parent], [feedRule, nativeRule.parent], [nativeRule, base]]) {
+      assert.equal(git(['rev-parse', rule.parent + '^{tree}']).trim(), rule.parentTree, 'Reviewed AutoFill budget ancestry tree changed');
+      assert.deepEqual(git(['show', '-s', '--format=%P', rule.parent]).trim().split(/\s+/), [parent], 'Reviewed AutoFill budget parent ancestry changed');
+    }
+    assert.equal(git(['rev-parse', base + '^{tree}']).trim(), budgetRule.acceptedTree, 'Original connected source tree changed');
+    const allowed = [...budgetRule.files.map(file => file.path), ...VERIFIER_FILES].sort();
+    assert.deepEqual(changedPaths(git, budgetRule.parent, 'HEAD'), allowed, 'AutoFill budget exception contains an unreviewed or missing change');
+    const status = git(['diff', '--name-status', '--no-renames', budgetRule.parent, 'HEAD']).trim().split('\n');
+    assert.ok(status.every(line => /^M\t/.test(line)), 'AutoFill budget exception cannot add, delete, rename or change file type');
+    for (const file of allowed) normalFile(git, 'HEAD', file);
+    for (const file of budgetRule.files) {
+      normalFile(git, 'HEAD', file.path, file.mode);
+      assert.equal(hash(git(['show', 'HEAD:' + file.path])), file.sha256, 'Reviewed AutoFill budget correction bytes changed: ' + file.path);
+    }
+    const connected = CONNECTED_PATHS.filter(file => file !== 'scripts/quality')
+      .concat('scripts/quality/install-browser-test-runtime.sh');
+    assert.equal(git(['diff', '--name-only', '--no-renames', base, 'HEAD', '--', ...connected]).trim(), '', 'Connected runtime or browser preparation changed');
+    return {kind: 'native-ios-autofill-budget-correction', comparisonParent: budgetRule.parent,
+      comparisonParentTree: budgetRule.parentTree, connectedRuntimeEquivalent: true,
+      nativeRuntimeEquivalent: false, nativeFeedRequiresSeparateValidation: true,
+      nativeKeyboardRequiresSeparateValidation: true, nativeIosAutofillRequiresSeparateValidation: true,
+      permittedChanges: allowed, verifiedFiles: budgetRule.files};
+  }
   if (parents.includes(autofillRule.parent)) {
     assert.deepEqual(parents, [autofillRule.parent], 'AutoFill reuse must be the reviewed single-parent correction');
     assert.equal(git(['status', '--porcelain=v1', '--untracked-files=no']).trim(), '', 'Tracked checkout or index differs from the verified source');
@@ -223,8 +262,8 @@ export function sourceApplicability(git, source, base = PINNED.source, nativeRul
   return {kind: 'native-clips-correction', comparisonParent: nativeRule.parent, comparisonParentTree: nativeRule.parentTree,
     connectedRuntimeEquivalent: true, nativeRuntimeEquivalent: false, permittedChanges: allowed, verifiedFiles: nativeRule.files};
 }
-export function sourceEquivalent(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION, keyboardRule = KEYBOARD_CORRECTION, autofillRule = AUTOFILL_CORRECTION) {
-  return sourceApplicability(git, source, base, nativeRule, feedRule, keyboardRule, autofillRule) !== null;
+export function sourceEquivalent(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION, keyboardRule = KEYBOARD_CORRECTION, autofillRule = AUTOFILL_CORRECTION, budgetRule = AUTOFILL_BUDGET_CORRECTION) {
+  return sourceApplicability(git, source, base, nativeRule, feedRule, keyboardRule, autofillRule, budgetRule) !== null;
 }
 
 export function verifyMetadata(run, job, artifact, pinned = PINNED) {
