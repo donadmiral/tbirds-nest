@@ -13,7 +13,8 @@ const deferred = () => { let resolve, reject; const promise = new Promise((done,
 const nodes = value => !value || typeof value !== 'object' ? [] : Array.isArray(value) ? value.flatMap(nodes) : [value, ...nodes(value.props?.children)];
 const words = value => Array.isArray(value) ? value.map(words).join('') : typeof value === 'string' ? value : value?.props ? words(value.props.children) : '';
 function harness({ deferCommands = false } = {}) {
-  let cursor = 0, effects = [], slots = [], currentProps = { id: sid, topic, enabled: true, canModerate: true, pinned: null, onChanged() {}, onUpdate(value) { if ('pinned_message' in value) currentProps.pinned = value.pinned_message; } };
+  let focused = true, appStateListener = () => {}, requestSerial = 1000;
+  let cursor = 0, effects = [], slots = [], currentProps = { id: sid, topic, enabled: true, canModerate: true, pinned: null, onChanged() {}, onUpdate(value) { if ('pinned_message' in value) currentProps.pinned = value.pinned_message; if (value.removed_message_id && currentProps.pinned?.id === value.removed_message_id) currentProps.pinned = null; } };
   const pages = [], channels = [], commands = [], pendingCommands = [], scrolls = [];
   const same = (a, b) => !!a && !!b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const react = {
@@ -22,14 +23,14 @@ function harness({ deferCommands = false } = {}) {
     useRef(initial) { const i = cursor++; if (!(i in slots)) slots[i] = { current: initial }; return slots[i]; },
     useEffect(fn, deps) { const i = cursor++; if (!same(slots[i]?.deps, deps)) effects.push(() => { slots[i]?.cleanup?.(); slots[i] = { deps, cleanup: fn() }; }); },
   };
-  const rn = new Proxy({ StyleSheet: { create: x => x }, AppState: { currentState: 'active', addEventListener: () => ({ remove() {} }) } }, { get: (target, key) => key in target ? target[key] : key });
+  const rn = new Proxy({ StyleSheet: { create: x => x }, AppState: { currentState: 'active', addEventListener: (_event, callback) => { appStateListener = callback; return { remove() {} }; } } }, { get: (target, key) => key in target ? target[key] : key });
   const imports = {
-    react, 'react-native': rn, '@react-navigation/native': { useIsFocused: () => true },
+    react, 'react-native': rn, '@react-navigation/native': { useIsFocused: () => focused },
     '../theme/useTheme': { useTheme: () => ({ t: { ink: { primary: '#111', secondary: '#666', muted: '#888' }, surface: { sunken: '#eee' } } }) },
     '../stores/authStore': { useAuthStore: read => read({ profile: { id: uid } }) },
     '../../shared/liveDirectory': { isLiveUuid: value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) },
     '../services/liveControlEvents': { subscribeLiveControl: () => () => {} },
-    '../services/liveService': { liveObject: object, liveRows: value => Array.isArray(value) ? value : [], liveText: value => typeof value === 'string' ? value : '', liveRequestId: () => id(999),
+    '../services/liveService': { liveObject: object, liveRows: value => Array.isArray(value) ? value : [], liveText: value => typeof value === 'string' ? value : '', liveRequestId: () => id(++requestSerial),
       liveRpc: () => { const page = deferred(); pages.push(page); return page.promise; }, liveCommand: async (...args) => { commands.push(args); if (deferCommands) { const command = deferred(); pendingCommands.push(command); return command.promise; } return { ok: true }; } },
     '../services/supabase': { supabase: { channel() { const handlers = {}; const channel = { handlers, on(_kind, filter, callback) { handlers[filter.event] = callback; return channel; }, subscribe(callback) { channel.status = callback; return channel; } }; channels.push(channel); return channel; }, removeChannel: async () => {} } },
   };
@@ -40,7 +41,9 @@ function harness({ deferCommands = false } = {}) {
   const settle = async () => { const pending = effects; effects = []; pending.forEach(fn => fn()); await new Promise(resolve => setImmediate(resolve)); };
   const list = () => nodes(render()).find(node => node.type === 'FlatList');
   const button = label => nodes(render()).find(node => node.type === 'TouchableOpacity' && words(node) === label);
-  return { render, settle, pages, channels, commands, pendingCommands, scrolls, list, button, props: currentProps, input: () => nodes(render()).find(node => node.type === 'TextInput'), emit(event, payload) { channels.at(-1).handlers[event]({ payload }); }, async start() { render(); await settle(); channels.at(-1).status('SUBSCRIBED'); } };
+  return { render, settle, pages, channels, commands, pendingCommands, scrolls, list, button, props: currentProps,
+    setFocused(value) { focused = value; }, setAppState(value) { appStateListener(value); },
+    input: () => nodes(render()).find(node => node.type === 'TextInput'), emit(event, payload) { channels.at(-1).handlers[event]({ payload }); }, async start() { render(); await settle(); channels.at(-1).status('SUBSCRIBED'); } };
 }
 
 test('native history cannot erase realtime arrivals or resurrect a removed message', async () => {
@@ -58,6 +61,20 @@ test('native removal stays final after delayed duplicate messages and stale pins
   app.emit('pin', { message: message(1) });
   assert.equal(app.list().props.data.length, 1); assert.equal(app.list().props.data[0].removed, true); assert.equal(app.list().props.data[0].body, '');
   assert.equal(app.props.pinned, null);
+});
+
+for (const renderNewPin of [false, true]) test('removing a former native pin preserves the current pin ' + (renderNewPin ? 'after' : 'before') + ' its parent render', async () => {
+  const app = harness(); app.props.pinned = message(1); await app.start();
+  app.pages[0].resolve({ items: [], next_cursor: null }); await app.settle();
+  const channel = app.channels[0];
+  app.emit('pin', { message: message(2) });
+  if (renderNewPin) { app.render(); await app.settle(); }
+  assert.equal(app.props.pinned.id, id(2));
+  app.emit('message_removed', { id: id(1) });
+  assert.equal(app.props.pinned?.id, id(2), 'Removing the former pin must not clear its replacement');
+  app.emit('message_removed', { id: id(2) });
+  assert.equal(app.props.pinned, null, 'Removing the current pin must still clear it');
+  assert.equal(app.channels.length, 1); assert.equal(app.channels[0], channel);
 });
 
 test('native historical removal overrides a previously visible body', async () => {
@@ -104,6 +121,78 @@ test('native reconnect retains deletion receipts and ignores the removed channel
   old.handlers.message({ payload: message(2) }); assert.equal(app.list().props.data.length, 0);
   app.channels.at(-1).status('SUBSCRIBED'); app.pages.at(-1).resolve({ items: [message(1)], next_cursor: null }); await app.settle();
   assert.equal(app.list().props.data[0].removed, true); assert.equal(app.list().props.data[0].body, '');
+});
+
+for (const state of ['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED']) test('native ' + state + ' rejoin replaces unverified history while preserving events during the new read', async () => {
+  const app = harness(); await app.start();
+  app.pages[0].resolve({ items: Array.from({ length: 50 }, (_, i) => message(i + 1)), next_cursor: null }); await app.settle();
+  for (let n = 51; n <= 150; n++) app.emit('message', message(n));
+  assert.equal(app.list().props.data.length, 150);
+  const channel = app.channels[0]; channel.status(state); channel.status('SUBSCRIBED');
+  app.emit('message', message(151)); app.emit('message_removed', { id: id(130) });
+  app.pages[1].resolve({ items: Array.from({ length: 50 }, (_, i) => message(i + 101)), next_cursor: null }); await app.settle();
+  const rows = app.list().props.data;
+  assert.equal(rows.some(row => row.id === id(75)), false, 'A removal missed during the gap must not survive outside the fresh page');
+  assert.equal(rows.length, 51); assert.equal(rows.at(-1).id, id(151));
+  assert.equal(rows.find(row => row.id === id(130)).removed, true); assert.equal(rows.find(row => row.id === id(130)).body, '');
+  assert.equal(app.channels.length, 1); assert.equal(app.channels[0], channel);
+});
+
+for (const failure of [false, true]) test('native history ' + (failure ? 'failure' : 'success') + ' from before reconnect cannot alter its fresh page', async () => {
+  const app = harness(); await app.start();
+  app.channels[0].status('CHANNEL_ERROR'); app.channels[0].status('SUBSCRIBED');
+  app.emit('message', message(151));
+  app.pages[1].resolve({ items: Array.from({ length: 50 }, (_, i) => message(i + 101)), next_cursor: null }); await app.settle();
+  if (failure) app.pages[0].reject(new Error('Retired native history failure'));
+  else app.pages[0].resolve({ items: Array.from({ length: 50 }, (_, i) => message(i + 1)), next_cursor: null });
+  await app.settle();
+  const rows = app.list().props.data;
+  assert.equal(rows.length, 51); assert.equal(rows[0].id, id(101)); assert.equal(rows.at(-1).id, id(151));
+  assert.doesNotMatch(words(app.render()), /Retired native history failure/);
+  assert.equal(nodes(app.render()).filter(node => node.props?.accessibilityRole === 'alert').length, 0);
+});
+
+test('native transport rejoin refreshes canonical pin state once without an initial duplicate detail read', async () => {
+  const app = harness(), detail = deferred(); let refreshes = 0;
+  app.props.pinned = message(75);
+  app.props.onChanged = () => { refreshes++; void detail.promise.then(pin => { app.props.pinned = pin; }); };
+  await app.start(); app.pages[0].resolve({ items: [], next_cursor: null }); await app.settle();
+  assert.equal(refreshes, 0); assert.equal(app.props.pinned.id, id(75));
+  app.channels[0].status('CHANNEL_ERROR'); app.channels[0].status('SUBSCRIBED');
+  assert.equal(refreshes, 1, 'The existing parent detail callback must reconcile a pin missed while disconnected');
+  app.pages[1].resolve({ items: Array.from({ length: 50 }, (_, i) => message(i + 101)), next_cursor: null }); await app.settle();
+  detail.resolve(null); await app.settle();
+  assert.equal(app.props.pinned, null); assert.doesNotMatch(words(app.render()), /PINNED MESSAGE/);
+  assert.equal(refreshes, 1); assert.equal(app.channels.length, 1);
+});
+
+for (const gap of ['focus', 'foreground']) test('native ' + gap + ' rejoin still clears the previous subscription history', async () => {
+  const app = harness(); await app.start();
+  app.pages[0].resolve({ items: Array.from({ length: 50 }, (_, i) => message(i + 1)), next_cursor: null }); await app.settle();
+  for (let n = 51; n <= 150; n++) app.emit('message', message(n));
+  if (gap === 'focus') app.setFocused(false); else app.setAppState('background');
+  app.render(); await app.settle(); assert.equal(app.list().props.data.length, 0);
+  if (gap === 'focus') app.setFocused(true); else app.setAppState('active');
+  app.render(); await app.settle(); app.channels.at(-1).status('SUBSCRIBED');
+  app.pages.at(-1).resolve({ items: Array.from({ length: 50 }, (_, i) => message(i + 101)), next_cursor: null }); await app.settle();
+  assert.equal(app.list().props.data.length, 50); assert.equal(app.list().props.data.some(row => row.id === id(75)), false);
+  assert.equal(app.channels.length, 2);
+});
+
+test('native transport recovery preserves an in-flight send, its draft and its failed-intent retry identity', async () => {
+  const app = harness({ deferCommands: true }); await app.start();
+  app.pages[0].resolve({ items: [], next_cursor: null }); await app.settle();
+  app.input().props.onChangeText('Draft through reconnect'); app.button('Send').props.onPress();
+  const firstId = app.commands[0][3];
+  app.channels[0].status('CHANNEL_ERROR'); app.channels[0].status('SUBSCRIBED');
+  app.pages[1].resolve({ items: [], next_cursor: null }); await app.settle();
+  assert.equal(app.input().props.value, 'Draft through reconnect'); assert.equal(app.button('Send').props.disabled, true);
+  app.button('Send').props.onPress(); assert.equal(app.commands.length, 1);
+  app.pendingCommands[0].reject(new Error('Synthetic send failure')); await app.settle();
+  app.button('Send').props.onPress(); assert.equal(app.commands.length, 2); assert.equal(app.commands[1][3], firstId);
+  app.pendingCommands[1].resolve({ ok: true }); await app.settle(); assert.equal(app.input().props.value, '');
+  app.input().props.onChangeText('A different message'); app.button('Send').props.onPress();
+  assert.notEqual(app.commands[2][3], firstId); app.pendingCommands[2].resolve({ ok: true }); await app.settle();
 });
 
 for (const failure of [false, true]) test('old native command ' + (failure ? 'failure' : 'success') + ' cannot alter the next session draft or unlock its pending send', async () => {

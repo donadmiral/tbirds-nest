@@ -17,11 +17,13 @@ export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, o
   const [showLatest, setShowLatest] = useState(false);
   const list = useRef<FlatList<LiveObject>>(null), followLatest = useRef(true), removedIds = useRef(new Set<string>());
   const [subscriptionTopic,setSubscriptionTopic]=useState(topic);const update=useRef(onUpdate);update.current=onUpdate;
-  const request = useRef<{ signature: string; id: string } | null>(null), lock = useRef(false), generation = useRef(0), commandGeneration = useRef(0), refresh = useRef(onChanged); refresh.current = onChanged;
+  // Pin events can arrive before the parent renders its new pinned prop.
+  const currentPin = useRef(pinned); currentPin.current = pinned;
+  const request = useRef<{ signature: string; id: string } | null>(null), lock = useRef(false), generation = useRef(0), historyGeneration = useRef(0), commandGeneration = useRef(0), hasConnected = useRef(false), refresh = useRef(onChanged); refresh.current = onChanged;
   useEffect(() => { const sub = AppState.addEventListener('change', state => setForeground(state === 'active')); return () => sub.remove(); }, []);
   useEffect(() => {
     commandGeneration.current++; request.current = null; lock.current = false; setBusy(false); setBody('');
-    removedIds.current.clear(); followLatest.current = true; setShowLatest(false);
+    removedIds.current.clear(); followLatest.current = true; setShowLatest(false); hasConnected.current = false;
     return () => { commandGeneration.current++; };
   }, [id, owner]);
   useEffect(()=>setSubscriptionTopic(topic),[topic]);
@@ -49,15 +51,15 @@ export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, o
     return [...merged.values()].sort((a,b) => String(a.created_at).localeCompare(String(b.created_at)) || String(a.id).localeCompare(String(b.id))).slice(before ? 0 : -150, before ? 150 : undefined);
   };
   const load = async (before: LiveObject | null = null) => {
-    const version = generation.current;
+    const version = generation.current, historyVersion = historyGeneration.current;
     try {
       const result = await liveRpc('live_messages', { p_session_id: id, p_before: before, p_limit: 50 });
-      if (version !== generation.current) return;
+      if (version !== generation.current || historyVersion !== historyGeneration.current) return;
       const page = liveRows(result.items, 50);
       for (const row of page) if (isLiveUuid(row.id) && row.session_id === id && row.removed === true) rememberRemoval(row.id);
       setRows(previous => mergeRows(previous, page, !!before));
       setCursor(liveObject(result.next_cursor) ? result.next_cursor : null); setError('');
-    } catch (reason) { if (version === generation.current) setError(reason instanceof Error ? reason.message : 'Chat could not load. Retry when connected.'); }
+    } catch (reason) { if (version === generation.current && historyVersion === historyGeneration.current) setError(reason instanceof Error ? reason.message : 'Chat could not load. Retry when connected.'); }
   };
   useEffect(() => {
     generation.current++; setRows([]); setCursor(null); setError('');
@@ -73,17 +75,29 @@ export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, o
       if (version !== generation.current || !liveObject(event.payload) || !isLiveUuid(event.payload.id)) return;
       rememberRemoval(event.payload.id);
       setRows(previous => previous.map(row => row.id === event.payload.id ? { ...row, body: '', removed: true } : row));
-      if (liveObject(pinned) && pinned.id === event.payload.id) update.current({ pinned_message: null });
+      const pinnedMessage = currentPin.current;
+      if (liveObject(pinnedMessage) && pinnedMessage.id === event.payload.id) {
+        currentPin.current = null;
+      }
+      update.current({ removed_message_id: event.payload.id });
     }).on('broadcast', { event: 'pin' }, event => {
       if (version !== generation.current || !liveObject(event.payload)) return;
       const message = event.payload.message;
-      update.current({ pinned_message: liveObject(message) && (message.removed === true || removedIds.current.has(String(message.id))) ? null : message });
+      const nextPin = liveObject(message) && (message.removed === true || removedIds.current.has(String(message.id))) ? null : message;
+      currentPin.current = nextPin; update.current({ pinned_message: nextPin });
     })
       .on('broadcast', { event: 'session' }, event => { if (version === generation.current&&liveObject(event.payload)) update.current(event.payload); });
     channel.subscribe(state => {
       if (version !== generation.current) return;
-      if (state === 'SUBSCRIBED') { setStatus('Connected'); void load(); }
-      else if (state === 'CHANNEL_ERROR' || state === 'TIMED_OUT' || state === 'CLOSED') setStatus('Chat disconnected. Tap reconnect.');
+      if (state === 'SUBSCRIBED') {
+        const reconnecting = hasConnected.current; hasConnected.current = true;
+        historyGeneration.current++; setRows([]); setCursor(null); setError('');
+        setStatus('Connected'); void load();
+        if (reconnecting) refresh.current();
+      } else if (state === 'CHANNEL_ERROR' || state === 'TIMED_OUT' || state === 'CLOSED') {
+        historyGeneration.current++; setRows([]); setCursor(null);
+        setStatus('Chat disconnected. Tap reconnect.');
+      }
     });
     return () => { generation.current++; void supabase.removeChannel(channel); };
   }, [owner, id, subscriptionTopic, focused, foreground, revision]);

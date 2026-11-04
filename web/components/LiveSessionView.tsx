@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Bell, CalendarDays, Clapperboard, Radio, RefreshCw, Share2, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { getNavigationStore } from '@/lib/navigationCache';
-import { getLiveDetail, liveCommand, liveError, record, type LiveDetail } from '@/lib/liveApi';
+import { getLiveDetail, liveCommand, liveError, parseLiveMessage, record, type LiveDetail } from '@/lib/liveApi';
 import { isLiveUuid, liveStateLabel, parseLiveSession } from '../../shared/liveDirectory';
 import { LiveIcon } from './LiveIcon';
 import { LivePlayerSlot, useLivePlayback } from './LivePlaybackProvider';
@@ -20,18 +20,29 @@ export function LiveSessionView({id}:{id:string}) {
   const [studioOpened,setStudioOpened]=useState(false),[autoPreview,setAutoPreview]=useState(false);
   const onInteraction=useCallback((payload:unknown)=>{const parsed=parseLiveInteractions(payload);if(parsed)setInteractionSnapshot(parsed);},[]);
   const onInteractionCounts=useCallback((payload:unknown)=>{if(record(payload))setInteractionCounts(payload);},[]);
-  const epoch=useRef(0),lock=useRef(false),mounted=useRef(true),playback=useLivePlayback();
+  const epoch=useRef(0),pinRevision=useRef(0),removedPins=useRef(new Set<string>()),lock=useRef(false),mounted=useRef(true),playback=useLivePlayback();
   const actionBusy=pendingAction!==null;
   const actionLock=useRef(false),actionRequest=useRef<{signature:string;id:string}|null>(null);
   const closePlayback=playback.close,activePlayback=useRef(playback.session?.id);activePlayback.current=playback.session?.id;
   const refresh=useCallback(async()=>{
     if(!identity.owner||!isLiveUuid(id)||lock.current)return;
-    lock.current=true;setLoading(true);const version=epoch.current;
-    try{const value=await getLiveDetail(client,id);if(version===epoch.current&&mounted.current){setDetail(value);setError('');}}
+    lock.current=true;setLoading(true);const version=epoch.current,pinVersion=pinRevision.current;
+    try{const value=await getLiveDetail(client,id);if(version===epoch.current&&mounted.current){setDetail(previous=>{const pin=pinVersion!==pinRevision.current&&previous?previous.pinned_message:value.pinned_message;return {...value,pinned_message:pin&&!pin.removed&&!removedPins.current.has(pin.id)?pin:null};});setError('');}}
     catch(e){if(version===epoch.current&&mounted.current){setDetail(null);setError(liveError(e));if(activePlayback.current===id)closePlayback();}}finally{if(version===epoch.current&&mounted.current){lock.current=false;setLoading(false);}}
   },[client,id,identity.owner,closePlayback]);
-  useEffect(()=>{mounted.current=true;epoch.current++;lock.current=false;setDetail(null);setError('');actionLock.current=false;actionRequest.current=null;setPendingAction(null);setNotice('');const entry=new URLSearchParams(window.location.search),open=entry.get('studio')==='1';setTab(open?'studio':'watch');setStudioOpened(open);setAutoPreview(open&&entry.get('preview')==='1');setInteractionSnapshot(null);setInteractionCounts(null);if(!isLiveUuid(id)){setError('This stream link is not valid.');return;}void refresh();return()=>{mounted.current=false;epoch.current++;lock.current=false;};},[id,identity.scope,refresh]);
-  const onPatch=useCallback((payload:unknown)=>{if(!record(payload))return;setDetail(previous=>{if(!previous)return previous;let next=previous;if(record(payload.session)&&payload.session.id===id){const full=parseLiveSession(payload.session);const state=String(payload.session.state||'');if(full)next={...next,session:full};else if(['draft','scheduled','backstage','starting','live','reconnecting','ending','ended','cancelled'].includes(state))next={...next,session:{...next.session,state}};}if(typeof payload.chat_topic==='string'&&new RegExp('^live:'+id+':[0-9a-f-]{36}$','i').test(payload.chat_topic))next={...next,chat_topic:payload.chat_topic};return next;});},[id]);
+  useEffect(()=>{mounted.current=true;epoch.current++;removedPins.current.clear();lock.current=false;setDetail(null);setError('');actionLock.current=false;actionRequest.current=null;setPendingAction(null);setNotice('');const entry=new URLSearchParams(window.location.search),open=entry.get('studio')==='1';setTab(open?'studio':'watch');setStudioOpened(open);setAutoPreview(open&&entry.get('preview')==='1');setInteractionSnapshot(null);setInteractionCounts(null);if(!isLiveUuid(id)){setError('This stream link is not valid.');return;}void refresh();return()=>{mounted.current=false;epoch.current++;lock.current=false;};},[id,identity.scope,refresh]);
+  const onPatch=useCallback((payload:unknown)=>{
+    if(!record(payload))return;
+    const pin=parseLiveMessage(payload.pinned_message),hasPin=Object.prototype.hasOwnProperty.call(payload,'pinned_message')&&(payload.pinned_message===null||pin?.session_id===id);
+    const removed=isLiveUuid(payload.removed_message_id)?payload.removed_message_id:null;
+    if(hasPin)pinRevision.current++;
+    if(removed){removedPins.current.add(removed);if(removedPins.current.size>300)removedPins.current.delete(removedPins.current.values().next().value!);}
+    setDetail(previous=>{if(!previous)return previous;let next=previous;if(record(payload.session)&&payload.session.id===id){const full=parseLiveSession(payload.session);const state=String(payload.session.state||'');if(full)next={...next,session:full};else if(['draft','scheduled','backstage','starting','live','reconnecting','ending','ended','cancelled'].includes(state))next={...next,session:{...next.session,state}};}if(typeof payload.chat_topic==='string'&&new RegExp('^live:'+id+':[0-9a-f-]{36}$','i').test(payload.chat_topic))next={...next,chat_topic:payload.chat_topic};
+      if(hasPin)next={...next,pinned_message:pin&&!pin.removed&&!removedPins.current.has(pin.id)?pin:null};
+      if(removed&&next.pinned_message?.id===removed)next={...next,pinned_message:null};
+      return next;
+    });
+  },[id]);
   const run=async(action:string,payload:Record<string,unknown>={})=>{if(actionLock.current)return;actionLock.current=true;setPendingAction(action);setNotice('');const version=epoch.current,signature=JSON.stringify([id,action,payload]);if(actionRequest.current?.signature!==signature)actionRequest.current={signature,id:crypto.randomUUID()};try{const result=await liveCommand(client,id,action,payload,actionRequest.current.id);if(version!==epoch.current||!mounted.current)return;if(result.ok!==true)throw Error('INVALID_SERVICE_RESPONSE');await refresh();if(version===epoch.current&&mounted.current)actionRequest.current=null;}catch(e){if(version===epoch.current&&mounted.current)setNotice(liveError(e));}finally{if(version===epoch.current&&mounted.current){actionLock.current=false;setPendingAction(null);}}};
   const session=detail?.session,studio=detail&&['host','producer','camera','guest'].includes(detail.role)&&!['ended','cancelled'].includes(detail.session.state),moderator=detail&&['host','producer','moderator'].includes(detail.role);
   const canCancel=detail&&['host','producer'].includes(detail.role)&&['draft','scheduled','backstage'].includes(detail.session.state);

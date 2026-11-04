@@ -15,9 +15,10 @@ name: First feed video survives scroll refresh and tab return
     direction: DOWN
     centerElement: true
 - assertNotVisible: Native feed video playing
+# Android reports clipped media bounds as fully visible. Center the caption so
+# the post meets the same autoplay visibility rule as the initial playing check.
 - scrollUntilVisible:
-    element:
-      id: native-feed-video
+    element: A quiet morning in the desert. Small moments worth keeping.
     direction: UP
     centerElement: true
 - extendedWaitUntil:

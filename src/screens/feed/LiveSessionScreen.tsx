@@ -25,13 +25,16 @@ export default function LiveSessionScreen({ route, navigation }: Props) {
   const [report, setReport] = useState(''), [notice, setNotice] = useState('');
   const [studioOpened,setStudioOpened]=useState(route.params?.openStudio===true);
   const [previewRequested,setPreviewRequested]=useState(route.params?.previewCamera===true);
-  const generation = useRef(0), lock = useRef(false), request = useRef<{ signature: string; id: string } | null>(null), searchVersion = useRef(0);
+  const generation = useRef(0), pinRevision = useRef(0), removedMessages = useRef(new Set<string>()), lock = useRef(false), request = useRef<{ signature: string; id: string } | null>(null), searchVersion = useRef(0);
   const refresh = useCallback(async () => {
-    const version = ++generation.current;
-    try { const next = await loadLiveSession(id); if (version === generation.current) { setDetail(next); setError(''); } }
+    const version = ++generation.current, pinVersion = pinRevision.current;
+    try { const next = await loadLiveSession(id); if (version === generation.current) { setDetail(previous => {
+      const pin = pinVersion !== pinRevision.current && previous ? previous.raw.pinned_message : next.raw.pinned_message;
+      return { ...next, raw: { ...next.raw, pinned_message: liveObject(pin) && (pin.removed === true || removedMessages.current.has(String(pin.id))) ? null : pin } };
+    }); setError(''); } }
     catch (reason) { if (version === generation.current) { setDetail(null); setError(reason instanceof Error ? reason.message : 'The stream could not load.'); if (playback.session?.id === id) playback.close(); } }
   }, [id, owner]);
-  useEffect(() => { setDetail(null); setTab(route.params?.openStudio ? 'Studio' : 'Chat'); setStudioOpened(route.params?.openStudio===true); setPreviewRequested(route.params?.previewCamera===true); setPeople([]); setNotice(''); void refresh(); return () => { generation.current++; searchVersion.current++; }; }, [refresh]);
+  useEffect(() => { removedMessages.current.clear(); setDetail(null); setTab(route.params?.openStudio ? 'Studio' : 'Chat'); setStudioOpened(route.params?.openStudio===true); setPreviewRequested(route.params?.previewCamera===true); setPeople([]); setNotice(''); void refresh(); return () => { generation.current++; searchVersion.current++; }; }, [refresh]);
   useFocusEffect(useCallback(() => {
     if (playback.session?.id === id) playback.expand();
     return () => { if (playback.session?.id === id) playback.minimize(); };
@@ -60,7 +63,16 @@ export default function LiveSessionScreen({ route, navigation }: Props) {
         {liveObject(raw?.invitation)&&raw.invitation.status==='invited'?<View style={s.pad}><Text style={{color:t.ink.primary}}>You have been invited to join this stream.</Text>{button('Accept invitation',()=>void send('accept_invite',{}))}</View>:null}
         <ScrollView horizontal contentContainerStyle={{paddingHorizontal:16,gap:8}}>{tabs.map(name=><TouchableOpacity key={name} accessibilityRole="button" accessibilityState={{selected:tab===name}} onPress={()=>{setTab(name);if(name==='Studio')setStudioOpened(true);}} style={[s.button,{borderRadius:0,borderBottomWidth:2,borderBottomColor:tab===name?t.ink.primary:'transparent'}]}><Text style={{color:tab===name?t.ink.primary:t.ink.secondary,fontWeight:'600'}}>{name}</Text></TouchableOpacity>)}</ScrollView>
         <View style={s.pad}>
-          {tab==='Chat'?<LiveChat id={id} topic={liveText(raw?.chat_topic,100)} enabled={caps.chat===true&&(session.chat_mode!=='closed'||moderate)&&['live','reconnecting'].includes(session.state)} canModerate={moderate} pinned={raw?.pinned_message} onChanged={()=>void refresh()} onUpdate={value=>setDetail(previous=>{if(!previous)return previous;const incoming=liveObject(value.session)?value.session:null;const next=incoming?parseLiveSession({...previous.session,...incoming}):previous.session;return{session:next||previous.session,raw:{...previous.raw,...value,session:next||previous.session}};})}/>:null}
+          {tab==='Chat'?<LiveChat id={id} topic={liveText(raw?.chat_topic,100)} enabled={caps.chat===true&&(session.chat_mode!=='closed'||moderate)&&['live','reconnecting'].includes(session.state)} canModerate={moderate} pinned={raw?.pinned_message} onChanged={()=>void refresh()} onUpdate={value=>{
+            if(Object.prototype.hasOwnProperty.call(value,'pinned_message'))pinRevision.current++;
+            const removed=isLiveUuid(value.removed_message_id)?value.removed_message_id:null;
+            if(removed){removedMessages.current.add(removed);if(removedMessages.current.size>300)removedMessages.current.delete(removedMessages.current.values().next().value!);}
+            setDetail(previous=>{if(!previous)return previous;const incoming=liveObject(value.session)?value.session:null;const next=incoming?parseLiveSession({...previous.session,...incoming}):previous.session;
+              const nextRaw:LiveObject={...previous.raw,...value,session:next||previous.session},pin=nextRaw.pinned_message;
+              if(liveObject(pin)&&removedMessages.current.has(String(pin.id)))nextRaw.pinned_message=null;
+              return{session:next||previous.session,raw:nextRaw};
+            });
+          }}/>:null}
           {studioOpened&&stage?<View style={{display:tab==='Studio'?'flex':'none'}}><LiveStudio key={`${owner}:${id}`} sessionId={id} autoPreview={previewRequested} canControl={manages} streamState={session.state} onChanged={()=>void refresh()}/></View>:null}
           {tab==='Polls & Q&A'?<LiveInteractions key={`${owner}:${id}`} id={id} topic={liveText(raw?.chat_topic,100)} live={['live','reconnecting'].includes(session.state)} replay={session.replay_available} onAccessChanged={()=>void refresh()} onTopic={value=>setDetail(previous=>previous?{...previous,raw:{...previous.raw,chat_topic:value}}:previous)} onSeek={position=>{void playback.open(session).then(()=>{try{playback.player.currentTime=position/1000;}catch{setError('Open the replay before jumping to a chapter.');}});}}/>:null}
           {tab==='Clips'?<View style={{gap:12}}><Text style={{color:t.ink.primary,fontSize:20,fontWeight:'700'}}>Clips and highlights</Text><Text style={{color:t.ink.secondary}}>Create clips from this live recording, choose a cover and share finished exports.</Text>{button('Open clips',()=>navigation.navigate('LiveClips',{sessionId:id}),false)}</View>:null}

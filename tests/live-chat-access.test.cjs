@@ -64,20 +64,33 @@ function web(options = {}) {
   return { h, calls, channels, events, pendingCommands, render, update: options => { current = detail(options); }, owner: value => { owner = value; }, visibility: value => { document.visibilityState = value; listeners.get('visibilitychange')?.(); }, reject: value => { reject = value; } };
 }
 function native(options = {}) {
-  const h = hooks(), current = detail(options);
-  const raw = { role: current.role, capabilities: current.capabilities, chat_topic: '' };
+  const h = hooks(), childHooks = hooks(), current = detail(options), reads = [], channels = [];
+  const raw = { role: current.role, capabilities: current.capabilities, chat_topic: options.actualChat ? `live:${sid}:${uid}` : '', pinned_message: options.pinned || null };
   const theme = { ink: { primary: '#111', secondary: '#666', muted: '#888' }, surface: { raised: '#fff', sunken: '#eee' } };
-  const rn = new Proxy({ StyleSheet: { create: value => value, absoluteFill: {} } }, { get: (target, key) => key in target ? target[key] : key });
+  const rn = new Proxy({ StyleSheet: { create: value => value, absoluteFill: {} }, AppState: { currentState: 'active', addEventListener: () => ({ remove() {} }) } }, { get: (target, key) => key in target ? target[key] : key });
+  const nativeChat = options.actualChat ? load('src/components/LiveChat.tsx', {
+    react: childHooks.react, 'react-native': rn, '@react-navigation/native': { useIsFocused: () => true },
+    '../theme/useTheme': { useTheme: () => ({ t: theme }) }, '../stores/authStore': { useAuthStore: read => read({ profile: { id: uid } }) },
+    '../../shared/liveDirectory': directory, '../services/liveControlEvents': { subscribeLiveControl: () => () => {} },
+    '../services/liveService': { liveObject: object, liveText: value => typeof value === 'string' ? value : '', liveRows: value => Array.isArray(value) ? value : [], liveRpc: async () => ({ items: [], next_cursor: null }) },
+    '../services/supabase': { supabase: { channel() { const channel = { handlers: {}, on(_type, filter, callback) { channel.handlers[filter.event] = callback; return channel; }, subscribe(callback) { channel.status = callback; return channel; } }; channels.push(channel); return channel; }, removeChannel: async () => {} } },
+  }, childHooks.runtime).LiveChat : 'NativeLiveChat';
   const component = load('src/screens/feed/LiveSessionScreen.tsx', {
     react: h.react, 'react-native': rn, '@react-navigation/native': { useFocusEffect() {} }, 'expo-video': { VideoView: 'VideoView' }, '@expo/vector-icons': { Feather: 'Feather' },
     '../../components/SafeArea': { SafeAreaView: 'SafeAreaView' }, '../../theme/useTheme': { useTheme: () => ({ t: theme }) }, '../../stores/authStore': { useAuthStore: read => read({ profile: { id: uid } }) },
     '../../contexts/LivePlaybackContext': { useLivePlayback: () => ({ session: null }) }, '../../components/LiveStudio': { LiveStudio: 'LiveStudio' }, '../../components/LiveUi': { LiveIcon: 'LiveIcon' },
-    '../../components/LiveChat': { LiveChat: 'NativeLiveChat' }, '../../components/LiveInteractions': { LiveInteractions: 'LiveInteractions', LiveAnalytics: 'LiveAnalytics' },
-    '../../services/liveService': { liveObject: object, liveText: value => typeof value === 'string' ? value : '', liveRows: value => Array.isArray(value) ? value : [], loadLiveSession: async () => ({ session: current.session, raw }) },
+    '../../components/LiveChat': { LiveChat: nativeChat }, '../../components/LiveInteractions': { LiveInteractions: 'LiveInteractions', LiveAnalytics: 'LiveAnalytics' },
+    '../../services/liveService': { liveObject: object, liveText: value => typeof value === 'string' ? value : '', liveRows: value => Array.isArray(value) ? value : [], loadLiveSession: () => options.deferDetails ? new Promise(resolve => reads.push({ resolve })) : Promise.resolve({ session: current.session, raw }) },
     '../../../shared/liveDirectory': directory, '../../services/supabase': {}, '../../utils/profileRead': {},
   }, h.runtime).default;
   const render = () => h.render(component, { route: { params: { sessionId: sid } }, navigation: { goBack() {}, navigate() {} } });
-  return { h, render, chat: () => nodes(render()).find(node => node.type === 'NativeLiveChat') };
+  const chat = () => nodes(render()).find(node => node.type === nativeChat);
+  const renderChild = () => childHooks.render(nativeChat, chat().props);
+  return { h, render, reads, chat, renderChild,
+    async startChild() { renderChild(); await childHooks.settle(); channels.at(-1).status('SUBSCRIBED'); await childHooks.settle(); },
+    childStatus(value) { channels.at(-1).status(value); }, emitChild(event, payload) { channels.at(-1).handlers[event]({ payload }); },
+    async resolveDetail(index, pin, patch = {}) { reads[index].resolve({ session: current.session, raw: { ...raw, pinned_message: pin, ...patch } }); await h.settle(); },
+  };
 }
 
 test('web closed chat blocks a viewer submit and preserves the draft and failed request for reopening', async () => {
@@ -125,6 +138,52 @@ test('native chat follows realtime close and reopen without changing moderation 
   assert.equal(app.chat().props.enabled, false);
   app.chat().props.onUpdate({ session: { chat_mode: 'open' } });
   assert.equal(app.chat().props.enabled, true); assert.equal(app.chat().props.canModerate, false);
+});
+
+const nativePin = value => ({ id: '33333333-3333-4333-8333-' + String(['old pin', 'replacement', 'canonical pin', 'current pin'].indexOf(value) + 1).padStart(12, '0'), body: value, session_id: sid });
+for (const incoming of [nativePin('replacement'), null]) test('native canonical detail cannot overwrite a newer realtime ' + (incoming ? 'pin' : 'unpin'), async () => {
+  const app = native({ deferDetails: true }); app.render(); await app.h.settle();
+  await app.resolveDetail(0, nativePin('old pin'));
+  app.chat().props.onChanged();
+  app.chat().props.onUpdate({ pinned_message: incoming });
+  assert.equal(app.chat().props.pinned, incoming);
+  await app.resolveDetail(1, nativePin('old pin'), { capabilities: { chat: false } });
+  assert.equal(app.chat().props.pinned, incoming, 'The response must preserve pin events received after this read started');
+  assert.equal(app.chat().props.enabled, false, 'Other canonical detail fields still apply');
+});
+
+for (const canonical of [nativePin('replacement'), null]) test('native canonical detail still applies a missed ' + (canonical ? 'pin' : 'unpin') + ' when no newer pin event arrived', async () => {
+  const app = native({ deferDetails: true }); app.render(); await app.h.settle();
+  await app.resolveDetail(0, nativePin('old pin'));
+  app.chat().props.onChanged(); await app.resolveDetail(1, canonical);
+  assert.equal(app.chat().props.pinned, canonical);
+});
+
+test('native non-pin patches do not suppress canonical pin reconciliation', async () => {
+  const app = native({ deferDetails: true }); app.render(); await app.h.settle();
+  await app.resolveDetail(0, nativePin('old pin'));
+  app.chat().props.onChanged(); app.chat().props.onUpdate({ session: { chat_mode: 'closed' } });
+  const canonical = nativePin('canonical pin'); await app.resolveDetail(1, canonical);
+  assert.equal(app.chat().props.pinned, canonical);
+});
+
+test('native a later detail read reconciles pins after an earlier realtime update', async () => {
+  const app = native({ deferDetails: true }); app.render(); await app.h.settle();
+  await app.resolveDetail(0, nativePin('old pin'));
+  app.chat().props.onUpdate({ pinned_message: nativePin('current pin') });
+  app.chat().props.onChanged(); await app.resolveDetail(1, null);
+  assert.equal(app.chat().props.pinned, null);
+});
+
+for (const removedTarget of ['old pin', 'replacement']) test('native reconnect applies a missed pin while respecting removal of ' + removedTarget, async () => {
+  const app = native({ deferDetails: true, actualChat: true }); app.render(); await app.h.settle();
+  await app.resolveDetail(0, nativePin('old pin')); await app.startChild();
+  app.childStatus('CHANNEL_ERROR'); app.childStatus('SUBSCRIBED'); assert.equal(app.reads.length, 2);
+  app.emitChild('message_removed', { id: nativePin(removedTarget).id });
+  const canonical = nativePin('replacement'); await app.resolveDetail(1, canonical);
+  const expected = removedTarget === 'replacement' ? null : canonical;
+  assert.equal(app.chat().props.pinned, expected, 'A removal only invalidates that message, not a different missed pin');
+  assert.equal(nodes(app.renderChild()).some(node => node.type === 'Text' && node.props.children === canonical.body), expected !== null);
 });
 
 test('retired web chat and control callbacks cannot update a replacement subscription', async () => {

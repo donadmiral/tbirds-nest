@@ -5,6 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
 const YAML = require('yaml');
+const crypto = require('node:crypto');
 const { createClient } = require('@supabase/supabase-js');
 const { createFixture } = require('../native/backend-fixture.cjs');
 const { feedVideoOverlay, feedRefreshOverlay } = require('../../scripts/quality/native-ui-feed-video-overlay.cjs');
@@ -58,4 +59,36 @@ test('the playback gate requires a painted frame, current ownership, ready sourc
   const refresh = feedRefreshOverlay(feed);
   assert.equal(ts.createSourceFile('FeedScreen.tsx', refresh, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX).parseDiagnostics.length, 0);
   assert.throws(() => feedRefreshOverlay(refresh), /Expected one/);
+});
+
+test('the feed return targets its caption because clipped media bounds do not establish autoplay eligibility', () => {
+  const source = fs.readFileSync(path.join(root, 'src/screens/feed/FeedScreen.tsx'), 'utf8');
+  const ast = ts.createSourceFile('FeedScreen.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let callback;
+  function visit(node) {
+    if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'reportHistoryVisible') callback = node.initializer.arguments[0];
+    ts.forEachChild(node, visit);
+  }
+  visit(ast); assert.ok(callback, 'The actual measured-history visibility callback must exist');
+  let visible;
+  // Retained ed582 Android geometry: 240px media, 157px above it and 76px below it.
+  // The return screenshot exposes 254px of this 473px post in a 445px viewport.
+  const scope = {
+    historyRef: { current: { getSnapshot: () => ({ before: 0, pages: [{ index: 0, height: 662 }] }) } },
+    scrollOffsetRef: { current: 219 }, historyHeaderHeight: { current: 0 }, historyViewport: { current: 445 },
+    historyRects: { current: new Map([['video', { page: 0, y: 0, height: 473 }], ['next', { page: 0, y: 473, height: 189 }]]) },
+    displayPosts: [{ id: 'video' }, { id: 'next' }], onViewableItemsChanged(value) { visible = value.viewableItems.map(item => item.item.id); },
+  };
+  vm.runInNewContext(ts.transpileModule('globalThis.report = ' + callback.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, scope);
+  scope.report(); assert.deepEqual(Array.from(visible), ['next'], 'The clipped return position correctly does not activate the video');
+  scope.scrollOffsetRef.current = 132; scope.report();
+  assert.equal(visible[0], 'video', 'The retained initial playing position meets the same production rule');
+
+  const flow = YAML.parseAllDocuments(fs.readFileSync(path.join(root, 'tests/native/flows/feed-video.yaml'), 'utf8'))[1].toJSON();
+  assert.deepEqual(flow[5].scrollUntilVisible, {
+    element: 'A quiet morning in the desert. Small moments worth keeping.', direction: 'UP', centerElement: true,
+  });
+  const original = structuredClone(flow);
+  original[5].scrollUntilVisible.element = { id: 'native-feed-video' };
+  assert.equal(crypto.createHash('sha256').update(JSON.stringify(original)).digest('hex'), '220b375df1bcb9d3347aa0cb2739341308d11ff9129493b6b8cfa7570cc07a3a', 'Every other action, decoded-playback predicate and deadline remains unchanged');
 });
