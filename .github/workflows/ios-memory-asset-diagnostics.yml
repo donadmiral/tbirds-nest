@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 3
       - name: Validate diagnostic evidence guards
         run: python3 -B -m unittest discover -s tests/quality -p test_ios_memory_asset_probe.py
       - name: Run one bounded standalone native probe

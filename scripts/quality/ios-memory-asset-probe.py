@@ -212,7 +212,9 @@ class Driver:
         macos, _ = self.command(["sw_vers", "-productVersion"], "macos-version", 10)
         if not re.fullmatch(r"15\.[0-9]+(?:\.[0-9]+)?", macos):
             raise ProbeFailure("runner_os_mismatch")
-        runtimes, _ = self.command(["xcrun", "simctl", "list", "runtimes", "--json"], "available-runtimes", 15)
+        # The first simctl call also starts CoreSimulator on the fresh runner.
+        # This setup bound is separate from the unchanged 20-second media load.
+        runtimes, _ = self.command(["xcrun", "simctl", "list", "runtimes", "--json"], "available-runtimes", 90)
         runtime = select_runtime(json.loads(runtimes))
         runtime.update(architecture="x86_64", runner="macos-15-intel", macosVersion=macos,
                        xcodeVersion="16.4", xcodeBuild="16F6", sdkVersion="18.5", sdkBuild=sdk_build,
