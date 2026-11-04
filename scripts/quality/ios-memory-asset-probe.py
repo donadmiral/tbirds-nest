@@ -250,7 +250,7 @@ class Driver:
             raise ProbeFailure("invalid_created_simulator")
         self.device = device
         self.command(["xcrun", "simctl", "boot", device], "boot-simulator", 20)
-        self.command(["xcrun", "simctl", "bootstatus", device, "-b"], "simulator-ready", 160)
+        self.command(["xcrun", "simctl", "bootstatus", device, "-b"], "simulator-ready", 300)
         self.command(["xcrun", "simctl", "install", device, str(app)], "install-probe", 30)
         container, _ = self.command(["xcrun", "simctl", "get_app_container", device, BUNDLE, "data"], "probe-container", 10)
         self.container = Path(container)
