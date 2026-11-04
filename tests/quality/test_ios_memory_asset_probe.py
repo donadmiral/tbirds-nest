@@ -124,6 +124,32 @@ class EvidenceGuards(unittest.TestCase):
                     driver.command(["standalone-probe"], "probe-console", 60)
                 launch.assert_not_called()
 
+    def test_setup_uses_only_remaining_shared_driver_budget(self):
+        with tempfile.TemporaryDirectory() as temp, mock.patch.object(PROBE.time, "monotonic", return_value=1000):
+            driver = PROBE.Driver(Path(temp))
+            process = mock.Mock(pid=12345)
+            process.wait.return_value = 0
+            with mock.patch.object(PROBE.subprocess, "Popen", return_value=process):
+                driver.command(["setup-command"], "setup")
+                process.wait.assert_called_once_with(timeout=450)
+                process.wait.reset_mock()
+                driver.deadline = 1080
+                driver.command(["another-setup-command"], "another-setup")
+                process.wait.assert_called_once_with(timeout=80)
+
+    def test_probe_process_keeps_sixty_second_cap_within_shared_budget(self):
+        with tempfile.TemporaryDirectory() as temp, mock.patch.object(PROBE.time, "monotonic", return_value=1000):
+            driver = PROBE.Driver(Path(temp))
+            process = mock.Mock(pid=12345)
+            process.wait.return_value = 0
+            with mock.patch.object(PROBE.subprocess, "Popen", return_value=process):
+                driver.command(["standalone-probe"], "probe-console", 60, allow_failure=True)
+                process.wait.assert_called_once_with(timeout=60)
+                process.wait.reset_mock()
+                driver.deadline = 1020
+                driver.command(["standalone-probe"], "probe-console-limited", 60, allow_failure=True)
+                process.wait.assert_called_once_with(timeout=20)
+
     def test_native_and_workflow_scope_remain_disposable(self):
         swift = (ROOT / "scripts/quality/MemoryAssetLoadProbe.swift").read_text()
         self.assertIn("@MainActor func run() async", swift)

@@ -140,8 +140,10 @@ class Driver:
         self.temporary = None
         self.container = None
 
-    def command(self, args, label, seconds, allow_failure=False):
-        remaining = min(seconds, self.deadline - time.monotonic())
+    def command(self, args, label, seconds=None, allow_failure=False):
+        remaining = self.deadline - time.monotonic()
+        if seconds is not None:
+            remaining = min(seconds, remaining)
         if remaining <= 0:
             raise ProbeFailure("driver_deadline")
         started = time.monotonic()
@@ -180,11 +182,11 @@ class Driver:
         if (platform.system() != "Darwin" or platform.machine() != "x86_64"
                 or os.environ.get("CI") != "true" or os.environ.get("DEVELOPER_DIR") != DEVELOPER):
             raise ProbeFailure("requires_exact_disposable_intel_runner")
-        commit, _ = self.command(["git", "rev-parse", "HEAD"], "source-commit", 5)
+        commit, _ = self.command(["git", "rev-parse", "HEAD"], "source-commit")
         if not re.fullmatch(r"[a-f0-9]{40}", commit) or commit != os.environ.get("GITHUB_SHA"):
             raise ProbeFailure("source_commit_mismatch")
-        self.command(["git", "merge-base", "--is-ancestor", BASE, "HEAD"], "source-base", 5)
-        state, _ = self.command(["git", "status", "--porcelain", "--untracked-files=no"], "source-state", 5)
+        self.command(["git", "merge-base", "--is-ancestor", BASE, "HEAD"], "source-base")
+        state, _ = self.command(["git", "status", "--porcelain", "--untracked-files=no"], "source-state")
         if state:
             raise ProbeFailure("modified_tracked_source")
         hashes = {name: file_identity(Path(name)) for name in SOURCES}
@@ -202,19 +204,19 @@ class Driver:
         (self.output / "sources").mkdir()
         for name in SOURCES[:4]:
             shutil.copyfile(name, self.output / "sources" / Path(name).name)
-        xcode, _ = self.command(["xcodebuild", "-version"], "xcode-version", 10)
-        sdk_version, _ = self.command(["xcrun", "--sdk", "iphonesimulator", "--show-sdk-version"], "sdk-version", 10)
-        sdk_build, _ = self.command(["xcrun", "--sdk", "iphonesimulator", "--show-sdk-build-version"], "sdk-build", 10)
+        xcode, _ = self.command(["xcodebuild", "-version"], "xcode-version")
+        sdk_version, _ = self.command(["xcrun", "--sdk", "iphonesimulator", "--show-sdk-version"], "sdk-version")
+        sdk_build, _ = self.command(["xcrun", "--sdk", "iphonesimulator", "--show-sdk-build-version"], "sdk-build")
         if xcode != "Xcode 16.4\nBuild version 16F6" or sdk_version != "18.5" or sdk_build != "22F76":
             raise ProbeFailure("toolchain_mismatch")
-        sdk, _ = self.command(["xcrun", "--sdk", "iphonesimulator", "--show-sdk-path"], "sdk-path", 10)
-        swift, _ = self.command(["xcrun", "swiftc", "--version"], "swift-version", 10)
-        macos, _ = self.command(["sw_vers", "-productVersion"], "macos-version", 10)
+        sdk, _ = self.command(["xcrun", "--sdk", "iphonesimulator", "--show-sdk-path"], "sdk-path")
+        swift, _ = self.command(["xcrun", "swiftc", "--version"], "swift-version")
+        macos, _ = self.command(["sw_vers", "-productVersion"], "macos-version")
         if not re.fullmatch(r"15\.[0-9]+(?:\.[0-9]+)?", macos):
             raise ProbeFailure("runner_os_mismatch")
-        # The first simctl call also starts CoreSimulator on the fresh runner.
-        # This setup bound is separate from the unchanged 20-second media load.
-        runtimes, _ = self.command(["xcrun", "simctl", "list", "runtimes", "--json"], "available-runtimes", 90)
+        # All setup shares the existing driver deadline. Only the actual probe
+        # process has a separate host cap, alongside its native media deadline.
+        runtimes, _ = self.command(["xcrun", "simctl", "list", "runtimes", "--json"], "available-runtimes")
         runtime = select_runtime(json.loads(runtimes))
         runtime.update(architecture="x86_64", runner="macos-15-intel", macosVersion=macos,
                        xcodeVersion="16.4", xcodeBuild="16F6", sdkVersion="18.5", sdkBuild=sdk_build,
@@ -235,24 +237,24 @@ class Driver:
                       "-sdk", sdk, "-target", "x86_64-apple-ios15.1-simulator", "-parse-as-library",
                       SOURCES[0], "-framework", "UIKit", "-framework", "AVFoundation", "-framework", "CoreMedia",
                       "-framework", "CoreVideo", "-framework", "CryptoKit", "-o", str(app / EXECUTABLE)],
-                     "swift-build", 100)
-        self.command(["xcrun", "lipo", str(app / EXECUTABLE), "-verify_arch", "x86_64"], "binary-architecture", 10)
-        self.command(["codesign", "--force", "--sign", "-", str(app)], "sign-standalone-probe", 15)
-        self.command(["codesign", "--verify", "--strict", str(app)], "verify-probe-signature", 10)
+                     "swift-build")
+        self.command(["xcrun", "lipo", str(app / EXECUTABLE), "-verify_arch", "x86_64"], "binary-architecture")
+        self.command(["codesign", "--force", "--sign", "-", str(app)], "sign-standalone-probe")
+        self.command(["codesign", "--verify", "--strict", str(app)], "verify-probe-signature")
         binary = {"executable": file_identity(app / EXECUTABLE), "infoPlist": file_identity(app / "Info.plist"),
                   "packagedFixture": file_identity(app / "fixture.mp4"), "bundleIdentifier": BUNDLE,
                   "application": "standalone diagnostic, no production app rebuilt or resigned"}
         if binary["packagedFixture"] != hashes[FIXTURE]:
             raise ProbeFailure("packaged_fixture_mismatch")
         (self.output / "binary.json").write_text(json.dumps(binary, indent=2) + "\n")
-        device, _ = self.command(["xcrun", "simctl", "create", "Memory asset probe " + commit[:8], DEVICE, RUNTIME], "create-simulator", 15)
+        device, _ = self.command(["xcrun", "simctl", "create", "Memory asset probe " + commit[:8], DEVICE, RUNTIME], "create-simulator")
         if not re.fullmatch(r"[A-Fa-f0-9-]{36}", device):
             raise ProbeFailure("invalid_created_simulator")
         self.device = device
-        self.command(["xcrun", "simctl", "boot", device], "boot-simulator", 20)
-        self.command(["xcrun", "simctl", "bootstatus", device, "-b"], "simulator-ready", 300)
-        self.command(["xcrun", "simctl", "install", device, str(app)], "install-probe", 30)
-        container, _ = self.command(["xcrun", "simctl", "get_app_container", device, BUNDLE, "data"], "probe-container", 10)
+        self.command(["xcrun", "simctl", "boot", device], "boot-simulator")
+        self.command(["xcrun", "simctl", "bootstatus", device, "-b"], "simulator-ready")
+        self.command(["xcrun", "simctl", "install", device, str(app)], "install-probe")
+        container, _ = self.command(["xcrun", "simctl", "get_app_container", device, BUNDLE, "data"], "probe-container")
         self.container = Path(container)
         if not self.container.is_dir():
             raise ProbeFailure("missing_probe_container")
