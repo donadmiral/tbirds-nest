@@ -56,9 +56,86 @@ test('the two Settings flows use only the documented route and one enabled on-st
     { tapOn: '^AutoFill & Passwords$' },
     { assertVisible: '^AutoFill Passwords and Passkeys$' },
   ]);
-  const on = { text: '^AutoFill Passwords and Passkeys$', checked: true, enabled: true };
-  assert.deepEqual(disable, [{ assertVisible: on }, { tapOn: on },
+  const on = { id: '^AutoFillToggle$', text: '^AutoFill Passwords and Passkeys$', checked: true, enabled: true };
+  const target = { childOf: { id: '^AutoFillToggle$' }, id: '^$', checked: true, enabled: true };
+  assert.deepEqual(disable, [{ assertVisible: on }, { tapOn: target },
     { assertVisible: { ...on, checked: false } }]);
+});
+
+// Exact nested control attributes from original 216 artifact 13366456861. The
+// public Settings row exposes its label and actual switch as separate children.
+const recordedAutofillRow = {
+  attributes: { 'resource-id': 'AutoFillToggle', accessibilityText: 'AutoFill Passwords and Passkeys',
+    text: '1', value: '1', bounds: '[16,151][386,203]' }, enabled: true, checked: true,
+  children: [
+    { attributes: { 'resource-id': '', accessibilityText: 'AutoFill Passwords and Passkeys',
+      text: '', value: '', bounds: '[32,166][282,187]' }, enabled: true, checked: false, children: [] },
+    { attributes: { 'resource-id': '', accessibilityText: '',
+      text: '1', value: '1', bounds: '[309,163][372,191]' }, enabled: true, checked: true, children: [] },
+  ],
+};
+
+// Replay only the selector subset used here, following immutable Maestro 2.11.0
+// commit c8c361be1cc89b2e742f185466a302a22778be6b: Orchestra.kt 1447-1454
+// scopes childOf, 1703-1706 chooses deepest matches, Filters.kt 58-130/260-295
+// supplies text/id/state matching. This is a retained-hierarchy regression,
+// not a substitute for the required installed-Simulator flow and value 0 readback.
+function selectRecordedControl(rootNode, selector) {
+  for (const key of Object.keys(selector)) assert.ok(['childOf', 'id', 'text', 'checked', 'enabled'].includes(key));
+  const parent = selector.childOf ? selectRecordedControl(rootNode, selector.childOf)[0] : rootNode;
+  if (!parent) return [];
+  const matches = node => {
+    const attrs = node.attributes;
+    if (selector.id !== undefined) {
+      const id = attrs['resource-id'];
+      if (typeof id !== 'string' || !(new RegExp(selector.id).test(id)
+        || new RegExp(selector.id).test(id.substring(id.lastIndexOf('/') + 1)))) return false;
+    }
+    if (selector.text !== undefined && !['text', 'hintText', 'accessibilityText'].some(key =>
+      typeof attrs[key] === 'string' && new RegExp(selector.text).test(attrs[key]))) return false;
+    return ['checked', 'enabled'].every(key => selector[key] === undefined || node[key] === selector[key]);
+  };
+  const deepest = node => {
+    const children = node.children.flatMap(deepest);
+    return children.length ? children : matches(node) ? [node] : [];
+  };
+  return deepest(parent);
+}
+
+function disableCommands() {
+  const docs = YAML.parseAllDocuments(fs.readFileSync(path.join(root, 'tests/native/flows/ios-autofill-disable.yaml'), 'utf8'));
+  for (const doc of docs) assert.deepEqual(doc.errors, []);
+  return docs[1].toJS();
+}
+
+test('the recorded nested row resolves the actual enabled switch instead of its label or row center', () => {
+  const old = { text: '^AutoFill Passwords and Passkeys$', checked: true, enabled: true };
+  assert.deepEqual(selectRecordedControl(recordedAutofillRow, old), [recordedAutofillRow]);
+  const target = disableCommands()[1].tapOn;
+  const selected = selectRecordedControl(recordedAutofillRow, target);
+  assert.equal(selected.length, 1);
+  assert.strictEqual(selected[0], recordedAutofillRow.children[1]);
+  assert.equal(selected[0].attributes.bounds, '[309,163][372,191]');
+  assert.equal(selected[0].attributes.value, '1');
+  assert.deepEqual(selectRecordedControl({ ...recordedAutofillRow, children: [recordedAutofillRow.children[0]] }, target), []);
+  const disabled = structuredClone(recordedAutofillRow); disabled.children[1].enabled = false;
+  assert.deepEqual(selectRecordedControl(disabled, target), []);
+  const otherRow = structuredClone(recordedAutofillRow); otherRow.attributes['resource-id'] = 'AnotherToggle';
+  assert.deepEqual(selectRecordedControl(otherRow, target), []);
+});
+
+test('the recorded static label cannot satisfy the corrected control-scoped off assertion', () => {
+  const oldOff = { text: '^AutoFill Passwords and Passkeys$', checked: false, enabled: true };
+  assert.deepEqual(selectRecordedControl(recordedAutofillRow, oldOff), [recordedAutofillRow.children[0]]);
+  const commands = disableCommands();
+  assert.deepEqual(selectRecordedControl(recordedAutofillRow, commands[0].assertVisible), [recordedAutofillRow]);
+  assert.deepEqual(selectRecordedControl(recordedAutofillRow, commands[2].assertVisible), []);
+  const off = structuredClone(recordedAutofillRow);
+  for (const node of [off, off.children[1]]) {
+    node.checked = false; node.attributes.value = '0'; node.attributes.text = '0';
+  }
+  assert.deepEqual(selectRecordedControl(off, commands[2].assertVisible), [off]);
+  assert.deepEqual(selectRecordedControl(off, commands[1].tapOn), []);
 });
 
 test('actual preflight guards reject wrong identity, ambiguous controls, stale ownership and incomplete readback', () => {

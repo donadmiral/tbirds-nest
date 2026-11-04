@@ -107,6 +107,19 @@ export const AUTOFILL_BUDGET_CORRECTION = Object.freeze({
     ['.github/workflows/live-release-acceptance.yml', '257755af631b048d40aac1ada05a0c89c418b41a8a3083b7a9deff392b0f3997'],
   ].map(([file, sha256]) => Object.freeze({path: file, sha256, mode: '100644'}))),
 });
+// One reviewed direct child corrects only the Settings switch selector and its test.
+// Original provider evidence stays source-bound. The actual preflight and both
+// native platforms still require fresh acceptance on this corrected source.
+export const AUTOFILL_SELECTOR_CORRECTION = Object.freeze({
+  parent: '216abae56e2aa659504df983be6494f13da578db',
+  parentTree: '3a513b39a949827803fdea5abb2b51b6e5c3d244',
+  acceptedTree: '56809768fb0e6e13a11afcc6f2096de6139c88ae',
+  files: Object.freeze([
+    ['tests/native/flows/ios-autofill-disable.yaml', '7b1e90efc86513fb5664e09441257930fd6899eff8e54b06510556b0d353b75a'],
+    ['tests/quality/native-ios-autofill.cjs', 'c7ac2b04ba668de4db1b39a573a11ec426ca295279d8213cc891ef4607b01f7b'],
+    ['.github/workflows/live-release-acceptance.yml', 'b9c6e424499170ec37a054228901c5779733fab019f8c7adf6667057ef8ba127'],
+  ].map(([file, sha256]) => Object.freeze({path: file, sha256, mode: '100644'}))),
+});
 export const VERIFIER_FILES = Object.freeze([
   'tests/quality/live-connected-evidence-reuse.cjs',
   'tools/reuse-live-connected-evidence.mjs',
@@ -133,9 +146,35 @@ function fixtureCorrection(git, base, target) {
   assert.ok(status.every(line => /^[AM]\t/.test(line)), 'Reuse cannot delete or rename files');
   for (const file of ALLOWED) normalFile(git, target, file);
 }
-export function sourceApplicability(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION, keyboardRule = KEYBOARD_CORRECTION, autofillRule = AUTOFILL_CORRECTION, budgetRule = AUTOFILL_BUDGET_CORRECTION) {
+export function sourceApplicability(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION, keyboardRule = KEYBOARD_CORRECTION, autofillRule = AUTOFILL_CORRECTION, budgetRule = AUTOFILL_BUDGET_CORRECTION, selectorRule = AUTOFILL_SELECTOR_CORRECTION) {
   assert.equal(git(['rev-parse', 'HEAD']).trim(), source, 'Checkout differs from release source');
   const parents = git(['show', '-s', '--format=%P', 'HEAD']).trim().split(/\s+/);
+  if (parents.includes(selectorRule.parent)) {
+    assert.deepEqual(parents, [selectorRule.parent], 'AutoFill selector reuse must be the reviewed single-parent correction');
+    assert.equal(git(['status', '--porcelain=v1', '--untracked-files=no']).trim(), '', 'Tracked checkout or index differs from the verified source');
+    for (const [rule, parent] of [[selectorRule, budgetRule.parent], [budgetRule, autofillRule.parent], [autofillRule, keyboardRule.parent], [keyboardRule, feedRule.parent], [feedRule, nativeRule.parent], [nativeRule, base]]) {
+      assert.equal(git(['rev-parse', rule.parent + '^{tree}']).trim(), rule.parentTree, 'Reviewed AutoFill selector ancestry tree changed');
+      assert.deepEqual(git(['show', '-s', '--format=%P', rule.parent]).trim().split(/\s+/), [parent], 'Reviewed AutoFill selector parent ancestry changed');
+    }
+    assert.equal(git(['rev-parse', base + '^{tree}']).trim(), selectorRule.acceptedTree, 'Original connected source tree changed');
+    const allowed = [...selectorRule.files.map(file => file.path), ...VERIFIER_FILES].sort();
+    assert.deepEqual(changedPaths(git, selectorRule.parent, 'HEAD'), allowed, 'AutoFill selector exception contains an unreviewed or missing change');
+    const status = git(['diff', '--name-status', '--no-renames', selectorRule.parent, 'HEAD']).trim().split('\n');
+    assert.ok(status.every(line => /^M\t/.test(line)), 'AutoFill selector exception cannot add, delete, rename or change file type');
+    for (const file of allowed) normalFile(git, 'HEAD', file);
+    for (const file of selectorRule.files) {
+      normalFile(git, 'HEAD', file.path, file.mode);
+      assert.equal(hash(git(['show', 'HEAD:' + file.path])), file.sha256, 'Reviewed AutoFill selector correction bytes changed: ' + file.path);
+    }
+    const connected = CONNECTED_PATHS.filter(file => file !== 'scripts/quality')
+      .concat('scripts/quality/install-browser-test-runtime.sh');
+    assert.equal(git(['diff', '--name-only', '--no-renames', base, 'HEAD', '--', ...connected]).trim(), '', 'Connected runtime or browser preparation changed');
+    return {kind: 'native-ios-autofill-selector-correction', comparisonParent: selectorRule.parent,
+      comparisonParentTree: selectorRule.parentTree, connectedRuntimeEquivalent: true,
+      nativeRuntimeEquivalent: false, nativeFeedRequiresSeparateValidation: true,
+      nativeKeyboardRequiresSeparateValidation: true, nativeIosAutofillRequiresSeparateValidation: true,
+      permittedChanges: allowed, verifiedFiles: selectorRule.files};
+  }
   if (parents.includes(budgetRule.parent)) {
     assert.deepEqual(parents, [budgetRule.parent], 'AutoFill budget reuse must be the reviewed single-parent correction');
     assert.equal(git(['status', '--porcelain=v1', '--untracked-files=no']).trim(), '', 'Tracked checkout or index differs from the verified source');
@@ -262,8 +301,8 @@ export function sourceApplicability(git, source, base = PINNED.source, nativeRul
   return {kind: 'native-clips-correction', comparisonParent: nativeRule.parent, comparisonParentTree: nativeRule.parentTree,
     connectedRuntimeEquivalent: true, nativeRuntimeEquivalent: false, permittedChanges: allowed, verifiedFiles: nativeRule.files};
 }
-export function sourceEquivalent(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION, keyboardRule = KEYBOARD_CORRECTION, autofillRule = AUTOFILL_CORRECTION, budgetRule = AUTOFILL_BUDGET_CORRECTION) {
-  return sourceApplicability(git, source, base, nativeRule, feedRule, keyboardRule, autofillRule, budgetRule) !== null;
+export function sourceEquivalent(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION, keyboardRule = KEYBOARD_CORRECTION, autofillRule = AUTOFILL_CORRECTION, budgetRule = AUTOFILL_BUDGET_CORRECTION, selectorRule = AUTOFILL_SELECTOR_CORRECTION) {
+  return sourceApplicability(git, source, base, nativeRule, feedRule, keyboardRule, autofillRule, budgetRule, selectorRule) !== null;
 }
 
 export function verifyMetadata(run, job, artifact, pinned = PINNED) {
