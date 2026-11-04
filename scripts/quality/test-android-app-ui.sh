@@ -180,7 +180,7 @@ evidence_status=0
 mkdir -p native-ui-logs/memory-capture
 "$adb_bin" pull /data/user/0/app.platinumcircles.mobile.qa/files/native-memory-capture/. native-ui-logs/memory-capture/ || evidence_status=1
 memory_status=0
-python3 scripts/quality/verify-native-ui-memory.py || memory_status=$?
+python3 scripts/quality/verify-native-ui-memory.py native-ui-logs/memory-capture android || memory_status=$?
 verification_status=0
 node scripts/quality/verify-native-ui.cjs android || verification_status=$?
 cat > native-ui-logs/phase-results.json <<EOF

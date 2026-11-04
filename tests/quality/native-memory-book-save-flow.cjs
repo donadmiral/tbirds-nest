@@ -59,6 +59,39 @@ test('actual Paper tint is a harmless text child inside the handled-taps setting
   assert.equal(values.keyboardShouldPersistTaps, 'handled'); assert.equal(values.keyboardDismissMode, 'on-drag');
 });
 
+test('the inscription has a harmless Writing style heading in the same scroll content and only the postmark is single-line', () => {
+  const creative = ts.createSourceFile('MemoryCreativeControls.tsx', read('src/components/memory/MemoryCreativeControls.tsx'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const attributes = node => Object.fromEntries(node.attributes.properties.filter(ts.isJsxAttribute)
+    .map(prop => [prop.name.getText(creative), prop.initializer?.getText(creative) ?? true]));
+  const inputs = nodes(creative, node => ts.isJsxSelfClosingElement(node) && node.tagName.getText(creative) === 'TextInput');
+  const inscription = inputs.find(node => attributes(node).testID === '"memory-cover-inscription"');
+  const postmark = inputs.find(node => attributes(node).testID === '"memory-cover-postmark"');
+  assert.ok(inscription); assert.ok(postmark);
+  assert.equal(attributes(inscription).multiline, true);
+  for (const property of ['multiline', 'submitBehavior', 'blurOnSubmit', 'onSubmitEditing']) {
+    assert.equal(attributes(postmark)[property], undefined, 'the postmark preserves the installed single-line Return behavior');
+  }
+  const choices = nodes(creative, node => ts.isJsxSelfClosingElement(node) && node.tagName.getText(creative) === 'Choices'
+    && attributes(node).label === '"Writing style"');
+  assert.equal(choices.length, 1);
+  const heading = nodes(creative, node => ts.isJsxElement(node) && node.openingElement.tagName.getText(creative) === 'Text'
+    && node.children.some(child => ts.isJsxExpression(child) && child.expression?.getText(creative) === 'label'));
+  assert.equal(heading.length, 2, 'Choices and Toggle each render a label');
+  const choiceHeading = heading.find(node => {
+    let parent = node.parent;
+    while (parent && !ts.isFunctionDeclaration(parent)) parent = parent.parent;
+    return parent?.name?.text === 'Choices';
+  });
+  assert.ok(choiceHeading);
+  assert.equal(choiceHeading.openingElement.attributes.properties.some(prop => prop.name?.getText(creative) === 'onPress'), false);
+  const control = nodes(source, node => ts.isJsxSelfClosingElement(node) && node.tagName.getText(source) === 'MemoryCoverControls');
+  assert.equal(control.length, 1);
+  let parent = control[0].parent;
+  while (parent && !(ts.isJsxElement(parent) && parent.openingElement.tagName.getText(source) === 'ScrollView')) parent = parent.parent;
+  assert.ok(parent);
+  assert.equal(parent.openingElement.attributes.properties.find(prop => prop.name?.getText(source) === 'keyboardShouldPersistTaps')?.initializer?.text, 'handled');
+});
+
 test('installed RN handled-tap responder blurs the input without invoking the actual modal Back dismissal', () => {
   const rn = read('node_modules/react-native/Libraries/Components/ScrollView/ScrollView.js');
   const input = {}, heading = {}; let focused = input, settings = true;
@@ -113,9 +146,20 @@ for (const [label, current, before, title, dismissals] of flows) {
         const firstScroll = find(rows, row => row.scrollUntilVisible?.element === 'Paper tint', copied + 1);
         assert.ok(returned < firstScroll, 'dismiss the single-line title keyboard before scrolling the reduced sheet');
         assert.equal(rows[returned + 1].assertVisible, 'Book settings', 'Return must preserve the settings modal');
-        assert.equal(inside.filter(row => row.pressKey === 'Enter').length, 1);
+        const inscription = find(rows, row => row.inputText === 'Roads worth remembering', firstScroll);
+        const inscriptionScroll = find(rows, row => row.scrollUntilVisible?.element === 'Paper tint', inscription);
+        assert.deepEqual(rows.slice(inscription + 1, inscriptionScroll), [
+          { tapOn: 'Writing style' }, { assertVisible: 'Book settings' },
+        ], 'tap the visible heading inside the real scroll content without submitting the multiline field');
+        const postmark = find(rows, row => row.inputText === 'DESERT DAYS', inscriptionScroll);
+        const postmarkScroll = find(rows, row => row.scrollUntilVisible?.element === 'Paper tint', postmark);
+        assert.deepEqual(rows.slice(postmark + 1, postmarkScroll), [
+          { pressKey: 'Enter' }, { assertVisible: 'Book settings' },
+        ], 'dismiss the single-line postmark keyboard before the next global scroll');
+        assert.equal(inside.filter(row => row.pressKey === 'Enter').length, 2);
       } else if (label === 'full') {
         assert.equal(inside.some(row => row.pressKey === 'Enter'), false, 'the passing Android keyboard interactions remain unchanged');
+        assert.equal(inside.some(row => tap(row) === 'Writing style'), false, 'the iOS heading dismissal must not change Android');
       }
       assert.ok(copied < save); assert.equal(rows.filter(row => tap(row) === 'Save memory book').length, 1);
       const closed = find(rows, row => row.extendedWaitUntil?.notVisible === 'Book settings', save);

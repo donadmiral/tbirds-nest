@@ -135,7 +135,7 @@ else
   evidence_status=1
 fi
 memory_status=0
-python3 scripts/quality/verify-native-ui-memory.py || memory_status=$?
+python3 scripts/quality/verify-native-ui-memory.py native-ui-logs/memory-capture ios || memory_status=$?
 verification_status=0
 node scripts/quality/verify-native-ui.cjs ios || verification_status=$?
 cat > native-ui-logs/phase-results.json <<EOF

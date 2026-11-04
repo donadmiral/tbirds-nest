@@ -41,7 +41,8 @@ const memoryFailureIdentity = { fixture: memoryFixturePath, bytes: EXPECTED_BYTE
 const dependencyFiles = {
   '@supabase/supabase-js': ['package.json', 'dist/index.cjs', 'dist/index.mjs'],
   '@supabase/auth-js': ['package.json', 'src/lib/locks.ts', 'dist/main/index.js', 'dist/module/index.js', 'dist/main/lib/locks.js', 'dist/module/lib/locks.js'],
-  'react-native': ['package.json', 'index.js', 'Libraries/Pressability/Pressability.js', 'Libraries/Pressability/PressabilityPerformanceEventEmitter.js', 'Libraries/Pressability/PressabilityTypes.js'],
+  'react-native': ['package.json', 'index.js', 'Libraries/Pressability/Pressability.js', 'Libraries/Pressability/PressabilityPerformanceEventEmitter.js', 'Libraries/Pressability/PressabilityTypes.js', 'Libraries/Utilities/PixelRatio.js', 'Libraries/Utilities/Dimensions.js'],
+  'react-native-view-shot': ['package.json', 'src/index.js', 'ios/RNViewShot.mm', 'android/src/main/java/fr/greweb/reactnativeviewshot/RNViewShotModule.java', 'android/src/main/java/fr/greweb/reactnativeviewshot/ViewShot.java'],
   ...memoryDependencyFiles,
 };
 const lockPackages = JSON.parse(fs.readFileSync('package-lock.json', 'utf8')).packages;

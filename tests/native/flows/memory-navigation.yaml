@@ -77,6 +77,13 @@ name: Saved memory book, automatic film and cover editing
 - tapOn:
     id: memory-cover-inscription
 - inputText: Roads worth remembering
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # This visible heading is inside the scroll content. Return would add a newline.
+      - tapOn: Writing style
+      - assertVisible: Book settings
 - scrollUntilVisible:
     element: Paper tint
     direction: UP
@@ -95,6 +102,13 @@ name: Saved memory book, automatic film and cover editing
 - tapOn:
     id: memory-cover-postmark
 - inputText: DESERT DAYS
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # The postmark is single-line, so Return blurs it before the next scroll.
+      - pressKey: Enter
+      - assertVisible: Book settings
 - scrollUntilVisible:
     element: Paper tint
     direction: UP

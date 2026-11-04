@@ -74,3 +74,21 @@ test('confirmation handling preserves the required route, storage and export ass
   const source = JSON.stringify(flow);
   assert.doesNotMatch(source, /launchApp|clearState|clearKeychain|stopApp|autoVerify|optional|Sign in/);
 });
+
+test('the first active download is closed immediately after its visible progress requirement', () => {
+  const progress = flow.findIndex(command => command.extendedWaitUntil?.visible
+    === 'Reading the movie’s video timing…');
+  assert.ok(progress > 0);
+  assert.deepEqual(flow[progress], { extendedWaitUntil: {
+    visible: 'Reading the movie’s video timing…', timeout: 15000,
+  } });
+  assert.deepEqual(flow[progress + 1], { tapOn: {
+    text: 'Close movie export', waitToSettleTimeoutMs: 1000,
+  } }, 'A no-op progress tap can consume the real download deadline before cancellation.');
+  assert.deepEqual(flow[progress + 2], { extendedWaitUntil: {
+    visible: 'Memory capture cleanup passed', timeout: 15000,
+  } });
+  assert.deepEqual(flow[progress + 3], { tapOn: 'Open complete movie' });
+  assert.equal(flow.filter(command => command.tapOn === 'Reading the movie’s video timing…'
+    || command.tapOn?.text === 'Reading the movie’s video timing…').length, 0);
+});

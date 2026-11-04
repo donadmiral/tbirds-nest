@@ -307,7 +307,7 @@ def run_cases(cases, platform, device, output, execute=run_owned, collect_case=c
         if case['kind'] == 'same-session-memory-capture':
             try:
                 with (target / 'memory-verifier.log').open('wb') as stream:
-                    row['mediaVerifierExitCode'] = execute(['python3', 'scripts/quality/verify-native-ui-memory.py', str(target / 'memory-capture')], timeout=180, stdout=stream, stderr=subprocess.STDOUT).returncode
+                    row['mediaVerifierExitCode'] = execute(['python3', 'scripts/quality/verify-native-ui-memory.py', str(target / 'memory-capture'), platform], timeout=180, stdout=stream, stderr=subprocess.STDOUT).returncode
             except (OSError, subprocess.TimeoutExpired) as error:
                 row['mediaVerifierIssue'] = type(error).__name__
             media_ok = row['mediaVerifierExitCode'] == 0

@@ -242,7 +242,8 @@ test('disposable preparation retains diagnostic source, original auth hash and e
   const dependencyFiles = {
     '@supabase/supabase-js': ['package.json', 'dist/index.cjs', 'dist/index.mjs'],
     '@supabase/auth-js': ['package.json', 'src/lib/locks.ts', 'dist/main/index.js', 'dist/module/index.js', 'dist/main/lib/locks.js', 'dist/module/lib/locks.js'],
-    'react-native': ['package.json', 'index.js', 'Libraries/Pressability/Pressability.js', 'Libraries/Pressability/PressabilityPerformanceEventEmitter.js', 'Libraries/Pressability/PressabilityTypes.js'],
+    'react-native': ['package.json', 'index.js', 'Libraries/Pressability/Pressability.js', 'Libraries/Pressability/PressabilityPerformanceEventEmitter.js', 'Libraries/Pressability/PressabilityTypes.js', 'Libraries/Utilities/PixelRatio.js', 'Libraries/Utilities/Dimensions.js'],
+    'react-native-view-shot': ['package.json', 'src/index.js', 'ios/RNViewShot.mm', 'android/src/main/java/fr/greweb/reactnativeviewshot/RNViewShotModule.java', 'android/src/main/java/fr/greweb/reactnativeviewshot/ViewShot.java'],
     ...require('../../scripts/quality/native-ui-memory-failure-overlay.cjs').memoryDependencyFiles,
   };
   for (const [name, selected] of Object.entries(dependencyFiles)) required.push(...selected.map(file => 'node_modules/' + name + '/' + file));
