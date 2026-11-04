@@ -1,4 +1,4 @@
-import { buildLiveLayout, hlsEndpoint, liveOutputSize, safeHttpsOrigin, sha256, validPlaybackPath, validScene, validUuid, verifyDailyWebhook, type LiveProviderConfig, type ProviderContext, type Presence } from './provider.ts';
+import { buildLiveLayout, hlsEndpoints, liveEndpointName, liveOutputSize, roomHasEndpoint, safeHttpsOrigin, sha256, validPlaybackPath, validScene, validUuid, verifyDailyWebhook, type LiveProviderConfig, type ProviderContext, type Presence } from './provider.ts';
 import { dailyCommandAccepted } from '../_shared/dailyCommandAcknowledgement.ts';
 export { dailyCommandAccepted } from '../_shared/dailyCommandAcknowledgement.ts';
 type RpcResult = { data: unknown; error: { message?: string } | null };
@@ -43,14 +43,14 @@ async function provider(deps:LiveDependencies,path:string,init:RequestInit,signa
 }
 async function ensureRoom(deps:LiveDependencies,context:ProviderContext,signal:AbortSignal,now:number){
   if(!/^pc-live-[0-9a-f]{32}$/.test(context.room_name))throw new Error('INVALID_PROVIDER_ROOM');
-  const endpoint=hlsEndpoint(deps.config,context);
+  const endpoints=hlsEndpoints(deps.config,context);
   let room:Record<string,unknown>;
   try{room=await provider(deps,`/rooms/${context.room_name}`,{},signal);}
   catch(error){
     if(!(error instanceof Error)||error.message!=='PROVIDER_NOT_FOUND')throw error;
     try{room=await provider(deps,'/rooms',{method:'POST',body:JSON.stringify({name:context.room_name,privacy:'private',properties:{
       exp:Math.floor(now/1000)+21600,eject_at_room_exp:true,max_participants:context.max_stage_members,enable_screenshare:true,
-      start_audio_off:true,start_video_off:true,streaming_endpoints:[endpoint],
+      start_audio_off:true,start_video_off:true,streaming_endpoints:endpoints,
     }})},signal);}catch(error){
       if(!(error instanceof Error)||!['PROVIDER_REJECTED_400','PROVIDER_REJECTED_409'].includes(error.message))throw error;
       room=await provider(deps,`/rooms/${context.room_name}`,{},signal);
@@ -58,9 +58,23 @@ async function ensureRoom(deps:LiveDependencies,context:ProviderContext,signal:A
   }
   if(room.privacy!=='private'||typeof room.url!=='string')throw new Error('INVALID_PROVIDER_ROOM');
   const u=new URL(room.url);if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||!u.hostname.endsWith('.daily.co')||u.pathname!==`/${context.room_name}`)throw new Error('INVALID_PROVIDER_ROOM');
-  // Use only this server's HLS destination. No caller-provided RTMP/S3 URLs.
-  await provider(deps,`/rooms/${context.room_name}`,{method:'POST',body:JSON.stringify({privacy:'private',properties:{max_participants:context.max_stage_members,streaming_endpoints:[endpoint]}})},signal);
-  return room.url;
+  // A running Daily call can retain its original endpoint ladder. Never promise
+  // portrait by rewriting a landscape endpoint after participants have joined.
+  if(!endpoints.every(endpoint=>roomHasEndpoint(room,endpoint))){
+    const present=await provider(deps,`/rooms/${context.room_name}/presence?limit=1`,{},signal);
+    if(!Array.isArray(present.data)||!Number.isSafeInteger(present.total_count)||Number(present.total_count)<0)throw new Error('INVALID_PROVIDER_RESPONSE');
+    if(Number(present.total_count)>0){
+      // Preserve established landscape broadcasts while old previews reconnect.
+      if(context.output_orientation==='portrait'||!roomHasEndpoint(room,endpoints[0]))throw new Error('PROVIDER_ROOM_RECONNECT_REQUIRED');
+    }else{
+      room=await provider(deps,`/rooms/${context.room_name}`,{method:'POST',body:JSON.stringify({privacy:'private',properties:{max_participants:context.max_stage_members,streaming_endpoints:endpoints}})},signal);
+      if(!endpoints.every(endpoint=>roomHasEndpoint(room,endpoint)))throw new Error('PROVIDER_ENDPOINT_READBACK_FAILED');
+    }
+  }
+  if((room.config as {max_participants?:unknown}|undefined)?.max_participants!==context.max_stage_members){
+    await provider(deps,`/rooms/${context.room_name}`,{method:'POST',body:JSON.stringify({privacy:'private',properties:{max_participants:context.max_stage_members}})},signal);
+  }
+  return u.href;
 }
 async function recheck(client:Caller,sessionId:string,purpose:'stage'|'playback'){
   return rpc<Record<string,unknown>>(client,'live_provider_access',{p_session_id:sessionId,p_purpose:purpose});
@@ -73,7 +87,7 @@ function errorResponse(error:unknown){
   if(/INVALID_|SELECT_STAGE|SOURCE_NOT|SyntaxError/.test(message)||error instanceof SyntaxError)return json(400,{error:'INVALID_REQUEST'});
   if(/RATE_LIMIT|CAPACITY_REACHED/.test(message))return json(429,{error:'RATE_LIMIT'});
   if(/STATE_CONFLICT|CONTROL_IN_PROGRESS|IDEMPOTENCY/.test(message))return json(409,{error:'STATE_CONFLICT'});
-  if(/NOT_READY/.test(message))return json(503,{error:'PROVIDER_NOT_READY'});
+  if(/NOT_READY|PROVIDER_ROOM_RECONNECT_REQUIRED|PROVIDER_ENDPOINT_READBACK_FAILED/.test(message))return json(503,{error:'PROVIDER_NOT_READY'});
   return json(503,{error:'LIVE_SERVICE_UNAVAILABLE'});
 }
 export function createLiveHandler(mode:Mode,deps:LiveDependencies){
@@ -189,7 +203,7 @@ export function createLiveHandler(mode:Mode,deps:LiveDependencies){
       if(fresh.lease_id!==context.lease_id)throw new Error('CONTROL_LEASE_EXPIRED');
       const scene=fresh.payload?.scene??{preset:'host'};
       const composed=buildLiveLayout(scene,fresh,present.data as Presence[],context.action==='start');published=composed.published;
-      payload={...payload,layout:composed.layout,...(context.action==='start'?{endpoints:[{endpoint:deps.config.endpointName}],...liveOutputSize(fresh),fps:30}:{} )};
+      payload={...payload,layout:composed.layout,...(context.action==='start'?{endpoints:[{endpoint:liveEndpointName(deps.config,fresh)}],...liveOutputSize(fresh),fps:30}:{} )};
     }
     // Recheck current authenticated authority immediately before the provider
     // call. This checks the operation without minting viewer/stage credentials.

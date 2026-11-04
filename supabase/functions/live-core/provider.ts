@@ -45,6 +45,31 @@ export function hlsEndpoint(config: LiveProviderConfig, context: ProviderContext
     },
   };
 }
+// Both destinations must exist before the first participant starts a Daily call.
+// Avoid relying on in-call endpoint reconfiguration for output orientation.
+export function liveEndpointName(config: LiveProviderConfig, context: ProviderContext) {
+  if (context.output_orientation !== 'portrait') return config.endpointName;
+  const name = config.endpointName.slice(0,55) + '-portrait';
+  return name === config.endpointName ? config.endpointName.slice(0,53) + '-portrait-2' : name;
+}
+export function hlsEndpoints(config: LiveProviderConfig, context: ProviderContext) {
+  const portrait = { ...context, output_orientation: 'portrait' as const };
+  return [hlsEndpoint(config, { ...context, output_orientation: 'landscape' }),
+    hlsEndpoint({ ...config, endpointName: liveEndpointName(config, portrait) }, portrait)];
+}
+export function roomHasEndpoint(room: Record<string, unknown>, expected: ReturnType<typeof hlsEndpoint>) {
+  const c = room.config as { streaming_endpoints?: unknown } | undefined;
+  if (!Array.isArray(c?.streaming_endpoints)) return false;
+  const endpoint = c.streaming_endpoints.find(e => e?.name === expected.name);
+  const actual = endpoint?.hls_config, wanted = expected.hls_config;
+  return endpoint?.type === 'hls' && actual?.save_hls_recording === wanted.save_hls_recording
+    && actual?.storage?.bucket_name === wanted.storage.bucket_name
+    && actual?.storage?.bucket_region === wanted.storage.bucket_region
+    && actual?.storage?.assume_role_arn === wanted.storage.assume_role_arn
+    && actual?.storage?.path_template === wanted.storage.path_template
+    && Array.isArray(actual?.variants) && actual.variants.length === wanted.variants.length
+    && wanted.variants.every((v,i) => Object.entries(v).every(([key,value]) => actual.variants[i]?.[key] === value));
+}
 export function buildLiveLayout(scene: LiveScene, context: ProviderContext, presence: Presence[], start: boolean) {
   if (!validScene(scene) || !Array.isArray(presence) || presence.length > context.max_stage_members) throw new Error('INVALID_SCENE');
   const authorized = new Set(context.allowed_participants.map(p => p.provider_identity));

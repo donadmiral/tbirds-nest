@@ -104,7 +104,7 @@ test('start sends the persisted portrait canvas and endpoint through the actual 
       requests.push({ url, body: init.body ? JSON.parse(init.body) : null });
       if (url.includes('/presence?')) return Response.json({ total_count: 1, data: [present[0]] });
       if (url.endsWith('/live-streaming/start')) return Response.json({ status: 'sent' });
-      return Response.json({ privacy: 'private', url: 'https://example.daily.co/' + context.room_name });
+      return Response.json({ privacy: 'private', url: 'https://example.daily.co/' + context.room_name, config: { streaming_endpoints: p.hlsEndpoints(config,ctx), max_participants:ctx.max_stage_members } });
     } });
   const response = await handler(new Request('https://synthetic.invalid/live-control', { method: 'POST',
     headers: { Authorization: 'Bearer ' + token }, body: JSON.stringify({ sessionId: session, action: 'start', requestId: id(82), scene }) }));
@@ -112,8 +112,39 @@ test('start sends the persisted portrait canvas and endpoint through the actual 
   const start = requests.find(r => r.url.endsWith('/live-streaming/start')).body;
   assert.equal(start.width, 1080); assert.equal(start.height, 1920);
   assert.equal(start.layout.composition_params['videoSettings.scaleMode'], 'fill');
-  const room = requests.find(r => r.body?.properties?.streaming_endpoints).body;
-  assert.deepEqual(room.properties.streaming_endpoints[0].hls_config.variants.map(v => [v.width,v.height]), [[1080,1920],[720,1280],[360,640],[180,320]]);
+  assert.equal(start.endpoints[0].endpoint, config.endpointName+'-portrait');
+  assert.equal(requests.some(r=>r.body?.properties?.streaming_endpoints),false,'Starting must not rewrite the captured endpoint ladders');
+});
+test('stage predeclares and verifies both immutable endpoint ladders before minting a join token', async () => {
+ const requests=[];let room=null;
+ const token='header.'+Buffer.from(JSON.stringify({sub:host,session_id:id(80)})).toString('base64url')+'.signature';
+ const caller={auth:{getUser:async()=>({data:{user:{id:host}},error:null})},rpc:async()=>({data:{provider_identity:hostIdentity,role:'host'},error:null})};
+ const handler=createLiveHandler('stage',{caller:()=>caller,config,now:()=>now,service:{rpc:async()=>({data:context,error:null})},fetch:async(url,init={})=>{
+  const body=init.body?JSON.parse(init.body):null;requests.push({url,body});
+  if(url.endsWith('/meeting-tokens'))return Response.json({token:'synthetic-only'});
+  if(url.endsWith('/rooms')&&init.method==='POST'){room={privacy:'private',url:'https://example.daily.co/'+context.room_name,config:body.properties};return Response.json(room);}
+  return room?Response.json(room):Response.json({error:'not-found'},{status:404});
+ }});
+ const result=await handler(new Request('https://synthetic.invalid/stage',{method:'POST',headers:{Authorization:'Bearer '+token},body:JSON.stringify({sessionId:session})}));
+ assert.equal(result.status,200);
+ const created=requests.find(r=>r.url.endsWith('/rooms')).body.properties.streaming_endpoints;
+ assert.equal(created.length,2);assert.equal(created[0].name,config.endpointName);assert.equal(created[1].name,config.endpointName+'-portrait');
+ assert.deepEqual(created.map(e=>e.hls_config.variants[0]).map(v=>[v.width,v.height]),[[1920,1080],[1080,1920]]);
+ assert.ok(requests.findIndex(r=>r.url.endsWith('/rooms'))<requests.findIndex(r=>r.url.endsWith('/meeting-tokens')));
+ assert.equal(p.roomHasEndpoint(room,created[0])&&p.roomHasEndpoint(room,created[1]),true);
+});
+test('a legacy occupied landscape room cannot silently start portrait or eject its participants', async () => {
+ const requests=[];const ctx={...context,output_orientation:'portrait',action:'start',lease_id:id(81),payload:{scene:{preset:'host',orientation:'portrait'}}};
+ const token='header.'+Buffer.from(JSON.stringify({sub:host,session_id:id(80)})).toString('base64url')+'.signature';
+ const caller={auth:{getUser:async()=>({data:{user:{id:host}},error:null})},rpc:async()=>({data:{operation_id:id(82),status:'queued'},error:null})};
+ const handler=createLiveHandler('control',{caller:()=>caller,config,now:()=>now,service:{rpc:async()=>({data:ctx,error:null})},fetch:async(url,init={})=>{
+  requests.push({url,method:init.method||'GET'});
+  if(url.includes('/presence?'))return Response.json({total_count:1,data:[present[0]]});
+  return Response.json({privacy:'private',url:'https://example.daily.co/'+context.room_name,config:{streaming_endpoints:[p.hlsEndpoint(config,context)]}});
+ }});
+ const response=await handler(new Request('https://synthetic.invalid/control',{method:'POST',headers:{Authorization:'Bearer '+token},body:JSON.stringify({sessionId:session,action:'start',requestId:id(82),scene:ctx.payload.scene})}));
+ assert.equal(response.status,503);assert.equal(requests.every(r=>r.method==='GET'),true);
+ assert.equal(requests.some(r=>r.url.includes('/live-streaming/')||r.url.includes('/eject')),false);
 });
 test('signed Daily events reject expired, forged and missing signatures', async () => {
   const event = { version: '1.0.0', type: 'streaming.started', id: 'event-1', payload: { instance_id: instance } };
