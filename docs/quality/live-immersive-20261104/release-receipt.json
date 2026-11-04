@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-04T20:43:12.274132+00:00",
-  "status": "QA29 finished. Production web/admin, full Android UI and release checks passed. Same-bundle iOS recovery remains pending.",
+  "updatedAt": "2026-11-04T20:59:46.987530+00:00",
+  "status": "QA29 available and Install verified. Production web/admin and Android full UI passed. Final iOS full UI remains unaccepted after Simulator playback startup failure.",
   "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
   "tree": "75c7587093bb8c4d37ae45811e60b9d8e73af873",
   "parents": [
@@ -55,8 +55,8 @@
     "runId": 41901710700,
     "androidJobId": 126825565766,
     "iosJobId": 126825564951,
-    "status": "Android full UI passed; same-bundle iOS recovery executing",
-    "overallUiAcceptance": null,
+    "status": "Android full UI passed. iOS full UI not accepted after final retained-app test.",
+    "overallUiAcceptance": false,
     "expectedManifest": {
       "fileCount": 821,
       "sha256": "d35d93798856a119463650445d3c9ed3b34644d0370fc724f29b806fba998d67"
@@ -77,7 +77,7 @@
       "initialReceipt": "ios-keyboard-bb6797-initial-receipt.json",
       "recoveryRunId": 41909188783,
       "recoverySource": "6274b138fa7dc882daf9cb2bf334f3251e1a2634",
-      "recoveryStatus": "queued or running",
+      "recoveryStatus": "completed; initial feed playback gate failed",
       "recoveryScope": "Same signed app. Prior bounded system-prompt dismissal plus three iOS-only positioning gestures. Original four video gates, refresh gesture, all later app assertions and decoders unchanged.",
       "actualApplicationSource": "54cc04abb953a4580f817741fa81d7d54759aecf",
       "applicationTree": "75c7587093bb8c4d37ae45811e60b9d8e73af873",
@@ -86,7 +86,18 @@
       "rebuild": false,
       "rebundle": false,
       "resign": false,
-      "priorRecoveryReceipt": "ios-retained-positioning-failure.json"
+      "priorRecoveryReceipt": "ios-retained-positioning-failure.json",
+      "recoveryJobId": 126851894441,
+      "artifactId": 13361939456,
+      "artifactSha256": "b04b6e08b5190b4b0ccc572cd843a03e292dc28676d4e1b141c3161f80c8b2df",
+      "finalReceipt": "ios-final-bb6797-receipt.json",
+      "fullIosUiAcceptance": false,
+      "feedRefreshReached": false,
+      "liveFlowReached": false,
+      "memoryPassed": true,
+      "furtherRetries": 0,
+      "observedLimitation": "Simulator CoreAudio server startup failed during the initial playback gate. First image enqueue and first-video-frame notification arrived after the strict deadline. Later feed and Live UI checks were not reached. Memory decode and cleanup passed.",
+      "classification": "Simulator playback startup failure observed; full iOS app acceptance remains unverified."
     },
     "android": {
       "status": "success",

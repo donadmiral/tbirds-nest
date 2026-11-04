@@ -1,0 +1,70 @@
+{
+  "releaseSource": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "applicationSourceCommit": "54cc04abb953a4580f817741fa81d7d54759aecf",
+  "applicationSourceTree": "75c7587093bb8c4d37ae45811e60b9d8e73af873",
+  "runId": 41909188783,
+  "jobId": 126851894441,
+  "consumerCommit": "6274b138fa7dc882daf9cb2bf334f3251e1a2634",
+  "artifactId": 13361939456,
+  "artifactSha256": "b04b6e08b5190b4b0ccc572cd843a03e292dc28676d4e1b141c3161f80c8b2df",
+  "validatedSourceHashes": 698,
+  "validatedPreparedOverlays": 16,
+  "originalSourceReceiptUnchanged": true,
+  "installedBinarySha256": "cd25ed212a5a8460ef760fde49471ad2df024037431b84ac12d95e1f26de2fea",
+  "installedBinaryMatchesProducer": true,
+  "flowOverrides": [
+    {
+      "file": "tests/native/flows/navigation.yaml",
+      "before": "75d690bac6c858eaf45c52821c98b283ac887ce27a1a2ff30ee429e860a10932",
+      "after": "cf4e4ad6c845769d435174bfec2451d33577d9decd95e8c81d99e120f1daa095"
+    },
+    {
+      "file": "tests/native/flows/feed-video.yaml",
+      "before": "24d4a14966695ab8e7170e696aa752194799d9324c09ab946f152a2065294676",
+      "after": "59358ec626e911eeecbf8dfb9e8e3b831cfafba7b2482f3da9e0a8333a8b01fa"
+    }
+  ],
+  "productionApplicationUnchanged": true,
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false,
+  "phaseResults": {
+    "flows": 1,
+    "evidence": 0,
+    "memoryDecoder": 0,
+    "fullAppVerifier": 1,
+    "binaryRetention": 0
+  },
+  "navigationPassed": false,
+  "failedGate": "initial feed video painted frame and progressing native clock",
+  "failedSequence": 37,
+  "feedRefreshReached": false,
+  "liveFlowReached": false,
+  "cardVisiblePixels": 500,
+  "cardHeight": 532,
+  "cardVisibleFraction": 0.9398496240601504,
+  "productionVisibilityThreshold": 0.55,
+  "nativeAudioFailure": {
+    "timestamp": "2026-11-04T20:50:42.092Z",
+    "message": "HALC_ProxyIOContext::IOWorkLoop: the server failed to start",
+    "error": "0x10004003",
+    "device": "iOSSimulatorAudioDevice-7647-0",
+    "audioDeviceStartFailureTimestamp": "2026-11-04T20:51:03.867Z",
+    "audioDeviceStartError": 268451843,
+    "firstFrameEnqueuedTimestamp": "2026-11-04T20:51:04.823Z",
+    "firstFrameEnqueuedNotificationTimestamp": "2026-11-04T20:51:09.463Z",
+    "gateMetadataEndedTimestamp": "2026-11-04T20:50:53.949Z"
+  },
+  "memory": {
+    "passed": true,
+    "decodedFrames": 351,
+    "duration": 11.7,
+    "cancelledReaderClosed": true,
+    "temporaryFilesRemoved": true,
+    "flowDurationSeconds": 151.947
+  },
+  "providerAcceptance": false,
+  "physicalDeviceAcceptance": false,
+  "fullIosUiAcceptance": false,
+  "classification": "Simulator audio device startup failure prevented the strict initial video gate. Full iOS UI acceptance remains false."
+}
