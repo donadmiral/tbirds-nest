@@ -46,6 +46,20 @@ function harness({ deferCommands = false, overlay = false, compact = false, coll
     input: () => nodes(render()).find(node => node.type === 'TextInput'), emit(event, payload) { channels.at(-1).handlers[event]({ payload }); }, async start() { render(); await settle(); channels.at(-1).status('SUBSCRIBED'); } };
 }
 
+test('overlay history can shrink for a keyboard without losing the draft or an older-history position',async()=>{
+  const app=harness({overlay:true});await app.start();app.pages[0].resolve({items:[message(1)],next_cursor:null});await app.settle();
+  app.input().props.onChangeText('A reply kept while typing');
+  const tree=app.render(),list=app.list();assert.equal(tree.props.style.flexShrink,1);assert.equal(tree.props.style.minHeight,0);
+  assert.equal(list.props.style.flexShrink,1);assert.equal(list.props.style.minHeight,0);
+  const row=nodes(tree).find(node=>node.type==='View'&&nodes(node).some(child=>child.type==='TextInput')&&node!==tree);
+  assert.equal(row.props.style.flexShrink,0,'Only history yields space, never the composer');
+  list.props.onScroll({nativeEvent:{contentSize:{height:1000},contentOffset:{y:0},layoutMeasurement:{height:166}}});
+  const before=app.scrolls.length;app.list().props.onLayout();assert.equal(app.scrolls.length,before,'A viewport change must not pull someone away from older messages');
+  app.list().props.onScroll({nativeEvent:{contentSize:{height:1000},contentOffset:{y:966},layoutMeasurement:{height:34}}});
+  app.list().props.onLayout();assert.equal(app.scrolls.length,before+1);assert.equal(app.scrolls.at(-1).animated,false);
+  assert.equal(app.input().props.value,'A reply kept while typing');assert.equal(app.commands.length,0);assert.equal(app.channels.length,1);
+});
+
 test('native history cannot erase realtime arrivals or resurrect a removed message', async () => {
   const app = harness(); await app.start();
   app.emit('message', message(2)); app.emit('message_removed', { id: id(1) });

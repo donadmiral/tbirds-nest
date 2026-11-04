@@ -68,7 +68,7 @@ function native(options = {}) {
   const h = hooks(), childHooks = hooks(), current = detail(options), reads = [], channels = [];
   const raw = { role: current.role, capabilities: current.capabilities, chat_topic: options.actualChat ? `live:${sid}:${uid}` : '', pinned_message: options.pinned || null };
   const theme = { ink: { primary: '#111', secondary: '#666', muted: '#888' }, surface: { raised: '#fff', sunken: '#eee' } };
-  const rn = new Proxy({ StyleSheet: { create: value => value, absoluteFill: {} }, AppState: { currentState: 'active', addEventListener: () => ({ remove() {} }) } }, { get: (target, key) => key in target ? target[key] : key });
+  const rn = new Proxy({ StyleSheet: { create: value => value, absoluteFill: {} }, Keyboard: { isVisible:()=>false,addListener:()=>({remove(){}}),dismiss(){} }, AppState: { currentState: 'active', addEventListener: () => ({ remove() {} }) } }, { get: (target, key) => key in target ? target[key] : key });
   const nativeChat = options.actualChat ? load('src/components/LiveChat.tsx', {
     react: childHooks.react, 'react-native': rn, '@react-navigation/native': { useIsFocused: () => true },
     '../theme/useTheme': { useTheme: () => ({ t: theme }) }, '../stores/authStore': { useAuthStore: read => read({ profile: { id: uid } }) },

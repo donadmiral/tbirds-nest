@@ -10,10 +10,10 @@ const nodes = value => !value || typeof value !== 'object' ? [] : Array.isArray(
 const words = value => typeof value === 'string' ? value : Array.isArray(value) ? value.map(words).join('') : value?.props ? words(value.props.children) : '';
 const plain = value => JSON.parse(JSON.stringify(value));
 
-function harness({ guests = [], trustedGuestIds = guests.map(p => p.user_id), state = 'live', autoDirect = true } = {}) {
+function harness({ guests = [], trustedGuestIds = guests.map(p => p.user_id), state = 'live', autoDirect = true, platform = 'ios' } = {}) {
   let cursor = 0, dirty = true, tree, timerId = 0, requestId = 0, mounted = true;
   const slots = [], effects = [], timers = new Map(), commands = [], handlers = new Map();
-  let people = [participant(1, true), ...guests], activeControls = 0, maxActiveControls = 0;
+  let people = [participant(1, true), ...guests], activeControls = 0, maxActiveControls = 0, keyboardDismissals = 0;
   const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const react = {
     useState(initial) { const i = cursor++; if (!(i in slots)) slots[i] = { value: typeof initial === 'function' ? initial() : initial };
@@ -41,7 +41,7 @@ function harness({ guests = [], trustedGuestIds = guests.map(p => p.user_id), st
     async join() { handlers.get('joined-meeting')?.(); }, async leave() {}, async destroy() {}, stopScreenShare() {},
     async setLocalVideo() {}, localAudio: () => false, localVideo: () => true,
   };
-  const native = new Proxy({ StyleSheet: { create: s => s, absoluteFill: {} }, Platform: { OS: 'ios' }, Alert: { alert() {} } },
+  const native = new Proxy({ StyleSheet: { create: s => s, absoluteFill: {} }, Platform: { OS: platform }, Keyboard: { dismiss() { keyboardDismissals++; } }, Alert: { alert() {} } },
     { get: (value, key) => key in value ? value[key] : key });
   const LiveStudio = load('src/components/LiveStudio.tsx', {
     react, 'react/jsx-runtime': { jsx, jsxs: jsx, Fragment: 'Fragment' }, 'react-native': native,
@@ -66,6 +66,8 @@ function harness({ guests = [], trustedGuestIds = guests.map(p => p.user_id), st
   const settle = async () => { for (let i = 0; i < 30; i++) { if (dirty && mounted) render(); await Promise.resolve(); } if (dirty && mounted) render(); };
   return {
     commands, settle, async start() { render(); await settle(); }, maxConcurrent: () => maxActiveControls,
+    tree: () => tree, keyboardDismissals: () => keyboardDismissals,
+    async setKeyboardLayout(headerHeight,keyboardVisible){props.headerHeight=headerHeight;props.keyboardVisible=keyboardVisible;dirty=true;await settle();},
     async emit(next, acceptedIds = next.filter(p => !p.local).map(p => p.user_id)) {
       people = next; props.automaticGuestIds = acceptedIds; handlers.get('participant-updated')?.(); await settle(); },
     async setState(value) { props.streamState = value; dirty = true; await settle(); },
@@ -77,6 +79,30 @@ function harness({ guests = [], trustedGuestIds = guests.map(p => p.user_id), st
     async unmount() { mounted = false; for (const slot of slots) slot?.cleanup?.(); await settle(); },
   };
 }
+
+test('the host chat footer avoids Android keyboard occlusion and dismisses it only on tools entry', async () => {
+  for (const platform of ['android','ios']) {
+    const h=harness({platform});await h.start();
+    const footer=nodes(h.tree()).find(node=>node.type==='KeyboardAvoidingView');
+    assert.equal(footer.props.behavior,platform==='ios'?'padding':'height');
+    assert.equal(h.keyboardDismissals(),0);assert.equal(h.commands.length,0);
+    await h.click('More live tools');assert.equal(h.keyboardDismissals(),1);
+    assert.ok(nodes(h.tree()).some(node=>node.type==='Modal'&&node.props.visible));
+    assert.ok(nodes(h.tree()).some(node=>node.props?.testID==='live-stage-media'));
+    assert.equal(h.commands.length,0,'Opening tools must not publish or end a broadcast');await h.unmount();
+  }
+});
+
+test('the host footer uses the measured shared header and leaves its full camera surface unchanged', async () => {
+  const h=harness({platform:'android'});await h.start();await h.setKeyboardLayout(146,true);
+  const space=nodes(h.tree()).find(node=>node.props?.testID==='live-stage-footer-space');assert.ok(space);
+  assert.equal(space.props.style.paddingTop,146);
+  const footer=nodes(space).find(node=>node.type==='LinearGradient');assert.equal(footer.props.style.flexShrink,1);assert.equal(footer.props.style.minHeight,0);
+  assert.equal(footer.props.style.paddingBottom,12);assert.equal(footer.props.style.paddingTop,8);
+  const camera=nodes(h.tree()).find(node=>node.props?.testID==='live-stage-media');assert.deepEqual(plain(camera.props.style),{});
+  await h.setKeyboardLayout(146,false);const restored=nodes(h.tree()).find(node=>node.props?.testID==='live-stage-footer-space');
+  assert.equal(nodes(restored).find(node=>node.type==='LinearGradient').props.style.paddingBottom,30);await h.unmount();
+});
 
 test('native start command immediately broadcasts an already connected guest', async () => {
   const h = harness({ guests: [participant(2)], state: 'backstage' }); await h.start();

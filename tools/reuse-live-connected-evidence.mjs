@@ -57,6 +57,25 @@ export const FEED_CORRECTION = Object.freeze({
     ["tests/quality/native-xvfb-readiness.cjs", "8e0b664ac2c5ba3c6efc06c9cd409bb7b9e7cbc00a5ced7305e97148863a6d31"],
   ].map(([file, sha256]) => Object.freeze({path: file, sha256, mode: '100644'}))),
 });
+// One reviewed native keyboard and login-flow correction may reuse service evidence.
+// Its parent already contains the feed correction. Neither native change is
+// covered by the original browser/provider receipt, so native acceptance is fresh.
+export const KEYBOARD_CORRECTION = Object.freeze({
+  parent: '0810ea8a30cd3818878b60fccea0689a453a3b19',
+  parentTree: '21d94004927cd8c3284fb9fc42dd3bcc3db3725f',
+  files: Object.freeze([
+    ['src/screens/feed/LiveSessionScreen.tsx', 'cbda26bd34cfa428c9a6132de60d5799305a4d478a84c7deacce22b65a5d3afa'],
+    ['src/components/LiveStudio.tsx', '371fdf5cd0bff7849b010766d49aacf6cdec899e76d0dd6a9ec66c96c86683ae'],
+    ['src/components/LiveChat.tsx', 'b4cb874e3dae1f23f8fe0189f495b30859e61787baa0920d45a2e45502b0e59a'],
+    ['tests/live-immersive-native.test.cjs', '42e30a3c0822f3b229b8c77acd3b67ef5ce9b39fddffb868ffc332d29e730c4e'],
+    ['tests/live-studio-auto-scene.test.cjs', 'da18eaf13a1c7f8ad184158661d0a9f83cb8ead8ec0915ea66be178564a905de'],
+    ['tests/live-native-chat-lifecycle.test.cjs', '7081c2c09fbcb40d942299ced5446d1d2ed79ef8be854285277a9643d409512a'],
+    ['tests/live-chat-access.test.cjs', 'd6fcb70a05ffb058237c24c30c8d6876caf4b02d9d8ef9863479e00806292879'],
+    ['tests/native/flows/navigation.yaml', '75d690bac6c858eaf45c52821c98b283ac887ce27a1a2ff30ee429e860a10932'],
+    ['tests/quality/native-login-readiness.cjs', '8a82ebd5522138d00e95227d036781873b9e3e35dc5132a9ae7a900f8ddb6a68'],
+    ['.github/workflows/live-release-acceptance.yml', '2640f2aa4da4e7f36e58911de120edd0ddb64534f700b87eb4341dafd96f7317'],
+  ].map(([file, sha256]) => Object.freeze({path: file, sha256, mode: '100644'}))),
+});
 export const VERIFIER_FILES = Object.freeze([
   'tests/quality/live-connected-evidence-reuse.cjs',
   'tools/reuse-live-connected-evidence.mjs',
@@ -83,9 +102,32 @@ function fixtureCorrection(git, base, target) {
   assert.ok(status.every(line => /^[AM]\t/.test(line)), 'Reuse cannot delete or rename files');
   for (const file of ALLOWED) normalFile(git, target, file);
 }
-export function sourceApplicability(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION) {
+export function sourceApplicability(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION, keyboardRule = KEYBOARD_CORRECTION) {
   assert.equal(git(['rev-parse', 'HEAD']).trim(), source, 'Checkout differs from release source');
   const parents = git(['show', '-s', '--format=%P', 'HEAD']).trim().split(/\s+/);
+  if (parents.includes(keyboardRule.parent)) {
+    assert.deepEqual(parents, [keyboardRule.parent], 'Keyboard reuse must be the reviewed single-parent correction');
+    assert.equal(git(['status', '--porcelain=v1', '--untracked-files=no']).trim(), '', 'Tracked checkout or index differs from the verified source');
+    assert.equal(git(['rev-parse', keyboardRule.parent + '^{tree}']).trim(), keyboardRule.parentTree, 'Reviewed keyboard parent tree changed');
+    assert.deepEqual(git(['show', '-s', '--format=%P', keyboardRule.parent]).trim().split(/\s+/), [feedRule.parent], 'Reviewed keyboard parent ancestry changed');
+    const allowed = [...keyboardRule.files.map(file => file.path), ...VERIFIER_FILES].sort();
+    assert.deepEqual(changedPaths(git, keyboardRule.parent, 'HEAD'), allowed, 'Keyboard exception contains an unreviewed or missing change');
+    const status = git(['diff', '--name-status', '--no-renames', keyboardRule.parent, 'HEAD']).trim().split('\n');
+    assert.ok(status.every(line => /^M\t/.test(line)), 'Keyboard exception cannot add, delete, rename or change file type');
+    for (const file of allowed) normalFile(git, 'HEAD', file);
+    for (const file of keyboardRule.files) {
+      normalFile(git, 'HEAD', file.path, file.mode);
+      assert.equal(hash(git(['show', 'HEAD:' + file.path])), file.sha256, 'Reviewed keyboard correction bytes changed: ' + file.path);
+    }
+    const connected = CONNECTED_PATHS.filter(file => file !== 'scripts/quality')
+      .concat('scripts/quality/install-browser-test-runtime.sh');
+    assert.equal(git(['diff', '--name-only', '--no-renames', base, 'HEAD', '--', ...connected]).trim(), '', 'Connected runtime or browser preparation changed');
+    return {kind: 'native-live-keyboard-correction', comparisonParent: keyboardRule.parent,
+      comparisonParentTree: keyboardRule.parentTree, connectedRuntimeEquivalent: true,
+      nativeRuntimeEquivalent: false, nativeFeedRequiresSeparateValidation: true,
+      nativeKeyboardRequiresSeparateValidation: true, permittedChanges: allowed,
+      verifiedFiles: keyboardRule.files};
+  }
   if (parents.includes(feedRule.parent)) {
     assert.deepEqual(parents, [feedRule.parent], 'Feed reuse must be the reviewed single-parent correction');
     assert.equal(git(['status', '--porcelain=v1', '--untracked-files=no']).trim(), '', 'Tracked checkout or index differs from the verified source');
@@ -112,7 +154,7 @@ export function sourceApplicability(git, source, base = PINNED.source, nativeRul
   }
   const native = parents.includes(nativeRule.parent);
   // Other normal releases retain real connected acceptance. A mismatch inside
-  // either explicit exception throws, so it cannot fall through to provider work.
+  // an explicit exception throws, so it cannot fall through to provider work.
   if (!native && !parents.includes(base)) return null;
   assert.deepEqual(parents, [native ? nativeRule.parent : base], 'Reuse must be a reviewed single-parent correction');
   assert.equal(git(['status', '--porcelain=v1', '--untracked-files=no']).trim(), '', 'Tracked checkout or index differs from the verified source');
@@ -137,8 +179,8 @@ export function sourceApplicability(git, source, base = PINNED.source, nativeRul
   return {kind: 'native-clips-correction', comparisonParent: nativeRule.parent, comparisonParentTree: nativeRule.parentTree,
     connectedRuntimeEquivalent: true, nativeRuntimeEquivalent: false, permittedChanges: allowed, verifiedFiles: nativeRule.files};
 }
-export function sourceEquivalent(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION) {
-  return sourceApplicability(git, source, base, nativeRule, feedRule) !== null;
+export function sourceEquivalent(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION, keyboardRule = KEYBOARD_CORRECTION) {
+  return sourceApplicability(git, source, base, nativeRule, feedRule, keyboardRule) !== null;
 }
 
 export function verifyMetadata(run, job, artifact, pinned = PINNED) {

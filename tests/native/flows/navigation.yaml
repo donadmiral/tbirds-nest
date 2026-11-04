@@ -81,6 +81,20 @@ name: Full native app navigation
           text: '^Sign in$'
           enabled: true
 - tapOn: Sign in
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Maestro 2.11.0 gives this exact condition a 7-second lookup budget
+      # after Sign in. Only an absent title skips it, not a failed dismissal.
+      - runFlow:
+          when:
+            visible: '^Save Password\?$'
+          commands:
+            - tapOn: '^Not Now$'
+            - extendedWaitUntil:
+                notVisible: '^Save Password\?$'
+                timeout: 5000
 - extendedWaitUntil:
     visible: A quiet morning in the desert. Small moments worth keeping.
     timeout: 30000

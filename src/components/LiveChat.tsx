@@ -121,19 +121,20 @@ export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, o
       { text:'Cancel', style:'cancel' },
     ]);
   };
-  if (overlay) return <View testID="live-overlay-chat" style={{gap:8}}>
+  if (overlay) return <View testID="live-overlay-chat" style={{gap:8,flexShrink:1,minHeight:0}}>
     {!compact&&historyOpen&&liveObject(pinned)&&pinned.removed!==true&&!removedIds.current.has(String(pinned.id))&&liveText(pinned.body)?<View style={s.overlayPinned}><Text numberOfLines={2} style={s.overlayText}><Text style={{fontWeight:'800'}}>Pinned  </Text>{liveText(pinned.body,500)}</Text></View>:null}
-    {historyOpen?<FlatList ref={list} style={{height:compact?64:166,flexGrow:0}} data={rows} keyExtractor={item=>String(item.id)} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
+    {historyOpen?<FlatList ref={list} style={{height:compact?64:166,flexGrow:0,flexShrink:1,minHeight:0}} data={rows} keyExtractor={item=>String(item.id)} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
       ListHeaderComponent={compact&&liveObject(pinned)&&pinned.removed!==true&&!removedIds.current.has(String(pinned.id))&&liveText(pinned.body)?<Text numberOfLines={1} style={[s.overlayText,{fontWeight:'700'}]}>Pinned: {liveText(pinned.body,500)}</Text>:null}
       contentContainerStyle={{gap:4,paddingVertical:4}} maintainVisibleContentPosition={{minIndexForVisible:0}}
       onContentSizeChange={()=>{if(followLatest.current)list.current?.scrollToEnd({animated:false});}}
+      onLayout={()=>{if(followLatest.current)list.current?.scrollToEnd({animated:false});}}
       onScroll={({nativeEvent})=>{followLatest.current=nativeEvent.contentSize.height-nativeEvent.contentOffset.y-nativeEvent.layoutMeasurement.height<48;setShowLatest(!followLatest.current);}} scrollEventThrottle={32}
       renderItem={({item})=><TouchableOpacity accessibilityRole="button" accessibilityLabel={`${liveObject(item.author)?liveText(item.author.full_name||item.author.username,100):'Member'}: ${item.removed===true?'Message removed':liveText(item.body,500)}`} activeOpacity={.8} onPress={()=>messageActions(item)} style={{paddingVertical:3,paddingRight:32}}><Text style={s.overlayText}><Text style={{fontWeight:'800'}}>{liveObject(item.author)?liveText(item.author.full_name||item.author.username,100):'Member'} </Text>{item.removed===true?'Message removed':liveText(item.body,500)}</Text></TouchableOpacity>}
       ListEmptyComponent={<Text style={[s.overlayText,{opacity:.8,paddingTop:20}]}>{enabled?'Say hello. Comments appear here.':'Comments will appear here when the live starts.'}</Text>}/>:null}
     {compact?<TouchableOpacity accessibilityRole="button" accessibilityLabel={historyOpen?'Hide comments':'Show comments'} onPress={()=>setHistoryOpen(value=>!value)} style={{minHeight:32,justifyContent:'center',alignSelf:'flex-start'}}><Text style={{color:'#fff',fontSize:12,fontWeight:'700'}}>{historyOpen?'Hide comments':'Show comments'}</Text></TouchableOpacity>:null}
     {historyOpen&&showLatest?<TouchableOpacity accessibilityRole="button" onPress={()=>{followLatest.current=true;setShowLatest(false);list.current?.scrollToEnd({animated:false});}} style={s.overlayPill}><Text style={s.overlayText}>Latest comments ↓</Text></TouchableOpacity>:null}
     {status!=='Connected'?<TouchableOpacity accessibilityRole="button" accessibilityLabel="Reconnect chat" onPress={()=>setRevision(v=>v+1)} style={{alignSelf:'flex-start',minHeight:32,justifyContent:'center'}}><Text style={{color:'#fff',fontSize:11}}>{status}</Text></TouchableOpacity>:null}
-    <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
+    <View style={{flexDirection:'row',alignItems:'center',gap:8,flexShrink:0}}>
       <TextInput ref={input} value={body} onChangeText={setBody} maxLength={500} editable={enabled&&!busy} placeholder={enabled?'Add a comment…':'Comments are closed'} placeholderTextColor="rgba(255,255,255,0.8)" accessibilityLabel="Live chat message" style={s.overlayInput} multiline/>
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="Send comment" disabled={!enabled||busy||!body.trim()} onPress={()=>void send('chat',{body:body.trim()})} style={[s.overlayAction,{opacity:!enabled||busy||!body.trim()?.4:1}]}><Text style={{color:'#fff',fontWeight:'800'}}>Send</Text></TouchableOpacity>
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="Heart" disabled={!enabled||busy} onPress={()=>void send('reaction',{reaction:'heart'})} style={[s.overlayAction,{opacity:!enabled||busy?.4:1}]}><Text style={{color:'#fff',fontSize:32}}>♡</Text></TouchableOpacity>

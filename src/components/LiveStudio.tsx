@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Modal, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
@@ -18,7 +18,7 @@ import { useLiveStudioEvents } from '../hooks/useLiveStudioEvents';
 import { automaticLiveStageScene, stableLiveStageSceneKey, LIVE_STAGE_SCENE_SETTLE_MS } from '../../shared/liveStageScene';
 import { liveStudioPresentation, type PendingLiveControl } from '../../shared/liveSetup';
 
-export function LiveStudio({ sessionId, canControl, streamState, onChanged, autoPreview = false, immersive = false, autoDirect = false, automaticGuestIds = [], children, onGuests, onMore, onParticipantCount }: { sessionId: string; autoPreview?: boolean; canControl: boolean; streamState: string; onChanged(): void; immersive?: boolean; autoDirect?: boolean; automaticGuestIds?: readonly string[]; children?: React.ReactNode; onGuests?(): void; onMore?(): void; onParticipantCount?(count: number): void }) {
+export function LiveStudio({ sessionId, canControl, streamState, onChanged, autoPreview = false, immersive = false, headerHeight = 0, keyboardVisible = false, autoDirect = false, automaticGuestIds = [], children, onGuests, onMore, onParticipantCount }: { sessionId: string; autoPreview?: boolean; canControl: boolean; streamState: string; onChanged(): void; immersive?: boolean; headerHeight?: number; keyboardVisible?: boolean; autoDirect?: boolean; automaticGuestIds?: readonly string[]; children?: React.ReactNode; onGuests?(): void; onMore?(): void; onParticipantCount?(count: number): void }) {
   const insets = useSafeAreaInsets();
   const { t } = useTheme(), { callState } = useCallContext(), playback = useLivePlayback();
   const owner = useAuthStore(s => s.profile?.id ?? null);
@@ -155,9 +155,10 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
     <View testID="live-stage-media" style={StyleSheet.absoluteFill}>
       {joined ? <RemoteCallMedia participants={participants} presentation="immersive" contentInsets={{top:insets.top+72,bottom:insets.bottom+300}} /> : <View style={[s.immersive,s.empty]}><LiveIcon size={48} color="#fff"/><Text style={s.overlayTitle}>{['ended','cancelled'].includes(streamState)?'This live has ended.':'Your camera preview'}</Text><Text style={s.overlayHint}>{['ended','cancelled'].includes(streamState)?'Thanks for being here.':'Check your camera before going live.'}</Text>{!['ended','cancelled'].includes(streamState)?<TouchableOpacity accessibilityRole="button" accessibilityLabel="Preview camera" disabled={busy} onPress={()=>void preview()} style={s.previewButton}><Text style={s.overlayTitle}>{busy?'Connecting…':'Preview camera'}</Text></TouchableOpacity>:null}</View>}
     </View>
-    <KeyboardAvoidingView pointerEvents="box-none" behavior={Platform.OS==='ios'?'padding':undefined} style={StyleSheet.absoluteFill}>
+    <KeyboardAvoidingView pointerEvents="box-none" behavior={Platform.OS==='ios'?'padding':'height'} style={StyleSheet.absoluteFill}>
+      <View testID="live-stage-footer-space" pointerEvents="box-none" style={{flex:1,paddingTop:headerHeight}}>
       <View pointerEvents="box-none" style={{flex:1}} />
-      <LinearGradient colors={['transparent','rgba(0,0,0,0.72)']} style={{paddingTop:30,paddingLeft:Math.max(insets.left,14),paddingRight:Math.max(insets.right,14),paddingBottom:Math.max(insets.bottom,12),gap:10}}>
+      <LinearGradient colors={['transparent','rgba(0,0,0,0.72)']} style={{flexShrink:1,minHeight:0,paddingTop:keyboardVisible?8:30,paddingLeft:Math.max(insets.left,14),paddingRight:Math.max(insets.right,14),paddingBottom:keyboardVisible?12:Math.max(insets.bottom,12),gap:10}}>
         {error?<Text accessibilityRole="alert" style={s.overlayError}>{error}</Text>:null}{sceneSyncFailed?<TouchableOpacity accessibilityRole="button" onPress={()=>{blockedScene.current='';setSceneRevision(v=>v+1);}} style={s.previewButton}><Text style={s.overlayTitle}>Retry guest layout</Text></TouchableOpacity>:null}
         {!joined&&canControl&&live?<TouchableOpacity accessibilityRole="button" accessibilityLabel="End live" disabled={busy||['starting','ending'].includes(streamState)} onPress={endBroadcast} style={s.broadcastButton}><Text style={s.overlayTitle}>End live</Text></TouchableOpacity>:null}
         {!live&&joined?<Text accessibilityLiveRegion="polite" style={s.overlayHint}>{presentation.description}</Text>:null}
@@ -166,10 +167,11 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
           {overlayButton(local?.audio?'Mute':'Unmute',local?.audio?'mic':'mic-off',()=>void media('audio'))}
           {overlayButton('Flip','refresh-cw',()=>void media('flip'))}
           {onGuests?overlayButton('Guests','users',onGuests):null}
-          {overlayButton('More live tools','more-horizontal',()=>setToolsOpen(true))}
+          {overlayButton('More live tools','more-horizontal',()=>{Keyboard.dismiss();setToolsOpen(true);})}
           {canControl?<TouchableOpacity testID="live-start-button" accessibilityRole="button" accessibilityLabel={live?'End live':'Go live'} disabled={live?busy||['starting','ending'].includes(streamState):blocked} onPress={live?endBroadcast:()=>void sendControl('start')} style={[s.broadcastButton,{opacity:(live?busy||['starting','ending'].includes(streamState):blocked)?.5:1}]}><Text style={{color:'#fff',fontWeight:'800',fontSize:14}}>{streamState==='starting'?'Starting…':streamState==='ending'?'Ending…':live?'End':'Go live'}</Text></TouchableOpacity>:null}
         </View>:null}
       </LinearGradient>
+      </View>
     </KeyboardAvoidingView>
     <Modal visible={toolsOpen} transparent animationType="slide" onRequestClose={()=>setToolsOpen(false)} onDismiss={()=>{const next=afterToolsClose.current;afterToolsClose.current=null;next?.();}}>
       <View style={s.modalBackdrop}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Close stream tools" style={{flex:1}} onPress={()=>setToolsOpen(false)} />

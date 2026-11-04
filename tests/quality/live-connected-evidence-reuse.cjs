@@ -15,8 +15,9 @@ test('missing allowed changes, merge parents and checkout mismatch reject reuse'
 
 function nativeRepository(t, m) {
   const r=repository(t);
-  for(const file of m.NATIVE_CORRECTION.files) if(!m.ALLOWED.includes(file.path)) r.write(file.path,'original native bytes\n');
+  for(const file of [...m.NATIVE_CORRECTION.files,...m.KEYBOARD_CORRECTION.files]) if(!m.ALLOWED.includes(file.path)) r.write(file.path,'original native bytes\n');
   r.write('web/runtime.ts','original connected runtime\n');
+  r.write('scripts/quality/install-browser-test-runtime.sh','original browser preparation\n');
   const accepted=r.commit();
   for(const file of m.ALLOWED) r.write(file,'reviewed fixture correction\n');
   const parent=r.commit(),parentTree=r.git(['rev-parse',parent+'^{tree}']);
@@ -129,7 +130,7 @@ test('original receipt bytes and source identity survive reuse without reseriali
   assert.equal(read.receiptSha256,sha(Buffer.from(original)));
 });
 test('artifact storage never receives the GitHub token and downloads stay bounded',async()=>{const m=await modulePromise,calls=[];const fetcher=async(url,options)=>{calls.push({url,options});return calls.length===1?new Response(null,{status:302,headers:{location:'https://storage.example.invalid/artifact?signature=fixture'}}):new Response('zip');};const bytes=await m.fetchArchive(fetcher,'https://api.github.com/repos/donadmiral/tbirds-nest',{Authorization:'Bearer synthetic'},30);assert.equal(bytes.toString(),'zip');assert.equal(calls[0].options.headers.Authorization,'Bearer synthetic');assert.equal(calls[1].options.headers,undefined);assert.equal(calls[1].options.redirect,'error');await assert.rejects(m.boundedBody(new Response('12345'),4));await assert.rejects(m.fetchArchive(async()=>new Response(null,{status:302,headers:{location:'http://unsafe.invalid/a'}}),'https://api.github.com',{},30));});
-test('workflow retains every gate and reads four commits before authorizing any provider activity',async()=>{const m=await modulePromise,workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/live-release-acceptance.yml'),'utf8');const block=workflow.slice(workflow.indexOf('  connected-host-viewer:'),workflow.indexOf('  release-checks:'));assert.match(block,/actions: read/);assert.match(block,/fetch-depth: 4/);assert.equal((block.match(/if: steps.connected_evidence.outputs.reused != 'true'/g)||[]).length,3);assert.ok(block.indexOf('node tools/reuse-live-connected-evidence.mjs')<block.indexOf('npm ci --prefix web'));assert.doesNotMatch(block,/continue-on-error/);assert.match(workflow,/needs: \[release-checks, browser-baseline, connected-host-viewer, web-production-build\]/);assert.equal(sha(Buffer.from(workflow)),m.FEED_CORRECTION.files.find(file=>file.path==='.github/workflows/live-release-acceptance.yml').sha256,'The workflow is hash-bound, with all fresh gates and feed regressions preserved');});
+test('workflow retains every gate and reads five commits before authorizing any provider activity',async()=>{const m=await modulePromise,workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/live-release-acceptance.yml'),'utf8');const block=workflow.slice(workflow.indexOf('  connected-host-viewer:'),workflow.indexOf('  release-checks:'));assert.match(block,/actions: read/);assert.match(block,/fetch-depth: 5/);assert.equal((block.match(/if: steps.connected_evidence.outputs.reused != 'true'/g)||[]).length,3);assert.ok(block.indexOf('node tools/reuse-live-connected-evidence.mjs')<block.indexOf('npm ci --prefix web'));assert.doesNotMatch(block,/continue-on-error/);assert.match(workflow,/needs: \[release-checks, browser-baseline, connected-host-viewer, web-production-build\]/);assert.equal(sha(Buffer.from(workflow)),m.KEYBOARD_CORRECTION.files.find(file=>file.path==='.github/workflows/live-release-acceptance.yml').sha256,'The workflow is hash-bound, with all fresh gates and native regressions preserved');});
 function feedRepository(t,m){
  const r=nativeRepository(t,m), parent=r.head, parentTree=r.git(['rev-parse',parent+'^{tree}']);
  const files=m.FEED_CORRECTION.files.map(file=>{const bytes='reviewed feed '+file.path+'\n';r.write(file.path,bytes);return {...file,sha256:sha(Buffer.from(bytes))};});
@@ -149,4 +150,72 @@ test('feed exception rejects dirty source, changed parent tree, merge parents an
  const m=await modulePromise,r=feedRepository(t,m);assert.throws(()=>m.sourceEquivalent(r.git,r.head,r.accepted,r.rule,{...r.feedRule,parentTree:'f'.repeat(40)}),/parent tree changed/);
  assert.throws(()=>m.sourceEquivalent(args=>args[0]==='show'&&args.at(-1)==='HEAD'?r.feedRule.parent+' '+'f'.repeat(40):r.git(args),r.head,r.accepted,r.rule,r.feedRule),/single-parent/);
  r.write('runtime.txt','dirty');assert.throws(()=>m.sourceEquivalent(r.git,r.head,r.accepted,r.rule,r.feedRule),/Tracked checkout/);const later=r.commit();assert.equal(m.sourceEquivalent(r.git,later,r.accepted,r.rule,r.feedRule),false);
+});
+function keyboardRepository(t,m){
+ const r=feedRepository(t,m),parent=r.head,parentTree=r.git(['rev-parse',parent+'^{tree}']);
+ const files=m.KEYBOARD_CORRECTION.files.map(file=>{const bytes='reviewed keyboard '+file.path+'\n';r.write(file.path,bytes);return {...file,sha256:sha(Buffer.from(bytes))};});
+ for(const file of m.VERIFIER_FILES)r.write(file,'reviewed keyboard verifier\n');
+ const head=r.commit();return {...r,head,keyboardRule:{parent,parentTree,files}};
+}
+test('the exact keyboard child preserves connected evidence and requires fresh keyboard and feed validation',async t=>{
+ const m=await modulePromise,r=keyboardRepository(t,m);
+ const scope=m.sourceApplicability(r.git,r.head,r.accepted,r.rule,r.feedRule,r.keyboardRule);
+ assert.equal(scope.kind,'native-live-keyboard-correction');assert.equal(scope.comparisonParent,r.keyboardRule.parent);
+ assert.equal(scope.comparisonParentTree,r.keyboardRule.parentTree);assert.equal(scope.connectedRuntimeEquivalent,true);
+ assert.equal(scope.nativeRuntimeEquivalent,false);assert.equal(scope.nativeFeedRequiresSeparateValidation,true);
+ assert.equal(scope.nativeKeyboardRequiresSeparateValidation,true);assert.equal(Object.hasOwn(scope,'runtimeEquivalent'),false);
+ assert.deepEqual(scope.verifiedFiles,r.keyboardRule.files);
+ assert.deepEqual(scope.permittedChanges,[...r.keyboardRule.files.map(file=>file.path),...m.VERIFIER_FILES].sort());
+ for(const file of m.KEYBOARD_CORRECTION.files){assert.match(file.sha256,/^[a-f0-9]{64}$/);assert.equal(file.mode,'100644');}
+});
+test('every reviewed keyboard component, login flow, test and workflow byte is enforced',async t=>{
+ const m=await modulePromise;
+ for(const file of m.KEYBOARD_CORRECTION.files){const r=keyboardRepository(t,m);r.write(file.path,'unreviewed keyboard replacement\n');const head=r.amend();assert.throws(()=>m.sourceEquivalent(r.git,head,r.accepted,r.rule,r.feedRule,r.keyboardRule),/Reviewed keyboard correction bytes changed/);}
+});
+test('keyboard reuse rejects extra connected and browser preparation edits even in a broadened hash list',async t=>{
+ const m=await modulePromise;
+ for(const file of ['web/runtime.ts','scripts/quality/install-browser-test-runtime.sh']){
+  const r=keyboardRepository(t,m),bytes='unreviewed connected change\n';r.write(file,bytes);const head=r.amend();
+  assert.throws(()=>m.sourceEquivalent(r.git,head,r.accepted,r.rule,r.feedRule,r.keyboardRule),/unreviewed or missing change/);
+  const broad={...r.keyboardRule,files:[...r.keyboardRule.files,{path:file,mode:'100644',sha256:sha(Buffer.from(bytes))}]};
+  assert.throws(()=>m.sourceEquivalent(r.git,head,r.accepted,r.rule,r.feedRule,broad),/Connected runtime or browser preparation changed/);
+ }
+});
+test('keyboard reuse rejects missing paths, file type changes and executable verifier modes',async t=>{
+ const m=await modulePromise;
+ for(const kind of ['missing','additional','deleted','renamed','symlink','executable']){
+  const r=keyboardRepository(t,m),file=m.KEYBOARD_CORRECTION.files[0].path;
+  if(kind==='missing')r.write(file,r.git(['show',r.keyboardRule.parent+':'+file]));
+  if(kind==='additional')r.write('src/unreviewed.ts','extra native change');
+  if(kind==='deleted')fs.unlinkSync(r.fullPath(file));
+  if(kind==='renamed')fs.renameSync(r.fullPath(file),r.fullPath(file)+'.moved');
+  if(kind==='symlink'){fs.unlinkSync(r.fullPath(file));fs.symlinkSync('runtime.txt',r.fullPath(file));}
+  if(kind==='executable')fs.chmodSync(r.fullPath(m.VERIFIER_FILES[0]),0o755);
+  const head=r.amend();assert.throws(()=>m.sourceEquivalent(r.git,head,r.accepted,r.rule,r.feedRule,r.keyboardRule),/unreviewed or missing change|change file type|Reviewed file mode changed/);
+ }
+});
+test('keyboard reuse binds the parent tree, ancestry, single-parent commit and clean checkout',async t=>{
+ const m=await modulePromise,r=keyboardRepository(t,m),rule=r.keyboardRule;
+ assert.throws(()=>m.sourceEquivalent(r.git,r.head,r.accepted,r.rule,r.feedRule,{...rule,parentTree:'f'.repeat(40)}),/parent tree changed/);
+ assert.throws(()=>m.sourceEquivalent(args=>args[0]==='show'&&args.at(-1)===rule.parent?'e'.repeat(40):r.git(args),r.head,r.accepted,r.rule,r.feedRule,rule),/parent ancestry changed/);
+ for(const parents of [[rule.parent,'e'.repeat(40)],['e'.repeat(40),rule.parent]])assert.throws(()=>m.sourceEquivalent(args=>args[0]==='show'&&args.at(-1)==='HEAD'?parents.join(' '):r.git(args),r.head,r.accepted,r.rule,r.feedRule,rule),/single-parent correction/);
+ assert.throws(()=>m.sourceEquivalent(r.git,'f'.repeat(40),r.accepted,r.rule,r.feedRule,rule),/Checkout differs/);
+ r.write(m.KEYBOARD_CORRECTION.files[0].path,'dirty native code');
+ assert.throws(()=>m.sourceEquivalent(r.git,r.head,r.accepted,r.rule,r.feedRule,rule),/Tracked checkout/);
+ r.git(['add','.']);assert.throws(()=>m.sourceEquivalent(r.git,r.head,r.accepted,r.rule,r.feedRule,rule),/Tracked checkout/);
+ const later=r.commit();assert.equal(m.sourceEquivalent(r.git,later,r.accepted,r.rule,r.feedRule,rule),false,'Later releases do not inherit this single-child exception');
+});
+test('a keyboard-child mismatch fails before network access or a provider fallback',async t=>{
+ const m=await modulePromise,r=keyboardRepository(t,m);let fetches=0;
+ const git=args=>{
+  if(args[0]==='show'&&args.at(-1)==='HEAD')return m.KEYBOARD_CORRECTION.parent;
+  if(args[0]==='show'&&args.at(-1)===m.KEYBOARD_CORRECTION.parent)return m.FEED_CORRECTION.parent;
+  if(args[0]==='rev-parse'&&args[1]===m.KEYBOARD_CORRECTION.parent+'^{tree}')return m.KEYBOARD_CORRECTION.parentTree;
+  return r.git(args.map(arg=>arg===m.PINNED.source?r.accepted:arg===m.KEYBOARD_CORRECTION.parent?r.keyboardRule.parent:arg));
+ };
+ const evidence=r.fullPath('evidence-not-created');
+ await assert.rejects(m.reuseConnected({git,fetcher:async()=>{fetches++;throw Error('No fetch expected');},
+  env:{GITHUB_REPOSITORY:m.PINNED.repository,GITHUB_SHA:r.head,GITHUB_TOKEN:'synthetic',LIVE_CONNECTED_EVIDENCE:evidence},
+ }),/Reviewed keyboard correction bytes changed/);
+ assert.equal(fetches,0);assert.equal(fs.existsSync(evidence),false);
 });

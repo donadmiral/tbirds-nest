@@ -5,10 +5,13 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const YAML = require('yaml');
 const root = path.resolve(__dirname, '../..');
-const flow = YAML.parseAllDocuments(fs.readFileSync(path.join(root,
-  'tests/native/flows/navigation.yaml'), 'utf8'))[1].toJSON();
+const flowText = fs.readFileSync(path.join(root, 'tests/native/flows/navigation.yaml'), 'utf8');
+const flow = YAML.parseAllDocuments(flowText)[1].toJSON();
 const loginSource = fs.readFileSync(path.join(root, 'src/screens/auth/LoginScreen.tsx'), 'utf8');
 const sha = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const passwordPromptTitle = '^Save Password\\?$';
+const passwordPrompt = flow.find(command => command.runFlow?.commands?.some(child =>
+  child.runFlow?.when?.visible === passwordPromptTitle));
 
 function project(commands, platform) {
   return commands.flatMap(command => {
@@ -122,11 +125,57 @@ test('iOS must dismiss the observed keyboard and retain one enabled Sign in butt
 test('all existing Android actions and every post-login Live/navigation requirement are preserved', () => {
   // Fixed hashes from reviewed 72bbaebb, independent of Git history in shallow CI.
   const additions = new Set(['feed-video.yaml', 'live-immersive.yaml', 'reveal-live-tab.yaml', 'reveal-feed-tabs.yaml']);
-  const original = flow.filter(command => !additions.has(command.runFlow));
+  const uninterrupted = flow.filter(command => command !== passwordPrompt);
+  const original = uninterrupted.filter(command => !additions.has(command.runFlow));
   assert.equal(flow.filter(command => command.runFlow === 'feed-video.yaml').length, 1);
   assert.equal(sha(project(original, 'Android')), 'cfd5e880e7283b4b7e93062abaf6f3329d57c6f5a7f0eb75d672c5333b154a5b');
-  const index = flow.findIndex(command => command.tapOn === 'Sign in');
-  assert.equal(sha(flow.slice(index + 1).filter(command => !additions.has(command.runFlow))), '62022480a47c567ab5b60832554d47fd80eab18f8cbb6d1a98a3909a342183e2');
-  assert.equal(flow[index + 1].extendedWaitUntil.timeout, 30000);
+  const index = uninterrupted.findIndex(command => command.tapOn === 'Sign in');
+  assert.equal(sha(uninterrupted.slice(index + 1).filter(command => !additions.has(command.runFlow))), '62022480a47c567ab5b60832554d47fd80eab18f8cbb6d1a98a3909a342183e2');
+  assert.equal(uninterrupted[index + 1].extendedWaitUntil.timeout, 30000);
   assert.equal(flow.filter(command => command.launchApp).length, 1);
+});
+
+test('iOS handles only the observed password-saving sheet immediately after actual sign-in', () => {
+  // Maestro 2.11.0 Orchestra.kt at c8c361be: runFlow visible conditions use the
+  // 7000ms lookup budget, measured from the last completed mutating command.
+  // Only ElementNotFound becomes a skipped branch. Driver and action failures
+  // still fail the flow. This is a flow contract, not native driver execution.
+  assert.deepEqual(passwordPrompt, {
+    runFlow: {
+      when: { platform: 'iOS' },
+      commands: [{ runFlow: {
+        when: { visible: passwordPromptTitle },
+        commands: [
+          { tapOn: '^Not Now$' },
+          { extendedWaitUntil: { notVisible: passwordPromptTitle, timeout: 5000 } },
+        ],
+      } }],
+    },
+  });
+  assert.equal(flow.indexOf(passwordPrompt), flow.findIndex(command => command.tapOn === 'Sign in') + 1);
+  assert.equal(project(flow, 'Android').some(command => command.runFlow?.when?.visible === passwordPromptTitle), false);
+  const branch = passwordPrompt.runFlow.commands[0].runFlow;
+  assert.equal(visible(branch.when.visible, [{ accessibilityText: 'Save Password?' }]), true);
+  for (const wrong of ['Save Password', 'Save Passkey?', 'Save', 'Not Now', 'Open in Platinum QA?', '']) {
+    assert.equal(visible(branch.when.visible, [{ accessibilityText: wrong }]), false);
+  }
+  assert.equal(visible(branch.commands[0].tapOn, [{ accessibilityText: 'Not Now' }]), true);
+  for (const wrong of ['Save', 'Not Now please', '']) assert.equal(visible(branch.commands[0].tapOn,
+    [{ accessibilityText: wrong }]), false);
+  const disappearance = branch.commands[1].extendedWaitUntil;
+  assert.equal(firstReady(disappearance, [{ at: 0, nodes: [{ accessibilityText: 'Save Password?' }] },
+    { at: 5000, nodes: [{ accessibilityText: 'Save Password?' }] }]), null);
+  assert.equal(firstReady(disappearance, [{ at: 0, nodes: [{ accessibilityText: 'Save Password?' }] },
+    { at: 400, nodes: [] }]), 400);
+  assert.equal(JSON.stringify(passwordPrompt).includes('optional'), false);
+});
+
+test('removing only the password-sheet guard restores every original flow byte and deadline', () => {
+  const start = flowText.indexOf('- tapOn: Sign in\n') + '- tapOn: Sign in\n'.length;
+  const end = flowText.indexOf('- extendedWaitUntil:\n    visible: A quiet morning in the desert.', start);
+  assert.ok(start > 0 && end > start, 'The new guard must sit between sign-in and the original Home readback.');
+  const restored = flowText.slice(0, start) + flowText.slice(end);
+  // Exact reviewed 0810 flow. This check does not depend on Git history in CI.
+  assert.equal(crypto.createHash('sha256').update(restored).digest('hex'),
+    'ac6b4f99d5356af0cb67bda1bbd941d1393ea1e1dcc2dac1f7abf5a7c5408ea9');
 });
