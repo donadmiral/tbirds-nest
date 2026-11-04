@@ -50,6 +50,13 @@ name: Saved memory book, automatic film and cover editing
 - inputText: THE LONG WAY HOME
 - copyTextFrom: Book title
 - assertTrue: ${maestro.copiedText === "THE LONG WAY HOME"}
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Return blurs the single-line title before scrolling the keyboard-reduced sheet.
+      - pressKey: Enter
+      - assertVisible: Book settings
 # Use the harmless heading inside the handled-taps settings ScrollView.
 # Sending Android Back here can close the modal before Save.
 - scrollUntilVisible:

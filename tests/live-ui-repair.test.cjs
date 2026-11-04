@@ -173,3 +173,80 @@ test('web studio stays mounted across watch tabs and immediate setup selects stu
 test('operations desk exposes disabled backend capability gates',()=>{
  const source=read('admin-web/components/LiveOperations.tsx');assert.match(source,/Live service readiness/);assert.match(source,/readiness.broadcast===false/);
 });
+
+function clipDestinationPicker(results) {
+  const h = hooks(), searches = [], publications = [];
+  let changed = 0;
+  const clip = { id: '11111111-1111-4111-8111-111111111111', session_id: '22222222-2222-4222-8222-222222222222', title: 'Recorded moment', state: 'ready', formats: ['vertical'], start_ms: 0, end_ms: 8000, caption: '' };
+  const object = value => !!value && typeof value === 'object' && !Array.isArray(value);
+  const component = load('src/components/LiveClipActions.tsx', {
+    react: h.react,
+    'react-native': { View: 'View', Text: 'Text', TextInput: 'TextInput', TouchableOpacity: 'TouchableOpacity', AppState: { addEventListener: () => ({ remove() {} }) } },
+    'expo-clipboard': {}, 'expo-media-library': {}, 'expo-sharing': {}, 'expo-video': {},
+    '../../shared/liveDirectory': directory,
+    '../theme/useTheme': { useTheme: () => ({ t: theme }) },
+    '../contexts/LivePlaybackContext': {},
+    '../services/liveClipService': { nativeClipCommand: async (...args) => { publications.push(args); return { ok: true, post_id: 'created-post' }; } },
+    '../services/devicePermissions': {},
+    '../services/liveService': {
+      liveObject: object, liveRows: (value, limit) => Array.isArray(value) ? value.filter(object).slice(0, limit) : [],
+      liveText: (value, limit = 2000) => typeof value === 'string' ? value.slice(0, limit) : '', liveRequestId: () => 'stable-publication-request',
+      liveRpc: async (name, args) => { assert.equal(name, 'live_clip_get'); assert.equal(args.p_clip_id, clip.id); return { clip, permissions: { can_manage: true, can_publish: true }, publication_history: { items: [] } }; },
+    },
+    '../services/supabase': { supabase: { rpc: async (name, args) => { searches.push({ name, args }); return { data: results, error: null }; } } },
+    '../utils/profileRead': { profileRead: value => value },
+    '../services/liveWebHandoff': {},
+  }).LiveClipActions;
+  const render = () => h.render(component, { clip, onChanged: () => changed++, onClose() {} });
+  const button = (tree, label) => nodes(tree).find(node => node.type === 'TouchableOpacity' && words(node) === label);
+  return { h, render, button, searches, publications, changed: () => changed };
+}
+
+test('native clip channel search retains authorized collaborators and publishes to the selected channel', async () => {
+  const id = number => `33333333-3333-4333-8333-${String(number).padStart(12, '0')}`;
+  const results = [
+    { id: id(1), name: 'Owned channel', my_role: 'owner' },
+    { id: id(2), name: 'Collaborating channel', my_role: 'collaborator' },
+    { id: id(3), name: 'Admin channel', my_role: 'admin' },
+    { id: id(4), name: 'Moderated channel', my_role: 'moderator' },
+    { id: id(5), name: 'Member channel', my_role: 'member' },
+    { id: id(6), name: 'Unknown role channel', my_role: 'unexpected' },
+    { id: id(7), name: 'No role channel', my_role: null },
+    { id: 'invalid-id', name: 'Invalid channel identity', my_role: 'collaborator' },
+  ];
+  const app = clipDestinationPicker(results);
+  app.render(); await app.h.settle(); app.button(app.render(), 'Channel').props.onPress();
+  app.render(); await app.h.settle();
+  by(app.render(), 'accessibilityLabel', 'Search channel name').props.onChangeText('  Design  ');
+  app.button(app.render(), 'Search destinations').props.onPress(); await app.h.settle();
+  let tree = app.render();
+  assert.equal(app.searches.length, 1); assert.equal(app.searches[0].name, 'get_channels_page');
+  assert.equal(app.searches[0].args.p_query, 'Design'); assert.equal(app.searches[0].args.p_limit, 20); assert.equal(app.searches[0].args.p_offset, 0);
+  assert.ok(Number.isFinite(Date.parse(app.searches[0].args.p_as_of)));
+  assert.ok(app.button(tree, 'Owned channel')); assert.ok(app.button(tree, 'Collaborating channel'));
+  for (const label of ['Admin channel', 'Moderated channel', 'Member channel', 'Unknown role channel', 'No role channel', 'Invalid channel identity']) assert.equal(app.button(tree, label), undefined, label);
+  assert.equal(app.button(tree, 'Publish clip').props.disabled, true);
+  app.button(tree, 'Collaborating channel').props.onPress(); tree = app.render();
+  assert.equal(app.button(tree, 'Publish clip').props.disabled, false);
+  app.button(tree, 'Publish clip').props.onPress(); await app.h.settle();
+  assert.equal(app.publications.length, 1); assert.equal(app.publications[0][2], 'publish');
+  assert.equal(app.publications[0][3].destination, 'channel'); assert.equal(app.publications[0][3].target_id, id(2));
+  assert.equal(app.publications[0][3].format, 'vertical'); assert.equal(app.changed(), 1);
+});
+
+test('native clip community search continues to require membership independently of channel roles', async () => {
+  const memberId = '44444444-4444-4444-8444-444444444444';
+  const app = clipDestinationPicker([
+    { id: memberId, name: 'Joined community', is_member: true, my_role: 'member' },
+    { id: '55555555-5555-4555-8555-555555555555', name: 'Unjoined community', is_member: false, my_role: 'owner' },
+    { id: 'invalid-id', name: 'Invalid community identity', is_member: true },
+  ]);
+  app.render(); await app.h.settle(); app.button(app.render(), 'Community').props.onPress();
+  app.render(); await app.h.settle();
+  by(app.render(), 'accessibilityLabel', 'Search community name').props.onChangeText('Community');
+  app.button(app.render(), 'Search destinations').props.onPress(); await app.h.settle();
+  const tree = app.render(); assert.equal(app.searches[0].name, 'get_communities_page');
+  assert.ok(app.button(tree, 'Joined community')); assert.equal(app.button(tree, 'Unjoined community'), undefined); assert.equal(app.button(tree, 'Invalid community identity'), undefined);
+  app.button(tree, 'Joined community').props.onPress(); app.button(app.render(), 'Publish clip').props.onPress(); await app.h.settle();
+  assert.equal(app.publications[0][3].destination, 'community'); assert.equal(app.publications[0][3].target_id, memberId);
+});

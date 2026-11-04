@@ -112,6 +112,13 @@ test('reviewed shelf, title, keyboard and saved-title readback changes preserve 
     ];
   });
   assert.equal(keyboardExits, 3);
+  // The retained iPhone trace shows the keyboard-reduced scroll viewport ends
+  // above Maestro's global swipe origin. Blur the single-line title first.
+  const firstPaper = expected[1].findIndex(command => command.scrollUntilVisible?.element === 'Paper tint');
+  assert.ok(firstPaper >= 0);
+  expected[1].splice(firstPaper, 0, { runFlow: { when: { platform: 'iOS' }, commands: [
+    { pressKey: 'Enter' }, { assertVisible: 'Book settings' },
+  ] } });
   const save = expected[1].findIndex(command => command.tapOn === 'Save memory book');
   assert.ok(save >= 0);
   expected[1].splice(save, 0, { assertVisible: 'Save memory book' });
@@ -123,5 +130,5 @@ test('reviewed shelf, title, keyboard and saved-title readback changes preserve 
     { tapOn: 'Cancel memory book edits' },
     { extendedWaitUntil: { notVisible: 'Book settings', timeout: 15000 } });
   assert.deepEqual(actual, expected);
-  assert.equal(actual[1].length, before[1].length + 16);
+  assert.equal(actual[1].length, before[1].length + 17);
 });

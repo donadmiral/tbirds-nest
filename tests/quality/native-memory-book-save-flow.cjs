@@ -108,6 +108,15 @@ for (const [label, current, before, title, dismissals] of flows) {
       const type = find(rows, row => row.inputText === title, erase);
       const copied = find(rows, row => row.copyTextFrom === 'Book title', type);
       assert.equal(rows[copied + 1].assertTrue, '${maestro.copiedText === "' + title + '"}');
+      if (label === 'full' && platform === 'iOS') {
+        const returned = find(rows, row => row.pressKey === 'Enter', copied + 1);
+        const firstScroll = find(rows, row => row.scrollUntilVisible?.element === 'Paper tint', copied + 1);
+        assert.ok(returned < firstScroll, 'dismiss the single-line title keyboard before scrolling the reduced sheet');
+        assert.equal(rows[returned + 1].assertVisible, 'Book settings', 'Return must preserve the settings modal');
+        assert.equal(inside.filter(row => row.pressKey === 'Enter').length, 1);
+      } else if (label === 'full') {
+        assert.equal(inside.some(row => row.pressKey === 'Enter'), false, 'the passing Android keyboard interactions remain unchanged');
+      }
       assert.ok(copied < save); assert.equal(rows.filter(row => tap(row) === 'Save memory book').length, 1);
       const closed = find(rows, row => row.extendedWaitUntil?.notVisible === 'Book settings', save);
       assert.equal(rows[closed].extendedWaitUntil.timeout, 15000);
