@@ -59,21 +59,36 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
   },[active?.session.id,active?.scope,identity.scope,client,retry]);
   useEffect(()=>{
     const element=video.current;if(!element||!media)return;
-    let alive=true;const before=element.currentTime,wasPlaying=!element.paused;let restore: (()=>void)|undefined;
+    let alive=true;const before=element.currentTime,wasPlaying=!element.paused;
+    const restore=()=>{if(!alive)return;const position=pendingSeek.current??before;pendingSeek.current=null;if(!media.live&&position>0&&Number.isFinite(element.duration))element.currentTime=Math.min(position,element.duration);if(wasPlaying||before===0)void element.play().catch(()=>{if(alive)setStatus('ready');});};
+    // Register before attaching a source so a cached manifest cannot race this listener.
+    element.addEventListener('loadedmetadata',restore,{once:true});
+    delete element.dataset.livePlaybackFailure;
     const attach=async()=>{
       hls.current?.destroy();hls.current=null;
-      if(element.canPlayType('application/vnd.apple.mpegurl')){element.src=media.url;}
-      else{
-        const {default:HlsPlayer}=await import('hls.js');if(!alive)return;
-        if(!HlsPlayer.isSupported()){setError('This browser cannot play this stream. Try another supported browser.');setStatus('error');return;}
+      // Some Chromium builds report native HLS support but fail before loading
+      // a rendition. Prefer the tested MSE pipeline; retain native-only Safari.
+      const {default:HlsPlayer}=await import('hls.js');if(!alive)return;
+      if(HlsPlayer.isSupported()){
+        element.dataset.livePlaybackEngine='mse';
         const engine=new HlsPlayer({enableWorker:true,lowLatencyMode:true,maxBufferLength:20,maxMaxBufferLength:30,backBufferLength:15,manifestLoadingMaxRetry:2,fragLoadingMaxRetry:2});hls.current=engine;
-        engine.on(HlsPlayer.Events.ERROR,(_event,detail)=>{if(!alive||!detail.fatal)return;setError('Playback stopped. Retry to reconnect to the stream.');setStatus('error');engine.stopLoad();});
+        engine.on(HlsPlayer.Events.ERROR,(_event,detail)=>{
+          if(!alive)return;
+          // Only an enumerated error category, never a signed URL or provider payload.
+          element.dataset.livePlaybackFailure=String(detail.details).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
+          if(!detail.fatal)return;
+          setError('Playback stopped. Retry to reconnect to the stream.');setStatus('error');engine.stopLoad();
+        });
         engine.loadSource(media.url);engine.attachMedia(element);
+      }else if(element.canPlayType('application/vnd.apple.mpegurl')){
+        element.dataset.livePlaybackEngine='native';element.src=media.url;
+      }else{
+        element.dataset.livePlaybackEngine='unsupported';
+        setError('This browser cannot play this stream. Try another supported browser.');setStatus('error');
       }
-      restore=()=>{if(!alive)return;const position=pendingSeek.current??before;pendingSeek.current=null;if(!media.live&&position>0&&Number.isFinite(element.duration))element.currentTime=Math.min(position,element.duration);if(wasPlaying||before===0)void element.play().catch(()=>{if(alive)setStatus('ready');});};
-      element.addEventListener('loadedmetadata',restore,{once:true});
     };
-    void attach();return()=>{alive=false;if(restore)element.removeEventListener('loadedmetadata',restore);hls.current?.destroy();hls.current=null;};
+    void attach().catch(()=>{if(alive){setError('The video player could not load. Retry to reconnect.');setStatus('error');}});
+    return()=>{alive=false;element.removeEventListener('loadedmetadata',restore);hls.current?.destroy();hls.current=null;};
   },[media]);
   useEffect(()=>()=>{video.current?.pause();hls.current?.destroy();},[]);
   const open=useCallback((session:LiveSession,startAt?:number)=>{
