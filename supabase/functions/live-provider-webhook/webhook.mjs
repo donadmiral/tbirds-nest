@@ -5,6 +5,20 @@ const TYPES=new Set(['streaming.started','streaming.updated','streaming.ended','
 const object=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(v);
 const encoder=new TextEncoder();
+// Normalize only after authenticating the original event. Daily's delivered
+// timestamp can be a string even though the REST examples use numeric seconds.
+export function eventTime(value){
+ let seconds=value;
+ if(typeof value==='string'){
+  if(/^[1-9]\d{8,11}$/.test(value))seconds=Number(value);
+  else if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)){
+   const ms=Date.parse(value);if(!Number.isFinite(ms)||ms<=0)return null;
+   const canonical=new Date(ms).toISOString();return canonical.slice(0,19)===value.slice(0,19)?canonical:null;
+  }else return null;
+ }
+ if(typeof seconds!=='number'||!Number.isSafeInteger(seconds)||seconds<=0||seconds>253402300799)return null;
+ return new Date(seconds*1000).toISOString();
+}
 function keyBytes(value){if(typeof value!=='string'||value.length>1024||!/^[A-Za-z0-9+/]+={0,2}$/.test(value))throw Error('INVALID_SIGNATURE');const bytes=Uint8Array.from(atob(value),c=>c.charCodeAt(0));if(bytes.length<32||bytes.length>768)throw Error('INVALID_SIGNATURE');return bytes;}
 export async function boundedJson(message,max=131072){
  if(Number(message.headers.get('content-length')||0)>max)throw Error('REQUEST_TOO_LARGE');const reader=message.body?.getReader();if(!reader)throw Error('INVALID_JSON');let size=0;const chunks=[];
@@ -23,7 +37,7 @@ export function validateEvent(event){
  if(!object(event.payload))invalid.push('payload');
  if(invalid.length||!TYPES.has(event.type))return invalid;
  if(!uuid(event.payload.instance_id))invalid.push('instance_id');
- if(!Number.isSafeInteger(event.payload.timestamp)||event.payload.timestamp<=0||event.payload.timestamp>253402300799)invalid.push('timestamp');
+ if(eventTime(event.payload.timestamp)===null)invalid.push('timestamp');
  return invalid;
 }
 export function createDailyWebhook({origin,secret,domainId,relaySecret='',rpc,fetcher=fetch,now=Date.now,log=console.warn}){
@@ -45,7 +59,7 @@ export function createDailyWebhook({origin,secret,domainId,relaySecret='',rpc,fe
    if(!TYPES.has(event.type))return json(200,{ok:true,ignored:true});
    if(!domainId||event.payload.domain_id!==domainId)return json(403,{error:'INVALID_DOMAIN'});
    const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(JSON.stringify(event))))].map(v=>v.toString(16).padStart(2,'0')).join('');
-   const result=await rpc({p_id:event.id,p_instance:event.payload.instance_id,p_type:event.type,p_time:new Date(event.payload.timestamp*1000).toISOString(),p_digest:digest});
+   const result=await rpc({p_id:event.id,p_instance:event.payload.instance_id,p_type:event.type,p_time:eventTime(event.payload.timestamp),p_digest:digest});
    if(!object(result)||result.ok!==true)throw Error('EVENT_NOT_CONFIRMED');
    if(result.unknown_instance===true&&origin===PRODUCTION&&relaySecret){
     if(result.ignored!==true||result.duplicate===true||'session_id' in result)throw Error('EVENT_NOT_CONFIRMED');
