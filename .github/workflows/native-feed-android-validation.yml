@@ -33,11 +33,22 @@ jobs:
           node-version: 22
           cache: npm
       - name: Use Java 17 and emulator host support
+        timeout-minutes: 8
+        shell: bash
         run: |
+          set -euo pipefail
+          mkdir -p native-ui-logs
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
           echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends libpulse0 ffmpeg xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+          sudo timeout --kill-after=15s 180s apt-get \
+            -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 \
+            -o Acquire::Retries=1 -o DPkg::Lock::Timeout=30 update \
+            2>&1 | tee -a native-ui-logs/host-setup.log
+          sudo timeout --kill-after=15s 180s apt-get \
+            -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 \
+            -o Acquire::Retries=1 -o DPkg::Lock::Timeout=30 install --yes --no-install-recommends \
+            libpulse0 ffmpeg xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0 \
+            2>&1 | tee -a native-ui-logs/host-setup.log
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
       - run: npm ci --ignore-scripts --no-fund
