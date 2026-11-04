@@ -2,18 +2,9 @@ name: Live release acceptance
 on:
   workflow_dispatch:
   push:
+    # This dedicated release branch must validate every candidate, including
+    # Live components and test dependencies outside any hand-maintained list.
     branches: [codex/live-completion-20261102]
-    paths:
-      - .github/workflows/live-release-acceptance.yml
-      - web/tests/browser/live-connected-*
-      - web/components/LivePlaybackProvider.tsx
-      - web/components/LiveStudio.tsx
-      - src/screens/feed/FeedScreen.tsx
-      - src/screens/feed/Live*.tsx
-      - src/components/Live*.tsx
-      - src/components/live/**
-      - src/contexts/LivePlaybackContext.tsx
-      - tests/feed-capacity.test.cjs
 permissions:
   contents: read
 concurrency:
