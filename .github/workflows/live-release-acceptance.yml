@@ -8,6 +8,12 @@ on:
       - web/tests/browser/live-connected-*
       - web/components/LivePlaybackProvider.tsx
       - web/components/LiveStudio.tsx
+      - src/screens/feed/FeedScreen.tsx
+      - src/screens/feed/Live*.tsx
+      - src/components/Live*.tsx
+      - src/components/live/**
+      - src/contexts/LivePlaybackContext.tsx
+      - tests/feed-capacity.test.cjs
 permissions:
   contents: read
 concurrency:
