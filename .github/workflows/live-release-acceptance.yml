@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/live-release-acceptance.yml
       - web/tests/browser/live-connected-*
+      - web/components/LivePlaybackProvider.tsx
 permissions:
   contents: read
 concurrency:
