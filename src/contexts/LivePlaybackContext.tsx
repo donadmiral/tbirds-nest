@@ -4,15 +4,17 @@ import { useVideoPlayer, VideoView, type VideoPlayer } from 'expo-video';
 import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../stores/authStore';
 import { useCallContext } from './CallContext';
-import { livePlayback, type LivePlaybackTicket } from '../services/liveService';
+import { livePlayback, liveRequestId, type LivePlaybackTicket } from '../services/liveService';
 import type { LiveSession } from '../../shared/liveDirectory';
 import { subscribeLiveControl } from '../services/liveControlEvents';
 import { liveObject } from '../services/liveService';
 import { LIVE_STARTUP_WINDOW_MS, liveStartupDelay, type LivePlaybackStartup } from '../services/livePlaybackStartup';
+import { supabase } from '../services/supabase';
+import { useLiveViewerPresence } from '../../shared/useLiveViewerPresence';
 
 type Playback = {
   player: VideoPlayer; session: LiveSession | null; expanded: boolean; loading: boolean; error: string | null;
-  open(session: LiveSession): Promise<void>; close(): void; minimize(): void; expand(): void; retry(): Promise<void>;
+  open(session: LiveSession): Promise<void>; close(): void; minimize(): void; expand(): void; retry(): Promise<void>; setPictureInPicture(active: boolean): void;
 };
 const Context = createContext<Playback | null>(null);
 export function useLivePlayback() {
@@ -24,10 +26,12 @@ export function useLivePlayback() {
 /** One player survives navigation. URLs live only in memory and expire with access. */
 export function LivePlaybackProvider({ children }: { children: React.ReactNode }) {
   const owner = useAuthStore(s => s.profile?.id ?? null);
+  const identityScope = useAuthStore(s => s.session ? `${s.session.user.id}:${s.session.user.last_sign_in_at ?? ''}` : null);
   const { callState } = useCallContext();
   const callBusy=useRef(false);callBusy.current=callState!=='idle'&&callState!=='failed';
   const [session, setSession] = useState<LiveSession | null>(null);
   const [expanded, setExpanded] = useState(false), [loading, setLoading] = useState(false), [error, setError] = useState<string | null>(null);
+  const [mediaPlaying, setMediaPlaying] = useState(false), [foreground, setForeground] = useState(AppState.currentState === 'active'), [pictureInPicture, setPictureInPicture] = useState(false);
   const player = useVideoPlayer(null, value => {
     value.loop = false;
     value.staysActiveInBackground = true;
@@ -40,6 +44,9 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
   const sourceQueue = useRef<Promise<unknown>>(Promise.resolve());
   const startup = useRef<LivePlaybackStartup | null>(null), startupTimer = useRef<ReturnType<typeof setTimeout> | null>(null), authorizationPending = useRef(false);
   const scheduleStartupRetry = useRef<(message?: string) => boolean>(() => false);
+  useLiveViewerPresence({ client: supabase, sessionId: session?.id ?? null, identityScope,
+    active: mediaPlaying && (foreground || pictureInPicture) && ticket.current?.live === true && !callBusy.current,
+    createPlaybackId: liveRequestId });
   auth.current = owner;
   const clearTimer = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; };
   const clearStartupTimer = () => { if (startupTimer.current) clearTimeout(startupTimer.current); startupTimer.current = null; };
@@ -76,7 +83,7 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
   const close = useCallback(() => {
     generation.current++; clearTimer(); clearStartupTimer(); startup.current = null; authorizationPending.current = false; if(expires.current)clearTimeout(expires.current);expires.current=null; active.current = null; ticket.current = null;
     player.pause(); void changeSource(()=>player.replaceAsync(null)).catch(() => {});
-    if (mounted.current) { setSession(null); setExpanded(false); setLoading(false); setError(null); }
+    if (mounted.current) { setSession(null); setExpanded(false); setLoading(false); setError(null); setMediaPlaying(false); setPictureInPicture(false); }
   }, [player]);
   const refresh = useRef<(value: LiveSession, reset: boolean) => Promise<void>>(async () => {});
   refresh.current = async (value, reset) => {
@@ -119,9 +126,10 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
     await refresh.current(value, true);
   }, []);
   const retry = useCallback(async () => { const value=active.current;if(value){if(startup.current&&!startup.current.played)startup.current={startedAt:Date.now(),attempts:0,played:false};await refresh.current(value,false);if(!callBusy.current&&active.current?.id===value.id&&ticket.current&&ticket.current.expiresAt>Date.now())player.play();} }, [player]);
-  useEffect(() => { close(); }, [owner, close]);
+  useEffect(() => { close(); }, [owner, identityScope, close]);
   useEffect(() => {
     const listener = AppState.addEventListener('change', state => {
+      setForeground(state === 'active');
       if (state === 'active' && active.current && (!ticket.current || ticket.current.expiresAt <= Date.now() + 30000)) void refresh.current(active.current, false);
     });
     return () => listener.remove();
@@ -149,21 +157,22 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const markPlaying = () => { if (active.current && ticket.current && player.status === 'readyToPlay' && player.playing) { if (startup.current) startup.current.played = true; clearStartupTimer(); setLoading(false); setError(null); } };
     const listener = player.addListener('statusChange', event => {
+      setMediaPlaying(event.status === 'readyToPlay' && player.playing);
       if (event.status === 'readyToPlay') markPlaying();
       if (event.status === 'error' && active.current && !scheduleStartupRetry.current(event.error?.message)) { setError('Playback was interrupted. Retry when connected.'); setLoading(false); }
     });
-    const playing = player.addListener('playingChange', event => { if (event.isPlaying) markPlaying(); });
+    const playing = player.addListener('playingChange', event => { setMediaPlaying(event.isPlaying && player.status === 'readyToPlay'); if (event.isPlaying) markPlaying(); });
     return () => { listener.remove(); playing.remove(); };
   }, [player]);
   useEffect(() => {mounted.current=true;return () => { mounted.current = false; generation.current++; clearTimer();clearStartupTimer();startup.current=null;if(expires.current)clearTimeout(expires.current); active.current = null; ticket.current = null; };}, []);
-  return <Context.Provider value={{ player, session, expanded, loading, error, open, close, minimize: () => setExpanded(false), expand: () => setExpanded(true), retry }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ player, session, expanded, loading, error, open, close, minimize: () => setExpanded(false), expand: () => setExpanded(true), retry, setPictureInPicture }}>{children}</Context.Provider>;
 }
 
 export function MiniLivePlayer({ onOpen }: { onOpen(id: string): void }) {
   const live = useLivePlayback();
   if (!live.session || live.expanded) return null;
   return <View style={styles.mini} accessibilityLabel="Minimized Live player">
-    <VideoView player={live.player} style={styles.video} contentFit="contain" nativeControls allowsPictureInPicture startsPictureInPictureAutomatically />
+    <VideoView player={live.player} style={styles.video} contentFit="contain" nativeControls allowsPictureInPicture startsPictureInPictureAutomatically onPictureInPictureStart={() => live.setPictureInPicture(true)} onPictureInPictureStop={() => live.setPictureInPicture(false)} />
     <View style={styles.bar}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Return to live stream" style={styles.titleButton} onPress={() => onOpen(live.session!.id)}><Text numberOfLines={1} style={styles.title}>{live.session.title}</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel="Close live stream" onPress={live.close} style={styles.close}><Feather name="x" size={18} color="#fff" /></TouchableOpacity></View>
     {live.error ? <TouchableOpacity accessibilityRole="button" onPress={() => void live.retry()} style={styles.retry}><Text style={styles.title}>Playback stopped. Retry</Text></TouchableOpacity> : null}
   </View>;

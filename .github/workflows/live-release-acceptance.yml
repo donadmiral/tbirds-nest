@@ -23,6 +23,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
       - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix admin-web --ignore-scripts --no-audit --no-fund
       - name: Install browser and media runtime
         run: |
           sudo apt-get update
@@ -34,6 +35,8 @@ jobs:
           LIVE_BROWSER_EVIDENCE=/tmp/live-start-evidence node web/tests/browser/live-start-run.cjs
           LIVE_BROWSER_EVIDENCE=/tmp/live-playback-evidence node web/tests/browser/live-run.cjs
           LIVE_STARTUP_FAILURE=1 LIVE_BROWSER_EVIDENCE=/tmp/live-startup-rendition-evidence node web/tests/browser/live-run.cjs
+          PLATINUM_UI_ENTRY=tests/browser/live-fixture.tsx PLATINUM_UI_OUTPUT=/tmp/platinum-admin-live node admin-web/tests/browser/compile.cjs
+          PLATINUM_UI_OUTPUT=/tmp/platinum-admin-live PLATINUM_UI_ARTIFACTS=/tmp/live-admin-evidence node admin-web/tests/browser/live-run.cjs
       - name: Retain browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -43,6 +46,7 @@ jobs:
             /tmp/live-start-evidence/
             /tmp/live-playback-evidence/
             /tmp/live-startup-rendition-evidence/
+            /tmp/live-admin-evidence/
           if-no-files-found: ignore
           retention-days: 3
   connected-host-viewer:
@@ -73,3 +77,44 @@ jobs:
           path: /tmp/live-connected-evidence/
           if-no-files-found: ignore
           retention-days: 3
+  release-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix admin-web --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix supabase/tests/rpc-authorization --ignore-scripts --no-audit --no-fund
+      - name: Verify native controls, presence, permissions and provider recovery
+        run: |
+          node --test tests/live-setup.test.cjs tests/live-ui-repair.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs tests/live-native-playback.test.cjs tests/live-viewer-presence.test.cjs
+          node --test admin-web/tests/live-operations.cjs admin-web/tests/live-clips.cjs web/tests/live-search-history.cjs
+          node --test supabase/tests/live-command-ack.test.cjs supabase/tests/live-provider.test.cjs supabase/tests/live-provider-diagnostics.test.cjs
+          node --test supabase/tests/rpc-authorization/test-live-control-result.mjs supabase/tests/rpc-authorization/test-live-viewer-presence.mjs supabase/tests/rpc-authorization/test-live-failed-start-recovery.mjs
+      - name: Verify all supported client types
+        run: |
+          npx tsc --noEmit --incremental false
+          npx tsc --noEmit --incremental false --project web/tsconfig.json
+          npx tsc --noEmit --incremental false --project admin-web/tsconfig.json
+          git diff --exit-code
+  qa-build:
+    needs: [release-checks, browser-baseline, connected-host-viewer]
+    if: github.repository == 'donadmiral/tbirds-nest' && github.ref == 'refs/heads/codex/live-completion-20261102'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build the exact revision after connected Live acceptance
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_APP_ENV: qa
+          CI: '1'
+        run: node tools/build-live-qa.mjs

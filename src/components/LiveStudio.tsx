@@ -13,6 +13,7 @@ import { useAuthStore } from '../stores/authStore';
 import { registerLiveStageRelease, releaseLiveStageMedia } from '../services/liveMediaSession';
 import { settleCallOperation } from '../services/nativeCallRecovery';
 import { useLiveStudioEvents } from '../hooks/useLiveStudioEvents';
+import { liveStudioPresentation, type PendingLiveControl } from '../../shared/liveSetup';
 
 export function LiveStudio({ sessionId, canControl, streamState, onChanged, autoPreview = false }: { sessionId: string; autoPreview?: boolean; canControl: boolean; streamState: string; onChanged(): void }) {
   const { t } = useTheme(), { callState } = useCallContext(), playback = useLivePlayback();
@@ -22,6 +23,8 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [sharing, setSharing] = useState(false), [canShare, setCanShare] = useState(false);
   const [preset, setPreset] = useState('host'), [selected, setSelected] = useState<string[]>([]);
   const [toolsOpen, setToolsOpen] = useState(false), autoPreviewUsed = useRef(false);
+  const [pendingControl, setPendingControl] = useState<PendingLiveControl>(null);
+  const presentation = liveStudioPresentation(streamState, pendingControl);
   const call = useRef<DailyCall | null>(null), generation = useRef(0), mutation = useRef(false), request = useRef<{ signature: string; id: string } | null>(null);
   const stopping=useRef<Promise<void>|null>(null),unregister=useRef<(()=>void)|null>(null);
   const stop = useCallback(():Promise<void> => {
@@ -86,7 +89,7 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
     const scene: LiveObject = { preset, ...(preset === 'grid' ? { participant_ids: selected } : selected[0] ? { participant_id: selected[0] } : {}) };
     const signature = JSON.stringify([sessionId, action, scene]);
     if (request.current?.signature !== signature) request.current = { signature, id: liveRequestId() };
-    try { await liveControl(sessionId, action, request.current.id, action === 'stop' ? undefined : scene); request.current = null; onChanged(); }
+    try { await liveControl(sessionId, action, request.current.id, action === 'stop' ? undefined : scene); request.current = null; if (action !== 'scene') setPendingControl(action); onChanged(); }
     catch (reason) { setError(reason instanceof Error ? reason.message : 'The broadcast control was not confirmed.'); }
     finally { mutation.current = false; setBusy(false); }
   };
@@ -101,13 +104,13 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
     } catch { setError('This media control is unavailable on your current device or build.'); }
   };
   const button = (title: string, action: () => void, disabled = busy) => <TouchableOpacity key={title} accessibilityRole="button" disabled={disabled} onPress={action} style={[s.button, { backgroundColor: t.surface.sunken, opacity: disabled ? 0.5 : 1 }]}><Text style={{ color: t.ink.primary, fontWeight: '600', fontSize: 13 }}>{title}</Text></TouchableOpacity>;
-  const live = ['live', 'starting', 'reconnecting'].includes(streamState);
+  const live = ['live', 'starting', 'reconnecting', 'ending'].includes(streamState);
   const local = participants.find(p => p.local);
   const blocked = busy || !selected.length || (!local?.audio && !local?.video && !sharing) || ['starting','ending','ended','cancelled'].includes(streamState);
   const endBroadcast = () => Alert.alert('End this live?', 'Viewers will stop receiving live video.', [{ text: 'Keep streaming', style: 'cancel' }, { text: 'End live', style: 'destructive', onPress: () => void sendControl('stop') }]);
   const mediaButton = (label: string, icon: React.ComponentProps<typeof Feather>['name'], action: () => void) => <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} disabled={busy} onPress={action} style={[s.mediaButton, { backgroundColor: t.surface.sunken, opacity: busy ? 0.5 : 1 }]}><Feather name={icon} size={21} color={t.ink.primary}/><Text style={{color:t.ink.secondary,fontSize:11,textAlign:'center'}}>{label}</Text></TouchableOpacity>;
   return <View style={{ gap: 14 }}>
-    <View style={{flexDirection:'row',alignItems:'center',gap:8}}><LiveIcon color={t.ink.primary}/><Text accessibilityRole="header" style={{ color: t.ink.primary, fontWeight: '700', fontSize: 20 }}>{live ? 'Your live' : 'Camera preview'}</Text><Text style={{marginLeft:'auto',color:live?'#C43146':t.ink.secondary,fontSize:12,fontWeight:'600'}}>{streamState==='starting'?'Starting…':streamState==='reconnecting'?'Reconnecting…':streamState==='live'?'LIVE':streamState==='ending'?'Ending…':streamState==='ended'?'Ended':streamState==='cancelled'?'Cancelled':'Not live'}</Text></View>
+    <View style={{flexDirection:'row',alignItems:'center',gap:8}}><LiveIcon color={t.ink.primary}/><Text accessibilityRole="header" style={{ color: t.ink.primary, fontWeight: '700', fontSize: 20 }}>{presentation.title}</Text><Text style={{marginLeft:'auto',color:live?'#C43146':t.ink.secondary,fontSize:12,fontWeight:'600'}}>{streamState==='starting'?'Starting…':streamState==='reconnecting'?'Reconnecting…':streamState==='live'?'LIVE':streamState==='ending'?'Ending…':streamState==='ended'?'Ended':streamState==='cancelled'?'Cancelled':'Not live'}</Text></View>
     {joined ? <View style={s.preview}><RemoteCallMedia participants={participants} /></View> : <View style={[s.preview, s.empty, { backgroundColor: t.surface.sunken }]}><LiveIcon size={42} color={t.ink.muted}/><Text style={{ color: t.ink.secondary, textAlign:'center' }}>{['ended','cancelled'].includes(streamState)?'This live has ended.':'Preview your camera and microphone'}</Text>{!['ended','cancelled'].includes(streamState)?button(busy ? 'Connecting…' : 'Preview camera', () => void preview(), busy || (callState !== 'idle' && callState !== 'failed')):null}</View>}
     {joined ? <View style={s.mediaRow}>
       {mediaButton(local?.audio ? 'Mute' : 'Unmute',local?.audio?'mic':'mic-off',()=>void media('audio'))}
@@ -116,8 +119,8 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
       {mediaButton('Leave','log-out',()=>void stop())}
     </View> : null}
     {canControl && joined ? <>
-      <TouchableOpacity testID="live-start-button" accessibilityRole="button" accessibilityLabel={live?'End live':'Go live'} disabled={live ? busy || streamState==='starting' : blocked} onPress={live ? endBroadcast : ()=>void sendControl('start')} style={[s.primary,{backgroundColor:live?'#B92536':t.ink.primary,opacity:(live?busy||streamState==='starting':blocked)?0.5:1}]}><LiveIcon color={t.surface.raised}/><Text style={{color:t.surface.raised,fontSize:17,fontWeight:'700'}}>{streamState==='starting'?'Starting…':streamState==='ending'?'Ending…':busy?'Please wait…':live?'End live':'Go live'}</Text></TouchableOpacity>
-      {!live?<Text style={{color:t.ink.secondary,textAlign:'center',fontSize:12}}>Your preview is not being broadcast. Your microphone starts muted. Unmute when ready, then tap Go live.</Text>:null}
+      <TouchableOpacity testID="live-start-button" accessibilityRole="button" accessibilityLabel={live?'End live':'Go live'} disabled={live ? busy || ['starting','ending'].includes(streamState) : blocked} onPress={live ? endBroadcast : ()=>void sendControl('start')} style={[s.primary,{backgroundColor:live?'#B92536':t.ink.primary,opacity:(live?busy||['starting','ending'].includes(streamState):blocked)?0.5:1}]}><LiveIcon color={t.surface.raised}/><Text style={{color:t.surface.raised,fontSize:17,fontWeight:'700'}}>{streamState==='starting'?'Starting…':streamState==='ending'?'Ending…':busy?'Please wait…':live?'End live':'Go live'}</Text></TouchableOpacity>
+      <Text accessibilityLiveRegion="polite" style={{color:t.ink.secondary,textAlign:'center',fontSize:12,lineHeight:18}}>{presentation.description}</Text>
     </> : null}
     {error ? <Text accessibilityRole="alert" style={{ color: t.ink.primary, lineHeight: 20 }}>{error}</Text> : null}
     {joined ? <TouchableOpacity accessibilityRole="button" accessibilityState={{expanded:toolsOpen}} onPress={()=>setToolsOpen(!toolsOpen)} style={s.tools}><Feather name="sliders" size={18} color={t.ink.primary}/><Text style={{color:t.ink.primary,flex:1}}>Stream tools</Text><Feather name={toolsOpen?'chevron-up':'chevron-down'} size={18} color={t.ink.secondary}/></TouchableOpacity>:null}
@@ -133,4 +136,4 @@ export function LiveStudio({ sessionId, canControl, streamState, onChanged, auto
     </View> : null}
   </View>;
 }
-const s = StyleSheet.create({ preview: { height: 300, borderRadius: 18, overflow: 'hidden', backgroundColor:'#000' }, empty: { alignItems: 'center', justifyContent: 'center', gap: 14, padding:20 }, controls: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' }, button: { minHeight: 44, minWidth: 44, paddingHorizontal: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }, mediaRow:{flexDirection:'row',gap:8},mediaButton:{flex:1,minHeight:62,alignItems:'center',justifyContent:'center',gap:5,borderRadius:12,paddingVertical:8},primary:{minHeight:54,borderRadius:14,alignItems:'center',justifyContent:'center',flexDirection:'row',gap:10,padding:14},tools:{minHeight:48,flexDirection:'row',alignItems:'center',gap:10} });
+const s = StyleSheet.create({ preview: { width: '100%', aspectRatio: 16 / 9, borderRadius: 18, overflow: 'hidden', backgroundColor:'#000' }, empty: { alignItems: 'center', justifyContent: 'center', gap: 14, padding:20 }, controls: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' }, button: { minHeight: 44, minWidth: 44, paddingHorizontal: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }, mediaRow:{flexDirection:'row',gap:8},mediaButton:{flex:1,minHeight:62,alignItems:'center',justifyContent:'center',gap:5,borderRadius:12,paddingVertical:8},primary:{minHeight:54,borderRadius:14,alignItems:'center',justifyContent:'center',flexDirection:'row',gap:10,padding:14},tools:{minHeight:48,flexDirection:'row',alignItems:'center',gap:10} });

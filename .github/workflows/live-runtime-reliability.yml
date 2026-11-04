@@ -4,7 +4,9 @@ on:
     branches: [codex/live-completion-20261102]
     paths:
       - supabase/migrations/*live_control_result_unambiguous.sql
+      - supabase/migrations/*live_failed_start_recovery.sql
       - supabase/tests/rpc-authorization/test-live-control-result.mjs
+      - supabase/tests/rpc-authorization/test-live-failed-start-recovery.mjs
       - supabase/functions/live-core/**
       - supabase/functions/live-maintenance/**
       - supabase/functions/_shared/dailyCommandAcknowledgement.ts
@@ -32,7 +34,7 @@ jobs:
       - name: Verify Daily acknowledgements and preserve control authorization
         run: node --test supabase/tests/live-command-ack.test.cjs supabase/tests/live-provider.test.cjs supabase/tests/live-provider-diagnostics.test.cjs
       - name: Reproduce and prevent the actual hosted control-completion defect
-        run: node --test supabase/tests/rpc-authorization/test-live-control-result.mjs
+        run: node --test supabase/tests/rpc-authorization/test-live-control-result.mjs supabase/tests/rpc-authorization/test-live-failed-start-recovery.mjs
       - name: Preserve existing UI, scheduling, clipping and lifecycle contracts
         run: node --test tests/live-setup.test.cjs tests/live-ui-repair.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs
       - name: Check native types

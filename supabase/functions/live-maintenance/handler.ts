@@ -94,12 +94,13 @@ export function createMaintenanceHandler(deps: Dependencies) {
       if (await rpc('validate_live_worker_tick_v1', { p_token: token }) !== true) return reply(401, { error: 'AUTH_REQUIRED' });
       validated = true;
       const database = await objectRpc('live_maintenance', { p_limit: 1000 });
-      let providerCompleted = 0, providerFailed = 0, coversErased = 0, coversFailed = 0;
+      let providerCompleted = 0, providerFailed = 0, providerRecovered = 0, coversErased = 0, coversFailed = 0;
+      let recoveryAttempted = false;
       // Claims are bounded and database-leased. A crashed run is recoverable.
       const jobs = await jobsRpc('live_claim_outbox');
       await pairs(jobs, async job => {
         if (!uuid(job.id) || !uuid(job.lease_id)) throw new Error('INVALID_JOB');
-        let ok = false, error: string | null = null;
+        let ok = false, recovered = false, error: string | null = null;
         try {
           if (typeof job.room_name !== 'string' || !/^pc-live-[0-9a-f]{32}$/.test(job.room_name)) throw new Error('INVALID_JOB');
           if (!deps.dailyKey) throw new Error('PROVIDER_NOT_CONFIGURED');
@@ -113,12 +114,50 @@ export function createMaintenanceHandler(deps: Dependencies) {
             method: 'POST', redirect: 'error', signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]),
             headers: { Authorization: `Bearer ${deps.dailyKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
           });
-          if (!response.ok) { await response.body?.cancel(); throw new Error('PROVIDER_REQUEST_FAILED'); }
+          if (!response.ok && response.status !== 404) { await response.body?.cancel(); throw new Error('PROVIDER_REQUEST_FAILED'); }
           const body = await providerBody(response);
-          if (job.action === 'stop' ? !dailyCommandAccepted(body) : !Array.isArray(body.ejectedIds)) throw new Error('PROVIDER_UNCONFIRMED');
+          if (response.status === 404 && job.action === 'stop' && !recoveryAttempted && body.error === 'not-found') {
+            // At most one recovery per tick. A 404 alone never ends a stream.
+            // Only a stale, never-confirmed start can retire its unique room.
+            recoveryAttempted = true;
+            const checked = await objectRpc('live_failed_start_recovery_context', { p_id: job.id, p_lease: job.lease_id });
+            if (checked.eligible !== true || !uuid(checked.session_id) || checked.session_id !== job.session_id
+              || checked.room_name !== job.room_name || checked.instance_id !== job.instance_id
+              || checked.room_name !== 'pc-live-' + checked.session_id.replaceAll('-', '')) throw new Error('RECOVERY_NOT_AVAILABLE');
+            if (checked.recovery_started !== true) {
+              if (body.info !== `room ${job.room_name} does not seem to be hosting a call currently`) throw new Error('RECOVERY_NOT_AVAILABLE');
+              const started = await objectRpc('live_begin_failed_start_recovery', { p_id: job.id, p_lease: job.lease_id,
+                p_instance: job.instance_id, p_room: job.room_name, p_observed_at: new Date().toISOString() });
+              if (started.ok !== true || started.recovery_started !== true || started.session_id !== job.session_id
+                || started.room_name !== job.room_name || started.instance_id !== job.instance_id) throw new Error('RECOVERY_NOT_AVAILABLE');
+            }
+            const roomUrl = `https://api.daily.co/v1/rooms/${job.room_name}`;
+            const removed = await deps.fetch(roomUrl, { method: 'DELETE', redirect: 'error',
+              signal: AbortSignal.any([signal, AbortSignal.timeout(4000)]), headers: { Authorization: `Bearer ${deps.dailyKey}` } });
+            if (removed.status === 200) {
+              const deleted = await providerBody(removed);
+              if (deleted.deleted !== true || deleted.name !== job.room_name) throw new Error('RECOVERY_NOT_CONFIRMED');
+            } else {
+              await removed.body?.cancel();
+              // A persisted no-current-call receipt authorizes resuming an
+              // interrupted retirement. Initial arbitrary 404s never reach here.
+              if (removed.status !== 404) throw new Error('RECOVERY_NOT_CONFIRMED');
+            }
+            const absent = await deps.fetch(roomUrl, { method: 'GET', redirect: 'error',
+              signal: AbortSignal.any([signal, AbortSignal.timeout(4000)]), headers: { Authorization: `Bearer ${deps.dailyKey}` } });
+            await absent.body?.cancel();
+            if (absent.status !== 404) throw new Error('RECOVERY_NOT_CONFIRMED');
+            const receipt = await objectRpc('live_finish_failed_start_recovery', { p_id: job.id, p_lease: job.lease_id,
+              p_instance: job.instance_id, p_room: job.room_name, p_confirmed_at: new Date().toISOString() });
+            if (receipt.ok !== true || receipt.state !== 'cancelled' || receipt.session_id !== job.session_id) throw new Error('RECOVERY_NOT_CONFIRMED');
+            recovered = true; providerRecovered++;
+          } else if (!response.ok || (job.action === 'stop' ? !dailyCommandAccepted(body) : !Array.isArray(body.ejectedIds))) {
+            throw new Error('PROVIDER_UNCONFIRMED');
+          }
           ok = true; providerCompleted++;
         } catch { error = 'provider_operation_unconfirmed'; providerFailed++; }
-        await objectRpc('live_finish_outbox', { p_id: job.id, p_lease: job.lease_id, p_ok: ok, p_error: error });
+        // Recovery atomically completes the stop lease with its cancellation receipt.
+        if (!recovered) await objectRpc('live_finish_outbox', { p_id: job.id, p_lease: job.lease_id, p_ok: ok, p_error: error });
       });
       const covers = await jobsRpc('live_claim_cover_cleanup');
       await pairs(covers, async job => {
@@ -146,7 +185,8 @@ export function createMaintenanceHandler(deps: Dependencies) {
       const inspection = succeeded && request.headers.get('X-Platinum-Live-Inspect-Provider') === '1'
         ? { provider_inspection: await inspectProvider(deps, signal) } : {};
       return reply(succeeded ? 200 : 503, { ok: succeeded, worker_auth: 'single_use_tick_v1', ...database,
-        provider_jobs_completed: providerCompleted, provider_jobs_failed: providerFailed, covers_erased: coversErased, covers_failed: coversFailed,
+        provider_jobs_completed: providerCompleted, provider_jobs_failed: providerFailed, provider_jobs_recovered: providerRecovered,
+        covers_erased: coversErased, covers_failed: coversFailed,
         provider_configuration: deps.configuration, ...inspection });
     } catch {
       if (validated) { try { await finish(false); } catch { /* Expiry recovers interrupted runs. */ } }

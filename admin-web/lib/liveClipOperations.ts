@@ -1,5 +1,7 @@
 import { liveId } from './liveOperations';
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
+// These values match clip_library's render, moderation and copyright fields.
+export const staffClipStateFilters=[{value:'queued',label:'Queued'},{value:'processing',label:'Rendering'},{value:'pending',label:'Needs review'},{value:'ready',label:'Rendered'},{value:'failed',label:'Failed'},{value:'rejected',label:'Rejected'},{value:'blocked',label:'Copyright blocked'}] as const;
 export type StaffClipCommand={action:string;sessionId:string;clipId:string;requestId:string;payload:Record<string,unknown>};
 export function parseStaffClipCommand(value:unknown):StaffClipCommand|null {
   if(!object(value)||Object.keys(value).some(key=>!['action','sessionId','clipId','requestId','payload'].includes(key))||!liveId(value.sessionId)||!liveId(value.clipId)||!liveId(value.requestId)||!object(value.payload))return null;

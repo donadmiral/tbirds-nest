@@ -1,4 +1,16 @@
 export type LiveStartMode = 'now' | 'later';
+export type PendingLiveControl = 'start' | 'stop' | null;
+
+/** A command acknowledgement cannot override the confirmed broadcast state. */
+export function liveStudioPresentation(state: string, pending: PendingLiveControl = null): { title: string; description: string } {
+  if (state === 'ended') return { title: 'Broadcast ended', description: 'Your broadcast has ended. Viewers are no longer receiving live video.' };
+  if (state === 'cancelled') return { title: 'Broadcast cancelled', description: 'This broadcast was cancelled.' };
+  if (state === 'ending' || pending === 'stop') return { title: 'Ending your live', description: 'Ending your broadcast. Keep the studio open until it finishes.' };
+  if (state === 'live') return { title: 'Your live', description: 'You are live. Camera, microphone and screen changes are shared with your viewers.' };
+  if (state === 'reconnecting') return { title: 'Reconnecting your live', description: 'Reconnecting your broadcast. Keep the studio open.' };
+  if (state === 'starting' || pending === 'start') return { title: 'Starting your live', description: 'Starting your broadcast. Your audience can join when the live video is ready.' };
+  return { title: 'Camera preview', description: 'Preview first. Your microphone starts muted. Nothing broadcasts until you select Go live.' };
+}
 const pad = (value: number) => String(value).padStart(2, '0');
 
 /** Local calendar fields avoid implementation-dependent parsing on Hermes/Safari. */

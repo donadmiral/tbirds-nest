@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { getNavigationStore } from '@/lib/navigationCache';
 import { getLivePlayback, liveError, type LivePlayback } from '@/lib/liveApi';
 import type { LiveSession } from '../../shared/liveDirectory';
+import { useLiveViewerPresence } from '../../shared/useLiveViewerPresence';
 import type Hls from 'hls.js';
 import type { RetryConfig } from 'hls.js';
 
@@ -19,10 +20,18 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
   const [active,setActive]=useState<{session:LiveSession;scope:string|null}|null>(null);
   const [media,setMedia]=useState<LivePlayback|null>(null),[status,setStatus]=useState('idle'),[error,setError]=useState<string|null>(null),[notice,setNotice]=useState('');
   const [time,setTime]=useState(0),[duration,setDuration]=useState(0),[dock,setDock]=useState(false),[rect,setRect]=useState<DOMRect|null>(null),[retry,setRetry]=useState(0);
+  const [visiblePlayback,setVisiblePlayback]=useState(true);
   const video=useRef<HTMLVideoElement>(null),host=useRef<HTMLDivElement>(null),hls=useRef<Hls|null>(null),target=useRef<{id:string;node:HTMLElement}|null>(null),activeRef=useRef(active),generation=useRef(0);
   activeRef.current=active;
   const pendingSeek=useRef<number|null>(null);
   const startedPlayback=useRef(false),startupDeadline=useRef(0);
+  useLiveViewerPresence({client,sessionId:media?.live?active?.session.id??null:null,identityScope:identity.scope,active:status==='playing'&&visiblePlayback&&!error&&active?.scope===identity.scope,createPlaybackId:()=>crypto.randomUUID()});
+  useEffect(()=>{
+    const element=video.current;
+    const update=()=>setVisiblePlayback(document.visibilityState==='visible'||!!element&&document.pictureInPictureElement===element);
+    update();document.addEventListener('visibilitychange',update);element?.addEventListener('enterpictureinpicture',update);element?.addEventListener('leavepictureinpicture',update);
+    return()=>{document.removeEventListener('visibilitychange',update);element?.removeEventListener('enterpictureinpicture',update);element?.removeEventListener('leavepictureinpicture',update);};
+  },[active?.session.id]);
   const close=useCallback(()=>{generation.current++;pendingSeek.current=null;video.current?.pause();hls.current?.destroy();hls.current=null;setActive(null);setMedia(null);setStatus('idle');setError(null);setNotice('');setTime(0);setDuration(0);},[]);
   useEffect(()=>{if(active && active.scope!==identity.scope)close();},[active,identity.scope,close]);
   const measure=useCallback(()=>{

@@ -133,6 +133,21 @@ function maintenance(options = {}) {
       if (name === 'live_maintenance') return { data: { swept: 3 }, error: options.databaseError ? { message: 'private database error' } : null };
       if (name === 'live_claim_outbox') return { data: { items: options.jobs || [] }, error: null };
       if (name === 'live_finish_outbox') return { data: { ok: true }, error: null };
+      if (name === 'live_failed_start_recovery_context') {
+        const job = (options.jobs || []).find(item => item.id === args.p_id);
+        return { data: options.allowRecovery ? { eligible: true, session_id: job.session_id, room_name: job.room_name, instance_id: job.instance_id,
+          recovery_started: options.recoveryState?.started === true } : { eligible: false }, error: null };
+      }
+      if (name === 'live_begin_failed_start_recovery') {
+        const job = (options.jobs || []).find(item => item.id === args.p_id);
+        if (options.recoveryState) options.recoveryState.started = true;
+        return { data: { ok: true, recovery_started: true, session_id: job.session_id, room_name: job.room_name, instance_id: job.instance_id }, error: null };
+      }
+      if (name === 'live_finish_failed_start_recovery') {
+        const job = (options.jobs || []).find(item => item.id === args.p_id);
+        if (options.recoveryState?.failFinish) { options.recoveryState.failFinish = false; return { data: null, error: { message: 'Completion unavailable' } }; }
+        return { data: { ok: true, session_id: job.session_id, state: 'cancelled' }, error: null };
+      }
       if (name === 'live_claim_cover_cleanup') return { data: { items: options.cover ? [cover] : [] }, error: null };
       if (name === 'live_check_cover_cleanup') return { data: { absent: false, object_path: cover.object_path }, error: null };
       if (name === 'live_finish_cover_cleanup') return { data: { ok: true }, error: null };
@@ -192,6 +207,92 @@ test('provider HTTP failure cannot complete a stop job even when its body resemb
   assert.equal((await h.run({ inspect: null })).status, 503);
   assert.equal(h.calls.find(call => call.name === 'live_finish_outbox').args.p_ok, false);
   assert.equal(h.calls.at(-1).args.p_succeeded, false);
+});
+const staleStop = () => ({ id: id(50), lease_id: id(51), session_id: session, action: 'stop', room_name: context.room_name, instance_id: instance });
+const noCurrentCall = job => ({ error: 'not-found', info: `room ${job.room_name} does not seem to be hosting a call currently` });
+test('a stale failed start recovers only after scoped deletion and a separate absence check', async () => {
+  const job = staleStop();
+  const h = maintenance({ jobs: [job], allowRecovery: true, fetch: async (url, init) => {
+    if (init.method === 'POST') return Response.json(noCurrentCall(job), { status: 404 });
+    if (init.method === 'DELETE') return Response.json({ deleted: true, name: job.room_name });
+    return Response.json({ error: 'not-found' }, { status: 404 });
+  } });
+  const result = await h.run({ inspect: null });
+  assert.equal(result.status, 200); assert.equal(result.data.provider_jobs_recovered, 1);
+  assert.deepEqual(h.requests.map(item => item.init.method), ['POST', 'DELETE', 'GET']);
+  assert.equal(h.requests[1].url, `https://api.daily.co/v1/rooms/${job.room_name}`);
+  assert.equal(h.requests[2].url, h.requests[1].url);
+  const receipt = h.calls.find(call => call.name === 'live_finish_failed_start_recovery');
+  assert.equal(receipt.args.p_lease, job.lease_id); assert.equal(receipt.args.p_instance, job.instance_id);
+  assert.equal(receipt.args.p_room, job.room_name); assert.ok(Number.isFinite(Date.parse(receipt.args.p_confirmed_at)));
+  assert.equal(h.calls.some(call => call.name === 'live_finish_outbox' || call.name === 'live_provider_event'), false);
+  assert.ok(h.events.indexOf('live_begin_failed_start_recovery') < h.events.indexOf('live_finish_failed_start_recovery'));
+});
+test('an unqualified lease or unrelated provider 404 never permits room deletion', async () => {
+  const job = staleStop();
+  for (const options of [
+    { allowRecovery: false, body: noCurrentCall(job) },
+    { allowRecovery: true, body: { error: 'not-found', info: 'missing room' } },
+    { allowRecovery: true, body: noCurrentCall({ room_name: 'pc-live-' + id(99).replaceAll('-', '') }) },
+  ]) {
+    const h = maintenance({ jobs: [job], ...options, fetch: async () => Response.json(options.body, { status: 404 }) });
+    assert.equal((await h.run({ inspect: null })).status, 503);
+    assert.equal(h.requests.length, 1);
+    assert.equal(h.calls.find(call => call.name === 'live_finish_outbox').args.p_ok, false);
+    assert.equal(h.calls.some(call => call.name === 'live_finish_failed_start_recovery'), false);
+  }
+});
+test('failed or mismatched deletion and unconfirmed absence never cancel a failed start', async () => {
+  const job = staleStop();
+  for (const options of [
+    { deleteStatus: 403 }, { deleted: false }, { name: 'other-room' }, { absenceStatus: 200 }, { absenceStatus: 503 },
+  ]) {
+    const h = maintenance({ jobs: [job], allowRecovery: true, fetch: async (url, init) => {
+      if (init.method === 'POST') return Response.json(noCurrentCall(job), { status: 404 });
+      if (init.method === 'DELETE') return Response.json({ deleted: options.deleted ?? true, name: options.name || job.room_name }, { status: options.deleteStatus || 200 });
+      return Response.json({}, { status: options.absenceStatus || 404 });
+    } });
+    assert.equal((await h.run({ inspect: null })).status, 503);
+    assert.equal(h.calls.some(call => call.name === 'live_finish_failed_start_recovery'), false);
+    assert.equal(h.calls.find(call => call.name === 'live_finish_outbox').args.p_ok, false);
+  }
+});
+test('one tick can retire at most one failed-start room', async () => {
+  const first = staleStop(), second = { ...first, id: id(52), lease_id: id(53), session_id: id(54), room_name: 'pc-live-' + id(54).replaceAll('-', ''), instance_id: id(55) };
+  const jobs = [first, second];
+  const h = maintenance({ jobs, allowRecovery: true, fetch: async (url, init) => {
+    const job = jobs.find(item => String(url).includes(item.room_name));
+    if (init.method === 'POST') return Response.json(noCurrentCall(job), { status: 404 });
+    if (init.method === 'DELETE') return Response.json({ deleted: true, name: job.room_name });
+    return Response.json({}, { status: 404 });
+  } });
+  const result = await h.run({ inspect: null });
+  assert.equal(result.data.provider_jobs_recovered, 1); assert.equal(result.data.provider_jobs_failed, 1);
+  assert.equal(h.requests.filter(item => item.init.method === 'DELETE').length, 1);
+  assert.equal(h.calls.filter(call => call.name === 'live_finish_failed_start_recovery').length, 1);
+});
+test('a completed provider deletion survives a failed database receipt and resumes on the next lease', async () => {
+  const job = staleStop(), recoveryState = { started: false, failFinish: true };
+  let deleted = false;
+  const h = maintenance({ jobs: [job], allowRecovery: true, recoveryState, fetch: async (url, init) => {
+    if (init.method === 'POST') return Response.json(deleted ? { error: 'not-found', info: 'Room no longer exists' } : noCurrentCall(job), { status: 404 });
+    if (init.method === 'DELETE') {
+      if (deleted) return Response.json({ error: 'not-found' }, { status: 404 });
+      deleted = true; return Response.json({ deleted: true, name: job.room_name });
+    }
+    return Response.json({ error: 'not-found' }, { status: 404 });
+  } });
+  const first = await h.run({ inspect: null });
+  assert.equal(first.status, 503); assert.equal(recoveryState.started, true); assert.equal(deleted, true);
+  assert.equal(h.calls.find(call => call.name === 'live_finish_outbox').args.p_ok, false);
+  job.lease_id = id(59);
+  const second = await h.run({ inspect: null, authorization: 'Bearer pc_live_' + 'b'.repeat(64) });
+  assert.equal(second.status, 200); assert.equal(second.data.provider_jobs_recovered, 1);
+  assert.equal(h.calls.filter(call => call.name === 'live_begin_failed_start_recovery').length, 1);
+  const receipts = h.calls.filter(call => call.name === 'live_finish_failed_start_recovery');
+  assert.equal(receipts.length, 2); assert.equal(receipts[1].args.p_lease, id(59));
+  assert.deepEqual(h.requests.map(item => item.init.method), ['POST', 'DELETE', 'GET', 'POST', 'DELETE', 'GET']);
+  assert.equal(h.calls.some(call => call.name === 'live_provider_event'), false);
 });
 test('provider inspection never bypasses one-use tick authentication', async () => {
   for (const authorization of ['', 'Bearer app.jwt.signature', 'Bearer synthetic-service-key', tick]) {

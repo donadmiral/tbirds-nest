@@ -4,7 +4,7 @@ import { getAdmin } from '@/lib/adminAuth';
 import { canAccessOperations } from '@/lib/adminAssurance';
 import { canOpen, canPerform } from '@/lib/permissions';
 import { liveId, parseLiveCursor, readLiveBody } from '@/lib/liveOperations';
-import { clipReviewResponse, parseStaffClipCommand } from '@/lib/liveClipOperations';
+import { clipReviewResponse, parseStaffClipCommand, staffClipStateFilters } from '@/lib/liveClipOperations';
 export const dynamic='force-dynamic';
 const headers={'Cache-Control':'private, no-store','Content-Type':'application/json','X-Content-Type-Options':'nosniff'};
 const json=(status:number,value:unknown)=>new Response(JSON.stringify(value),{status,headers});
@@ -19,7 +19,7 @@ export async function GET(request:Request){
   try{
     const context=await caller();if(!context)return json(401,{error:'Sign in with an authorized staff account.'});
     const params=new URL(request.url).searchParams,clip=params.get('clip'),session=params.get('session'),cursor=parseLiveCursor(params.get('cursor')),state=params.get('state');
-    if(clip!==null&&!liveId(clip)||session!==null&&!liveId(session)||cursor===false||state&&!['queued','rendering','processing','review','ready','published','failed','rejected','blocked','deleted'].includes(state))return json(400,{error:'Invalid clip review page.'});
+    if(clip!==null&&!liveId(clip)||session!==null&&!liveId(session)||cursor===false||state&&!staffClipStateFilters.some(filter=>filter.value===state))return json(400,{error:'Invalid clip review page.'});
     const format=params.get('format');
     if(format){
       if(!clip||!['vertical','horizontal'].includes(format))return json(400,{error:'Invalid clip preview format.'});
