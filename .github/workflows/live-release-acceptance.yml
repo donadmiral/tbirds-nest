@@ -84,10 +84,10 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with: {persist-credentials: false, fetch-depth: 3}
+        with: {persist-credentials: false, fetch-depth: 4}
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
-      - name: Verify prior connected evidence for the isolated fixture correction
+      - name: Verify prior Live evidence for the isolated native feed correction
         id: connected_evidence
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -127,6 +127,7 @@ jobs:
       - run: npm ci --prefix supabase/tests/rpc-authorization --ignore-scripts --no-audit --no-fund
       - name: Verify native controls, presence, permissions and provider recovery
         run: |
+          node --test tests/feed-capacity.test.cjs tests/quality/native-feed-video.cjs tests/quality/native-android-root.cjs tests/quality/live-connected-evidence-reuse.cjs
           node --test tests/live-setup.test.cjs tests/live-ui-repair.test.cjs tests/live-studio-events.test.cjs tests/live-native-contracts.test.cjs tests/live-native-clips.test.cjs tests/live-native-playback.test.cjs tests/live-viewer-presence.test.cjs
           node --test admin-web/tests/live-operations.cjs admin-web/tests/live-clips.cjs web/tests/live-search-history.cjs
           node --test supabase/tests/live-command-ack.test.cjs supabase/tests/live-provider.test.cjs supabase/tests/live-provider-diagnostics.test.cjs

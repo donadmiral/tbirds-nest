@@ -39,6 +39,24 @@ export const NATIVE_CORRECTION = Object.freeze({
     ['.github/workflows/live-release-acceptance.yml', 'd130395ddaf55df8ae3667379bb56b79eb0f0ed48053b24dbfba3d8974bf0705'],
   ].map(([file, sha256]) => Object.freeze({path: file, sha256, mode: '100644'}))),
 });
+export const FEED_CORRECTION = Object.freeze({
+  parent: '7f7e9e3909957befc4e9e3e45e8594db51a58aaf',
+  parentTree: 'b33ad22a1d6c4e26f96696e5e1fa8711cc043611',
+  files: Object.freeze([
+    [".github/workflows/native-feed-android-validation.yml", "0f505ba17bc9ff95f86df05bee147d66741fa7438cc9acd1d00938ef4733af64"],
+    [".github/workflows/live-release-acceptance.yml", "7d142e33caf61ec59fb4ebed2170389800e2d7417b06209528a5f75bdaab45f2"],
+    ["scripts/quality/native-ui-android-root.py", "9ffe57e704de84c365435779f150fcdf9f3e067d1a38e9d5761df7d0320d1b54"],
+    ["scripts/quality/prepare-native-ui.cjs", "111fde011a03aaae0c7056632fed6a291e5184b146ae01de2300fb1585f74df6"],
+    ["scripts/quality/test-android-app-ui.sh", "72fce6aa4c3372ad4f08c7aaf216e538aa356da115e16775c0ea2da8d7fadde3"],
+    ["src/screens/feed/FeedScreen.tsx", "5b5a60cf37268ba4e5ce0ef929a5ce75a71183a4875332738568c448bcf052cd"],
+    ["tests/feed-capacity.test.cjs", "798a12539685bde634fef324cdd54966c9354e3c997160252a5bc2a59a05e2ff"],
+    ["tests/quality/native-android-root.cjs", "2107ee3456c93922f21e41c5a6d77c4f854e58e21766c92fa560bf4261061178"],
+    ["tests/quality/native-android-stack-diagnostics.cjs", "19de4fcd741308f2b06728f1469ca3ee4206c37f6a789d19d513d6398c334eec"],
+    ["tests/quality/native-auth-diagnostics.cjs", "0f5a44c30a20c6d4247766e3324ab8dff181df22852a6555b210554dd8ef5ef3"],
+    ["tests/quality/native-feed-video.cjs", "5ff62248e08b31683da56de50fbf61693a243af594726da47a3e333b86668a86"],
+    ["tests/quality/native-xvfb-readiness.cjs", "8e0b664ac2c5ba3c6efc06c9cd409bb7b9e7cbc00a5ced7305e97148863a6d31"],
+  ].map(([file, sha256]) => Object.freeze({path: file, sha256, mode: '100644'}))),
+});
 export const VERIFIER_FILES = Object.freeze([
   'tests/quality/live-connected-evidence-reuse.cjs',
   'tools/reuse-live-connected-evidence.mjs',
@@ -65,9 +83,33 @@ function fixtureCorrection(git, base, target) {
   assert.ok(status.every(line => /^[AM]\t/.test(line)), 'Reuse cannot delete or rename files');
   for (const file of ALLOWED) normalFile(git, target, file);
 }
-export function sourceApplicability(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION) {
+export function sourceApplicability(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION) {
   assert.equal(git(['rev-parse', 'HEAD']).trim(), source, 'Checkout differs from release source');
   const parents = git(['show', '-s', '--format=%P', 'HEAD']).trim().split(/\s+/);
+  if (parents.includes(feedRule.parent)) {
+    assert.deepEqual(parents, [feedRule.parent], 'Feed reuse must be the reviewed single-parent correction');
+    assert.equal(git(['status', '--porcelain=v1', '--untracked-files=no']).trim(), '', 'Tracked checkout or index differs from the verified source');
+    assert.equal(git(['rev-parse', feedRule.parent + '^{tree}']).trim(), feedRule.parentTree, 'Reviewed feed parent tree changed');
+    assert.deepEqual(git(['show', '-s', '--format=%P', feedRule.parent]).trim().split(/\s+/), [nativeRule.parent], 'Reviewed feed parent ancestry changed');
+    const allowed = [...feedRule.files.map(file => file.path), ...VERIFIER_FILES].sort();
+    assert.deepEqual(changedPaths(git, feedRule.parent, 'HEAD'), allowed, 'Feed exception contains an unreviewed or missing change');
+    const status = git(['diff', '--name-status', '--no-renames', feedRule.parent, 'HEAD']).trim().split('\n');
+    assert.ok(status.every(line => /^[AM]\t/.test(line)), 'Feed exception cannot delete, rename or change file type');
+    for (const file of allowed) normalFile(git, 'HEAD', file);
+    for (const file of feedRule.files) {
+      normalFile(git, 'HEAD', file.path, file.mode);
+      assert.equal(hash(git(['show', 'HEAD:' + file.path])), file.sha256, 'Reviewed feed correction bytes changed: ' + file.path);
+    }
+    // Android-only preparation is separately hash-bound above. Connected web,
+    // shared Live, backend/provider and browser preparation remain byte-identical.
+    const connected = CONNECTED_PATHS.filter(file => file !== 'scripts/quality')
+      .concat('scripts/quality/install-browser-test-runtime.sh');
+    assert.equal(git(['diff', '--name-only', '--no-renames', base, 'HEAD', '--', ...connected]).trim(), '', 'Connected runtime or browser preparation changed');
+    return {kind: 'native-feed-refresh-correction', comparisonParent: feedRule.parent,
+      comparisonParentTree: feedRule.parentTree, connectedRuntimeEquivalent: true,
+      nativeRuntimeEquivalent: false, nativeFeedRequiresSeparateValidation: true,
+      permittedChanges: allowed, verifiedFiles: feedRule.files};
+  }
   const native = parents.includes(nativeRule.parent);
   // Other normal releases retain real connected acceptance. A mismatch inside
   // either explicit exception throws, so it cannot fall through to provider work.
@@ -95,8 +137,8 @@ export function sourceApplicability(git, source, base = PINNED.source, nativeRul
   return {kind: 'native-clips-correction', comparisonParent: nativeRule.parent, comparisonParentTree: nativeRule.parentTree,
     connectedRuntimeEquivalent: true, nativeRuntimeEquivalent: false, permittedChanges: allowed, verifiedFiles: nativeRule.files};
 }
-export function sourceEquivalent(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION) {
-  return sourceApplicability(git, source, base, nativeRule) !== null;
+export function sourceEquivalent(git, source, base = PINNED.source, nativeRule = NATIVE_CORRECTION, feedRule = FEED_CORRECTION) {
+  return sourceApplicability(git, source, base, nativeRule, feedRule) !== null;
 }
 
 export function verifyMetadata(run, job, artifact, pinned = PINNED) {

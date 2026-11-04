@@ -294,6 +294,11 @@ export default function FeedScreen({ navigation }: any) {
   const historyHeaderHeight = useRef(0);
   const historyViewport = useRef(0);
   const historyRects = useRef(new Map<string, { page: number; y: number; height: number }>());
+  const historyGeometryScope = useRef<string | null>(null);
+  const historyPageNodes = useRef(new Map<number, View>());
+  const historyRowNodes = useRef(new Map<string, { page: number; node: View }>());
+  const historyMeasureGeneration = useRef(0);
+  const [historyMeasureEpoch, setHistoryMeasureEpoch] = useState(0);
   const [feedOwner, setFeedOwner] = useState(userId);
   const dataSaver = useSettingsStore(state => state.uploadQuality === 'data-saver');
   const autoplayVideos = useSettingsStore(state => state.autoplayVideos);
@@ -553,8 +558,25 @@ export default function FeedScreen({ navigation }: any) {
   const feedMediaScopeRef = useRef<string | null>(null);
   const bindFeedHistory = useCallback((value: SessionHistory<Post> | null) => {
     if (value && !value.available()) value = null;
+    const previous = historyRef.current?.getSnapshot();
+    const sameScope = historyGeometryScope.current === feedScopeRef.current;
+    const stablePages = new Set<number>();
+    if (sameScope && value && previous) {
+      const oldPages = new Map(previous.pages.map(page => [page.index, page]));
+      for (const page of value.getSnapshot().pages) {
+        const old = oldPages.get(page.index);
+        if (old && old.rows.length === page.rows.length && old.rows.every((row, i) =>
+          (row._rk ?? row.id) === (page.rows[i]._rk ?? page.rows[i].id))) stablePages.add(page.index);
+      }
+    }
     historyStop.current?.(); historyStop.current = null; historyRef.current = value;
-    historyRects.current.clear();
+    // React retains these native views on an unchanged refresh, so onLayout
+    // does not repeat. Retain their measurements instead of pausing the video.
+    for (const [id, rect] of historyRects.current) if (!stablePages.has(rect.page)) historyRects.current.delete(id);
+    if (!sameScope || !value) { historyPageNodes.current.clear(); historyRowNodes.current.clear(); }
+    historyGeometryScope.current = value ? feedScopeRef.current : null;
+    historyMeasureGeneration.current++;
+    setHistoryMeasureEpoch(historyMeasureGeneration.current);
     if (!value) { setHistoryWindow(null); return; }
     const owner = useAuthStore.getState().profile?.id, scope = feedScopeRef.current, authScope = navigationScope();
     const current = () => historyAlive.current && useAuthStore.getState().profile?.id === owner
@@ -567,6 +589,9 @@ export default function FeedScreen({ navigation }: any) {
       if (!current() || signal.aborted) throw new Error('The reading session changed.');
       return granted.map(mapFeedRow).filter(post => !hiddenIdsRef.current.has(post.id) && !isMutedRef.current(post));
     } });
+    for (const page of previous?.pages ?? []) {
+      if (stablePages.has(page.index) && page.height > 0) value.measure(page.index, page.height);
+    }
     const sync = () => {
       if (!current()) return;
       const snapshot = value.getSnapshot(), previous = new Set(postsRef.current.map(post => post.id));
@@ -2651,22 +2676,62 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     const offset = scrollOffsetRef.current - historyHeaderHeight.current, bottom = offset + historyViewport.current;
     const tops = new Map<number, number>(); let top = snapshot.before;
     snapshot.pages.forEach(page => { tops.set(page.index, top); top += page.height; });
+    const pagesByPost = new Map(snapshot.pages.flatMap(page => page.rows.map(post => [post.id, page.index] as const)));
+    const promoted = new Set(promoRowsRef.current.map(post => post.id));
     const visible = displayPosts.filter(post => {
       const rect = historyRects.current.get(post.id); if (!rect || !rect.height) return false;
+      if (!tops.has(rect.page)) return false;
+      if (pagesByPost.has(post.id) ? pagesByPost.get(post.id) !== rect.page : !promoted.has(post.id) && !post.id.startsWith('__')) return false;
       const start = (tops.get(rect.page) ?? 0) + rect.y;
       return Math.max(0, Math.min(start + rect.height, bottom) - Math.max(start, offset)) / rect.height >= .55;
     });
     onViewableItemsChanged({ viewableItems: visible.map(item => ({ item, isViewable: true })) });
   }, [onViewableItemsChanged, displayPosts]);
-  const renderHistoryPage = useCallback(({ item: page }: { item: HistoryPage<Post> }) => <View style={{ minHeight: page.height || undefined }}>
-    <View onLayout={event => { historyRef.current?.measure(page.index, event.nativeEvent.layout.height); reportHistoryVisible(); }}
+  const remeasureHistory = useCallback(() => {
+    const history = historyRef.current, scope = feedScopeRef.current, generation = historyMeasureGeneration.current;
+    if (!history) return;
+    const current = () => historyRef.current === history && feedScopeRef.current === scope
+      && historyMeasureGeneration.current === generation && historyGeometryScope.current === scope;
+    const pages = new Set(history.getSnapshot().pages.map(page => page.index));
+    const rows = new Set(displayPosts.map(post => post.id));
+    for (const [index, node] of historyPageNodes.current) {
+      if (!pages.has(index)) { historyPageNodes.current.delete(index); continue; }
+      node.measure((_x, _y, _width, height) => {
+        if (!current() || historyPageNodes.current.get(index) !== node) return;
+        history.measure(index, height); reportHistoryVisible();
+      });
+    }
+    for (const [id, entry] of historyRowNodes.current) {
+      if (!rows.has(id) || !pages.has(entry.page)) { historyRowNodes.current.delete(id); historyRects.current.delete(id); continue; }
+      const parent = historyPageNodes.current.get(entry.page); if (!parent) continue;
+      entry.node.measureLayout(parent, (_x, y, _width, height) => {
+        const retained = historyRowNodes.current.get(id);
+        if (!current() || retained?.node !== entry.node || retained.page !== entry.page || historyPageNodes.current.get(entry.page) !== parent
+          || !Number.isFinite(y) || !Number.isFinite(height) || height <= 0) return;
+        historyRects.current.set(id, { page: entry.page, y, height }); reportHistoryVisible();
+      }, () => {});
+    }
+    reportHistoryVisible();
+  }, [displayPosts, reportHistoryVisible]);
+  // Changed pages also need a native measurement: a retained child can keep
+  // the same frame even when its siblings or logical history have changed.
+  useLayoutEffect(() => { remeasureHistory(); }, [historyMeasureEpoch]);
+  const renderHistoryPage = useCallback(({ item: page }: { item: HistoryPage<Post> }) => {
+    const history = historyRef.current, scope = feedScopeRef.current;
+    const current = () => historyRef.current === history && feedScopeRef.current === scope;
+    return <View style={{ minHeight: page.height || undefined }}>
+    <View collapsable={false} ref={node => { if (node) historyPageNodes.current.set(page.index, node); else historyPageNodes.current.delete(page.index); }}
+      onLayout={event => { if (!current()) return; history?.measure(page.index, event.nativeEvent.layout.height); reportHistoryVisible(); }}
       style={feedMode === 'discover' ? { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, columnGap: 10, rowGap: 10, paddingBottom: 10 } : undefined}>
-      {page.rows.map(post => <View key={post._rk ?? post.id} style={feedMode === 'discover' ? { width: TILE_W } : undefined}
-        onLayout={event => { const { y, height } = event.nativeEvent.layout; historyRects.current.set(post.id, { page: page.index, y, height }); reportHistoryVisible(); }}>
+      {page.rows.map(post => <View key={post._rk ?? post.id} collapsable={false}
+        ref={node => { if (node) historyRowNodes.current.set(post.id, { page: page.index, node }); else historyRowNodes.current.delete(post.id); }}
+        style={feedMode === 'discover' ? { width: TILE_W } : undefined}
+        onLayout={event => { if (!current()) return; const { y, height } = event.nativeEvent.layout; historyRects.current.set(post.id, { page: page.index, y, height }); reportHistoryVisible(); }}>
         {renderPost({ item: post })}
       </View>)}
     </View>
-  </View>, [feedMode, TILE_W, renderPost, reportHistoryVisible]);
+  </View>;
+  }, [feedMode, TILE_W, renderPost, reportHistoryVisible]);
   const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused && appActive) + '|' + String(!!fsVideo) + '|' + String(commentsHold);
 
   return (

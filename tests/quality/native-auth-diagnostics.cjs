@@ -229,7 +229,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
   const required = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package.json', 'package-lock.json', authPath, 'src/navigation/AppNavigator.tsx', 'src/screens/messages/ConversationsScreen.tsx',
     'src/components/LiveUi.tsx', 'src/components/PostCarousel.tsx', 'src/screens/feed/FeedScreen.tsx', 'src/screens/feed/LiveSessionScreen.tsx', 'src/contexts/LivePlaybackContext.tsx', 'src/screens/feed/LiveStreamsScreen.tsx', 'src/screens/feed/NewLiveScreen.tsx', 'src/screens/profile/MemoryAlbumScreen.tsx',
     'plugins/withMedia3Compatibility.js', 'modules/boomerang/android/build.gradle', 'scripts/quality/android-media-dependencies.init.gradle',
-    'scripts/quality/native-ui-android-media-abi.py', 'scripts/quality/native-ui-android-stack-diagnostics.py',
+    'scripts/quality/native-ui-android-media-abi.py', 'scripts/quality/native-ui-android-stack-diagnostics.py', 'scripts/quality/native-ui-android-root.py',
     'modules/boomerang/ios/BoomerangModule.swift', 'modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt',
     'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/navigation-timing.cjs', 'tests/native/input-diagnostics.cjs', 'tests/native/entry.js',
     'src/services/memoryMovieExport.ts', 'src/services/memoryMovieFiles.ts', 'tests/native/memory-fixture.cjs',

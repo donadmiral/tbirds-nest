@@ -199,8 +199,13 @@ test('integration stays after both flows and before evidence and preserves the s
   const block = runner.slice(start, end + 1);
   assert.match(block, /timeout --signal=TERM --kill-after=1s 15s python3/);
   assert.match(block, /\|\| true\nfi\n$/);
-  const original = runner.slice(0, start) + runner.slice(end + 1);
+  const rootCommand = 'python3 scripts/quality/native-ui-android-root.py --adb "$adb_bin"\n';
+  const originalRoot = ['"$adb_bin" root', 'timeout 30 "$adb_bin" wait-for-device',
+    'test "$("$adb_bin" shell id -u | tr -d \'\\r\')" = 0', ''].join('\n');
+  assert.equal(runner.split(rootCommand).length, 2);
+  const original = (runner.slice(0, start) + runner.slice(end + 1)).replace(rootCommand, originalRoot);
   // Baseline 723136 retains disposable binaries and propagates retention failure.
-  // Removing only this diagnostic block must reproduce that complete runner.
+  // Normalize only this diagnostic block and the independently tested bounded
+  // ADB root helper. Every remaining runner byte must reproduce the baseline.
   assert.equal(crypto.createHash('sha256').update(original).digest('hex'), 'ca43f837d8a98167546fd0d409a39d5a8e623603d3abb6bd6f865f8e6d846de7');
 });

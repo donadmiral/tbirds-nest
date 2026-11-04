@@ -174,9 +174,7 @@ kill -0 "$xvfb_pid"
 python3 scripts/quality/native-ui-emulator-graphics.py emulator
 # The disposable AOSP image permits diagnostic root access. Keep the actual
 # release app non-debuggable and read only its synthetic acceptance receipt.
-"$adb_bin" root
-timeout 30 "$adb_bin" wait-for-device
-test "$("$adb_bin" shell id -u | tr -d '\r')" = 0
+python3 scripts/quality/native-ui-android-root.py --adb "$adb_bin"
 "$adb_bin" install -r "$apk"
 "$adb_bin" logcat -c
 "$adb_bin" logcat > native-ui-logs/app.log 2>&1 &

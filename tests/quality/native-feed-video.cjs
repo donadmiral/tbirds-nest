@@ -73,9 +73,10 @@ test('clipped media bounds do not establish production autoplay eligibility', ()
   // Retained ed582 Android geometry: 240px media, 157px above it and 76px below it.
   // The return screenshot exposes 254px of this 473px post in a 445px viewport.
   const scope = {
-    historyRef: { current: { getSnapshot: () => ({ before: 0, pages: [{ index: 0, height: 662 }] }) } },
+    historyRef: { current: { getSnapshot: () => ({ before: 0, pages: [{ index: 0, height: 662, rows: [{ id: 'video' }, { id: 'next' }] }] }) } },
     scrollOffsetRef: { current: 219 }, historyHeaderHeight: { current: 0 }, historyViewport: { current: 445 },
     historyRects: { current: new Map([['video', { page: 0, y: 0, height: 473 }], ['next', { page: 0, y: 473, height: 189 }]]) },
+    promoRowsRef: { current: [] },
     displayPosts: [{ id: 'video' }, { id: 'next' }], onViewableItemsChanged(value) { visible = value.viewableItems.map(item => item.item.id); },
   };
   vm.runInNewContext(ts.transpileModule('globalThis.report = ' + callback.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, scope);

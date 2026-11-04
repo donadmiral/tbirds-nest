@@ -21,7 +21,7 @@ function files(directory) {
 }
 const source = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package.json', 'package-lock.json', ...files('src'), ...files('shared'),
   'plugins/withMedia3Compatibility.js', 'modules/boomerang/android/build.gradle', 'scripts/quality/android-media-dependencies.init.gradle',
-  'scripts/quality/native-ui-android-media-abi.py', 'scripts/quality/native-ui-android-stack-diagnostics.py',
+  'scripts/quality/native-ui-android-media-abi.py', 'scripts/quality/native-ui-android-stack-diagnostics.py', 'scripts/quality/native-ui-android-root.py',
   ...files('modules/boomerang/ios'), ...files('modules/boomerang/android/src/main'), ...files('tests/native'),
   'modules/boomerang/memoryComposition.ts', 'scripts/quality/native-ui-feed-video-overlay.cjs',
   'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-input-overlay.cjs', 'scripts/quality/native-ui-memory-failure-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-ios-input-trace.py', 'scripts/quality/verify-native-ui.cjs',

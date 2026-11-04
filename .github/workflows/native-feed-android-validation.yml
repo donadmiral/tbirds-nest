@@ -1,12 +1,12 @@
 name: Android feed return validation
 on:
   push:
-    branches: [codex/live-native-android-20261104]
+    branches: [codex/live-feed-refresh-20261104]
     paths: [.github/workflows/native-feed-android-validation.yml]
 permissions:
   contents: read
 concurrency:
-  group: native-feed-android-20261104
+  group: native-feed-refresh-20261104
   cancel-in-progress: false
 
 env:

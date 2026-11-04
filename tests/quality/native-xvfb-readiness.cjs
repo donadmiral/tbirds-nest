@@ -118,7 +118,14 @@ test('the runner retains one Xvfb launch, graphics checks and cleanup with the e
   assert.equal(runner.split(stackDiagnostic).length, 2);
   // Normalize exactly the reviewed diagnostic block and verifier argument.
   // Every original launch, graphics, cleanup and acceptance line stays bound.
-  const normalized = runner.replace(stackDiagnostic, '').replace(platformCommand, media + ' || memory_status=$?');
+  // The reviewed root helper retains UID verification and adds only one bounded
+  // reconnect for the observed closed emulator transport, before app install.
+  const rootCommand = 'python3 scripts/quality/native-ui-android-root.py --adb "$adb_bin"\n';
+  const originalRoot = ['"$adb_bin" root', 'timeout 30 "$adb_bin" wait-for-device',
+    'test "$("$adb_bin" shell id -u | tr -d \'\\r\')" = 0', ''].join('\n');
+  assert.equal(runner.split(rootCommand).length, 2);
+  const normalized = runner.replace(stackDiagnostic, '').replace(rootCommand, originalRoot)
+    .replace(platformCommand, media + ' || memory_status=$?');
   assert.equal(sha(runner.slice(0, start(runner))), 'ca53a9997527b345e73354c674a91226a534ef0a679879fed22106a07c7615ab');
   assert.equal(sha(normalized.slice(end(normalized))), '219fb7c04237d2ead5cb5e5817a09fb78d461f98302cf7b68ffe4c0598e27bce');
   assert.equal((runner.match(/Xvfb -displayfd/g) || []).length, 1);
