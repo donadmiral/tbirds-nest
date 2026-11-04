@@ -44,6 +44,11 @@ function visit(node) {
     && node.arguments[0]?.getText(ast).includes('preparedPageWindow.current')) callbacks.preparePage = node.arguments[0];
   if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useLayoutEffect'
     && node.arguments[0]?.getText(ast).includes('feedTabs.read')) callbacks.restoreTab = node.arguments[0];
+  if (ts.isCallExpression(node) && ['useEffect', 'useLayoutEffect'].includes(node.expression.getText(ast))
+    && node.arguments[0]?.getText(ast).includes('value.replaceHot(posts)')) {
+    callbacks.syncHistoryPosts = node.arguments[0];
+    callbacks.syncHistoryPostsPhase = node.expression.getText(ast);
+  }
   ts.forEachChild(node, visit);
 }
 visit(ast);
@@ -168,6 +173,45 @@ function retainedFeed() {
   const measure = () => { const history = h.scope.historyRef.current; history.getSnapshot().pages.forEach(page => history.measure(page.index, 100)); history.setAnchor(h.posts.at(-1).id); };
   return { h, refresh, more, measure, denied, reads };
 }
+
+test('an empty tab render cannot erase a history committed before passive effects flush', async () => {
+  const h = harness();
+  h.scope.historyReady.current = true;
+  h.scope.posts = [];
+  h.scope.setPosts([]);
+  h.scope.visibleFeedScope = h.scope.feedScopeRef.current;
+  const sync = compile('syncHistoryPosts', h.scope);
+  const passive = [];
+  // Layout effects belong to the committed empty render. A passive effect can
+  // remain pending while the asynchronous reader installs its next history.
+  if (callbacks.syncHistoryPostsPhase === 'useLayoutEffect') sync();
+  else passive.push(sync);
+  await compile('loadFeed', h.scope)();
+  assert.deepEqual(Array.from(h.posts, row => row.id), ['shown']);
+  passive.forEach(effect => effect());
+  assert.deepEqual(Array.from(h.posts, row => row.id), ['shown']);
+  assert.equal(h.historyWindow.pages.length, 1);
+  assert.equal(h.historyWindow.pages[0].rows.length, 1);
+  await h.scope.historyRef.current.dispose();
+});
+
+test('the committed posts synchronization still updates current rows and removes denied content', async () => {
+  const h = harness();
+  h.scope.historyReady.current = true;
+  await compile('loadFeed', h.scope)();
+  h.scope.visibleFeedScope = h.scope.feedScopeRef.current;
+  h.scope.posts = h.posts.map(row => ({ ...row, likes_count: 19 }));
+  h.scope.setPosts(h.scope.posts);
+  const sync = compile('syncHistoryPosts', h.scope);
+  sync();
+  assert.equal(h.historyWindow.rows[0].likes_count, 19);
+  h.scope.posts = [];
+  h.scope.setPosts([]);
+  sync();
+  assert.equal(h.historyWindow.rows.length, 0);
+  assert.equal(h.historyWindow.pages[0].rows.length, 0);
+  await h.scope.historyRef.current.dispose();
+});
 
 test('native feed callbacks bound long reading and reauthorize measured cold pages in original order', async () => {
   const f = retainedFeed(); await f.refresh(); const visited = new Set();

@@ -613,7 +613,7 @@ export default function FeedScreen({ navigation }: any) {
       values.forEach(value => { void value?.dispose().catch(() => {}); });
     };
   }, [feedTabs]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const value = historyRef.current;
     if (value && value.getSnapshot().rows !== posts && visibleFeedScope === feedScopeRef.current) value.replaceHot(posts);
   }, [posts, visibleFeedScope]);
