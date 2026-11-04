@@ -29,3 +29,43 @@ test('oversized and non-JSON vendor errors do not alter failure handling',async(
   assert.equal(response,original);assert.equal(await response.text(),body);assert.equal(logs.length,0);
  }
 });
+test('eject diagnostics preserve the original request and response and emit only fixed response metadata',async()=>{
+ const room='pc-live-'+'b'.repeat(32),target=`https://api.daily.co/v1/rooms/${room}/eject`;
+ const secret='credential-123456789012345678901234567890',identity='10000000-0000-4000-8000-000000000001';
+ for(const [status,body,expected] of [
+  [200,{ejectedIds:[]},{code:'unclassified',no_current_call:false,ejected_ids_array:true,ejected_ids_count:0}],
+  [200,{ejectedIds:[identity],private:secret},{code:'unclassified',no_current_call:false,ejected_ids_array:true,ejected_ids_count:1}],
+  [200,{unexpected:secret,ejectedIds:identity},{code:'unclassified',no_current_call:false,ejected_ids_array:false,ejected_ids_count:null}],
+  [404,{error:'not-found',info:`room ${room} does not seem to be hosting a call currently`},{code:'not-found',no_current_call:true,ejected_ids_array:false,ejected_ids_count:null}],
+  [404,{error:'not-found',info:'room pc-live-'+'c'.repeat(32)+' does not seem to be hosting a call currently'},{code:'not-found',no_current_call:false,ejected_ids_array:false,ejected_ids_count:null}],
+  [400,{error:secret,info:`Bearer ${secret} https://private.test/${identity}`},{code:'unclassified',no_current_call:false,ejected_ids_array:false,ejected_ids_count:null}],
+ ]){
+  const original=Response.json(body,{status}),logs=[],init={method:'POST',headers:{Authorization:'Bearer '+secret},body:JSON.stringify({user_ids:[identity],ban:true})};
+  const wrapped=withProviderDiagnostics(async(input,options)=>{assert.equal(input,target);assert.equal(options,init);return original;},value=>logs.push(value));
+  const response=await wrapped(target,init);
+  assert.equal(response,original);assert.deepEqual(await response.json(),body);
+  assert.deepEqual(JSON.parse(JSON.stringify(logs)),[{event:'live_provider_eject_response',action:'eject',status,body_kind:'object',...expected}]);
+  for(const privateValue of [secret,identity,room,target,'private.test','Bearer'])assert.ok(!JSON.stringify(logs).includes(privateValue));
+ }
+});
+test('malformed and oversized eject responses retain their original bytes and bounded classifications',async()=>{
+ const target='https://api.daily.co/v1/rooms/pc-live-'+'d'.repeat(32)+'/eject';
+ for(const [body,kind] of [['x'.repeat(9000),'too_large'],['<html>private vendor failure</html>','non_json'],['[]','non_object']]){
+  const original=new Response(body,{status:503}),logs=[];
+  const response=await withProviderDiagnostics(async()=>original,value=>logs.push(value))(target);
+  assert.equal(response,original);assert.equal(await response.text(),body);assert.equal(logs.length,1);
+  assert.equal(logs[0].body_kind,kind);assert.equal(logs[0].code,'unclassified');assert.equal(logs[0].status,503);
+  assert.equal(logs[0].ejected_ids_array,false);assert.equal(logs[0].ejected_ids_count,null);
+  assert.ok(JSON.stringify(logs).length<300);assert.ok(!JSON.stringify(logs).includes('private vendor'));
+ }
+});
+test('eject diagnostics cannot change behavior when the log sink fails and never inspect an unrelated room or origin',async()=>{
+ const target='https://api.daily.co/v1/rooms/pc-live-'+'e'.repeat(32)+'/eject';
+ const original=Response.json({ejectedIds:[]});
+ assert.equal(await withProviderDiagnostics(async()=>original,()=>{throw Error('unavailable log sink');})(target),original);
+ for(const unrelated of ['https://api.daily.co/v1/rooms/unrelated/eject',target.replace('api.daily.co','private.invalid')]){
+  const response=Response.json({secret:'keep-private'},{status:404}),logs=[];
+  assert.equal(await withProviderDiagnostics(async()=>response,value=>logs.push(value))(unrelated),response);
+  assert.equal(logs.length,0);assert.equal((await response.json()).secret,'keep-private');
+ }
+});

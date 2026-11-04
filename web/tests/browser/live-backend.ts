@@ -3,6 +3,7 @@ const listeners=new Set<()=>void>();let snapshot={owner:id(1),scope:'qa:'+id(1),
 const subscriptions=new Set<{event:string;callback:(payload:{payload:unknown})=>void}[]>();
 export const calls:{name:string;args:Record<string,unknown>}[]=[];
 let failClip=true;
+let holdChat=false,pendingChatRead:((value:unknown)=>void)|null=null;
 const session={id:id(10),host:{id:id(1),full_name:'Don Musa',username:'don',is_verified:true},title:'Global business live',description:'A live conversation with founders.',state:'live',topic:'business',language:'en',audience:'public',viewer_count:1342,recording_enabled:true,replay_available:false};
 const clip={id:id(20),session_id:id(10),title:'A founder explains the opportunity',caption:'A short excerpt from our live discussion.',tags:['business'],state:'ready',start_ms:90000,end_ms:120000,created_at:new Date().toISOString(),formats:['horizontal','vertical'],share_count:9,view_count:120};
 let settings={viewer_clipping:false,review_required:true,watermark_required:true,brand_text:'Platinum Circles',copyright_policy:'standard',approved_user_ids:[],can_manage:true};
@@ -13,7 +14,7 @@ const client={
   rpc(name:string,args:Record<string,unknown>={}){calls.push({name,args});
     if(name==='live_directory')return reply({items:[session],next_cursor:null,capabilities:{create:true,broadcast:true,view:true,recording:true,reminders:true}});
     if(name==='live_session')return reply({session,role:'host',capabilities:{create:true,broadcast:true,view:true,recording:true,reminders:true,multi_camera:true,screen_share:true,chat:true},members:[],chat_topic:`live:${id(10)}:${id(11)}`,pinned_message:null,invitation:null});
-    if(name==='live_messages')return reply({items:[],next_cursor:null});
+    if(name==='live_messages')return holdChat?new Promise(resolve=>{pendingChatRead=resolve;}):reply({items:[],next_cursor:null});
     if(name==='live_interactions')return reply({...interactions,can_manage:true});
     if(name==='live_interaction_command'){const payload=args.p_payload as Record<string,unknown>;if(args.p_action==='poll_vote'){interactions.polls[0].my_option_id=String(payload.option_id);interactions.polls[0].total_votes++;interactions.polls[0].options.find(item=>item.id===payload.option_id)!.votes++;}if(args.p_action==='question_ask')interactions.questions.push({id:id(41),body:String(payload.body),author:{id:id(1),full_name:'Don Musa',username:'don'},votes:0,upvoted:false,answer:'',state:'open'});if(args.p_action==='question_answer')interactions.questions.find(item=>item.id===payload.question_id)!.answer=String(payload.answer);if(args.p_action==='chapter_add')interactions.chapters.push({id:id(51),title:String(payload.title),position_ms:Number(payload.position_ms)||60000});return reply({ok:true});}
     if(name==='live_analytics')return reply({current_viewers:1342,peak_viewers:1500,unique_viewers:null,watch_minutes:null,chat_messages:500,reactions:null,clips:1,clip_views:120,clip_shares:9,measured_at:new Date().toISOString()});
@@ -36,4 +37,4 @@ export const createClient=()=>client;
 export const getNavigationStore=()=>({subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>listeners.delete(listener);},getSnapshot:()=>snapshot,getServerSnapshot:()=>snapshot});
 export function broadcast(event:string,payload:unknown){for(const rows of subscriptions)for(const row of rows)if(row.event===event)row.callback({payload});}
 export function signout(){snapshot={...snapshot,owner:null as unknown as string,scope:null as unknown as string,revision:2};listeners.forEach(listener=>listener());}
-Object.assign(window,{__liveFixture:{calls,broadcast,signout,id}});
+Object.assign(window,{__liveFixture:{calls,broadcast,signout,id,holdChatRead(){holdChat=true;},chatReadPending:()=>!!pendingChatRead,completeChatRead(items:unknown[]){holdChat=false;pendingChatRead?.({data:{items,next_cursor:null},error:null});pendingChatRead=null;}}});

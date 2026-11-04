@@ -10,7 +10,7 @@ export function FeedNavigationTabs({ selected, onSelect, onLive }: {
   selected: FeedMode | 'live' | 'innovation'; onSelect(mode: FeedMode): void; onLive(): void;
 }) {
   const { t } = useTheme();
-  return <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.scroll}
+  return <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} style={s.scroll}
     contentContainerStyle={s.row} accessibilityLabel="Feed navigation">
     {TABS.map(([id, label]) => {
       const active = id === selected;
@@ -28,8 +28,10 @@ export function FeedNavigationTabs({ selected, onSelect, onLive }: {
 }
 const s = StyleSheet.create({
   scroll: { flexGrow: 0 },
-  row: { flexGrow: 1, alignItems: 'stretch' },
-  tab: { flexGrow: 1, flexShrink: 0, minWidth: 44, minHeight: 48, paddingHorizontal: 2, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' },
+  row: { flexGrow: 1, alignItems: 'stretch', paddingHorizontal: 4, columnGap: 4 },
+  // Keep real space around every label. Narrow phones and larger text can scroll
+  // instead of squeezing neighbouring labels or shrinking their touch targets.
+  tab: { flexGrow: 1, flexShrink: 0, minWidth: 64, minHeight: 48, paddingHorizontal: 10, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' },
   labelRow: { minHeight: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   label: { fontSize: 15, lineHeight: 22, letterSpacing: -.2, includeFontPadding: false },
   underline: { height: 3, width: 20, borderRadius: 2, marginTop: 5 },

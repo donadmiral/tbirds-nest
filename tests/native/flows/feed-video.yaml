@@ -1,0 +1,50 @@
+appId: app.platinumcircles.mobile.qa
+name: First feed video survives scroll refresh and tab return
+---
+- scrollUntilVisible:
+    element:
+      id: native-feed-video
+    direction: DOWN
+    centerElement: true
+- extendedWaitUntil:
+    visible: Native feed video playing
+    timeout: 15000
+- takeScreenshot: feed-video-playing
+- scrollUntilVisible:
+    element: Feed scroll checkpoint.
+    direction: DOWN
+    centerElement: true
+- assertNotVisible: Native feed video playing
+- scrollUntilVisible:
+    element:
+      id: native-feed-video
+    direction: UP
+    centerElement: true
+- extendedWaitUntil:
+    visible: Native feed video playing
+    timeout: 15000
+- takeScreenshot: feed-video-returned
+# Return to the feed's top before the real pull-to-refresh gesture.
+- scrollUntilVisible:
+    element: A quiet morning in the desert. Small moments worth keeping.
+    direction: UP
+    centerElement: false
+- swipe:
+    start: 50%, 43%
+    end: 50%, 90%
+    duration: 700
+- extendedWaitUntil:
+    visible: Native feed video playing
+    timeout: 15000
+- takeScreenshot: feed-video-refreshed
+- tapOn:
+    id: main-tab-messages
+- extendedWaitUntil:
+    visible: '(?s)^(?:Ready for our next adventure\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\?(?:, .*)?)$'
+    timeout: 15000
+- tapOn:
+    id: main-tab-feed
+- extendedWaitUntil:
+    visible: Native feed video playing
+    timeout: 15000
+- takeScreenshot: feed-video-resumed

@@ -22,7 +22,7 @@ import PostCaption from './PostCaption';
  *  - Identical layout on feed and post screens
  */
 import { themedSheet, useTheme } from '../theme/useTheme';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, ViewToken, Animated } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView, type VideoPlayer } from 'expo-video';
@@ -103,7 +103,7 @@ function CarouselImage({ uri, width, height, edit, fullFrame }: { uri: string; w
 }
 
 function CarouselVideo({
-  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId, holdView, soundtrack, fullFrame,
+  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId, soundtrack, fullFrame,
 }: {
   soundtrack?: SoundtrackSelection|null; uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit']; postId?: string | null; holdView?: boolean;
   isVisible: boolean; isScreenActive: boolean;
@@ -123,9 +123,13 @@ function CarouselVideo({
     const current = useVideoEngine.getState();
     return !!player && current.owner === ownerId && current.player === player && current.uri === uri;
   }, [ownerId, player, uri]);
-  const [paintedPlayer, setPaintedPlayer] = useState<VideoPlayer | null>(null);
-  const hasFrame = !!player && paintedPlayer === player;
-  const currentPlayer = useRef(player); currentPlayer.current = player;
+  const attachedPlayer = player && (owns || canHold) ? player : null;
+  // Readiness belongs to a mounted surface, not just a buffered player. Returning
+  // to a pooled player creates a new surface that must paint before its cover hides.
+  const surface = useMemo(() => ({ player: attachedPlayer }), [attachedPlayer, uri, version]);
+  const [paintedSurface, setPaintedSurface] = useState<typeof surface | null>(null);
+  const hasFrame = !!attachedPlayer && paintedSurface === surface;
+  const currentSurface = useRef(surface); currentSurface.current = surface;
   const [frameFailedPlayer, setFrameFailedPlayer] = useState<VideoPlayer | null>(null);
   const frameFailed = !!player && frameFailedPlayer === player;
   // Data saver: with autoplay off, videos hold at their poster until tapped.
@@ -265,8 +269,8 @@ function CarouselVideo({
       activeOpacity={1}
       onPress={onTapOverride ? () => { let at = 0; try { at = Number((player as any).currentTime) || 0; } catch {} onTapOverride(at); } : toggleControls}
     >
-      {player && (owns || (holdView && canHold)) && sourceReady ? <VideoView key={`${uri}:${version}`} style={{ width: '100%', height: '100%', transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} player={player} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} onFirstFrameRender={() => { if (currentPlayer.current === player) setPaintedPlayer(player); }} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
-      {!hasFrame || !(owns || (holdView && canHold)) ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, width, height }}><VideoThumb uri={uri} posterUri={poster} fill chip={false} allowDecode={false} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} /></View> : null}
+      {attachedPlayer ? <VideoView key={`${uri}:${version}`} style={{ width: '100%', height: '100%', transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} player={attachedPlayer} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} surfaceType="textureView" onFirstFrameRender={() => { if (currentSurface.current === surface) setPaintedSurface(surface); }} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
+      {!hasFrame ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, width, height }}><VideoThumb uri={uri} posterUri={poster} fill chip={false} allowDecode={false} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} /></View> : null}
       {failed || frameFailed ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry video" onPress={() => { setFrameFailedPlayer(null); retry(); }} style={[st.loadingOverlay, { backgroundColor: 'rgba(0,0,0,0.65)' }]}><Text style={{ color: '#FFFFFF' }}>Video could not load. Tap to retry.</Text></TouchableOpacity> : null}
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}

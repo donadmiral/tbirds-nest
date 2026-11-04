@@ -1,0 +1,92 @@
+{
+  "verifiedAt": "2026-11-04T16:04:51.969429Z",
+  "native": {
+    "fix": [
+      "Retain the last owner's paused native surface across autoplay visibility gaps",
+      "Wait for each new surface's first frame before hiding its cover",
+      "Ignore callbacks from detached surfaces",
+      "Prevent duplicate cards sharing a URL from retaining the same native player",
+      "Use Android textureView for transformed and scrolling feed surfaces"
+    ],
+    "focusedTests": {
+      "passed": 29,
+      "failed": 0
+    },
+    "newRegressionTestsAgainstPreviousHead": {
+      "passed": 10,
+      "failed": 3,
+      "failures": [
+        "Paused surface removed while partially visible",
+        "Pooled player reattachment incorrectly inherited first-frame readiness",
+        "Duplicate URL card could hold another card's native player"
+      ]
+    },
+    "rootTypecheck": "passed",
+    "independentReview": "native_qa agent reviewed source and reran 13 lifecycle tests, all passed."
+  },
+  "productionMedia": {
+    "project": "prlkikhckbifseosbukl",
+    "observedFailure": "get_feed and content_media_manifest returned 200, issue_content_media_delivery returned 500 with MEDIA_CONTENT_DELIVERY_NOT_READY, content-media-sign returned 503",
+    "before": {
+      "prerequisiteEnabled": false,
+      "tickets": 0
+    },
+    "after": {
+      "prerequisiteEnabled": true,
+      "ticketsAtActivation": 0
+    },
+    "change": "Activated existing original-content capability issuer. No bucket policies, audience checks, session checks, ticket lifetime, resolver privileges, adaptive or processing gates changed.",
+    "deployedSource": {
+      "mediaContent": {
+        "version": 8,
+        "filesByteMatch": true
+      },
+      "contentMediaSign": {
+        "version": 9,
+        "filesByteMatch": true
+      }
+    },
+    "rollbackOnlyDatabaseProbe": {
+      "issued": 7,
+      "resolved": 7,
+      "wrongPathDenied": 7,
+      "replacedObjectDenied": 7,
+      "expiredDenied": 7,
+      "anonymousIssueAllowed": false,
+      "authenticatedResolverAllowed": false
+    },
+    "sourceHandlerTests": {
+      "passed": 65,
+      "failed": 0
+    },
+    "browserAcceptance": {
+      "result": "passed for feed restoration",
+      "observedBy": "root cloud browser signed-in account don",
+      "feedErrorCount": 0,
+      "firstPostPhotoLoaded": true,
+      "otherMediaControlsRestored": true,
+      "videoPlayback": {
+        "surface": "Existing deployed web Latest feed after production ticket activation",
+        "freshMediaLoaded": true,
+        "firstActualVideo": {
+          "readyState": 4,
+          "autoplayObservedTimeSeconds": 3.570233,
+          "pausedAfterCompletion": true,
+          "manualPlayPaused": false,
+          "manualPlayTimeSeconds": 0.03173,
+          "decodedFrameVisible": "Keyboard video visible in root cloud screenshot"
+        },
+        "mediaErrors": 0,
+        "nativePatchAcceptance": false
+      }
+    },
+    "postActivationLogs": {
+      "windowStart": "2026-11-04T16:04:50Z",
+      "windowEnd": "2026-11-04T16:08:00Z",
+      "issuerRpcStatus": 200,
+      "edgeSignerStatus": 200,
+      "mediaProxyPhotoStatus": 200,
+      "capabilityValuesRecorded": false
+    }
+  }
+}

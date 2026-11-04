@@ -28,7 +28,7 @@ function persist(receipt) {
     writing = writing.then(() => FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'native-ui-receipt.json', snapshot));
   }, 100);
 }
-const fixture = createFixture(persist);
+const fixture = createFixture(persist, { feedVideoSource: () => require('./feed-video-asset.cjs').feedVideoSource() });
 installFixtureRuntime(fixture);
 installFixtureTransport(fixture, FixtureWebSocket);
 installInputDiagnostics({

@@ -85,6 +85,7 @@ name: Full native app navigation
     visible: A quiet morning in the desert. Small moments worth keeping.
     timeout: 30000
 - takeScreenshot: home
+- runFlow: feed-video.yaml
 # Actual native Live screens use the same isolated read transport as this journey.
 # These captures verify layout and navigation, not native provider broadcasting.
 - tapOn:

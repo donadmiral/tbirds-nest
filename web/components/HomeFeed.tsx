@@ -392,17 +392,17 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
           feeds never scrolls out of reach. The gold underline marks the active
           feed; the dot-in-a-ring read as decoration at this size. */}
       <div className="pc-feed-tabs sticky top-[112px] z-10 mb-4 border-b border-ink/10 bg-[var(--canvas)] md:top-[68px]">
-        <div className="flex items-center gap-1 overflow-x-auto overflow-y-hidden">
+        <nav aria-label="Feed destinations" className="flex items-center gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain">
           {MODES.map((m) => {
             const active = mode === m.key;
             return (
               <span key={m.key} className="contents">
-              {m.key === 'trending' ? <Link href="/discover" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted hover:text-ink sm:flex-none sm:px-3.5 sm:text-[14.5px]">Discover</Link> : null}
+              {m.key === 'trending' ? <Link href="/discover" className="inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap px-3.5 py-3 text-center text-[13px] text-muted hover:text-ink sm:text-[14.5px]">Discover</Link> : null}
               <button
                 aria-pressed={active}
                 onClick={() => setMode(m.key)}
                 className={
-                  "relative min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-[13px] transition-colors duration-[180ms] sm:flex-none sm:px-3.5 sm:text-[14.5px] " +
+                  "relative min-h-12 shrink-0 whitespace-nowrap px-3.5 py-3 text-[13px] transition-colors duration-[180ms] sm:text-[14.5px] " +
                   (active ? "font-semibold text-ink" : "text-muted hover:text-ink/80")
                 }
               >
@@ -418,7 +418,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
             );
           })}
           <LiveEntry />
-        </div>
+        </nav>
       </div>
 
       <StoryRings />

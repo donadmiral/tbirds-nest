@@ -74,11 +74,11 @@ export function LiveDirectoryView() {
   const current = state.key === key ? state : { ...state, items: [], cursor: null, capabilities: NO_LIVE_CAPABILITIES, loading: !!identity.owner, error: null, setup: false };
   const items = current.items.filter(item => `${item.title} ${item.host.full_name ?? ''} ${item.host.username ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()));
   return <div className="mx-auto max-w-6xl pb-24" data-live-directory>
-    <nav aria-label="Feed destinations" className="mb-6 flex items-center gap-1 overflow-x-auto border-b border-ink/10 pb-1">
-      <Link href="/home?feed=for_you" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted sm:flex-none sm:px-3 sm:text-sm">For You</Link>
-      <Link href="/home?feed=latest" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted sm:flex-none sm:px-3 sm:text-sm">Latest</Link>
-      <Link href="/discover" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted sm:flex-none sm:px-3 sm:text-sm">Discover</Link>
-      <Link href="/home?feed=trending" className="min-w-0 flex-1 whitespace-nowrap px-1 py-3 text-center text-[13px] text-muted sm:flex-none sm:px-3 sm:text-sm">Trending</Link><LiveEntry active />
+    <nav aria-label="Feed destinations" className="mb-6 flex items-center gap-2 overflow-x-auto overscroll-x-contain border-b border-ink/10 pb-1">
+      <Link href="/home?feed=for_you" className="inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap px-3.5 py-3 text-center text-[13px] text-muted sm:text-sm">For You</Link>
+      <Link href="/home?feed=latest" className="inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap px-3.5 py-3 text-center text-[13px] text-muted sm:text-sm">Latest</Link>
+      <Link href="/discover" className="inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap px-3.5 py-3 text-center text-[13px] text-muted sm:text-sm">Discover</Link>
+      <Link href="/home?feed=trending" className="inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap px-3.5 py-3 text-center text-[13px] text-muted sm:text-sm">Trending</Link><LiveEntry active />
     </nav>
     <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div><div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted"><LiveIcon size={17} />Platinum Live</div><h1 className="text-3xl font-semibold tracking-tight text-ink">Live streams</h1><p className="mt-2 max-w-xl text-sm text-muted">Creators, conversations and events. Find your people, live.</p></div>

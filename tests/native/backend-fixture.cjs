@@ -20,7 +20,7 @@ const makeProfile = (id, full_name, username, email) => ({
   counts: { posts: 1, followers: 0, following: 0, reposts: 0, media: 0, saved: 0 },
 });
 
-function createFixture(onChange = () => {}) {
+function createFixture(onChange = () => {}, { feedVideoSource } = {}) {
   const profiles = [makeProfile(OWNER, 'Alex Rivera', 'qa_alex', 'qa.alex@example.invalid'),
     makeProfile(PEER, 'Jordan Ellis', 'qa_jordan', 'qa.jordan@example.invalid'),
     makeProfile(SECOND, 'Morgan Lee', 'qa_morgan', 'qa.morgan@example.invalid')];
@@ -66,7 +66,7 @@ function createFixture(onChange = () => {}) {
   // Each explicitly empty table represents an empty synthetic account state.
   for (const table of ['user_presence', 'notifications', 'follows', 'follow_requests', 'post_seen',
     'post_likes', 'post_comments', 'post_reposts', 'post_bookmarks', 'post_polls', 'post_collaborators',
-    'post_shares', 'post_media', 'hidden_posts', 'blocked_users', 'restricted_users', 'close_friends',
+    'post_shares', 'post_media', 'post_media_tags', 'hidden_posts', 'blocked_users', 'restricted_users', 'close_friends',
     'muted_stories', 'muted_users', 'conversation_members', 'conversation_settings', 'conversation_typing',
     'message_mentions', 'message_reactions', 'message_stars', 'message_saves', 'message_requests',
     'call_sessions', 'call_participants', 'user_push_tokens', 'job_saves', 'job_applications', 'job_recommendations',
@@ -80,10 +80,11 @@ function createFixture(onChange = () => {}) {
   let offline = false;
   let delayMs = 0;
   let memoryMode = 'normal';
+  let feedVideoReady;
   const issuedMedia = new Set();
   const receipt = { mode: 'synthetic-native-ui', networkForwarded: false,
     featureConfiguration: { pagedReaders: { books: false, inbox: false }, feedBroadcast: { enabled: false } },
-    requests: [], unhandled: [], mutations: [], media: [], bookReads: [], accountReadbacks: [] };
+    requests: [], unhandled: [], mutations: [], media: [], bookReads: [], accountReadbacks: [], feedRefreshes: [] };
   const recordCaptureBoundary = createCaptureBoundaryRecorder(receipt, onChange);
   const observeReaderResponse = createReaderResponseObserver(receipt, onChange);
   const record = (kind, value) => { receipt[kind].push(value); onChange(receipt); };
@@ -277,6 +278,23 @@ function createFixture(onChange = () => {}) {
     }
     if (path === '/auth/v1/factors') return response({ all: [], totp: [], phone: [] });
     if (!owner && path.startsWith('/rest/v1/')) return readerResponse(response({ message: 'Authentication required' }, 401));
+    if (path === '/rest/v1/rpc/get_feed' && feedVideoSource && !posts[0].media.length) {
+      if (!feedVideoReady) feedVideoReady = (async () => {
+        const url = await feedVideoSource();
+        if (typeof url !== 'string' || !url.startsWith('file://')) throw new Error('Native feed video must use the packaged local fixture.');
+        const media = { id: '21000000-0000-4000-8000-000000000001', post_id: posts[0].id,
+          url, media_type: 'video', sort_order: 0, width: 320, height: 240, edit: { aspect: 'original' } };
+        posts[0].media = [media]; posts[0].post_media = [media]; posts[0].media_url = url;
+        rows.post_media = [media];
+        for (let index = 3; index <= 8; index++) {
+          const id = '20000000-0000-4000-8000-' + String(index).padStart(12, '0');
+          const content = index === 8 ? 'Feed scroll checkpoint.' : 'A small moment from day ' + index + '.';
+          posts.push({ ...posts[1], id, post_id: id, user_id: PEER, author_id: PEER, content, body: content,
+            sort_key: 10 - index, created_at: new Date(Date.now() - index * 3600000).toISOString() });
+        }
+      })();
+      await feedVideoReady;
+    }
     if (path.startsWith('/rest/v1/rpc/')) {
       const value = rpc(path.slice('/rest/v1/rpc/'.length), body, headers);
       return readerResponse(value === undefined ? unknown(method, path) : value instanceof Response ? value : response(value));
@@ -316,6 +334,14 @@ function createFixture(onChange = () => {}) {
     return unknown(method, path);
   }
   return { fetch: fetchFixture, receipt, profiles, posts, recordCaptureBoundary,
+    observeFeedRefresh(work) {
+      const reads = () => receipt.requests.filter(row => row.path === '/rest/v1/rpc/get_feed').length;
+      const before = reads();
+      const result = work();
+      Promise.resolve(result).then(() => record('feedRefreshes', { before, after: reads(), completed: true }),
+        () => record('feedRefreshes', { before, after: reads(), completed: false }));
+      return result;
+    },
     authorizeMemoryMedia(url) {
       if (owner !== OWNER || offline || !issuedMedia.has(url)) {
         record('unhandled', { method: 'MEDIA', path: String(url).split('?')[0] });

@@ -99,6 +99,19 @@ test('evicting a held inactive source clears its rendered player before release'
   h.engine.prefetchFeedVideos([{ uri: 'https://media/three.mp4' }]); await h.flush();
   assert.equal(held.released, true); assert.equal(card.output.player, null); assert.equal(card.output.sourceReady, false); h.dispose();
 });
+test('only the last owner can hold a paused surface when two cards use the same video URL', async () => {
+  const h = harness(), first = h.mount('https://media/shared.mp4'); await h.flush();
+  h.players[0].ready(); await h.flush();
+  const duplicate = h.mount('https://media/shared.mp4', false);
+  h.update(first, { visible: false });
+  assert.equal(first.output.canHold, true);
+  assert.equal(duplicate.output.canHold, false, 'The duplicate must not attach the same native player');
+  h.update(duplicate, { visible: true });
+  assert.equal(duplicate.output.owns, true); assert.equal(first.output.canHold, false);
+  h.update(duplicate, { visible: false });
+  assert.equal(first.output.canHold, false); assert.equal(duplicate.output.canHold, true);
+  assert.equal(h.players.length, 1, 'Visibility changes keep the buffered source'); h.dispose();
+});
 test('a native error after source attachment becomes a recoverable active-card error', async () => {
   const h = harness(), card = h.mount('https://media/clip.mp4'); await h.flush(); h.players[0].ready(); await h.flush();
   h.players[0].fail(); h.render();

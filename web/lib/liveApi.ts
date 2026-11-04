@@ -33,7 +33,8 @@ export function parseLiveMessage(value: unknown): LiveMessage | null {
 }
 export function mergeLiveMessages(previous: LiveMessage[], incoming: LiveMessage[], limit = 150): LiveMessage[] {
   const messages = new Map(previous.map(item => [item.id,item]));
-  incoming.forEach(item => messages.set(item.id,item));
+  incoming.forEach(item => messages.set(item.id, messages.get(item.id)?.removed === true || item.removed
+    ? { ...item, removed: true, body: '' } : item));
   return [...messages.values()].sort((a,b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)).slice(-Math.min(150,Math.max(1,limit)));
 }
 export function parseLiveDetail(value: unknown): LiveDetail {

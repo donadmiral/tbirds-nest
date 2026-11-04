@@ -24,6 +24,9 @@ if (memory.passed !== true || memory.cancelledReaderClosed !== true || memory.ca
 if (fixture.mode !== 'synthetic-native-ui' || fixture.networkForwarded !== false || fixture.unhandled.length) {
   throw new Error('The complete app made unsupported fixture requests: ' + JSON.stringify(fixture.unhandled));
 }
+if (!(fixture.feedRefreshes || []).some(row => row.completed === true && row.after > row.before)) {
+  throw new Error('The native pull-to-refresh gesture did not complete an actual get_feed request.');
+}
 const required = ['/auth/v1/token', '/rest/v1/rpc/get_feed', '/rest/v1/rpc/get_profile', '/rest/v1/jobs',
   '/rest/v1/rpc/live_directory',
   '/rest/v1/marketplace_listings', '/rest/v1/conversations', '/functions/v1/crisp-bridge',
@@ -56,7 +59,7 @@ function collect(directory) {
   });
 }
 const captured = collect(path.join(evidence, 'maestro'));
-const screenshots = ['home', 'live-directory', 'live-start', 'live-schedule', 'market', 'jobs', 'messages', 'profile', 'settings', 'returned-home',
+const screenshots = ['home', 'feed-video-playing', 'feed-video-returned', 'feed-video-refreshed', 'feed-video-resumed', 'live-directory', 'live-start', 'live-schedule', 'market', 'jobs', 'messages', 'profile', 'settings', 'returned-home',
   'memory-shelf', 'memory-reader', 'memory-film', 'memory-export-entry', 'memory-cover-edited', 'memory-film-reloaded',
   'captured-memory-ready', 'captured-memory-cleanup'].map(name => {
   const candidates = captured.filter(file => path.basename(file) === name + '.png');
@@ -76,6 +79,7 @@ fs.writeFileSync(path.join(evidence, 'receipt.json'), JSON.stringify({ passed: t
   productionAppSourceManifest: 'source.json', fullAppLaunched: true, isolatedTransport: true,
   authAndMainNavigation: true, unsupportedFixtureRequests: fixture.unhandled.length,
   liveDirectoryAndSetupScreens: true, liveProviderAcceptance: false,
+  firstFeedVideoScrollRefreshAndResume: true,
   memoryCaptureAndMovie: true, memoryEvidence: 'memory-capture/decoded.json',
   profileMemoryShelfReaderAutomaticFilmAndExportEntry: true,
   ownerCoverAndFilmSettingsSavedAndReopened: true, memoryBookSavedRevision: bookSaves[0].revision,

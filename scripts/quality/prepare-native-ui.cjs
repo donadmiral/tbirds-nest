@@ -23,7 +23,7 @@ const source = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package.jso
   'plugins/withMedia3Compatibility.js', 'modules/boomerang/android/build.gradle', 'scripts/quality/android-media-dependencies.init.gradle',
   'scripts/quality/native-ui-android-media-abi.py',
   ...files('modules/boomerang/ios'), ...files('modules/boomerang/android/src/main'), ...files('tests/native'),
-  'modules/boomerang/memoryComposition.ts',
+  'modules/boomerang/memoryComposition.ts', 'scripts/quality/native-ui-feed-video-overlay.cjs',
   'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-input-overlay.cjs', 'scripts/quality/native-ui-memory-failure-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-ios-input-trace.py', 'scripts/quality/verify-native-ui.cjs',
   'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh',
   'scripts/quality/test-android-app-ui.sh', 'scripts/quality/native-ui-xvfb-readiness.py', 'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml', '.github/workflows/live-native-input-diagnostics.yml'];
@@ -92,6 +92,11 @@ if (versions[0] === 0) for (const [file, pattern] of bridges) {
 const navigator = 'src/navigation/AppNavigator.tsx';
 const { navigationTimingOverlay, inboxTimingOverlay } = require('./native-ui-navigation-overlay.cjs');
 const inputOverlays = require('./native-ui-input-overlay.cjs');
+const { feedVideoOverlay, feedRefreshOverlay } = require('./native-ui-feed-video-overlay.cjs');
+overlay('src/components/PostCarousel.tsx', feedVideoOverlay(fs.readFileSync('src/components/PostCarousel.tsx', 'utf8')),
+  'Disposable native playback accessibility observation of actual first frame, ownership, source readiness and progressing native clock. No player callbacks or behavior changes.');
+overlay('src/screens/feed/FeedScreen.tsx', feedRefreshOverlay(fs.readFileSync('src/screens/feed/FeedScreen.tsx', 'utf8')),
+  'Disposable observation of the original refresh promise and actual get_feed request count before and after it. Original work, results and errors remain unchanged.');
 const navigatorSource = inputOverlays.navigationInputOverlay(navigationTimingOverlay(fs.readFileSync(navigator, 'utf8')));
 for (const [file, transform] of [
   ['src/components/LiveUi.tsx', inputOverlays.liveUiInputOverlay],

@@ -227,7 +227,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
   const originalAuth = fs.readFileSync(path.join(root, authPath));
   const sha = value => crypto.createHash('sha256').update(value).digest('hex');
   const required = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package.json', 'package-lock.json', authPath, 'src/navigation/AppNavigator.tsx', 'src/screens/messages/ConversationsScreen.tsx',
-    'src/components/LiveUi.tsx', 'src/screens/feed/LiveStreamsScreen.tsx', 'src/screens/feed/NewLiveScreen.tsx', 'src/screens/profile/MemoryAlbumScreen.tsx',
+    'src/components/LiveUi.tsx', 'src/components/PostCarousel.tsx', 'src/screens/feed/FeedScreen.tsx', 'src/screens/feed/LiveStreamsScreen.tsx', 'src/screens/feed/NewLiveScreen.tsx', 'src/screens/profile/MemoryAlbumScreen.tsx',
     'plugins/withMedia3Compatibility.js', 'modules/boomerang/android/build.gradle', 'scripts/quality/android-media-dependencies.init.gradle',
     'scripts/quality/native-ui-android-media-abi.py',
     'modules/boomerang/ios/BoomerangModule.swift', 'modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt',
@@ -235,7 +235,8 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     'src/services/memoryMovieExport.ts', 'src/services/memoryMovieFiles.ts', 'tests/native/memory-fixture.cjs',
     'tests/native/memory-failure-identity.cjs', 'tests/native/assets/memory-capture-video.mp4',
     'tests/native/memory-export-adapter.ts', 'tests/native/memory-capture-observer.cjs', 'tests/native/expo-fetch-fixture.cjs',
-    'scripts/quality/native-ui-memory-failure-overlay.cjs',
+    'scripts/quality/native-ui-memory-failure-overlay.cjs', 'scripts/quality/native-ui-feed-video-overlay.cjs',
+    'tests/native/feed-video-asset.cjs', 'tests/native/flows/feed-video.yaml',
     'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-input-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-ios-input-trace.py', 'scripts/quality/verify-native-ui.cjs',
     'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh', 'scripts/quality/test-android-app-ui.sh',
     'scripts/quality/native-ui-xvfb-readiness.py', 'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml', '.github/workflows/live-native-input-diagnostics.yml'];
@@ -269,7 +270,8 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     assert.match(result.stdout, /failure-only synthetic-file identity observer/);
     for (const file of ['src/services/memoryMovieFiles.ts', 'tests/native/memory-failure-identity.cjs',
       'tests/native/memory-export-adapter.ts', 'tests/native/memory-capture-observer.cjs', 'tests/native/expo-fetch-fixture.cjs',
-      'scripts/quality/native-ui-memory-failure-overlay.cjs', 'scripts/quality/native-ui-xvfb-readiness.py']) assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
+      'scripts/quality/native-ui-memory-failure-overlay.cjs', 'scripts/quality/native-ui-xvfb-readiness.py',
+      'scripts/quality/native-ui-feed-video-overlay.cjs', 'tests/native/feed-video-asset.cjs', 'tests/native/flows/feed-video.yaml']) assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
     for (const [name, selected] of Object.entries(dependencyFiles)) {
       const dependency = manifest.dependencyProvenance[name], installed = JSON.parse(fs.readFileSync(path.join(root, 'node_modules', name, 'package.json')));
       assert.equal(dependency.installedVersion, installed.version); assert.equal(dependency.matchesLockedVersion, true);
@@ -284,7 +286,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     for (const file of ['tests/native/auth-diagnostics.cjs', 'tests/native/navigation-timing.cjs', 'tests/native/input-diagnostics.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-input-overlay.cjs', '.github/workflows/live-native-input-diagnostics.yml', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-ios-input-trace.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py']) {
       assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
     }
-    for (const file of ['src/navigation/AppNavigator.tsx', 'src/screens/messages/ConversationsScreen.tsx', 'src/components/LiveUi.tsx', 'src/screens/feed/LiveStreamsScreen.tsx', 'src/screens/feed/NewLiveScreen.tsx', 'src/screens/profile/MemoryAlbumScreen.tsx', 'src/services/memoryMovieExport.ts']) {
+    for (const file of ['src/navigation/AppNavigator.tsx', 'src/screens/messages/ConversationsScreen.tsx', 'src/components/LiveUi.tsx', 'src/components/PostCarousel.tsx', 'src/screens/feed/FeedScreen.tsx', 'src/screens/feed/LiveStreamsScreen.tsx', 'src/screens/feed/NewLiveScreen.tsx', 'src/screens/profile/MemoryAlbumScreen.tsx', 'src/services/memoryMovieExport.ts']) {
       const observed = manifest.overlays.find(row => row.file === file);
       const original = fs.readFileSync(path.join(root, file));
       const modified = fs.readFileSync(path.join(directory, file));

@@ -3454,7 +3454,7 @@ const s = themedSheet((t) => ({
   logo: { fontSize: 24, fontFamily: 'SpaceGrotesk_700Bold', color: t.ink.primary, letterSpacing: -0.5 },
   iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
   searchInput: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, minHeight: 48, fontSize: 16, color: t.ink.primary, marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline },
-  tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: t.surface.raised, borderRadius: 12, padding: 3 },
+  tabRow: { flexDirection: 'row', marginHorizontal: -16, marginBottom: 10, backgroundColor: t.surface.canvas },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: t.surface.canvas, shadowColor: t.ink.primary, shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
   tabTxt: { fontSize: 13, fontWeight: '500', color: t.ink.muted },
