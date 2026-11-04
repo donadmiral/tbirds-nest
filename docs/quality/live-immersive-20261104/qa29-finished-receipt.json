@@ -1,0 +1,18 @@
+{
+  "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "status": "FINISHED",
+  "profile": "preview",
+  "channel": "qa-preview",
+  "version": "1.1.0",
+  "buildNumber": "29",
+  "buildId": "91d4a8a4-2b93-4614-a31d-9159d58817a8",
+  "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/91d4a8a4-2b93-4614-a31d-9159d58817a8",
+  "qualityRunId": 41901512036,
+  "workflowRunId": 41901512154,
+  "jobId": 126842827602,
+  "attempt": 2,
+  "completedAt": "2026-11-04T20:34:33.3230974Z",
+  "installUiVerifiedByRoot": true,
+  "buildDurationSeconds": 394,
+  "totalDurationSeconds": 418
+}

@@ -1,0 +1,12 @@
+{
+  "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "runId": 41901512154,
+  "attempt": 1,
+  "jobId": 126826451360,
+  "conclusion": "failure",
+  "failedAt": "2026-11-04T20:13:25Z",
+  "reason": "Required type and quality workflow was still pending at the 15-minute wait deadline. No QA build was submitted.",
+  "qualityRunId": 41901512036,
+  "expoBuildSubmitted": false,
+  "scope": "Scheduling and prerequisite wait only. No app assertion or build compilation failed."
+}

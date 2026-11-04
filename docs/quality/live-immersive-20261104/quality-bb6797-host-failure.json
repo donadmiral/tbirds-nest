@@ -1,0 +1,15 @@
+{
+  "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "runId": 41901512036,
+  "attempt": 1,
+  "jobId": 126824866648,
+  "conclusion": "cancelled",
+  "completedAt": "2026-11-04T20:16:24Z",
+  "reason": "Ubuntu Azure archive FFmpeg download remained incomplete after17minutes. Reached package56 of99. Adaptive tests had not started.",
+  "passedBeforeStall": [
+    "native TypeScript",
+    "phone, diagnostics, feed and call regressions"
+  ],
+  "retryScope": "one retry of this Phone job only, same source; other five successful quality jobs retained",
+  "retrySubmitted": true
+}

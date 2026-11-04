@@ -1,98 +1,139 @@
 {
-  "source": "0810ea8a30cd3818878b60fccea0689a453a3b19",
-  "tree": "21d94004927cd8c3284fb9fc42dd3bcc3db3725f",
+  "schemaVersion": 2,
+  "updatedAt": "2026-11-04T20:43:12.274132+00:00",
+  "status": "QA29 finished. Production web/admin, full Android UI and release checks passed. Same-bundle iOS recovery remains pending.",
+  "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "tree": "75c7587093bb8c4d37ae45811e60b9d8e73af873",
   "parents": [
-    "7f7e9e3909957befc4e9e3e45e8594db51a58aaf"
+    "0810ea8a30cd3818878b60fccea0689a453a3b19"
   ],
+  "sourceAdoption": "Existing concurrent commit adopted exactly after independent review. No duplicate app commit, deployment, or build.",
   "localValidation": {
-    "source": "0810ea8a30cd3818878b60fccea0689a453a3b19",
-    "affectedChecks": 135,
-    "failures": 0,
-    "typechecks": [
-      "native",
-      "web",
-      "admin"
+    "guardTests": 26,
+    "nativeComponentAndLoginTests": 76,
+    "additionalMeasuredKeyboardCases": 8,
+    "independentReviews": [
+      "phone_navigation",
+      "web_admin"
     ],
-    "independentFeedReview": "approved",
-    "independentGuardReview": "approved"
+    "failures": 0
   },
   "release": {
-    "runId": 41894097795,
+    "runId": 41901512154,
+    "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
     "status": "success",
-    "prerequisites": "all passed",
-    "qaJobId": 126800391689
+    "connectedReuseJobId": 126824867262,
+    "releaseChecksJobId": 126824867553,
+    "webBuildJobId": 126824867808,
+    "baselineJobId": 126824868082,
+    "qaJobId": 126826451360,
+    "prerequisites": "passed",
+    "firstAttemptFailureReceipt": "qa-bb6797-wait-failure.json",
+    "qaRetryJobId": 126842827602,
+    "successfulAttempt": 2
+  },
+  "qaApp": {
+    "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+    "status": "FINISHED",
+    "profile": "preview",
+    "channel": "qa-preview",
+    "version": "1.1.0",
+    "buildNumber": "29",
+    "buildId": "91d4a8a4-2b93-4614-a31d-9159d58817a8",
+    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/91d4a8a4-2b93-4614-a31d-9159d58817a8",
+    "qualityRunId": 41901512036,
+    "workflowRunId": 41901512154,
+    "jobId": 126842827602,
+    "attempt": 2,
+    "completedAt": "2026-11-04T20:34:33.3230974Z",
+    "installUiVerifiedByRoot": true,
+    "buildDurationSeconds": 394,
+    "totalDurationSeconds": 418
   },
   "native": {
-    "applicationSource": "0810ea8a30cd3818878b60fccea0689a453a3b19",
-    "validationSource": "d61a0c9958600a604cf248aa0eab4e2a2e2d531b",
-    "runId": 41896677133,
-    "jobId": 126807938630,
-    "status": "host setup passed; native application compiling",
-    "validationSourceDifference": "Only .github/workflows/native-feed-android-validation.yml differs: application-source comment and bounded host apt setup with retained logs. App, fixture and native runner bytes remain identical to0810.",
+    "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+    "runId": 41901710700,
+    "androidJobId": 126825565766,
+    "iosJobId": 126825564951,
+    "status": "Android full UI passed; same-bundle iOS recovery executing",
+    "overallUiAcceptance": null,
     "expectedManifest": {
       "fileCount": 821,
-      "sha256": "9f562b864ff86e50040a5f4e62061c2c5b610a48fa50ce1493fc727aaf84008c"
+      "sha256": "d35d93798856a119463650445d3c9ed3b34644d0370fc724f29b806fba998d67"
     },
+    "priorFeedAcceptance": {
+      "source": "0810ea8a30cd3818878b60fccea0689a453a3b19",
+      "receipt": "android-feed-0810-receipt.json",
+      "allFourPlayingGates": true,
+      "realRefreshRequestsBefore": 1,
+      "realRefreshRequestsAfter": 2
+    },
+    "priorIosLimitation": "ios-ui-limitation.json",
     "ios": {
-      "previousRunId": 41886667189,
-      "previousJobId": 126775807167,
-      "status": "driver initialization timed out before UI commands",
-      "uiAcceptance": false,
-      "physicalDevice": false,
-      "previousApplicationSource": "27a93c6c27463224b3158037c4685f25bfbcfe99",
-      "artifactId": 13354837142,
-      "retainedBundleSha256": "4e58ebedad4fba5e5417a1e124162dd41473a706413076b566ced21f2bc62f27",
-      "matchedSourceHashes": 696,
-      "matchedPreparedOverlays": 16,
-      "finalSourceAutomatedUiRetested": false
+      "initialJobId": 126825564951,
+      "initialArtifactId": 13359603305,
+      "initialArtifactSha256": "60eb6acc1df01394cdf494bc50d3a53bf3a48cf19cc98fe5cb274c7b50871c0c",
+      "initialResult": "Signed in, then system Save Password dialog remained after interrupted Not Now touch. Later application gates not executed.",
+      "initialReceipt": "ios-keyboard-bb6797-initial-receipt.json",
+      "recoveryRunId": 41909188783,
+      "recoverySource": "6274b138fa7dc882daf9cb2bf334f3251e1a2634",
+      "recoveryStatus": "queued or running",
+      "recoveryScope": "Same signed app. Prior bounded system-prompt dismissal plus three iOS-only positioning gestures. Original four video gates, refresh gesture, all later app assertions and decoders unchanged.",
+      "actualApplicationSource": "54cc04abb953a4580f817741fa81d7d54759aecf",
+      "applicationTree": "75c7587093bb8c4d37ae45811e60b9d8e73af873",
+      "applicationTreeEqualsReleaseTree": true,
+      "binarySha256": "cd25ed212a5a8460ef760fde49471ad2df024037431b84ac12d95e1f26de2fea",
+      "rebuild": false,
+      "rebundle": false,
+      "resign": false,
+      "priorRecoveryReceipt": "ios-retained-positioning-failure.json"
     },
-    "priorAndroidFailure": {
-      "runId": 41891673506,
-      "artifactId": 13354417110,
-      "artifactSha256": "9b1e394ecb37a2bbc934bc79d8cd17cfd7a969dcb15127e112ba8c0778c8551e",
-      "initialPlayback": true,
-      "returnPlayback": true,
-      "refreshRequest": true,
-      "postRefreshPlayback": false
-    },
-    "validationTree": "0b94481e9fc5d71a0599f02603a48f0376c87091",
-    "hostSetupRetryLimit": 1,
-    "previousHostAttempt": {
-      "source": "27e55ca1ee15f1a581272935a2a4759519aabdcd",
-      "runId": 41894360287,
-      "jobId": 126799791029,
-      "status": "cancelled during slow Ubuntu package downloads",
-      "applicationCompiled": false,
-      "applicationExecuted": false
+    "android": {
+      "status": "success",
+      "jobId": 126825565766,
+      "artifactId": 13359843646,
+      "artifactSha256": "17334eaf79189540a31bbc85e92c4d39f104e6578e2c4658947ccf9d11e99070",
+      "receipt": "android-keyboard-bb6797-receipt.json",
+      "allOriginalFlowsPassed": true,
+      "keyboardOpenComposerAndSendVisible": true
     }
   },
   "browser": {
-    "source": "0810ea8a30cd3818878b60fccea0689a453a3b19",
-    "runId": 41894110633,
-    "jobId": 126798903968,
+    "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+    "runId": 41901710603,
     "status": "success",
+    "baselineStatus": "success",
+    "previousSource": "0810ea8a30cd3818878b60fccea0689a453a3b19",
+    "previousBroadReceipt": "browser-source-receipt.json",
+    "previousBaselineReceipt": "browser-baseline-source-receipt.json",
     "successfulSteps": 30,
-    "artifactId": 13356120567,
-    "artifactSha256": "5b0a3f4c4e9115e9634b501a4390692068082bee8597400af641f8131aa1d535",
-    "baselineRunId": 41894097795,
-    "baselineJobId": 126798851020,
-    "baselineArtifactId": 13355485641,
-    "baselineArtifactSha256": "83bfc6a21486bd049519bd0c538874693a6403527365f36e02bb782ca215a36c",
     "baselineChecks": 63,
-    "coreChecks": {
-      "web": 42,
-      "live": 16,
-      "scroll": 12,
-      "admin": 39,
-      "adminMedia": 6,
-      "adminReporting": 12,
-      "adminCustomControls": 21
-    }
+    "broadReceipt": "browser-bb6797-broad-source-receipt.json",
+    "baselineReceipt": "browser-bb6797-baseline-source-receipt.json"
   },
   "quality": {
-    "runId": 41894097789,
-    "source": "0810ea8a30cd3818878b60fccea0689a453a3b19",
-    "status": "success"
+    "runId": 41901512036,
+    "status": "success",
+    "firstAttemptFailureReceipt": "quality-bb6797-host-failure.json",
+    "retryPhoneJobId": 126837888481,
+    "successfulAttempt": 2,
+    "phoneRegressionSummary": {
+      "tests": 3140,
+      "pass": 3139,
+      "fail": 0,
+      "skip": 1
+    },
+    "adaptiveMediaSummary": {
+      "tests": 45,
+      "pass": 45,
+      "fail": 0
+    },
+    "edgeDatabaseSummary": {
+      "tests": 703,
+      "pass": 670,
+      "fail": 0,
+      "skip": 33
+    }
   },
   "production": {
     "web": {
@@ -101,7 +142,7 @@
       "buildUrl": "https://platinum-f2peo3leq-intobank.vercel.app",
       "status": "READY",
       "source": "27a93c6c27463224b3158037c4685f25bfbcfe99",
-      "runtimeEquivalentTo": "0810ea8a30cd3818878b60fccea0689a453a3b19"
+      "runtimeEquivalentTo": "bb6797cfae67eb1142236615dee3daaac3e1b771"
     },
     "admin": {
       "deploymentId": "dpl_D3hAH3s5RcwD2BooMKSjzPgoFvDa",
@@ -109,61 +150,9 @@
       "buildUrl": "https://admin-ctiqtr6vz-intobank.vercel.app",
       "status": "READY",
       "source": "27a93c6c27463224b3158037c4685f25bfbcfe99",
-      "runtimeEquivalentTo": "0810ea8a30cd3818878b60fccea0689a453a3b19"
+      "runtimeEquivalentTo": "bb6797cfae67eb1142236615dee3daaac3e1b771"
     }
   },
-  "qaApp": {
-    "source": "0810ea8a30cd3818878b60fccea0689a453a3b19",
-    "status": "FINISHED",
-    "profile": "preview",
-    "channel": "qa-preview",
-    "version": "1.1.0",
-    "buildId": "b6d7ef27-bd2f-48b3-9fe0-8b441a8382bc",
-    "buildNumber": "28",
-    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/b6d7ef27-bd2f-48b3-9fe0-8b441a8382bc",
-    "qualityRunId": 41894097789,
-    "workflowRunId": 41894097795,
-    "jobId": 126800391689,
-    "completedAt": "2026-11-04T19:26:51.9005414Z",
-    "installUiVerifiedByRoot": true
-  },
-  "applicationSource": "27a93c6c27463224b3158037c4685f25bfbcfe99",
-  "parent": "7f7e9e3909957befc4e9e3e45e8594db51a58aaf",
-  "followupValidation": {
-    "providerTests": 42,
-    "webFixtureTests": 43,
-    "webTypecheck": "passed",
-    "dailyEndpointReadback": "passed",
-    "deployedBundleReadback": "passed",
-    "affectedChecks": 135,
-    "affectedFailures": 0,
-    "typechecks": [
-      "native",
-      "web",
-      "admin"
-    ],
-    "realGitScopeValidation": "passed",
-    "independentReview": "approved"
-  },
-  "deduplicatedRuns": [
-    {
-      "runId": 41887579514,
-      "reason": "Native inputs identical across 812 files. Preserve active 27a93 native run41886667189."
-    },
-    {
-      "runId": 41887566648,
-      "reason": "Duplicate push browser run. Preserve final PR browser41887579517."
-    },
-    {
-      "runId": 41886655527,
-      "reason": "Duplicate first-attempt push browser. Preserve PR browser41886667116."
-    },
-    {
-      "runId": 41888646338,
-      "reason": "Unchanged native inputs. Preserve active source-equivalent native run 41886667189."
-    }
-  ],
-  "previousSource": "0338d70165c2b8d539b3508c8ae81910713da3f2",
   "providerAcceptance": {
     "source": "0338d70165c2b8d539b3508c8ae81910713da3f2",
     "runId": 41887566674,
@@ -178,55 +167,15 @@
       1080,
       1920
     ],
-    "reusedByJob": 126798851611,
-    "reuseVerification": "passed on exact final source",
-    "reuseArtifactId": 13353659042,
-    "reuseArtifactSha256": "9a211017493066d4fab45ab90a420b318cb7372e9d3ac27fbf7806bb0f9612b1",
+    "reusedByJob": 126824867262,
+    "reuseVerification": "passed on exact bb6797 source",
     "connectedRuntimeEquivalent": true,
     "nativeRuntimeEquivalent": false,
-    "nativeFeedRequiresSeparateValidation": true
-  },
-  "schemaVersion": 1,
-  "updatedAt": "2026-11-04T19:29:40.065Z",
-  "status": "QA28 delivered; web/admin and release gates passed; final Android UI validation pending and iOS UI validation blocked by driver startup",
-  "retainedFailures": [
-    {
-      "source": "27a93c6c27463224b3158037c4685f25bfbcfe99",
-      "runId": 41886655873,
-      "failedJobId": 126772817874,
-      "artifactId": 13351901739,
-      "reason": "Portrait requested through actual UI and signed LIVE, but provider video decoded 1920x1080. No clip rendered and no QA build submitted."
-    },
-    {
-      "source": "0338d70165c2b8d539b3508c8ae81910713da3f2",
-      "runId": 41887566674,
-      "jobId": 126776031110,
-      "reason": "Three acknowledgement-test fixtures omitted required endpoint configuration. Corrected fixture only, complete release test sequence and all types then passed."
-    },
-    {
-      "runId": 41886667189,
-      "jobId": 126775806867,
-      "artifactId": 13354845087,
-      "phase": "before app installation",
-      "reason": "Emulator built and booted; adb root returned transport closed. No app assertion executed. One isolated recovery uses the same APK."
-    }
-  ],
-  "integration": {
-    "source": "27a93c6c27463224b3158037c4685f25bfbcfe99",
-    "tree": "12daa31beedd4fcd10e8b56eaf0fd88c0ab6c3b6",
-    "parents": [
-      "c830f21bf8fe2de876caa2d54171d9978c42bf2a",
-      "723136f382740923b77b693e8b59e4ea7d470bd8"
-    ]
-  },
-  "links": {
-    "source": "https://github.com/donadmiral/tbirds-nest/commit/0810ea8a30cd3818878b60fccea0689a453a3b19",
-    "release": "https://github.com/donadmiral/tbirds-nest/actions/runs/41894097795",
-    "quality": "https://github.com/donadmiral/tbirds-nest/actions/runs/41894097789",
-    "browser": "https://github.com/donadmiral/tbirds-nest/actions/runs/41894110633",
-    "originalProviderAcceptance": "https://github.com/donadmiral/tbirds-nest/actions/runs/41887566674/job/126776030623",
-    "native": "https://github.com/donadmiral/tbirds-nest/actions/runs/41896677133",
-    "androidRecovery": "https://github.com/donadmiral/tbirds-nest/actions/runs/41891673506"
+    "nativeFeedRequiresSeparateValidation": true,
+    "nativeKeyboardRequiresSeparateValidation": true,
+    "reuseArtifactId": 13358385952,
+    "reuseArtifactSha256": "e50a4a6731522a7fad2598e12960b48137cc28d4e7e4ae446bed66a824e07d9b",
+    "reuseReceipt": "provider-reuse-bb6797-receipt.json"
   },
   "qaWorkerBudget": {
     "date": "2026-11-04",
@@ -237,56 +186,28 @@
     "concurrentWorkers": 1,
     "additionalAuthorizedReservationsRemaining": 0
   },
-  "previousReleasedSource": "b2caf9720ab0cf67fe4a92a9bd58671111554af2",
+  "previousReleaseReceipt": "release-0810-receipt.json",
   "previousQaApp": {
-    "source": "b2caf9720ab0cf67fe4a92a9bd58671111554af2",
-    "buildId": "67d69fda-774f-44b4-8937-3234a9bf1383",
-    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/67d69fda-774f-44b4-8937-3234a9bf1383",
-    "version": "1.1.0",
-    "buildNumber": "26",
+    "source": "0810ea8a30cd3818878b60fccea0689a453a3b19",
+    "status": "FINISHED",
     "profile": "preview",
     "channel": "qa-preview",
-    "status": "FINISHED",
-    "qualityRunId": 41888634631,
-    "workflowRunId": 41888634242,
-    "jobId": 126785746024,
-    "completedAt": "2026-11-04T18:54:23.7645701Z",
-    "installUiVerifiedByRoot": true,
-    "supersededForFeedRefresh": true
+    "version": "1.1.0",
+    "buildId": "b6d7ef27-bd2f-48b3-9fe0-8b441a8382bc",
+    "buildNumber": "28",
+    "installPage": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/builds/b6d7ef27-bd2f-48b3-9fe0-8b441a8382bc",
+    "qualityRunId": 41894097789,
+    "workflowRunId": 41894097795,
+    "jobId": 126800391689,
+    "completedAt": "2026-11-04T19:26:51.9005414Z",
+    "installUiVerifiedByRoot": true
   },
-  "feedCorrection": {
-    "reason": "Refresh replaced session history while retained React rows did not emit new onLayout events; visibility geometry was lost.",
-    "fix": "Preserve measurements for identical same-scope pages and remeasure changed native views with ownership and generation checks.",
-    "source": "0810ea8a30cd3818878b60fccea0689a453a3b19",
-    "tree": "21d94004927cd8c3284fb9fc42dd3bcc3db3725f",
-    "priorFailureArtifact": 13354417110,
-    "priorFailureArtifactSha256": "9b1e394ecb37a2bbc934bc79d8cd17cfd7a969dcb15127e112ba8c0778c8551e",
-    "regressionFailsBeforeFix": true
-  },
-  "concurrentChangesPreserved": {
-    "source": "7f7e9e3909957befc4e9e3e45e8594db51a58aaf",
-    "behavior": "Dismiss Live tools before opening Clips, with a read-only native clip-library round trip"
-  },
-  "supersededBuildCancelled": {
-    "source": "7f7e9e3909957befc4e9e3e45e8594db51a58aaf",
-    "buildId": "e0dad74b-1e40-4567-81c2-76a38db88ca9",
-    "workflowRunId": 41891493755,
-    "jobId": 126791858105,
-    "status": "CANCELED",
-    "workflowJobStatus": "cancelled",
-    "expoLastObservedStatus": "Canceled"
-  },
-  "previousFullSuite": {
-    "phone": 3091,
-    "web": 923,
-    "admin": 322,
-    "total": 4336,
-    "typechecks": [
-      "native",
-      "web",
-      "admin"
-    ],
-    "failures": 0,
-    "source": "27a93c6c27463224b3158037c4685f25bfbcfe99"
+  "links": {
+    "source": "https://github.com/donadmiral/tbirds-nest/commit/bb6797cfae67eb1142236615dee3daaac3e1b771",
+    "release": "https://github.com/donadmiral/tbirds-nest/actions/runs/41901512154",
+    "quality": "https://github.com/donadmiral/tbirds-nest/actions/runs/41901512036",
+    "browser": "https://github.com/donadmiral/tbirds-nest/actions/runs/41901710603",
+    "native": "https://github.com/donadmiral/tbirds-nest/actions/runs/41901710700",
+    "originalProviderAcceptance": "https://github.com/donadmiral/tbirds-nest/actions/runs/41887566674/job/126776030623"
   }
 }

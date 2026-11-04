@@ -1,0 +1,22 @@
+{
+  "runId": 41906016974,
+  "source": "2337bb51e664f41264ab90fcc7e0f6906d9df4ea",
+  "artifactId": 13362190576,
+  "artifactSha256": "c14b670bf4bcb53d078eac3af7ccc99d7e3df4865ab8048b7ffb4db0fce01d46",
+  "applicationSource": "54cc04abb953a4580f817741fa81d7d54759aecf",
+  "applicationTree": "75c7587093bb8c4d37ae45811e60b9d8e73af873",
+  "releaseSource": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "systemPasswordPromptDismissed": true,
+  "feedGatePassed": false,
+  "reason": "Maestro centered unclipped accessibility bounds leaving256 of531 points of the post visible,48.2 percent, below the unchanged55 percent autoplay threshold. Actual player had been running before that gesture.",
+  "memoryPassed": true,
+  "memoryDecodedFrames": 351,
+  "memoryDecodedSeconds": 11.7,
+  "cancelledReaderClosed": true,
+  "temporaryFilesRemoved": true,
+  "installedBundleMatchedProducer": true,
+  "binarySha256": "cd25ed212a5a8460ef760fde49471ad2df024037431b84ac12d95e1f26de2fea",
+  "uiAcceptance": false,
+  "providerAcceptance": false,
+  "physicalDevice": false
+}

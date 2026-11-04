@@ -1,0 +1,22 @@
+{
+  "workflowRun": 41901710700,
+  "jobId": 126825564951,
+  "artifact": 13359603305,
+  "artifactDigest": "sha256:60eb6acc1df01394cdf494bc50d3a53bf3a48cf19cc98fe5cb274c7b50871c0c",
+  "releaseSource": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "actualCheckout": "54cc04abb953a4580f817741fa81d7d54759aecf",
+  "actualTree": "75c7587093bb8c4d37ae45811e60b9d8e73af873",
+  "expectedNativeInputs": 821,
+  "matchedRecordedSourceSha256": 697,
+  "matchedOverlays": 16,
+  "binarySha256": "cd25ed212a5a8460ef760fde49471ad2df024037431b84ac12d95e1f26de2fea",
+  "binaryHashMatches": true,
+  "sourceReceiptHashMatches": true,
+  "sourceReceiptSha256": "c6e3329cb06356cec7f88148190ecf1927645e626645896ac98216c3160136a1",
+  "uiAcceptance": false,
+  "loginSucceeded": true,
+  "nativeFeedGatesReached": false,
+  "failure": "The iOS Save Password system dialog remained visible after the observed Not Now tap. It then blocked the memory deep link.",
+  "testOnly": true,
+  "userDistributionPermitted": false
+}

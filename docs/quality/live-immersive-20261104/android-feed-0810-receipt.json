@@ -1,0 +1,48 @@
+{
+  "workflowRun": 41896677133,
+  "jobId": 126807938630,
+  "artifact": 13357314386,
+  "artifactDigest": "sha256:d7bfb1b2236939496d79e363de60eb751ca651f1cbaa9356fb1cc25e7c828272",
+  "releaseSource": "0810ea8a30cd3818878b60fccea0689a453a3b19",
+  "actualCheckout": "d61a0c9958600a604cf248aa0eab4e2a2e2d531b",
+  "actualTree": "0b94481e9fc5d71a0599f02603a48f0376c87091",
+  "nativeInputsExpected": 821,
+  "gitBlobsAndModesMatched": 820,
+  "explicitWorkflowOnlyDifference": ".github/workflows/native-feed-android-validation.yml",
+  "workflowDifferenceScope": "Comment naming0810 and bounded host package installation only. Actual app, native fixture, runner, packages and assertions unchanged. Commit chain verified d61a0c99 ->27e55ca1 ->0810ea8a.",
+  "matchedRecordedSourceSha256": 697,
+  "matchedOverlays": 16,
+  "binarySha256": "6409af0acfd76f115396c7364b64768b5e69fba1a1811c352e0ed192f85fb71b",
+  "binaryHashMatches": true,
+  "sourceReceiptHashMatches": true,
+  "feedAcceptance": true,
+  "feedPlayingGates": [
+    "initial",
+    "scrollReturn",
+    "actualPullRefresh",
+    "tabResume"
+  ],
+  "actualRefresh": [
+    {
+      "before": 1,
+      "after": 2,
+      "completed": true
+    }
+  ],
+  "liveAcceptance": false,
+  "liveReached": [
+    "storyLiveRing",
+    "fullscreenViewer",
+    "actualNativeFrame",
+    "nativeClock0.244s",
+    "requestJoin",
+    "cancelJoinRequest",
+    "replyPrefixAndTyping"
+  ],
+  "liveFailure": "Android keyboard obscures composer and Send comment after entering reply",
+  "memoryAcceptance": false,
+  "memoryFailure": "Live mini player from aborted navigation obscures Open complete movie during subsequent capture flow",
+  "uiAcceptance": false,
+  "testOnly": true,
+  "userDistributionPermitted": false
+}

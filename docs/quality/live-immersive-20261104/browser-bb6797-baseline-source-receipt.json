@@ -1,0 +1,28 @@
+{
+  "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "run": 41901512154,
+  "job": 126824868082,
+  "conclusion": "success",
+  "artifact": 13357867469,
+  "archive_sha256": "260f37b47f0d38653169fe5e338d6e5b24fece89a95cdad60a853bf1d9ce4c38",
+  "scope": "Actual web/admin components with controlled services. Native keyboard acceptance is separate.",
+  "receipts": [
+    {
+      "path": "baseline/live-admin-evidence/receipt.json",
+      "passed_checks": 18
+    },
+    {
+      "path": "baseline/live-playback-evidence/receipt.json",
+      "passed_checks": 16
+    },
+    {
+      "path": "baseline/live-start-evidence/receipt.json",
+      "passed_checks": 12
+    },
+    {
+      "path": "baseline/live-startup-rendition-evidence/receipt.json",
+      "passed_checks": 17
+    }
+  ],
+  "passed_checks": 63
+}

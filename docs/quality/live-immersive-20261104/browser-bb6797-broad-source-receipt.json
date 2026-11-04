@@ -1,0 +1,20 @@
+{
+  "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "run": 41901710603,
+  "job": 126825565171,
+  "conclusion": "success",
+  "successful_steps": 30,
+  "artifact": 13358752224,
+  "archive_sha256": "8305cef80330fcf2a5b58c52fd45cae5d0561f01861828036b812c77c0ad695f",
+  "scope": "Actual browser components with controlled services. Native keyboard acceptance is separate.",
+  "core_passed_checks": {
+    "web/browser-receipt.json": 42,
+    "live/receipt.json": 16,
+    "scroll/results.json": 12,
+    "admin/browser-receipt.json": 39,
+    "admin-media-readiness/browser-receipt.json": 6,
+    "admin-reporting/reporting-browser.json": 12,
+    "admin-custom-controls/custom-controls-browser.json": 21
+  },
+  "phone_live_ring_screenshot": "broad/web/mobile-story-live.png"
+}

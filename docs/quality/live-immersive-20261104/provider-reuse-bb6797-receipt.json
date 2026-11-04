@@ -1,0 +1,86 @@
+{
+  "reused": true,
+  "source": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "acceptedSource": "0338d70165c2b8d539b3508c8ae81910713da3f2",
+  "kind": "native-live-keyboard-correction",
+  "comparisonParent": "0810ea8a30cd3818878b60fccea0689a453a3b19",
+  "comparisonParentTree": "21d94004927cd8c3284fb9fc42dd3bcc3db3725f",
+  "connectedRuntimeEquivalent": true,
+  "nativeRuntimeEquivalent": false,
+  "nativeFeedRequiresSeparateValidation": true,
+  "nativeKeyboardRequiresSeparateValidation": true,
+  "permittedChanges": [
+    ".github/workflows/live-release-acceptance.yml",
+    "src/components/LiveChat.tsx",
+    "src/components/LiveStudio.tsx",
+    "src/screens/feed/LiveSessionScreen.tsx",
+    "tests/live-chat-access.test.cjs",
+    "tests/live-immersive-native.test.cjs",
+    "tests/live-native-chat-lifecycle.test.cjs",
+    "tests/live-studio-auto-scene.test.cjs",
+    "tests/native/flows/navigation.yaml",
+    "tests/quality/live-connected-evidence-reuse.cjs",
+    "tests/quality/native-login-readiness.cjs",
+    "tools/reuse-live-connected-evidence.mjs"
+  ],
+  "verifiedFiles": [
+    {
+      "path": "src/screens/feed/LiveSessionScreen.tsx",
+      "sha256": "cbda26bd34cfa428c9a6132de60d5799305a4d478a84c7deacce22b65a5d3afa",
+      "mode": "100644"
+    },
+    {
+      "path": "src/components/LiveStudio.tsx",
+      "sha256": "371fdf5cd0bff7849b010766d49aacf6cdec899e76d0dd6a9ec66c96c86683ae",
+      "mode": "100644"
+    },
+    {
+      "path": "src/components/LiveChat.tsx",
+      "sha256": "b4cb874e3dae1f23f8fe0189f495b30859e61787baa0920d45a2e45502b0e59a",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/live-immersive-native.test.cjs",
+      "sha256": "42e30a3c0822f3b229b8c77acd3b67ef5ce9b39fddffb868ffc332d29e730c4e",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/live-studio-auto-scene.test.cjs",
+      "sha256": "da18eaf13a1c7f8ad184158661d0a9f83cb8ead8ec0915ea66be178564a905de",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/live-native-chat-lifecycle.test.cjs",
+      "sha256": "7081c2c09fbcb40d942299ced5446d1d2ed79ef8be854285277a9643d409512a",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/live-chat-access.test.cjs",
+      "sha256": "d6fcb70a05ffb058237c24c30c8d6876caf4b02d9d8ef9863479e00806292879",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/native/flows/navigation.yaml",
+      "sha256": "75d690bac6c858eaf45c52821c98b283ac887ce27a1a2ff30ee429e860a10932",
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality/native-login-readiness.cjs",
+      "sha256": "8a82ebd5522138d00e95227d036781873b9e3e35dc5132a9ae7a900f8ddb6a68",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/live-release-acceptance.yml",
+      "sha256": "2640f2aa4da4e7f36e58911de120edd0ddb64534f700b87eb4341dafd96f7317",
+      "mode": "100644"
+    }
+  ],
+  "priorRunId": 41887566674,
+  "priorJobId": 126776030623,
+  "priorArtifactId": 13351858151,
+  "archiveSha256": "faa33f6acfdcf91673cba7723cf3dec96a649816ae6662195d93ff096b72041b",
+  "originalReceiptSha256": "a78126e21df2cf040b3b127b8f08a7db46290adcc835ac255ac4ee681c1d958e",
+  "checks": 42,
+  "newProviderRun": false,
+  "evidenceUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41887566674/artifacts/13351858151"
+}

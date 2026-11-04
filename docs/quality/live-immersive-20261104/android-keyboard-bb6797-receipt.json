@@ -1,0 +1,111 @@
+{
+  "workflowRun": 41901710700,
+  "jobId": 126825565766,
+  "artifactId": 13359843646,
+  "artifactDigest": "sha256:17334eaf79189540a31bbc85e92c4d39f104e6578e2c4658947ccf9d11e99070",
+  "releaseSource": "bb6797cfae67eb1142236615dee3daaac3e1b771",
+  "actualCheckout": "54cc04abb953a4580f817741fa81d7d54759aecf",
+  "actualTree": "75c7587093bb8c4d37ae45811e60b9d8e73af873",
+  "expectedNativeInputs": 821,
+  "actualTreeMatchesRelease": true,
+  "githubMergeParentVerified": true,
+  "matchedRecordedSourceSha256": 697,
+  "matchedOverlays": 16,
+  "binarySha256": "1f896d659af79ce7932d7e87c00dfdcd8930133f68be6f6a4ef819dbb9fe15e6",
+  "binaryHashMatches": true,
+  "sourceReceiptHashMatches": true,
+  "allPhaseExitCodes": {
+    "flows": 0,
+    "evidence": 0,
+    "memoryDecoder": 0,
+    "fullAppVerifier": 0,
+    "binaryRetention": 0
+  },
+  "navigationPassed": true,
+  "feedPlayingGates": [
+    "initial",
+    "scrollReturn",
+    "actualPullRefresh",
+    "tabResume"
+  ],
+  "actualFeedRefresh": [
+    {
+      "before": 1,
+      "after": 2,
+      "completed": true
+    }
+  ],
+  "liveUiPassed": true,
+  "liveGates": [
+    "storyLiveRing",
+    "fullscreenViewer",
+    "actualNativeFrame",
+    "advancingNativeClock",
+    "requestJoin",
+    "cancelJoinRequest",
+    "keyboardOpenReplySend",
+    "exactReplyReadback",
+    "clipsLibraryAndReturn",
+    "producerGuestApproval",
+    "cleanLiveExit"
+  ],
+  "keyboardOpenEvidence": {
+    "recording": "navigation.mp4",
+    "frameSeconds": 166,
+    "extractedFrame": "keyboard-open-reply.png",
+    "sendTargetBounds": "[210,230][254,274]",
+    "sendCommandSequence": 88,
+    "replyReadbackSequence": 89,
+    "keyboardDismissedByTest": false
+  },
+  "liveCommands": [
+    {
+      "sessionId": "90000000-0000-4000-8000-000000000001",
+      "action": "request_join",
+      "payload": {},
+      "owner": "10000000-0000-4000-8000-000000000001"
+    },
+    {
+      "sessionId": "90000000-0000-4000-8000-000000000001",
+      "action": "cancel_join_request",
+      "payload": {},
+      "owner": "10000000-0000-4000-8000-000000000001"
+    },
+    {
+      "sessionId": "90000000-0000-4000-8000-000000000001",
+      "action": "chat",
+      "payload": {
+        "body": "@qa_jordan Thanks for sharing this live."
+      },
+      "owner": "10000000-0000-4000-8000-000000000001"
+    },
+    {
+      "sessionId": "90000000-0000-4000-8000-000000000002",
+      "action": "accept_join_request",
+      "payload": {
+        "user_id": "10000000-0000-4000-8000-000000000002"
+      },
+      "owner": "10000000-0000-4000-8000-000000000001"
+    }
+  ],
+  "nativeVideoProgress": [
+    {
+      "id": "90000000-0000-4000-8000-000000000001",
+      "seconds": 0.895
+    },
+    {
+      "id": "90000000-0000-4000-8000-000000000002",
+      "seconds": 1.197
+    }
+  ],
+  "unhandledRequests": [],
+  "memoryPassed": true,
+  "decodedMemoryFrames": 351,
+  "cancelledReaderClosed": true,
+  "temporaryFilesCleaned": true,
+  "uiAcceptance": true,
+  "providerAcceptance": false,
+  "physicalDevice": false,
+  "testOnly": true,
+  "userDistributionPermitted": false
+}
