@@ -37,6 +37,7 @@ for (const {script, env = {}} of [
   {script: './test-staff-social-shells-chain.mjs',env:{PLATINUM_QA_STAFF_SHELLS:'1'}},
   {script: './test-studio-workflow-chain.mjs'},
   {script: './test-studio-workflow-chain.mjs',env:{PLATINUM_QA_STUDIO_WORKFLOWS:'1'}},
+  {script: './test-live-route-reservation.mjs'},
   {script: './test-business-auth-chain.mjs'},
   {script: './test-business-auth-chain.mjs',env:{PLATINUM_QA_BUSINESS_AUTH:'1'}},
   {script: './test-notification-preferences.mjs'},

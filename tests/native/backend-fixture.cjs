@@ -81,7 +81,9 @@ function createFixture(onChange = () => {}) {
   let delayMs = 0;
   let memoryMode = 'normal';
   const issuedMedia = new Set();
-  const receipt = { mode: 'synthetic-native-ui', networkForwarded: false, requests: [], unhandled: [], mutations: [], media: [], bookReads: [], accountReadbacks: [] };
+  const receipt = { mode: 'synthetic-native-ui', networkForwarded: false,
+    featureConfiguration: { pagedReaders: { books: false, inbox: false }, feedBroadcast: { enabled: false } },
+    requests: [], unhandled: [], mutations: [], media: [], bookReads: [], accountReadbacks: [] };
   const recordCaptureBoundary = createCaptureBoundaryRecorder(receipt, onChange);
   const observeReaderResponse = createReaderResponseObserver(receipt, onChange);
   const record = (kind, value) => { receipt[kind].push(value); onChange(receipt); };
@@ -103,6 +105,38 @@ function createFixture(onChange = () => {}) {
     return response({ code: 'NATIVE_UI_UNHANDLED', message: 'No synthetic contract for ' + method + ' ' + path }, 501);
   };
   function rpc(name, args, headers) {
+    const plainArgs = args !== null && typeof args === 'object' && !Array.isArray(args);
+    if (name === 'get_paged_reader_capabilities' || name === 'get_feed_live_capability') {
+      if (!plainArgs || Object.keys(args).length !== 0) return undefined;
+      // This established fixture exercises the supported legacy book/inbox readers.
+      // Feed broadcast is separate from Live video and this transport has no invalidation feed.
+      return name === 'get_paged_reader_capabilities'
+        ? { version: 1, books: false, inbox: false, books_window: false, book_page_limit: 40, inbox_page_limit: 50 }
+        : { version: 1, max_ids: 24, configured: false, recovery_generation: 0, enabled: false };
+    }
+    if (name === 'get_feed_rows_by_ids_v1' || name === 'get_post_engagement_counts_v1') {
+      if (!plainArgs || Object.keys(args).length !== 1 || !Object.hasOwn(args, 'p_ids')
+        || args.p_ids !== null && !Array.isArray(args.p_ids)) return undefined;
+      const ids = args.p_ids || [];
+      if (ids.length > 100 || ids.some(id => typeof id !== 'string'
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))) return undefined;
+      const selected = posts.filter(post => ids.includes(post.post_id));
+      return name === 'get_feed_rows_by_ids_v1' ? selected : selected.map(post => ({
+        post_id: post.post_id, likes_count: post.likes_count, comments_count: post.comments_count,
+        reposts_count: post.reposts_count, bookmarks_count: post.bookmarks_count, views_count: post.views_count,
+        shares_count: post.shares_count || 0, quotes_count: posts.filter(quote => quote.quoted_post_id === post.post_id).length,
+      }));
+    }
+    if (name === 'live_directory') {
+      if (!['for_you', 'mine'].includes(args.p_filter) || args.p_state !== 'live' || args.p_topic !== null
+        || args.p_cursor !== null || ![1, 24].includes(args.p_limit)) return undefined;
+      return { items: args.p_filter === 'mine' ? [] : [{ id: '90000000-0000-4000-8000-000000000001',
+        title: 'Community creator hour', description: 'A controlled native UI preview.', topic: 'irl', state: 'live',
+        audience: 'public', language: 'en', chat_mode: 'open', slow_mode_seconds: 0, recording_enabled: false,
+        started_at: created, ended_at: null, scheduled_at: null, has_cover: false, thumbnail_url: null,
+        viewer_count: 12, replay_available: false, host: profiles[1] }], next_cursor: null,
+        capabilities: { create: true, broadcast: true, view: true, reminders: true, recording: true } };
+    }
     if (name === 'get_feed' || name === 'get_discover_page' || name === 'get_trending_feed') return args.p_cursor_id || args.p_offset ? [] : posts;
     if (name === 'get_feed_visibility') return (args.p_ids || []).map(post_id => ({ post_id, snapshot_eligible: true }));
     if (name === 'get_profile') return profiles.find(profile => profile.id === args.p_profile_id) || null;

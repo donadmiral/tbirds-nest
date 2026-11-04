@@ -25,6 +25,7 @@ if (fixture.mode !== 'synthetic-native-ui' || fixture.networkForwarded !== false
   throw new Error('The complete app made unsupported fixture requests: ' + JSON.stringify(fixture.unhandled));
 }
 const required = ['/auth/v1/token', '/rest/v1/rpc/get_feed', '/rest/v1/rpc/get_profile', '/rest/v1/jobs',
+  '/rest/v1/rpc/live_directory',
   '/rest/v1/marketplace_listings', '/rest/v1/conversations', '/functions/v1/crisp-bridge',
   '/rest/v1/rpc/get_memory_albums', '/rest/v1/rpc/get_memory_book', '/rest/v1/memory_album_access',
   '/rest/v1/rpc/get_memory_book_creative_capabilities', '/rest/v1/rpc/save_memory_book_creative_presentation'];
@@ -55,7 +56,7 @@ function collect(directory) {
   });
 }
 const captured = collect(path.join(evidence, 'maestro'));
-const screenshots = ['home', 'market', 'jobs', 'messages', 'profile', 'settings', 'returned-home',
+const screenshots = ['home', 'live-directory', 'live-start', 'live-schedule', 'market', 'jobs', 'messages', 'profile', 'settings', 'returned-home',
   'memory-shelf', 'memory-reader', 'memory-film', 'memory-export-entry', 'memory-cover-edited', 'memory-film-reloaded',
   'captured-memory-ready', 'captured-memory-cleanup'].map(name => {
   const candidates = captured.filter(file => path.basename(file) === name + '.png');
@@ -74,6 +75,7 @@ fs.writeFileSync(path.join(evidence, 'receipt.json'), JSON.stringify({ passed: t
   workflowRun: source.workflowRun, platform: process.argv[2], providerAcceptance: false, physicalDevice: false,
   productionAppSourceManifest: 'source.json', fullAppLaunched: true, isolatedTransport: true,
   authAndMainNavigation: true, unsupportedFixtureRequests: fixture.unhandled.length,
+  liveDirectoryAndSetupScreens: true, liveProviderAcceptance: false,
   memoryCaptureAndMovie: true, memoryEvidence: 'memory-capture/decoded.json',
   profileMemoryShelfReaderAutomaticFilmAndExportEntry: true,
   ownerCoverAndFilmSettingsSavedAndReopened: true, memoryBookSavedRevision: bookSaves[0].revision,

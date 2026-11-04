@@ -34,6 +34,27 @@ name: Full native app navigation
     visible: A quiet morning in the desert. Small moments worth keeping.
     timeout: 30000
 - takeScreenshot: home
+# Actual native Live screens use the same isolated read transport as this journey.
+# These captures verify layout and navigation, not native provider broadcasting.
+- tapOn:
+    id: feed-tab-live
+- extendedWaitUntil:
+    visible: 'Community creator hour, LIVE'
+    timeout: 15000
+- takeScreenshot: live-directory
+- tapOn: Start live
+- extendedWaitUntil:
+    visible: Preview camera
+    timeout: 15000
+- takeScreenshot: live-start
+- tapOn: Schedule for later
+- assertVisible: Scheduled date
+- assertVisible: Schedule stream
+- takeScreenshot: live-schedule
+- tapOn: Back to Live
+- assertVisible: Start live
+- tapOn: Back to feed
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - tapOn: Latest
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - tapOn: For You

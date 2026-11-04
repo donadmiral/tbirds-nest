@@ -52,6 +52,12 @@ test('native UI fixtures run the actual Supabase authentication and PostgREST ad
   assert.equal(profile.data.full_name, 'Alex Rivera');
   const feed = await client.rpc('get_feed', { p_cursor_key: null, p_cursor_id: null });
   assert.equal(feed.data.length, 2);
+  const liveArgs = { p_filter: 'for_you', p_topic: null, p_state: 'live', p_cursor: null, p_limit: 24 };
+  const directory = await client.rpc('live_directory', liveArgs);
+  assert.equal(directory.error, null); assert.equal(directory.data.items[0].host.id, PEER);
+  assert.equal(directory.data.items[0].title, 'Community creator hour'); assert.equal(directory.data.capabilities.broadcast, true);
+  const setup = await client.rpc('live_directory', { ...liveArgs, p_filter: 'mine', p_limit: 1 });
+  assert.equal(setup.error, null); assert.equal(setup.data.items.length, 0); assert.equal(setup.data.capabilities.create, true);
   assert.equal((await client.from('notifications').select('id', { count: 'exact', head: true })).count, 0);
   assert.equal(fixture.receipt.unhandled.length, 0);
   assert.equal(fixture.receipt.networkForwarded, false);
@@ -68,6 +74,36 @@ test('an unimplemented endpoint or external provider is a recorded failure, neve
   const unknown = await fixture.fetch(origin + '/rest/v1/rpc/unimplemented', { method: 'POST', body: '{}' });
   assert.equal(unknown.status, 501);
   assert.equal(fixture.receipt.unhandled.length, 2);
+});
+
+test('new native read contracts preserve the explicit fixture configuration and current bounded post data', async () => {
+  const fixture = createFixture();
+  const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: fixture.fetch },
+  });
+  await client.auth.signInWithPassword({ email: 'qa.alex@example.invalid', password: 'FixtureOnly-2026!' });
+  assert.deepEqual((await client.rpc('get_paged_reader_capabilities', {})).data,
+    { version: 1, books: false, inbox: false, books_window: false, book_page_limit: 40, inbox_page_limit: 50 });
+  assert.deepEqual((await client.rpc('get_feed_live_capability', {})).data,
+    { version: 1, max_ids: 24, configured: false, recovery_generation: 0, enabled: false });
+  const id = fixture.posts[0].post_id, hidden = '99999999-0000-4000-8000-000000000001';
+  const ids = { p_ids: [id, id, hidden] };
+  const hydrated = await client.rpc('get_feed_rows_by_ids_v1', ids);
+  assert.equal(hydrated.error, null); assert.deepEqual(hydrated.data.map(row => row.post_id), [id]);
+  const before = (await client.rpc('get_post_engagement_counts_v1', ids)).data;
+  assert.equal(before.length, 1); assert.equal(before[0].likes_count, 2);
+  await client.rpc('toggle_post_like', { p_post_id: id });
+  const after = (await client.rpc('get_post_engagement_counts_v1', ids)).data;
+  assert.equal(after[0].likes_count, 3); assert.equal(after[0].shares_count, 0); assert.equal(after[0].quotes_count, 0);
+  assert.deepEqual((await client.rpc('get_feed_rows_by_ids_v1', { p_ids: [] })).data, []);
+  assert.deepEqual((await client.rpc('get_post_engagement_counts_v1', { p_ids: null })).data, []);
+  assert.equal(fixture.receipt.unhandled.length, 0); assert.equal(fixture.receipt.networkForwarded, false);
+  for (const [name, args] of [['get_paged_reader_capabilities', { invented: true }], ['get_feed_live_capability', { enabled: true }],
+    ['get_feed_rows_by_ids_v1', { p_ids: ['invalid'] }], ['get_post_engagement_counts_v1', { p_ids: Array(101).fill(id) }]]) {
+    const result = await client.rpc(name, args); assert.equal(result.status, 501); assert.equal(result.error.code, 'NATIVE_UI_UNHANDLED');
+  }
+  assert.equal(fixture.receipt.unhandled.length, 4);
+  await client.auth.signOut();
 });
 
 test('only exact book POST and reaction GET responses report actual SDK body-consumption boundaries', async () => {

@@ -1,7 +1,7 @@
 -- Read-only, safe before or after the route reservation migration.
 with routes(name) as (select unnest(array[
  'about','account-deletion','ads','album','archive','business-login','businesses','calls','channels','communities','discover','explore',
- 'forgot-password','home','jobs','login','market','messages','monetization','music','notifications','post','privacy','reset-password',
+ 'forgot-password','home','jobs','live','login','market','messages','monetization','music','notifications','post','privacy','reset-password',
  'saved','search','settings','signup','story','studio','terms','topic','watch','write']))
 select jsonb_build_object(
  'collisions',(select jsonb_object_agg(name,(select count(*) from public.profiles where lower(btrim(username))=routes.name)) from routes),

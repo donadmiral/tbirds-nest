@@ -29,7 +29,7 @@ export function FeedNavigationTabs({ selected, onSelect, onLive }: {
 const s = StyleSheet.create({
   scroll: { flexGrow: 0 },
   row: { flexGrow: 1, alignItems: 'stretch' },
-  tab: { flexGrow: 1, flexShrink: 0, minWidth: 44, minHeight: 48, paddingHorizontal: 6, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' },
+  tab: { flexGrow: 1, flexShrink: 0, minWidth: 44, minHeight: 48, paddingHorizontal: 2, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' },
   labelRow: { minHeight: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   label: { fontSize: 15, lineHeight: 22, letterSpacing: -.2, includeFontPadding: false },
   underline: { height: 3, width: 20, borderRadius: 2, marginTop: 5 },

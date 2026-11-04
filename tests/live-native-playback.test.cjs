@@ -45,7 +45,7 @@ function harness({ live = true } = {}) {
     '../services/liveService': { liveRequestId: () => 'playback', liveObject: value => value && typeof value === 'object', livePlayback: async () => { if (denial) throw Error(denial); return { url: 'https://media.example/live.m3u8', expiresAt: now + 120000, live }; } },
     '../services/liveControlEvents': { subscribeLiveControl(_session, _owner, fn) { control = fn; return () => {}; } },
     '../services/livePlaybackStartup': policy, '../services/supabase': { supabase: {} },
-    '../../shared/useLiveViewerPresence': { useLiveViewerPresence: value => { presence = value; } },
+    '../../shared/useLiveViewerPresence': { createLiveViewerPresenceHook: () => value => { presence = value; } },
   }, clock).LivePlaybackProvider;
   function render() { cursor = 0; dirty = false; view = component({ children: null }).props.value; }
   async function settle() { for (let pass = 0; pass < 20; pass++) { if (dirty || !view) render(); while (effects.length) effects.shift()(); await new Promise(resolve => setImmediate(resolve)); if (!dirty && !effects.length) return; } throw Error('Provider did not settle'); }

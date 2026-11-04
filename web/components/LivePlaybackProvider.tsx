@@ -7,9 +7,11 @@ import { createClient } from '@/lib/supabase/client';
 import { getNavigationStore } from '@/lib/navigationCache';
 import { getLivePlayback, liveError, type LivePlayback } from '@/lib/liveApi';
 import type { LiveSession } from '../../shared/liveDirectory';
-import { useLiveViewerPresence } from '../../shared/useLiveViewerPresence';
+import { createLiveViewerPresenceHook } from '../../shared/useLiveViewerPresence';
 import type Hls from 'hls.js';
 import type { RetryConfig } from 'hls.js';
+
+const useLiveViewerPresence = createLiveViewerPresenceHook({ useEffect, useRef });
 
 type PlaybackContext = { session: LiveSession | null; status: string; error: string | null; time: number; duration: number; open(session: LiveSession,startAt?:number): void; close(): void; minimize(): void; seek(seconds: number): void; slot(id: string,node: HTMLElement | null): void; };
 const Context=createContext<PlaybackContext|null>(null);

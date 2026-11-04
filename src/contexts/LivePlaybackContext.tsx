@@ -10,7 +10,9 @@ import { subscribeLiveControl } from '../services/liveControlEvents';
 import { liveObject } from '../services/liveService';
 import { LIVE_STARTUP_WINDOW_MS, liveStartupDelay, type LivePlaybackStartup } from '../services/livePlaybackStartup';
 import { supabase } from '../services/supabase';
-import { useLiveViewerPresence } from '../../shared/useLiveViewerPresence';
+import { createLiveViewerPresenceHook } from '../../shared/useLiveViewerPresence';
+
+const useLiveViewerPresence = createLiveViewerPresenceHook({ useEffect, useRef });
 
 type Playback = {
   player: VideoPlayer; session: LiveSession | null; expanded: boolean; loading: boolean; error: string | null;

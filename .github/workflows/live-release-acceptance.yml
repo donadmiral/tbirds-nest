@@ -14,6 +14,29 @@ concurrency:
   group: live-release-acceptance
   cancel-in-progress: false
 jobs:
+  web-production-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
+      - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
+      - name: Compile the deployable web app with the public QA configuration
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          import {spawnSync} from 'node:child_process';
+          const qa=JSON.parse(fs.readFileSync('eas.json','utf8')).build.preview.env;
+          assert.equal(qa.EXPO_PUBLIC_SUPABASE_URL,'https://uaulhuelcfkjwojtymmw.supabase.co');
+          const result=spawnSync('npm',['run','build'],{cwd:'web',env:{...process.env,
+            NEXT_TELEMETRY_DISABLED:'1',NEXT_PUBLIC_SUPABASE_URL:qa.EXPO_PUBLIC_SUPABASE_URL,
+            NEXT_PUBLIC_SUPABASE_ANON_KEY:qa.EXPO_PUBLIC_SUPABASE_ANON_KEY},stdio:'inherit',timeout:480000});
+          if(result.error)throw result.error;
+          process.exit(result.status??1);
+          JS
   browser-baseline:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -24,6 +47,12 @@ jobs:
         with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
       - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
       - run: npm ci --prefix admin-web --ignore-scripts --no-audit --no-fund
+      - name: Verify each web app with only its own dependencies
+        run: |
+          cd web
+          npx tsc --noEmit --incremental false
+          cd ../admin-web
+          npx tsc --noEmit --incremental false
       - name: Install browser and media runtime
         run: |
           sudo apt-get update
@@ -102,10 +131,13 @@ jobs:
           npx tsc --noEmit --incremental false --project admin-web/tsconfig.json
           git diff --exit-code
   qa-build:
-    needs: [release-checks, browser-baseline, connected-host-viewer]
+    needs: [release-checks, browser-baseline, connected-host-viewer, web-production-build]
     if: github.repository == 'donadmiral/tbirds-nest' && github.ref == 'refs/heads/codex/live-completion-20261102'
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with: {persist-credentials: false}
@@ -115,6 +147,7 @@ jobs:
       - name: Build the exact revision after connected Live acceptance
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           EXPO_PUBLIC_APP_ENV: qa
           CI: '1'
         run: node tools/build-live-qa.mjs

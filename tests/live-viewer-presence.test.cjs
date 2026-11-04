@@ -3,7 +3,7 @@ const code = ts.transpileModule(fs.readFileSync(require('node:path').join(__dirn
 const flush = () => new Promise(resolve => setImmediate(resolve));
 function fixture(rpc) {
   const timers = new Map(); let next = 0;
-  const sandbox = { exports: {}, require, AbortController, Promise, Math, setTimeout: (fn, delay) => { const id = ++next; timers.set(id, { fn, delay }); return id; }, clearTimeout: id => timers.delete(id) };
+  const sandbox = { exports: {}, require(name) { throw Error('Shared presence must not import app dependencies: ' + name); }, AbortController, Promise, Math, setTimeout: (fn, delay) => { const id = ++next; timers.set(id, { fn, delay }); return id; }, clearTimeout: id => timers.delete(id) };
   vm.runInNewContext(code, sandbox);
   const lease = sandbox.exports.createLiveViewerPresence({ client: { rpc }, sessionId: 'stream', playbackId: 'one-player', random: () => 0.5 });
   return { lease, timers };

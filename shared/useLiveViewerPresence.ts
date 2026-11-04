@@ -1,5 +1,3 @@
-import { useEffect, useRef } from 'react';
-
 type PresenceResponse = { error?: unknown };
 type PresenceRequest = PromiseLike<PresenceResponse> & { abortSignal?(signal: AbortSignal): PresenceRequest };
 export type ViewerPresenceClient = {
@@ -78,17 +76,25 @@ type ViewerPresenceInput = {
   active: boolean;
   createPlaybackId(): string;
 };
-export function useLiveViewerPresence({ client, sessionId, identityScope, active, createPlaybackId }: ViewerPresenceInput) {
-  const lease = useRef<ReturnType<typeof createLiveViewerPresence> | null>(null);
-  const latest = useRef({ active, createPlaybackId });
-  latest.current = { active, createPlaybackId };
-  useEffect(() => {
-    if (!sessionId || !identityScope) return;
-    const playbackId = latest.current.createPlaybackId();
-    const current = createLiveViewerPresence({ client, sessionId, playbackId });
-    lease.current = current;
-    current.setActive(latest.current.active);
-    return () => { current.dispose(); if (lease.current === current) lease.current = null; };
-  }, [client, sessionId, identityScope]);
-  useEffect(() => { lease.current?.setActive(active); }, [active, sessionId, identityScope]);
+type ViewerPresenceHooks = {
+  useRef<T>(initialValue: T): { current: T };
+  useEffect(effect: () => void | (() => void), dependencies: readonly unknown[]): void;
+};
+
+// Each client binds its own React installation. Shared code has no React dependency.
+export function createLiveViewerPresenceHook({ useEffect, useRef }: ViewerPresenceHooks) {
+  return function useLiveViewerPresence({ client, sessionId, identityScope, active, createPlaybackId }: ViewerPresenceInput) {
+    const lease = useRef<ReturnType<typeof createLiveViewerPresence> | null>(null);
+    const latest = useRef({ active, createPlaybackId });
+    latest.current = { active, createPlaybackId };
+    useEffect(() => {
+      if (!sessionId || !identityScope) return;
+      const playbackId = latest.current.createPlaybackId();
+      const current = createLiveViewerPresence({ client, sessionId, playbackId });
+      lease.current = current;
+      current.setActive(latest.current.active);
+      return () => { current.dispose(); if (lease.current === current) lease.current = null; };
+    }, [client, sessionId, identityScope]);
+    useEffect(() => { lease.current?.setActive(active); }, [active, sessionId, identityScope]);
+  };
 }

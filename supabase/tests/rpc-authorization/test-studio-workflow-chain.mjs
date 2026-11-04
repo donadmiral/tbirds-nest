@@ -11,6 +11,7 @@ const db=new PGlite({extensions}),qaMode=process.env.PLATINUM_QA_STUDIO_WORKFLOW
 const candidate='supabase/migrations/20261030024125_studio_editorial_and_partnership_workflows.sql';
 const routeCandidate='supabase/migrations/20261030031124_reserve_web_route_usernames.sql';
 const provisionRouteCandidate='supabase/migrations/20261030033214_reserve_business_provision_usernames.sql';
+const liveRouteCandidate='supabase/migrations/20261104025930_reserve_live_route_username.sql';
 const users=Object.fromEntries(['business','other_business','creator','stranger','bootstrap'].map(k=>[k,randomUUID()]));
 const actors={};
 for(const [name,role]of Object.entries({owner:'owner',reviewer:'admin',editor:'editor',support:'support'}))actors[name]={user:users.business,session:randomUUID(),member:randomUUID(),role};
@@ -18,7 +19,7 @@ actors.other={user:users.other_business,session:randomUUID(),member:randomUUID()
 for(const name of ['creator','stranger','bootstrap'])actors[name]={user:users[name],session:randomUUID(),member:null,role:'owner'};
 const q=async(sql,args=[])=>(await db.query(sql,args)).rows;
 const value=async(sql,args=[])=>Object.values((await q(sql,args))[0]||{})[0];
-const passed=[];let migration,routeMigration,provisionRouteMigration,provisionBeforeDefinition,provisionRouteEvidence,preservedBefore,preservedAfter,preflight,postflight,routeEvidence,collisionGuardProved=false,registeredTests=0;
+const passed=[];let migration,routeMigration,provisionRouteMigration,provisionBeforeDefinition,provisionRouteEvidence,liveRouteMigration,routeBeforeLiveDefinition,preservedBefore,preservedAfter,preflight,postflight,routeEvidence,collisionGuardProved=false,liveRouteCollisionGuardProved=false,liveRoutePendingGuardProved=false,registeredTests=0;
 const test=(name,fn)=>{registeredTests++;return nodeTest(name,async()=>{await fn();passed.push(name);});};
 async function as(name,sql,args=[],role='authenticated',overrides={}){
  const actor=actors[name]||{};
@@ -90,15 +91,23 @@ before(async()=>{
  await assert.rejects(db.exec(routeMigration),/ROUTE_RESERVATION_EXISTING_HANDLE_COLLISION/);await db.exec('rollback');
  assert.equal(await value("select to_regnamespace('app_routes')"),null);
  assert.equal(await value('select username from public.profiles where id=$1',[users.creator]),'workflow_creator');collisionGuardProved=true;
- await db.exec(routeMigration);routeEvidence=await value(await source('supabase/ops/check-reserved-web-usernames.sql'));
+ await db.exec(routeMigration);
  provisionBeforeDefinition=await value("select pg_get_functiondef('public.triniti_admin_provision(uuid,uuid,uuid,text,jsonb,text)'::regprocedure)");
  provisionRouteMigration=await source(provisionRouteCandidate);await db.exec(provisionRouteMigration);
  provisionRouteEvidence=await value(await source('supabase/ops/check-reserved-business-provision.sql'));
+ routeBeforeLiveDefinition=await value("select pg_get_functiondef('app_routes.is_reserved_username(text)'::regprocedure)");
+ liveRouteMigration=await source(liveRouteCandidate);
+ await db.exec('begin');await q("update public.profiles set username='live' where id=$1",[users.creator]);
+ await assert.rejects(db.exec(liveRouteMigration),/LIVE_ROUTE_RESERVATION_EXISTING_HANDLE_COLLISION/);await db.exec('rollback');
+ assert.equal(await value('select username from public.profiles where id=$1',[users.creator]),'workflow_creator');liveRouteCollisionGuardProved=true;
+ await db.exec('begin');await q("insert into admin_ops.provisions(command_key,actor_id,kind,payload,auth_user_id,email,snapshot) values($1,$2,'business','{}',$3,'reserved-live@example.test','{\"desired_username\":\"LIVE\"}')",[randomUUID(),users.stranger,randomUUID()]);
+ await assert.rejects(db.exec(liveRouteMigration),/LIVE_ROUTE_RESERVATION_PENDING_REVIEW/);await db.exec('rollback');liveRoutePendingGuardProved=true;
+ await db.exec(liveRouteMigration);routeEvidence=await value(await source('supabase/ops/check-reserved-web-usernames.sql'));
  preservedAfter=await snapshot();
 });
 beforeEach(()=>db.exec('begin'));afterEach(()=>db.exec('rollback'));
 after(async()=>{
- if(process.env.STUDIO_WORKFLOW_GATE_OUTPUT&&passed.length===registeredTests)await writeFile(process.env.STUDIO_WORKFLOW_GATE_OUTPUT,JSON.stringify({candidate,sha256:createHash('sha256').update(migration).digest('hex'),routeCandidate,routeSha256:createHash('sha256').update(routeMigration).digest('hex'),provisionRouteCandidate,provisionRouteSha256:createHash('sha256').update(provisionRouteMigration).digest('hex'),provisionRouteEvidence,qaMode,allPassed:true,testsPassed:passed.length,tests:passed,preflight,postflight,routeEvidence,collisionGuardProved,existingRowsPreserved:true,verifiedAt:new Date().toISOString(),fixture:qaMode?'QA forward chain with single-owner policy, private media, erasure and staff isolation':'production and parity forward chain with current media, erasure and staff isolation'},null,2)+'\n');
+ if(process.env.STUDIO_WORKFLOW_GATE_OUTPUT&&passed.length===registeredTests)await writeFile(process.env.STUDIO_WORKFLOW_GATE_OUTPUT,JSON.stringify({candidate,sha256:createHash('sha256').update(migration).digest('hex'),routeCandidate,routeSha256:createHash('sha256').update(routeMigration).digest('hex'),provisionRouteCandidate,provisionRouteSha256:createHash('sha256').update(provisionRouteMigration).digest('hex'),provisionRouteEvidence,liveRouteCandidate,liveRouteSha256:createHash('sha256').update(liveRouteMigration).digest('hex'),liveRouteCollisionGuardProved,liveRoutePendingGuardProved,qaMode,allPassed:true,testsPassed:passed.length,tests:passed,preflight,postflight,routeEvidence,collisionGuardProved,existingRowsPreserved:true,verifiedAt:new Date().toISOString(),fixture:qaMode?'QA forward chain with single-owner policy, private media, erasure and staff isolation':'production and parity forward chain with current media, erasure and staff isolation'},null,2)+'\n');
  await db.close();
 });
 
@@ -379,7 +388,7 @@ test('member binding updates the selected identity without a share-to-update loc
 
 test('every actual static web root is unavailable as a new username and guarded on direct profile writes',async()=>{
  const routes=(await readdir(new URL('../../../web/app/',import.meta.url),{withFileTypes:true})).filter(d=>d.isDirectory()&&!d.name.startsWith('[')&&!d.name.startsWith('(')&&!d.name.startsWith('_')).map(d=>d.name);
- assert.ok(routes.includes('watch'));assert.equal(collisionGuardProved,true);
+ assert.ok(routes.includes('watch'));assert.ok(routes.includes('live'));assert.equal(collisionGuardProved,true);assert.equal(liveRouteCollisionGuardProved,true);assert.equal(liveRoutePendingGuardProved,true);
  for(const route of routes){
   assert.equal(await as(null,'select public.is_username_available($1)',[route],'anon'),false,route);
   await assert.rejects(as('creator','update public.profiles set username=$1 where id=$2 returning username',[route,users.creator]),/reserved for an app page/,route);
@@ -388,7 +397,7 @@ test('every actual static web root is unavailable as a new username and guarded 
  assert.equal(await as('creator',"select public.is_username_available('workflow_creator')"),false);
 });
 test('route reservations cover mixed case and whitespace, keep null Auth onboarding intact and do not rename unchanged handles',async()=>{
- for(const name of ['WATCH',' Watch ',' watch '])await assert.rejects(as('creator','update public.profiles set username=$1 where id=$2 returning username',[name,users.creator]),/reserved for an app page/);
+ for(const name of ['WATCH',' Watch ',' watch ','LIVE',' Live '])await assert.rejects(as('creator','update public.profiles set username=$1 where id=$2 returning username',[name,users.creator]),/reserved for an app page/);
  await assert.rejects(as('creator',"insert into public.profiles(id,username) values($1,'watch') returning id",[users.creator]),/reserved for an app page/);
  const fresh=randomUUID();await q("insert into auth.users(id,email) values($1,'watch@example.test')",[fresh]);assert.equal(await value('select username from public.profiles where id=$1',[fresh]),null);
  // Model a grandfathered legacy handle only inside this rolled-back fixture.
@@ -411,7 +420,7 @@ test('business provisioning rejects reserved route usernames before reserving or
  const application=await value("insert into public.business_applications(applicant_id,company_name,description,contact_email,desired_username,category) values($1,'Synthetic Business','Only a fixture','business@example.test','watch','education') returning id",[users.creator]);
  const reserve=()=>as(null,'select public.triniti_admin_provision($1,$2,$3,$4,$5,$6)',[users.stranger,actors.stranger.session,randomUUID(),'business',{id:application},'reserve'],'service_role');
  const beforeAuth=await value('select count(*)::int from auth.users'),beforeReservations=await value('select count(*)::int from admin_ops.provisions');
- for(const username of ['watch','HOME',' watch ']){
+ for(const username of ['watch','HOME',' watch ','live',' LIVE ']){
   await q('update public.business_applications set desired_username=$1 where id=$2',[username,application]);
   await assert.rejects(reserve(),/USERNAME_ALREADY_IN_USE/);
  }
@@ -426,6 +435,7 @@ test('business provisioning rejects reserved route usernames before reserving or
 
 test('a pending legacy reservation for a web route aborts the provision guard migration for review',async()=>{
  await db.exec(provisionBeforeDefinition);
+ await db.exec(routeBeforeLiveDefinition);
  await q("insert into admin_ops.provisions(command_key,actor_id,kind,payload,auth_user_id,email,snapshot) values($1,$2,'business','{}',$3,'reserved@example.test','{\"desired_username\":\"watch\"}')",[randomUUID(),users.stranger,randomUUID()]);
  await assert.rejects(db.exec(provisionRouteMigration),/BUSINESS_ROUTE_RESERVATION_PENDING_REVIEW/);
 });
