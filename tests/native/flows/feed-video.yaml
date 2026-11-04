@@ -15,17 +15,25 @@ name: First feed video survives scroll refresh and tab return
     direction: DOWN
     centerElement: true
 - assertNotVisible: Native feed video playing
+# Return through the real list's scroll-to-top handler, then use the same
+# fully visible video position that established playback before scrolling.
+- runFlow: reveal-main-tabs.yaml
+- tapOn:
+    id: main-tab-feed
+- extendedWaitUntil:
+    visible: Your story
+    timeout: 15000
 - scrollUntilVisible:
-    # The video accessibility bounds can be clipped by the sticky header.
-    # Restore the post's caption so the whole card meets normal autoplay rules.
-    element: A quiet morning in the desert. Small moments worth keeping.
-    direction: UP
-    centerElement: false
+    element:
+      id: native-feed-video
+    direction: DOWN
+    centerElement: true
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000
 - takeScreenshot: feed-video-returned
 # The selected Home tab uses the real list's useScrollToTop handler.
+- runFlow: reveal-main-tabs.yaml
 - tapOn:
     id: main-tab-feed
 - extendedWaitUntil:
@@ -44,6 +52,7 @@ name: First feed video survives scroll refresh and tab return
     visible: Native feed video playing
     timeout: 15000
 - takeScreenshot: feed-video-refreshed
+- runFlow: reveal-main-tabs.yaml
 - tapOn:
     id: main-tab-messages
 - extendedWaitUntil:

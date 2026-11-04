@@ -1,0 +1,17 @@
+appId: app.platinumcircles.mobile.qa
+name: Reveal the main navigation after feed scrolling
+---
+- runFlow:
+    when:
+      notVisible:
+        id: main-tab-feed
+    commands:
+      # Scrolling toward earlier posts reveals the real auto-hiding tab bar.
+      - swipe:
+          start: 50%, 40%
+          end: 50%, 55%
+          duration: 500
+- extendedWaitUntil:
+    visible:
+      id: main-tab-feed
+    timeout: 5000

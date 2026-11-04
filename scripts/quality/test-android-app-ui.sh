@@ -132,6 +132,21 @@ if [[ "$audit_build_only" == 1 ]]; then
   cp native-ui-logs/source.json native-audit-build/source.json
   exit 0
 fi
+# Keep the exact synthetic Emulator bytes even when a later UI gesture fails.
+# This authenticated CI artifact is test evidence, never a user install build.
+binary_retention_status=0
+mkdir -p native-ui-logs/test-only-binary || binary_retention_status=$?
+cp "$apk" native-ui-logs/test-only-binary/app-release.apk || binary_retention_status=$?
+cp native-ui-logs/source.json native-ui-logs/test-only-binary/source.json || binary_retention_status=$?
+python3 scripts/quality/native-ui-audit-binary.py --platform android \
+  --kind disposable-native-full-app --binary native-ui-logs/test-only-binary/app-release.apk \
+  --source "$GITHUB_SHA" --tree "$(git rev-parse 'HEAD^{tree}')" \
+  --output native-ui-logs/test-only-binary/binary-manifest.pending.json || binary_retention_status=$?
+if (( binary_retention_status == 0 )); then
+  mv native-ui-logs/test-only-binary/binary-manifest.pending.json \
+    native-ui-logs/test-only-binary/binary-manifest.json || binary_retention_status=$?
+fi
+printf '{"exitCode":%s}\n' "$binary_retention_status" > native-ui-logs/binary-retention.json || binary_retention_status=$?
 printf 'no\n' | "$avd_manager" create avd --force --name platinum_app_ui --package 'system-images;android-35;default;x86_64' --path "$ANDROID_AVD_HOME/platinum_app_ui.avd"
 # Isolate the common packaged SwiftShader GLES path observed in both crashes.
 # This QA app compiles Skia Ganesh/OpenGL and its movie effects use GLES.
@@ -184,6 +199,6 @@ python3 scripts/quality/verify-native-ui-memory.py native-ui-logs/memory-capture
 verification_status=0
 node scripts/quality/verify-native-ui.cjs android || verification_status=$?
 cat > native-ui-logs/phase-results.json <<EOF
-{"flows":$flow_status,"evidence":$evidence_status,"memoryDecoder":$memory_status,"fullAppVerifier":$verification_status}
+{"flows":$flow_status,"evidence":$evidence_status,"memoryDecoder":$memory_status,"fullAppVerifier":$verification_status,"binaryRetention":$binary_retention_status}
 EOF
-if (( flow_status != 0 || evidence_status != 0 || memory_status != 0 || verification_status != 0 )); then exit 1; fi
+if (( flow_status != 0 || evidence_status != 0 || memory_status != 0 || verification_status != 0 || binary_retention_status != 0 )); then exit 1; fi
