@@ -1,0 +1,20 @@
+{
+  "source": "0810ea8a30cd3818878b60fccea0689a453a3b19",
+  "run": 41894110633,
+  "job": 126798903968,
+  "conclusion": "success",
+  "successful_steps": 30,
+  "artifact": 13356120567,
+  "archive_sha256": "5b0a3f4c4e9115e9634b501a4390692068082bee8597400af641f8131aa1d535",
+  "scope": "Actual browser components with controlled services. Native device acceptance and real provider evidence are recorded separately.",
+  "core_passed_checks": {
+    "web/browser-receipt.json": 42,
+    "live/receipt.json": 16,
+    "scroll/results.json": 12,
+    "admin/browser-receipt.json": 39,
+    "admin-media-readiness/browser-receipt.json": 6,
+    "admin-reporting/reporting-browser.json": 12,
+    "admin-custom-controls/custom-controls-browser.json": 21
+  },
+  "phone_live_ring_screenshot": "broad/web/mobile-story-live.png"
+}

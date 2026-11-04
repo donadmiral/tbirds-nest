@@ -1,0 +1,28 @@
+{
+  "source": "0810ea8a30cd3818878b60fccea0689a453a3b19",
+  "run": 41894097795,
+  "job": 126798851020,
+  "conclusion": "success",
+  "artifact": 13355485641,
+  "archive_sha256": "83bfc6a21486bd049519bd0c538874693a6403527365f36e02bb782ca215a36c",
+  "scope": "Actual web and admin components with controlled services. No new paid provider test.",
+  "receipts": [
+    {
+      "path": "baseline/live-admin-evidence/receipt.json",
+      "passed_checks": 18
+    },
+    {
+      "path": "baseline/live-playback-evidence/receipt.json",
+      "passed_checks": 16
+    },
+    {
+      "path": "baseline/live-start-evidence/receipt.json",
+      "passed_checks": 12
+    },
+    {
+      "path": "baseline/live-startup-rendition-evidence/receipt.json",
+      "passed_checks": 17
+    }
+  ],
+  "passed_checks": 63
+}

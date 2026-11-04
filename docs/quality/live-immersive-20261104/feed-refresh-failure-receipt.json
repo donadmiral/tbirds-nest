@@ -1,0 +1,32 @@
+{
+  "workflowRun": 41891673506,
+  "jobId": 126790404816,
+  "artifactId": 13354417110,
+  "artifactDigest": "sha256:9b1e394ecb37a2bbc934bc79d8cd17cfd7a969dcb15127e112ba8c0778c8551e",
+  "applicationSourceCommit": "aa73cc92d9676c51ef757ef34ce91f17754dd4a1",
+  "applicationSourceTree": "12daa31beedd4fcd10e8b56eaf0fd88c0ab6c3b6",
+  "binarySha256": "62eb5d935f4b1a7f755a4f874418cca33595aa617d6ed3e37912edca740068cf",
+  "rebuild": false,
+  "initialPlayingPassed": true,
+  "returnedPlayingPassed": true,
+  "slowNavigationRevealPassed": true,
+  "actualFeedRefresh": [
+    {
+      "before": 1,
+      "after": 2,
+      "completed": true
+    }
+  ],
+  "failedGate": "Native feed video playing after actual pull-to-refresh",
+  "failureTimeoutMs": 15000,
+  "failedCommandSequence": 48,
+  "frameVisible": true,
+  "visibleVideoHeightPixels": 240,
+  "liveFlowReached": false,
+  "memoryCapturePassed": true,
+  "uiAcceptance": false,
+  "classification": "Confirmed product refresh geometry defect",
+  "independentReproduction": "Foreground refresh replaces history, clears retained card rectangles and page heights despite stable mounted React keys. No onLayout is emitted for unchanged physical frames, so a visible post loses autoplay eligibility. Production callback regression tests reproduce and cover the correction.",
+  "screenshot": "maestro/navigation/2026-11-04_185554/Full native app navigation/screenshots/step-049-assertCondition-Native_feed_video_playin.png",
+  "commands": "maestro/navigation/2026-11-04_185554/Full native app navigation/commands.json"
+}

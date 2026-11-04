@@ -1,0 +1,265 @@
+{
+  "first_failure": {
+    "source": "27a93c6c27463224b3158037c4685f25bfbcfe99",
+    "scope": "Actual Live components, QA Supabase, Daily, protected CDN and clip renderer. Synthetic camera, no physical phone or external social posting. Guest removal proves observed track departure and fresh admission denial, not old-token provider ban.",
+    "checks": [
+      "private: actual QA host joined Daily with a synthetic camera",
+      "private: actual portrait selection reached the provider and signed event confirmed LIVE"
+    ],
+    "errors": [],
+    "responses": [
+      {
+        "actor": "Host",
+        "endpoint": "live-control",
+        "status": 200,
+        "error": null,
+        "state": "starting",
+        "ok": true
+      },
+      {
+        "actor": "Viewer",
+        "endpoint": "live-playback",
+        "status": 200,
+        "error": null,
+        "state": null,
+        "ok": null
+      }
+    ],
+    "delivery": [
+      {
+        "actor": "Viewer",
+        "host": "dvna5h1e1f0y.cloudfront.net",
+        "kind": ".m3u8",
+        "pathShape": "capability/live/session/broadcast/object",
+        "objectSuffix": "master.m3u8",
+        "status": 200,
+        "responseClass": "ok"
+      },
+      {
+        "actor": "Viewer",
+        "host": "dvna5h1e1f0y.cloudfront.net",
+        "kind": ".m3u8",
+        "pathShape": "capability/live/session/broadcast/object",
+        "objectSuffix": "2500-0/media-2500.m3u8",
+        "status": 403,
+        "responseClass": "origin_AccessDenied"
+      },
+      {
+        "actor": "Viewer",
+        "host": "dvna5h1e1f0y.cloudfront.net",
+        "kind": ".m3u8",
+        "pathShape": "capability/live/session/broadcast/object",
+        "objectSuffix": "2500-0/media-2500.m3u8",
+        "status": 403,
+        "responseClass": "origin_AccessDenied"
+      },
+      {
+        "actor": "Viewer",
+        "host": "dvna5h1e1f0y.cloudfront.net",
+        "kind": ".m3u8",
+        "pathShape": "capability/live/session/broadcast/object",
+        "objectSuffix": "2500-0/media-2500.m3u8",
+        "status": 403,
+        "responseClass": "origin_AccessDenied"
+      },
+      {
+        "actor": "Viewer",
+        "host": "dvna5h1e1f0y.cloudfront.net",
+        "kind": ".m3u8",
+        "pathShape": "capability/live/session/broadcast/object",
+        "objectSuffix": "2500-0/media-2500.m3u8",
+        "status": 200,
+        "responseClass": "ok"
+      },
+      {
+        "actor": "Viewer",
+        "host": "dvna5h1e1f0y.cloudfront.net",
+        "kind": ".ts",
+        "pathShape": "capability/live/session/broadcast/object",
+        "objectSuffix": "2500-0/segment00000.ts",
+        "status": 200,
+        "responseClass": "ok"
+      }
+    ],
+    "players": [
+      {
+        "actor": "Host",
+        "videos": [
+          {
+            "player": false,
+            "engine": "unset",
+            "failure": null,
+            "readyState": 4,
+            "networkState": 2,
+            "mediaErrorCode": null,
+            "paused": false,
+            "currentTime": 19.2,
+            "videoWidth": 1280,
+            "videoHeight": 720
+          }
+        ]
+      },
+      {
+        "actor": "Viewer",
+        "videos": [
+          {
+            "player": true,
+            "engine": "mse",
+            "failure": "levelLoadError",
+            "readyState": 4,
+            "networkState": 2,
+            "mediaErrorCode": null,
+            "paused": false,
+            "currentTime": 3.3,
+            "videoWidth": 1920,
+            "videoHeight": 1080
+          }
+        ]
+      }
+    ],
+    "presence": [
+      {
+        "sequence": 1,
+        "actor": "Viewer",
+        "stream": 1,
+        "player": 1,
+        "active": true,
+        "status": 200,
+        "ok": true,
+        "transport": "response"
+      }
+    ],
+    "controls": [],
+    "stage": [],
+    "failure": "Actual HLS decoder did not receive portrait9:16 video\n\nfalse !== true\n",
+    "cleanup": {
+      "ok": true,
+      "cleaned_users": 3
+    },
+    "sessionId": "4dc9efe6-8b47-4648-b838-bac8f43b3749",
+    "sessionIds": [
+      "4dc9efe6-8b47-4648-b838-bac8f43b3749"
+    ],
+    "clipId": null,
+    "postId": null,
+    "clipRenderDiagnostic": null
+  },
+  "provider_readback": {
+    "provider_status": 200,
+    "configuration_matches": true,
+    "endpoints": [
+      {
+        "name": "platinum-live-qa",
+        "type": "hls",
+        "variants": [
+          {
+            "width": 1920,
+            "height": 1080,
+            "fps": 30,
+            "bitrate": 2500,
+            "iframe_only": false
+          },
+          {
+            "width": 1280,
+            "height": 720,
+            "fps": 30,
+            "bitrate": 1500,
+            "iframe_only": false
+          },
+          {
+            "width": 640,
+            "height": 360,
+            "fps": 24,
+            "bitrate": 700,
+            "iframe_only": false
+          },
+          {
+            "width": 320,
+            "height": 180,
+            "fps": 24,
+            "bitrate": 200,
+            "iframe_only": false
+          }
+        ],
+        "save_hls_recording": true,
+        "storage_fields": [
+          "bucket_name",
+          "bucket_region",
+          "assume_role_arn",
+          "path_template"
+        ]
+      },
+      {
+        "name": "platinum-live-qa-portrait",
+        "type": "hls",
+        "variants": [
+          {
+            "width": 1080,
+            "height": 1920,
+            "fps": 30,
+            "bitrate": 2500,
+            "iframe_only": false
+          },
+          {
+            "width": 720,
+            "height": 1280,
+            "fps": 30,
+            "bitrate": 1500,
+            "iframe_only": false
+          },
+          {
+            "width": 360,
+            "height": 640,
+            "fps": 24,
+            "bitrate": 700,
+            "iframe_only": false
+          },
+          {
+            "width": 180,
+            "height": 320,
+            "fps": 24,
+            "bitrate": 200,
+            "iframe_only": false
+          }
+        ],
+        "save_hls_recording": true,
+        "storage_fields": [
+          "bucket_name",
+          "bucket_region",
+          "assume_role_arn",
+          "path_template"
+        ]
+      }
+    ],
+    "cleanup_confirmed": true
+  },
+  "deployments": [
+    {
+      "environment": "qa",
+      "name": "live-stage",
+      "version": 7,
+      "matches": true
+    },
+    {
+      "environment": "qa",
+      "name": "live-control",
+      "version": 13,
+      "matches": true
+    },
+    {
+      "environment": "production",
+      "name": "live-stage",
+      "version": 10,
+      "matches": true
+    },
+    {
+      "environment": "production",
+      "name": "live-control",
+      "version": 11,
+      "matches": true
+    }
+  ],
+  "root_cause_status": "Timing of in-call endpoint reconfiguration inferred from real failure and source; final decoded retry required",
+  "paid_diagnostic_broadcasts": 0,
+  "new_clip_reservations_consumed_by_failure": 0
+}

@@ -1,0 +1,147 @@
+{
+  "verified_at": "2026-11-04T18:34:36.860930+00:00",
+  "source_files_sha256": {
+    "supabase/migrations/20261104175749_live_guest_requests.sql": "1ff9cd85dcc2da14d118ce99316638dd8a5bafa9752bd527577f33b62af04832",
+    "supabase/migrations/20261104180010_live_portrait_broadcast.sql": "8000b270943125ff11ea079ccebc57adaa410bec0faf125a6ddea110c5569dd3",
+    "supabase/migrations/20261104180300_live_approved_guest_sources.sql": "dd3987ec04840bbf3ba616b87ef12c9d87c6eb816a9d3536654d4d0252370284",
+    "supabase/migrations/20261104180638_live_detail_orientation.sql": "5a96c1c0511ef51f003ac72ba9c89c5544b2064bc4078e0d6e69f656b1b92704",
+    "supabase/functions/live-core/provider.ts": "b50d1e2502904914bd939b2be5d2885b2b3cb7c93d241f4095e1765981b8b35f",
+    "supabase/functions/live-core/handler.ts": "09fb5b37ef04b9409d9705d16c4f10192460036ab3e28a7980c48026521e0cc6"
+  },
+  "database_projects": {
+    "qa": "uaulhuelcfkjwojtymmw",
+    "production": "prlkikhckbifseosbukl"
+  },
+  "migrations_applied_qa_and_production": [
+    "20261104175749_live_guest_requests",
+    "20261104180010_live_portrait_broadcast",
+    "20261104180300_live_approved_guest_sources",
+    "20261104180638_live_detail_orientation"
+  ],
+  "edge_versions": {
+    "qa": {
+      "live-stage": 7,
+      "live-control": 13,
+      "live-maintenance": 13
+    },
+    "production": {
+      "live-stage": 10,
+      "live-control": 11
+    }
+  },
+  "deployed_bundles_exact_source_match": true,
+  "files_per_bundle": 8,
+  "hosted_rollback_probes_qa_and_production": {
+    "authenticated_role_used": true,
+    "request_private_inbox_accept_guest_role": true,
+    "trusted_guest_identities_private_and_authorized": true,
+    "orientation_null_before_start_then_persisted_portrait": true,
+    "all_fixture_data_rolled_back": true
+  },
+  "focused_tests": {
+    "passed": 51,
+    "failed": 0,
+    "skipped": 0,
+    "includes": [
+      "guest and portrait SQL contracts (16)",
+      "provider control and security (32)",
+      "real landscape and portrait HLS clip encode/decode (3)"
+    ],
+    "log": "/workspace/scratch/7a1bd33264ca/live-immersive-backend-tests.log"
+  },
+  "independent_review": "All four migrations and automatic provider branch approved by restore_release",
+  "security_advisor_delta": {
+    "new_warnings": 0,
+    "new_info": "RLS enabled with no direct table policy on intentionally private guest_requests; zero anon/authenticated/service table grants"
+  },
+  "stage_hard_limit_including_host": 12,
+  "qa_worker_read_only_budget_check": {
+    "observed_at": "2026-11-04T18:19:44.930197+00:00",
+    "cap_seconds": 7200,
+    "reserved_seconds": 7200,
+    "reservation_per_run_seconds": 720,
+    "starts": 10,
+    "slot": "active",
+    "current_task": "a2391218e8d248e9ae67b870e3a574ad",
+    "current_task_soft_stop": "2026-11-04T18:28:00Z",
+    "current_task_hard_stop": "2026-11-04T18:28:25Z",
+    "cap_or_ledger_mutated": false,
+    "final_new_launch_admission_available": false
+  },
+  "connected_acceptance_new_source": {
+    "sha": "0338d70165c2b8d539b3508c8ae81910713da3f2",
+    "run_id": 41887566674,
+    "job_id": 126776030623,
+    "conclusion": "success",
+    "checks": 42,
+    "actual_decoded_portrait": [
+      {
+        "actor": "Viewer",
+        "observation": "decoded-portrait-hls",
+        "stream": 1,
+        "width": 1080,
+        "height": 1920,
+        "readyState": 4,
+        "currentTime": 2.02
+      },
+      {
+        "actor": "Viewer",
+        "observation": "decoded-portrait-hls",
+        "stream": 2,
+        "width": 1080,
+        "height": 1920,
+        "readyState": 4,
+        "currentTime": 2.024
+      }
+    ],
+    "failure": null,
+    "cleanup": {
+      "ok": true,
+      "cleaned_users": 3
+    },
+    "artifact_id": 13351858151,
+    "artifact_sha256": "faa33f6acfdcf91673cba7723cf3dec96a649816ae6662195d93ff096b72041b",
+    "archive": "/workspace/scratch/7a1bd33264ca/live-connected-0338d701.zip",
+    "receipt": "/workspace/scratch/7a1bd33264ca/live-connected-0338d701/receipt.json"
+  },
+  "final_candidate": {
+    "sha": "0338d70165c2b8d539b3508c8ae81910713da3f2",
+    "tree": "56809768fb0e6e13a11afcc6f2096de6139c88ae",
+    "qa_allowlist_expires_at": "2026-11-04T20:28:44.400981Z",
+    "previous_sha_expired": "27a93c6c27463224b3158037c4685f25bfbcfe99"
+  },
+  "qa_worker_one_run_allowance": {
+    "authorized_by_root": true,
+    "date": "2026-11-04",
+    "total_seconds": 7920,
+    "other_dates_total_seconds": 7200,
+    "reservation_seconds": 720,
+    "used_seconds_preserved": 7200,
+    "starts_preserved": 10,
+    "single_slot_retained": true,
+    "task_deadline_seconds": 600,
+    "ledger_reset": false,
+    "production_changed": false,
+    "final_used_seconds": 7920,
+    "final_starts": 11,
+    "additional_reservations_consumed": 1,
+    "further_launches_available": false
+  },
+  "portrait_provider_repair": {
+    "provider_and_cross_layer_tests_passed": 42,
+    "actual_Daily_dual_endpoint_readback": true,
+    "temporary_diagnostic_restored": true,
+    "provider_room_cleanup_confirmed": true,
+    "paid_media_started_by_diagnostic": false,
+    "receipt": "/workspace/scratch/7a1bd33264ca/live-portrait-provider-repair-receipt.json"
+  },
+  "post_endpoint_acknowledgement_fixture": {
+    "file": "supabase/tests/live-command-ack.test.cjs",
+    "change": "Return the documented dual-endpoint room configuration from synthetic Daily room reads. Production source and assertions unchanged.",
+    "sha256": "8d27383e133d6c07aa73cfe468502c8441aa51dc7d2af2e6304ad79ff7f1db11",
+    "exact_release_test_command_groups_passed": 4,
+    "provider_ack_diagnostic_tests_passed": 47,
+    "rpc_tests_passed": 26,
+    "client_types": "native, web and admin all passed"
+  }
+}

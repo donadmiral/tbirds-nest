@@ -1,0 +1,22 @@
+{
+  "workflowRun": 41886667189,
+  "artifact": 13354837142,
+  "headCommit": "27a93c6c27463224b3158037c4685f25bfbcfe99",
+  "actualMergeCommit": "aa73cc92d9676c51ef757ef34ce91f17754dd4a1",
+  "actualTree": "12daa31beedd4fcd10e8b56eaf0fd88c0ab6c3b6",
+  "matchedRecordedSha256": 696,
+  "matchedOverlays": 16,
+  "binarySha256": "4e58ebedad4fba5e5417a1e124162dd41473a706413076b566ced21f2bc62f27",
+  "binaryHashMatches": true,
+  "binaryVerification": "Independent archive stream verification using pathlib component ordering and exact regular-file/symlink digest format",
+  "sourceReceiptHashMatches": true,
+  "uiAcceptance": false,
+  "failure": "Both Maestro flows timed out starting XCTest before any app command",
+  "driverStartupTimeoutMs": 180000,
+  "toolchain": {
+    "xcode": "Xcode 26.3\nBuild version 17C529",
+    "sdkVersion": "26.2"
+  },
+  "testOnly": true,
+  "userDistributionPermitted": false
+}
