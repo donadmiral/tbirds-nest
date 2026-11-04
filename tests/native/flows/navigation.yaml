@@ -21,7 +21,23 @@ name: Full native app navigation
           visible: Sign in
           timeout: 90000
 - tapOn: Username or email
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Native delivery can follow the tap command. Wait before typing.
+      - extendedWaitUntil:
+          visible:
+            id: '^Next:$'
+          timeout: 30000
 - inputText: qa.alex@example.invalid
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible: '^qa\.alex@example\.invalid$'
+          timeout: 30000
 # On compact Android displays the open email keyboard covers the next field.
 - runFlow:
     when:
@@ -29,7 +45,23 @@ name: Full native app navigation
     commands:
       - hideKeyboard
 - tapOn: Password
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # This field requests UIKit's Go return key, distinct from email's Next.
+      - extendedWaitUntil:
+          visible: '(?i)^go$'
+          timeout: 30000
 - inputText: FixtureOnly-2026!
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Read only the exact secure mask, never the password in an assertion.
+      - extendedWaitUntil:
+          visible: '^•{17}$'
+          timeout: 30000
 - runFlow:
     when:
       platform: Android
@@ -41,6 +73,13 @@ name: Full native app navigation
     commands:
       # The iOS keyboard has no standard dismiss button; use the real scroll-view dismissal.
       - tapOn: Platinum Circles
+      - extendedWaitUntil:
+          notVisible:
+            id: '^space$'
+          timeout: 30000
+      - assertVisible:
+          text: '^Sign in$'
+          enabled: true
 - tapOn: Sign in
 - extendedWaitUntil:
     visible: A quiet morning in the desert. Small moments worth keeping.
