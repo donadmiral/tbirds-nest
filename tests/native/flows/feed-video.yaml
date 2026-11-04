@@ -17,10 +17,12 @@ name: First feed video survives scroll refresh and tab return
 - assertNotVisible: Native feed video playing
 # Android reports clipped media bounds as fully visible. Center the caption so
 # the post meets the same autoplay visibility rule as the initial playing check.
+# Bound hierarchy settling around the moving video within the same search deadline.
 - scrollUntilVisible:
     element: A quiet morning in the desert. Small moments worth keeping.
     direction: UP
     centerElement: true
+    waitToSettleTimeoutMs: 500
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000

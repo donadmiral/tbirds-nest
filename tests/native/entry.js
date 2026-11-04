@@ -54,7 +54,7 @@ const { registerRootComponent } = require('expo');
 // Match production bootstrap only after the isolated transport is installed.
 require('@daily-co/react-native-daily-js');
 const { linking } = require('../../src/navigation/linking');
-const { CommonActions, getActionFromState } = require('@react-navigation/native');
+const { getActionFromState } = require('@react-navigation/native');
 linking.prefixes.push('platinum-circles-qa://');
 linking.config.screens.NativeMemoryCaptureFixture = 'ui-fixture/memory';
 const defaultPathState = linking.getStateFromPath;
@@ -71,20 +71,12 @@ linking.getStateFromPath = function (path, ...args) {
 const defaultLinkAction = linking.getActionFromState || getActionFromState;
 linking.getActionFromState = (state, options) => {
   try {
-    const route = state.routes[0];
-    if (state.routes.length === 1 && route?.name === 'NativeMemoryCaptureFixture'
-      && route.path === 'ui-fixture/memory') {
-      // Remove prior screen-owned Modals even when navigation failed mid-sheet.
-      // Only navigator routes change: App providers, auth/account stores, the
-      // synthetic transport and its cumulative receipt remain in this process.
-      const action = CommonActions.reset({ index: 0, routes: [route] });
-      // Linking performs dispatch after this returns. This is only production of
-      // an action; the separate mounted observation is a later boundary.
-      observeCaptureBoundary(fixture, 'action-produced', () => ({ matched: true, reset: action.type === 'RESET' }));
-      return action;
-    }
+    // Use the same normal navigation action as production memory navigation.
+    // Keep prior screens, providers and the existing signed-in runtime intact.
+    // An earlier failed flow or blocking modal still fails the required journey.
     const action = defaultLinkAction(state, options);
-    observeCaptureBoundary(fixture, action === undefined ? 'action-empty' : 'action-produced', () => ({ matched: false, reset: action?.type === 'RESET' }));
+    // Linking dispatches after this returns. Mount is observed separately.
+    observeCaptureBoundary(fixture, action === undefined ? 'action-empty' : 'action-produced', () => ({ matched: isCaptureState(state), reset: action?.type === 'RESET' }));
     return action;
   } catch (error) {
     observeCaptureBoundary(fixture, 'action-failed', () => ({ matched: isCaptureState(state) }));

@@ -173,6 +173,12 @@ timeout 3 python3 scripts/quality/native-ui-emulator-host-diagnostics.py snapsho
   > native-ui-logs/emulator-host-snapshot.log 2>&1 || true
 flow_status=0
 bash scripts/quality/run-native-ui-flows.sh "$ANDROID_SERIAL" || flow_status=$?
+if (( flow_status != 0 )); then
+  # Both flows have finished. Diagnostics cannot replace their result or retry them.
+  timeout --signal=TERM --kill-after=1s 15s python3 scripts/quality/native-ui-android-stack-diagnostics.py \
+    --adb "$adb_bin" --device "$ANDROID_SERIAL" --flow-exit "$flow_status" \
+    > native-ui-logs/android-failure-stack-collector.log 2>&1 || true
+fi
 evidence_status=0
 "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt.json || evidence_status=1
 "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-auth-diagnostics.json > native-ui-logs/native-ui-auth-diagnostics.json || evidence_status=1

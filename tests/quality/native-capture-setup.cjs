@@ -191,20 +191,25 @@ function entryRuntime({ parser, action, recorder } = {}) {
   return { linking, fixture, receipt, auth, accounts, events, listeners };
 }
 
-test('actual QA capture link resets navigator routes while retaining the app runtime and cumulative receipt', () => {
+test('actual QA capture link uses normal navigation and preserves prior routes, app runtime and cumulative receipt', () => {
   const r = entryRuntime(), originalReceipt = r.fixture.receipt, events = r.events.slice();
   const state = r.linking.getStateFromPath('ui-fixture/memory', r.linking.config);
   const router = StackRouter({ initialRouteName: 'Main' });
   const options = { routeNames: ['Main', 'MemoryAlbum', 'NativeMemoryCaptureFixture'], routeParamList: {}, routeGetIdList: {} };
   const initial = router.getInitialState(options);
   const prior = router.getStateForAction(initial, { type: 'PUSH', payload: { name: 'MemoryAlbum' } }, options);
-  const oldAction = getActionFromState(state, r.linking.config);
-  const oldResult = router.getStateForAction(prior, oldAction, options);
-  assert.equal(oldAction.type, 'NAVIGATE'); assert.ok(oldResult.routes.some(route => route.key === prior.routes.at(-1).key));
   const action = r.linking.getActionFromState(state, r.linking.config);
   const next = router.getStateForAction(prior, action, options);
-  assert.equal(action.type, 'RESET'); assert.deepEqual(plain(next.routes.map(route => route.name)), ['NativeMemoryCaptureFixture']);
-  assert.ok(!next.routes.some(route => route.key === prior.routes.at(-1).key));
+  assert.equal(action.type, 'NAVIGATE');
+  assert.deepEqual(plain(action), plain(getActionFromState(state, r.linking.config)));
+  assert.deepEqual(plain(next.routes.map(route => route.name)), ['Main', 'MemoryAlbum', 'NativeMemoryCaptureFixture']);
+  prior.routes.forEach((route, index) => {
+    assert.equal(next.routes[index], route, 'each prior route object and its nested state remain in the stack under the same key');
+    assert.equal(next.routes[index].key, route.key);
+  });
+  assert.equal(next.index, prior.routes.length);
+  assert.equal(next.routes[next.index].name, 'NativeMemoryCaptureFixture');
+  assert.equal(next.routes[next.index].path, 'ui-fixture/memory');
   assert.equal(r.fixture.receipt, originalReceipt); assert.deepEqual(r.receipt.requests, ['already-authenticated-navigation']);
   assert.deepEqual(r.auth, { session: { owner: 'unchanged synthetic owner' } }); assert.deepEqual(r.accounts, { stored: 1 });
   assert.deepEqual(r.events, events, 'no provider reinstall, App registration, fixture replacement or auth operation occurs');
@@ -218,7 +223,7 @@ test('noncapture links preserve the installed default action semantics', () => {
   }
 });
 
-test('a similar route name, wrong path or multiroute state cannot use the capture-only route replacement', () => {
+test('a similar route name, wrong path or multiroute state preserves the installed action semantics', () => {
   const { linking } = entryRuntime();
   for (const state of [
     { routes: [{ name: 'MemoryAlbum', path: 'ui-fixture/memory' }] },
@@ -237,11 +242,12 @@ test('the actual exact capture link records reception, parsing and action produc
   const path = extractPath(r.linking.prefixes, url);
   const state = r.linking.getStateFromPath(path, r.linking.config);
   const action = r.linking.getActionFromState(state, r.linking.config);
-  assert.equal(action.type, 'RESET');
-  assert.equal(action.payload.routes[0], state.routes[0]);
+  assert.equal(action.type, 'NAVIGATE');
+  assert.deepEqual(plain(action), plain(getActionFromState(state, r.linking.config)));
   assert.deepEqual(r.receipt.captureBoundaries.map(row => row.phase), ['received', 'parsed', 'action-produced']);
   assert.equal(r.receipt.captureBoundaries[1].matched, true);
-  assert.equal(r.receipt.captureBoundaries[2].reset, true);
+  assert.equal(r.receipt.captureBoundaries[2].matched, true);
+  assert.equal(r.receipt.captureBoundaries[2].reset, false);
   assert.equal(r.receipt.captureBoundaries.some(row => row.phase === 'mounted' || row.phase === 'dispatched'), false);
   assert.equal(JSON.stringify(r.receipt.captureBoundaries).includes(url), false);
 });
@@ -271,7 +277,7 @@ test('actual entry observation preserves parser receiver, arguments, state ident
     assert.equal(this, receiver); assert.deepEqual(args, ['ui-fixture/memory', options, extra]); return state;
   }, recorder() { throw Error('diagnostic sink failure'); } });
   assert.equal(r.linking.getStateFromPath.call(receiver, 'ui-fixture/memory', options, extra), state);
-  assert.equal(r.linking.getActionFromState(state, options).payload.routes[0], state.routes[0]);
+  assert.deepEqual(plain(r.linking.getActionFromState(state, options)), plain(getActionFromState(state, options)));
   const failure = new Error('original parser error');
   const broken = entryRuntime({ parser() { throw failure; } });
   assert.throws(() => broken.linking.getStateFromPath('ui-fixture/memory', options), error => error === failure);
@@ -282,6 +288,22 @@ test('actual entry observation preserves parser receiver, arguments, state ident
   assert.throws(() => defaultAction.linking.getActionFromState({ routes: [{ name: 'Main' }] }, options), error => error === defaultFailure);
   assert.deepEqual(defaultAction.receipt.captureBoundaries.map(row => row.phase), ['action-failed']);
   assert.equal(defaultAction.receipt.captureBoundaries[0].matched, false);
+});
+
+test('the exact capture link preserves the default action result and error even when observation fails', () => {
+  const state = { routes: [{ name: 'NativeMemoryCaptureFixture', path: 'ui-fixture/memory' }] };
+  const options = {}, action = { type: 'NAVIGATE', payload: { name: 'NativeMemoryCaptureFixture' } };
+  let calls = 0;
+  const r = entryRuntime({ action(actualState, actualOptions) {
+    calls++; assert.equal(actualState, state); assert.equal(actualOptions, options); return action;
+  }, recorder() { throw Error('diagnostic sink failure'); } });
+  assert.equal(r.linking.getActionFromState(state, options), action);
+  assert.equal(calls, 1);
+  const failure = new Error('original capture action error');
+  const broken = entryRuntime({ action() { throw failure; } });
+  assert.throws(() => broken.linking.getActionFromState(state, options), error => error === failure);
+  assert.deepEqual(broken.receipt.captureBoundaries.map(row => ({ phase: row.phase, matched: row.matched })),
+    [{ phase: 'action-failed', matched: true }]);
 });
 
 test('an unmatched actual parser result is returned unchanged and recorded without inventing an action', () => {

@@ -85,10 +85,27 @@ test('the feed return targets its caption because clipped media bounds do not es
   assert.equal(visible[0], 'video', 'The retained initial playing position meets the same production rule');
 
   const flow = YAML.parseAllDocuments(fs.readFileSync(path.join(root, 'tests/native/flows/feed-video.yaml'), 'utf8'))[1].toJSON();
-  assert.deepEqual(flow[5].scrollUntilVisible, {
+  const returnScroll = { ...flow[5].scrollUntilVisible };
+  delete returnScroll.waitToSettleTimeoutMs;
+  assert.deepEqual(returnScroll, {
     element: 'A quiet morning in the desert. Small moments worth keeping.', direction: 'UP', centerElement: true,
   });
   const original = structuredClone(flow);
+  delete original[5].scrollUntilVisible.waitToSettleTimeoutMs;
   original[5].scrollUntilVisible.element = { id: 'native-feed-video' };
   assert.equal(crypto.createHash('sha256').update(JSON.stringify(original)).digest('hex'), '220b375df1bcb9d3347aa0cb2739341308d11ff9129493b6b8cfa7570cc07a3a', 'Every other action, decoded-playback predicate and deadline remains unchanged');
+});
+
+test('the animated return scroll bounds hierarchy settling without relaxing search or playback acceptance', () => {
+  const flow = YAML.parseAllDocuments(fs.readFileSync(path.join(root, 'tests/native/flows/feed-video.yaml'), 'utf8'))[1].toJSON();
+  const returnScroll = flow[5].scrollUntilVisible;
+  assert.equal(returnScroll.waitToSettleTimeoutMs, 500, 'Bound only the driver hierarchy-settle wait after each return swipe');
+  assert.equal(returnScroll.timeout ?? 20000, 20000, 'Retain the pinned Maestro 2.11.0 default search deadline');
+  assert.deepEqual(flow.filter(command => command.extendedWaitUntil?.visible === 'Native feed video playing')
+    .map(command => command.extendedWaitUntil.timeout), [15000, 15000, 15000, 15000]);
+  assert.deepEqual(flow.flatMap((command, index) => command.scrollUntilVisible?.waitToSettleTimeoutMs === undefined ? [] : [index]), [5]);
+  const original = structuredClone(flow);
+  delete original[5].scrollUntilVisible.waitToSettleTimeoutMs;
+  assert.equal(crypto.createHash('sha256').update(JSON.stringify(original)).digest('hex'), '81b54dac30894670ee20a9831adb0e73c8c56f3d6f7b0ea5c7598a06e25353de',
+    'Every original action, selector, centering choice, screenshot and deadline must remain unchanged');
 });

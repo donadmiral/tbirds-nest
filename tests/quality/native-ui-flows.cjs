@@ -12,7 +12,7 @@ const names = ['navigation', 'memory-capture'];
 function sandbox(t, options = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'native-required-flows-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
-  for (const file of [runner, validator]) {
+  for (const file of [runner, validator, 'scripts/quality/native-ui-android-stack-diagnostics.py']) {
     fs.mkdirSync(path.dirname(path.join(directory, file)), { recursive: true });
     fs.copyFileSync(path.join(root, file), path.join(directory, file));
   }
@@ -147,6 +147,8 @@ else throw new Error('Unexpected adb mutation');
       assert.equal(phases.evidence, failure === 'evidence' ? 1 : 0);
       assert.equal(phases.memoryDecoder, failure === 'decoder' ? 4 : 0);
       assert.equal(phases.fullAppVerifier, failure === 'fullVerifier' ? 5 : 0);
+      assert.equal(fs.existsSync(path.join(h.directory, 'native-ui-logs/android-failure-stack-collector.log')),
+        platform === 'android' && failure === 'navigation');
     });
   }
 }

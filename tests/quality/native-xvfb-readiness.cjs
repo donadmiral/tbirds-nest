@@ -102,9 +102,19 @@ test('the runner retains one Xvfb launch, graphics checks and cleanup with the e
   const media = 'python3 scripts/quality/verify-native-ui-memory.py';
   const platformCommand = media + ' native-ui-logs/memory-capture android || memory_status=$?';
   assert.equal(runner.split(platformCommand).length, 2);
-  // Only this reviewed verifier argument is normalized before checking the
-  // original suffix. Every launch, graphics, cleanup and acceptance line stays bound.
-  const normalized = runner.replace(platformCommand, media + ' || memory_status=$?');
+  const stackDiagnostic = [
+    'if (( flow_status != 0 )); then',
+    '  # Both flows have finished. Diagnostics cannot replace their result or retry them.',
+    '  timeout --signal=TERM --kill-after=1s 15s python3 scripts/quality/native-ui-android-stack-diagnostics.py \\',
+    '    --adb "$adb_bin" --device "$ANDROID_SERIAL" --flow-exit "$flow_status" \\',
+    '    > native-ui-logs/android-failure-stack-collector.log 2>&1 || true',
+    'fi',
+    '',
+  ].join('\n');
+  assert.equal(runner.split(stackDiagnostic).length, 2);
+  // Normalize exactly the reviewed diagnostic block and verifier argument.
+  // Every original launch, graphics, cleanup and acceptance line stays bound.
+  const normalized = runner.replace(stackDiagnostic, '').replace(platformCommand, media + ' || memory_status=$?');
   assert.equal(sha(runner.slice(0, start(runner))), 'ca53a9997527b345e73354c674a91226a534ef0a679879fed22106a07c7615ab');
   assert.equal(sha(normalized.slice(end(normalized))), '90a28d372c520bb8c50d6ec1660d3aaf2367e4ccd5df98dccffd5a4fd3430813');
   assert.equal((runner.match(/Xvfb -displayfd/g) || []).length, 1);

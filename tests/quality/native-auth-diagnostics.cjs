@@ -229,7 +229,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
   const required = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package.json', 'package-lock.json', authPath, 'src/navigation/AppNavigator.tsx', 'src/screens/messages/ConversationsScreen.tsx',
     'src/components/LiveUi.tsx', 'src/components/PostCarousel.tsx', 'src/screens/feed/FeedScreen.tsx', 'src/screens/feed/LiveStreamsScreen.tsx', 'src/screens/feed/NewLiveScreen.tsx', 'src/screens/profile/MemoryAlbumScreen.tsx',
     'plugins/withMedia3Compatibility.js', 'modules/boomerang/android/build.gradle', 'scripts/quality/android-media-dependencies.init.gradle',
-    'scripts/quality/native-ui-android-media-abi.py',
+    'scripts/quality/native-ui-android-media-abi.py', 'scripts/quality/native-ui-android-stack-diagnostics.py',
     'modules/boomerang/ios/BoomerangModule.swift', 'modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt',
     'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/navigation-timing.cjs', 'tests/native/input-diagnostics.cjs', 'tests/native/entry.js',
     'src/services/memoryMovieExport.ts', 'src/services/memoryMovieFiles.ts', 'tests/native/memory-fixture.cjs',
@@ -270,7 +270,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     assert.match(result.stdout, /failure-only synthetic-file identity observer/);
     for (const file of ['src/services/memoryMovieFiles.ts', 'tests/native/memory-failure-identity.cjs',
       'tests/native/memory-export-adapter.ts', 'tests/native/memory-capture-observer.cjs', 'tests/native/expo-fetch-fixture.cjs',
-      'scripts/quality/native-ui-memory-failure-overlay.cjs', 'scripts/quality/native-ui-xvfb-readiness.py',
+      'scripts/quality/native-ui-memory-failure-overlay.cjs', 'scripts/quality/native-ui-xvfb-readiness.py', 'scripts/quality/native-ui-android-stack-diagnostics.py',
       'scripts/quality/native-ui-feed-video-overlay.cjs', 'tests/native/feed-video-asset.cjs', 'tests/native/flows/feed-video.yaml']) assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
     for (const [name, selected] of Object.entries(dependencyFiles)) {
       const dependency = manifest.dependencyProvenance[name], installed = JSON.parse(fs.readFileSync(path.join(root, 'node_modules', name, 'package.json')));
