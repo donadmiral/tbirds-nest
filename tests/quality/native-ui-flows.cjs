@@ -114,7 +114,7 @@ test('missing, malformed, incomplete or repeated flow results fail closed', t =>
 });
 
 for (const platform of ['android', 'ios']) {
-  for (const failure of ['none', 'navigation', 'decoder', 'fullVerifier', 'evidence']) {
+  for (const failure of ['none', 'navigation', 'decoder', 'fullVerifier', 'evidence', 'binaryRetention']) {
     test(`actual ${platform} shell tail aggregates ${failure} and always runs both existing verifiers`, t => {
       const h = sandbox(t, { cases: failure === 'navigation' ? { navigation: { exit: 7, report: 'failed' } } : {} });
       const docs = path.join(h.directory, 'container/Documents'); fs.mkdirSync(path.join(docs, 'native-memory-capture'), { recursive: true });
@@ -137,8 +137,9 @@ else throw new Error('Unexpected adb mutation');
       const tail = source.slice(source.indexOf(marker)+1);
       const env = { ...h.env, TEST_CONTAINER: path.join(h.directory, 'container'), TEST_ADB: adb,
         ANDROID_SERIAL: 'retained-device', TEST_DEVICE: 'retained-device', FAIL_EVIDENCE: failure === 'evidence' ? '1' : '0',
+        BINARY_RETENTION_EXIT: failure === 'binaryRetention' ? '6' : '0',
         DECODER_EXIT: failure === 'decoder' ? '4' : '0', FULL_VERIFIER_EXIT: failure === 'fullVerifier' ? '5' : '0' };
-      const result = spawnSync('bash', ['-c', 'set -euo pipefail\nui_simulator="$TEST_DEVICE"\nadb_bin="$TEST_ADB"\n'+tail],
+      const result = spawnSync('bash', ['-c', 'set -euo pipefail\nui_simulator="$TEST_DEVICE"\nadb_bin="$TEST_ADB"\nbinary_retention_status="$BINARY_RETENTION_EXIT"\n'+tail],
         { cwd: h.directory, env, encoding: 'utf8', timeout: 15000 });
       assert.equal(result.status, failure === 'none' ? 0 : 1, result.stdout + result.stderr); assertBothOnce(h);
       assert.equal(fs.readFileSync(path.join(h.directory, 'verified.jsonl'), 'utf8'), 'memory\nfull\n');
@@ -149,6 +150,7 @@ else throw new Error('Unexpected adb mutation');
       assert.equal(phases.fullAppVerifier, failure === 'fullVerifier' ? 5 : 0);
       assert.equal(fs.existsSync(path.join(h.directory, 'native-ui-logs/android-failure-stack-collector.log')),
         platform === 'android' && failure === 'navigation');
+      assert.equal(phases.binaryRetention, failure === 'binaryRetention' ? 6 : 0);
     });
   }
 }

@@ -47,6 +47,22 @@ test('every scene update reapplies audio/video membership and rejects removed pa
   assert.throws(() => p.buildLiveLayout({ preset: 'grid', participant_ids: [id(33)] }, context, present, false), /SOURCE_NOT_CONNECTED/);
   assert.equal(p.validScene({ preset: 'host', rtmpUrl: 'rtmp://attacker.invalid' }), false);
 });
+test('automatic scenes use only trusted host and guest roles and ignore submitted staff identities', () => {
+  const ctx = { ...context, allowed_participants: [...context.allowed_participants,
+    { user_id: id(5), provider_identity: id(15), role: 'producer' },
+    { user_id: id(6), provider_identity: id(16), role: 'camera' },
+    { user_id: id(7), provider_identity: id(17), role: 'guest' }] };
+  const presence = [...present, { id: id(35), userId: id(15), role: 'guest' }, { id: id(36), userId: id(16) }, { id: id(37), userId: id(17) }];
+  const out = p.buildLiveLayout({ preset: 'grid', automatic: true, participant_ids: [id(15),id(16)] }, ctx, presence, false);
+  assert.deepEqual(plain(out.layout.participants), { video: [id(31),id(32),id(37)], audio: [id(31),id(32),id(37)] });
+  assert.equal(out.layout.composition_params.mode, 'grid');
+  const two = p.buildLiveLayout({ preset: 'grid', automatic: true }, context, present, false);
+  assert.equal(two.layout.composition_params.mode, 'split');
+  const one = p.buildLiveLayout({ preset: 'grid', automatic: true }, context, [present[0]], false);
+  assert.equal(one.layout.composition_params.mode, 'single');
+  const manual = p.buildLiveLayout({ preset: 'host', participant_id: id(16) }, ctx, presence, false);
+  assert.deepEqual(plain(manual.layout.participants.video), [id(36)]);
+});
 test('playback accepts canonical session manifest paths and rejects traversal and cross-session paths', () => {
   assert.equal(p.validPlaybackPath(context.playback_path, session), true);
   for (const candidate of [`live/${id(22)}/${instance}/master.m3u8`, `live/${session}/------------------------------------/master.m3u8`,
@@ -60,6 +76,44 @@ test('HLS rendition configuration keeps recordings and every object inside sessi
   assert.equal(endpoint.hls_config.save_hls_recording, true);
   assert.deepEqual(plain(endpoint.hls_config.variants.map(v => v.height)), [1080, 720, 360, 180]);
   assert.throws(() => p.hlsEndpoint({ ...config, assumeRoleArn: '' }, context), /NOT_READY/);
+});
+test('portrait output uses a matching adaptive ladder, fills cameras, and preserves readable screen shares', () => {
+  const portrait = { ...context, output_orientation: 'portrait' };
+  assert.equal(p.validScene({ preset: 'host', orientation: 'portrait' }), true);
+  assert.equal(p.validScene({ preset: 'host', orientation: 'square' }), false);
+  assert.deepEqual(plain(p.liveOutputSize(portrait)), { width: 1080, height: 1920 });
+  assert.deepEqual(plain(p.liveOutputSize(context)), { width: 1920, height: 1080 });
+  assert.deepEqual(plain(p.hlsEndpoint(config, portrait).hls_config.variants.map(v => [v.width, v.height])), [[1080,1920],[720,1280],[360,640],[180,320]]);
+  const camera = p.buildLiveLayout({ preset: 'grid', orientation: 'portrait', participant_ids: [hostIdentity, guestIdentity] }, portrait, present, false);
+  assert.deepEqual(plain(camera.layout.participants), { video: [id(31),id(32)], audio: [id(31),id(32)] });
+  assert.equal(camera.layout.composition_params['videoSettings.scaleMode'], 'fill');
+  const screen = p.buildLiveLayout({ preset: 'screen', participant_id: guestIdentity }, portrait, present, false);
+  assert.equal(screen.layout.composition_params['videoSettings.scaleMode'], 'fit');
+  assert.equal(screen.layout.composition_params['videoSettings.scaleModeForScreenshare'], 'fit');
+});
+test('start sends the persisted portrait canvas and endpoint through the actual control handler', async () => {
+  const token = 'header.' + Buffer.from(JSON.stringify({ sub: host, session_id: id(80) })).toString('base64url') + '.signature';
+  const requests = [];
+  const scene = { preset: 'host', orientation: 'portrait' };
+  const ctx = { ...context, state: 'starting', action: 'start', payload: { scene }, output_orientation: 'portrait', lease_id: id(81) };
+  const caller = { auth: { getUser: async () => ({ data: { user: { id: host } }, error: null }) },
+    rpc: async () => ({ data: { operation_id: id(82), status: 'queued' }, error: null }) };
+  const handler = createLiveHandler('control', { caller: () => caller, config, now: () => now,
+    service: { rpc: async name => ({ data: name === 'live_finish_control' ? { ok: true, state: 'starting' } : ctx, error: null }) },
+    fetch: async (url, init = {}) => {
+      requests.push({ url, body: init.body ? JSON.parse(init.body) : null });
+      if (url.includes('/presence?')) return Response.json({ total_count: 1, data: [present[0]] });
+      if (url.endsWith('/live-streaming/start')) return Response.json({ status: 'sent' });
+      return Response.json({ privacy: 'private', url: 'https://example.daily.co/' + context.room_name });
+    } });
+  const response = await handler(new Request('https://synthetic.invalid/live-control', { method: 'POST',
+    headers: { Authorization: 'Bearer ' + token }, body: JSON.stringify({ sessionId: session, action: 'start', requestId: id(82), scene }) }));
+  assert.equal(response.status, 200);
+  const start = requests.find(r => r.url.endsWith('/live-streaming/start')).body;
+  assert.equal(start.width, 1080); assert.equal(start.height, 1920);
+  assert.equal(start.layout.composition_params['videoSettings.scaleMode'], 'fill');
+  const room = requests.find(r => r.body?.properties?.streaming_endpoints).body;
+  assert.deepEqual(room.properties.streaming_endpoints[0].hls_config.variants.map(v => [v.width,v.height]), [[1080,1920],[720,1280],[360,640],[180,320]]);
 });
 test('signed Daily events reject expired, forged and missing signatures', async () => {
   const event = { version: '1.0.0', type: 'streaming.started', id: 'event-1', payload: { instance_id: instance } };

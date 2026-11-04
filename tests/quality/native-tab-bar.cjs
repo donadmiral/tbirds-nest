@@ -26,7 +26,8 @@ function component() {
   const Animated = { Value, View: 'Animated.View', spring: (value, config) => ({
     start() { animations.push(config); value.setValue(config.toValue); },
   }) };
-  const React = { useEffect: fn => effects.push(fn()) };
+  let routeRef;
+  const React = { useEffect: fn => effects.push(fn()), useRef: value => routeRef ??= { current: value } };
   const module = { exports: {} };
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root, 'src/components/AdaptiveTabBar.tsx'), 'utf8'), {
     compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -114,4 +115,70 @@ test('scroll hide/reveal remains active normally and stops when reduced-motion o
   input.keepVisible = false; api.default(input); scroll(80);
   assert.equal(api.animations.at(-1).toValue, 1);
   api.effects.at(-1)(); scroll(140); assert.equal(api.animations.length, 3, 'cleanup restores passive visibility');
+});
+
+test('slow gestures accumulate distance and reveal the bar with the unchanged three-point scroll events', () => {
+  const api = component(); api.default(props({}));
+  const scroll = y => api.handleTabBarScroll({ nativeEvent: { contentOffset: { y } } });
+  for (let y = 0; y <= 96; y += 3) scroll(y);
+  assert.deepEqual(api.animations.map(row => row.toValue), [1]);
+  for (let y = 93; y >= 12; y -= 3) scroll(y);
+  assert.deepEqual(api.animations.map(row => row.toValue), [1, 0]);
+});
+
+test('fast gestures retain immediate hide and reveal without duplicate animation restarts', () => {
+  const api = component(); api.default(props({}));
+  for (const y of [0, 80, 180, 90, 70]) api.handleTabBarScroll({ nativeEvent: { contentOffset: { y } } });
+  assert.deepEqual(api.animations.map(row => row.toValue), [1, 0]);
+});
+
+test('small directional reversals reset travel and stationary jitter never flaps navigation', () => {
+  const api = component(); api.default(props({}));
+  const scroll = y => api.handleTabBarScroll({ nativeEvent: { contentOffset: { y } } });
+  scroll(100);
+  for (const y of [97, 94, 97, 94, 91, 94, 91, 88, 91]) scroll(y);
+  assert.deepEqual(api.animations.map(row => row.toValue), [1]);
+  for (const y of [88, 85, 82, 79]) scroll(y);
+  assert.deepEqual(api.animations.map(row => row.toValue), [1, 0]);
+  for (let i = 0; i < 30; i++) { scroll(80); scroll(79); }
+  assert.equal(api.animations.length, 2);
+});
+
+test('top bounce reveals once and its rebound cannot hide the bar', () => {
+  const api = component(); api.default(props({}));
+  for (const y of [80, 0, -40, -70, -20, 0, 2, 0]) api.handleTabBarScroll({ nativeEvent: { contentOffset: { y } } });
+  assert.deepEqual(api.animations.map(row => row.toValue), [1, 0]);
+});
+
+test('bottom bounce is clamped while real upward movement still reveals navigation', () => {
+  const api = component(); api.default(props({}));
+  const scroll = y => api.handleTabBarScroll({ nativeEvent: { contentOffset: { y }, contentSize: { height: 1000 }, layoutMeasurement: { height: 500 } } });
+  for (const y of [0, 480, 500, 540, 520, 500]) scroll(y);
+  assert.deepEqual(api.animations.map(row => row.toValue), [1]);
+  for (const y of [497, 494, 491, 488]) scroll(y);
+  assert.deepEqual(api.animations.map(row => row.toValue), [1, 0]);
+});
+
+test('invalid offsets do not corrupt the accumulated slow gesture', () => {
+  const api = component(); api.default(props({}));
+  const scroll = y => api.handleTabBarScroll({ nativeEvent: { contentOffset: { y } } });
+  scroll(90); scroll(87); scroll(NaN); scroll(Infinity); scroll('0'); api.handleTabBarScroll({});
+  for (const y of [84, 81, 78]) scroll(y);
+  assert.deepEqual(api.animations.map(row => row.toValue), [1, 0]);
+});
+
+test('tab changes reveal navigation and establish the restored scroll position without inherited travel', () => {
+  const api = component(), input = props({}); api.default(input);
+  const scroll = y => api.handleTabBarScroll({ nativeEvent: { contentOffset: { y } } });
+  scroll(80); scroll(77); scroll(74);
+  input.state.routes.push({ key: 'profile' }); input.state.index = 1;
+  input.descriptors.profile = { options: { tabBarStyle: {} } };
+  const tree = api.default(input);
+  assert.equal(flatten(tree.props.style).transform[0].translateY.value.value, 0);
+  scroll(500); scroll(503); scroll(506);
+  assert.equal(api.animations.length, 1, 'restored position and partial new travel do not hide');
+  scroll(509); scroll(512);
+  assert.deepEqual(api.animations.map(row => row.toValue), [1, 1]);
+  for (const y of [509, 506, 503, 500]) scroll(y);
+  assert.deepEqual(api.animations.map(row => row.toValue), [1, 1, 0]);
 });

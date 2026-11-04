@@ -143,17 +143,38 @@ async function main(){
    const reopened='QA chat reopened '+process.env.GITHUB_RUN_ID;await viewer.getByLabel('Message the live chat',{exact:true}).fill(reopened);
    await uiCommand(viewer,'Viewer','live_command','chat',()=>viewer.getByRole('button',{name:'Send chat message',exact:true}).click());await hostMessages.getByText(reopened,{exact:true}).waitFor();checks.push('Reopening chat restored follower input and delivered a new real message to the host');
   }
+  async function exerciseInvitation(guest,guestActor,id){
+   const studio=host.getByRole('region',{name:'Live production studio',exact:true});
+   const username=await guest.evaluate(async()=>{const {data,error}=await window.__qaClient.from('profiles').select('username').eq('id',window.__LIVE_ACCEPTANCE.actor.id).single().abortSignal(AbortSignal.timeout(15000));if(error||typeof data?.username!=='string'||!data.username||data.username.length>100)throw Error('QA guest profile is unavailable');return data.username;});
+   await studio.locator('summary').filter({hasText:'Stream tools and team'}).click();await studio.getByLabel('Team member username',{exact:true}).fill(username);await studio.getByLabel('Team role',{exact:true}).selectOption('guest');
+   const invited=await uiCommand(host,'Host','live_command','invite',()=>studio.getByRole('button',{name:'Invite',exact:true}).click());
+   assert.equal(invited.args.p_payload?.user_id===guestActor.id&&invited.args.p_payload?.role==='guest',true,'Invitation did not target the existing QA follower');
+   await guest.goto(base+'/live/'+id);await guest.getByRole('button',{name:'Accept invitation',exact:true}).waitFor();
+   await uiCommand(guest,'Viewer','live_command','accept_invite',()=>guest.getByRole('button',{name:'Accept invitation',exact:true}).click());
+   await guest.getByRole('button',{name:'Studio',exact:true}).waitFor();
+   assert.equal(await guest.getByRole('region',{name:'Live production studio',exact:true}).count(),0,'Accepting an invitation opened a camera without consent');
+   checks.push('Host invitation and follower acceptance retained guest-only access without starting a camera');
+  }
   async function exerciseGuest(guest,guestActor,publicId){
    const hostStudio=host.getByRole('region',{name:'Live production studio',exact:true});
-   const username=await guest.evaluate(async()=>{const {data,error}=await window.__qaClient.from('profiles').select('username').eq('id',window.__LIVE_ACCEPTANCE.actor.id).single().abortSignal(AbortSignal.timeout(15000));if(error||typeof data?.username!=='string'||!data.username||data.username.length>100)throw Error('QA guest profile is unavailable');return data.username;});
-   await hostStudio.locator('summary').filter({hasText:'Stream tools and team'}).click();await hostStudio.getByLabel('Team member username',{exact:true}).fill(username);await hostStudio.getByLabel('Team role',{exact:true}).selectOption('guest');
-   const invited=await uiCommand(host,'Host','live_command','invite',()=>hostStudio.getByRole('button',{name:'Invite',exact:true}).click());
-   assert.equal(invited.args.p_payload?.user_id===guestActor.id&&invited.args.p_payload?.role==='guest',true,'Invitation did not target the existing QA guest');
-   await hostStudio.getByText('Invitation sent. The member must accept before joining.',{exact:true}).waitFor();
-   await guest.goto(base+'/live/'+publicId);await guest.getByRole('button',{name:'Accept invitation',exact:true}).waitFor();
-   await uiCommand(guest,'Outsider','live_command','accept_invite',()=>guest.getByRole('button',{name:'Accept invitation',exact:true}).click());
-   await guest.getByRole('button',{name:'Studio',exact:true}).click();
-   const [accessResponse]=await Promise.all([guest.waitForResponse(r=>new URL(r.url()).origin===origin&&new URL(r.url()).pathname==='/functions/v1/live-stage'),guest.getByRole('button',{name:'Preview camera',exact:true}).click()]);
+   const hostRequests=host.getByRole('region',{name:'Join the live',exact:true});
+   await guest.goto(base+'/live/'+publicId);
+   let stageAdmissions=0;const observeStage=request=>{if(new URL(request.url()).pathname==='/functions/v1/live-stage')stageAdmissions++;};guest.on('request',observeStage);
+   await uiCommand(guest,'Outsider','live_command','request_join',()=>guest.getByRole('button',{name:'Request to join',exact:true}).click());
+   await hostRequests.getByRole('button',{name:/^Accept /}).waitFor({timeout:45000});
+   await guest.getByText('Waiting for the host to accept.',{exact:true}).waitFor();
+   await uiCommand(guest,'Outsider','live_command','cancel_join_request',()=>guest.getByRole('button',{name:'Cancel request',exact:true}).click());
+   await hostRequests.getByText('No requests yet.',{exact:true}).waitFor({timeout:45000});
+   await uiCommand(guest,'Outsider','live_command','request_join',()=>guest.getByRole('button',{name:'Request to join',exact:true}).click());
+   const accepted=await uiCommand(host,'Host','live_command','accept_join_request',()=>hostRequests.getByRole('button',{name:/^Accept /}).click());
+   assert.equal(accepted.args.p_payload?.user_id===guestActor.id&&accepted.data.status==='accepted',true,'Host approved a different guest request');
+   await guest.getByRole('button',{name:'Join camera',exact:true}).waitFor({timeout:45000});
+   assert.equal(stageAdmissions,0,'A guest request or approval started the camera before consent');
+   assert.equal(await guest.locator('[data-live-stage]').count(),0,'Approval mounted a guest camera before consent');
+   checks.push('Guest request, cancellation, renewed request and host approval reached separate browsers without refreshing or starting a camera');
+   const automaticPublication=host.waitForResponse(r=>new URL(r.url()).origin===origin&&new URL(r.url()).pathname==='/functions/v1/live-control'&&r.request().postDataJSON()?.action==='scene'&&r.request().postDataJSON()?.scene?.automatic===true&&r.request().postDataJSON()?.scene?.preset==='interview',{timeout:60000}).then(async response=>({status:response.status(),ok:(await response.json())?.ok===true}),()=>({status:0,ok:false}));
+   const [accessResponse]=await Promise.all([guest.waitForResponse(r=>new URL(r.url()).origin===origin&&new URL(r.url()).pathname==='/functions/v1/live-stage'),guest.getByRole('button',{name:'Join camera',exact:true}).click()]);
+   guest.off('request',observeStage);
    const access=await accessResponse.json();
    // Only booleans reach assertions. Never allow an unexpected token or room
    // URL to become an assertion diff, error string, screenshot or receipt.
@@ -164,7 +185,10 @@ async function main(){
    const hostTracks=await until('Host decoded guest Daily track',()=>stageSnapshot(host),tiles=>tiles.length===2&&tiles.some(tile=>!tile.local&&playingStageVideo(tile)),45000);
    const previousTime=hostTracks.find(tile=>!tile.local).currentTime;
    const advancing=await until('Guest remote frames advancing',()=>stageSnapshot(host),tiles=>tiles.some(tile=>!tile.local&&playingStageVideo(tile)&&tile.currentTime>previousTime+0.5),30000);
-   stage.push({actor:'Outsider',observation:'local-camera',tiles:guestTracks},{actor:'Host',observation:'remote-guest-decoded',tiles:advancing});checks.push('Existing outsider accepted the public-stream guest invitation and published a synthetic camera through real Daily to the host');
+   stage.push({actor:'Outsider',observation:'local-camera',tiles:guestTracks},{actor:'Host',observation:'remote-guest-decoded',tiles:advancing});checks.push('Approved guest explicitly joined their camera and published a synthetic camera through real Daily to the host');
+   const automatic=await automaticPublication;controls.push({actor:'Host',endpoint:'live-control',action:'scene',automatic:true,...automatic});
+   assert.equal(automatic.status,200,'Connected guest was not automatically selected for broadcast');assert.equal(automatic.ok,true,'Automatic guest publication was not accepted');checks.push('Joining the approved guest automatically published the host and guest interview scene without manual camera selection');
+   await hostStudio.locator('summary').filter({hasText:'Stream tools and team'}).click();
    await hostStudio.getByRole('button',{name:'Camera grid',exact:true}).click();const sources=hostStudio.getByRole('checkbox');await sources.nth(1).waitFor();assert.equal(await sources.count(),2,'Expected only the host and invited guest cameras');await sources.nth(0).check();await sources.nth(1).check();
    const [sceneResponse]=await Promise.all([host.waitForResponse(r=>new URL(r.url()).origin===origin&&new URL(r.url()).pathname==='/functions/v1/live-control'&&r.request().postDataJSON()?.action==='scene'),hostStudio.getByRole('button',{name:'Apply scene',exact:true}).click()]);
    const sceneBody=sceneResponse.request().postDataJSON(),sceneResult=await sceneResponse.json(),selected=sceneBody?.scene?.participant_ids;
@@ -188,17 +212,23 @@ async function main(){
    await host.getByLabel('Stream title, optional').fill('QA Live '+label+' '+process.env.GITHUB_RUN_ID);await host.getByLabel('Who can watch').selectOption(audience);await host.getByRole('button',{name:'More options',exact:true}).click();await host.getByLabel('Save replay and enable clips',{exact:false}).check();
    await host.screenshot({path:path.join(evidence,label+'-01-create.png'),fullPage:true});
    await host.getByRole('button',{name:'Preview camera',exact:true}).click();await host.getByRole('heading',{name:'Camera preview',exact:true}).waitFor();await host.waitForFunction(()=>Array.from(document.querySelectorAll('video')).some(video=>video.readyState>=2),{},{timeout:45000});
+   await host.getByLabel('Broadcast format',{exact:true}).selectOption('portrait');
    sessionId=new URL(host.url()).pathname.split('/')[2];assert.match(sessionId,/^[a-f0-9-]{36}$/);sessionIds.push(sessionId);checks.push(label+': actual QA host joined Daily with a synthetic camera');
    await host.getByRole('button',{name:'Enable microphone',exact:true}).click();await host.getByRole('button',{name:'Mute microphone',exact:true}).waitFor();
    const starting=host.waitForResponse(r=>new URL(r.url()).pathname.endsWith('/live-control')&&r.request().postDataJSON()?.action==='start');await host.getByRole('button',{name:'Go live',exact:true}).click();const response=await starting,result=await response.json();assert.equal(response.status(),200,'Real start request failed: '+String(result.error));assert.equal(result.ok,true,'Start acknowledgement missing');
-   await host.waitForFunction(()=>Array.from(document.querySelectorAll('span')).some(node=>node.textContent==='LIVE'),{},{timeout:90000});checks.push(label+': signed provider event confirmed LIVE');await host.screenshot({path:path.join(evidence,label+'-02-host-live.png'),fullPage:true});return sessionId;
+   assert.equal(response.request().postDataJSON()?.scene?.orientation,'portrait','Actual format selector did not request portrait output');
+   await host.waitForFunction(()=>Array.from(document.querySelectorAll('span')).some(node=>node.textContent==='LIVE'),{},{timeout:90000});assert.equal(await host.getByLabel('Broadcast format',{exact:true}).isDisabled(),true,'Live output format remained editable after start');checks.push(label+': actual portrait selection reached the provider and signed event confirmed LIVE');await host.screenshot({path:path.join(evidence,label+'-02-host-live.png'),fullPage:true});return sessionId;
   }
   async function stopBroadcast(label){
    const stopping=host.waitForResponse(r=>new URL(r.url()).pathname.endsWith('/live-control')&&r.request().postDataJSON()?.action==='stop');await host.getByRole('button',{name:'End broadcast',exact:true}).click();const response=await stopping,result=await response.json();assert.equal(response.status(),200,'Real stop request failed: '+String(result.error));assert.equal(result.ok,true,'Stop acknowledgement missing');
    await until(label+' provider-confirmed end',()=>actorRpc(host,'live_session',{p_session_id:sessionId}),data=>data.session?.state==='ended'&&!!data.session.ended_at,90000);
    await host.waitForFunction(()=>Array.from(document.querySelectorAll('span')).some(node=>['ENDED','REPLAY'].includes(node.textContent||'')),{},{timeout:30000});await host.getByRole('button',{name:'End broadcast',exact:true}).waitFor({state:'detached'});checks.push(label+': signed provider end released the broadcast and removed studio controls');
   }
-  async function watch(page,id){await page.goto(base+'/live/'+id);await page.getByRole('button',{name:'Watch live',exact:true}).click();await page.waitForFunction(()=>Array.from(document.querySelectorAll('[data-live-player] video')).some(video=>video.readyState>=2&&video.currentTime>2&&!video.paused),{},{timeout:90000});}
+  async function watch(page,id){await page.goto(base+'/live/'+id);await page.getByRole('button',{name:'Watch live',exact:true}).click();await page.waitForFunction(()=>Array.from(document.querySelectorAll('[data-live-player] video')).some(video=>video.readyState>=2&&video.currentTime>2&&!video.paused),{},{timeout:90000});
+   const decoded=await page.locator('[data-live-player] video').evaluate(video=>({width:video.videoWidth,height:video.videoHeight,readyState:video.readyState,currentTime:Math.round(video.currentTime*1000)/1000}));
+   assert.equal(decoded.width>0&&decoded.height>decoded.width&&Math.abs(decoded.width/decoded.height-9/16)<0.01,true,'Actual HLS decoder did not receive portrait9:16 video');
+   players.push({actor:actors.find(actor=>actor.page===page)?.label,observation:'decoded-portrait-hls',stream:sessionIds.indexOf(id)+1,...decoded});checks.push('Actual follower HLS decoder received progressing portrait9:16 video');
+  }
   const privateId=await startBroadcast('followers','private');
   const viewer=await actor('Viewer');await watch(viewer,privateId);checks.push('Separate follower browser decoded protected live HLS video');await viewer.screenshot({path:path.join(evidence,'private-03-viewer-live.png'),fullPage:true});
   const audio=await viewer.locator('[data-live-player] video').evaluate(video=>{const stream=video.captureStream(),tracks=stream.getAudioTracks();const count=tracks.length;stream.getTracks().forEach(track=>track.stop());return count;});assert.ok(audio>0,'Live HLS has no decoded audio track');checks.push('Protected HLS contains a decoded audio track from the enabled host microphone');
@@ -218,6 +248,7 @@ async function main(){
   // controller correctly avoids a duplicate leave when the player then closes.
   await until('Viewer acknowledged retirement',async()=>presence,events=>viewerPresenceRetired(events,privateStream),30000);
   await host.getByText('0 watching',{exact:true}).first().waitFor({timeout:95000});assert.ok(viewerPresenceRetired(presence,privateStream),'Viewer registered again after playback closed');checks.push('Closing playback retired only that player and measured viewers returned to zero');
+  await exerciseInvitation(viewer,fixture.actors.find(actor=>actor.label==='Viewer'),privateId);
   await stopBroadcast('private');
 
   // Public fixture stream is separate. Private footage must never be published

@@ -44,7 +44,7 @@ function harness(role = 'host') {
   let cursor = 0, dirty = false, tree, serial = 0;
   const client = {}, identity = { owner: ownerId, scope: 'synthetic-owner-scope' };
   const navigation = { subscribe() { return () => {}; }, getSnapshot: () => identity, getServerSnapshot: () => identity };
-  const playback = { session: null, close() {} };
+  const playback = { session: null, closeCalls:0, close() { this.closeCalls++; } };
   const same = (left, right) => left && right && left.length === right.length
     && left.every((value, index) => Object.is(value, right[index]));
   const react = {
@@ -95,6 +95,7 @@ function harness(role = 'host') {
     '../../shared/liveDirectory': directory.exports,
     './LiveIcon': { LiveIcon: 'LiveIcon' },
     './LivePlaybackProvider': { LivePlayerSlot: 'LivePlayerSlot', useLivePlayback: () => playback },
+    './LiveGuestRequests': { LiveGuestRequests: 'LiveGuestRequests' },
     './LiveChat': { LiveChat: 'LiveChat' }, './LiveStudio': { LiveStudio: 'LiveStudio' },
     './LiveInteractions': { LiveInteractions: 'LiveInteractions', LiveAnalyticsPanel: 'LiveAnalyticsPanel' },
     '@/lib/liveInteractions': { parseLiveInteractions() { throw Error('No synthetic interaction event was delivered.'); } },
@@ -134,7 +135,7 @@ function harness(role = 'host') {
     await flush(); assert.equal(reads.length, 1); reads[0].resolve(detail(overrides, role)); await flush();
   }
   return { ready, flush, selector, choose, button, click, commands, reads, confirmations,
-    answerConfirmation: answer => confirmationAnswers.push(answer), tree: () => tree };
+    answerConfirmation: answer => confirmationAnswers.push(answer), tree: () => tree, playback, refresh:()=>nodes(tree).find(node=>node.props?.['aria-label']==='Refresh stream').props.onClick(), signOut:()=>{identity.owner=null;identity.scope=null;dirty=true;} };
 }
 function settings(h, { mode = 'open', slow = '0', busy = false } = {}) {
   for (const [label, value] of [['Who can chat', mode], ['Slow mode', slow]]) {
@@ -246,4 +247,24 @@ test('settings remain limited to the existing host, producer and moderator roles
     assert.equal(!!h.selector('Slow mode'), permitted, role);
     assert.equal(h.commands.length, 0);
   }
+});
+
+test('a transient refresh failure keeps the same open production studio mounted',async()=>{
+  const h=harness();await h.ready();h.click('Studio');await h.flush();
+  const before=nodes(h.tree()).find(node=>node.type==='LiveStudio');assert.ok(before);
+  h.refresh();await h.flush();h.reads[1].reject(new Error('Network timeout'));await h.flush();
+  const after=nodes(h.tree()).find(node=>node.type==='LiveStudio');assert.ok(after);assert.equal(after.props.detail,before.props.detail);assert.equal(h.playback.closeCalls,0);assert.match(text(h.tree()),/Network timeout/);
+});
+test('an explicit access denial removes the open studio, while signout prevents stale details from rendering',async()=>{
+  const h=harness();await h.ready();h.click('Studio');await h.flush();h.refresh();await h.flush();h.reads[1].reject(new Error('ACCESS_DENIED'));await h.flush();
+  assert.equal(nodes(h.tree()).some(node=>node.type==='LiveStudio'),false);assert.match(text(h.tree()),/ACCESS_DENIED/);
+  const other=harness();await other.ready();other.click('Studio');await other.flush();other.signOut();await other.flush();assert.equal(nodes(other.tree()).some(node=>node.type==='LiveStudio'),false);
+});
+test('a database permission denial also tears down the protected studio',async()=>{
+  const h=harness();await h.ready();h.click('Studio');await h.flush();h.refresh();await h.flush();h.reads[1].reject({message:'Permission denied',code:'42501'});await h.flush();assert.equal(nodes(h.tree()).some(node=>node.type==='LiveStudio'),false);
+});
+
+test('overlapping detail refreshes coalesce into one final authoritative read',async()=>{
+  const h=harness();await h.ready();h.refresh();h.refresh();h.refresh();await h.flush();assert.equal(h.reads.length,2);
+  h.reads[1].resolve(detail());await h.flush();assert.equal(h.reads.length,3);h.reads[2].resolve(detail({chat_mode:'closed'}));await h.flush();settings(h,{mode:'closed'});
 });

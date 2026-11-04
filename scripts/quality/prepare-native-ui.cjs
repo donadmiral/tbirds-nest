@@ -92,11 +92,15 @@ if (versions[0] === 0) for (const [file, pattern] of bridges) {
 const navigator = 'src/navigation/AppNavigator.tsx';
 const { navigationTimingOverlay, inboxTimingOverlay } = require('./native-ui-navigation-overlay.cjs');
 const inputOverlays = require('./native-ui-input-overlay.cjs');
-const { feedVideoOverlay, feedRefreshOverlay } = require('./native-ui-feed-video-overlay.cjs');
+const { feedVideoOverlay, feedRefreshOverlay, livePlaybackFixtureOverlay, liveFrameFixtureOverlay } = require('./native-ui-feed-video-overlay.cjs');
 overlay('src/components/PostCarousel.tsx', feedVideoOverlay(fs.readFileSync('src/components/PostCarousel.tsx', 'utf8')),
   'Disposable native playback accessibility observation of actual first frame, ownership, source readiness and progressing native clock. No player callbacks or behavior changes.');
 overlay('src/screens/feed/FeedScreen.tsx', feedRefreshOverlay(fs.readFileSync('src/screens/feed/FeedScreen.tsx', 'utf8')),
   'Disposable observation of the original refresh promise and actual get_feed request count before and after it. Original work, results and errors remain unchanged.');
+overlay('src/contexts/LivePlaybackContext.tsx', livePlaybackFixtureOverlay(fs.readFileSync('src/contexts/LivePlaybackContext.tsx', 'utf8')),
+  'Explicit synthetic media substitution: the validated fixture ticket plays packaged local MP4 through the actual native player. Records progressing native time. No provider or HLS acceptance claim.');
+overlay('src/screens/feed/LiveSessionScreen.tsx', liveFrameFixtureOverlay(fs.readFileSync('src/screens/feed/LiveSessionScreen.tsx', 'utf8')),
+  'Observe the actual immersive native Live first-frame callback. Screen controls, layout and navigation are unchanged.');
 const navigatorSource = inputOverlays.navigationInputOverlay(navigationTimingOverlay(fs.readFileSync(navigator, 'utf8')));
 for (const [file, transform] of [
   ['src/components/LiveUi.tsx', inputOverlays.liveUiInputOverlay],

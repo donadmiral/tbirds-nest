@@ -79,6 +79,7 @@ function harness({ initialPin = null, actualParent = false } = {}) {
     'lucide-react': Object.fromEntries(['ArrowLeft', 'Bell', 'CalendarDays', 'Clapperboard', 'Radio', 'RefreshCw', 'Share2', 'Users'].map(name => [name, name])),
     '@/lib/supabase/client': { createClient: () => client }, '@/lib/navigationCache': { getNavigationStore: () => navigation }, '@/lib/liveApi': api,
     '../../shared/liveDirectory': directory, './LiveIcon': { LiveIcon: 'LiveIcon' }, './LivePlaybackProvider': { LivePlayerSlot: 'LivePlayerSlot', useLivePlayback: () => playback },
+    './LiveGuestRequests': { LiveGuestRequests: 'LiveGuestRequests' },
     './LiveChat': { LiveChat: 'ActualChatSlot' }, './LiveStudio': { LiveStudio: 'LiveStudio' }, './LiveInteractions': { LiveInteractions: 'LiveInteractions', LiveAnalyticsPanel: 'LiveAnalyticsPanel' },
     '@/lib/liveInteractions': { parseLiveInteractions: () => null },
   }, { window: { location: { search: '' } }, URLSearchParams }).LiveSessionView : null;
@@ -170,7 +171,14 @@ for (const event of ['pin', 'unpin', 'remove']) test('canonical web detail canno
     assert.equal(app.pinnedBody(), expected, gap + ': a newer ' + event + ' wins regardless of parent render order');
     assert.equal(app.parentPin()?.id ?? null, event === 'pin' ? id(2) : null, 'The parent also retains the later pin state');
     assert.equal(find(app.render(), 'aria-label', 'Message the live chat').props.disabled, true, 'Other canonical fields still apply');
-    assert.equal(app.details.length, 2);
+    assert.equal(app.details.length, gap === 'visibility' ? 3 : 2);
+    // Visibility and resubscribe overlap. The merged parent coalesces them into
+    // one final read, which starts after the pin event and confirms its state.
+    if (gap === 'visibility') {
+      await app.detail(2, event === 'pin' ? message(2) : null, { capabilities: { chat: false } });
+      assert.equal(app.pinnedBody(), expected);
+      assert.equal(app.details.length, 3);
+    }
   }
 });
 
@@ -196,8 +204,9 @@ test('canonical web detail reconciles missed pins and later reads when no newer 
     app.parentPatch({ session: { id: sessionId, state: 'reconnecting' } });
     await app.history(1, page(101)); await app.detail(1, canonicalPin);
     assert.equal(app.pinnedBody(), canonicalPin?.body ?? null, 'A non-pin patch must not suppress canonical reconciliation');
+    if (gap === 'visibility') await app.detail(2, canonicalPin);
     app.emit('pin', { message: message(3) }); await app.commitParent();
-    app.status('CHANNEL_ERROR'); app.status('SUBSCRIBED'); await app.history(2, page(101)); await app.detail(2, null);
+    app.status('CHANNEL_ERROR'); app.status('SUBSCRIBED'); await app.history(2, page(101)); await app.detail(app.details.length - 1, null);
     assert.equal(app.pinnedBody(), null, 'A later read reconciles changes after the prior event');
   }
 });

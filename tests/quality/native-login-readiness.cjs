@@ -121,11 +121,12 @@ test('iOS must dismiss the observed keyboard and retain one enabled Sign in butt
 
 test('all existing Android actions and every post-login Live/navigation requirement are preserved', () => {
   // Fixed hashes from reviewed 72bbaebb, independent of Git history in shallow CI.
-  const original = flow.filter(command => command.runFlow !== 'feed-video.yaml');
+  const additions = new Set(['feed-video.yaml', 'live-immersive.yaml', 'reveal-live-tab.yaml', 'reveal-feed-tabs.yaml']);
+  const original = flow.filter(command => !additions.has(command.runFlow));
   assert.equal(flow.filter(command => command.runFlow === 'feed-video.yaml').length, 1);
   assert.equal(sha(project(original, 'Android')), 'cfd5e880e7283b4b7e93062abaf6f3329d57c6f5a7f0eb75d672c5333b154a5b');
   const index = flow.findIndex(command => command.tapOn === 'Sign in');
-  assert.equal(sha(flow.slice(index + 1).filter(command => command.runFlow !== 'feed-video.yaml')), '62022480a47c567ab5b60832554d47fd80eab18f8cbb6d1a98a3909a342183e2');
+  assert.equal(sha(flow.slice(index + 1).filter(command => !additions.has(command.runFlow))), '62022480a47c567ab5b60832554d47fd80eab18f8cbb6d1a98a3909a342183e2');
   assert.equal(flow[index + 1].extendedWaitUntil.timeout, 30000);
   assert.equal(flow.filter(command => command.launchApp).length, 1);
 });

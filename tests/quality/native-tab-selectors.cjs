@@ -156,6 +156,6 @@ test('native flows select all main tabs by their rendered IDs and preserve the n
       }
     }
   }
-  assert.deepEqual(ids, ['main-tab-messages', 'main-tab-feed', 'main-tab-market', 'main-tab-feed', 'main-tab-jobs', 'main-tab-messages',
+  assert.deepEqual(ids, ['main-tab-feed', 'main-tab-feed', 'main-tab-messages', 'main-tab-feed', 'main-tab-feed', 'main-tab-market', 'main-tab-feed', 'main-tab-jobs', 'main-tab-messages',
     'main-tab-profile', 'main-tab-feed', 'main-tab-messages', 'main-tab-feed']);
 });

@@ -28,7 +28,7 @@ function persist(receipt) {
     writing = writing.then(() => FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'native-ui-receipt.json', snapshot));
   }, 100);
 }
-const fixture = createFixture(persist, { feedVideoSource: () => require('./feed-video-asset.cjs').feedVideoSource() });
+const fixture = createFixture(persist, { feedVideoSource: () => require('./feed-video-asset.cjs').feedVideoSource(), immersiveLive: true });
 installFixtureRuntime(fixture);
 installFixtureTransport(fixture, FixtureWebSocket);
 installInputDiagnostics({
@@ -71,11 +71,9 @@ linking.getStateFromPath = function (path, ...args) {
 const defaultLinkAction = linking.getActionFromState || getActionFromState;
 linking.getActionFromState = (state, options) => {
   try {
-    // Use the same normal navigation action as production memory navigation.
-    // Keep prior screens, providers and the existing signed-in runtime intact.
-    // An earlier failed flow or blocking modal still fails the required journey.
+    // Keep the same normal navigation action as production memory navigation.
+    // A prior failed flow or blocking modal still fails the required journey.
     const action = defaultLinkAction(state, options);
-    // Linking dispatches after this returns. Mount is observed separately.
     observeCaptureBoundary(fixture, action === undefined ? 'action-empty' : 'action-produced', () => ({ matched: isCaptureState(state), reset: action?.type === 'RESET' }));
     return action;
   } catch (error) {

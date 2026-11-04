@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useLiveStoryPresence } from "@/lib/useLiveStoryPresence";
+import type { LiveSession } from "../../shared/liveDirectory";
 import { Fragment, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { displayImageUrl } from "@/lib/media";
 import type { CatchupUser } from "@/lib/stories";
@@ -29,12 +31,32 @@ function PlatinumRingWeb({ userId, size, active }: { userId: string; size: numbe
   );
 }
 
+function liveBubble(session: LiveSession, onStory?: () => void, own = false) {
+  const name = session.host.full_name || session.host.username || "Member";
+  return <div key={session.host.id} className="relative flex w-16 shrink-0 flex-col items-center">
+    <Link href={`/live/${session.id}`} data-testid={`story-live-${session.host.id}`} aria-label={`Watch ${name} live`} className="flex w-full flex-col items-center gap-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2">
+      <span className="relative flex h-[62px] w-[62px] items-center justify-center rounded-full border-[2.5px] border-[#D92547]">
+        {session.host.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={displayImageUrl(session.host.avatar_url, 160) ?? session.host.avatar_url} alt="" className="h-[50px] w-[50px] rounded-full object-cover" />
+        ) : <span className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-surface text-ink">{name.charAt(0).toUpperCase()}</span>}
+        <span className="absolute -bottom-1.5 rounded border-2 border-white bg-[#C8193B] px-1.5 py-0.5 text-[9px] font-extrabold leading-none tracking-wide text-white">LIVE</span>
+      </span>
+      <span className="w-full truncate text-center text-[11px] text-ink">{own ? "You" : name.split(" ")[0]}</span>
+    </Link>
+    {onStory ? <button type="button" data-testid={`story-story-${session.host.id}`} aria-label={`View ${own ? "your" : name + "'s"} story`} onClick={onStory} className="flex min-h-11 min-w-11 items-center justify-center rounded text-[11px] font-semibold text-ink underline">Story</button> : null}
+    {own ? <Link href="/story/new" aria-label="Create a story" className="absolute -right-3 top-[20px] flex h-11 w-11 items-center justify-center rounded-full"><span className="flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-on-pearl">+</span></Link> : null}
+  </div>;
+}
+
 export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
   const [store] = useState(getNavigationStore);
   const session = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
   const [memory, setMemory] = useState(() => storyNavigationMemory(mode));
   const currentMemory = memory?.scope === session.scope && memory.mode === mode ? memory : storyNavigationMemory(mode);
   const users = currentMemory?.users.slice(0, 30) ?? [], spot = currentMemory?.spot ?? [];
+  const liveSessions = useLiveStoryPresence();
+  const liveByHost = new Map(liveSessions.map(live => [live.host.id, live]));
   const myId = session.owner, myAvatar = currentMemory?.avatar ?? null;
   const [viewer, setViewer] = useState<{ scope: string; users: CatchupUser[]; index: number; initialStoryId?: string } | null>(null);
   const [error, setError] = useState<{ scope: string; mode: string } | null>(null);
@@ -78,6 +100,9 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
   // Your own stories live under Your story, not as a second person in the row.
   const mineIdx = myId ? users.findIndex((u) => u.user_id === myId) : -1;
   const mine = mineIdx >= 0 ? users[mineIdx] : null;
+  const ownLive = myId ? liveByHost.get(myId) : undefined;
+  const storyHosts = new Set([...users, ...spot].map(user => user.user_id));
+  const liveOnly = liveSessions.filter(live => live.host.id !== myId && !storyHosts.has(live.host.id));
   const ownAvatar = (
     <span className="relative block h-[62px] w-[62px]">
       {mine && myId ? <PlatinumRingWeb userId={myId} size={62} active={false} /> : null}
@@ -92,7 +117,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
     <>
       <div className="relative mb-4 flex min-h-[118px] gap-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white px-4 py-4" aria-label="Stories">
         {error?.scope === session.scope && error.mode === mode ? <button type="button" onClick={() => refreshRef.current()} className="absolute right-2 top-1 rounded bg-surface px-2 py-1 text-[10px] text-muted" aria-label="Retry story refresh">Stories could not refresh · Retry</button> : null}
-        <div className="relative w-16 shrink-0">
+        {ownLive ? liveBubble(ownLive, mine ? () => openAt(mineIdx) : undefined, true) : <div className="relative w-16 shrink-0">
           {mine ? <button type="button" onClick={() => openAt(mineIdx)} aria-label="View your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
             {ownAvatar}
             <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
@@ -101,11 +126,12 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
             <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
           </Link>}
           <Link href="/story/new" aria-label="Create a story" className="absolute -right-3 top-[31px] flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"><span className="flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-on-pearl" aria-hidden="true">+</span></Link>
-        </div>
+        </div>}
+        {liveOnly.map(live => liveBubble(live))}
         {[...users, ...spot].map((u, i) => (u.user_id === myId ? null : (
           <Fragment key={u.user_id}>
           {i === users.length && spot.length > 0 ? <span className="my-2 w-px shrink-0 self-stretch bg-ink/10" title="Spotlight: public stories from people you don't follow" aria-hidden /> : null}
-          <button onClick={() => openAt(i)} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+          {liveByHost.has(u.user_id) ? liveBubble(liveByHost.get(u.user_id)!, () => openAt(i)) : <button onClick={() => openAt(i)} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
             <span className="relative block h-[62px] w-[62px]">
               <PlatinumRingWeb userId={u.user_id} size={62} active={!!u.has_unseen} />
               <span className="absolute inset-[4px] overflow-hidden rounded-full bg-ink">
@@ -123,7 +149,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
             <span className={"w-full truncate text-center text-[11px] " + (u.has_unseen ? "text-ink" : "text-muted")}>
               {u.full_name?.split(" ")[0] ?? u.username}
             </span>
-          </button>
+          </button>}
           </Fragment>
         )))}
       </div>

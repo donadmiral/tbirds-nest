@@ -12,10 +12,10 @@ const object = value => !!value && typeof value === 'object' && !Array.isArray(v
 const deferred = () => { let resolve, reject; const promise = new Promise((done, fail) => { resolve = done; reject = fail; }); return { promise, resolve, reject }; };
 const nodes = value => !value || typeof value !== 'object' ? [] : Array.isArray(value) ? value.flatMap(nodes) : [value, ...nodes(value.props?.children)];
 const words = value => Array.isArray(value) ? value.map(words).join('') : typeof value === 'string' ? value : value?.props ? words(value.props.children) : '';
-function harness({ deferCommands = false } = {}) {
+function harness({ deferCommands = false, overlay = false, compact = false, collapseHistory = false } = {}) {
   let focused = true, appStateListener = () => {}, requestSerial = 1000;
-  let cursor = 0, effects = [], slots = [], currentProps = { id: sid, topic, enabled: true, canModerate: true, pinned: null, onChanged() {}, onUpdate(value) { if ('pinned_message' in value) currentProps.pinned = value.pinned_message; if (value.removed_message_id && currentProps.pinned?.id === value.removed_message_id) currentProps.pinned = null; } };
-  const pages = [], channels = [], commands = [], pendingCommands = [], scrolls = [];
+  let cursor = 0, effects = [], slots = [], currentProps = { id: sid, topic, enabled: true, canModerate: true, overlay, compact, collapseHistory, pinned: null, onChanged() {}, onUpdate(value) { if ('pinned_message' in value) currentProps.pinned = value.pinned_message; if (value.removed_message_id && currentProps.pinned?.id === value.removed_message_id) currentProps.pinned = null; } };
+  const pages = [], channels = [], commands = [], pendingCommands = [], scrolls = [], alerts = [];
   const same = (a, b) => !!a && !!b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const react = {
     createElement: (type, props, ...children) => ({ type, props: { ...props, children } }), Fragment: 'Fragment',
@@ -23,7 +23,7 @@ function harness({ deferCommands = false } = {}) {
     useRef(initial) { const i = cursor++; if (!(i in slots)) slots[i] = { current: initial }; return slots[i]; },
     useEffect(fn, deps) { const i = cursor++; if (!same(slots[i]?.deps, deps)) effects.push(() => { slots[i]?.cleanup?.(); slots[i] = { deps, cleanup: fn() }; }); },
   };
-  const rn = new Proxy({ StyleSheet: { create: x => x }, AppState: { currentState: 'active', addEventListener: (_event, callback) => { appStateListener = callback; return { remove() {} }; } } }, { get: (target, key) => key in target ? target[key] : key });
+  const rn = new Proxy({ StyleSheet: { create: x => x }, Alert: {alert:(...args)=>alerts.push(args)}, AppState: { currentState: 'active', addEventListener: (_event, callback) => { appStateListener = callback; return { remove() {} }; } } }, { get: (target, key) => key in target ? target[key] : key });
   const imports = {
     react, 'react-native': rn, '@react-navigation/native': { useIsFocused: () => focused },
     '../theme/useTheme': { useTheme: () => ({ t: { ink: { primary: '#111', secondary: '#666', muted: '#888' }, surface: { sunken: '#eee' } } }) },
@@ -37,11 +37,11 @@ function harness({ deferCommands = false } = {}) {
   const source = ts.transpileModule(fs.readFileSync(path.join(root, 'src/components/LiveChat.tsx'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React, esModuleInterop: true } }).outputText;
   const module = { exports: {} };
   vm.runInNewContext(source, { module, exports: module.exports, require: name => { if (!(name in imports)) throw Error(name); return imports[name]; }, console, Date, Map, Set, Promise });
-  const render = () => { cursor = 0; const tree = module.exports.LiveChat(currentProps); const list = nodes(tree).find(node => node.type === 'FlatList'); list.props.ref.current = { scrollToEnd: options => scrolls.push(options) }; return tree; };
+  const render = () => { cursor = 0; const tree = module.exports.LiveChat(currentProps); const list = nodes(tree).find(node => node.type === 'FlatList'); if(list)list.props.ref.current = { scrollToEnd: options => scrolls.push(options) }; return tree; };
   const settle = async () => { const pending = effects; effects = []; pending.forEach(fn => fn()); await new Promise(resolve => setImmediate(resolve)); };
   const list = () => nodes(render()).find(node => node.type === 'FlatList');
   const button = label => nodes(render()).find(node => node.type === 'TouchableOpacity' && words(node) === label);
-  return { render, settle, pages, channels, commands, pendingCommands, scrolls, list, button, props: currentProps,
+  return { render, settle, pages, channels, commands, pendingCommands, scrolls, alerts, list, button, props: currentProps,
     setFocused(value) { focused = value; }, setAppState(value) { appStateListener(value); },
     input: () => nodes(render()).find(node => node.type === 'TextInput'), emit(event, payload) { channels.at(-1).handlers[event]({ payload }); }, async start() { render(); await settle(); channels.at(-1).status('SUBSCRIBED'); } };
 }
@@ -207,4 +207,30 @@ for (const failure of [false, true]) test('old native command ' + (failure ? 'fa
   assert.doesNotMatch(words(app.render()), /Old room failure/);
   app.button('Send').props.onPress(); assert.equal(app.commands.length, 2);
   app.pendingCommands[1].resolve({ ok: true }); await app.settle(); assert.equal(app.input().props.value, '');
+});
+
+
+test('immersive chat shows replies over the video and keeps actual send/reaction controls', async () => {
+  const app = harness({ overlay: true }); await app.start();
+  app.emit('message', message(1, {author:{username:'guest',full_name:'Guest'}}));
+  assert.ok(nodes(app.render()).some(node=>node.props?.testID==='live-overlay-chat'));
+  assert.equal(app.list().props.style.height,166);
+  app.list().props.renderItem({item:app.list().props.data[0]}).props.onPress();
+  app.alerts[0][2].find(action=>action.text==='Reply').onPress();
+  assert.equal(app.input().props.value,'@guest ');
+  app.input().props.onChangeText('@guest Hello');
+  nodes(app.render()).find(node=>node.props?.accessibilityLabel==='Send comment').props.onPress();await app.settle();
+  assert.equal(app.commands[0][0],'chat');assert.equal(app.commands[0][2].body,'@guest Hello');
+  nodes(app.render()).find(node=>node.props?.accessibilityLabel==='Heart').props.onPress();await app.settle();
+  assert.equal(app.commands[1][0],'reaction');assert.equal(app.commands[1][2].reaction,'heart');
+});
+
+
+test('compact live chat keeps its composer while history is collapsed and can restore replies', async () => {
+  const app=harness({overlay:true,compact:true,collapseHistory:true});await app.start();
+  app.emit('message',message(1));
+  assert.equal(app.list(),undefined);assert.ok(app.input());assert.ok(app.button('Show comments'));
+  app.button('Show comments').props.onPress();
+  assert.equal(app.list().props.style.height,64);assert.equal(app.list().props.data[0].body,'message 1');
+  app.button('Hide comments').props.onPress();assert.equal(app.list(),undefined);assert.ok(app.input());
 });

@@ -27,6 +27,19 @@ if (fixture.mode !== 'synthetic-native-ui' || fixture.networkForwarded !== false
 if (!(fixture.feedRefreshes || []).some(row => row.completed === true && row.after > row.before)) {
   throw new Error('The native pull-to-refresh gesture did not complete an actual get_feed request.');
 }
+const immersive = fixture.immersiveLive;
+const viewerLive = '90000000-0000-4000-8000-000000000001';
+const producerLive = '90000000-0000-4000-8000-000000000002';
+if (immersive?.enabled !== true || immersive.providerAcceptance !== false || immersive.providerStageConnected !== false
+  || !immersive.frames.includes(viewerLive) || !immersive.progress.some(row => row.id === viewerLive && row.seconds > 0.2)) {
+  throw new Error('The immersive screen did not render and advance its actual packaged native video.');
+}
+for (const [sessionId, action] of [[viewerLive, 'request_join'], [viewerLive, 'cancel_join_request'], [viewerLive, 'chat'], [producerLive, 'accept_join_request']]) {
+  const rows = immersive.commands.filter(row => row.sessionId === sessionId && row.action === action);
+  if (rows.length !== 1 || rows[0].owner !== '10000000-0000-4000-8000-000000000001') throw new Error('The immersive native flow did not confirm exactly one ' + action);
+  if (action === 'chat' && rows[0].payload.body !== '@qa_jordan Thanks for sharing this live.') throw new Error('The real native reply did not preserve the selected author.');
+  if (action === 'accept_join_request' && rows[0].payload.user_id !== '10000000-0000-4000-8000-000000000002') throw new Error('The producer did not approve the selected guest.');
+}
 const required = ['/auth/v1/token', '/rest/v1/rpc/get_feed', '/rest/v1/rpc/get_profile', '/rest/v1/jobs',
   '/rest/v1/rpc/live_directory',
   '/rest/v1/marketplace_listings', '/rest/v1/conversations', '/functions/v1/crisp-bridge',
@@ -59,7 +72,7 @@ function collect(directory) {
   });
 }
 const captured = collect(path.join(evidence, 'maestro'));
-const screenshots = ['home', 'feed-video-playing', 'feed-video-returned', 'feed-video-refreshed', 'feed-video-resumed', 'live-directory', 'live-start', 'live-schedule', 'market', 'jobs', 'messages', 'profile', 'settings', 'returned-home',
+const screenshots = ['home', 'feed-video-playing', 'feed-video-returned', 'feed-video-refreshed', 'feed-video-resumed', 'live-story-ring', 'live-immersive-viewer', 'live-request-pending', 'live-immersive-reply', 'live-guest-approved', 'live-directory', 'live-start', 'live-schedule', 'market', 'jobs', 'messages', 'profile', 'settings', 'returned-home',
   'memory-shelf', 'memory-reader', 'memory-film', 'memory-export-entry', 'memory-cover-edited', 'memory-film-reloaded',
   'captured-memory-ready', 'captured-memory-cleanup'].map(name => {
   const candidates = captured.filter(file => path.basename(file) === name + '.png');
@@ -80,6 +93,8 @@ fs.writeFileSync(path.join(evidence, 'receipt.json'), JSON.stringify({ passed: t
   authAndMainNavigation: true, unsupportedFixtureRequests: fixture.unhandled.length,
   liveDirectoryAndSetupScreens: true, liveProviderAcceptance: false,
   firstFeedVideoScrollRefreshAndResume: true,
+  immersiveNativeLayoutAndPackagedVideo: true, liveStoryRingEntryAndReturn: true,
+  liveOverlayReplyAndGuestRequestCancel: true, producerGuestApproval: true, multiParticipantProviderAcceptance: false,
   memoryCaptureAndMovie: true, memoryEvidence: 'memory-capture/decoded.json',
   profileMemoryShelfReaderAutomaticFilmAndExportEntry: true,
   ownerCoverAndFilmSettingsSavedAndReopened: true, memoryBookSavedRevision: bookSaves[0].revision,

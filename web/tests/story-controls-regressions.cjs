@@ -10,7 +10,7 @@ function shared(name) { const file = path.resolve(__dirname, '../../shared', nam
 
 const nodes = node => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(nodes) : [node,...nodes(node.props?.children)];
 const content = node => typeof node === 'string' ? node : Array.isArray(node) ? node.map(content).join('') : content(node?.props?.children ?? '');
-function scenario(name, { own=true, video=false, hasStories=true, warm=false, holdNavigation=null, navigationError=false } = {}) {
+function scenario(name, { own=true, video=false, hasStories=true, warm=false, holdNavigation=null, navigationError=false, liveSessions=[] } = {}) {
   let cursor=0,dirty=true,tree,effects=[],id=0,reactions=0,closed=0;
   const slots=[],intervals=new Map(),timeouts=new Map(),listeners=new Map();
   const story={id:'story',user_id:'author',media_type:video?'video':'image',media_url:'https://media.test/story',caption:'Caption remains readable',duration_sec:10,created_at:'2026-10-22T12:00:00Z'};
@@ -28,6 +28,7 @@ function scenario(name, { own=true, video=false, hasStories=true, warm=false, ho
   const client={auth:{onAuthStateChange:fn=>{authListener=fn;return{data:{subscription:{unsubscribe(){authListener=null;}}}};},getSession:async()=>({data:{session:{user:{id:identity}}}})},rpc:async()=>({data:[],error:null}),from(){const query={select(){return query;},eq(){return query;},in(){return query;},maybeSingle(){return query;},then(ok,bad){return Promise.resolve({data:[],error:null}).then(ok,bad);}};return query;}};
   const document={hidden:false,addEventListener:(n,fn)=>listeners.set(n,fn),removeEventListener:n=>listeners.delete(n),createElement:()=>({removeAttribute(){},load(){}})};
   const imports={react:hooks,'next/link':{__esModule:true,default:'a'},'@/lib/soundtrack':{soundtrackFromValue:()=>null},'../../shared/navigationCache':shared('navigationCache'),'../../shared/storyColorMatrix':shared('storyColorMatrix'),'../../shared/trendingStories':{loadTrendingStories:async()=>[]},'@/lib/contentMedia':{hydrateStoryMedia:async rows=>rows},'react/jsx-runtime':{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})},'@/lib/supabase/client':{createClient:()=>client},'@/lib/media':{displayImageUrl:x=>x},'@/lib/feed':{timeAgo:()=> 'now'},'@/lib/stories':{getCatchupFeed:async()=>hasStories?[user]:[],getUserStories:async()=>identity?[story]:[],getStoryPoll:async()=>null,getMyStoryReactions:async()=>[],markStoryViewed:async()=>{},toggleStoryReaction:async()=>{reactions++;return{reacted:true};},REACTION_EMOJIS:['heart'],STORY_FILTERS:[]}};
+  imports['@/lib/useLiveStoryPresence']={useLiveStoryPresence:()=>liveSessions};
   imports['@/lib/navigationCache']={getNavigationStore:()=>navigationStore};
   imports['@/lib/storyNavigation']={storyNavigationMemory:()=>warm&&navSnapshot.scope===warmMemory.scope?warmMemory:null,loadStoryNavigation:async mode=>{if(holdNavigation)await holdNavigation;if(navigationError)throw Error('Offline');return{scope:navSnapshot.scope,owner:identity,mode,checkedAt:Date.now(),users:hasStories?[user]:[],spot:[],avatar:null};}};
   imports['@/lib/stories'].getRingUsers=async()=>{if(holdNavigation)await holdNavigation;return hasStories?[user]:[];};
@@ -37,6 +38,7 @@ function scenario(name, { own=true, video=false, hasStories=true, warm=false, ho
   const props=name==='StoryViewer'?{users:[user],startIndex:0,onClose(){closed++;}}:name==='StoryAvatar'?{userId:'author',name:'Author',avatarUrl:null}:{};
   function render(){let n=0;while(dirty){if(++n>40)throw Error('Render loop');dirty=false;cursor=0;tree=exports[name](props);nodes(tree).forEach(node=>{if(node.type==='video'&&node.props.ref)node.props.ref.current=player;if(node.type==='StoryMedia'&&node.props.active)node.props.player.current=player;});const pending=effects;effects=[];pending.forEach(fn=>fn());}return tree;}
   render();return{get tree(){return render();},get intervals(){return intervals.size;},get reactions(){return reactions;},get closed(){return closed;},player,
+    redraw(){dirty=true;render();},
     button(label){return nodes(render()).find(n=>n.type==='button'&&n.props['aria-label']===label);},
     async flush(){for(let n=0;n<8;n++){await new Promise(resolve=>setImmediate(resolve));render();}},
     click(label,detail=1){const b=this.button(label);assert.ok(b,label);b.props.onClick({detail});render();},
@@ -140,4 +142,25 @@ test('typing into a question sticker pauses playback until focus leaves the fiel
   surface.props.onFocusCapture({target:{closest:()=>({})}});assert.equal(h.intervals,0);
   surface.props.onPointerDownCapture({button:0,isPrimary:true,clientX:10,clientY:10});h.timeout(200);surface.props.onPointerUpCapture();assert.equal(h.intervals,0);
   surface.props.onBlurCapture({relatedTarget:null});assert.equal(h.intervals,1);h.unmount();
+});
+
+const liveHost = (host, id='broadcast') => ({ id, state:'live', ended_at:null, host:{ id:host, full_name:'Live Author', username:'author', avatar_url:null } });
+test('a live own ring keeps story and create controls separate from the live destination',async()=>{
+  const h=scenario('StoryRings',{liveSessions:[liveHost('author')]});await h.flush();
+  const link=nodes(h.tree).find(n=>n.props?.['data-testid']==='story-live-author');assert.equal(link.type,'a');assert.equal(link.props.href,'/live/broadcast');assert.ok(content(link).includes('LIVE'));
+  assert.ok(h.button('View your story'));assert.ok(nodes(h.tree).some(n=>n.props?.['aria-label']==='Create a story'));
+  assert.equal(nodes(link).filter(n=>n.type==='button').length,0);h.click('View your story');assert.ok(nodes(h.tree).some(n=>n.type==='StoryViewer'));h.unmount();
+});
+test('followed live hosts without stories appear and a refreshed ended session leaves the row',async()=>{
+  const liveSessions=[liveHost('followed')];const h=scenario('StoryRings',{liveSessions,hasStories:false});await h.flush();
+  assert.ok(nodes(h.tree).some(n=>n.props?.['data-testid']==='story-live-followed'));
+  assert.ok(!nodes(h.tree).some(n=>n.props?.['data-testid']==='story-story-followed'));
+  liveSessions.splice(0);h.redraw();
+  assert.ok(!nodes(h.tree).some(n=>n.props?.['data-testid']==='story-live-followed'));h.unmount();
+});
+test('live badge refresh does not change the captured story viewer sequence',async()=>{
+  const liveSessions=[liveHost('author')];const h=scenario('StoryRings',{liveSessions});await h.flush();h.click('View your story');
+  const before=nodes(h.tree).find(n=>n.type==='StoryViewer').props.users;
+  liveSessions.splice(0);h.redraw();
+  const after=nodes(h.tree).find(n=>n.type==='StoryViewer');assert.equal(after.props.users,before);assert.equal(after.props.users.length,1);assert.equal(after.props.users[0].user_id,before[0].user_id);h.unmount();
 });

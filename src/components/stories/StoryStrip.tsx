@@ -1,3 +1,5 @@
+import { useLiveStoryPresence } from '../../hooks/useLiveStoryPresence';
+import LiveStoryBubble from './LiveStoryBubble';
 import { themedSheet } from '../../theme/useTheme';
 import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
@@ -218,6 +220,8 @@ function StoryStrip({ mode = 'all' }: Props) {
   const navigation = useNavigation<any>();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
+  const liveSessions = useLiveStoryPresence();
+  const liveByHost = new Map(liveSessions.map(session => [session.host.id, session]));
   const loadGeneration = useRef(0);
   const ownerRef = useRef(myId); ownerRef.current = myId;
   useEffect(() => () => { loadGeneration.current++; }, []);
@@ -317,6 +321,8 @@ function StoryStrip({ mode = 'all' }: Props) {
   };
 
   const renderSelfBubble = () => {
+    const live = myId ? liveByHost.get(myId) : undefined;
+    if (live) return <LiveStoryBubble session={live} onStory={myHasStories ? () => openViewer(myId!) : undefined} onCreate={openCreationMenu} />;
     const myCatchup = catchup.find(c => c.user_id === myId);
     const hasUnseen = myCatchup?.has_unseen ?? false;
 
@@ -379,6 +385,8 @@ function StoryStrip({ mode = 'all' }: Props) {
     );
   };
   const renderUserBubble = (user: CatchupUser) => {
+    const live = liveByHost.get(user.user_id);
+    if (live) return <LiveStoryBubble key={user.user_id} session={live} onStory={() => openViewer(user.user_id)} />;
     return (
       <TouchableOpacity
         key={user.user_id}
@@ -404,7 +412,7 @@ function StoryStrip({ mode = 'all' }: Props) {
     );
   };
 
-  if (loading && catchup.length === 0) {
+  if (loading && catchup.length === 0 && liveSessions.length === 0) {
     return (
       <View style={s.container}>
         <ScrollView
@@ -421,10 +429,12 @@ function StoryStrip({ mode = 'all' }: Props) {
   }
 
   const others = catchup.filter(c => c.user_id !== myId);
+  const storyHosts = new Set([...catchup, ...spotlight].map(user => user.user_id));
+  const liveOnly = liveSessions.filter(session => session.host.id !== myId && !storyHosts.has(session.host.id));
 
   // After every hook, never before one: a flag that flips at runtime must
   // not change how many hooks this component calls.
-  if (flagOff) return null;
+  if (flagOff) return liveSessions.length ? <View style={s.container}><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.scrollContent}>{liveSessions.map(session => <LiveStoryBubble key={session.id} session={session} />)}</ScrollView></View> : null;
   return (
     <View style={s.container}>
       <ScrollView
@@ -433,11 +443,12 @@ function StoryStrip({ mode = 'all' }: Props) {
         contentContainerStyle={s.scrollContent}
       >
         {renderSelfBubble()}
+        {liveOnly.map(session => <LiveStoryBubble key={session.id} session={session} />)}
         {others.map(renderUserBubble)}
         {spotlight.length > 0 ? (
           <>
             <View style={s.spotDivider} accessibilityLabel="Spotlight"><View style={s.spotLine} /><Text style={s.spotFlameTxt}>{'\u{1F525}'}</Text><View style={s.spotLine} /></View>
-            {spotlight.map(h => (
+            {spotlight.map(h => liveByHost.has(h.user_id) ? <LiveStoryBubble key={'spot-' + h.user_id} session={liveByHost.get(h.user_id)!} onStory={() => { viewerOpenedForRef.current = new Set([h.user_id]); navigation.navigate('StoryViewer', { userIds: spotlight.map(x => x.user_id), startUserId: h.user_id }); }} /> : (
               <TouchableOpacity key={'spot-' + h.user_id} style={s.bubble} activeOpacity={0.75}
                 onPressIn={() => { void prefetchStoryEntry(h.user_id, h); }}
                 onPress={() => { viewerOpenedForRef.current = new Set([h.user_id]); navigation.navigate('StoryViewer', { userIds: spotlight.map(x => x.user_id), startUserId: h.user_id }); }}>

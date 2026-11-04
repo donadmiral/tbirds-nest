@@ -94,7 +94,11 @@ test('the command retains readiness before returning the same numeric display to
 });
 
 test('the runner retains one Xvfb launch, graphics checks and cleanup with the explicit media platform argument', () => {
-  // Exact unchanged regions from reviewed source 7ac01587bbda9b23ae23b471c237b78d5d1c0f36.
+  // Prefix remains bound to reviewed source 7ac01587bbda9b23ae23b471c237b78d5d1c0f36.
+  // Suffix reviewed at 723136f382740923b77b693e8b59e4ea7d470bd8 adds only
+  // retained test binaries and their nonzero final phase result. Removing those
+  // additions reproduces the previous suffix exactly. Startup, graphics,
+  // cleanup, device flows and media verification retain their original guards.
   // Hashes also work in CI's depth-one checkout without fetching parent history.
   const sha = value => crypto.createHash('sha256').update(value).digest('hex');
   const start = value => value.indexOf('xvfb_pid=$!\n') + 'xvfb_pid=$!\n'.length;
@@ -116,7 +120,7 @@ test('the runner retains one Xvfb launch, graphics checks and cleanup with the e
   // Every original launch, graphics, cleanup and acceptance line stays bound.
   const normalized = runner.replace(stackDiagnostic, '').replace(platformCommand, media + ' || memory_status=$?');
   assert.equal(sha(runner.slice(0, start(runner))), 'ca53a9997527b345e73354c674a91226a534ef0a679879fed22106a07c7615ab');
-  assert.equal(sha(normalized.slice(end(normalized))), '90a28d372c520bb8c50d6ec1660d3aaf2367e4ccd5df98dccffd5a4fd3430813');
+  assert.equal(sha(normalized.slice(end(normalized))), '219fb7c04237d2ead5cb5e5817a09fb78d461f98302cf7b68ffe4c0598e27bce');
   assert.equal((runner.match(/Xvfb -displayfd/g) || []).length, 1);
   assert.equal((runner.match(/python3 scripts\/quality\/native-ui-xvfb-readiness.py/g) || []).length, 1);
   assert.ok(runner.indexOf('native-ui-xvfb-readiness.py') < runner.indexOf('timeout 10 glxinfo -B'));

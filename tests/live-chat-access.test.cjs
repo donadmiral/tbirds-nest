@@ -38,6 +38,7 @@ function load(file, imports, runtime = {}, context = {}) {
   return module.exports;
 }
 function nodes(value) { if (!value || typeof value !== 'object') return []; if (Array.isArray(value)) return value.flatMap(nodes); return [value, ...nodes(value.props?.children)]; }
+const textContent = value => typeof value === 'string' ? value : Array.isArray(value) ? value.map(textContent).join('') : textContent(value?.props?.children ?? '');
 const find = (tree, key, value) => nodes(tree).find(node => node.props?.[key] === value);
 const directory = load('shared/liveDirectory.ts', {});
 const sid = '11111111-1111-4111-8111-111111111111', uid = '22222222-2222-4222-8222-222222222222';
@@ -76,9 +77,9 @@ function native(options = {}) {
     '../services/supabase': { supabase: { channel() { const channel = { handlers: {}, on(_type, filter, callback) { channel.handlers[filter.event] = callback; return channel; }, subscribe(callback) { channel.status = callback; return channel; } }; channels.push(channel); return channel; }, removeChannel: async () => {} } },
   }, childHooks.runtime).LiveChat : 'NativeLiveChat';
   const component = load('src/screens/feed/LiveSessionScreen.tsx', {
-    react: h.react, 'react-native': rn, '@react-navigation/native': { useFocusEffect() {} }, 'expo-video': { VideoView: 'VideoView' }, '@expo/vector-icons': { Feather: 'Feather' },
-    '../../components/SafeArea': { SafeAreaView: 'SafeAreaView' }, '../../theme/useTheme': { useTheme: () => ({ t: theme }) }, '../../stores/authStore': { useAuthStore: read => read({ profile: { id: uid } }) },
-    '../../contexts/LivePlaybackContext': { useLivePlayback: () => ({ session: null }) }, '../../components/LiveStudio': { LiveStudio: 'LiveStudio' }, '../../components/LiveUi': { LiveIcon: 'LiveIcon' },
+    react: h.react, 'react-native': rn, '@react-navigation/native': { useFocusEffect() {} }, 'expo-video': { VideoView: 'VideoView' }, 'expo-linear-gradient': {LinearGradient:'LinearGradient'}, '@expo/vector-icons': { Feather: 'Feather' },
+    '../../components/SafeArea': { SafeAreaView: 'SafeAreaView', useSafeAreaInsets:()=>({top:44,bottom:34,left:0,right:0}) }, '../../theme/useTheme': { useTheme: () => ({ t: theme }) }, '../../stores/authStore': { useAuthStore: read => read({ profile: { id: uid } }) },
+    '../../contexts/LivePlaybackContext': { useLivePlayback: () => ({ session: null, open:async()=>{}, close(){}, expand(){}, minimize(){} }) }, '../../components/LiveStudio': { LiveStudio: 'LiveStudio' }, '../../components/LiveUi': { LiveIcon: 'LiveIcon' },
     '../../components/LiveChat': { LiveChat: nativeChat }, '../../components/LiveInteractions': { LiveInteractions: 'LiveInteractions', LiveAnalytics: 'LiveAnalytics' },
     '../../services/liveService': { liveObject: object, liveText: value => typeof value === 'string' ? value : '', liveRows: value => Array.isArray(value) ? value : [], loadLiveSession: () => options.deferDetails ? new Promise(resolve => reads.push({ resolve })) : Promise.resolve({ session: current.session, raw }) },
     '../../../shared/liveDirectory': directory, '../../services/supabase': {}, '../../utils/profileRead': {},
@@ -183,7 +184,7 @@ for (const removedTarget of ['old pin', 'replacement']) test('native reconnect a
   const canonical = nativePin('replacement'); await app.resolveDetail(1, canonical);
   const expected = removedTarget === 'replacement' ? null : canonical;
   assert.equal(app.chat().props.pinned, expected, 'A removal only invalidates that message, not a different missed pin');
-  assert.equal(nodes(app.renderChild()).some(node => node.type === 'Text' && node.props.children === canonical.body), expected !== null);
+  assert.equal(nodes(app.renderChild()).some(node => node.type === 'Text' && textContent(node).includes(canonical.body)), expected !== null);
 });
 
 test('retired web chat and control callbacks cannot update a replacement subscription', async () => {

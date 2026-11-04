@@ -200,5 +200,7 @@ test('integration stays after both flows and before evidence and preserves the s
   assert.match(block, /timeout --signal=TERM --kill-after=1s 15s python3/);
   assert.match(block, /\|\| true\nfi\n$/);
   const original = runner.slice(0, start) + runner.slice(end + 1);
-  assert.equal(crypto.createHash('sha256').update(original).digest('hex'), '7043d1a9114b688134e670b88d706c75df6ab5a4e6cd5901660920b066bf70bb');
+  // Baseline 723136 retains disposable binaries and propagates retention failure.
+  // Removing only this diagnostic block must reproduce that complete runner.
+  assert.equal(crypto.createHash('sha256').update(original).digest('hex'), 'ca43f837d8a98167546fd0d409a39d5a8e623603d3abb6bd6f865f8e6d846de7');
 });

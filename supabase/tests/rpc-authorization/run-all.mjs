@@ -66,6 +66,7 @@ for (const {script, env = {}} of [
   {script: '../story-mention-reshare-db.test.cjs', env: {PLATINUM_VISUAL_RELEASE: '1'}},
   {script: '../discover-media-projections.test.cjs', env: {PLATINUM_VISUAL_RELEASE: '1'}},
   {script: './test-live-control-plane.mjs'},
+  {script: './test-live-guest-requests.mjs'},
   {script: './test-live-clips.mjs'},
   {script: './test-live-interactivity.mjs'},
   {script: './test-live-clip-delivery.mjs'},

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, AppState, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, AppState, StyleSheet, Alert } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import { useAuthStore } from '../stores/authStore';
@@ -8,13 +8,15 @@ import { isLiveUuid } from '../../shared/liveDirectory';
 import { liveCommand, liveObject, liveRequestId, liveRows, liveRpc, liveText, type LiveObject } from '../services/liveService';
 import { subscribeLiveControl } from '../services/liveControlEvents';
 
-type Props = { id: string; topic: string; enabled: boolean; canModerate: boolean; pinned: unknown; onChanged(): void; onUpdate(value:LiveObject):void };
-export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, onUpdate }: Props) {
+type Props = { id: string; topic: string; enabled: boolean; canModerate: boolean; pinned: unknown; onChanged(): void; onUpdate(value:LiveObject):void; overlay?: boolean; compact?: boolean; collapseHistory?: boolean; footer?: React.ReactNode };
+export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, onUpdate, overlay = false, compact = false, collapseHistory = false, footer }: Props) {
   const { t } = useTheme(), focused = useIsFocused(), owner = useAuthStore(s => s.profile?.id ?? null);
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
   const [rows, setRows] = useState<LiveObject[]>([]), [cursor, setCursor] = useState<LiveObject | null>(null), [body, setBody] = useState('');
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), [status, setStatus] = useState('Connecting chat…'), [revision, setRevision] = useState(0);
-  const [showLatest, setShowLatest] = useState(false);
+  const [showLatest, setShowLatest] = useState(false), [historyOpen,setHistoryOpen] = useState(!collapseHistory);
+  useEffect(()=>setHistoryOpen(!collapseHistory),[compact,collapseHistory]);
+  const input = useRef<TextInput>(null);
   const list = useRef<FlatList<LiveObject>>(null), followLatest = useRef(true), removedIds = useRef(new Set<string>());
   const [subscriptionTopic,setSubscriptionTopic]=useState(topic);const update=useRef(onUpdate);update.current=onUpdate;
   // Pin events can arrive before the parent renders its new pinned prop.
@@ -110,6 +112,35 @@ export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, o
     finally { if (version === commandGeneration.current) { lock.current = false; setBusy(false); } }
   };
   const button = (label: string, action: () => void, disabled = busy) => <TouchableOpacity accessibilityRole="button" disabled={disabled} onPress={action} style={[s.button,{ backgroundColor:t.surface.sunken, opacity:disabled?.5:1 }]}><Text style={{color:t.ink.primary,fontSize:13,fontWeight:'600'}}>{label}</Text></TouchableOpacity>;
+  const messageActions = (item: LiveObject) => {
+    if (item.removed === true) return;
+    const author = liveObject(item.author) ? liveText(item.author.username || item.author.full_name, 100) : 'Member';
+    Alert.alert(author, liveText(item.body,500), [
+      { text:'Reply', onPress:()=>{setBody(`@${author} `);input.current?.focus();} },
+      ...(canModerate?[{text:'Pin',onPress:()=>void send('pin',{message_id:item.id})},{text:'Remove',style:'destructive' as const,onPress:()=>void send('remove_message',{message_id:item.id})}]:[]),
+      { text:'Cancel', style:'cancel' },
+    ]);
+  };
+  if (overlay) return <View testID="live-overlay-chat" style={{gap:8}}>
+    {!compact&&historyOpen&&liveObject(pinned)&&pinned.removed!==true&&!removedIds.current.has(String(pinned.id))&&liveText(pinned.body)?<View style={s.overlayPinned}><Text numberOfLines={2} style={s.overlayText}><Text style={{fontWeight:'800'}}>Pinned  </Text>{liveText(pinned.body,500)}</Text></View>:null}
+    {historyOpen?<FlatList ref={list} style={{height:compact?64:166,flexGrow:0}} data={rows} keyExtractor={item=>String(item.id)} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
+      ListHeaderComponent={compact&&liveObject(pinned)&&pinned.removed!==true&&!removedIds.current.has(String(pinned.id))&&liveText(pinned.body)?<Text numberOfLines={1} style={[s.overlayText,{fontWeight:'700'}]}>Pinned: {liveText(pinned.body,500)}</Text>:null}
+      contentContainerStyle={{gap:4,paddingVertical:4}} maintainVisibleContentPosition={{minIndexForVisible:0}}
+      onContentSizeChange={()=>{if(followLatest.current)list.current?.scrollToEnd({animated:false});}}
+      onScroll={({nativeEvent})=>{followLatest.current=nativeEvent.contentSize.height-nativeEvent.contentOffset.y-nativeEvent.layoutMeasurement.height<48;setShowLatest(!followLatest.current);}} scrollEventThrottle={32}
+      renderItem={({item})=><TouchableOpacity accessibilityRole="button" accessibilityLabel={`${liveObject(item.author)?liveText(item.author.full_name||item.author.username,100):'Member'}: ${item.removed===true?'Message removed':liveText(item.body,500)}`} activeOpacity={.8} onPress={()=>messageActions(item)} style={{paddingVertical:3,paddingRight:32}}><Text style={s.overlayText}><Text style={{fontWeight:'800'}}>{liveObject(item.author)?liveText(item.author.full_name||item.author.username,100):'Member'} </Text>{item.removed===true?'Message removed':liveText(item.body,500)}</Text></TouchableOpacity>}
+      ListEmptyComponent={<Text style={[s.overlayText,{opacity:.8,paddingTop:20}]}>{enabled?'Say hello. Comments appear here.':'Comments will appear here when the live starts.'}</Text>}/>:null}
+    {compact?<TouchableOpacity accessibilityRole="button" accessibilityLabel={historyOpen?'Hide comments':'Show comments'} onPress={()=>setHistoryOpen(value=>!value)} style={{minHeight:32,justifyContent:'center',alignSelf:'flex-start'}}><Text style={{color:'#fff',fontSize:12,fontWeight:'700'}}>{historyOpen?'Hide comments':'Show comments'}</Text></TouchableOpacity>:null}
+    {historyOpen&&showLatest?<TouchableOpacity accessibilityRole="button" onPress={()=>{followLatest.current=true;setShowLatest(false);list.current?.scrollToEnd({animated:false});}} style={s.overlayPill}><Text style={s.overlayText}>Latest comments ↓</Text></TouchableOpacity>:null}
+    {status!=='Connected'?<TouchableOpacity accessibilityRole="button" accessibilityLabel="Reconnect chat" onPress={()=>setRevision(v=>v+1)} style={{alignSelf:'flex-start',minHeight:32,justifyContent:'center'}}><Text style={{color:'#fff',fontSize:11}}>{status}</Text></TouchableOpacity>:null}
+    <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
+      <TextInput ref={input} value={body} onChangeText={setBody} maxLength={500} editable={enabled&&!busy} placeholder={enabled?'Add a comment…':'Comments are closed'} placeholderTextColor="rgba(255,255,255,0.8)" accessibilityLabel="Live chat message" style={s.overlayInput} multiline/>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Send comment" disabled={!enabled||busy||!body.trim()} onPress={()=>void send('chat',{body:body.trim()})} style={[s.overlayAction,{opacity:!enabled||busy||!body.trim()?.4:1}]}><Text style={{color:'#fff',fontWeight:'800'}}>Send</Text></TouchableOpacity>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Heart" disabled={!enabled||busy} onPress={()=>void send('reaction',{reaction:'heart'})} style={[s.overlayAction,{opacity:!enabled||busy?.4:1}]}><Text style={{color:'#fff',fontSize:32}}>♡</Text></TouchableOpacity>
+    </View>
+    {footer}
+    {error?<Text accessibilityRole="alert" style={{color:'#fff',fontSize:12,backgroundColor:'rgba(0,0,0,.45)',padding:6,borderRadius:6}}>{error}</Text>:null}
+  </View>;
   return <View style={{gap:10}}>
     <View style={s.row}><Text style={{color:t.ink.primary,fontSize:19,fontWeight:'700',flex:1}}>Live chat</Text>{button(status === 'Connected' ? 'Refresh' : 'Reconnect',()=>setRevision(v=>v+1),false)}</View>
     <Text accessibilityLiveRegion="polite" style={{color:t.ink.secondary,fontSize:12}}>{status}</Text>
@@ -127,4 +158,4 @@ export function LiveChat({ id, topic, enabled, canModerate, pinned, onChanged, o
     {error?<Text accessibilityRole="alert" style={{color:t.ink.primary}}>{error}</Text>:null}
   </View>;
 }
-const s=StyleSheet.create({row:{flexDirection:'row',alignItems:'center',gap:8,flexWrap:'wrap'},button:{minHeight:44,minWidth:44,borderRadius:20,paddingHorizontal:12,justifyContent:'center',alignItems:'center'},input:{minHeight:44,maxHeight:110,borderRadius:12,paddingHorizontal:12,paddingVertical:10},pinned:{borderRadius:12,padding:12}});
+const s=StyleSheet.create({overlayText:{color:'#fff',fontSize:14,lineHeight:20,textShadowColor:'rgba(0,0,0,.8)',textShadowOffset:{width:0,height:1},textShadowRadius:3},overlayInput:{flex:1,minHeight:44,maxHeight:88,borderWidth:1,borderColor:'rgba(255,255,255,.55)',backgroundColor:'rgba(0,0,0,.22)',borderRadius:24,paddingHorizontal:15,paddingVertical:10,color:'#fff',fontSize:14},overlayAction:{minWidth:44,minHeight:44,alignItems:'center',justifyContent:'center'},overlayPinned:{backgroundColor:'rgba(0,0,0,.45)',borderRadius:12,padding:10,borderLeftWidth:3,borderLeftColor:'#fff'},overlayPill:{alignSelf:'flex-start',backgroundColor:'rgba(0,0,0,.5)',paddingHorizontal:12,minHeight:36,justifyContent:'center',borderRadius:18},row:{flexDirection:'row',alignItems:'center',gap:8,flexWrap:'wrap'},button:{minHeight:44,minWidth:44,borderRadius:20,paddingHorizontal:12,justifyContent:'center',alignItems:'center'},input:{minHeight:44,maxHeight:110,borderRadius:12,paddingHorizontal:12,paddingVertical:10},pinned:{borderRadius:12,padding:12}});

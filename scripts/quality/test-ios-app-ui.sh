@@ -110,6 +110,22 @@ if [[ "$audit_build_only" == 1 ]]; then
   cp native-ui-logs/source.json native-audit-build/source.json
   exit 0
 fi
+# Archive the signed Simulator app unchanged before any UI flow can fail.
+# It contains synthetic transports and is CI evidence, never a user build.
+binary_retention_status=0
+mkdir -p native-ui-logs/test-only-binary || binary_retention_status=$?
+COPYFILE_DISABLE=1 tar -czf "$PWD/native-ui-logs/test-only-binary/qa.app.tar.gz" \
+  -C "$(dirname "$app")" "$(basename "$app")" || binary_retention_status=$?
+cp native-ui-logs/source.json native-ui-logs/test-only-binary/source.json || binary_retention_status=$?
+python3 scripts/quality/native-ui-audit-binary.py --platform ios \
+  --kind disposable-native-full-app --binary "$app" --source "$GITHUB_SHA" \
+  --tree "$(git rev-parse 'HEAD^{tree}')" --ios-target "$ios_target" \
+  --output native-ui-logs/test-only-binary/binary-manifest.pending.json || binary_retention_status=$?
+if (( binary_retention_status == 0 )); then
+  mv native-ui-logs/test-only-binary/binary-manifest.pending.json \
+    native-ui-logs/test-only-binary/binary-manifest.json || binary_retention_status=$?
+fi
+printf '{"exitCode":%s}\n' "$binary_retention_status" > native-ui-logs/binary-retention.json || binary_retention_status=$?
 runtime="$(xcrun simctl list runtimes --json | python3 -c 'import json,sys; items=[x for x in json.load(sys.stdin)["runtimes"] if x.get("isAvailable") and x["identifier"].startswith("com.apple.CoreSimulator.SimRuntime.iOS-")]; preferred=next((x for x in items if x["version"]==sys.argv[1]),None); print(preferred["identifier"] if preferred else "")' "$ios_version")"
 test -n "$runtime"
 ui_simulator="$(xcrun simctl create "Platinum full app UI ${GITHUB_RUN_ID}" "$ios_device_type" "$runtime")"
@@ -139,6 +155,6 @@ python3 scripts/quality/verify-native-ui-memory.py native-ui-logs/memory-capture
 verification_status=0
 node scripts/quality/verify-native-ui.cjs ios || verification_status=$?
 cat > native-ui-logs/phase-results.json <<EOF
-{"flows":$flow_status,"evidence":$evidence_status,"memoryDecoder":$memory_status,"fullAppVerifier":$verification_status}
+{"flows":$flow_status,"evidence":$evidence_status,"memoryDecoder":$memory_status,"fullAppVerifier":$verification_status,"binaryRetention":$binary_retention_status}
 EOF
-if (( flow_status != 0 || evidence_status != 0 || memory_status != 0 || verification_status != 0 )); then exit 1; fi
+if (( flow_status != 0 || evidence_status != 0 || memory_status != 0 || verification_status != 0 || binary_retention_status != 0 )); then exit 1; fi

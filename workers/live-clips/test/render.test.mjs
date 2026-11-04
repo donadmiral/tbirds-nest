@@ -7,13 +7,13 @@ import { command, probe } from '../../media-renditions/transcode.mjs';
 import { materializeSource } from '../source.mjs';
 import { renderClip } from '../render.mjs';
 import { withSyntheticEncoderDiagnostics, runSyntheticIsolationMatrix } from './synthetic-diagnostics.mjs';
-test('real HLS range becomes precise faststart vertical/horizontal exports, captions and a chosen cover', async () => {
+for (const inputSize of ['320x180', '180x320']) test(`real ${inputSize} HLS range becomes precise faststart vertical/horizontal exports, captions and a chosen cover`, async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'pc-live-clip-test-'));
   try { await withSyntheticEncoderDiagnostics(dir, async stage => {
     const original = path.join(dir, 'original'); await mkdir(original);
     const signal = AbortSignal.timeout(60000);
     stage('fixture_generation');
-    await command('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-nostdin', '-y', '-f', 'lavfi', '-i', 'testsrc2=size=320x180:rate=30',
+    await command('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-nostdin', '-y', '-f', 'lavfi', '-i', `testsrc2=size=${inputSize}:rate=30`,
       '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000', '-t', '6', '-c:v', 'libx264', '-threads', '2', '-preset', 'ultrafast',
       '-g', '60', '-sc_threshold', '0', '-c:a', 'aac', '-f', 'hls', '-hls_time', '2', '-hls_list_size', '0', '-hls_playlist_type', 'vod',
       '-hls_segment_filename', path.join(original, 'seg%03d.ts'), path.join(original, 'master.m3u8')], { signal });

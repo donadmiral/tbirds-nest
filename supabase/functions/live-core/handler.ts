@@ -1,4 +1,4 @@
-import { buildLiveLayout, hlsEndpoint, safeHttpsOrigin, sha256, validPlaybackPath, validScene, validUuid, verifyDailyWebhook, type LiveProviderConfig, type ProviderContext, type Presence } from './provider.ts';
+import { buildLiveLayout, hlsEndpoint, liveOutputSize, safeHttpsOrigin, sha256, validPlaybackPath, validScene, validUuid, verifyDailyWebhook, type LiveProviderConfig, type ProviderContext, type Presence } from './provider.ts';
 import { dailyCommandAccepted } from '../_shared/dailyCommandAcknowledgement.ts';
 export { dailyCommandAccepted } from '../_shared/dailyCommandAcknowledgement.ts';
 type RpcResult = { data: unknown; error: { message?: string } | null };
@@ -189,7 +189,7 @@ export function createLiveHandler(mode:Mode,deps:LiveDependencies){
       if(fresh.lease_id!==context.lease_id)throw new Error('CONTROL_LEASE_EXPIRED');
       const scene=fresh.payload?.scene??{preset:'host'};
       const composed=buildLiveLayout(scene,fresh,present.data as Presence[],context.action==='start');published=composed.published;
-      payload={...payload,layout:composed.layout,...(context.action==='start'?{endpoints:[{endpoint:deps.config.endpointName}],width:1920,height:1080,fps:30}:{} )};
+      payload={...payload,layout:composed.layout,...(context.action==='start'?{endpoints:[{endpoint:deps.config.endpointName}],...liveOutputSize(fresh),fps:30}:{} )};
     }
     // Recheck current authenticated authority immediately before the provider
     // call. This checks the operation without minting viewer/stage credentials.
