@@ -1,0 +1,15 @@
+appId: app.platinumcircles.mobile.qa
+name: Restore primary feed tabs on a narrow phone
+---
+- runFlow:
+    when:
+      notVisible:
+        id: feed-tab-forYou
+    commands:
+      - swipe:
+          from:
+            id: feed-tab-latest
+          direction: RIGHT
+          duration: 400
+- assertVisible:
+    id: feed-tab-forYou

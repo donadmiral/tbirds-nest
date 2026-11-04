@@ -16,23 +16,30 @@ name: First feed video survives scroll refresh and tab return
     centerElement: true
 - assertNotVisible: Native feed video playing
 - scrollUntilVisible:
-    element:
-      id: native-feed-video
+    # The video accessibility bounds can be clipped by the sticky header.
+    # Restore the post's caption so the whole card meets normal autoplay rules.
+    element: A quiet morning in the desert. Small moments worth keeping.
     direction: UP
-    centerElement: true
+    centerElement: false
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000
 - takeScreenshot: feed-video-returned
-# Return to the feed's top before the real pull-to-refresh gesture.
-- scrollUntilVisible:
-    element: A quiet morning in the desert. Small moments worth keeping.
-    direction: UP
-    centerElement: false
+# The selected Home tab uses the real list's useScrollToTop handler.
+- tapOn:
+    id: main-tab-feed
+- extendedWaitUntil:
+    visible: Your story
+    timeout: 15000
 - swipe:
     start: 50%, 43%
     end: 50%, 90%
     duration: 700
+- scrollUntilVisible:
+    element:
+      id: native-feed-video
+    direction: DOWN
+    centerElement: true
 - extendedWaitUntil:
     visible: Native feed video playing
     timeout: 15000
@@ -48,3 +55,9 @@ name: First feed video survives scroll refresh and tab return
     visible: Native feed video playing
     timeout: 15000
 - takeScreenshot: feed-video-resumed
+# Restore the original navigation journey's starting scroll position.
+- tapOn:
+    id: main-tab-feed
+- extendedWaitUntil:
+    visible: Your story
+    timeout: 15000

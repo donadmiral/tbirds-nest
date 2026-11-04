@@ -1,0 +1,15 @@
+appId: app.platinumcircles.mobile.qa
+name: Reveal Live on a narrow phone
+---
+- runFlow:
+    when:
+      notVisible:
+        id: feed-tab-live
+    commands:
+      - swipe:
+          from:
+            id: feed-tab-trending
+          direction: LEFT
+          duration: 400
+- assertVisible:
+    id: feed-tab-live

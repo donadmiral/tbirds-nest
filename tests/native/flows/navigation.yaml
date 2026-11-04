@@ -88,6 +88,7 @@ name: Full native app navigation
 - runFlow: feed-video.yaml
 # Actual native Live screens use the same isolated read transport as this journey.
 # These captures verify layout and navigation, not native provider broadcasting.
+- runFlow: reveal-live-tab.yaml
 - tapOn:
     id: feed-tab-live
 - extendedWaitUntil:
@@ -107,6 +108,7 @@ name: Full native app navigation
 - assertVisible: Start live
 - tapOn: Back to feed
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- runFlow: reveal-feed-tabs.yaml
 - tapOn: Latest
 - assertVisible: A quiet morning in the desert. Small moments worth keeping.
 - tapOn: For You
