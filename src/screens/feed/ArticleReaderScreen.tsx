@@ -13,6 +13,7 @@ import { hydratePostMedia } from '../../services/contentMedia';
 import { replaceContentMedia } from '../../../shared/contentMedia';
 import ArticleBody from '../../components/ArticleBody';
 import { isReadAccessDenied } from '../../../shared/readContinuity';
+import { imageDisplayIdentity } from '../../lib/imageDisplayIdentity';
 
 const W = Dimensions.get('window').width;
 
@@ -73,8 +74,9 @@ export default function ArticleReaderScreen({ route, navigation }: any) {
             <View style={s.galleryGrid}>
               {galleryImages.map((img: { url: string; width?: number; height?: number }, i: number) => (
                 <Image
-                  key={img.url + i}
+                  key={`${viewer ?? ''}:${source.postId ?? source.id ?? ''}:gallery:${i}:${imageDisplayIdentity(img.url, SUPABASE_URL)}`}
                   source={{ uri: img.url }}
+                  fadeDuration={0}
                   style={galleryImages.length === 1 ? s.galleryFull : s.galleryHalf}
                 />
               ))}

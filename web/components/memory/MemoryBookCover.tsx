@@ -1,6 +1,6 @@
 'use client';
 import NextImage from "next/image";
-import {useEffect,useRef,useState,type CSSProperties} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState,useSyncExternalStore,type CSSProperties} from 'react';
 import {ImageIcon,Plane} from 'lucide-react';
 import {memoryArtwork,memoryDesign,memoryCoverDate,type MemoryCoverPage} from '../../../shared/memoryBookDesign';
 import {memoryCoverArtwork,memoryCoverPhotoPosition,type MemoryCoverArtwork} from '../../../shared/memoryBookCreative';
@@ -8,13 +8,24 @@ import {memoryCoverParagraph,memoryCoverWritingLayout,memoryCoverWritingTitleSiz
 import styles from './MemoryBookCover.module.css';
 import {memoryCoverCollageCells,memoryCoverSources} from '../../../shared/memoryCoverPersonalization';
 import {MemoryCoverInk} from './MemoryCoverInk';
+import {imageDisplayIdentity} from '../../../shared/imageDisplayIdentity';
+import {privateImageCachePolicy} from '../../../shared/mediaDelivery';
+import {getNavigationStore} from '../../lib/navigationCache';
 export type MemoryBookCoverProps={artwork?:MemoryCoverArtwork|null;title:string;subtitle?:string|null;color?:string;design?:string;coverPages?:readonly MemoryCoverPage[];photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;takenAt?:string;width?:number;height?:number};
 function CoverPhoto({photoUrl,fallbackPhotoUrl,videoUrl,position='50% 50%',zoom=1,monochrome=false}:{photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;position?:string;zoom?:number;monochrome?:boolean}){
+ const [navigation]=useState(getNavigationStore);
+ const {scope,initialized,changed}=useSyncExternalStore(navigation.subscribe,navigation.getSnapshot,navigation.getServerSnapshot),urls=[photoUrl,fallbackPhotoUrl];
+ const [grants,setGrants]=useState(()=>urls.map(uri=>({uri,scope,pending:!initialized})));
+ const currentGrants=urls.map((uri,index)=>grants[index].uri===uri&&!(grants[index].pending&&initialized&&!changed)?grants[index]:{uri,scope,pending:!initialized});
+ if(currentGrants.some((grant,index)=>grant!==grants[index]))setGrants(currentGrants);
  const [failed,setFailed]=useState<string[]>([]);
- const src=[photoUrl,fallbackPhotoUrl].find(url=>url&&!failed.includes(url));
- const fail=(url:string)=>setFailed(old=>[...old.slice(-3),url]);
+ const src=currentGrants.find(grant=>grant.uri&&(privateImageCachePolicy(grant.uri)!=='none'||!!scope&&grant.scope===scope)&&!failed.includes(JSON.stringify([scope,grant.uri])))?.uri;
+ const request=JSON.stringify([scope,src]),activeRequest=useRef<string|null>(null);
+ useLayoutEffect(()=>{activeRequest.current=request;return()=>{if(activeRequest.current===request)activeRequest.current=null;};},[request]);
+ const fail=()=>{if(activeRequest.current!==request||navigation.getSnapshot().scope!==scope)return;setFailed(previous=>activeRequest.current===request&&navigation.getSnapshot().scope===scope?[...previous.slice(-3),request]:previous);};
+ const displayKey=src?JSON.stringify([privateImageCachePolicy(src)==='none'?scope:null,imageDisplayIdentity(src,process.env.NEXT_PUBLIC_SUPABASE_URL!)]):undefined;
  const style={objectPosition:position,transform:`scale(${zoom})`,transformOrigin:position,filter:monochrome?'grayscale(1) contrast(1.08)':undefined};
- if(src)return <NextImage key={src} unoptimized fill sizes="300px" src={src} alt="" draggable={false} style={style} onError={()=>fail(src)}/>;
+ if(src)return <NextImage key={displayKey} unoptimized fill sizes="300px" src={src} alt="" draggable={false} style={style} onError={fail}/>;
  // A decorative cover can repeat a photo in several cells. Never turn those
  // cells into duplicate private video requests or decoders.
  return <span className={styles.empty}><ImageIcon size="18%"/><span style={{fontSize:'.6em'}}>{videoUrl?'Video memory':photoUrl?'Open to view':'Your memories'}</span></span>;
@@ -27,7 +38,7 @@ export function MemoryBookCover({artwork:rawArtwork,title,subtitle,color,design,
  let auxiliaryIndex=0;
  const longPostcard=title.trim().length>12;
  const writing=memoryCoverWritingLayout(artwork,design,title,width,height);
- const photo=(style:CSSProperties,position='50% 50%',auxiliary=false,monochrome=false)=>{const [x,y]=position.split(' ').map(parseFloat),crop=memoryCoverPhotoPosition(artwork,x,y),shown=artwork.version===2&&artwork.layout==='collage'&&!auxiliary?sources:[sources[auxiliary?++auxiliaryIndex%sources.length:0]],cells=memoryCoverCollageCells(shown.length);return <span className={styles.photo} style={style}>{shown.map((source,index)=><span key={`${index}:${source.photoUrl}:${source.fallbackPhotoUrl}:${source.videoUrl}`} style={{position:'absolute',left:`${cells[index].left}%`,top:`${cells[index].top}%`,width:`${cells[index].width}%`,height:`${cells[index].height}%`,overflow:'hidden',border:shown.length>1?`${u}px solid ${a.paper}`:undefined}}><CoverPhoto {...source} position={`${crop.x}% ${crop.y}%`} zoom={artwork.photo.scale} monochrome={monochrome}/></span>)}</span>;};
+ const photo=(style:CSSProperties,position='50% 50%',auxiliary=false,monochrome=false)=>{const [x,y]=position.split(' ').map(parseFloat),crop=memoryCoverPhotoPosition(artwork,x,y),shown=artwork.version===2&&artwork.layout==='collage'&&!auxiliary?sources:[sources[auxiliary?++auxiliaryIndex%sources.length:0]],cells=memoryCoverCollageCells(shown.length);return <span className={styles.photo} style={style}>{shown.map((source,index)=><span key={index} style={{position:'absolute',left:`${cells[index].left}%`,top:`${cells[index].top}%`,width:`${cells[index].width}%`,height:`${cells[index].height}%`,overflow:'hidden',border:shown.length>1?`${u}px solid ${a.paper}`:undefined}}><CoverPhoto {...source} position={`${crop.x}% ${crop.y}%`} zoom={artwork.photo.scale} monochrome={monochrome}/></span>)}</span>;};
  const text=(style:CSSProperties,lines=2)=>({...style,color:a.ink,fontFamily:titleFont,fontSize:typeSize,lineHeight:1.04,paddingBottom:'.18em',WebkitLineClamp:lines});
  return <span role="img" aria-label={`${d.label} book cover: ${title}${subtitle?'. '+subtitle:''}${artwork.inscription?'. '+artwork.inscription:''}${artwork.postmark?'. '+artwork.postmark:''}`} className={styles.cover} style={{width,height,background:a.paper,fontSize:14*u,boxShadow:`${2*u}px ${6*u}px ${10*u}px #31271930,0 ${1*u}px ${1*u}px #45371930`}}>
   <span className={styles.cloth} style={{backgroundColor:a.spine}}/>

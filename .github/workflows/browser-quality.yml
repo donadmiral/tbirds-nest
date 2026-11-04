@@ -76,9 +76,7 @@ jobs:
       - name: Install browser and media verification tools
         id: browser_tools
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes ffmpeg unzip
-          node web/node_modules/playwright/cli.js install-deps chromium
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh browser-media web/node_modules/playwright/cli.js
           bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/platinum-browser"
       - name: Exercise actual admin components
         # Run independent gates after an earlier test fails, but only after successful setup.

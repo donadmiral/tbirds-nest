@@ -9,7 +9,8 @@ name: Turn off the verified Simulator Password AutoFill switch once
 - tapOn:
     childOf:
       id: '^AutoFillToggle$'
-    id: '^$'
+    rightOf:
+      id: '^AutoFillToggle$'
     checked: true
     enabled: true
 - assertVisible:

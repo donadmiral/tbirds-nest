@@ -30,7 +30,8 @@ import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import PostMediaViewer from '../../components/PostMediaViewer';
 import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import { useFocusEffect } from '@react-navigation/native';
-import { supabase } from '../../services/supabase';
+import { supabase, SUPABASE_URL } from '../../services/supabase';
+import { imageDisplayIdentity } from '../../lib/imageDisplayIdentity';
 import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
 import { orderTimeout } from '../../../shared/orderRequest';
 import { isReadAccessDenied } from '../../../shared/readContinuity';
@@ -288,16 +289,16 @@ export default function PostScreen({ route, navigation }: any) {
   const rowMedia: CarouselMedia[] = pinned ? [] : mediaItems; // a pinned video is drawn above the thread, not inside it
 
   const openThreadPost = (id: string) => { const nav: any = navigation; if (nav.push) { nav.push('Post', { postId: id }); } else { nav.navigate('Post', { postId: id }); } };
-  const renderThreadRow = (t: any) => (
-    <TouchableOpacity key={'t-' + t.id} style={{ flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 10 }} activeOpacity={0.85} onPress={() => openThreadPost(t.id)}>
+  const renderThreadRow = (entry: any) => (
+    <TouchableOpacity key={'t-' + entry.id} style={{ flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 10 }} activeOpacity={0.85} onPress={() => openThreadPost(entry.id)}>
       <View style={{ width: 2, backgroundColor: t.surface.sunken, borderRadius: 1, marginRight: 12 }} />
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-          <TierName userId={t.author?.id ?? t.user_id} baseStyle={{ fontSize: 13, fontWeight: '700', color: t.ink.primary, flexShrink: 1 }} text={t.author?.full_name || t.author?.username || 'Member'} />
-          <VerifiedBadge userId={t.author?.id ?? t.user_id} size={12} />
-          <Text style={{ fontSize: 13, fontWeight: '400', color: t.ink.muted }}>{relTime(t.created_at)}</Text>
+          <TierName userId={entry.author?.id ?? entry.user_id} baseStyle={{ fontSize: 13, fontWeight: '700', color: t.ink.primary, flexShrink: 1 }} text={entry.author?.full_name || entry.author?.username || 'Member'} />
+          <VerifiedBadge userId={entry.author?.id ?? entry.user_id} size={12} />
+          <Text style={{ fontSize: 13, fontWeight: '400', color: t.ink.muted }}>{relTime(entry.created_at)}</Text>
         </View>
-        <Text style={{ fontSize: 14, color: t.ink.primary, marginTop: 2 }} numberOfLines={3}>{t.content}</Text>
+        <Text style={{ fontSize: 14, color: t.ink.primary, marginTop: 2 }} numberOfLines={3}>{entry.content}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -343,8 +344,9 @@ export default function PostScreen({ route, navigation }: any) {
               <View style={s.galleryGrid}>
                 {galleryImages.map((img: { url: string; width?: number; height?: number }, i: number) => (
                   <Image
-                    key={img.url + i}
+                    key={`${userId ?? ''}:${postId}:gallery:${i}:${imageDisplayIdentity(img.url, SUPABASE_URL)}`}
                     source={{ uri: img.url }}
+                    fadeDuration={0}
                     style={galleryImages.length === 1 ? s.galleryFull : s.galleryHalf}
                   />
                 ))}

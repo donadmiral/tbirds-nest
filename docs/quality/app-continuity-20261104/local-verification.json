@@ -1,18 +1,18 @@
 {
-  "recorded_at_utc": "2026-11-04T23:09:34.725407+00:00",
+  "recorded_at_utc": "2026-11-04T23:50:03.706493+00:00",
   "node_version": "v24.22.1",
   "base_revision": "145d16cfd5b084dc5567fab27ef4cbf0b56b3359",
-  "validated_tree_before_this_report": "ee5fbb80db63bca4fe0e6fe2e855459c12358a8c",
+  "validated_tree_before_this_report": "42e9dcc4e70ea6fb6914ce23bb9370241cc1dc62",
   "suites": {
     "native": {
-      "tests": 3268,
-      "pass": 3268,
+      "tests": 3306,
+      "pass": 3306,
       "fail": 0,
       "cancelled": 0,
       "skipped": 0,
       "todo": 0,
-      "duration_ms": 150156.043893,
-      "log_sha256": "87416dee16668c7371b694309c0dc829e9542d2e5e40c9ad364c26918b6ecf22"
+      "duration_ms": 140793.38452,
+      "log_sha256": "f2aada594c073e35d7e54271837449841226941e75da2476e88bed859246dd17"
     },
     "web": {
       "tests": 963,
@@ -21,8 +21,8 @@
       "cancelled": 0,
       "skipped": 0,
       "todo": 0,
-      "duration_ms": 35787.392645,
-      "log_sha256": "89dc12d97bebdd323e63ec48ad4af64482541a73cbfdb0389b444b2ba6f7fb85"
+      "duration_ms": 42083.119508,
+      "log_sha256": "71825da50c7010199ae672337514e6f0db34d6af2fafdfd928b00c616caa5c19"
     },
     "admin": {
       "tests": 343,
@@ -32,7 +32,8 @@
       "skipped": 0,
       "todo": 0,
       "duration_ms": 36446.474553,
-      "log_sha256": "95a1dda249b6a4ccb08eb9fc8576e12fdff581fbcb46971eeeb905f118689511"
+      "log_sha256": "95a1dda249b6a4ccb08eb9fc8576e12fdff581fbcb46971eeeb905f118689511",
+      "application_source_unchanged_from_parent": true
     }
   },
   "typecheck": {
@@ -67,5 +68,9 @@
     "acceptance": "requires_existing_CI_browser_runners"
   },
   "device_timing_measured": false,
-  "competitor_benchmark_performed": false
+  "competitor_benchmark_performed": false,
+  "parent_revision": "c69a3b4d82527d6af0bf92f521899ceae99f2aa6",
+  "real_component_image_regressions": 21,
+  "retained_ios_hierarchy_regressions": 6,
+  "historical_connected_receipt_reuse": "not_applicable_to_this_release"
 }

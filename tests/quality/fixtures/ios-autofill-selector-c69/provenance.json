@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "workflowRun": 41931472718,
+  "job": 126929164206,
+  "artifact": 13373681448,
+  "artifactSha256": "954a8cdd9d18500e2da06bb1d393fa20105d2e9fc0ffede159922cf069174539",
+  "workflowHead": "c69a3b4d82527d6af0bf92f521899ceae99f2aa6",
+  "recordedSourceCommit": "c6484a0583c554ad003d2c5b2e475d1f7564be0a",
+  "sourceTree": "2645e26b6ee73850ca3f6eaced170b8320020e4a",
+  "sourceIdentity": "PR merge and workflow head have the same source tree.",
+  "maestroVersion": "2.11.0",
+  "maestroCommit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+  "maestroFiltersBlob": "f3adf5fb88d82a5f043073a5e76b217d1d154394",
+  "maestroOrchestraBlob": "4127338828db0a14de0488873bac3bd5dfa6be66",
+  "failure": "Element not found: Id matching regex: ^$, Child of: id: ^AutoFillToggle$, Enabled, Checked",
+  "evidence": {
+    "standalone-before.json": {
+      "artifactPath": "ios-autofill-preflight/before-hierarchy.json",
+      "bytes": 142224,
+      "sha256": "5f02ae3043325a078c21197a01d8092683e3b9dda1bb50332f53a126a4b54beb"
+    },
+    "failed-step.json": {
+      "artifactPath": "ios-autofill-preflight/disable-autofill/2026-11-04_233748/Turn off the verified Simulator Password AutoFill switch once/screen-hierarchy/step-004-tapOnElement-^$.json",
+      "bytes": 97979,
+      "sha256": "6511a5cbe964e6b68454081d7dec5b56d36bcd3cc26c348fd3541a71081b3490"
+    }
+  },
+  "scope": "Retained Settings hierarchies before QA app installation. Both show the switch on. No off-state or application acceptance is claimed."
+}

@@ -204,10 +204,7 @@ jobs:
         run: node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs
       - name: Test adaptive media processing
         run: |
-          if ! command -v ffmpeg >/dev/null; then
-            sudo apt-get update
-            sudo apt-get install --yes ffmpeg
-          fi
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh media
           node --test workers/media-renditions/test/*.test.mjs
       - name: Test payment recovery, Live Edge authorization and database boundaries
         env:
@@ -235,10 +232,7 @@ jobs:
       - name: Install fixed worker dependencies and synthetic-media tools
         run: |
           npm ci --prefix workers/live-transcription --ignore-scripts --no-audit --no-fund
-          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
-            sudo apt-get update
-            sudo apt-get install --yes ffmpeg
-          fi
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh media
           python3 -m venv /tmp/platinum-live-cfnlint
           /tmp/platinum-live-cfnlint/bin/pip install cfn-lint==1.59.0
       - name: Test bounded render, publishing and transcription workers

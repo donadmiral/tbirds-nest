@@ -52,9 +52,7 @@ jobs:
           npx tsc --noEmit --incremental false
       - name: Install browser and media runtime
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes ffmpeg
-          node web/node_modules/playwright/cli.js install-deps chromium
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh browser-media web/node_modules/playwright/cli.js
           bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/live-browser"
       - name: Exercise existing Live components with controlled services
         run: |
@@ -98,7 +96,7 @@ jobs:
       - name: Install verified browser runtime
         if: steps.connected_evidence.outputs.reused != 'true'
         run: |
-          node web/node_modules/playwright/cli.js install-deps chromium
+          timeout --signal=TERM --kill-after=10s 300s bash scripts/quality/install-linux-test-runtime.sh browser web/node_modules/playwright/cli.js
           bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/live-browser"
       - name: Real QA host, follower, outsider and streaming provider acceptance
         if: steps.connected_evidence.outputs.reused != 'true'

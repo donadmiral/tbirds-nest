@@ -57,7 +57,7 @@ test('the two Settings flows use only the documented route and one enabled on-st
     { assertVisible: '^AutoFill Passwords and Passkeys$' },
   ]);
   const on = { id: '^AutoFillToggle$', text: '^AutoFill Passwords and Passkeys$', checked: true, enabled: true };
-  const target = { childOf: { id: '^AutoFillToggle$' }, id: '^$', checked: true, enabled: true };
+  const target = { childOf: { id: '^AutoFillToggle$' }, rightOf: { id: '^AutoFillToggle$' }, checked: true, enabled: true };
   assert.deepEqual(disable, [{ assertVisible: on }, { tapOn: target },
     { assertVisible: { ...on, checked: false } }]);
 });
@@ -77,11 +77,15 @@ const recordedAutofillRow = {
 
 // Replay only the selector subset used here, following immutable Maestro 2.11.0
 // commit c8c361be1cc89b2e742f185466a302a22778be6b: Orchestra.kt 1447-1454
-// scopes childOf, 1703-1706 chooses deepest matches, Filters.kt 58-130/260-295
-// supplies text/id/state matching. This is a retained-hierarchy regression,
+// scopes childOf (including the parent), 1703-1709 intersects deepest basic
+// matches with relative filters. Filters.kt 177-196 defines rightOf as
+// candidate.bounds.x > anchor.bounds.x, so the parent cannot match itself.
+// Filters blob: f3adf5fb88d82a5f043073a5e76b217d1d154394.
+// https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/Filters.kt
+// Filters.kt 58-130/260-295 supplies text/id/state matching. This is a retained-hierarchy regression,
 // not a substitute for the required installed-Simulator flow and value 0 readback.
 function selectRecordedControl(rootNode, selector) {
-  for (const key of Object.keys(selector)) assert.ok(['childOf', 'id', 'text', 'checked', 'enabled'].includes(key));
+  for (const key of Object.keys(selector)) assert.ok(['childOf', 'rightOf', 'id', 'text', 'checked', 'enabled'].includes(key));
   const parent = selector.childOf ? selectRecordedControl(rootNode, selector.childOf)[0] : rootNode;
   if (!parent) return [];
   const matches = node => {
@@ -96,16 +100,74 @@ function selectRecordedControl(rootNode, selector) {
     return ['checked', 'enabled'].every(key => selector[key] === undefined || node[key] === selector[key]);
   };
   const deepest = node => {
-    const children = node.children.flatMap(deepest);
+    const children = (node.children || []).flatMap(deepest);
     return children.length ? children : matches(node) ? [node] : [];
   };
-  return deepest(parent);
+  const basicMatches = deepest(parent);
+  if (!selector.rightOf) return basicMatches;
+  const anchors = selectRecordedControl(parent, selector.rightOf);
+  const left = node => Number(/^\[(-?\d+),/.exec(node.attributes.bounds || '')?.[1]);
+  return basicMatches.filter(node => anchors.some(anchor => left(node) > left(anchor)));
 }
 
 function disableCommands() {
   const docs = YAML.parseAllDocuments(fs.readFileSync(path.join(root, 'tests/native/flows/ios-autofill-disable.yaml'), 'utf8'));
   for (const doc of docs) assert.deepEqual(doc.errors, []);
   return docs[1].toJS();
+}
+
+const retainedDirectory = path.join(__dirname, 'fixtures/ios-autofill-selector-c69');
+const retainedProvenance = JSON.parse(fs.readFileSync(path.join(retainedDirectory, 'provenance.json'), 'utf8'));
+const retainedHierarchies = Object.entries(retainedProvenance.evidence).map(([name, evidence]) => {
+  const bytes = fs.readFileSync(path.join(retainedDirectory, name));
+  assert.equal(bytes.length, evidence.bytes);
+  assert.equal(sha(bytes), evidence.sha256, 'retained hierarchy bytes must match the verified artifact');
+  return [name, JSON.parse(bytes)];
+});
+function recordedRow(tree) {
+  if (tree.attributes['resource-id'] === 'AutoFillToggle') return tree;
+  return (tree.children || []).map(recordedRow).find(Boolean);
+}
+
+for (const [name, tree] of retainedHierarchies) test(`retained ${name} targets exactly the real switch without relying on an empty resource ID`, () => {
+  const row = recordedRow(tree), switchNode = row.children.find(node => node.checked && node.attributes.value === '1');
+  assert.ok(switchNode);
+  const oldTarget = { childOf: { id: '^AutoFillToggle$' }, id: '^$', checked: true, enabled: true };
+  if (name === 'failed-step.json') {
+    assert.equal(Object.hasOwn(switchNode.attributes, 'resource-id'), false);
+    assert.deepEqual(selectRecordedControl(tree, oldTarget), [], 'the old empty-ID selector reproduces the retained failure');
+  } else assert.equal(switchNode.attributes['resource-id'], '');
+  const selected = selectRecordedControl(tree, disableCommands()[1].tapOn);
+  assert.deepEqual(selected, [switchNode]);
+  assert.equal(selected[0].attributes.bounds, '[309,163][372,191]');
+  assert.notEqual(selected[0], row);
+});
+
+for (const [name, tree] of retainedHierarchies) {
+  test(`retained ${name} never substitutes the row, label or another Settings switch`, () => {
+    const target = disableCommands()[1].tapOn;
+    for (const mutation of ['missing', 'disabled', 'unchecked', 'unlocated']) {
+      const altered = structuredClone(tree), row = recordedRow(altered);
+      const control = row.children.find(node => node.checked && node.attributes.value === '1');
+      if (mutation === 'missing') row.children = row.children.filter(node => node !== control);
+      if (mutation === 'disabled') control.enabled = false;
+      if (mutation === 'unchecked') control.checked = false;
+      if (mutation === 'unlocated') delete control.attributes.bounds;
+      assert.deepEqual(selectRecordedControl(altered, target), [], mutation);
+    }
+  });
+  test(`retained ${name} still requires the identified parent to be off`, () => {
+    const commands = disableCommands();
+    assert.deepEqual(selectRecordedControl(tree, commands[0].assertVisible), [recordedRow(tree)]);
+    assert.deepEqual(selectRecordedControl(tree, commands[2].assertVisible), []);
+    // This is a derived negative-control fixture, not observed off-state evidence.
+    const off = structuredClone(tree), row = recordedRow(off);
+    for (const node of [row, ...row.children.filter(child => child.attributes.value === '1')]) {
+      node.checked = false; node.attributes.checked = 'false'; node.attributes.value = '0'; node.attributes.text = '0';
+    }
+    assert.deepEqual(selectRecordedControl(off, commands[2].assertVisible), [row]);
+    assert.deepEqual(selectRecordedControl(off, commands[1].tapOn), []);
+  });
 }
 
 test('the recorded nested row resolves the actual enabled switch instead of its label or row center', () => {
