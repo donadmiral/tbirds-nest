@@ -7,6 +7,7 @@ import { installFixtureTransport } from './install-fixture-transport.cjs';
 import { installFixtureRuntime } from './fixture-runtime.cjs';
 import { observeCaptureBoundary, isCaptureState } from './capture-boundary-trace.cjs';
 import { createNavigationTimingRecorder } from './navigation-timing.cjs';
+import { installInputDiagnostics, attachPressabilityEmitter, record as recordInput } from './input-diagnostics.cjs';
 
 if (process.env.EXPO_PUBLIC_APP_ENV !== 'qa' || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY !== 'native-ui-synthetic-no-provider-key') {
   throw new Error('The isolated native UI entry cannot use a provider credential or production configuration.');
@@ -30,6 +31,15 @@ function persist(receipt) {
 const fixture = createFixture(persist);
 installFixtureRuntime(fixture);
 installFixtureTransport(fixture, FixtureWebSocket);
+installInputDiagnostics({
+  write: value => FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'native-ui-input-diagnostics.json', value),
+});
+try {
+  // Passive installed RN emitter. It does not replace responder handlers or
+  // identify a target; targeted callbacks below supply the control boundary.
+  const emitter = require('react-native/Libraries/Pressability/PressabilityPerformanceEventEmitter').default;
+  attachPressabilityEmitter(emitter);
+} catch { recordInput('pressability-unavailable'); }
 Linking.addEventListener('url', ({ url }) => {
   if (typeof url === 'string' && /^platinum-circles-qa:/i.test(url)) {
     observeCaptureBoundary(fixture, 'received', { matched: url === 'platinum-circles-qa://ui-fixture/memory' });

@@ -32,6 +32,8 @@ cleanup() {
     container="$(xcrun simctl get_app_container "$ui_simulator" app.platinumcircles.mobile.qa data 2>/dev/null || true)"
     if [[ -f "$container/Documents/native-ui-receipt.json" ]]; then cp "$container/Documents/native-ui-receipt.json" native-ui-logs/native-ui-receipt.json; fi
     if [[ -f "$container/Documents/native-ui-auth-diagnostics.json" ]]; then cp "$container/Documents/native-ui-auth-diagnostics.json" native-ui-logs/native-ui-auth-diagnostics.json; fi
+    if [[ -f "$container/Documents/native-ui-input-diagnostics.json" ]]; then cp "$container/Documents/native-ui-input-diagnostics.json" native-ui-logs/native-ui-input-diagnostics.json; fi
+    if [[ -f "$container/Documents/native-ui-ios-input-diagnostics.jsonl" ]]; then cp "$container/Documents/native-ui-ios-input-diagnostics.jsonl" native-ui-logs/native-ui-ios-input-diagnostics.jsonl; fi
     if [[ -d "$container/Documents/native-memory-capture" ]]; then
       mkdir -p native-ui-logs/memory-capture
       cp -R "$container/Documents/native-memory-capture/." native-ui-logs/memory-capture/
@@ -51,6 +53,7 @@ trap cleanup EXIT
 npx --no-install expo prebuild --platform ios --no-install \
   --skip-dependency-update react,react-native 2>&1 | tee native-ui-logs/prebuild.log
 python3 scripts/quality/native-ui-ios-url-trace.py
+python3 scripts/quality/native-ui-ios-input-trace.py
 python3 - <<'PY'
 from pathlib import Path
 import plistlib
@@ -125,6 +128,8 @@ mkdir -p native-ui-logs/memory-capture
 if [[ -n "$container" ]]; then
   cp "$container/Documents/native-ui-receipt.json" native-ui-logs/native-ui-receipt.json || evidence_status=1
   cp "$container/Documents/native-ui-auth-diagnostics.json" native-ui-logs/native-ui-auth-diagnostics.json || evidence_status=1
+  cp "$container/Documents/native-ui-input-diagnostics.json" native-ui-logs/native-ui-input-diagnostics.json || evidence_status=1
+  cp "$container/Documents/native-ui-ios-input-diagnostics.jsonl" native-ui-logs/native-ui-ios-input-diagnostics.jsonl || evidence_status=1
   cp -R "$container/Documents/native-memory-capture/." native-ui-logs/memory-capture/ || evidence_status=1
 else
   evidence_status=1

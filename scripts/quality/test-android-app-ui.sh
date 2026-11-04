@@ -36,6 +36,7 @@ cleanup() {
     fi
     "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt-final.json 2>/dev/null || true
     "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-auth-diagnostics.json > native-ui-logs/native-ui-auth-diagnostics-final.json 2>/dev/null || true
+    "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-input-diagnostics.json > native-ui-logs/native-ui-input-diagnostics-final.json 2>/dev/null || true
     mkdir -p native-ui-logs/memory-capture
     "$adb_bin" pull /data/user/0/app.platinumcircles.mobile.qa/files/native-memory-capture/. native-ui-logs/memory-capture/ >/dev/null 2>&1 || true
     timeout 10 "$adb_bin" emu kill >/dev/null 2>&1 || true
@@ -178,6 +179,7 @@ bash scripts/quality/run-native-ui-flows.sh "$ANDROID_SERIAL" || flow_status=$?
 evidence_status=0
 "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-receipt.json > native-ui-logs/native-ui-receipt.json || evidence_status=1
 "$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-auth-diagnostics.json > native-ui-logs/native-ui-auth-diagnostics.json || evidence_status=1
+"$adb_bin" exec-out cat /data/user/0/app.platinumcircles.mobile.qa/files/native-ui-input-diagnostics.json > native-ui-logs/native-ui-input-diagnostics.json || evidence_status=1
 mkdir -p native-ui-logs/memory-capture
 "$adb_bin" pull /data/user/0/app.platinumcircles.mobile.qa/files/native-memory-capture/. native-ui-logs/memory-capture/ || evidence_status=1
 memory_status=0

@@ -118,7 +118,7 @@ for (const platform of ['android', 'ios']) {
     test(`actual ${platform} shell tail aggregates ${failure} and always runs both existing verifiers`, t => {
       const h = sandbox(t, { cases: failure === 'navigation' ? { navigation: { exit: 7, report: 'failed' } } : {} });
       const docs = path.join(h.directory, 'container/Documents'); fs.mkdirSync(path.join(docs, 'native-memory-capture'), { recursive: true });
-      for (const file of ['native-ui-receipt.json', 'native-ui-auth-diagnostics.json']) fs.writeFileSync(path.join(docs, file), '{}');
+      for (const file of ['native-ui-receipt.json', 'native-ui-auth-diagnostics.json', 'native-ui-input-diagnostics.json', 'native-ui-ios-input-diagnostics.jsonl']) fs.writeFileSync(path.join(docs, file), '{}');
       fs.writeFileSync(path.join(docs, 'native-memory-capture/receipt.json'), '{}');
       if (failure === 'evidence') fs.rmSync(path.join(docs, 'native-ui-receipt.json'));
       const adb = h.executable('adb', `

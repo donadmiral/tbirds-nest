@@ -227,16 +227,18 @@ test('disposable preparation retains diagnostic source, original auth hash and e
   const originalAuth = fs.readFileSync(path.join(root, authPath));
   const sha = value => crypto.createHash('sha256').update(value).digest('hex');
   const required = ['App.tsx', 'index.js', 'app.config.js', 'app.json', 'package.json', 'package-lock.json', authPath, 'src/navigation/AppNavigator.tsx', 'src/screens/messages/ConversationsScreen.tsx',
+    'src/components/LiveUi.tsx', 'src/screens/feed/LiveStreamsScreen.tsx', 'src/screens/feed/NewLiveScreen.tsx', 'src/screens/profile/MemoryAlbumScreen.tsx',
     'plugins/withMedia3Compatibility.js', 'modules/boomerang/android/build.gradle', 'scripts/quality/android-media-dependencies.init.gradle',
     'scripts/quality/native-ui-android-media-abi.py',
     'modules/boomerang/ios/BoomerangModule.swift', 'modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt',
-    'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/navigation-timing.cjs', 'tests/native/entry.js',
-    'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/verify-native-ui.cjs',
+    'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/navigation-timing.cjs', 'tests/native/input-diagnostics.cjs', 'tests/native/entry.js',
+    'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-input-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-ios-input-trace.py', 'scripts/quality/verify-native-ui.cjs',
     'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh', 'scripts/quality/test-android-app-ui.sh',
-    'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
+    'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml', '.github/workflows/live-native-input-diagnostics.yml'];
   const dependencyFiles = {
     '@supabase/supabase-js': ['package.json', 'dist/index.cjs', 'dist/index.mjs'],
     '@supabase/auth-js': ['package.json', 'src/lib/locks.ts', 'dist/main/index.js', 'dist/module/index.js', 'dist/main/lib/locks.js', 'dist/module/lib/locks.js'],
+    'react-native': ['package.json', 'index.js', 'Libraries/Pressability/Pressability.js', 'Libraries/Pressability/PressabilityPerformanceEventEmitter.js', 'Libraries/Pressability/PressabilityTypes.js'],
   };
   for (const [name, selected] of Object.entries(dependencyFiles)) required.push(...selected.map(file => 'node_modules/' + name + '/' + file));
   try {
@@ -264,10 +266,10 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     const generated = fs.readFileSync(path.join(directory, authPath));
     assert.equal(overlay.after, sha(generated));
     assert.deepEqual(fs.readFileSync(path.join(directory, 'native-ui-logs', overlay.retained)), generated);
-    for (const file of ['tests/native/auth-diagnostics.cjs', 'tests/native/navigation-timing.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py']) {
+    for (const file of ['tests/native/auth-diagnostics.cjs', 'tests/native/navigation-timing.cjs', 'tests/native/input-diagnostics.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-input-overlay.cjs', '.github/workflows/live-native-input-diagnostics.yml', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-ios-input-trace.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py']) {
       assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
     }
-    for (const file of ['src/navigation/AppNavigator.tsx', 'src/screens/messages/ConversationsScreen.tsx']) {
+    for (const file of ['src/navigation/AppNavigator.tsx', 'src/screens/messages/ConversationsScreen.tsx', 'src/components/LiveUi.tsx', 'src/screens/feed/LiveStreamsScreen.tsx', 'src/screens/feed/NewLiveScreen.tsx', 'src/screens/profile/MemoryAlbumScreen.tsx']) {
       const observed = manifest.overlays.find(row => row.file === file);
       const original = fs.readFileSync(path.join(root, file));
       const modified = fs.readFileSync(path.join(directory, file));
