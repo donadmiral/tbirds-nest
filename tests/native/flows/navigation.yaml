@@ -5,9 +5,21 @@ name: Full native app navigation
     clearState: true
     permissions:
       notifications: deny
-- extendedWaitUntil:
-    visible: Sign in
-    timeout: 30000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - extendedWaitUntil:
+          visible: Sign in
+          timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # Cold Simulator launch can consume the first wait before JavaScript starts.
+      - extendedWaitUntil:
+          visible: Sign in
+          timeout: 90000
 - tapOn: Username or email
 - inputText: qa.alex@example.invalid
 # On compact Android displays the open email keyboard covers the next field.
