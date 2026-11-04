@@ -1,0 +1,79 @@
+name: Recover full Android UI with retained APK
+on:
+  push:
+    branches: ['codex/live-android-root-recovery-20261104']
+    paths:
+      - '.github/workflows/native-full-app-retained-recovery.yml'
+      - 'scripts/quality/native-ui-full-app-recovery.py'
+      - 'tests/quality/native-full-app-recovery.py'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: retained-full-android-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  CI: 'true'
+  EXPO_NO_TELEMETRY: '1'
+  EXPO_PUBLIC_APP_ENV: qa
+  EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+  MAESTRO_CLI_NO_ANALYTICS: 'true'
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  retained-full-android:
+    name: All original Android UI flows, retained APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out exact compiled application source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: aa73cc92d9676c51ef757ef34ce91f17754dd4a1
+          path: application
+          persist-credentials: false
+      - name: Check out isolated recovery runner
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          path: consumer
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - name: Download exact private test-only compiled evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: '13354845087'
+          run-id: 41886667189
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: retained
+      - name: Verify immutable APK, source and all prepared overlays
+        working-directory: application
+        run: python3 ../consumer/scripts/quality/native-ui-full-app-recovery.py prepare --retained ../retained
+      - name: Prepare disposable Android host
+        shell: bash
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          test -d "${ANDROID_HOME:?The runner must provide its Android SDK}"
+          printf '%s\n' "$ANDROID_HOME/platform-tools" "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0 ffmpeg xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - name: Install original checksum-pinned Maestro
+        working-directory: application
+        run: bash scripts/quality/install-native-ui-tools.sh
+      - name: Run unchanged full UI, Live, feed and decoded memory gates
+        working-directory: application
+        run: bash native-ui-logs/run-retained-full-app.sh
+      - name: Preserve original source identity and fresh recovery evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-retained-full-app-recovery
+          path: application/native-ui-logs/
+          if-no-files-found: warn
+          retention-days: 7
