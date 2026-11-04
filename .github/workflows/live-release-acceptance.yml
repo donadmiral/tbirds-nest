@@ -80,18 +80,28 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+      actions: read
       id-token: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with: {persist-credentials: false}
+        with: {persist-credentials: false, fetch-depth: 2}
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
-      - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
+      - name: Verify prior connected evidence for the isolated fixture correction
+        id: connected_evidence
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          LIVE_CONNECTED_EVIDENCE: /tmp/live-connected-evidence
+        run: node tools/reuse-live-connected-evidence.mjs
+      - if: steps.connected_evidence.outputs.reused != 'true'
+        run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
       - name: Install verified browser runtime
+        if: steps.connected_evidence.outputs.reused != 'true'
         run: |
           node web/node_modules/playwright/cli.js install-deps chromium
           bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/live-browser"
       - name: Real QA host, follower, outsider and streaming provider acceptance
+        if: steps.connected_evidence.outputs.reused != 'true'
         env:
           LIVE_CONNECTED_EVIDENCE: /tmp/live-connected-evidence
         run: node web/tests/browser/live-connected-run.cjs

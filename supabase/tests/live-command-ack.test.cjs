@@ -65,7 +65,10 @@ async function execute(action, acknowledgement, options = {}) {
     if (String(url).includes('/live-streaming/')) return Response.json(acknowledgement, { status: options.httpStatus || 200 });
     if (String(url).includes('/presence?')) return Response.json({ total_count: 1, data: [{ id: id(9), userId: identity }] });
     assert.equal(String(url), 'https://api.daily.co/v1/rooms/' + room);
-    return Response.json({ privacy: 'private', url: 'https://synthetic.daily.co/' + room });
+    return Response.json({
+      privacy: 'private', url: 'https://synthetic.daily.co/' + room,
+      config: { streaming_endpoints: provider.hlsEndpoints(config, context), max_participants: 12 },
+    });
   };
   const response = await createLiveHandler('control', { caller: () => caller, service, config, fetch: fetcher })(new Request('https://synthetic.invalid/control', {
     method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
