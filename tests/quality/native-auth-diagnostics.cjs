@@ -237,6 +237,8 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     'tests/native/memory-export-adapter.ts', 'tests/native/memory-capture-observer.cjs', 'tests/native/expo-fetch-fixture.cjs',
     'scripts/quality/native-ui-memory-failure-overlay.cjs', 'scripts/quality/native-ui-feed-video-overlay.cjs',
     'tests/native/feed-video-asset.cjs', 'tests/native/flows/feed-video.yaml',
+    'scripts/quality/native-ui-ios-autofill.py', 'tests/quality/native-ios-autofill.cjs',
+    'tests/native/flows/ios-autofill-open.yaml', 'tests/native/flows/ios-autofill-disable.yaml',
     'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-navigation-overlay.cjs', 'scripts/quality/native-ui-input-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-ios-input-trace.py', 'scripts/quality/verify-native-ui.cjs',
     'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh', 'scripts/quality/test-android-app-ui.sh',
     'scripts/quality/native-ui-xvfb-readiness.py', 'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml', '.github/workflows/live-native-input-diagnostics.yml'];
@@ -271,7 +273,9 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     for (const file of ['src/services/memoryMovieFiles.ts', 'tests/native/memory-failure-identity.cjs',
       'tests/native/memory-export-adapter.ts', 'tests/native/memory-capture-observer.cjs', 'tests/native/expo-fetch-fixture.cjs',
       'scripts/quality/native-ui-memory-failure-overlay.cjs', 'scripts/quality/native-ui-xvfb-readiness.py', 'scripts/quality/native-ui-android-stack-diagnostics.py',
-      'scripts/quality/native-ui-feed-video-overlay.cjs', 'tests/native/feed-video-asset.cjs', 'tests/native/flows/feed-video.yaml']) assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
+      'scripts/quality/native-ui-feed-video-overlay.cjs', 'tests/native/feed-video-asset.cjs', 'tests/native/flows/feed-video.yaml',
+      'scripts/quality/native-ui-ios-autofill.py', 'tests/quality/native-ios-autofill.cjs',
+      'tests/native/flows/ios-autofill-open.yaml', 'tests/native/flows/ios-autofill-disable.yaml']) assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
     for (const [name, selected] of Object.entries(dependencyFiles)) {
       const dependency = manifest.dependencyProvenance[name], installed = JSON.parse(fs.readFileSync(path.join(root, 'node_modules', name, 'package.json')));
       assert.equal(dependency.installedVersion, installed.version); assert.equal(dependency.matchesLockedVersion, true);

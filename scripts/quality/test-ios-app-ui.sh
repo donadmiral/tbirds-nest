@@ -129,8 +129,10 @@ printf '{"exitCode":%s}\n' "$binary_retention_status" > native-ui-logs/binary-re
 runtime="$(xcrun simctl list runtimes --json | python3 -c 'import json,sys; items=[x for x in json.load(sys.stdin)["runtimes"] if x.get("isAvailable") and x["identifier"].startswith("com.apple.CoreSimulator.SimRuntime.iOS-")]; preferred=next((x for x in items if x["version"]==sys.argv[1]),None); print(preferred["identifier"] if preferred else "")' "$ios_version")"
 test -n "$runtime"
 ui_simulator="$(xcrun simctl create "Platinum full app UI ${GITHUB_RUN_ID}" "$ios_device_type" "$runtime")"
+python3 scripts/quality/native-ui-ios-autofill.py verify-created "$ui_simulator" --runtime "$runtime"
 xcrun simctl boot "$ui_simulator"
 xcrun simctl bootstatus "$ui_simulator" -b
+python3 scripts/quality/native-ui-ios-autofill.py configure "$ui_simulator"
 xcrun simctl install "$ui_simulator" "$app"
 xcrun simctl spawn "$ui_simulator" log stream --style compact --level info --predicate 'process == "PlatinumQA"' > native-ui-logs/app.log 2>&1 &
 ui_log_pid=$!

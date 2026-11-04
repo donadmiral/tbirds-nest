@@ -1,0 +1,15 @@
+appId: com.apple.Preferences
+name: Turn off the verified Simulator Password AutoFill switch once
+---
+- assertVisible:
+    text: '^AutoFill Passwords and Passkeys$'
+    checked: true
+    enabled: true
+- tapOn:
+    text: '^AutoFill Passwords and Passkeys$'
+    checked: true
+    enabled: true
+- assertVisible:
+    text: '^AutoFill Passwords and Passkeys$'
+    checked: false
+    enabled: true
