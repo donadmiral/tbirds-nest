@@ -22,7 +22,10 @@ function load(file, imports = {}) {
   return module.exports;
 }
 const provider = load('live-core/provider.ts');
-const { createLiveHandler } = load('live-core/handler.ts', { './provider.ts': provider });
+const acknowledgement = load('_shared/dailyCommandAcknowledgement.ts');
+const { createLiveHandler } = load('live-core/handler.ts', {
+  './provider.ts': provider, '../_shared/dailyCommandAcknowledgement.ts': acknowledgement,
+});
 const { createLiveSigner } = load('live-sign/handler.ts');
 const noStore = { 'Cache-Control': 'private, no-store', 'CDN-Cache-Control': 'no-store' };
 function deployedHandlers({ signingKey = environment.LIVE_CDN_SIGNING_KEY } = {}) {

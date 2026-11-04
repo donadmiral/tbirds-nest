@@ -8,6 +8,7 @@ import { livePlayback, type LivePlaybackTicket } from '../services/liveService';
 import type { LiveSession } from '../../shared/liveDirectory';
 import { subscribeLiveControl } from '../services/liveControlEvents';
 import { liveObject } from '../services/liveService';
+import { LIVE_STARTUP_WINDOW_MS, liveStartupDelay, type LivePlaybackStartup } from '../services/livePlaybackStartup';
 
 type Playback = {
   player: VideoPlayer; session: LiveSession | null; expanded: boolean; loading: boolean; error: string | null;
@@ -37,39 +38,75 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
   const generation = useRef(0), active = useRef<LiveSession | null>(null), ticket = useRef<LivePlaybackTicket | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null), expires = useRef<ReturnType<typeof setTimeout> | null>(null), auth = useRef(owner), mounted = useRef(true);
   const sourceQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const startup = useRef<LivePlaybackStartup | null>(null), startupTimer = useRef<ReturnType<typeof setTimeout> | null>(null), authorizationPending = useRef(false);
+  const scheduleStartupRetry = useRef<(message?: string) => boolean>(() => false);
   auth.current = owner;
   const clearTimer = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; };
+  const clearStartupTimer = () => { if (startupTimer.current) clearTimeout(startupTimer.current); startupTimer.current = null; };
   const changeSource = (work: () => Promise<void>) => { const next=sourceQueue.current.catch(()=>{}).then(work);sourceQueue.current=next;return next; };
+  const source = (value: LiveSession, grant: LivePlaybackTicket) => ({ uri: grant.url, contentType: 'hls' as const, useCaching: false, metadata: { title: value.title, artist: value.host.full_name || value.host.username || 'Platinum Live' } });
+  scheduleStartupRetry.current = (message = '') => {
+    const value = active.current, grant = ticket.current, attempt = startup.current, scope = auth.current, version = generation.current;
+    if (!mounted.current || !scope || !value || !grant?.live || !attempt || authorizationPending.current || callBusy.current) return false;
+    if (startupTimer.current) { if (liveStartupDelay({ ...attempt, attempts: Math.max(0, attempt.attempts - 1) }, grant.expiresAt, Date.now(), message, 0) !== null) return true; clearStartupTimer(); return false; }
+    const delay = liveStartupDelay(attempt, grant.expiresAt, Date.now(), message);
+    if (delay === null) return false;
+    attempt.attempts++; setLoading(true); setError(null);
+    startupTimer.current = setTimeout(() => {
+      startupTimer.current = null;
+      const current = () => mounted.current && version === generation.current && scope === auth.current && ticket.current === grant && active.current?.id === value.id && startup.current === attempt;
+      if (!current()) return;
+      if (attempt.played || callBusy.current) { setLoading(false); return; }
+      if (Date.now() >= Math.min(grant.expiresAt, attempt.startedAt + LIVE_STARTUP_WINDOW_MS)) { setLoading(false); setError('The live video is still preparing. Retry to reconnect.'); return; }
+      void changeSource(async () => {
+        if (!current()) return;
+        player.pause();
+        await player.replaceAsync(source(value, grant));
+      }).then(() => {
+        if (!current() || Date.now() >= grant.expiresAt || callBusy.current) return;
+        if (!attempt.played && Date.now() >= attempt.startedAt + LIVE_STARTUP_WINDOW_MS) { setLoading(false); setError('The live video is still preparing. Retry to reconnect.'); return; }
+        player.play();
+      }).catch(reason => {
+        if (!current()) return;
+        if (!scheduleStartupRetry.current(reason instanceof Error ? reason.message : '')) { setLoading(false); setError('Playback could not connect. Retry when connected.'); }
+      });
+    }, delay);
+    return true;
+  };
   const close = useCallback(() => {
-    generation.current++; clearTimer(); if(expires.current)clearTimeout(expires.current);expires.current=null; active.current = null; ticket.current = null;
+    generation.current++; clearTimer(); clearStartupTimer(); startup.current = null; authorizationPending.current = false; if(expires.current)clearTimeout(expires.current);expires.current=null; active.current = null; ticket.current = null;
     player.pause(); void changeSource(()=>player.replaceAsync(null)).catch(() => {});
     if (mounted.current) { setSession(null); setExpanded(false); setLoading(false); setError(null); }
   }, [player]);
   const refresh = useRef<(value: LiveSession, reset: boolean) => Promise<void>>(async () => {});
   refresh.current = async (value, reset) => {
-    clearTimer(); const version = ++generation.current, scope = auth.current;
+    clearTimer(); clearStartupTimer(); const version = ++generation.current, scope = auth.current;
     if (!scope) return;
+    authorizationPending.current = true;
+    let sourceAuthorized = false;
     setLoading(true); setError(null);
     try {
       const next = await livePlayback(value.id);
       if (!mounted.current || version !== generation.current || scope !== auth.current || active.current?.id !== value.id) return;
       const position = !reset && !next.live ? player.currentTime : null;
       const wasPlaying = !callBusy.current && (reset || player.playing);
+      ticket.current = next; authorizationPending.current = false; sourceAuthorized = true;
+      if(expires.current)clearTimeout(expires.current);
+      expires.current=setTimeout(()=>{if(ticket.current===next){generation.current++;clearStartupTimer();player.pause();ticket.current=null;void changeSource(()=>player.replaceAsync(null)).catch(()=>{});setLoading(false);setError('Playback access expired. Reconnect to continue.');}},Math.max(1000,next.expiresAt-Date.now()));
+      timer.current = setTimeout(() => { if (active.current?.id === value.id) void refresh.current(value, false); }, Math.max(1000, next.expiresAt - Date.now() - 25000 - Math.random()*5000));
       await changeSource(async()=>{
         if(!mounted.current||version!==generation.current||scope!==auth.current)return;
-        await player.replaceAsync({ uri: next.url, contentType: 'hls', useCaching: false, metadata: { title: value.title, artist: value.host.full_name || value.host.username || 'Platinum Live' } });
+        await player.replaceAsync(source(value, next));
       });
       if (!mounted.current || version !== generation.current || scope !== auth.current) return;
       if (position !== null) player.currentTime = position;
-      ticket.current = next;
       if (wasPlaying && !callBusy.current) player.play();
-      setLoading(false);
-      // Refresh the expiring grant, not stream metadata. One timer and request per player.
-      if(expires.current)clearTimeout(expires.current);
-      expires.current=setTimeout(()=>{if(ticket.current===next){player.pause();ticket.current=null;void changeSource(()=>player.replaceAsync(null)).catch(()=>{});setError('Playback access expired. Reconnect to continue.');}},Math.max(1000,next.expiresAt-Date.now()));
-      timer.current = setTimeout(() => { if (active.current?.id === value.id) void refresh.current(value, false); }, Math.max(1000, next.expiresAt - Date.now() - 25000 - Math.random()*5000));
+      setLoading(!!startupTimer.current);
     } catch (reason) {
       if (!mounted.current || version !== generation.current || scope !== auth.current) return;
+      authorizationPending.current = false;
+      if (sourceAuthorized && scheduleStartupRetry.current(reason instanceof Error ? reason.message : '')) return;
+      clearTimer(); clearStartupTimer(); if(expires.current)clearTimeout(expires.current);expires.current=null;
       player.pause(); ticket.current = null;
       await changeSource(async()=>{if(version===generation.current)await player.replaceAsync(null);}).catch(() => {});
       setLoading(false); setError(reason instanceof Error ? reason.message : 'Playback could not connect. Retry to reconnect.');
@@ -77,10 +114,11 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
   };
   const open = useCallback(async (value: LiveSession) => {
     if (active.current?.id === value.id && ticket.current && ticket.current.expiresAt > Date.now() + 1000) { setExpanded(true); return; }
+    startup.current = { startedAt: Date.now(), attempts: 0, played: false };
     active.current = value; setSession(value); setExpanded(true);
     await refresh.current(value, true);
   }, []);
-  const retry = useCallback(async () => { const value=active.current;if(value){await refresh.current(value,false);if(!callBusy.current&&active.current?.id===value.id&&ticket.current&&ticket.current.expiresAt>Date.now())player.play();} }, [player]);
+  const retry = useCallback(async () => { const value=active.current;if(value){if(startup.current&&!startup.current.played)startup.current={startedAt:Date.now(),attempts:0,played:false};await refresh.current(value,false);if(!callBusy.current&&active.current?.id===value.id&&ticket.current&&ticket.current.expiresAt>Date.now())player.play();} }, [player]);
   useEffect(() => { close(); }, [owner, close]);
   useEffect(() => {
     const listener = AppState.addEventListener('change', state => {
@@ -101,7 +139,7 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
       if(event==='access_changed') { if(!payload.user_id||payload.user_id===owner)changed(); }
       if(event==='session'&&liveObject(payload.session)) {
         if(['ending','ended','cancelled'].includes(String(payload.session.state))) {
-          generation.current++;player.pause();clearTimer();ticket.current=null;setLoading(false);void changeSource(()=>player.replaceAsync(null)).catch(()=>{});
+          generation.current++;player.pause();clearTimer();clearStartupTimer();ticket.current=null;setLoading(false);void changeSource(()=>player.replaceAsync(null)).catch(()=>{});
           setError('This live broadcast has ended. Open the stream to check its replay.');
         }
       }
@@ -109,12 +147,15 @@ export function LivePlaybackProvider({ children }: { children: React.ReactNode }
     return()=>{activeChannel=false;unsubscribe();};
   },[owner,session?.id,player]);
   useEffect(() => {
+    const markPlaying = () => { if (active.current && ticket.current && player.status === 'readyToPlay' && player.playing) { if (startup.current) startup.current.played = true; clearStartupTimer(); setLoading(false); setError(null); } };
     const listener = player.addListener('statusChange', event => {
-      if (event.status === 'error' && active.current) { setError('Playback was interrupted. Retry to reconnect.'); setLoading(false); }
+      if (event.status === 'readyToPlay') markPlaying();
+      if (event.status === 'error' && active.current && !scheduleStartupRetry.current(event.error?.message)) { setError('Playback was interrupted. Retry when connected.'); setLoading(false); }
     });
-    return () => listener.remove();
+    const playing = player.addListener('playingChange', event => { if (event.isPlaying) markPlaying(); });
+    return () => { listener.remove(); playing.remove(); };
   }, [player]);
-  useEffect(() => {mounted.current=true;return () => { mounted.current = false; generation.current++; clearTimer();if(expires.current)clearTimeout(expires.current); active.current = null; ticket.current = null; };}, []);
+  useEffect(() => {mounted.current=true;return () => { mounted.current = false; generation.current++; clearTimer();clearStartupTimer();startup.current=null;if(expires.current)clearTimeout(expires.current); active.current = null; ticket.current = null; };}, []);
   return <Context.Provider value={{ player, session, expanded, loading, error, open, close, minimize: () => setExpanded(false), expand: () => setExpanded(true), retry }}>{children}</Context.Provider>;
 }
 

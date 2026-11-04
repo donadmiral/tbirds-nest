@@ -4,19 +4,13 @@ import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from './SafeArea';
 import { useTheme } from '../theme/useTheme';
 import { LIVE_TOPICS, type LiveFilter, type LiveView } from '../../shared/liveDirectory';
+import { LiveIcon } from './live/LiveIcon';
+export { LiveIcon } from './live/LiveIcon';
 
 type Choice = readonly [string, string];
 export const LIVE_AUDIENCES = [['public', 'Public'], ['followers', 'Followers'], ['invite', 'Invitation only']] as const;
 const DISCOVERY = [['for_you', 'Recommended'], ['following', 'Following'], ['followers', 'Followers'], ['celebrities', 'Celebrities'], ['mine', 'My streams']] as const;
 const VIEWS = [['live', 'Live'], ['scheduled', 'Upcoming'], ['replay', 'Replays']] as const;
-
-// A camera with a recording dot is deliberately different from Channels' radio icon.
-export function LiveIcon({ size = 20, color }: { size?: number; color: string }) {
-  return <View accessible={false} style={{ width: size + 2, height: size, justifyContent: 'center' }}>
-    <Feather name="video" size={size} color={color} />
-    <View style={{ position: 'absolute', top: 0, right: 0, width: 5, height: 5, borderRadius: 3, backgroundColor: '#C43146' }} />
-  </View>;
-}
 
 export function LiveChoice({ label, value, choices, onChange, disabled = false }: {
   label: string; value: string; choices: readonly Choice[]; onChange(value: string): void; disabled?: boolean;

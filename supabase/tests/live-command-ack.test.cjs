@@ -20,7 +20,10 @@ function load(file, imports = {}) {
   return module.exports;
 }
 const provider = load('live-core/provider.ts');
-const { createLiveHandler, dailyCommandAccepted } = load('live-core/handler.ts', { './provider.ts': provider });
+const acknowledgement = load('_shared/dailyCommandAcknowledgement.ts');
+const { createLiveHandler, dailyCommandAccepted } = load('live-core/handler.ts', {
+  './provider.ts': provider, '../_shared/dailyCommandAcknowledgement.ts': acknowledgement,
+});
 const id = n => '10000000-0000-4000-8000-' + String(n).padStart(12, '0');
 const host = id(1), session = id(2), operation = id(3), lease = id(4), identity = id(5);
 const room = 'pc-live-' + session.replaceAll('-', '');

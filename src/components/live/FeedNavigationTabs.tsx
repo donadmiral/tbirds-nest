@@ -19,8 +19,7 @@ export function FeedNavigationTabs({ selected, onSelect, onLive }: {
         accessibilityLabel={id === 'live' ? 'Live streams' : label} accessibilityState={{ selected: active }}
         onPress={() => id === 'live' ? onLive() : onSelect(id)} activeOpacity={.7} style={s.tab}>
         <View style={s.labelRow}>
-          {id === 'live' ? <LiveIcon size={16} color={color} /> : null}
-          <Text style={[s.label, { color, fontWeight: active ? '800' : '500' }]}>{label}</Text>
+          {id === 'live' ? <LiveIcon size={22} color={color} /> : <Text style={[s.label, { color, fontWeight: active ? '800' : '500' }]}>{label}</Text>}
         </View>
         <View style={[s.underline, { backgroundColor: active ? id === 'discover' ? t.status.innovation : t.ink.primary : 'transparent' }]} />
       </TouchableOpacity>;

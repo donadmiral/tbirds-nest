@@ -1,3 +1,4 @@
+import { dailyCommandAccepted } from '../_shared/dailyCommandAcknowledgement.ts';
 type Result = { data: unknown; error: unknown };
 export type Dependencies = {
   rpc(name: string, args: Record<string, unknown>, signal: AbortSignal): PromiseLike<Result>;
@@ -114,7 +115,7 @@ export function createMaintenanceHandler(deps: Dependencies) {
           });
           if (!response.ok) { await response.body?.cancel(); throw new Error('PROVIDER_REQUEST_FAILED'); }
           const body = await providerBody(response);
-          if (job.action === 'stop' ? body.sent !== true && body.sent !== 'true' : !Array.isArray(body.ejectedIds)) throw new Error('PROVIDER_UNCONFIRMED');
+          if (job.action === 'stop' ? !dailyCommandAccepted(body) : !Array.isArray(body.ejectedIds)) throw new Error('PROVIDER_UNCONFIRMED');
           ok = true; providerCompleted++;
         } catch { error = 'provider_operation_unconfirmed'; providerFailed++; }
         await objectRpc('live_finish_outbox', { p_id: job.id, p_lease: job.lease_id, p_ok: ok, p_error: error });

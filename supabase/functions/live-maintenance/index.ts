@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { createMaintenanceHandler } from './handler.ts';
 import { serviceRoleFetch } from '../_shared/serviceRoleFetch.ts';
+import { withProviderDiagnostics } from '../live-core/providerDiagnostics.ts';
 const env = (name: string) => Deno.env.get(name) || '';
 const service = (signal: AbortSignal) => createClient(env('SUPABASE_URL'), env('SUPABASE_SERVICE_ROLE_KEY'), {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -14,5 +15,6 @@ const names = ['DAILY_API_KEY', 'LIVE_HLS_BUCKET', 'LIVE_HLS_REGION', 'LIVE_HLS_
 Deno.serve(createMaintenanceHandler({
   rpc: (name, args, signal) => service(signal).rpc(name, args),
   removeCover: (path, signal) => service(signal).storage.from('live-covers').remove([path]),
-  fetch, dailyKey: env('DAILY_API_KEY'), configuration: Object.fromEntries(names.map(name => [name, !!env(name)])),
+  fetch: withProviderDiagnostics(fetch, diagnostic => console.warn(JSON.stringify(diagnostic))),
+  dailyKey: env('DAILY_API_KEY'), configuration: Object.fromEntries(names.map(name => [name, !!env(name)])),
 }));

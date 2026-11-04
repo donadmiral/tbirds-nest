@@ -11,7 +11,10 @@ function load(file, imports = {}) {
   return module.exports;
 }
 const p = load('live-core/provider.ts');
-const { createLiveHandler } = load('live-core/handler.ts', { './provider.ts': p });
+const acknowledgement = load('_shared/dailyCommandAcknowledgement.ts');
+const { createLiveHandler } = load('live-core/handler.ts', {
+  './provider.ts': p, '../_shared/dailyCommandAcknowledgement.ts': acknowledgement,
+});
 const id = n => '10000000-0000-4000-8000-' + String(n).padStart(12, '0');
 const host = id(1), guest = id(2), hostIdentity = id(11), guestIdentity = id(12), session = id(20), instance = id(21);
 const now = Date.parse('2026-11-02T20:00:00Z');
@@ -112,7 +115,9 @@ test('no anonymous user reaches service context or provider network', async () =
   assert.equal((await h.run()).status, 401); assert.equal(h.calls.length, 0); assert.equal(h.requests.length, 0);
 });
 
-const { createMaintenanceHandler } = load('live-maintenance/handler.ts');
+const { createMaintenanceHandler } = load('live-maintenance/handler.ts', {
+  '../_shared/dailyCommandAcknowledgement.ts': acknowledgement,
+});
 const tick = 'pc_live_' + 'a'.repeat(64);
 const inspectionHeader = 'X-Platinum-Live-Inspect-Provider';
 const domain = { domain_name: 'platinum-live', domain_id: 'abcdef01-abcd-4abc-8abc-abcdef012345' };
@@ -126,7 +131,8 @@ function maintenance(options = {}) {
       calls.push({ name, args }); events.push(name);
       if (name === 'validate_live_worker_tick_v1') return { data: options.authorized !== false, error: null };
       if (name === 'live_maintenance') return { data: { swept: 3 }, error: options.databaseError ? { message: 'private database error' } : null };
-      if (name === 'live_claim_outbox') return { data: { items: [] }, error: null };
+      if (name === 'live_claim_outbox') return { data: { items: options.jobs || [] }, error: null };
+      if (name === 'live_finish_outbox') return { data: { ok: true }, error: null };
       if (name === 'live_claim_cover_cleanup') return { data: { items: options.cover ? [cover] : [] }, error: null };
       if (name === 'live_check_cover_cleanup') return { data: { absent: false, object_path: cover.object_path }, error: null };
       if (name === 'live_finish_cover_cleanup') return { data: { ok: true }, error: null };
@@ -147,6 +153,46 @@ function maintenance(options = {}) {
     return { status: response.status, data: await response.json() };
   } };
 }
+test('leased stop jobs accept current and legacy Daily acknowledgements without marking media ended', async () => {
+  const job = { id: id(50), lease_id: id(51), action: 'stop', room_name: context.room_name, instance_id: instance };
+  for (const body of [{ status: 'sent' }, { sent: true }, { sent: 'true' }, { status: 'sent', sent: true }]) {
+    const h = maintenance({ jobs: [job], fetch: async () => Response.json(body) });
+    const result = await h.run({ inspect: null });
+    assert.equal(result.status, 200);
+    assert.equal(result.data.provider_jobs_completed, 1);
+    assert.equal(result.data.provider_jobs_failed, 0);
+    assert.equal(h.requests.length, 1);
+    assert.equal(h.requests[0].url, `https://api.daily.co/v1/rooms/${context.room_name}/live-streaming/stop`);
+    assert.deepEqual(JSON.parse(h.requests[0].init.body), { instanceId: instance });
+    const receipt = h.calls.find(call => call.name === 'live_finish_outbox');
+    assert.deepEqual(plain(receipt.args), { p_id: job.id, p_lease: job.lease_id, p_ok: true, p_error: null });
+    assert.equal(h.calls.some(call => /provider_event|finish_control/.test(call.name)), false);
+    assert.equal(h.calls.at(-1).args.p_succeeded, true);
+  }
+});
+test('unconfirmed stop responses retain the leased retry path and fail the maintenance tick', async () => {
+  const job = { id: id(50), lease_id: id(51), action: 'stop', room_name: context.room_name, instance_id: instance };
+  for (const body of [{}, { ok: true }, { status: 'queued' }, { status: 'sent', sent: false },
+    { status: 'failed', sent: true }, { status: 'sent', error: 'rejected' }]) {
+    const h = maintenance({ jobs: [job], fetch: async () => Response.json(body) });
+    const result = await h.run({ inspect: null });
+    assert.equal(result.status, 503);
+    assert.equal(result.data.provider_jobs_completed, 0);
+    assert.equal(result.data.provider_jobs_failed, 1);
+    const receipts = h.calls.filter(call => call.name === 'live_finish_outbox');
+    assert.equal(receipts.length, 1);
+    assert.equal(receipts[0].args.p_ok, false);
+    assert.equal(receipts[0].args.p_error, 'provider_operation_unconfirmed');
+    assert.equal(h.calls.at(-1).args.p_succeeded, false);
+  }
+});
+test('provider HTTP failure cannot complete a stop job even when its body resembles an acknowledgement', async () => {
+  const job = { id: id(50), lease_id: id(51), action: 'stop', room_name: context.room_name, instance_id: instance };
+  const h = maintenance({ jobs: [job], fetch: async () => Response.json({ status: 'sent' }, { status: 400 }) });
+  assert.equal((await h.run({ inspect: null })).status, 503);
+  assert.equal(h.calls.find(call => call.name === 'live_finish_outbox').args.p_ok, false);
+  assert.equal(h.calls.at(-1).args.p_succeeded, false);
+});
 test('provider inspection never bypasses one-use tick authentication', async () => {
   for (const authorization of ['', 'Bearer app.jwt.signature', 'Bearer synthetic-service-key', tick]) {
     const h = maintenance(), result = await h.run({ authorization });

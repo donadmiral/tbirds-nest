@@ -33,7 +33,7 @@ const words = value => Array.isArray(value) ? value.map(words).join('') : typeof
 const rn = new Proxy({ StyleSheet: { create: x => x, hairlineWidth: 1 }, Platform: { OS: 'ios' }, Keyboard: { addListener: () => ({ remove() {} }), dismiss() {} }, Alert: { alert() {} } }, { get: (obj, key) => key in obj ? obj[key] : key });
 const directory = load('shared/liveDirectory.ts', {});
 const setup = load('shared/liveSetup.ts', {});
-function common(h) { return { react: h.react, 'react-native': rn, '@expo/vector-icons': { Feather: 'Feather' } }; }
+function common(h) { return { react: h.react, 'react-native': rn, '@expo/vector-icons': { Feather: 'Feather' }, './live/LiveIcon': load('src/components/live/LiveIcon.tsx', { react: h.react, 'react-native-svg': { __esModule: true, default: 'Svg', Path: 'Path', Rect: 'Rect' } }) }; }
 function quickStart(options = {}) {
   const h = hooks(), calls = [], routes = [], caps = options.caps || { create: true, broadcast: true, recording: true };
   let serial = 0, reject = options.reject;
@@ -50,10 +50,10 @@ function quickStart(options = {}) {
   const props = { route: {params: {schedule: options.schedule===true}}, navigation: { goBack() {}, replace: (...args) => routes.push(args) } };
   return { h, calls, routes, render: () => h.render(component, props), allow: () => { reject = false; } };
 }
-test('Live uses a camera icon rather than the Channels radio symbol', () => {
+test('Live uses one camera mark with internal lettering across native surfaces', () => {
   const h = hooks(), ui = load('src/components/LiveUi.tsx', { ...common(h), './SafeArea': { SafeAreaView: 'SafeAreaView' }, '../theme/useTheme': { useTheme: () => ({ t: theme }) }, '../../shared/liveDirectory': directory });
   const tree = h.render(ui.LiveIcon, { color: '#000' });
-  assert.ok(by(tree, 'name', 'video')); assert.equal(by(tree, 'name', 'radio'), undefined);
+  assert.equal(tree.type, 'Svg'); assert.equal(tree.props.accessible, false); assert.ok(nodes(tree).some(node => node.type === 'Rect')); assert.equal(nodes(tree).filter(node => node.type === 'Path').length, 2); assert.equal(by(tree, 'name', 'radio'), undefined);
 });
 test('directory has three simple tabs and keeps topics behind closed filters', () => {
   const h = hooks(), ui = load('src/components/LiveUi.tsx', { ...common(h), './SafeArea': { SafeAreaView: 'SafeAreaView' }, '../theme/useTheme': { useTheme: () => ({ t: theme }) }, '../../shared/liveDirectory': directory });

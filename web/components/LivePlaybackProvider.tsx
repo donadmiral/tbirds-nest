@@ -8,6 +8,7 @@ import { getNavigationStore } from '@/lib/navigationCache';
 import { getLivePlayback, liveError, type LivePlayback } from '@/lib/liveApi';
 import type { LiveSession } from '../../shared/liveDirectory';
 import type Hls from 'hls.js';
+import type { RetryConfig } from 'hls.js';
 
 type PlaybackContext = { session: LiveSession | null; status: string; error: string | null; time: number; duration: number; open(session: LiveSession,startAt?:number): void; close(): void; minimize(): void; seek(seconds: number): void; slot(id: string,node: HTMLElement | null): void; };
 const Context=createContext<PlaybackContext|null>(null);
@@ -21,6 +22,7 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
   const video=useRef<HTMLVideoElement>(null),host=useRef<HTMLDivElement>(null),hls=useRef<Hls|null>(null),target=useRef<{id:string;node:HTMLElement}|null>(null),activeRef=useRef(active),generation=useRef(0);
   activeRef.current=active;
   const pendingSeek=useRef<number|null>(null);
+  const startedPlayback=useRef(false),startupDeadline=useRef(0);
   const close=useCallback(()=>{generation.current++;pendingSeek.current=null;video.current?.pause();hls.current?.destroy();hls.current=null;setActive(null);setMedia(null);setStatus('idle');setError(null);setNotice('');setTime(0);setDuration(0);},[]);
   useEffect(()=>{if(active && active.scope!==identity.scope)close();},[active,identity.scope,close]);
   const measure=useCallback(()=>{
@@ -41,13 +43,14 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
   useEffect(()=>{
     if(!active || active.scope!==identity.scope)return;
     let alive=true,inFlight=false,timer:ReturnType<typeof setTimeout>|undefined;
-    const version=++generation.current;setStatus('loading');setError(null);setMedia(null);
+    const version=++generation.current;startedPlayback.current=false;startupDeadline.current=0;setStatus('loading');setError(null);setMedia(null);
     const load=async()=>{
       if(!alive || version!==generation.current||inFlight)return;
       inFlight=true;clearTimeout(timer);
       try{
         const value=await getLivePlayback(client,active.session.id);
         if(!alive || version!==generation.current)return;
+        if(!startupDeadline.current)startupDeadline.current=Date.now()+45000;
         setMedia(value);setError(null);
         const refresh=Math.max(5000,Math.min(90000,Date.parse(value.expires_at)-Date.now()-20000-Math.random()*5000));
         timer=setTimeout(()=>{if(document.visibilityState==='visible'||document.pictureInPictureElement)void load();},refresh);
@@ -59,10 +62,21 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
   },[active?.session.id,active?.scope,identity.scope,client,retry]);
   useEffect(()=>{
     const element=video.current;if(!element||!media)return;
-    let alive=true;const before=element.currentTime,wasPlaying=!element.paused;
+    let alive=true,nativeRetries=0,recoveryTimer:ReturnType<typeof setTimeout>|undefined;const before=element.currentTime,wasPlaying=!element.paused;
+    const canWarmUp=()=>alive&&media.live&&!startedPlayback.current&&navigator.onLine!==false&&Date.now()<Math.min(startupDeadline.current,Date.parse(media.expires_at)-5000);
+    const retryEarlyObject:NonNullable<RetryConfig['shouldRetry']>=(config,count,_timeout,response,retry)=>retry||!!(config&&count<config.maxNumRetry&&canWarmUp()&&(response?.code===403||response?.code===404));
+    const nativeError=()=>{
+      if(element.dataset.livePlaybackEngine==='native'&&nativeRetries<6&&canWarmUp()){
+        nativeRetries++;setStatus('loading');setError(null);
+        clearTimeout(recoveryTimer);recoveryTimer=setTimeout(()=>{if(!alive)return;if(!canWarmUp()){setError('The stream could not play. Retry to reconnect.');setStatus('error');return;}element.load();void element.play().catch(()=>undefined);},Math.min(6000,1000*2**(nativeRetries-1))+Math.random()*500);
+        return;
+      }
+      setError('The stream could not play. Retry to reconnect.');setStatus('error');
+    };
     const restore=()=>{if(!alive)return;const position=pendingSeek.current??before;pendingSeek.current=null;if(!media.live&&position>0&&Number.isFinite(element.duration))element.currentTime=Math.min(position,element.duration);if(wasPlaying||before===0)void element.play().catch(()=>{if(alive)setStatus('ready');});};
     // Register before attaching a source so a cached manifest cannot race this listener.
     element.addEventListener('loadedmetadata',restore,{once:true});
+    element.addEventListener('error',nativeError);
     delete element.dataset.livePlaybackFailure;
     const attach=async()=>{
       hls.current?.destroy();hls.current=null;
@@ -71,7 +85,11 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
       const {default:HlsPlayer}=await import('hls.js');if(!alive)return;
       if(HlsPlayer.isSupported()){
         element.dataset.livePlaybackEngine='mse';
-        const engine=new HlsPlayer({enableWorker:true,lowLatencyMode:true,maxBufferLength:20,maxMaxBufferLength:30,backBufferLength:15,manifestLoadingMaxRetry:2,fragLoadingMaxRetry:2});hls.current=engine;
+        // Daily publishes the master before the first rendition. S3 returns 403
+        // for a missing private object, so allow only a bounded first-frame wait.
+        // Every retry still uses the same short-lived, scoped CDN capability.
+        const startupPolicy={maxTimeToFirstByteMs:10000,maxLoadTimeMs:20000,timeoutRetry:{maxNumRetry:2,retryDelayMs:1000,maxRetryDelayMs:6000},errorRetry:{maxNumRetry:6,retryDelayMs:1000,maxRetryDelayMs:6000,shouldRetry:retryEarlyObject}};
+        const engine=new HlsPlayer({enableWorker:true,lowLatencyMode:true,maxBufferLength:20,maxMaxBufferLength:30,backBufferLength:15,manifestLoadPolicy:{default:startupPolicy},playlistLoadPolicy:{default:startupPolicy},fragLoadingMaxRetry:2});hls.current=engine;
         engine.on(HlsPlayer.Events.ERROR,(_event,detail)=>{
           if(!alive)return;
           // Only an enumerated error category, never a signed URL or provider payload.
@@ -88,7 +106,7 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
       }
     };
     void attach().catch(()=>{if(alive){setError('The video player could not load. Retry to reconnect.');setStatus('error');}});
-    return()=>{alive=false;element.removeEventListener('loadedmetadata',restore);hls.current?.destroy();hls.current=null;};
+    return()=>{alive=false;clearTimeout(recoveryTimer);element.removeEventListener('loadedmetadata',restore);element.removeEventListener('error',nativeError);hls.current?.destroy();hls.current=null;};
   },[media]);
   useEffect(()=>()=>{video.current?.pause();hls.current?.destroy();},[]);
   const open=useCallback((session:LiveSession,startAt?:number)=>{
@@ -104,7 +122,7 @@ export function LivePlaybackProvider({children}:{children:React.ReactNode}) {
   const floating=dock||!rect||rect.bottom<60||rect.top>windowHeight();
   const style:CSSProperties=floating?{position:'fixed',right:16,bottom:90,width:'min(360px, calc(100vw - 32px))',zIndex:70}:{position:'fixed',left:rect!.left,top:rect!.top,width:rect!.width,height:rect!.height,zIndex:25};
   return <Context.Provider value={value}>{children}{active&&active.scope===identity.scope?<div ref={host} style={style} className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-lg" data-live-player data-floating={floating}>
-    <div className="relative aspect-video h-full max-h-full"><video ref={video} controls playsInline autoPlay preload="metadata" poster={media?.poster_url||undefined} className="h-full w-full bg-black object-contain" aria-label={active.session.title} onTimeUpdate={e=>{const next=Math.floor(e.currentTarget.currentTime*10)/10;setTime(previous=>Math.floor(previous)===Math.floor(next)?previous:next);}} onDurationChange={e=>setDuration(Number.isFinite(e.currentTarget.duration)?e.currentTarget.duration:0)} onPlaying={()=>{setStatus('playing');setError(null);}} onWaiting={()=>setStatus('buffering')} onPause={()=>setStatus('paused')} onError={()=>{setError('The stream could not play. Retry to reconnect.');setStatus('error');}}>
+    <div className="relative aspect-video h-full max-h-full"><video ref={video} controls playsInline autoPlay preload="metadata" poster={media?.poster_url||undefined} className="h-full w-full bg-black object-contain" aria-label={active.session.title} onTimeUpdate={e=>{const next=Math.floor(e.currentTarget.currentTime*10)/10;setTime(previous=>Math.floor(previous)===Math.floor(next)?previous:next);}} onDurationChange={e=>setDuration(Number.isFinite(e.currentTarget.duration)?e.currentTarget.duration:0)} onPlaying={()=>{startedPlayback.current=true;setStatus('playing');setError(null);}} onWaiting={()=>setStatus('buffering')} onPause={()=>setStatus('paused')}>
       {media?.tracks.map(track=><track key={track.src} kind="subtitles" src={track.src} srcLang={track.language} label={track.label}/>)}
     </video>
     {!media||error?<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 p-5 text-center text-white"><p role={error?'alert':'status'} className="text-sm">{error||'Connecting to stream…'}</p>{error?<button type="button" onClick={()=>setRetry(n=>n+1)} className="mt-4 min-h-11 rounded-full bg-white px-5 text-sm font-semibold text-black">Retry playback</button>:null}</div>:null}

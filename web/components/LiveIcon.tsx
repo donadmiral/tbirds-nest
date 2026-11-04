@@ -1,7 +1,8 @@
 import type { SVGProps } from 'react';
 export function LiveIcon({ size = 24, ...props }: SVGProps<SVGSVGElement> & { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
-    <path d="M5 6a8.5 8.5 0 0 0 0 12M2.5 3a12.5 12.5 0 0 0 0 18M19 6a8.5 8.5 0 0 1 0 12M21.5 3a12.5 12.5 0 0 1 0 18" />
-    <path d="m10 8 6 4-6 4Z" fill="currentColor" stroke="none" />
+  return <svg width={Math.round(size * 44 / 24)} height={size} viewBox="0 0 44 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" {...props}>
+    <rect x="1" y="2" width="33" height="20" rx="5" />
+    <path d="m34 9 8-4v14l-8-4" />
+    <path d="M6 8v8h4M13 8v8M17 8l3 8 3-8M31 8h-5v8h5M26 12h4" strokeWidth="1.6" />
   </svg>;
 }

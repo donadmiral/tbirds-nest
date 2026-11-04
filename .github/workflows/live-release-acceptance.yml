@@ -27,12 +27,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes ffmpeg
-          node web/node_modules/playwright/cli.js install --with-deps chromium
+          node web/node_modules/playwright/cli.js install-deps chromium
           bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/live-browser"
       - name: Exercise existing Live components with controlled services
         run: |
           LIVE_BROWSER_EVIDENCE=/tmp/live-start-evidence node web/tests/browser/live-start-run.cjs
           LIVE_BROWSER_EVIDENCE=/tmp/live-playback-evidence node web/tests/browser/live-run.cjs
+          LIVE_STARTUP_FAILURE=1 LIVE_BROWSER_EVIDENCE=/tmp/live-startup-rendition-evidence node web/tests/browser/live-run.cjs
       - name: Retain browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -41,6 +42,7 @@ jobs:
           path: |
             /tmp/live-start-evidence/
             /tmp/live-playback-evidence/
+            /tmp/live-startup-rendition-evidence/
           if-no-files-found: ignore
           retention-days: 3
   connected-host-viewer:
@@ -55,7 +57,10 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: {node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json}
       - run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
-      - run: node web/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Install verified browser runtime
+        run: |
+          node web/node_modules/playwright/cli.js install-deps chromium
+          bash scripts/quality/install-browser-test-runtime.sh "$RUNNER_TEMP/live-browser"
       - name: Real QA host, follower, outsider and streaming provider acceptance
         env:
           LIVE_CONNECTED_EVIDENCE: /tmp/live-connected-evidence

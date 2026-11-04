@@ -6,7 +6,10 @@ on:
       - supabase/migrations/*live_control_result_unambiguous.sql
       - supabase/tests/rpc-authorization/test-live-control-result.mjs
       - supabase/functions/live-core/**
+      - supabase/functions/live-maintenance/**
+      - supabase/functions/_shared/dailyCommandAcknowledgement.ts
       - supabase/tests/live-command-ack.test.cjs
+      - supabase/tests/live-provider.test.cjs
       - supabase/tests/live-provider-diagnostics.test.cjs
       - .github/workflows/live-runtime-reliability.yml
   workflow_dispatch:

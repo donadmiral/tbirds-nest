@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, CalendarDays, ImagePlus, Video } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ImagePlus } from 'lucide-react';
+import { LiveIcon } from '@/components/LiveIcon';
 import { createClient } from '@/lib/supabase/client';
 import { getNavigationStore } from '@/lib/navigationCache';
 import { liveCommand, liveInvoke, liveError } from '@/lib/liveApi';
@@ -89,7 +90,7 @@ export default function NewLivePage() {
         {checked && !allowed ? <p role="status" className="text-sm text-muted">{ready ? 'Broadcasting is not enabled in this environment. You can still select Schedule for later.' : 'Stream creation is unavailable.'}</p> : null}
         {error ? <p role="alert" className="text-sm text-ink">{draftId ? 'Your stream is saved. ' : ''}{error}</p> : null}
         {checked && (!allowed || error) ? <button type="button" disabled={busy} onClick={() => setRevision(value => value + 1)} className="min-h-11 text-sm font-semibold text-ink underline">Retry setup</button> : null}
-        <div className="flex flex-wrap gap-3"><button type="submit" disabled={!allowed || busy} className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-ink px-6 text-sm font-semibold text-[var(--canvas)] disabled:opacity-40"><Video size={18} />{busy ? scheduled ? 'Scheduling…' : 'Opening preview…' : draftId ? 'Retry cover upload' : scheduled ? 'Schedule stream' : 'Preview camera'}</button>{draftId ? <Link href={destination(draftId)} className="inline-flex min-h-12 items-center px-4 text-sm font-semibold text-ink underline">Open saved stream</Link> : null}</div>
+        <div className="flex flex-wrap gap-3"><button type="submit" disabled={!allowed || busy} className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-ink px-6 text-sm font-semibold text-[var(--canvas)] disabled:opacity-40"><LiveIcon size={20} />{busy ? scheduled ? 'Scheduling…' : 'Opening preview…' : draftId ? 'Retry cover upload' : scheduled ? 'Schedule stream' : 'Preview camera'}</button>{draftId ? <Link href={destination(draftId)} className="inline-flex min-h-12 items-center px-4 text-sm font-semibold text-ink underline">Open saved stream</Link> : null}</div>
       </div>
     </form>}
   </div>;

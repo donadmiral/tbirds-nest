@@ -1,4 +1,6 @@
 import { buildLiveLayout, hlsEndpoint, safeHttpsOrigin, sha256, validPlaybackPath, validScene, validUuid, verifyDailyWebhook, type LiveProviderConfig, type ProviderContext, type Presence } from './provider.ts';
+import { dailyCommandAccepted } from '../_shared/dailyCommandAcknowledgement.ts';
+export { dailyCommandAccepted } from '../_shared/dailyCommandAcknowledgement.ts';
 type RpcResult = { data: unknown; error: { message?: string } | null };
 type Rpc = { rpc(name: string, args?: Record<string, unknown>): PromiseLike<RpcResult> };
 type Caller = Rpc & { auth: { getUser(): PromiseLike<{ data: { user: { id: string; is_anonymous?: boolean } | null }; error: unknown }> } };
@@ -8,14 +10,6 @@ const headers = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Head
   'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store, max-age=0', 'CDN-Cache-Control': 'no-store' };
 const json = (status: number, value: unknown) => new Response(JSON.stringify(value), { status, headers });
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
-// Daily acknowledges command delivery as status:'sent'. Older responses used sent.
-// Neither form confirms media delivery. Only verified provider events set LIVE.
-export function dailyCommandAccepted(value: unknown): boolean {
-  if (!object(value) || value.error) return false;
-  if (value.status !== undefined && value.status !== 'sent') return false;
-  if (value.sent !== undefined && value.sent !== true && value.sent !== 'true') return false;
-  return value.status === 'sent' || value.sent === true || value.sent === 'true';
-}
 async function boundedText(body: ReadableStream<Uint8Array> | null, max: number): Promise<string> {
   if (!body) return '';
   const reader=body.getReader();const chunks:Uint8Array[]=[];let size=0;
